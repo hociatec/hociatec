@@ -1,0 +1,73 @@
+/* 🔹 Modale moderne (centrée, fond flou) */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+  }
+  
+  .modal-container {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    animation: zoomIn 0.25s ease;
+    text-align: center;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .recap-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 1.5rem;
+    text-align: left;
+  }
+  
+  .recap-list li {
+    margin: 0.4rem 0;
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  /* 🔹 Navigation calendrier */
+  .calendar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .calendar-nav button {
+    background: #e8f0fe;
+    border: 1px solid #c0c0c0;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .calendar-nav button:hover {
+    background: #d2e3fc;
+  }
+  

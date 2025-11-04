@@ -1,0 +1,16 @@
+framework:
+    messenger:
+        default_bus: messenger.bus.default
+        transports:
+            # Example DSN for doctrine transport:
+            # async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            # Use DSN from env; define MESSENGER_TRANSPORT_DSN in .env
+            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+        routing:
+            App\Module\Order\Message\OrderCreatedMessage: async
+            App\Module\Order\Message\OrderStatusChangedMessage: async
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - doctrine_ping_connection
+                    - doctrine_transaction

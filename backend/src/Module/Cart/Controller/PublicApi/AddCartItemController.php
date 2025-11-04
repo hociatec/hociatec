@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Cart\Controller\PublicApi;
+
+use App\Module\Cart\Service\CartFormatter;
+use App\Module\Cart\Service\CartService;
+use App\Module\Catalog\Repository\ProductRepository;
+use App\Shared\Http\ApiResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\Annotation\RateLimiter;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/public/cart/items', name: 'api_public_cart_add_item', methods: ['POST'])]
+#[RateLimiter('public_api')]
+class AddCartItemController extends AbstractController
+{
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly ProductRepository $productRepository,
+    ) {
+    }
+
+    public function __invoke(Request $request): JsonResponse
+    {
+        $payload = json_decode($request->getContent() ?: '[]', true);
+
+        if (!is_array($payload) || !isset($payload['productId'])) {
+            return ApiResponse::error('Produit manquant.', JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $productId = (int) $payload['productId'];
+
+        $product = $this->productRepository->find($productId);
+        if ($product === null || !$product->isPublished()) {
+            return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $quantity = isset($payload['quantity']) ? (int) $payload['quantity'] : 1;
+        if ($quantity < 1) {
+            $quantity = 1;
+        }
+
+        $token = $this->extractToken($request, $payload);
+        $cart = $this->cartService->addProduct($token, $product, $quantity);
+
+        $response = ApiResponse::success([
+            'cart' => CartFormatter::formatCart($cart),
+        ]);
+
+        $response->headers->set('X-Cart-Token', $cart->getToken());
+
+        return $response;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function extractToken(Request $request, array $payload): ?string
+    {
+        $headerToken = $request->headers->get('X-Cart-Token');
+
+        if (is_string($headerToken) && $headerToken !== '') {
+            return $headerToken;
+        }
+
+        if (isset($payload['cartToken']) && is_string($payload['cartToken']) && $payload['cartToken'] !== '') {
+            return $payload['cartToken'];
+        }
+
+        return null;
+    }
+}

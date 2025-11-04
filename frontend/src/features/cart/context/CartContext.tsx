@@ -1,0 +1,255 @@
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from 'react';
+
+import {
+  addCartItem,
+  CartApiError,
+  fetchCart,
+  removeCartItem,
+  updateCartItemQuantity,
+  clearCart as clearCartRequest,
+} from '@/features/cart/api';
+import type { Cart, CartStatus } from '@/features/cart/types';
+import {
+  clearCartToken,
+  getPersistedCartToken,
+} from '@/shared/lib/httpClient';
+import { useToast } from '@/shared/components/ui/toast';
+
+interface CartContextValue {
+  cart: Cart | null;
+  status: CartStatus;
+  error: string | null;
+  addItem: (productId: number, quantity?: number) => Promise<void>;
+  removeItem: (productId: number) => Promise<void>;
+  setItemQuantity: (productId: number, quantity: number) => Promise<void>;
+  clear: () => Promise<void>;
+  refresh: () => Promise<void>;
+  isProductInCart: (productId: number) => boolean;
+  isProductPending: (productId: number) => boolean;
+  isClearing: boolean;
+}
+
+const rejectedPromise = async () => {
+  throw new Error('CartProvider not mounted');
+};
+
+const defaultValue: CartContextValue = {
+  cart: null,
+  status: 'idle',
+  error: null,
+  addItem: rejectedPromise,
+  removeItem: rejectedPromise,
+  setItemQuantity: rejectedPromise,
+  clear: rejectedPromise,
+  refresh: rejectedPromise,
+  isProductInCart: () => false,
+  isProductPending: () => false,
+  isClearing: false,
+};
+
+export const CartContext = createContext<CartContextValue>(defaultValue);
+
+export const CartProvider = ({ children }: PropsWithChildren) => {
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [status, setStatus] = useState<CartStatus>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const [pendingProductIds, setPendingProductIds] = useState<number[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
+  const toast = useToast();
+
+  const setPending = useCallback((productId: number, pending: boolean) => {
+    setPendingProductIds((previous) => {
+      const next = new Set(previous);
+      if (pending) {
+        next.add(productId);
+      } else {
+        next.delete(productId);
+      }
+      return Array.from(next);
+    });
+  }, []);
+
+  const handleCartError = useCallback((err: unknown) => {
+    const message =
+      err instanceof Error
+        ? err.message
+        : 'Une erreur est survenue lors de la mise a jour du panier.';
+
+    if (
+      err instanceof CartApiError &&
+      (err.code === 'cart_not_found' || err.code === 'token_missing')
+    ) {
+      clearCartToken();
+      setCart(null);
+    }
+
+    setError(message);
+
+    return message;
+  }, []);
+
+  useEffect(() => {
+    const initializeCart = async () => {
+      const existingToken = getPersistedCartToken();
+
+      if (!existingToken) {
+        setStatus('ready');
+        setCart(null);
+        setError(null);
+        return;
+      }
+
+      setStatus('loading');
+
+      try {
+        const currentCart = await fetchCart();
+        setCart(currentCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+      } finally {
+        setStatus('ready');
+      }
+    };
+
+    void initializeCart();
+  }, [handleCartError, toast]);
+
+  const addItem = useCallback(
+    async (productId: number, quantity = 1) => {
+      setPending(productId, true);
+      try {
+        const updatedCart = await addCartItem(productId, quantity);
+        setCart(updatedCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+        throw err;
+      } finally {
+        setPending(productId, false);
+      }
+    },
+    [handleCartError, setPending],
+  );
+
+  const removeItem = useCallback(
+    async (productId: number) => {
+      setPending(productId, true);
+      try {
+        const updatedCart = await removeCartItem(productId);
+        setCart(updatedCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+        throw err;
+      } finally {
+        setPending(productId, false);
+      }
+    },
+    [handleCartError, setPending],
+  );
+
+  const refresh = useCallback(async () => {
+    const existingToken = getPersistedCartToken();
+
+    if (!existingToken) {
+      setCart(null);
+      setError(null);
+      setStatus('ready');
+      return;
+    }
+
+    setStatus('loading');
+    try {
+      const currentCart = await fetchCart();
+      setCart(currentCart);
+      setError(null);
+    } catch (err) {
+      handleCartError(err);
+    } finally {
+      setStatus('ready');
+    }
+  }, [handleCartError]);
+
+  const setItemQuantity = useCallback(
+    async (productId: number, quantity: number) => {
+      setPending(productId, true);
+      try {
+        const updatedCart = await updateCartItemQuantity(productId, quantity);
+        setCart(updatedCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+        throw err;
+      } finally {
+        setPending(productId, false);
+      }
+    },
+    [handleCartError, setPending],
+  );
+
+  const clear = useCallback(async () => {
+    setIsClearing(true);
+    try {
+      const updatedCart = await clearCartRequest();
+      setPendingProductIds([]);
+      setCart(updatedCart);
+      setError(null);
+      toast.show('Panier vidé avec succès.', { variant: 'success' });
+    } catch (err) {
+      const message = handleCartError(err);
+      toast.show(message || 'Impossible de vider le panier.', { variant: 'error' });
+      throw err;
+    } finally {
+      setIsClearing(false);
+    }
+  }, [handleCartError]);
+
+  const isProductInCart = useCallback(
+    (productId: number) =>
+      cart?.items.some((item) => item.product.id === productId) ?? false,
+    [cart],
+  );
+
+  const isProductPending = useCallback(
+    (productId: number) => pendingProductIds.includes(productId),
+    [pendingProductIds],
+  );
+
+  const value = useMemo(
+    () => ({
+      cart,
+      status,
+      error,
+      addItem,
+      removeItem,
+      setItemQuantity,
+      clear,
+      refresh,
+      isProductInCart,
+      isProductPending,
+      isClearing,
+    }),
+    [
+      addItem,
+      clear,
+      cart,
+      error,
+      isProductInCart,
+      isProductPending,
+      refresh,
+      setItemQuantity,
+      status,
+      isClearing,
+    ],
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+};

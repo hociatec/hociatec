@@ -1,0 +1,15 @@
+framework:
+    rate_limiter:
+        public_api:
+            policy: 'sliding_window'
+            limit: 60
+            interval: '1 minute'
+            # identify by IP by default
+        checkout:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '10 minutes'
+        activation_verify:
+            policy: 'fixed_window'
+            limit: 5
+            interval: '1 minute'

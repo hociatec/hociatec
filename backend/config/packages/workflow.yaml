@@ -1,0 +1,21 @@
+framework:
+    workflows:
+        order_status:
+            type: 'state_machine'
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Module\Order\Entity\Order
+            places: ['pending', 'confirmed', 'delivered', 'cancelled']
+            transitions:
+                confirm:
+                    from: 'pending'
+                    to:   'confirmed'
+                deliver:
+                    from: 'confirmed'
+                    to:   'delivered'
+                cancel:
+                    from: 'pending'
+                    to:   'cancelled'
+
