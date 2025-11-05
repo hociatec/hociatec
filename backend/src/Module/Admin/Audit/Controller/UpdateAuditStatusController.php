@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Admin\Audit\Controller;
+
+use App\Module\Audit\Entity\AuditRequest;
+use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Shared\Http\ApiResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/admin/audits/{id}/status', name: 'api_admin_audits_update_status', methods: ['PUT'])]
+#[IsGranted('ROLE_ADMIN')]
+class UpdateAuditStatusController extends AbstractController
+{
+    public function __construct(
+        private readonly AuditRequestRepository $repository,
+        private readonly EntityManagerInterface $em,
+    ) {}
+
+    public function __invoke(int $id, Request $request): JsonResponse
+    {
+        $audit = $this->repository->find($id);
+        if ($audit === null) {
+            return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
+        }
+        $payload = json_decode((string) $request->getContent(), true) ?? [];
+        $status = (string) ($payload['status'] ?? '');
+
+        $allowed = [
+            AuditRequest::STATUS_NEW,
+            AuditRequest::STATUS_IN_PROGRESS,
+            AuditRequest::STATUS_REVIEW,
+            AuditRequest::STATUS_DONE,
+        ];
+        if (!in_array($status, $allowed, true)) {
+            return ApiResponse::error('Statut invalide.');
+        }
+
+        $audit->setStatus($status);
+        $this->em->flush();
+
+        return ApiResponse::success(['status' => $audit->getStatus()]);
+    }
+}
+

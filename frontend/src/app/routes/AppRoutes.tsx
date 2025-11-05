@@ -32,6 +32,11 @@ import { MyOrdersPage } from '@/features/orders/pages/MyOrdersPage';
 import { OrderDetailPage } from '@/features/orders/pages/OrderDetailPage';
 import { ContactPage } from '@/features/contact/pages/ContactPage';
 import { ActivationPage } from '@/features/auth/pages/ActivationPage';
+import { RequestAuditPage } from '@/features/audits/pages/RequestAuditPage';
+import { MyAuditsPage } from '@/features/audits/pages/MyAuditsPage';
+import { MyAuditDetailPage } from '@/features/audits/pages/MyAuditDetailPage';
+import { AdminAuditsListPage } from '@/features/admin/audits/pages/AdminAuditsListPage';
+import { AdminAuditDetailPage } from '@/features/admin/audits/pages/AdminAuditDetailPage';
 
 export const AppRoutes = () => (
   <Routes>
@@ -100,6 +105,31 @@ export const AppRoutes = () => (
     />
 
     <Route
+      path="/audits/request"
+      element={
+        <ProtectedRoute>
+          <RequestAuditPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/audits/me"
+      element={
+        <ProtectedRoute>
+          <MyAuditsPage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/audits/me/:auditId"
+      element={
+        <ProtectedRoute>
+          <MyAuditDetailPage />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
       path="/admin/*"
       element={
         <ProtectedRoute>
@@ -139,6 +169,10 @@ export const AppRoutes = () => (
       </Route>
       <Route path="orders">
         <Route index element={<OrdersListPage />} />
+      </Route>
+      <Route path="audits">
+        <Route index element={<AdminAuditsListPage />} />
+        <Route path=":auditId" element={<AdminAuditDetailPage />} />
       </Route>
     </Route>
 
