@@ -140,6 +140,20 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
             Mes devis
           </Link>
           <Link
+            to="/audits/me"
+            className="site-header__account-item"
+            onClick={() => closeMenu({ focusTrigger: false })}
+          >
+            Mes audits
+          </Link>
+          <Link
+            to="/audits/request"
+            className="site-header__account-item"
+            onClick={() => closeMenu({ focusTrigger: false })}
+          >
+            Demander un audit
+          </Link>
+          <Link
             to="/orders/me"
             className="site-header__account-item"
             onClick={() => closeMenu({ focusTrigger: false })}

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto } from '../api';
+import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto } from '../api';
 
 const statusLabel = (s: string) => ({
   new: 'non commencé',
@@ -29,6 +29,16 @@ export const MyAuditDetailPage = () => {
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const grouped = useMemo(() => {
+    if (!data) return {} as Record<string, AuditItemDto[]>;
+    const map: Record<string, AuditItemDto[]> = {};
+    for (const it of (data.items as AuditItemDto[]).sort((a, b) => a.position - b.position)) {
+      map[it.category] = map[it.category] ?? [];
+      map[it.category].push(it);
+    }
+    return map;
+  }, [data]);
 
   // Lightweight polling to refresh audit detail
   useEffect(() => {
@@ -76,20 +86,21 @@ export const MyAuditDetailPage = () => {
                 <p className="whitespace-pre-wrap">{data.objectives}</p>
               </div>
             )}
-            <div>
-              <div className="font-medium mb-2">Critères évalués</div>
-              <ul className="space-y-2">
-                {data.items
-                  .sort((a, b) => a.position - b.position)
-                  .map((it) => (
-                    <li key={it.id} className="p-3 border rounded">
-                      <div className="text-sm uppercase text-gray-600">{it.category}</div>
-                      <div className="font-medium">{it.label}{it.level ? ` (${it.level})` : ''}</div>
-                      <div className="text-sm">Conformité: {it.isCompliant === null ? 'à évaluer' : it.isCompliant ? 'conforme' : 'non conforme'}</div>
-                      {it.comment && <div className="text-sm text-gray-700">Commentaire: {it.comment}</div>}
-                    </li>
-                  ))}
-              </ul>
+            <div className="space-y-6">
+              {Object.entries(grouped).map(([cat, items]) => (
+                <div key={cat}>
+                  <div className="uppercase text-xs text-gray-600 mb-2">{cat}</div>
+                  <ul className="space-y-2">
+                    {items.map((it) => (
+                      <li key={it.id} className="p-3 border rounded">
+                        <div className="font-medium">{it.label}{it.level ? ` (${it.level})` : ''}</div>
+                        <div className="text-sm">Conformité: {it.isCompliant === null ? 'à évaluer' : it.isCompliant ? 'conforme' : 'non conforme'}</div>
+                        {it.comment && <div className="text-sm text-gray-700">Commentaire: {it.comment}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
             {Array.isArray((data as any).events) && (data as any).events.length > 0 && (
               <div>

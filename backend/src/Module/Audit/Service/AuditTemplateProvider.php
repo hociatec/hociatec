@@ -72,10 +72,18 @@ class AuditTemplateProvider
                 ['key' => 'metrics', 'label' => 'Core Web Vitals (LCP, CLS, INP)'],
                 ['key' => 'caching', 'label' => 'Cache HTTP et CDN configurés'],
                 ['key' => 'assets', 'label' => 'Minification/concaténation des ressources'],
+                ['key' => 'code_split', 'label' => 'Code splitting et lazy loading configurés'],
+                ['key' => 'preload', 'label' => 'Préchargement/préconnexion (preload, preconnect) pertinents'],
             ],
             'Ressources' => [
                 ['key' => 'images', 'label' => 'Images optimisées (formats modernes, lazyload)'],
                 ['key' => 'third_party', 'label' => 'Scripts tiers contrôlés et différés'],
+                ['key' => 'fonts', 'label' => 'Polices optimisées (display swap, subset, self-hosted)'],
+            ],
+            'Réseau' => [
+                ['key' => 'http2', 'label' => 'HTTP/2 ou HTTP/3 activé'],
+                ['key' => 'compression', 'label' => 'Compression (Gzip/Brotli) activée'],
+                ['key' => 'server_timing', 'label' => 'Server-Timing et budgets de performance suivis'],
             ],
         ];
     }
@@ -91,6 +99,12 @@ class AuditTemplateProvider
             'Application' => [
                 ['key' => 'auth', 'label' => 'Auth/RBAC conformes, sessions sécurisées'],
                 ['key' => 'vulns', 'label' => 'Absence de vulnérabilités connues (dépendances)'],
+                ['key' => 'input_validation', 'label' => 'Validation/échappement des entrées (XSS, injections)'],
+                ['key' => 'csrf', 'label' => 'Protection CSRF sur actions sensibles'],
+            ],
+            'Secrets & Données' => [
+                ['key' => 'secrets', 'label' => 'Secrets gérés (vault, env), pas en clair'],
+                ['key' => 'backup', 'label' => 'Sauvegardes et restauration testées'],
             ],
         ];
     }
@@ -106,6 +120,11 @@ class AuditTemplateProvider
             'Parcours' => [
                 ['key' => 'navigation', 'label' => 'Navigation claire et cohérente'],
                 ['key' => 'feedback', 'label' => 'Feedback explicite des actions'],
+                ['key' => 'empty_states', 'label' => 'Écrans vides et erreurs pédagogiques'],
+            ],
+            'Mobile' => [
+                ['key' => 'responsive', 'label' => 'Responsive design et points de rupture adaptés'],
+                ['key' => 'touch_targets', 'label' => 'Cibles tactiles confortables'],
             ],
         ];
     }
@@ -117,10 +136,15 @@ class AuditTemplateProvider
             'Indexation' => [
                 ['key' => 'robots', 'label' => 'robots.txt et balises meta robots correctes'],
                 ['key' => 'sitemap', 'label' => 'Sitemap soumis et cohérent'],
+                ['key' => 'canonical', 'label' => 'URLs canoniques et gestion des doublons'],
             ],
             'Contenu' => [
                 ['key' => 'titles', 'label' => 'Titres et meta descriptions uniques'],
                 ['key' => 'schema', 'label' => 'Données structurées (Schema.org)'],
+                ['key' => 'headings', 'label' => 'Structure Hn cohérente et descriptive'],
+            ],
+            'International' => [
+                ['key' => 'hreflang', 'label' => 'Hreflang et ciblage géographique'],
             ],
         ];
     }
@@ -132,10 +156,17 @@ class AuditTemplateProvider
             'Architecture' => [
                 ['key' => 'versioning', 'label' => 'Dépendances et mises à jour à jour'],
                 ['key' => 'logging', 'label' => 'Journalisation et monitoring'],
+                ['key' => 'error_reporting', 'label' => 'Reporting d’erreurs et suivi (Sentry, etc.)'],
             ],
             'Qualité' => [
                 ['key' => 'tests', 'label' => 'Tests, CI/CD et couverture'],
                 ['key' => 'lint', 'label' => 'Linting/formatting configurés'],
+                ['key' => 'code_review', 'label' => 'Revue de code et conventions'],
+            ],
+            'Déploiement' => [
+                ['key' => 'infra_as_code', 'label' => 'Infrastructure as Code (Terraform, Ansible, etc.)'],
+                ['key' => 'backups', 'label' => 'Backups réguliers et procédures de restauration'],
+                ['key' => 'observability', 'label' => 'Métriques, logs et traces corrélées'],
             ],
         ];
     }

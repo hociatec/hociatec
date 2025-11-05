@@ -84,6 +84,15 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
           >
             Créer un devis
           </button>
+          <button
+            type="button"
+            className={`site-header__cta${
+              location.pathname === '/audits/request' ? ' site-header__cta--active' : ''
+            }`}
+            onClick={() => navigate('/audits/request')}
+          >
+            Demander un audit
+          </button>
         </nav>
         <div className="site-header__actions">
           <button
@@ -125,4 +134,3 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
     </header>
   );
 };
-

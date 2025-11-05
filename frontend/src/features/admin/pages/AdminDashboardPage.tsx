@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Layers3, Package, Plus, FileText } from 'lucide-react';
+import { ArrowRight, CalendarDays, Layers3, Package, Plus, FileText, ShieldCheck } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -108,6 +108,18 @@ const sections: Section[] = [
         to: '/admin/quotes/services/new',
         title: 'Nouveau service',
         icon: <Plus className="h-6 w-6 text-brand-400" />,
+      },
+    ],
+  },
+  {
+    id: 'audits',
+    title: 'Audits',
+    subtitle: 'Suivez et évaluez les audits.',
+    links: [
+      {
+        to: '/admin/audits',
+        title: 'Lister les audits',
+        icon: <ShieldCheck className="h-6 w-6 text-brand-400" />,
       },
     ],
   },
