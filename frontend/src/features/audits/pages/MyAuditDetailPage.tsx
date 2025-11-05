@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -18,6 +18,7 @@ export const MyAuditDetailPage = () => {
   const [data, setData] = useState<AuditDetailDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -27,6 +28,20 @@ export const MyAuditDetailPage = () => {
       .then(setData)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  // Lightweight polling to refresh audit detail
+  useEffect(() => {
+    if (!id) return;
+    pollTimer.current = window.setInterval(() => {
+      if (document.hidden) return;
+      void fetchMyAudit(id)
+        .then(setData)
+        .catch(() => {/* silent background error */});
+    }, 10000);
+    return () => {
+      if (pollTimer.current) window.clearInterval(pollTimer.current);
+    };
   }, [id]);
 
   return (

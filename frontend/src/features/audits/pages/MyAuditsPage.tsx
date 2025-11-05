@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { fetchMyAudits, type AuditListItemDto } from '../api';
@@ -25,6 +25,7 @@ export const MyAuditsPage = () => {
   const [items, setItems] = useState<AuditListItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollTimer = useRef<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -33,6 +34,20 @@ export const MyAuditsPage = () => {
       .then(setItems)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
+  }, []);
+
+  // Lightweight polling to keep statuses up-to-date
+  useEffect(() => {
+    // Poll every 15s when tab is visible
+    pollTimer.current = window.setInterval(() => {
+      if (document.hidden) return;
+      void fetchMyAudits()
+        .then(setItems)
+        .catch(() => {/* silent background error */});
+    }, 15000);
+    return () => {
+      if (pollTimer.current) window.clearInterval(pollTimer.current);
+    };
   }, []);
 
   return (
@@ -60,4 +75,3 @@ export const MyAuditsPage = () => {
     </SiteLayout>
   );
 };
-
