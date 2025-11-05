@@ -1,11 +1,17 @@
 import { FormEvent, useState } from 'react';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { sendContactMessage } from '../api/contactApi';
 
 export const ContactPage = () => {
   useDocumentTitle('Contact');
+  useMetaTags({
+    title: 'Contact — hociatec',
+    description: 'Contactez-nous pour vos projets, devis, rendez-vous et audits.',
+    type: 'website',
+  });
   const toast = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -94,4 +100,3 @@ export const ContactPage = () => {
     </SiteLayout>
   );
 };
-

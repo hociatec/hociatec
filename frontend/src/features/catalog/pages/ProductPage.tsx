@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { fetchPublicProduct, type CatalogProduct } from '../api';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 
 import './CatalogPages.css';
@@ -36,6 +37,12 @@ export const ProductPage = () => {
   const [activeSlide, setActiveSlide] = useState(0);
 
   useDocumentTitle(product ? `${product.name} - Catalogue` : 'Produit - Catalogue');
+  useMetaTags({
+    title: product ? `${product.name} — Catalogue` : 'Produit - Catalogue',
+    description: product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
+    imageUrl: product?.imageUrl ?? undefined,
+    type: 'product',
+  });
 
   useEffect(() => {
     if (!slug) return;
@@ -251,5 +258,4 @@ export const ProductPage = () => {
     </SiteLayout>
   );
 };
-
 

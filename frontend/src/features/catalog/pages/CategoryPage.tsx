@@ -5,6 +5,7 @@ import { ProductCard } from '../components/ProductCard';
 import { fetchPublicCategory, type CategoryWithProducts } from '../api';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
 
@@ -21,6 +22,11 @@ export const CategoryPage = () => {
   useDocumentTitle(
     data?.category ? `${data.category.name} - Catalogue` : 'Catalogue - Categorie',
   );
+  useMetaTags({
+    title: data?.category ? `${data.category.name} — Catalogue` : 'Catalogue - Catégorie',
+    description: data?.category?.description ?? 'Découvrez nos solutions par catégorie.',
+    type: 'website',
+  });
 
   useEffect(() => {
     if (!slug) return;
@@ -103,5 +109,4 @@ export const CategoryPage = () => {
     </SiteLayout>
   );
 };
-
 
