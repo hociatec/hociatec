@@ -6,6 +6,7 @@ namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Entity\AuditRequest;
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class UpdateAuditStatusController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $repository,
         private readonly EntityManagerInterface $em,
+        private readonly AuditEventLogger $events,
     ) {}
 
     public function __invoke(int $id, Request $request): JsonResponse
@@ -43,10 +45,15 @@ class UpdateAuditStatusController extends AbstractController
             return ApiResponse::error('Statut invalide.');
         }
 
+        $old = $audit->getStatus();
         $audit->setStatus($status);
         $this->em->flush();
+
+        // Log event
+        /** @var \App\Module\User\Entity\User|null $actor */
+        $actor = $this->getUser();
+        $this->events->log($audit, $actor, 'status_changed', sprintf('Statut: %s → %s', $old, $status));
 
         return ApiResponse::success(['status' => $audit->getStatus()]);
     }
 }
-

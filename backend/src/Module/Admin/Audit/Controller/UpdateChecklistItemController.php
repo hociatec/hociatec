@@ -6,6 +6,7 @@ namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ class UpdateChecklistItemController extends AbstractController
         private readonly AuditRequestRepository $audits,
         private readonly AuditChecklistItemRepository $items,
         private readonly EntityManagerInterface $em,
+        private readonly AuditEventLogger $events,
     ) {}
 
     public function __invoke(int $auditId, int $itemId, Request $request): JsonResponse
@@ -46,11 +48,30 @@ class UpdateChecklistItemController extends AbstractController
         if ($isCompliant !== null && !is_bool($isCompliant)) {
             return ApiResponse::error('Valeur de conformité invalide.');
         }
-        if ($isCompliant !== null) {
+        $changes = [];
+        if ($isCompliant !== null && $item->getIsCompliant() !== $isCompliant) {
+            $changes[] = sprintf('Conformité: %s → %s',
+                $item->getIsCompliant() === null ? 'n/a' : ($item->getIsCompliant() ? 'oui' : 'non'),
+                $isCompliant ? 'oui' : 'non'
+            );
             $item->setIsCompliant($isCompliant);
         }
-        $item->setComment($comment !== null ? (string) $comment : null);
+        if ($comment !== null && $item->getComment() !== (string) $comment) {
+            $changes[] = 'Commentaire mis à jour';
+            $item->setComment((string) $comment);
+        }
         $this->em->flush();
+
+        if ($changes !== []) {
+            /** @var \App\Module\User\Entity\User|null $actor */
+            $actor = $this->getUser();
+            $this->events->log(
+                $audit,
+                $actor,
+                'item_updated',
+                sprintf('[%s] %s — %s', $item->getCategory(), $item->getLabel(), implode('; ', $changes))
+            );
+        }
 
         return ApiResponse::success([
             'id' => $item->getId(),
@@ -59,4 +80,3 @@ class UpdateChecklistItemController extends AbstractController
         ]);
     }
 }
-

@@ -6,6 +6,7 @@ namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Service\AuditPdfService;
+use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,7 @@ class GeneratePdfController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $audits,
         private readonly AuditPdfService $pdf,
+        private readonly AuditEventLogger $events,
     ) {}
 
     #[Route('/api/admin/audits/{id}/pdf', name: 'api_admin_audits_generate_pdf', methods: ['POST'])]
@@ -32,6 +34,10 @@ class GeneratePdfController extends AbstractController
         } catch (\Throwable $e) {
             return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED, [$e->getMessage()]);
         }
+
+        /** @var \App\Module\User\Entity\User|null $actor */
+        $actor = $this->getUser();
+        $this->events->log($audit, $actor, 'pdf_generated', 'Rapport détaillé');
 
         $filename = sprintf('%s-rapport.pdf', $audit->getNumber());
         $response = new Response($bin);
@@ -53,6 +59,10 @@ class GeneratePdfController extends AbstractController
             return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED, [$e->getMessage()]);
         }
 
+        /** @var \App\Module\User\Entity\User|null $actor */
+        $actor = $this->getUser();
+        $this->events->log($audit, $actor, 'pdf_generated', 'Synthèse PDF');
+
         $filename = sprintf('%s-synthese.pdf', $audit->getNumber());
         $response = new Response($bin);
         $response->headers->set('Content-Type', 'application/pdf');
@@ -60,4 +70,3 @@ class GeneratePdfController extends AbstractController
         return $response;
     }
 }
-

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Audit\Controller\Client;
 
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Repository\AuditEventRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ShowMyAuditController extends AbstractController
 {
-    public function __construct(private readonly AuditRequestRepository $repository) {}
+    public function __construct(
+        private readonly AuditRequestRepository $repository,
+        private readonly AuditEventRepository $events,
+    ) {}
 
     public function __invoke(int $id): JsonResponse
     {
@@ -27,6 +31,8 @@ class ShowMyAuditController extends AbstractController
         if ($audit === null || $audit->getClient()->getId() !== $user->getId()) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
+
+        $events = $this->events->findByAudit($audit, 'DESC');
 
         return ApiResponse::success([
             'id' => $audit->getId(),
@@ -48,6 +54,14 @@ class ShowMyAuditController extends AbstractController
                     'comment' => $it->getComment(),
                 ];
             }, $audit->getItems()->toArray()),
+            'events' => array_map(static function($e) {
+                return [
+                    'id' => $e->getId(),
+                    'type' => $e->getType(),
+                    'message' => $e->getMessage(),
+                    'createdAt' => $e->getCreatedAt()->format(DATE_ATOM),
+                ];
+            }, $events),
         ]);
     }
 }
