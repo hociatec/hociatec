@@ -37,6 +37,7 @@ export const AdminAuditsListPage = () => {
   const [filterType, setFilterType] = useState<'all' | AuditListItemDto['type']>('all');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+  const [sort, setSort] = useState<'date_desc' | 'date_asc' | 'number_asc' | 'number_desc' | 'status_asc' | 'status_desc'>('date_desc');
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -90,6 +91,27 @@ export const AdminAuditsListPage = () => {
     });
   }, [items, search, filterStatus, filterType, fromDate, toDate]);
 
+  const view = useMemo(() => {
+    const list = [...filtered];
+    if (sort === 'date_desc' || sort === 'date_asc') {
+      list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      if (sort === 'date_desc') list.reverse();
+      return list;
+    }
+    if (sort === 'number_asc' || sort === 'number_desc') {
+      list.sort((a, b) => a.number.localeCompare(b.number, 'fr'));
+      if (sort === 'number_desc') list.reverse();
+      return list;
+    }
+    if (sort === 'status_asc' || sort === 'status_desc') {
+      const order: Record<AuditListItemDto['status'], number> = { new: 0, in_progress: 1, review: 2, done: 3 };
+      list.sort((a, b) => order[a.status] - order[b.status]);
+      if (sort === 'status_desc') list.reverse();
+      return list;
+    }
+    return list;
+  }, [filtered, sort]);
+
   return (
     <PageContainer title="Audits">
       <FilterBar>
@@ -120,13 +142,26 @@ export const AdminAuditsListPage = () => {
           ]}
           ariaLabel="Statut"
         />
+        <SelectFilter
+          value={sort}
+          onChange={(v) => setSort(v as any)}
+          options={[
+            { value: 'date_desc', label: 'Date: récent → ancien' },
+            { value: 'date_asc', label: 'Date: ancien → récent' },
+            { value: 'number_asc', label: 'Numéro: A → Z' },
+            { value: 'number_desc', label: 'Numéro: Z → A' },
+            { value: 'status_asc', label: 'Statut: progression' },
+            { value: 'status_desc', label: 'Statut: régression' },
+          ]}
+          ariaLabel="Tri"
+        />
         <DateRangeFilter from={fromDate} to={toDate} onChange={({ from, to }) => { setFromDate(from); setToDate(to); }} />
       </FilterBar>
 
       {loading && <p>Chargement…</p>}
       {error && <div className="text-red-600">{error}</div>}
       <ul className="divide-y">
-        {filtered.map((a) => (
+        {view.map((a) => (
           <li key={a.id} className="py-3 flex items-center justify-between">
             <div>
               <div className="font-medium">{a.number} — {typeLabel(a.type)}</div>
