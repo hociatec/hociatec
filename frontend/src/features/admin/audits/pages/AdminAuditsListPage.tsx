@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -27,6 +27,7 @@ export const AdminAuditsListPage = () => {
   const [items, setItems] = useState<AuditListItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -36,6 +37,18 @@ export const AdminAuditsListPage = () => {
       .then(setItems)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
+  }, [isAdmin]);
+
+  // Poll list every 15s (only when tab is visible and admin)
+  useEffect(() => {
+    if (!isAdmin) return;
+    pollTimer.current = window.setInterval(() => {
+      if (document.hidden) return;
+      void adminFetchAudits()
+        .then(setItems)
+        .catch(() => {/* background refresh errors ignored */});
+    }, 15000);
+    return () => { if (pollTimer.current) window.clearInterval(pollTimer.current); };
   }, [isAdmin]);
 
   if (guardLoading) {
@@ -74,4 +87,3 @@ export const AdminAuditsListPage = () => {
     </PageContainer>
   );
 };
-

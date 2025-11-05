@@ -22,6 +22,7 @@ export const AdminAuditDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [audit, setAudit] = useState<any>(null);
   const pendingTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
+  const pollTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isAdmin || !id) return;
@@ -31,6 +32,21 @@ export const AdminAuditDetailPage = () => {
       .then(setAudit)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
+  }, [id, isAdmin]);
+
+  // Poll audit detail every 10s (avoid when typing comments)
+  useEffect(() => {
+    if (!isAdmin || !id) return;
+    pollTimer.current = window.setInterval(() => {
+      if (document.hidden) return;
+      // If there are pending debounced comment updates, skip refresh to avoid overwriting the input
+      const hasPending = Object.values(pendingTimers.current).some(Boolean);
+      if (hasPending) return;
+      void adminFetchAudit(id)
+        .then(setAudit)
+        .catch(() => {/* ignore background error */});
+    }, 10000);
+    return () => { if (pollTimer.current) window.clearInterval(pollTimer.current); };
   }, [id, isAdmin]);
 
   const grouped = useMemo(() => {
