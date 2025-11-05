@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
@@ -21,6 +21,7 @@ export const AdminAuditDetailPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [audit, setAudit] = useState<any>(null);
+  const pendingTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
 
   useEffect(() => {
     if (!isAdmin || !id) return;
@@ -66,6 +67,35 @@ export const AdminAuditDetailPage = () => {
       setError((e as Error).message);
     }
   };
+
+  // Debounced comment update to avoid a PUT on each keystroke
+  const scheduleCommentUpdate = (item: AuditItemDto, comment: string) => {
+    // Optimistic local update
+    setAudit((prev: any) => ({
+      ...prev,
+      items: prev.items.map((x: AuditItemDto) => (x.id === item.id ? { ...x, comment } : x)),
+    }));
+
+    const key = item.id;
+    const prevTimer = pendingTimers.current[key];
+    if (prevTimer) {
+      clearTimeout(prevTimer);
+    }
+    pendingTimers.current[key] = setTimeout(async () => {
+      try {
+        await adminUpdateAuditItem(audit.id, item.id, { comment });
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    }, 400);
+  };
+
+  useEffect(() => {
+    return () => {
+      // Cleanup pending timers on unmount
+      Object.values(pendingTimers.current).forEach((t) => t && clearTimeout(t));
+    };
+  }, []);
 
   if (guardLoading) {
     return (
@@ -148,7 +178,12 @@ export const AdminAuditDetailPage = () => {
                         </label>
                       </div>
                       <div className="mt-2">
-                        <textarea className="w-full border rounded p-2 text-sm" placeholder="Commentaire" value={it.comment ?? ''} onChange={(e) => void updateItem(it, { comment: e.target.value })} />
+                        <textarea
+                          className="w-full border rounded p-2 text-sm"
+                          placeholder="Commentaire"
+                          value={it.comment ?? ''}
+                          onChange={(e) => scheduleCommentUpdate(it, e.target.value)}
+                        />
                       </div>
                     </div>
                   ))}
