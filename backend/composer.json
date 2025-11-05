@@ -33,7 +33,8 @@
         "symfony/validator": "7.3.*",
         "symfony/workflow": "7.3.*",
         "symfony/yaml": "7.3.*",
-        "vich/uploader-bundle": "^2.8.1"
+        "vich/uploader-bundle": "^2.8.1",
+        "dompdf/dompdf": "^2.0"
     },
     "config": {
         "allow-plugins": {
