@@ -27,6 +27,14 @@ export interface AuditDetailDto extends AuditListItemDto {
   items: AuditItemDto[];
 }
 
+export interface AuditEventDto {
+  id: number;
+  type: string;
+  message: string | null;
+  createdAt: string;
+  actor?: { id: number | null; name: string | null };
+}
+
 export async function createAuditRequest(input: {
   type: AuditType;
   url: string;
@@ -41,7 +49,7 @@ export async function fetchMyAudits(): Promise<AuditListItemDto[]> {
   return res.data.data.items;
 }
 
-export async function fetchMyAudit(id: number): Promise<AuditDetailDto> {
+export async function fetchMyAudit(id: number): Promise<AuditDetailDto & { events: AuditEventDto[] }> {
   const res = await httpClient.get(`/api/audits/${id}`);
   return res.data.data;
 }
@@ -52,7 +60,7 @@ export async function adminFetchAudits(): Promise<AuditListItemDto[]> {
   return res.data.data.items;
 }
 
-export async function adminFetchAudit(id: number): Promise<AuditDetailDto & { client: { id: number; name: string; email: string } }> {
+export async function adminFetchAudit(id: number): Promise<AuditDetailDto & { client: { id: number; name: string; email: string }, events: AuditEventDto[] }> {
   const res = await httpClient.get(`/api/admin/audits/${id}`);
   return res.data.data;
 }

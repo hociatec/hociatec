@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto } from '../api';
+import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto } from '../api';
 
 const statusLabel = (s: string) => ({
   new: 'non commencé',
@@ -91,6 +91,18 @@ export const MyAuditDetailPage = () => {
                   ))}
               </ul>
             </div>
+            {Array.isArray((data as any).events) && (data as any).events.length > 0 && (
+              <div>
+                <div className="font-medium mb-2">Historique</div>
+                <ul className="space-y-1 text-sm text-gray-700">
+                  {((data as any).events as AuditEventDto[]).map((e) => (
+                    <li key={e.id}>
+                      <span className="text-gray-500">{new Date(e.createdAt).toLocaleString()}:</span> {e.message || e.type}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

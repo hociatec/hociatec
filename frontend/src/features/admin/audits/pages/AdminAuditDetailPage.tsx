@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto } from '@/features/audits/api';
+import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditEventDto } from '@/features/audits/api';
 
 const statusLabel = (s: string) => ({
   new: 'non commencé',
@@ -207,6 +207,20 @@ export const AdminAuditDetailPage = () => {
               </div>
             ))}
           </div>
+          {Array.isArray(audit.events) && audit.events.length > 0 && (
+            <div>
+              <div className="font-medium mb-2">Historique</div>
+              <ul className="space-y-1 text-sm text-gray-700">
+                {(audit.events as AuditEventDto[]).map((e) => (
+                  <li key={e.id}>
+                    <span className="text-gray-500">{new Date(e.createdAt).toLocaleString()}:</span>
+                    {' '}{e.message || e.type}
+                    {e.actor?.name ? ` — ${e.actor.name}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
     </PageContainer>
