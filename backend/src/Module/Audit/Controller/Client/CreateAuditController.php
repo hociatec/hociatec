@@ -7,6 +7,7 @@ namespace App\Module\Audit\Controller\Client;
 use App\Module\Audit\Entity\AuditType;
 use App\Module\Audit\Dto\CreateAuditRequestDto;
 use App\Module\Audit\Service\CreateAuditRequestService;
+use App\Module\Audit\Service\AuditEventLogger;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class CreateAuditController extends AbstractController
 {
     public function __construct(
         private readonly CreateAuditRequestService $service,
+        private readonly AuditEventLogger $events,
         private readonly ValidatorInterface $validator,
     ) {}
 
@@ -54,6 +56,9 @@ class CreateAuditController extends AbstractController
         }
 
         $audit = $this->service->create($user, $type, $dto->url, $dto->objectives);
+
+        // Log event
+        $this->events->log($audit, $user, 'created', 'Demande d\'audit créée');
 
         return ApiResponse::created([
             'id' => $audit->getId(),
