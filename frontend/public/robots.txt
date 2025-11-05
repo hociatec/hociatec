@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Indiquez ici votre domaine de production si différent
+Sitemap: https://hociatec.fr/sitemap.xml
+

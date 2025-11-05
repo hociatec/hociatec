@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { SiteLayout } from "../../../shared/components/SiteLayout";
 import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
+import { useMetaTags } from "@/shared/hooks/useMetaTags";
 import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api";
 import { ProductCartActions } from "@/features/cart/components/ProductCartActions";
 import { Mail, Facebook } from "lucide-react";
@@ -14,6 +15,11 @@ import { Link } from "react-router-dom";
 
 export const HomePage = () => {
   useDocumentTitle("Le numérique à taille humaine");
+  useMetaTags({
+    title: 'Hociatec — Le numérique à taille humaine',
+    description: 'Vente/location de matériel, formation, conception, audits. Une approche accessible, durable et pensée pour vous.',
+    type: 'website',
+  });
 
   // Ferme la section ouverte quand on appuie sur Échap
   useEffect(() => {

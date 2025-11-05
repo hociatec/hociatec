@@ -37,6 +37,10 @@ import { MyAuditsPage } from '@/features/audits/pages/MyAuditsPage';
 import { MyAuditDetailPage } from '@/features/audits/pages/MyAuditDetailPage';
 import { AdminAuditsListPage } from '@/features/admin/audits/pages/AdminAuditsListPage';
 import { AdminAuditDetailPage } from '@/features/admin/audits/pages/AdminAuditDetailPage';
+import { CguPage } from '@/features/legal/pages/CguPage';
+import { CgvPage } from '@/features/legal/pages/CgvPage';
+import { PrivacyPage } from '@/features/legal/pages/PrivacyPage';
+import { MentionsPage } from '@/features/legal/pages/MentionsPage';
 
 export const AppRoutes = () => (
   <Routes>
@@ -44,6 +48,10 @@ export const AppRoutes = () => (
     <Route path="/login" element={<LoginPage />} />
     <Route path="/register" element={<RegisterPage />} />
     <Route path="/contact" element={<ContactPage />} />
+    <Route path="/legal/cgu" element={<CguPage />} />
+    <Route path="/legal/cgv" element={<CgvPage />} />
+    <Route path="/legal/confidentialite" element={<PrivacyPage />} />
+    <Route path="/legal/mentions-legales" element={<MentionsPage />} />
     <Route path="/activation/:token" element={<ActivationPage />} />
     <Route path="/catalogue/produits/:slug" element={<ProductPage />} />
     <Route path="/catalogue/vente" element={<SellingTypePage sellingType="sale" title="Vente" />} />
