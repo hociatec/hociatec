@@ -44,7 +44,6 @@ security:
         - { path: ^/api/auth/verify, roles: PUBLIC_ACCESS }
         - { path: ^/activation, roles: PUBLIC_ACCESS }
         - { path: ^/api/public, roles: PUBLIC_ACCESS }
-        - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: ROLE_USER }
 
