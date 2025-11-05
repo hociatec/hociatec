@@ -1,0 +1,2 @@
+# Local Git credentials (repo-local store). Do NOT commit tokens.
+.git-credentials
