@@ -2,14 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto } from '../api';
+import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto, type AuditListItemDto } from '../api';
 
-const statusLabel = (s: string) => ({
+const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
   new: 'non commencé',
   in_progress: 'en cours',
   review: 'en revue',
   done: 'finalisé',
-} as const)[s as keyof any] ?? s;
+};
+
+const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const MyAuditDetailPage = () => {
   useDocumentTitle('Détail de mon audit');

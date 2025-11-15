@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchPublicProduct, type CatalogProduct } from '../api';
+import { ProductMetaBadges } from '../components/ProductMetaBadges';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
@@ -196,7 +197,14 @@ export const ProductPage = () => {
                   </div>
                   <div>
                     <dt>Reference</dt>
-                    <dd>{product.sku}</dd>
+                    <dd>
+                      {product.sku}
+                      <ProductMetaBadges
+                        sellingType={product.sellingType}
+                        categoryName={product.category.name}
+                        variant="detail"
+                      />
+                    </dd>
                   </div>
                   <div>
                     <dt>Disponibilite</dt>

@@ -240,6 +240,9 @@ export const CreateQuotePage = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              {productLoading && (
+                <p className="text-sm text-slate-500">Recherche des produits...</p>
+              )}
               <div className="space-y-6">
                 {filteredServices.length > 0 && (
                   <div>
@@ -496,7 +499,6 @@ export const CreateQuotePage = () => {
     </SiteLayout>
   );
 };
-
 
 
 

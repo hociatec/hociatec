@@ -4,21 +4,24 @@ import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { fetchMyAudits, type AuditListItemDto } from '../api';
 
-const typeLabel = (t: string) => ({
+const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
   performance: 'Performance',
   security: 'Sécurité',
   ux: 'UX',
   seo: 'SEO',
   technical: 'Technique',
   accessibility: 'Accessibilité',
-} as const)[t as keyof any] ?? t;
+};
 
-const statusLabel = (s: string) => ({
+const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
   new: 'non commencé',
   in_progress: 'en cours',
   review: 'en revue',
   done: 'finalisé',
-} as const)[s as keyof any] ?? s;
+};
+
+const typeLabel = (t: string) => TYPE_LABELS[t as AuditListItemDto['type']] ?? t;
+const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const MyAuditsPage = () => {
   useDocumentTitle('Mes audits');

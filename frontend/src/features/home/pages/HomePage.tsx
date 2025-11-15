@@ -9,6 +9,7 @@ import { SiteLayout } from "../../../shared/components/SiteLayout";
 import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
 import { useMetaTags } from "@/shared/hooks/useMetaTags";
 import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api";
+import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
 import { ProductCartActions } from "@/features/cart/components/ProductCartActions";
 import { Mail, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -174,6 +175,10 @@ export const HomePage = () => {
                       <p className="text-xs text-slate-500 tracking-wide">
                         Référence produit: <span className="font-semibold">{product.sku}</span>
                       </p>
+                      <ProductMetaBadges
+                        sellingType={product.sellingType}
+                        categoryName={product.category.name}
+                      />
                     </header>
 
                     <Link to={`/catalogue/produits/${product.slug}`} className="block">

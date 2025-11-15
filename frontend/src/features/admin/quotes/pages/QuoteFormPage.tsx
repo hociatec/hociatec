@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   createAdminQuote,
   fetchAdminQuote,
   fetchAdminQuoteServices,
-  fetchAdminQuotes,
   sendAdminQuoteEmail,
   updateAdminQuote,
   generateAdminQuotePdf,
@@ -36,6 +35,33 @@ type Item = {
   rentalMonths?: number; // UI-only for rental duration
 };
 
+
+const adaptQuoteForSave = (source: any) => {
+  if (!source) return source;
+  const items = (source.items as Item[] | undefined) ?? [];
+  return {
+    ...source,
+    items: items.map((item) => {
+      if (item.type !== 'product' || !item.rentalMonths) {
+        const { rentalMonths, ...rest } = item;
+        return rest;
+      }
+      const months = Math.max(1, item.rentalMonths);
+      const baseDescription = item.description?.trim();
+      const { rentalMonths, ...rest } = item;
+      return {
+        ...rest,
+        description: baseDescription && baseDescription.length > 0
+          ? `${baseDescription} - Duree: ${months} mois`
+          : `Duree: ${months} mois`,
+        unit: item.unit ?? 'mois',
+        quantity: Math.max(1, item.quantity ?? 1) * months,
+      };
+    }),
+  };
+};
+
+
 export const QuoteFormPage = () => {
   const toast = useToast();
   useDocumentTitle('Admin - Devis');
@@ -49,6 +75,8 @@ export const QuoteFormPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalCandidate, setRentalCandidate] = useState<any | null>(null);
+  // Recherche unifiée produits / services
+  const [searchQuery, setSearchQuery] = useState('');
   const filteredServices = useMemo(
     () =>
       services
@@ -72,21 +100,6 @@ export const QuoteFormPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const adapted: any = {
-        ...quote,
-        items: (quote.items as Item[]).map((it) => {
-          const isRental = it.type === 'product' && products.some((p: any) => p.id === it.productId && (p.sellingType === 'rental' || p.sellingType === 'location'));
-          if (!isRental) return it as any;
-          const months = Math.max(1, it.rentalMonths ?? 1);
-          const desc = it.description ? `${it.description} — Durée: ${months} mois` : `Durée: ${months} mois`;
-          return {
-            ...it,
-            description: desc,
-            unit: 'mois',
-            quantity: Math.max(1, it.quantity) * months,
-          } as any;
-        }),
-      };
       const [svc, prods, q] = await Promise.all([
         fetchAdminQuoteServices(),
         fetchAdminProducts(),
@@ -199,8 +212,6 @@ export const QuoteFormPage = () => {
       return { ...q, items: [...q.items, it] };
     });
   };
-  // Recherche unifiÃ©e produits / services
-  const [searchQuery, setSearchQuery] = useState('');
 
   const updateItem = (index: number, patch: Partial<Item>) => {
     setQuote((q: any) => ({
@@ -223,11 +234,12 @@ export const QuoteFormPage = () => {
     setMessage(null);
     try {
       let saved: any;
+      const payload = adaptQuoteForSave(quote);
       if (isNew) {
-        saved = await createAdminQuote(adapted);
+        saved = await createAdminQuote(payload);
         navigate(`/admin/quotes/${saved.id}/edit`, { replace: true });
       } else {
-        saved = await updateAdminQuote(Number(params.quoteId), adapted);
+        saved = await updateAdminQuote(Number(params.quoteId), payload);
       }
       setQuote(saved);
       setMessage('Enregistré.');
@@ -302,7 +314,9 @@ export const QuoteFormPage = () => {
               <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleGeneratePdf()}>
                 Télécharger
               </button>
-              
+              <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleSendEmail()}>
+                Envoyer par e-mail
+              </button>
               <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete()}>
                 Supprimer
               </button>

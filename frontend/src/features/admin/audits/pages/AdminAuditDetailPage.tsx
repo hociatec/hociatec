@@ -3,14 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditEventDto } from '@/features/audits/api';
+import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditEventDto, type AuditListItemDto } from '@/features/audits/api';
 
-const statusLabel = (s: string) => ({
+const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
   new: 'non commencé',
   in_progress: 'en cours',
   review: 'en revue',
   done: 'finalisé',
-} as const)[s as keyof any] ?? s;
+};
+
+const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const AdminAuditDetailPage = () => {
   useDocumentTitle('Admin - Audit');

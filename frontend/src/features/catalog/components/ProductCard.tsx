@@ -3,6 +3,7 @@ import '../pages/CatalogPages.css';
 import { Link } from 'react-router-dom';
 
 import type { CatalogProduct } from '../api';
+import { ProductMetaBadges } from './ProductMetaBadges';
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -41,6 +42,10 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           </h3>
           {/* Suppression du badge "Accueil" */}
         </header>
+        <ProductMetaBadges
+          sellingType={product.sellingType}
+          categoryName={product.category.name}
+        />
         {product.shortDescription && (
           <p className="catalog-product-card__excerpt">{product.shortDescription}</p>
         )}

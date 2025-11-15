@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/api';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
@@ -19,8 +19,6 @@ export const ServicesListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const navigate = useNavigate();
-
   useEffect(() => {
     if (!isAdmin) return;
     setLoading(true);

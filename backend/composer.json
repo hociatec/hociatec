@@ -20,7 +20,7 @@
         "symfony/console": "7.3.*",
         "symfony/doctrine-messenger": "7.3.*",
         "symfony/dotenv": "7.3.*",
-        "symfony/flex": "^2.8.2",
+        "symfony/flex": "^2.9.0",
         "symfony/framework-bundle": "7.3.*",
         "symfony/messenger": "7.3.*",
         "symfony/monolog-bundle": "^3.10",
@@ -34,7 +34,7 @@
         "symfony/workflow": "7.3.*",
         "symfony/yaml": "7.3.*",
         "vich/uploader-bundle": "^2.8.1",
-        "dompdf/dompdf": "^2.0"
+        "dompdf/dompdf": "^2.0.8"
     },
     "config": {
         "allow-plugins": {
@@ -89,6 +89,6 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "symfony/maker-bundle": "^1.64",
-        "sentry/sentry-symfony": "^4.10"
+        "sentry/sentry-symfony": "^4.14"
     }
 }

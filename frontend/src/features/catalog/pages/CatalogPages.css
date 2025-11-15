@@ -746,6 +746,79 @@
   letter-spacing: 0.02em;
 }
 
+.product-meta {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.product-meta--card {
+  margin-top: 12px;
+}
+
+.product-meta--detail {
+  margin-top: 16px;
+  gap: 10px;
+}
+
+.product-meta__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  gap: 8px;
+}
+
+.product-meta__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.product-meta__label::after {
+  content: ':';
+  margin-left: 4px;
+  color: #94a3b8;
+}
+
+.product-meta__value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.product-meta__item--sale {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.product-meta__item--sale .product-meta__value {
+  color: #047857;
+}
+
+.product-meta__item--rental {
+  border-color: #bfdbfe;
+  background: #eef2ff;
+}
+
+.product-meta__item--rental .product-meta__value {
+  color: #1d4ed8;
+}
+
+.product-meta__item--category {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.product-meta__item--category .product-meta__value {
+  color: #92400e;
+}
+
 @media (max-width: 768px) {
   .catalog-hero {
     padding: 32px;

@@ -106,6 +106,23 @@ export const LoginPage = () => {
           </p>
         }
       >
+        {notice && (
+          <div className="register-form__alert" role="status">
+            {notice}
+          </div>
+        )}
+        {error && (
+          <div className="register-form__alert register-form__alert--error" role="alert">
+            <p>{error}</p>
+            {parsedErrorDetails.length > 0 && (
+              <ul className="mt-2 list-disc pl-5 text-sm">
+                {parsedErrorDetails.map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
         <form className="card__content" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="email">Email</label>

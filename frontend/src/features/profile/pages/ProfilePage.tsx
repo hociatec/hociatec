@@ -15,7 +15,6 @@ import {
 } from '../../../shared/components/ui/alert-dialog';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { useToast } from '@/shared/components/ui/toast';
 import { useAuth } from '../../auth/hooks/useAuth';
 
 import './ProfilePage.css';

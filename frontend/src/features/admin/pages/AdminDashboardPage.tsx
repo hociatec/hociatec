@@ -123,7 +123,7 @@ const sections: Section[] = [
       },
     ],
   },
-  , {
+  {
     id: 'commandes',
     title: 'Commandes',
     subtitle: 'Gerez les commandes clients et leurs statuts.',
