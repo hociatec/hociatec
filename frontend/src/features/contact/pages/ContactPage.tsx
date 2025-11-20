@@ -71,6 +71,7 @@ export const ContactPage = () => {
               className="w-full border rounded p-2"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Votre nom complet"
               required
               maxLength={100}
             />
@@ -82,6 +83,7 @@ export const ContactPage = () => {
               className="w-full border rounded p-2"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="prenom.nom@mail.com"
               required
               maxLength={180}
             />
@@ -92,6 +94,7 @@ export const ContactPage = () => {
               className="w-full border rounded p-2"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+              placeholder="Sujet de votre demande"
               required
               maxLength={150}
             />
@@ -102,6 +105,7 @@ export const ContactPage = () => {
               className="w-full border rounded p-2 h-40"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              placeholder="Détaillez votre besoin ou votre question"
               required
               maxLength={5000}
             />
