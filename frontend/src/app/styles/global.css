@@ -112,11 +112,23 @@ body {
 }
 
 .site-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 1.5rem;
   font-weight: 700;
   color: #38bdf8;
   text-decoration: none;
   letter-spacing: 0.04em;
+}
+
+.site-header__brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
+  background: #0f172a;
 }
 
 .site-header__nav {

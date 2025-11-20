@@ -26,6 +26,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Ultrabook Orion 14 associe chassis aluminium, ecran IPS 14 pouces et autonomie de 12h pour les deplacements.',
                 'price' => 119900,
                 'stock' => 26,
+                'sellingType' => 'rental',
                 'image' => 'ultrabook-orion-14.jpg',
                 'imageSize' => 285000,
             ],
@@ -71,6 +72,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Laptop Titan Creator 17 combine Core i9, 64 Go de RAM, double SSD NVMe et dalle mini LED HDR.',
                 'price' => 229900,
                 'stock' => 14,
+                'sellingType' => 'rental',
                 'image' => 'laptop-titan-creator-17.jpg',
                 'imageSize' => 330100,
             ],
@@ -100,6 +102,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Desktop Atlas Pro offre Core i7 14700, 32 Go de RAM DDR5 et SSD NVMe 1 To pour bureautique avancee.',
                 'price' => 134900,
                 'stock' => 22,
+                'sellingType' => 'rental',
                 'image' => 'desktop-atlas-pro.jpg',
                 'imageSize' => 289400,
             ],
@@ -136,6 +139,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Desktop Starter Neo repose sur Ryzen 5 5600G, SSD 512 Go et boitier micro ATX compact.',
                 'price' => 69900,
                 'stock' => 41,
+                'sellingType' => 'rental',
                 'image' => 'desktop-starter-neo.jpg',
                 'imageSize' => 243100,
             ],
@@ -183,6 +187,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Smartphone Atlas Fold offre ecran interne 7.6 pouces, charniere renforcee et stylet Bluetooth.',
                 'price' => 189900,
                 'stock' => 17,
+                'sellingType' => 'rental',
                 'image' => 'smartphone-atlas-fold.jpg',
                 'imageSize' => 265400,
             ],
@@ -266,6 +271,7 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                 'description' => 'Tablette Hybridia X2 combine clavier detachable retroeclaire, modem 5G et autonomie 14h.',
                 'price' => 89900,
                 'stock' => 18,
+                'sellingType' => 'rental',
                 'image' => 'tablette-hybridia-x2.jpg',
                 'imageSize' => 234900,
             ],
@@ -420,12 +426,14 @@ class ProductFixtures extends Fixture implements DependentFixtureInterface
                     $category,
                 );
 
+                $sellingType = $data['sellingType'] ?? 'sale';
                 $product
                     ->setShortDescription($data['short'])
                     ->setImageName($data['image'])
                     ->setImageSize($this->resolveImageSize($data['image'], $data['imageSize']))
                     ->setImageAlt($data['name'])
-                    ->setIsFeaturedHome($globalIndex <= self::FEATURED_HOME_COUNT);
+                    ->setIsFeaturedHome($globalIndex <= self::FEATURED_HOME_COUNT)
+                    ->setSellingType($sellingType);
 
                 $manager->persist($product);
                 $this->addReference(self::getReferenceName($globalIndex), $product);

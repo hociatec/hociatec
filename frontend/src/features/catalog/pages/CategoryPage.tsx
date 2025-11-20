@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
+import { SITE_URL } from '@/shared/config/seoConfig';
 
 import './CatalogPages.css';
 
@@ -19,6 +20,27 @@ export const CategoryPage = () => {
   const { categories: catalogCategories } = useCatalogMenu();
   const navigate = useNavigate();
 
+  const canonicalUrl = slug ? `${SITE_URL}/catalogue/${slug}` : undefined;
+  const collectionSchema = data
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: data.category.name,
+        description: data.category.description ?? 'Découvrez nos solutions par catégorie.',
+        url: canonicalUrl,
+        mainEntity: {
+          '@type': 'ItemList',
+          numberOfItems: data.products.length,
+          itemListElement: data.products.map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: `${SITE_URL}/catalogue/produits/${product.slug}`,
+            name: product.name,
+          })),
+        },
+      }
+    : undefined;
+
   useDocumentTitle(
     data?.category ? `${data.category.name} - Catalogue` : 'Catalogue - Categorie',
   );
@@ -26,6 +48,8 @@ export const CategoryPage = () => {
     title: data?.category ? `${data.category.name} — Catalogue` : 'Catalogue - Catégorie',
     description: data?.category?.description ?? 'Découvrez nos solutions par catégorie.',
     type: 'website',
+    canonicalUrl,
+    structuredData: collectionSchema,
   });
 
   useEffect(() => {
@@ -109,4 +133,3 @@ export const CategoryPage = () => {
     </SiteLayout>
   );
 };
-

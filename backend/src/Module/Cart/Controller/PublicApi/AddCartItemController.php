@@ -39,13 +39,25 @@ class AddCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $rentalMonths = null;
+        if ($product->getSellingType() === 'rental') {
+            if (!array_key_exists('rentalMonths', $payload)) {
+                return ApiResponse::error('Champ "rentalMonths" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $rentalMonths = (int) $payload['rentalMonths'];
+            if ($rentalMonths < 1) {
+                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
+            }
+        }
+
         $quantity = isset($payload['quantity']) ? (int) $payload['quantity'] : 1;
         if ($quantity < 1) {
             $quantity = 1;
         }
 
         $token = $this->extractToken($request, $payload);
-        $cart = $this->cartService->addProduct($token, $product, $quantity);
+        $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
 
         $response = ApiResponse::success([
             'cart' => CartFormatter::formatCart($cart),

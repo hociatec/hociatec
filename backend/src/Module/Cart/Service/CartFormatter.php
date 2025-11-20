@@ -28,11 +28,19 @@ final class CartFormatter
             $product = $item->getProduct();
             $quantity = $item->getQuantity();
             $linePrice = $product->getPriceCents() * $quantity;
+            $rentalMonths = $item->getRentalMonths();
+
+            if ($product->getSellingType() === 'rental') {
+                $months = $rentalMonths ?? 1;
+                $linePrice *= $months;
+            }
 
             $items[] = [
+                'id' => $item->getId(),
                 'product' => CatalogFormatter::formatProduct($product),
                 'quantity' => $quantity,
                 'linePriceCents' => $linePrice,
+                'rentalMonths' => $rentalMonths,
             ];
 
             $totalQuantity += $quantity;
@@ -48,4 +56,3 @@ final class CartFormatter
         ];
     }
 }
-

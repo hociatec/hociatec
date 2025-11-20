@@ -22,16 +22,25 @@ import {
 } from '@/shared/lib/httpClient';
 import { useToast } from '@/shared/components/ui/toast';
 
+type CartActionOptions = {
+  rentalMonths?: number;
+  currentRentalMonths?: number;
+};
+
 interface CartContextValue {
   cart: Cart | null;
   status: CartStatus;
   error: string | null;
-  addItem: (productId: number, quantity?: number) => Promise<void>;
-  removeItem: (productId: number) => Promise<void>;
-  setItemQuantity: (productId: number, quantity: number) => Promise<void>;
+  addItem: (productId: number, quantity?: number, options?: CartActionOptions) => Promise<void>;
+  removeItem: (productId: number, options?: CartActionOptions) => Promise<void>;
+  setItemQuantity: (
+    productId: number,
+    quantity: number,
+    options?: CartActionOptions,
+  ) => Promise<void>;
   clear: () => Promise<void>;
   refresh: () => Promise<void>;
-  isProductInCart: (productId: number) => boolean;
+  isProductInCart: (productId: number, options?: CartActionOptions) => boolean;
   isProductPending: (productId: number) => boolean;
   isClearing: boolean;
 }
@@ -123,10 +132,10 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
   }, [handleCartError, toast]);
 
   const addItem = useCallback(
-    async (productId: number, quantity = 1) => {
+    async (productId: number, quantity = 1, options?: CartActionOptions) => {
       setPending(productId, true);
       try {
-        const updatedCart = await addCartItem(productId, quantity);
+        const updatedCart = await addCartItem(productId, quantity, options);
         setCart(updatedCart);
         setError(null);
       } catch (err) {
@@ -140,10 +149,10 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
   );
 
   const removeItem = useCallback(
-    async (productId: number) => {
+    async (productId: number, options?: CartActionOptions) => {
       setPending(productId, true);
       try {
-        const updatedCart = await removeCartItem(productId);
+        const updatedCart = await removeCartItem(productId, options);
         setCart(updatedCart);
         setError(null);
       } catch (err) {
@@ -179,10 +188,10 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
   }, [handleCartError]);
 
   const setItemQuantity = useCallback(
-    async (productId: number, quantity: number) => {
+    async (productId: number, quantity: number, options?: CartActionOptions) => {
       setPending(productId, true);
       try {
-        const updatedCart = await updateCartItemQuantity(productId, quantity);
+        const updatedCart = await updateCartItemQuantity(productId, quantity, options);
         setCart(updatedCart);
         setError(null);
       } catch (err) {
@@ -213,8 +222,26 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
   }, [handleCartError]);
 
   const isProductInCart = useCallback(
-    (productId: number) =>
-      cart?.items.some((item) => item.product.id === productId) ?? false,
+    (productId: number, options?: CartActionOptions) => {
+      if (!cart) {
+        return false;
+      }
+
+      const wantedMonths = options?.rentalMonths ?? options?.currentRentalMonths;
+
+      return cart.items.some((item) => {
+        if (item.product.id !== productId) {
+          return false;
+        }
+
+        if (item.product.sellingType !== 'rental' || wantedMonths === undefined) {
+          return true;
+        }
+
+        const currentMonths = Math.max(1, item.rentalMonths ?? 1);
+        return currentMonths === Math.max(1, wantedMonths);
+      });
+    },
     [cart],
   );
 

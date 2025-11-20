@@ -4,6 +4,7 @@ import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
+import { SITE_URL, LOCAL_BUSINESS_SCHEMA, CONTACT_EMAIL } from '@/shared/config/seoConfig';
 import { sendContactMessage } from '../api/contactApi';
 
 export const ContactPage = () => {
@@ -12,6 +13,21 @@ export const ContactPage = () => {
     title: 'Contact — hociatec',
     description: 'Contactez-nous pour vos projets, devis, rendez-vous et audits.',
     type: 'website',
+    canonicalUrl: `${SITE_URL}/contact`,
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'ContactPage',
+      name: 'Contact — Hociatec',
+      url: `${SITE_URL}/contact`,
+      description: 'Contactez Hociatec pour vos projets, devis, rendez-vous et audits numériques.',
+      publisher: LOCAL_BUSINESS_SCHEMA,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: CONTACT_EMAIL,
+        contactType: 'customer service',
+        areaServed: 'FR',
+      },
+    },
   });
   const toast = useToast();
   const [name, setName] = useState('');

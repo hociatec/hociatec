@@ -7,6 +7,7 @@ import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
+import { SITE_URL, CONTACT_EMAIL } from '@/shared/config/seoConfig';
 
 import './CatalogPages.css';
 
@@ -37,12 +38,35 @@ export const ProductPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
 
+  const canonicalUrl = slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
+  const productStructuredData = product
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description:
+          product.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
+        sku: product.sku,
+        url: canonicalUrl,
+        category: product.category.name,
+        image: product.imageUrl ?? undefined,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'EUR',
+          price: (product.priceCents / 100).toFixed(2),
+          availability: 'https://schema.org/InStock',
+        },
+      }
+    : undefined;
+
   useDocumentTitle(product ? `${product.name} - Catalogue` : 'Produit - Catalogue');
   useMetaTags({
     title: product ? `${product.name} — Catalogue` : 'Produit - Catalogue',
     description: product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
     imageUrl: product?.imageUrl ?? undefined,
     type: 'product',
+    canonicalUrl,
+    structuredData: productStructuredData,
   });
 
   useEffect(() => {
@@ -247,7 +271,7 @@ export const ProductPage = () => {
                     Demarrer votre projet
                   </Link>
                   <a
-                    href="mailto:contact@hociatec.com"
+                    href={`mailto:${CONTACT_EMAIL}`}
                     className="hero__button hero__button--ghost"
                   >
                     Parler a un conseiller
@@ -266,4 +290,3 @@ export const ProductPage = () => {
     </SiteLayout>
   );
 };
-

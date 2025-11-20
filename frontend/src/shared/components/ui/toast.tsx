@@ -32,6 +32,7 @@ export const useToast = () => {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const idRef = useRef(1);
+  const timeoutsRef = useRef<number[]>([]);
 
   const remove = useCallback((id: number) => {
     setToasts((list) => list.filter((t) => t.id !== id));
@@ -53,12 +54,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     // Stack toasts instead of replacing
     setToasts((list) => [...list, item]);
-    window.setTimeout(() => remove(id), duration);
+    if (typeof window !== 'undefined') {
+      const timeoutId = window.setTimeout(() => remove(id), duration);
+      timeoutsRef.current.push(timeoutId);
+    }
     return id;
   }, [remove]);
 
   // Cleanup in case of hidden tabs
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
     const interval = window.setInterval(() => {
       const now = Date.now();
       setToasts((list) => list.filter((t) => t.expiresAt > now));
@@ -66,19 +73,27 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => window.clearInterval(interval);
   }, []);
 
+  useEffect(() => () => {
+    if (typeof window === 'undefined') return;
+    timeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    timeoutsRef.current = [];
+  }, []);
+
   const value = useMemo(() => ({ show }), [show]);
 
-  const target = typeof document !== 'undefined' ? document.getElementById('site-header-toasts') : null;
+  const target =
+    typeof document !== 'undefined' ? document.getElementById('site-header-toasts') : null;
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {createPortal(
-        <div
-          className={
-            target
-              ? 'flex flex-col items-center gap-3 w-full'
-              : 'fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3'
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className={
+              target
+                ? 'flex flex-col items-center gap-3 w-full'
+                : 'fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3'
           }
           style={target ? undefined : {}}>
           {toasts.map((t) => (

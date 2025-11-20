@@ -45,8 +45,31 @@ final class UpdateCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $rentalMonths = null;
+        $currentRentalMonths = null;
+        if (array_key_exists('rentalMonths', $payload)) {
+            $rentalMonths = (int) $payload['rentalMonths'];
+        }
+
+        if (array_key_exists('currentRentalMonths', $payload)) {
+            $currentRentalMonths = (int) $payload['currentRentalMonths'];
+        }
+
+        if ($product->getSellingType() === 'rental') {
+            if ($rentalMonths !== null && $rentalMonths < 1) {
+                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            if ($currentRentalMonths !== null && $currentRentalMonths < 1) {
+                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
+            }
+        } else {
+            $rentalMonths = null;
+            $currentRentalMonths = null;
+        }
+
         try {
-            $cart = $this->cartService->updateProductQuantity($token, $product, $quantity);
+            $cart = $this->cartService->updateProductQuantity($token, $product, $quantity, $rentalMonths, $currentRentalMonths);
         } catch (InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }

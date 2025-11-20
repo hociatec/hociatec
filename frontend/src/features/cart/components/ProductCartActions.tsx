@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
 import type { CatalogProduct } from '@/features/catalog/api';
 
@@ -17,10 +17,35 @@ export const ProductCartActions = ({
   const { cart, addItem, removeItem, isProductInCart, isProductPending } = useCart();
   const { show } = useToast();
 
-  const isInCart = isProductInCart(product.id);
   const isPending = isProductPending(product.id);
-  const currentQuantity =
-    cart?.items.find((item) => item.product.id === product.id)?.quantity ?? 0;
+  const isRentalProduct = product.sellingType === 'rental';
+  const [rentalMonths, setRentalMonths] = useState<number>(() => (isRentalProduct ? 1 : 0));
+  const normalizedRentalMonths = isRentalProduct ? Math.max(1, rentalMonths || 1) : undefined;
+
+  const matchingItem = useMemo(() => {
+    if (!cart) {
+      return null;
+    }
+
+    if (!isRentalProduct) {
+      return cart.items.find((item) => item.product.id === product.id) ?? null;
+    }
+
+    return (
+      cart.items.find(
+        (item) =>
+          item.product.id === product.id &&
+          Math.max(1, item.rentalMonths ?? 1) === Math.max(1, normalizedRentalMonths ?? 1),
+      ) ?? null
+    );
+  }, [cart, product.id, isRentalProduct, normalizedRentalMonths]);
+
+  const hasProductInCart = isProductInCart(
+    product.id,
+    isRentalProduct ? { rentalMonths: normalizedRentalMonths } : undefined,
+  );
+  const isInCart = hasProductInCart;
+  const currentQuantity = matchingItem?.quantity ?? 0;
 
   const containerClassName = [
     'catalog-cart-actions',
@@ -37,18 +62,36 @@ export const ProductCartActions = ({
     .filter(Boolean)
     .join(' ');
 
+  useEffect(() => {
+    if (!isRentalProduct) {
+      return;
+    }
+
+    const stillInCart = cart?.items.some((item) => item.product.id === product.id) ?? false;
+    if (!stillInCart) {
+      setRentalMonths(1);
+    }
+  }, [cart, isRentalProduct, product.id]);
+
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
 
+    const effectiveRentalMonths = isRentalProduct ? Math.max(1, normalizedRentalMonths ?? 1) : undefined;
+
     if (isInCart) {
-      void removeItem(product.id)
+      void removeItem(
+        product.id,
+        isRentalProduct && effectiveRentalMonths
+          ? { rentalMonths: effectiveRentalMonths }
+          : undefined,
+      )
         .then(() => show(`Produit retiré du panier`, { variant: 'info', persistent: true }))
         .catch(() => show(`Impossible de retirer le produit.`, { variant: 'error' }));
       return;
     }
 
-    void addItem(product.id, 1)
+    void addItem(product.id, 1, isRentalProduct ? { rentalMonths: effectiveRentalMonths } : undefined)
       .then(() => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }))
       .catch(() => show(`Impossible d'ajouter le produit.`, { variant: 'error' }));
   };
@@ -57,8 +100,28 @@ export const ProductCartActions = ({
     <div className={containerClassName}>
       {isInCart && (
         <span className="catalog-cart-quantity" aria-live="polite">
-          Dans le panier : {currentQuantity}
+          {isRentalProduct
+            ? `Dans le panier (${Math.max(1, normalizedRentalMonths ?? 1)} mois) : ${currentQuantity}`
+            : `Dans le panier : ${currentQuantity}`}
         </span>
+      )}
+      {isRentalProduct && (
+        <label className="catalog-cart-rental">
+          Durée (mois)
+          <input
+            type="number"
+            min={1}
+            value={rentalMonths}
+            onChange={(event) => {
+              const value = Number.parseInt(event.target.value, 10);
+              if (Number.isNaN(value) || value < 1) {
+                setRentalMonths(1);
+              } else {
+                setRentalMonths(value);
+              }
+            }}
+          />
+        </label>
       )}
       <button
         type="button"

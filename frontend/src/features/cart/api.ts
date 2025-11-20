@@ -133,14 +133,27 @@ export const fetchCart = async (): Promise<Cart> => {
   }
 };
 
+interface CartItemOptions {
+  rentalMonths?: number;
+  currentRentalMonths?: number;
+}
+
 export const addCartItem = async (
   productId: number,
   quantity = 1,
+  options?: CartItemOptions,
 ): Promise<Cart> => {
   try {
+    const payload: { productId: number; quantity: number; rentalMonths?: number } = {
+      productId,
+      quantity,
+    };
+    if (options?.rentalMonths !== undefined) {
+      payload.rentalMonths = options.rentalMonths;
+    }
     const { data, headers } = await httpClient.post<ApiResponse<CartPayload>>(
       '/api/public/cart/items',
-      { productId, quantity },
+      payload,
     );
     const cart = handleCartResponse(
       data,
@@ -159,10 +172,26 @@ export const addCartItem = async (
   }
 };
 
-export const removeCartItem = async (productId: number): Promise<Cart> => {
+const buildRentalParams = (options?: CartItemOptions) => {
+  const params: Record<string, number> = {};
+  const months =
+    options?.currentRentalMonths ?? options?.rentalMonths;
+  if (typeof months === 'number') {
+    params.currentRentalMonths = months;
+  }
+  return Object.keys(params).length > 0 ? params : undefined;
+};
+
+export const removeCartItem = async (
+  productId: number,
+  options?: CartItemOptions,
+): Promise<Cart> => {
   try {
     const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>(
       `/api/public/cart/items/${productId}`,
+      {
+        params: buildRentalParams(options),
+      },
     );
     const cart = handleCartResponse(
       data,
@@ -184,11 +213,21 @@ export const removeCartItem = async (productId: number): Promise<Cart> => {
 export const updateCartItemQuantity = async (
   productId: number,
   quantity: number,
+  options?: CartItemOptions,
 ): Promise<Cart> => {
   try {
+    const payload: { quantity: number; rentalMonths?: number; currentRentalMonths?: number } = {
+      quantity,
+    };
+    if (options?.rentalMonths !== undefined) {
+      payload.rentalMonths = options.rentalMonths;
+    }
+    if (options?.currentRentalMonths !== undefined) {
+      payload.currentRentalMonths = options.currentRentalMonths;
+    }
     const { data, headers } = await httpClient.patch<ApiResponse<CartPayload>>(
       `/api/public/cart/items/${productId}`,
-      { quantity },
+      payload,
     );
     const cart = handleCartResponse(
       data,

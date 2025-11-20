@@ -41,7 +41,8 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
     <header className={`site-header site-header--${variant}`}>
       <div className="site-header__container">
         <Link to="/" className="site-header__brand">
-          hociatec
+          <img src="/logo.png" alt="Logo Hociatec" className="site-header__brand-logo" width={40} height={40} />
+          <span>hociatec</span>
         </Link>
         <nav className="site-header__nav" aria-label="Navigation principale">
           <Link

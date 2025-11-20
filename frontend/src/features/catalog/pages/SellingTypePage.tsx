@@ -9,6 +9,8 @@ import { ProductCartActions } from '@/features/cart/components/ProductCartAction
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { SITE_URL } from '@/shared/config/seoConfig';
 
 import './CatalogPages.css';
 
@@ -22,10 +24,37 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  
 
   const pageTitle = title ?? (sellingType === 'rental' ? 'Location' : 'Vente');
+  const canonicalUrl = `${SITE_URL}/catalogue/${sellingType === 'rental' ? 'location' : 'vente'}`;
+  const pageDescription =
+    sellingType === 'rental'
+      ? 'Location de matériel informatique flexible et prête à l’emploi.'
+      : 'Vente de matériel informatique sélectionné pour vos besoins.';
+
   useDocumentTitle(`${pageTitle} - Catalogue`);
+  useMetaTags({
+    title: `${pageTitle} — Catalogue`,
+    description: pageDescription,
+    canonicalUrl,
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${pageTitle} — Catalogue`,
+      description: pageDescription,
+      url: canonicalUrl,
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: products.length,
+        itemListElement: products.map((product, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: product.name,
+          url: `${SITE_URL}/catalogue/produits/${product.slug}`,
+        })),
+      },
+    },
+  });
 
   useEffect(() => {
     setLoading(true);

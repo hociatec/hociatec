@@ -184,6 +184,69 @@
   color: #0f172a;
 }
 
+.cart-page__rental {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  justify-items: center;
+}
+
+.cart-page__rental-label {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.cart-page__rental-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 6px 12px;
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.cart-page__rental-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cart-page__rental-button:hover:not(:disabled) {
+  background: #0284c7;
+  transform: translateY(-1px);
+}
+
+.cart-page__rental-button:disabled {
+  opacity: 0.6;
+}
+
+.cart-page__rental-input {
+  width: 72px;
+  text-align: center;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 1rem;
+  padding: 0;
+  appearance: textfield;
+}
+
+.cart-page__rental-input::-webkit-outer-spin-button,
+.cart-page__rental-input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
 /* --- Buttons --- */
 
 .cart-page__remove {

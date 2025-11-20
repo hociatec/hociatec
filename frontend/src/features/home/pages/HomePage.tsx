@@ -13,13 +13,17 @@ import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadg
 import { ProductCartActions } from "@/features/cart/components/ProductCartActions";
 import { Mail, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
 
 export const HomePage = () => {
   useDocumentTitle("Le numérique à taille humaine");
   useMetaTags({
     title: 'Hociatec — Le numérique à taille humaine',
-    description: 'Vente/location de matériel, formation, conception, audits. Une approche accessible, durable et pensée pour vous.',
+    description:
+      'Vente/location de matériel, formation, conception, audits. Une approche accessible, durable et pensée pour vous.',
     type: 'website',
+    canonicalUrl: SITE_URL,
+    structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
   });
 
   // Ferme la section ouverte quand on appuie sur Échap

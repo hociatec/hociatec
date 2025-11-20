@@ -6,6 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
+        "build:ssg": "tsc && vite build && npm run prerender",
+        "prerender": "npx esbuild --bundle scripts/prerender.tsx --format=cjs --platform=node --target=node20 --alias:@=src --loader:.css=text --outfile=.ssg/prerender.cjs && node .ssg/prerender.cjs",
         "preview": "vite preview"
     },
     "devDependencies": {

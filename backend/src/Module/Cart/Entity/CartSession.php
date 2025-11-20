@@ -94,15 +94,46 @@ class CartSession
         return $this->getItemForProduct($product) !== null;
     }
 
-    public function getItemForProduct(Product $product): ?CartItem
+    public function getItemForProduct(Product $product, ?int $rentalMonths = null): ?CartItem
     {
+        $firstMatch = null;
+
         foreach ($this->items as $item) {
-            if ($item->getProduct() === $product) {
+            if ($item->getProduct() !== $product) {
+                continue;
+            }
+
+            if ($product->getSellingType() !== 'rental') {
+                return $item;
+            }
+
+            if ($rentalMonths === null) {
+                $firstMatch ??= $item;
+                continue;
+            }
+
+            if ($item->getRentalMonths() === $rentalMonths) {
                 return $item;
             }
         }
 
-        return null;
+        return $firstMatch;
+    }
+
+    /**
+     * @return list<CartItem>
+     */
+    public function getItemsForProduct(Product $product): array
+    {
+        $matches = [];
+
+        foreach ($this->items as $item) {
+            if ($item->getProduct() === $product) {
+                $matches[] = $item;
+            }
+        }
+
+        return $matches;
     }
 
     public function getCreatedAt(): DateTimeImmutable

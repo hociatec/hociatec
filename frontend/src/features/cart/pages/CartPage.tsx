@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { checkoutOrder } from '@/features/orders/api';
 import { fetchMyAddresses, type AddressDto } from '@/features/addresses/api';
 import { useToast } from '@/shared/components/ui/toast';
+import type { CartItem as CartLine } from '@/features/cart/types';
 
 import './CartPage.css';
 
@@ -54,27 +55,67 @@ export const CartPage = () => {
 
   // --- Handlers ---
   const handleDecrease = useCallback(
-    (productId: number, quantity: number) => {
-      if (quantity <= 1) {
-        void removeItem(productId).catch(() =>
-          show('Erreur lors de la suppression du produit.', { variant: 'error' })
+    (item: CartLine) => {
+      const isRental = item.product.sellingType === 'rental';
+      const rentalReference = isRental ? Math.max(1, item.rentalMonths ?? 1) : undefined;
+
+      if (item.quantity <= 1) {
+        void removeItem(
+          item.product.id,
+          rentalReference ? { currentRentalMonths: rentalReference } : undefined,
+        ).catch(() =>
+          show('Erreur lors de la suppression du produit.', { variant: 'error' }),
         );
         return;
       }
-      void setItemQuantity(productId, quantity - 1).catch(() =>
-        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' })
+
+      void setItemQuantity(
+        item.product.id,
+        item.quantity - 1,
+        rentalReference ? { currentRentalMonths: rentalReference } : undefined,
+      ).catch(() =>
+        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' }),
       );
     },
-    [removeItem, setItemQuantity, show]
+    [removeItem, setItemQuantity, show],
   );
 
   const handleIncrease = useCallback(
-    (productId: number, quantity: number) => {
-      void setItemQuantity(productId, quantity + 1).catch(() =>
-        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' })
+    (item: CartLine) => {
+      const isRental = item.product.sellingType === 'rental';
+      const rentalReference = isRental ? Math.max(1, item.rentalMonths ?? 1) : undefined;
+
+      void setItemQuantity(
+        item.product.id,
+        item.quantity + 1,
+        rentalReference ? { currentRentalMonths: rentalReference } : undefined,
+      ).catch(() =>
+        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' }),
       );
     },
-    [setItemQuantity, show]
+    [setItemQuantity, show],
+  );
+
+  const updateRentalMonths = useCallback(
+    (item: CartLine, nextValue: number) => {
+      if (item.product.sellingType !== 'rental') {
+        return;
+      }
+      const currentMonths = Math.max(1, item.rentalMonths ?? 1);
+      const normalized = Math.max(1, Number.isNaN(nextValue) ? 1 : nextValue);
+
+      if (normalized === currentMonths) {
+        return;
+      }
+
+      void setItemQuantity(item.product.id, item.quantity, {
+        currentRentalMonths: currentMonths,
+        rentalMonths: normalized,
+      }).catch(() =>
+        show('Erreur lors de la mise à jour de la durée.', { variant: 'error' }),
+      );
+    },
+    [setItemQuantity, show],
   );
 
   const handleClear = useCallback(() => {
@@ -163,9 +204,11 @@ export const CartPage = () => {
             <ul className="cart-page__list">
               {cart?.items.map((item) => {
                 const pending = isProductPending(item.product.id);
+                const isRental = item.product.sellingType === 'rental';
+                const rentalMonths = Math.max(1, item.rentalMonths ?? 1);
 
                 return (
-                  <li key={item.product.id} className="cart-page__item">
+                  <li key={item.id ?? item.product.id} className="cart-page__item">
                     {item.product.imageUrl ? (
                       <img
                         src={item.product.imageUrl}
@@ -204,7 +247,7 @@ export const CartPage = () => {
                         <button
                           type="button"
                           className="cart-page__quantity-button"
-                          onClick={() => handleDecrease(item.product.id, item.quantity)}
+                          onClick={() => handleDecrease(item)}
                           disabled={pending}
                         >
                           −
@@ -213,18 +256,59 @@ export const CartPage = () => {
                         <button
                           type="button"
                           className="cart-page__quantity-button"
-                          onClick={() => handleIncrease(item.product.id, item.quantity)}
+                          onClick={() => handleIncrease(item)}
                           disabled={pending}
                         >
                           +
                         </button>
                       </div>
 
+                      {isRental && (
+                        <div className="cart-page__rental">
+                          <span className="cart-page__rental-label">Durée de location (mois)</span>
+                          <div
+                            className="cart-page__rental-controls"
+                            role="group"
+                            aria-label={`Durée pour ${item.product.name}`}
+                          >
+                            <button
+                              type="button"
+                              className="cart-page__rental-button"
+                              onClick={() => updateRentalMonths(item, rentalMonths - 1)}
+                              disabled={pending || rentalMonths <= 1}
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min={1}
+                              className="cart-page__rental-input"
+                              value={rentalMonths}
+                              onChange={(event) =>
+                                updateRentalMonths(item, Number.parseInt(event.target.value, 10))
+                              }
+                              disabled={pending}
+                            />
+                            <button
+                              type="button"
+                              className="cart-page__rental-button"
+                              onClick={() => updateRentalMonths(item, rentalMonths + 1)}
+                              disabled={pending}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <button
                         type="button"
                         className="catalog-cart-button catalog-cart-button--remove cart-page__remove"
                         onClick={() =>
-                          void removeItem(item.product.id).catch(() =>
+                          void removeItem(
+                            item.product.id,
+                            isRental ? { currentRentalMonths: rentalMonths } : undefined,
+                          ).catch(() =>
                             show('Erreur lors du retrait du produit.', { variant: 'error' })
                           )
                         }

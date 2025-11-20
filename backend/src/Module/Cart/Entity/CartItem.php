@@ -11,7 +11,7 @@ use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: CartItemRepository::class)]
 #[ORM\Table(name: 'cart_items')]
-#[ORM\UniqueConstraint(name: 'cart_item_unique_product', columns: ['cart_id', 'product_id'])]
+#[ORM\UniqueConstraint(name: 'cart_item_unique_product_months', columns: ['cart_id', 'product_id', 'rental_months'])]
 class CartItem
 {
     #[ORM\Id]
@@ -30,11 +30,15 @@ class CartItem
     #[ORM\Column(type: 'integer')]
     private int $quantity;
 
-    public function __construct(CartSession $cart, Product $product, int $quantity = 1)
+    #[ORM\Column(type: 'integer', options: ['default' => -1])]
+    private int $rentalMonths = -1;
+
+    public function __construct(CartSession $cart, Product $product, int $quantity = 1, ?int $rentalMonths = null)
     {
         $this->cart = $cart;
         $this->product = $product;
         $this->setQuantity($quantity);
+        $this->setRentalMonths($rentalMonths);
     }
 
     public function getId(): ?int
@@ -89,6 +93,28 @@ class CartItem
     public function replaceProduct(Product $product): self
     {
         $this->product = $product;
+
+        return $this;
+    }
+
+    public function getRentalMonths(): ?int
+    {
+        return $this->rentalMonths > 0 ? $this->rentalMonths : null;
+    }
+
+    public function setRentalMonths(?int $rentalMonths): self
+    {
+        if ($rentalMonths === null) {
+            $this->rentalMonths = -1;
+
+            return $this;
+        }
+
+        if ($rentalMonths < 1) {
+            throw new InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
+        }
+
+        $this->rentalMonths = $rentalMonths;
 
         return $this;
     }
