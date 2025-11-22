@@ -13,3 +13,7 @@ framework:
             policy: 'fixed_window'
             limit: 5
             interval: '1 minute'
+        contact_public:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'

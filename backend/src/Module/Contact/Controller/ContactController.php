@@ -7,12 +7,14 @@ namespace App\Module\Contact\Controller;
 use App\Shared\Http\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -23,6 +25,8 @@ class ContactController extends AbstractController
         private readonly MailerInterface $mailer,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
+        #[Autowire(service: 'limiter.contact_public')]
+        private readonly RateLimiterFactory $contactLimiter,
     ) {
     }
 
@@ -33,11 +37,27 @@ class ContactController extends AbstractController
             return ApiResponse::error('Invalid JSON payload.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // Rate limit by IP to limiter abuse
+        $limiter = $this->contactLimiter->create($request->getClientIp() ?? 'anon');
+        $limit = $limiter->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error(
+                'Trop de demandes. Merci de réessayer dans quelques instants.',
+                JsonResponse::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
+        // Trim incoming strings to avoid blank/space-only payloads
+        $payload = array_map(
+            static fn ($value) => is_string($value) ? trim($value) : $value,
+            $payload
+        );
+
         $constraints = new Assert\Collection([
-            'name' => [new Assert\NotBlank(), new Assert\Length(max: 100)],
-            'email' => [new Assert\NotBlank(), new Assert\Email(), new Assert\Length(max: 180)],
-            'subject' => [new Assert\NotBlank(), new Assert\Length(max: 150)],
-            'message' => [new Assert\NotBlank(), new Assert\Length(max: 5000)],
+            'name' => [new Assert\NotBlank(normalizer: 'trim'), new Assert\Length(max: 100)],
+            'email' => [new Assert\NotBlank(normalizer: 'trim'), new Assert\Email(), new Assert\Length(max: 180)],
+            'subject' => [new Assert\NotBlank(normalizer: 'trim'), new Assert\Length(max: 150)],
+            'message' => [new Assert\NotBlank(normalizer: 'trim'), new Assert\Length(max: 5000)],
         ]);
 
         $violations = $this->validator->validate($payload, $constraints);
