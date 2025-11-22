@@ -35,10 +35,14 @@ export const ContactPage = () => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
     try {
       await sendContactMessage({ name, email, subject, message });
       try {
@@ -46,12 +50,14 @@ export const ContactPage = () => {
           variant: 'success',
         });
       } catch {}
+      setSubmitSuccess(true);
       setName('');
       setEmail('');
       setSubject('');
       setMessage('');
     } catch (err) {
       const details = (err as Error & { details?: string[] }).details;
+      setSubmitError(details?.[0] ?? (err as Error).message);
       try {
         toast.show(details?.[0] ?? (err as Error).message, { variant: 'error' });
       } catch {}
@@ -62,8 +68,28 @@ export const ContactPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <div className="container mx-auto max-w-2xl p-4">
-        <h1 className="text-2xl font-semibold mb-4">Contact</h1>
+      <div className="container mx-auto max-w-3xl p-4">
+        <h1 className="text-3xl font-semibold mb-4">Contact</h1>
+        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <p className="text-sm text-gray-700">
+            Une question sur un devis, un audit ou une intervention&nbsp;? Écrivez-nous via ce
+            formulaire ou directement à{' '}
+            <a className="text-blue-700 underline" href={`mailto:${CONTACT_EMAIL}`}>
+              {CONTACT_EMAIL}
+            </a>
+            .
+          </p>
+        </div>
+        {submitSuccess && (
+          <div className="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            Merci, votre message a été envoyé. Nous revenons vers vous rapidement.
+          </div>
+        )}
+        {submitError && (
+          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+            {submitError}
+          </div>
+        )}
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
             <label className="block text-sm mb-1">Nom</label>
