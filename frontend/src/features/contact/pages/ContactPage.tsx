@@ -83,7 +83,7 @@ export const ContactPage = () => {
               className="w-full border rounded p-2"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="prenom.nom@mail.com"
+              placeholder="Votre adresse email"
               required
               maxLength={180}
             />
