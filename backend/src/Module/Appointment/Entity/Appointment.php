@@ -6,7 +6,6 @@ namespace App\Module\Appointment\Entity;
 
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use DateInterval;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Appointment
 {
     public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_CANCELLED = 'cancelled';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -88,6 +88,13 @@ class Appointment
         return $this->createdAt;
     }
 
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
     public function overlaps(DateTimeImmutable $startAt, DateTimeImmutable $endAt): bool
     {
         return $this->startAt < $endAt && $this->endAt > $startAt;
@@ -108,4 +115,3 @@ class Appointment
         return $this;
     }
 }
-

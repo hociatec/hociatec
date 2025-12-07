@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Controller\Client;
 
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\AppointmentService;
+use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use DateTimeImmutable;
@@ -23,6 +24,7 @@ class CreateAppointmentController extends AbstractController
 {
     public function __construct(
         private readonly AppointmentService $appointmentService,
+        private readonly AppointmentFormatter $appointmentFormatter,
         private readonly PrestationRepository $prestationRepository,
     ) {
     }
@@ -64,19 +66,8 @@ class CreateAppointmentController extends AbstractController
             );
         }
 
-        return ApiResponse::created([
-            'id' => $appointment->getId(),
-            'startAt' => $appointment->getStartAt()->format(DATE_ATOM),
-            'endAt' => $appointment->getEndAt()->format(DATE_ATOM),
-            'prestation' => [
-                'id' => $prestation->getId(),
-                'name' => $prestation->getName(),
-                'durationMinutes' => $prestation->getDurationMinutes(),
-                'priceCents' => $prestation->getPriceCents(),
-            ],
-        ]);
+        return ApiResponse::created($this->appointmentFormatter->format($appointment));
     }
 }
-
 
 

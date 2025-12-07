@@ -38,14 +38,18 @@ class AppointmentRepository extends ServiceEntityRepository
     /**
      * @return list<Appointment>
      */
-    public function findForUser(User $user): array
+    public function findForUser(User $user, ?string $status = null): array
     {
-        return $this->createQueryBuilder('a')
+        $qb = $this->createQueryBuilder('a')
             ->andWhere('a.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('a.startAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('a.startAt', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('a.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }
-

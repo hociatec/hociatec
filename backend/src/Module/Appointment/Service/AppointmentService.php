@@ -9,8 +9,8 @@ use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use DateInterval;
 use DateTimeImmutable;
+use DomainException;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class AppointmentService
@@ -18,6 +18,7 @@ final class AppointmentService
     public function __construct(
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AvailabilityService $availabilityService,
+        private readonly AppointmentStatusManager $statusManager,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -41,9 +42,10 @@ final class AppointmentService
     /**
      * @return array{upcoming: list<Appointment>, past: list<Appointment>}
      */
-    public function getAppointmentsForUser(User $user): array
+    public function getAppointmentsForUser(User $user, ?string $status = null): array
     {
-        $appointments = $this->appointmentRepository->findForUser($user);
+        $status = $this->normalizeStatusFilter($status);
+        $appointments = $this->appointmentRepository->findForUser($user, $status);
         $now = new DateTimeImmutable();
 
         $future = [];
@@ -62,6 +64,33 @@ final class AppointmentService
             'past' => $past,
         ];
     }
+
+    public function cancel(Appointment $appointment): void
+    {
+        $this->statusManager->changeStatus($appointment, Appointment::STATUS_CANCELLED);
+    }
+
+    public function changeStatus(Appointment $appointment, string $status): void
+    {
+        $this->statusManager->changeStatus($appointment, $status);
+    }
+
+    private function normalizeStatusFilter(?string $status): ?string
+    {
+        if ($status === null) {
+            return null;
+        }
+
+        $status = strtolower(trim($status));
+
+        if ($status === '' || $status === 'all') {
+            return null;
+        }
+
+        if (!$this->statusManager->isKnownStatus($status)) {
+            throw new DomainException('Statut de rendez-vous inconnu.');
+        }
+
+        return $status;
+    }
 }
-
-

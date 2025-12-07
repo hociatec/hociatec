@@ -28,6 +28,7 @@ export interface AppointmentItem {
   startAt: string;
   endAt: string;
   status?: string;
+  statusCode?: string;
+  isCancelable?: boolean;
   prestation: Prestation;
 }
-
