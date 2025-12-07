@@ -30,7 +30,7 @@ class AuditRequest
     private string $number;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $client;
 
     #[ORM\Column(enumType: AuditType::class)]
@@ -107,4 +107,3 @@ class AuditRequest
         $this->updatedAt = new DateTimeImmutable();
     }
 }
-
