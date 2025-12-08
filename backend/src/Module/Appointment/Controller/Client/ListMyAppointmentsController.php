@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Controller\Client;
 
+use App\Module\Appointment\Entity\Appointment;
 use App\Module\Appointment\Service\AppointmentService;
-use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use DomainException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -20,33 +17,38 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAppointmentsController extends AbstractController
 {
-    public function __construct(
-        private readonly AppointmentService $appointmentService,
-        private readonly AppointmentFormatter $appointmentFormatter,
-    )
+    public function __construct(private readonly AppointmentService $appointmentService)
     {
     }
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        $status = $request->query->get('status');
-
-        if (!is_string($status)) {
-            $status = null;
-        }
-
-        try {
-            $appointments = $this->appointmentService->getAppointmentsForUser($user, $status);
-        } catch (DomainException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        }
+        $appointments = $this->appointmentService->getAppointmentsForUser($user);
 
         return ApiResponse::success([
-            'upcoming' => array_map($this->appointmentFormatter->format(...), $appointments['upcoming']),
-            'past' => array_map($this->appointmentFormatter->format(...), $appointments['past']),
+            'upcoming' => array_map($this->mapAppointment(...), $appointments['upcoming']),
+            'past' => array_map($this->mapAppointment(...), $appointments['past']),
         ]);
     }
+
+    private function mapAppointment(Appointment $appointment): array
+    {
+        return [
+            'id' => $appointment->getId(),
+            'startAt' => $appointment->getStartAt()->format(DATE_ATOM),
+            'endAt' => $appointment->getEndAt()->format(DATE_ATOM),
+            'status' => $appointment->getStatusLabel(),
+            'prestation' => [
+                'id' => $appointment->getPrestation()->getId(),
+                'name' => $appointment->getPrestation()->getName(),
+                'durationMinutes' => $appointment->getPrestation()->getDurationMinutes(),
+                'priceCents' => $appointment->getPrestation()->getPriceCents(),
+            ],
+        ];
+    }
 }
+
+

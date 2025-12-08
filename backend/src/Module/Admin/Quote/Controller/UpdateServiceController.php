@@ -16,7 +16,12 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
 
-#[Route('/api/admin/quotes/services/{id}', name: 'api_admin_quotes_services_update', methods: ['POST','PUT','PATCH'])]
+#[Route(
+    '/api/admin/quotes/services/{id}',
+    name: 'api_admin_quotes_services_update',
+    methods: ['POST', 'PUT', 'PATCH'],
+    requirements: ['id' => '\d+']
+)]
 #[IsGranted('ROLE_ADMIN')]
 class UpdateServiceController extends AbstractController
 {
@@ -88,4 +93,3 @@ class UpdateServiceController extends AbstractController
         return 0;
     }
 }
-

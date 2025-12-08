@@ -70,11 +70,10 @@ export const bookAppointment = async (payload: AppointmentPayload) => {
   throw new Error(data.message || 'Impossible de creer le rendez-vous');
 };
 
-export const fetchMyAppointments = async (status?: string) => {
-  const params = status ? { status } : undefined;
+export const fetchMyAppointments = async () => {
   const { data } = await httpClient.get<
     ApiResponse<{ upcoming: AppointmentItem[]; past: AppointmentItem[] }>
-  >('/api/appointments/me', { params });
+  >('/api/appointments/me');
 
   if (data.status === 'success') {
     return data.data;
@@ -83,18 +82,14 @@ export const fetchMyAppointments = async (status?: string) => {
   throw new Error(extractErrorMessage(data, 'Erreur lors du chargement de mes rendez-vous'));
 };
 
-export const updateAppointmentStatus = async (appointmentId: number, status: string) => {
-  const { data } = await httpClient.patch<ApiResponse<{ appointment: AppointmentItem }>>(
-    `/api/appointments/${appointmentId}/status`,
-    { status }
+export const cancelAppointment = async (id: number) => {
+  const { data } = await httpClient.post<ApiResponse<{ message: string }>>(
+    `/api/appointments/${id}/cancel`
   );
 
   if (data.status === 'success') {
-    return data.data.appointment;
+    return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de mettre a jour ce rendez-vous.'));
+  throw new Error(extractErrorMessage(data, 'Erreur lors de l\'annulation du rendez-vous'));
 };
-
-export const cancelAppointment = (appointmentId: number) =>
-  updateAppointmentStatus(appointmentId, 'cancelled');

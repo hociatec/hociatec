@@ -83,6 +83,27 @@ class Appointment
         return $this->status;
     }
 
+    public function getStatusLabel(): string
+    {
+        return match ($this->status) {
+            self::STATUS_CONFIRMED => 'Confirmé',
+            self::STATUS_CANCELLED => 'Annulé',
+            default => $this->status,
+        };
+    }
+
+    public function cancel(): self
+    {
+        $this->status = self::STATUS_CANCELLED;
+
+        return $this;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;

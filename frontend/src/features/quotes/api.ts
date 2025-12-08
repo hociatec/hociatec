@@ -75,6 +75,11 @@ export const fetchAdminQuoteServices = async () => {
   return (res.data?.data?.items ?? []) as any[];
 };
 
+export const fetchAdminQuoteService = async (id: number) => {
+  const res = await httpClient.get(`/api/admin/quotes/services/${id}`);
+  return res.data?.data as any;
+};
+
 export const createAdminQuoteService = async (payload: {
   title: string;
   description?: string;
@@ -88,7 +93,11 @@ export const createAdminQuoteService = async (payload: {
   if (payload.unit) form.append('unit', payload.unit);
   form.append('price', String(payload.price));
   form.append('vatRate', String(payload.vatRate));
-  const res = await httpClient.post('/api/admin/quotes/services', form);
+  const res = await httpClient.post('/api/admin/quotes/services', form, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return res.data?.data as any;
 };
 
@@ -100,7 +109,11 @@ export const updateAdminQuoteService = async (
   for (const [k, v] of Object.entries(payload)) {
     if (v !== undefined && v !== null) form.append(k, String(v));
   }
-  const res = await httpClient.post(`/api/admin/quotes/services/${id}`, form);
+  const res = await httpClient.post(`/api/admin/quotes/services/${id}`, form, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return res.data?.data as any;
 };
 
