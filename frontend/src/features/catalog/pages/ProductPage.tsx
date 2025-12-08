@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { fetchPublicProduct, type CatalogProduct } from '../api';
+import { fetchProductReviews, fetchPublicProduct, type CatalogProduct, type ProductPublicReview } from '../api';
 import { ProductMetaBadges } from '../components/ProductMetaBadges';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
@@ -37,6 +37,13 @@ export const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [reviews, setReviews] = useState<ProductPublicReview[]>([]);
+  const [reviewsMeta, setReviewsMeta] = useState<{ total: number; average: number }>({ total: 0, average: 0 });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const reviewsPerPage = 5;
 
   const canonicalUrl = slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
   const productStructuredData = product
@@ -69,6 +76,32 @@ export const ProductPage = () => {
     structuredData: productStructuredData,
   });
 
+  const loadReviews = useCallback(
+    (page = 1, append = false) => {
+      if (!product) return;
+      setReviewsLoading(true);
+      setReviewsError(null);
+
+      void fetchProductReviews(product.slug, { page, perPage: reviewsPerPage })
+        .then((response) => {
+          const meta = response?.meta ?? { total: 0, average: 0 };
+          setReviewsMeta({ total: meta.total, average: meta.average });
+          let nextLength = 0;
+          setReviews((prev) => {
+            const incoming = response?.items ?? [];
+            const next = append ? [...prev, ...incoming] : incoming;
+            nextLength = next.length;
+            return next;
+          });
+          setHasMoreReviews(meta.total > nextLength);
+          setReviewsPage(page);
+        })
+        .catch((err: Error) => setReviewsError(err.message || 'Impossible de charger les avis.'))
+        .finally(() => setReviewsLoading(false));
+    },
+    [product, reviewsPerPage],
+  );
+
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
@@ -83,6 +116,19 @@ export const ProductPage = () => {
   useEffect(() => {
     setActiveSlide(0);
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return;
+    setReviews([]);
+    setReviewsMeta({
+      total: product.reviews?.count ?? 0,
+      average: product.reviews?.average ?? 0,
+    });
+    setHasMoreReviews(false);
+    setReviewsPage(1);
+    setReviewsError(null);
+    loadReviews(1, false);
+  }, [product?.slug, loadReviews]);
 
   useEffect(() => {
     if (!product || product.gallery.length <= 1) {
@@ -119,6 +165,9 @@ export const ProductPage = () => {
     };
   }, [product]);
 
+  const summaryAverage = reviewsMeta.total > 0 ? reviewsMeta.average : product?.reviews?.average ?? 0;
+  const summaryCount = reviewsMeta.total > 0 ? reviewsMeta.total : product?.reviews?.count ?? 0;
+
   const handleNextSlide = () => {
     if (!product || slides.length <= 1) return;
     setActiveSlide((previous) => (previous + 1) % slides.length);
@@ -128,6 +177,23 @@ export const ProductPage = () => {
     if (!product || slides.length <= 1) return;
     setActiveSlide((previous) => (previous - 1 + slides.length) % slides.length);
   };
+
+  const handleLoadMoreReviews = () => {
+    loadReviews(reviewsPage + 1, true);
+  };
+
+  const RatingStars = ({ value, compact = false }: { value: number; compact?: boolean }) => (
+    <div
+      className={`catalog-review-stars${compact ? ' catalog-review-stars--compact' : ''}`}
+      aria-label={`${value.toFixed(1)} sur 5`}
+    >
+      {[1, 2, 3, 4, 5].map((index) => (
+        <span key={index} className={index <= Math.round(value) ? 'is-active' : ''}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
 
   return (
     <SiteLayout headerVariant="light">
@@ -204,6 +270,15 @@ export const ProductPage = () => {
                 {product.shortDescription ??
                   'Une solution personnalisee pour accelerer vos projets numeriques.'}
               </p>
+              {summaryCount > 0 && (
+                <div className="catalog-review-badge">
+                  <RatingStars value={summaryAverage} compact />
+                  <span>
+                    {summaryAverage.toFixed(1)} / 5 · {summaryCount}{' '}
+                    avis
+                  </span>
+                </div>
+              )}
               <div className="catalog-detail-actions">
                 <ProductCartActions product={product} variant="detail" />
               </div>
@@ -283,6 +358,59 @@ export const ProductPage = () => {
             <section className="catalog-detail-content">
               <h2>Ce que nous vous apportons</h2>
               <p>{product.description}</p>
+            </section>
+
+            <section className="catalog-reviews-section">
+              <div className="catalog-reviews-card">
+                <div className="catalog-reviews-card__header">
+                  <div>
+                    <h2>Avis clients</h2>
+                    <p className="muted">
+                      Ce que disent les clients ayant commande ce produit.
+                    </p>
+                  </div>
+                  <div className="catalog-review-badge catalog-review-badge--summary">
+                    <RatingStars value={summaryAverage} />
+                    <div>
+                      <strong>{summaryAverage.toFixed(1)} / 5</strong>
+                      <span className="muted">
+                        {summaryCount} avis{summaryCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {reviewsLoading && <p className="muted">Chargement des avis...</p>}
+                {reviewsError && <div className="register-form__alert">{reviewsError}</div>}
+                {!reviewsLoading && reviews.length === 0 && (
+                  <p className="muted">Pas encore d'avis pour ce produit.</p>
+                )}
+                <ul className="catalog-reviews-list">
+                  {reviews.map((review) => (
+                    <li key={review.id} className="catalog-review">
+                      <div className="catalog-review__header">
+                        <RatingStars value={review.score} />
+                        <div>
+                          <strong>{review.author.displayName}</strong>
+                          <span className="muted">
+                            {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      </div>
+                      {review.comment && <p>{review.comment}</p>}
+                    </li>
+                  ))}
+                </ul>
+                {hasMoreReviews && (
+                  <button
+                    type="button"
+                    className="catalog-review__load-more"
+                    onClick={handleLoadMoreReviews}
+                    disabled={reviewsLoading}
+                  >
+                    Charger plus d'avis
+                  </button>
+                )}
+              </div>
             </section>
           </>
         )}

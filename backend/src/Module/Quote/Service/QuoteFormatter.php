@@ -38,6 +38,7 @@ final class QuoteFormatter
             'id' => $quote->getId(),
             'number' => $quote->getNumber(),
             'status' => $quote->getStatus(),
+            'statusLabel' => self::translateStatus($quote->getStatus()),
             'customer' => [
                 'name' => $quote->getCustomerName(),
                 'email' => $quote->getCustomerEmail(),
@@ -88,5 +89,16 @@ final class QuoteFormatter
             ],
         ];
     }
-}
 
+    private static function translateStatus(string $status): string
+    {
+        return match ($status) {
+            Quote::STATUS_DRAFT => 'brouillon',
+            Quote::STATUS_SENT => 'envoye',
+            Quote::STATUS_ACCEPTED => 'accepte',
+            Quote::STATUS_REFUSED => 'refuse',
+            Quote::STATUS_EXPIRED => 'expire',
+            default => $status,
+        };
+    }
+}

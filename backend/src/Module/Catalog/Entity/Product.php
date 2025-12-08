@@ -94,6 +94,12 @@ class Product
     #[ORM\Column(length: 10, options: ['default' => 'sale'])]
     private string $sellingType = 'sale'; // 'sale' or 'rental'
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $reviewsCount = 0;
+
+    #[ORM\Column(type: 'float', options: ['default' => 0])]
+    private float $reviewsAverage = 0.0;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $createdAt;
 
@@ -392,6 +398,28 @@ class Product
     public function setDiscountEndsAt(?DateTimeImmutable $date): self
     {
         $this->discountEndsAt = $date;
+        return $this;
+    }
+
+    public function getReviewsCount(): int
+    {
+        return $this->reviewsCount;
+    }
+
+    public function setReviewsCount(int $count): self
+    {
+        $this->reviewsCount = max(0, $count);
+        return $this;
+    }
+
+    public function getReviewsAverage(): float
+    {
+        return $this->reviewsAverage;
+    }
+
+    public function setReviewsAverage(float $average): self
+    {
+        $this->reviewsAverage = max(0, $average);
         return $this;
     }
 

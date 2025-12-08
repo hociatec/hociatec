@@ -1,12 +1,30 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
+export interface ProductReviewDto {
+  id: number;
+  score: number;
+  status: string;
+  comment?: string | null;
+  createdAt: string;
+  publishedAt?: string | null;
+  orderItemId?: number;
+  author?: {
+    id: number;
+    displayName: string;
+  };
+}
+
 export interface OrderItemDto {
+  orderItemId: number;
+  productId: number | null;
   productName: string;
   productSku: string;
   quantity: number;
   unitPriceCents: number;
   linePriceCents: number;
+  canReview: boolean;
+  review?: ProductReviewDto | null;
 }
 
 export interface OrderDto {
@@ -16,6 +34,8 @@ export interface OrderDto {
   statusLabel?: string;
   totalPriceCents: number;
   createdAt: string;
+  pendingReviewsCount?: number;
+  hasPendingReviews?: boolean;
   shipping: {
     name: string | null;
     address: string | null;
@@ -23,6 +43,18 @@ export interface OrderDto {
     city: string | null;
   };
   items: OrderItemDto[];
+}
+
+export interface PendingReviewDto {
+  orderId: number;
+  orderNumber: string;
+  orderCreatedAt: string;
+  orderItemId: number;
+  product: {
+    id: number;
+    name: string;
+    sku: string;
+  } | null;
 }
 
 export const checkoutOrder = async (addressId: number): Promise<OrderDto> => {
@@ -71,6 +103,37 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
     return (data.data?.order as OrderDto) ?? ({} as OrderDto);
   }
   const message = data.status === 'error' ? data.message : 'Impossible d\'annuler la commande';
+  throw new Error(message);
+};
+
+export const submitOrderItemReview = async (
+  orderId: number,
+  orderItemId: number,
+  payload: { score: number; comment?: string },
+): Promise<ProductReviewDto> => {
+  const { data } = await httpClient.post<ApiResponse<{ review: ProductReviewDto }>>(
+    `/api/orders/${orderId}/items/${orderItemId}/review`,
+    payload,
+  );
+
+  if (isApiOk(data)) {
+    return (data.data?.review as ProductReviewDto) ?? ({} as ProductReviewDto);
+  }
+
+  const message = data.status === 'error' ? data.message : 'Impossible d\'enregistrer l\'avis';
+  throw new Error(message);
+};
+
+export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: PendingReviewDto[] }>>(
+    '/api/orders/me/pending-reviews',
+  );
+
+  if (isApiOk(data)) {
+    return (data.data?.items ?? []) as PendingReviewDto[];
+  }
+
+  const message = data.status === 'error' ? data.message : 'Impossible de charger les avis en attente';
   throw new Error(message);
 };
 

@@ -1,11 +1,19 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
-import { cancelMyOrder, fetchOrderById, formatOrderStatusFr, type OrderDto } from '../api';
+import { cancelMyOrder, fetchOrderById, formatOrderStatusFr, submitOrderItemReview, type OrderDto } from '../api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/components/ui/alert-dialog';
+
+type ReviewFormState = {
+  score: number;
+  comment: string;
+  submitting: boolean;
+  error: string | null;
+  success: boolean;
+};
 
 const formatPrice = (valueInCents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
@@ -22,6 +30,14 @@ export const OrderDetailPage = () => {
     'idle',
   );
   const [error, setError] = useState<string | null>(null);
+  const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
+  const emptyReviewForm: ReviewFormState = {
+    score: 0,
+    comment: '',
+    submitting: false,
+    error: null,
+    success: false,
+  };
 
   useEffect(() => {
     if (!orderId) return;
@@ -38,8 +54,88 @@ export const OrderDetailPage = () => {
       });
   }, [orderId]);
 
+  useEffect(() => {
+    if (!order) return;
+    const targetReview = params.get('review');
+    if (!targetReview) return;
+    const element = document.getElementById(`order-item-${targetReview}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-blue-300');
+      window.setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-blue-300');
+      }, 2000);
+    }
+  }, [order, params]);
+
+  useEffect(() => {
+    setReviewForms({});
+  }, [order?.id]);
+
   const isLoading = status === 'loading';
   const justConfirmed = params.get('confirmed') === '1';
+
+  const getReviewForm = (orderItemId: number): ReviewFormState =>
+    reviewForms[orderItemId] ?? emptyReviewForm;
+
+  const updateReviewForm = (orderItemId: number, patch: Partial<ReviewFormState>) => {
+    setReviewForms((prev) => {
+      const current = prev[orderItemId] ?? emptyReviewForm;
+      return {
+        ...prev,
+        [orderItemId]: {
+          ...current,
+          ...patch,
+        },
+      };
+    });
+  };
+
+  const handleSubmitReview = async (orderItemId: number) => {
+    if (!order) return;
+    const form = getReviewForm(orderItemId);
+    if (form.score < 1) {
+      updateReviewForm(orderItemId, { error: 'Veuillez attribuer une note.', success: false });
+      return;
+    }
+
+    updateReviewForm(orderItemId, { submitting: true, error: null, success: false });
+
+    try {
+      const review = await submitOrderItemReview(order.id, orderItemId, {
+        score: form.score,
+        comment: form.comment || undefined,
+      });
+
+      setOrder((prev) => {
+        if (!prev) return prev;
+        const updatedItems = prev.items.map((it) =>
+          it.orderItemId === orderItemId ? { ...it, canReview: false, review } : it,
+        );
+        const nextPending = Math.max(0, (prev.pendingReviewsCount ?? 0) - 1);
+        return {
+          ...prev,
+          items: updatedItems,
+          pendingReviewsCount: nextPending,
+          hasPendingReviews: nextPending > 0,
+        };
+      });
+
+      updateReviewForm(orderItemId, { submitting: false, success: true });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Impossible d\'enregistrer votre avis';
+      updateReviewForm(orderItemId, { submitting: false, error: message, success: false });
+    }
+  };
+
+  const ReviewStarsDisplay = ({ value }: { value: number }) => (
+    <span className="text-yellow-500 text-base">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star}>{star <= Math.round(value) ? '★' : '☆'}</span>
+      ))}
+    </span>
+  );
 
   return (
     <SiteLayout>
@@ -121,15 +217,93 @@ export const OrderDetailPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items.map((it, idx) => (
-                    <tr key={idx} className="border-b">
-                      <td className="py-2">{it.productName}</td>
-                      <td className="py-2">{it.productSku}</td>
-                      <td className="py-2">{formatPrice(it.unitPriceCents)}</td>
-                      <td className="py-2">{it.quantity}</td>
-                      <td className="py-2 text-right">{formatPrice(it.linePriceCents)}</td>
-                    </tr>
-                  ))}
+                  {order.items.map((it) => {
+                    const form = getReviewForm(it.orderItemId);
+                    return (
+                      <Fragment key={it.orderItemId ?? `${it.productSku}-${it.productName}`}>
+                        <tr className="border-b">
+                          <td className="py-2">{it.productName}</td>
+                          <td className="py-2">{it.productSku}</td>
+                          <td className="py-2">{formatPrice(it.unitPriceCents)}</td>
+                          <td className="py-2">{it.quantity}</td>
+                          <td className="py-2 text-right">{formatPrice(it.linePriceCents)}</td>
+                        </tr>
+                        {(it.review || it.canReview) && (
+                          <tr>
+                            <td colSpan={5} id={`order-item-${it.orderItemId}`} className="py-3">
+                              {it.review ? (
+                                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm">
+                                  <div className="flex items-center gap-2 font-semibold">
+                                    <ReviewStarsDisplay value={it.review.score} />
+                                    <span>{(it.review.score ?? 0).toFixed(1)} / 5</span>
+                                  </div>
+                                  {it.review.comment && (
+                                    <p className="mt-2 text-gray-700">{it.review.comment}</p>
+                                  )}
+                                </div>
+                              ) : it.canReview ? (
+                                <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
+                                  <p className="font-medium mb-2">Donner votre avis</p>
+                                  <div className="flex items-center gap-1 mb-3">
+                                    {[1, 2, 3, 4, 5].map((score) => (
+                                      <button
+                                        key={score}
+                                        type="button"
+                                        className={`text-2xl leading-none ${
+                                          score <= form.score ? 'text-yellow-500' : 'text-gray-300'
+                                        }`}
+                                        onClick={() =>
+                                          updateReviewForm(it.orderItemId, {
+                                            score,
+                                            error: null,
+                                            success: false,
+                                          })
+                                        }
+                                      >
+                                        ★
+                                      </button>
+                                    ))}
+                                    <span className="text-xs text-gray-500">
+                                      {form.score > 0 ? `${form.score}/5` : 'Choisissez une note'}
+                                    </span>
+                                  </div>
+                                  <textarea
+                                    className="w-full rounded-md border border-slate-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                    placeholder="Partagez votre experience..."
+                                    rows={3}
+                                    value={form.comment}
+                                    onChange={(event) =>
+                                      updateReviewForm(it.orderItemId, {
+                                        comment: event.target.value,
+                                        error: null,
+                                        success: false,
+                                      })
+                                    }
+                                  />
+                                  {form.error && (
+                                    <div className="mt-2 text-sm text-red-600">{form.error}</div>
+                                  )}
+                                  {form.success && (
+                                    <div className="mt-2 text-sm text-green-700">
+                                      Merci pour votre avis !
+                                    </div>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="register-form__submit mt-3"
+                                    onClick={() => void handleSubmitReview(it.orderItemId)}
+                                    disabled={form.submitting}
+                                  >
+                                    {form.submitting ? 'Envoi...' : 'Envoyer mon avis'}
+                                  </button>
+                                </div>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

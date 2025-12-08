@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ShowOrderController extends AbstractController
 {
-    public function __construct(private readonly OrderRepository $orders)
+    public function __construct(
+        private readonly OrderRepository $orders,
+        private readonly ProductRatingRepository $ratings,
+    )
     {
     }
 
@@ -35,7 +39,14 @@ class ShowOrderController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        $orderItemIds = [];
+        foreach ($order->getItems() as $item) {
+            if ($item->getId() !== null) {
+                $orderItemIds[] = $item->getId();
+            }
+        }
+        $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
+
+        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order, $ratings)]);
     }
 }
-

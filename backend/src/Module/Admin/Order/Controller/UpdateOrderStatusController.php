@@ -11,7 +11,7 @@ use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Workflow\StateMachineInterface;
+use Symfony\Component\Workflow\WorkflowInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +28,7 @@ class UpdateOrderStatusController extends AbstractController
         private readonly OrderRepository $orders,
         private readonly EntityManagerInterface $em,
         #[Autowire(service: 'state_machine.order_status')]
-        private readonly StateMachineInterface $stateMachine,
+        private readonly WorkflowInterface $stateMachine,
         private readonly MessageBusInterface $bus,
     ) {
     }

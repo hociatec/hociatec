@@ -54,9 +54,26 @@ export interface CatalogProduct {
     name: string;
     slug: string;
   };
+  reviews?: {
+    count: number;
+    average: number;
+  };
   imageName?: string | null;
   imageSize?: number | null;
   galleryMeta?: CatalogProductGalleryMeta[];
+}
+
+export interface ProductPublicReview {
+  id: number;
+  score: number;
+  status: string;
+  comment?: string | null;
+  createdAt: string;
+  publishedAt?: string | null;
+  author: {
+    id: number;
+    displayName: string;
+  };
 }
 
 export interface CategoryWithProducts {
@@ -133,6 +150,26 @@ export const fetchPublicProduct = async (slug: string) => {
   }
 
   throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
+};
+
+export const fetchProductReviews = async (
+  slug: string,
+  params: { page?: number; perPage?: number } = {},
+) => {
+  const { data } = await httpClient.get<
+    ApiResponse<{ items: ProductPublicReview[]; meta: { page: number; perPage: number; total: number; average: number } }>
+  >(`/api/public/catalog/products/${slug}/reviews`, {
+    params: {
+      page: params.page ?? 1,
+      perPage: params.perPage ?? 10,
+    },
+  });
+
+  if (isApiOk(data)) {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de charger les avis.'));
 };
 
 export const fetchPublicProducts = async (params: {

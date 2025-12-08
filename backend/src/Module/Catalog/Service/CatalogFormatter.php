@@ -64,6 +64,10 @@ final class CatalogFormatter
                 'name' => $product->getCategory()->getName(),
                 'slug' => $product->getCategory()->getSlug(),
             ],
+            'reviews' => [
+                'count' => $product->getReviewsCount(),
+                'average' => $product->getReviewsAverage(),
+            ],
             'gallery' => $gallery,
         ];
 

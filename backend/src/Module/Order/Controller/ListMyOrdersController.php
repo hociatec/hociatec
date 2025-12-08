@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyOrdersController extends AbstractController
 {
-    public function __construct(private readonly OrderRepository $orders)
+    public function __construct(
+        private readonly OrderRepository $orders,
+        private readonly ProductRatingRepository $ratings,
+    )
     {
     }
 
@@ -25,12 +29,23 @@ class ListMyOrdersController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
+        $orders = $this->orders->findByUser($user);
+        $orderItemIds = [];
+        foreach ($orders as $order) {
+            foreach ($order->getItems() as $item) {
+                if ($item->getId() !== null) {
+                    $orderItemIds[] = $item->getId();
+                }
+            }
+        }
+
+        $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
+
         $items = array_map(
-            fn($o) => OrderFormatter::formatOrder($o),
-            $this->orders->findByUser($user),
+            fn($o) => OrderFormatter::formatOrder($o, $ratings),
+            $orders,
         );
 
         return ApiResponse::success(['items' => $items]);
     }
 }
-
