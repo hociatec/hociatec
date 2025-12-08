@@ -49,6 +49,7 @@ class QuotePdfService
         $totalVat = number_format($totals['totalVat'] / 100, 2, ',', ' ');
         $totalTtc = number_format($totals['totalTtc'] / 100, 2, ',', ' ');
 
+        $statusLabel = htmlspecialchars(QuoteStatusTranslator::toLabel($quote->getStatus()));
         $customer = sprintf(
             '<div><strong>%s</strong><br/>%s<br/>%s</div>',
             htmlspecialchars($quote->getCustomerName() ?? ''),
@@ -79,7 +80,7 @@ class QuotePdfService
     <div class="header">
       <div>
         <h1>Devis {$quote->getNumber()}</h1>
-        <div class="muted">Statut: {$quote->getStatus()}</div>
+        <div class="muted">Statut: {$statusLabel}</div>
         <div class="muted">Date: {$quote->getCreatedAt()->format('d/m/Y')}</div>
       </div>
       <div>
@@ -115,4 +116,3 @@ class QuotePdfService
 HTML;
     }
 }
-

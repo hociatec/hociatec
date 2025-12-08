@@ -95,7 +95,11 @@ class QuoteService
         $quote->setCustomerCompany(self::strOrNull($payload['customer']['company'] ?? null));
         $quote->setCustomerAddress(self::strOrNull($payload['customer']['address'] ?? null));
 
-        $status = (string) ($payload['status'] ?? Quote::STATUS_DRAFT);
+        $statusInput = isset($payload['status']) ? (string) $payload['status'] : Quote::STATUS_DRAFT;
+        $status = QuoteStatusTranslator::toCode($statusInput);
+        if ($status === '') {
+            $status = Quote::STATUS_DRAFT;
+        }
         $quote->setStatus($status);
 
         $quote->setGlobalDiscountCents((int) ($payload['discountCents'] ?? 0));

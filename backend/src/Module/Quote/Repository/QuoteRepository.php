@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\Repository;
 
 use App\Module\Quote\Entity\Quote;
+use App\Module\Quote\Service\QuoteStatusTranslator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -42,11 +43,14 @@ class QuoteRepository extends ServiceEntityRepository
                 ->setParameter('term', '%'.$search.'%');
         }
 
-        if ($status !== null && $status !== '' && $status !== 'all') {
-            $qb->andWhere('q.status = :status')->setParameter('status', $status);
+        if ($status !== null) {
+            $status = trim((string) $status);
+            if ($status !== '' && strtolower($status) !== 'all') {
+                $qb->andWhere('q.status = :status')
+                    ->setParameter('status', QuoteStatusTranslator::toCode($status));
+            }
         }
 
         return $qb->getQuery()->getResult();
     }
 }
-
