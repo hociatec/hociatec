@@ -41,6 +41,9 @@ final class CartService
         $resolvedRentalMonths = $this->determineRentalMonths($product, $rentalMonths);
         $existing = $this->resolveExistingItem($cart, $product, $resolvedRentalMonths);
 
+        $currentQuantity = $this->getTotalQuantityForProduct($cart, $product);
+        $this->assertStockAvailability($product, $currentQuantity + $quantity);
+
         if ($existing === null) {
             $item = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
             $cart->addItem($item);
@@ -112,6 +115,11 @@ final class CartService
         $resolvedRentalMonths = null;
         if ($product->getSellingType() === 'rental' && $quantity > 0) {
             $resolvedRentalMonths = $this->determineRentalMonths($product, $rentalMonths, $existing);
+        }
+
+        if ($quantity > 0) {
+            $currentQuantity = $this->getTotalQuantityForProduct($cart, $product, $existing);
+            $this->assertStockAvailability($product, $currentQuantity + $quantity);
         }
 
         if ($quantity === 0) {
@@ -235,5 +243,27 @@ final class CartService
         }
 
         return $items[0] ?? null;
+    }
+
+    private function assertStockAvailability(Product $product, int $requestedQuantity): void
+    {
+        if ($requestedQuantity > $product->getStock()) {
+            throw new InvalidArgumentException('Stock insuffisant pour ce produit.');
+        }
+    }
+
+    private function getTotalQuantityForProduct(CartSession $cart, Product $product, ?CartItem $exclude = null): int
+    {
+        $total = 0;
+
+        foreach ($cart->getItemsForProduct($product) as $item) {
+            if ($exclude !== null && $item === $exclude) {
+                continue;
+            }
+
+            $total += $item->getQuantity();
+        }
+
+        return $total;
     }
 }
