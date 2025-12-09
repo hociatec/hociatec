@@ -8,6 +8,7 @@ use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Shared\Http\ApiResponse;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,7 +58,11 @@ class AddCartItemController extends AbstractController
         }
 
         $token = $this->extractToken($request, $payload);
-        $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
+        try {
+            $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
+        } catch (InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+        }
 
         $response = ApiResponse::success([
             'cart' => CartFormatter::formatCart($cart),
