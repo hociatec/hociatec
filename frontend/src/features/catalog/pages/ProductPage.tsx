@@ -8,6 +8,9 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { SITE_URL, CONTACT_EMAIL } from '@/shared/config/seoConfig';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useToast } from '@/shared/components/ui/toast';
+import { addFavorite, fetchFavorites, removeFavorite } from '@/features/favorites/api';
 
 import './CatalogPages.css';
 
@@ -44,6 +47,12 @@ export const ProductPage = () => {
   const [reviewsPage, setReviewsPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
   const reviewsPerPage = 5;
+  const { status: authStatus } = useAuth();
+  const { show: showToast } = useToast();
+  const [favoriteStatus, setFavoriteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteAction, setFavoriteAction] = useState<'idle' | 'saving'>('idle');
+  const isAuthenticated = authStatus === 'authenticated';
 
   const canonicalUrl = slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
   const productStructuredData = product
@@ -131,6 +140,36 @@ export const ProductPage = () => {
   }, [product?.slug, loadReviews]);
 
   useEffect(() => {
+    if (!product?.id || !isAuthenticated) {
+      setIsFavorite(false);
+      setFavoriteStatus('idle');
+      return;
+    }
+
+    let cancelled = false;
+    setFavoriteStatus('loading');
+
+    void fetchFavorites()
+      .then((items) => {
+        if (cancelled) {
+          return;
+        }
+        setIsFavorite(items.some((item) => item.product.id === product.id));
+        setFavoriteStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+        setFavoriteStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, product?.id]);
+
+  useEffect(() => {
     if (!product || product.gallery.length <= 1) {
       return;
     }
@@ -167,6 +206,57 @@ export const ProductPage = () => {
 
   const summaryAverage = reviewsMeta.total > 0 ? reviewsMeta.average : product?.reviews?.average ?? 0;
   const summaryCount = reviewsMeta.total > 0 ? reviewsMeta.total : product?.reviews?.count ?? 0;
+  const favoriteButtonLabel =
+    favoriteAction === 'saving'
+      ? 'Veuillez patienter...'
+      : isFavorite
+        ? 'Retirer des favoris'
+        : 'Ajouter aux favoris';
+  const favoriteButtonDisabled = favoriteAction === 'saving' || favoriteStatus === 'loading';
+
+  const handleAddFavorite = () => {
+    if (!product) {
+      return;
+    }
+    setFavoriteAction('saving');
+    void addFavorite(product.id)
+      .then(({ alreadyFavorite }) => {
+        setIsFavorite(true);
+        showToast(
+          alreadyFavorite
+            ? 'Ce produit est deja present dans vos favoris.'
+            : 'Produit ajoute a vos favoris.',
+        );
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Impossible d\'ajouter ce produit aux favoris.';
+        showToast(message, { variant: 'error' });
+      })
+      .finally(() => setFavoriteAction('idle'));
+  };
+
+  const handleRemoveFavorite = () => {
+    if (!product) {
+      return;
+    }
+    setFavoriteAction('saving');
+    void removeFavorite(product.id)
+      .then(() => {
+        setIsFavorite(false);
+        showToast('Produit retire de vos favoris.');
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Impossible de retirer ce produit des favoris.';
+        showToast(message, { variant: 'error' });
+      })
+      .finally(() => setFavoriteAction('idle'));
+  };
 
   const handleNextSlide = () => {
     if (!product || slides.length <= 1) return;
@@ -281,6 +371,34 @@ export const ProductPage = () => {
               )}
               <div className="catalog-detail-actions">
                 <ProductCartActions product={product} variant="detail" />
+                {isAuthenticated ? (
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      className={`inline-flex items-center rounded-full border px-5 py-2 text-sm font-semibold transition ${
+                        isFavorite
+                          ? 'border-red-300 text-red-600 hover:border-red-400'
+                          : 'border-slate-300 text-slate-700 hover:border-slate-500'
+                      }`}
+                      disabled={favoriteButtonDisabled}
+                      onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
+                    >
+                      {favoriteButtonLabel}
+                    </button>
+                    {favoriteStatus === 'error' && (
+                      <span className="text-xs text-red-600">
+                        Impossible de verifier vos favoris actuellement.
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="text-sm font-semibold text-slate-600 underline hover:text-slate-800"
+                  >
+                    Connectez-vous pour ajouter aux favoris
+                  </Link>
+                )}
               </div>
             </header>
 

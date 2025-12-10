@@ -118,9 +118,16 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
         <p className="site-header__account-panel-title">Acces rapide</p>
         <div className="site-header__account-panel-content">
           <Link
-            to="/profile"
+            to="/favorites"
             className="site-header__account-item"
             ref={firstItemRef}
+            onClick={() => closeMenu({ focusTrigger: false })}
+          >
+            Mes favoris
+          </Link>
+          <Link
+            to="/profile"
+            className="site-header__account-item"
             onClick={() => closeMenu({ focusTrigger: false })}
           >
             Mon profil

@@ -41,6 +41,7 @@ import { CguPage } from '@/features/legal/pages/CguPage';
 import { CgvPage } from '@/features/legal/pages/CgvPage';
 import { PrivacyPage } from '@/features/legal/pages/PrivacyPage';
 import { MentionsPage } from '@/features/legal/pages/MentionsPage';
+import { MyFavoritesPage } from '@/features/favorites/pages/MyFavoritesPage';
 
 export const AppRoutes = () => (
   <Routes>
@@ -90,6 +91,14 @@ export const AppRoutes = () => (
       element={
         <ProtectedRoute>
           <ProfilePage />
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/favorites"
+      element={
+        <ProtectedRoute>
+          <MyFavoritesPage />
         </ProtectedRoute>
       }
     />

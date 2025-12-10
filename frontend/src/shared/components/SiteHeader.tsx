@@ -34,7 +34,9 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
       .trim();
 
   const profileActive =
-    location.pathname.startsWith('/profile') || location.pathname.startsWith('/appointments/me');
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/appointments/me') ||
+    location.pathname.startsWith('/favorites');
   const adminActive = location.pathname.startsWith('/admin');
 
   return (
