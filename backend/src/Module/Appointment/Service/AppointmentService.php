@@ -9,7 +9,6 @@ use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use DateInterval;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -18,6 +17,7 @@ final class AppointmentService
     public function __construct(
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AvailabilityService $availabilityService,
+        private readonly AppointmentStatusManager $appointmentStatusManager,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -72,6 +72,10 @@ final class AppointmentService
         $appointment->cancel();
         $this->entityManager->flush();
     }
-}
 
+    public function changeStatus(Appointment $appointment, string $targetStatus): void
+    {
+        $this->appointmentStatusManager->changeStatus($appointment, $targetStatus);
+    }
+}
 

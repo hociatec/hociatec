@@ -36,8 +36,12 @@ final class UpdateAppointmentStatusController extends AbstractController
 
         $appointment = $this->appointmentRepository->find($id);
 
-        if ($appointment === null || $appointment->getUser()->getId() !== $user->getId()) {
+        if ($appointment === null) {
             return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        if ($appointment->getUser()->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
+            return ApiResponse::error('Vous n\'êtes pas autorisé à modifier ce rendez-vous.', Response::HTTP_FORBIDDEN);
         }
 
         try {

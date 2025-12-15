@@ -83,12 +83,13 @@ export const fetchMyAppointments = async () => {
 };
 
 export const cancelAppointment = async (id: number) => {
-  const { data } = await httpClient.post<ApiResponse<{ message: string }>>(
-    `/api/appointments/${id}/cancel`
+  const { data } = await httpClient.patch<ApiResponse<{ appointment: AppointmentItem }>>(
+    `/api/appointments/${id}/status`,
+    { status: 'cancelled' }
   );
 
-  if (data.status === 'success') {
-    return data.data;
+  if (isApiOk(data)) {
+    return data.data.appointment;
   }
 
   throw new Error(extractErrorMessage(data, 'Erreur lors de l\'annulation du rendez-vous'));
