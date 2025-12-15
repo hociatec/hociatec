@@ -28,8 +28,10 @@ class AppointmentRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('a')
             ->andWhere('a.startAt < :end')
             ->andWhere('a.endAt > :start')
+            ->andWhere('a.status != :cancelledStatus')
             ->setParameter('start', $start)
             ->setParameter('end', $end)
+            ->setParameter('cancelledStatus', Appointment::STATUS_CANCELLED)
             ->orderBy('a.startAt', 'ASC')
             ->getQuery()
             ->getResult();
