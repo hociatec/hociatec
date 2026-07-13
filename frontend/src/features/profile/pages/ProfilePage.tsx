@@ -516,7 +516,7 @@ export const ProfilePage = () => {
           <section className="profile-card" aria-labelledby="profile-support-heading">
             <h2 id="profile-support-heading">Support dédié</h2>
             <ul className="profile-list">
-              <li>Support utilisateur disponible 24/7 : support@hociatec.com</li>
+              <li>Support utilisateur disponible 24/7 : contact@hociatec.fr</li>
               <li>Escalade prioritaire pour les incidents critiques et bloqueurs</li>
               <li>Revues trimestrielles pour ajuster vos niveaux de service</li>
             </ul>

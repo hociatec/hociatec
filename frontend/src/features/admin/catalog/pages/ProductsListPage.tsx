@@ -107,11 +107,24 @@ export const ProductsListPage = () => {
     <PageContainer
       title="Produits"
       headerActions={
-        <Link to="/admin/catalog/products/new" className="register-form__submit">
+        <Link
+          to="/admin/catalog/products/new"
+          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
           Ajouter un produit
         </Link>
       }
     >
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} affiché
+          {filteredProducts.length > 1 ? 's' : ''}
+        </p>
+        <p className="text-sm text-slate-500">
+          Filtrez par nom, slug, SKU, marque ou catégorie.
+        </p>
+      </div>
+
       <FilterBar>
         <SearchFilter
           value={search}
@@ -137,88 +150,83 @@ export const ProductsListPage = () => {
       )}
 
       {loading ? (
-        <p className="muted">Chargement des produits...</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Chargement des produits...
+        </div>
       ) : filteredProducts.length === 0 ? (
-        <p className="muted">Aucun produit ne correspond a vos filtres.</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Aucun produit ne correspond à vos filtres.
+        </div>
       ) : (
-        <table className="catalog-admin-table">
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Groupe</th>
-              <th>Catégorie</th>
-              <th>Prix</th>
-              <th>Stock</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  <div className="catalog-admin-product-cell">
-                    <strong>{product.name}</strong>
-                    {product.brand && (
-                      <span className="muted">Marque : {product.brand}</span>
-                    )}
-                    {product.variantGroup && (
-                      <span className="muted">Groupe : {product.variantGroup}</span>
-                    )}
-                    {product.releaseYear && (
-                      <span className="muted">Modèle : {product.releaseYear}</span>
-                    )}
-                    {product.color && (
-                      <span className="muted">Couleur : {product.color}</span>
-                    )}
-                    {product.storageCapacity && (
-                      <span className="muted">Stockage : {product.storageCapacity}</span>
-                    )}
-                    {product.memoryRam && (
-                      <span className="muted">RAM : {product.memoryRam}</span>
-                    )}
-                    <span className="muted">Slug : {product.slug}</span>
-                    <span className="muted">SKU {product.sku}</span>
-                    {product.isFeaturedHome && (
-                      <span className="catalog-featured-badge">Accueil</span>
-                    )}
-                  </div>
-                </td>
-                <td>{product.variantGroup ?? '-'}</td>
-                <td>{product.category.name}</td>
-                <td>
-                  {formatPrice(product.priceCents)}{product.sellingType === 'rental' ? ' / mois' : ''}
-                </td>
-                <td>
-                  <div className="catalog-admin-product-cell">
-                    <strong>{product.stock}</strong>
-                    <span className="muted">
-                      {product.color ? `Couleur : ${product.color}` : 'Variante par défaut'}
-                    </span>
-                  </div>
-                </td>
-                <td>{product.isPublished ? 'Publié' : 'Brouillon'}</td>
-                <td>
-                  <div className="catalog-admin-actions">
-                    <Link
-                      to={`/admin/catalog/products/${product.id}/edit`}
-                      className="catalog-admin-actions__edit"
-                    >
-                      Modifier
-                    </Link>
-                    <button
-                      type="button"
-                      className="catalog-admin-actions__delete"
-                      onClick={() => void handleDelete(product.id)}
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                </td>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Groupe</th>
+                <th>Catégorie</th>
+                <th>Prix</th>
+                <th>Stock</th>
+                <th>Statut</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product) => (
+                <tr key={product.id}>
+                  <td>
+                    <div className="catalog-admin-product-cell">
+                      <strong>{product.name}</strong>
+                      {product.brand && <span className="muted">Marque : {product.brand}</span>}
+                      {product.variantGroup && <span className="muted">Groupe : {product.variantGroup}</span>}
+                      {product.releaseYear && <span className="muted">Modèle : {product.releaseYear}</span>}
+                      {product.color && <span className="muted">Couleur : {product.color}</span>}
+                      {product.storageCapacity && <span className="muted">Stockage : {product.storageCapacity}</span>}
+                      {product.memoryRam && <span className="muted">RAM : {product.memoryRam}</span>}
+                      <span className="muted">Slug : {product.slug}</span>
+                      <span className="muted">SKU {product.sku}</span>
+                      {product.isFeaturedHome && (
+                        <span className="catalog-featured-badge">Accueil</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>{product.variantGroup ?? '-'}</td>
+                  <td>{product.category.name}</td>
+                  <td>
+                    {formatPrice(product.priceCents)}
+                    {product.sellingType === 'rental' ? ' / mois' : ''}
+                  </td>
+                  <td>
+                    <div className="catalog-admin-product-cell">
+                      <strong>{product.stock}</strong>
+                      <span className="muted">
+                        {product.color ? `Couleur : ${product.color}` : 'Variante par défaut'}
+                      </span>
+                    </div>
+                  </td>
+                  <td>{product.isPublished ? 'Publié' : 'Brouillon'}</td>
+                  <td>
+                    <div className="catalog-admin-actions">
+                      <Link
+                        to={`/admin/catalog/products/${product.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                      >
+                        Modifier
+                      </Link>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(product.id)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </PageContainer>
   );

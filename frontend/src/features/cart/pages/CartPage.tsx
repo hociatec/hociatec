@@ -150,7 +150,9 @@ export const CartPage = () => {
     if (!hasItems) return;
     if (authStatus !== 'authenticated') {
       show('Vous devez être connecté pour valider une commande.', { variant: 'info' });
-      navigate('/', { replace: true });
+      navigate('/login', {
+        state: { redirectTo: '/panier' },
+      });
       return;
     }
 

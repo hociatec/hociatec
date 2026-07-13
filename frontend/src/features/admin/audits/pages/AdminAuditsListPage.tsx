@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -52,16 +53,17 @@ export const AdminAuditsListPage = () => {
       .finally(() => setLoading(false));
   }, [isAdmin]);
 
-  // Poll list every 15s (only when tab is visible and admin)
   useEffect(() => {
     if (!isAdmin) return;
     pollTimer.current = window.setInterval(() => {
       if (document.hidden) return;
       void adminFetchAudits()
         .then(setItems)
-        .catch(() => {/* background refresh errors ignored */});
+        .catch(() => undefined);
     }, 15000);
-    return () => { if (pollTimer.current) window.clearInterval(pollTimer.current); };
+    return () => {
+      if (pollTimer.current) window.clearInterval(pollTimer.current);
+    };
   }, [isAdmin]);
 
   if (guardLoading) {
@@ -117,6 +119,15 @@ export const AdminAuditsListPage = () => {
 
   return (
     <PageContainer title="Audits">
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          {view.length} audit{view.length > 1 ? 's' : ''} affiché{view.length > 1 ? 's' : ''}.
+        </p>
+        <p className="text-sm text-slate-500">
+          Filtrez par numéro, URL, type, statut et période.
+        </p>
+      </div>
+
       <FilterBar>
         <SearchFilter value={search} onChange={setSearch} placeholder="Rechercher (numéro, URL)" />
         <SelectFilter
@@ -158,25 +169,65 @@ export const AdminAuditsListPage = () => {
           ]}
           ariaLabel="Tri"
         />
-        <DateRangeFilter from={fromDate} to={toDate} onChange={({ from, to }) => { setFromDate(from); setToDate(to); }} />
+        <DateRangeFilter
+          from={fromDate}
+          to={toDate}
+          onChange={({ from, to }) => {
+            setFromDate(from);
+            setToDate(to);
+          }}
+        />
       </FilterBar>
 
-      {loading && <p>Chargement…</p>}
-      {error && <div className="text-red-600">{error}</div>}
-      <ul className="divide-y">
-        {view.map((a) => (
-          <li key={a.id} className="py-3 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{a.number} — {typeLabel(a.type)}</div>
-              <div className="text-sm text-gray-600">{a.url}</div>
-            </div>
-            <div className="text-sm capitalize">{statusLabel(a.status)}</div>
-            <div>
-              <Link className="underline" to={`/admin/audits/${a.id}`}>Ouvrir</Link>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {loading && (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Chargement...
+        </div>
+      )}
+      {error && <div className="register-form__alert">{error}</div>}
+
+      {!loading && view.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Aucun audit trouvé.
+        </div>
+      ) : null}
+
+      {view.length > 0 && (
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th>Numéro</th>
+                <th>Type</th>
+                <th>Statut</th>
+                <th>URL</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {view.map((a) => (
+                <tr key={a.id}>
+                  <td>
+                    <strong>{a.number}</strong>
+                    <div className="muted">{new Date(a.createdAt).toLocaleDateString('fr-FR')}</div>
+                  </td>
+                  <td>{typeLabel(a.type)}</td>
+                  <td>{statusLabel(a.status)}</td>
+                  <td className="max-w-[320px] truncate">{a.url}</td>
+                  <td>
+                    <Link
+                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      to={`/admin/audits/${a.id}`}
+                    >
+                      Ouvrir
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </PageContainer>
   );
 };

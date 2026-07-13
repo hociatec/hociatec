@@ -56,11 +56,15 @@ export const QuotesListPage = () => {
       await deleteAdminQuote(id);
       setQuotes((prev) => prev.filter((q) => q.id !== id));
       setMessage('Devis supprimé.');
-      try { toast.show('Devis supprimé.', { variant: 'success' }); } catch {}
+      try {
+        toast.show('Devis supprimé.', { variant: 'success' });
+      } catch {}
     } catch (e: any) {
       const msg = e?.message ?? 'Suppression impossible.';
       setError(msg);
-      try { toast.show(msg, { variant: 'error' }); } catch {}
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch {}
     }
   };
 
@@ -71,9 +75,11 @@ export const QuotesListPage = () => {
       setQuotes((prev) => [copy, ...prev]);
       setMessage('Devis dupliqué.');
     } catch (e: any) {
-      const msg2 = e?.message ?? 'Duplication impossible.';
-      setError(msg2);
-      try { toast.show(msg2, { variant: 'error' }); } catch {}
+      const msg = e?.message ?? 'Duplication impossible.';
+      setError(msg);
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch {}
     }
   };
 
@@ -96,11 +102,23 @@ export const QuotesListPage = () => {
     <PageContainer
       title="Devis"
       headerActions={
-        <Link to="/devis/nouveau" className="register-form__submit">
+        <Link
+          to="/devis/nouveau"
+          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
           Nouveau devis
         </Link>
       }
     >
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          {filtered.length} devis affiché{filtered.length > 1 ? 's' : ''}.
+        </p>
+        <p className="text-sm text-slate-500">
+          Filtrez par numéro, client, statut et période.
+        </p>
+      </div>
+
       <FilterBar>
         <SearchFilter
           value={search}
@@ -123,7 +141,10 @@ export const QuotesListPage = () => {
         <DateRangeFilter
           from={fromDate}
           to={toDate}
-          onChange={({ from, to }) => { setFromDate(from); setToDate(to); }}
+          onChange={({ from, to }) => {
+            setFromDate(from);
+            setToDate(to);
+          }}
         />
       </FilterBar>
 
@@ -135,54 +156,67 @@ export const QuotesListPage = () => {
       )}
 
       {loading ? (
-        <p className="muted">Chargement des devis...</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Chargement des devis...
+        </div>
       ) : filtered.length === 0 ? (
-        <p className="muted">Aucun devis.</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Aucun devis.
+        </div>
       ) : (
-        <table className="catalog-admin-table">
-          <thead>
-            <tr>
-              <th>Numéro</th>
-              <th>Client</th>
-              <th>Statut</th>
-              <th>Total TTC</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((q) => (
-              <tr key={q.id}>
-                <td>
-                  <strong>{q.number}</strong>
-                  <div className="muted">{new Date(q.createdAt).toLocaleDateString('fr-FR')}</div>
-                </td>
-                <td>
-                  <div>
-                    <strong>{q.customer?.name ?? '-'}</strong>
-                    <div className="muted">{q.customer?.email ?? ''}</div>
-                  </div>
-                </td>
-                <td>{q.status}</td>
-                <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
-                <td>
-                  <div className="catalog-admin-actions">
-                    <Link to={`/admin/quotes/${q.id}/edit`} className="catalog-admin-actions__edit">
-                      Ouvrir
-                    </Link>
-                    <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleDuplicate(q.id)}>
-                      Dupliquer
-                    </button>
-                    <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(q.id)}>
-                      Supprimer
-                    </button>
-                  </div>
-                </td>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th>Numéro</th>
+                <th>Client</th>
+                <th>Statut</th>
+                <th>Total TTC</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((q) => (
+                <tr key={q.id}>
+                  <td>
+                    <strong>{q.number}</strong>
+                    <div className="muted">{new Date(q.createdAt).toLocaleDateString('fr-FR')}</div>
+                  </td>
+                  <td>
+                    <div>
+                      <strong>{q.customer?.name ?? '-'}</strong>
+                      <div className="muted">{q.customer?.email ?? ''}</div>
+                    </div>
+                  </td>
+                  <td>{q.status}</td>
+                  <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
+                  <td>
+                    <div className="catalog-admin-actions">
+                      <Link to={`/admin/quotes/${q.id}/edit`} className="catalog-admin-actions__edit">
+                        Ouvrir
+                      </Link>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__edit"
+                        onClick={() => void handleDuplicate(q.id)}
+                      >
+                        Dupliquer
+                      </button>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(q.id)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </PageContainer>
   );
 };
-

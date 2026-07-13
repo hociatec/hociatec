@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Accordion,
@@ -13,6 +13,7 @@ import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api
 import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
 import { ProductCartActions } from "@/features/cart/components/ProductCartActions";
 import { Mail, Facebook } from "lucide-react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
 
@@ -45,11 +46,32 @@ export const HomePage = () => {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
-  const [shareFormProductId, setShareFormProductId] = useState<number | null>(null);
+  const [shareDialogProduct, setShareDialogProduct] = useState<CatalogProduct | null>(null);
   const [shareEmails, setShareEmails] = useState<Record<number, string>>({});
   const [shareFeedback, setShareFeedback] = useState<
     { productId: number; type: 'error' | 'info'; message: string } | null
   >(null);
+  const shareInputRef = useRef<HTMLInputElement | null>(null);
+  const shareCancelButtonRef = useRef<HTMLButtonElement | null>(null);
+  const shareTriggerRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const shareDialogTitleId = useId();
+  const shareDialogDescriptionId = useId();
+
+  const closeShareDialog = () => {
+    const productId = shareDialogProduct?.id ?? null;
+    setShareDialogProduct(null);
+    setShareFeedback((current) => (current?.productId === productId ? null : current));
+    if (productId !== null) {
+      window.requestAnimationFrame(() => {
+        shareTriggerRefs.current[productId]?.focus();
+      });
+    }
+  };
+
+  const openShareDialog = (product: CatalogProduct) => {
+    setShareDialogProduct(product);
+    setShareFeedback((current) => (current?.productId === product.id ? null : current));
+  };
 
   useEffect(() => {
     setLoadingProducts(true);
@@ -60,12 +82,109 @@ export const HomePage = () => {
       .finally(() => setLoadingProducts(false));
   }, []);
 
+  useEffect(() => {
+    if (!shareDialogProduct) {
+      return;
+    }
+
+    shareInputRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeShareDialog();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const container = document.getElementById('product-share-dialog');
+      if (!container) {
+        return;
+      }
+
+      const focusable = container.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [shareDialogProduct]);
+
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const buildProductUrl = (slug: string) => `${origin}/catalogue/produits/${slug}`;
+  const activeShareProduct = shareDialogProduct;
+  const shareDialogEmail = activeShareProduct ? shareEmails[activeShareProduct.id] ?? '' : '';
+
+  const handleShareSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!activeShareProduct) {
+      return;
+    }
+
+    const rawEmail = shareDialogEmail;
+    const normalizedEmail = rawEmail.trim();
+    const mailSubject = encodeURIComponent(`Découvrir : ${activeShareProduct.name}`);
+    const mailBody = encodeURIComponent(
+      `${activeShareProduct.shortDescription ?? ''}\r\n\r\n${buildProductUrl(activeShareProduct.slug)}`,
+    );
+
+    if (normalizedEmail === '') {
+      setShareFeedback({
+        productId: activeShareProduct.id,
+        type: 'error',
+        message: 'Veuillez renseigner l’adresse email du destinataire.',
+      });
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      setShareFeedback({
+        productId: activeShareProduct.id,
+        type: 'error',
+        message: 'Cette adresse email ne semble pas valide.',
+      });
+      return;
+    }
+
+    const mailto = `mailto:${encodeURIComponent(normalizedEmail)}?subject=${mailSubject}&body=${mailBody}`;
+    window.location.href = mailto;
+
+    setShareFeedback({
+      productId: activeShareProduct.id,
+      type: 'info',
+      message: 'Votre application de messagerie va s’ouvrir avec le produit prérempli.',
+    });
+    closeShareDialog();
+  };
 
   return (
     <SiteLayout>
-      <main className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 text-gray-800">
+      <div className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 text-gray-800">
         {/* HERO */}
         <section className="text-center mx-auto max-w-4xl px-6 mb-12">
           <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900">
@@ -172,8 +291,6 @@ export const HomePage = () => {
               {products.map((product) => {
                 const absoluteUrl = buildProductUrl(product.slug);
                 const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteUrl)}`;
-                const mailSubject = encodeURIComponent(`Découvrir: ${product.name}`);
-                const mailBody = encodeURIComponent(`${product.shortDescription ?? ''}\r\n\r\n${absoluteUrl}`);
                 const compactSpecs = [
                   product.brand?.trim(),
                   product.storageCapacity?.trim(),
@@ -182,39 +299,6 @@ export const HomePage = () => {
                 ]
                   .filter(Boolean)
                   .join(' • ');
-                const handleShareSubmit = (event: FormEvent<HTMLFormElement>) => {
-                  event.preventDefault();
-                  const rawEmail = shareEmails[product.id] ?? '';
-                  const normalizedEmail = rawEmail.trim();
-                  if (normalizedEmail === '') {
-                    setShareFeedback({
-                      productId: product.id,
-                      type: 'error',
-                      message: 'Veuillez renseigner l\'adresse email du destinataire.',
-                    });
-                    return;
-                  }
-                  if (!EMAIL_REGEX.test(normalizedEmail)) {
-                    setShareFeedback({
-                      productId: product.id,
-                      type: 'error',
-                      message: 'Cette adresse email ne semble pas valide.',
-                    });
-                    return;
-                  }
-                  const mailto = `mailto:${encodeURIComponent(normalizedEmail)}?subject=${mailSubject}&body=${mailBody}`;
-                  const link = document.createElement('a');
-                  link.href = mailto;
-                  link.target = '_self';
-                  document.body.appendChild(link);
-                  link.click();
-                  link.remove();
-                  setShareFeedback({
-                    productId: product.id,
-                    type: 'info',
-                    message: 'Votre application de messagerie s\'ouvre avec le produit pré-rempli.',
-                  });
-                };
 
                 return (
                   <article key={product.id} className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition p-5 flex flex-col gap-4">
@@ -274,78 +358,21 @@ export const HomePage = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            setShareFeedback(null);
-                            setShareFormProductId((current) => current === product.id ? null : product.id);
+                          ref={(element) => {
+                            shareTriggerRefs.current[product.id] = element;
                           }}
+                          onClick={() => openShareDialog(product)}
                           className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
                           title="Partager par e-mail"
                           aria-label="Partager par e-mail"
+                          aria-haspopup="dialog"
+                          aria-expanded={activeShareProduct?.id === product.id}
                         >
                           <Mail size={16} />
                           <span>Email</span>
                         </button>
                       </div>
                     </div>
-                    {shareFormProductId === product.id && (
-                      <form onSubmit={handleShareSubmit} className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 shadow-inner space-y-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-slate-800">Partager ce produit par email</p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShareFormProductId(null);
-                              setShareFeedback(null);
-                            }}
-                            className="text-xs text-slate-500 hover:text-slate-700"
-                          >
-                            Fermer
-                          </button>
-                        </div>
-                        <label htmlFor={`share-email-${product.id}`} className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                          Email du destinataire
-                        </label>
-                        <input
-                          id={`share-email-${product.id}`}
-                          type="email"
-                          value={shareEmails[product.id] ?? ''}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setShareEmails((prev) => ({ ...prev, [product.id]: value }));
-                            setShareFeedback((prev) => (prev?.productId === product.id ? null : prev));
-                          }}
-                          placeholder="ami@exemple.com"
-                          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-100"
-                          required
-                        />
-                        {shareFeedback?.productId === product.id && (
-                          <p className={`text-xs ${shareFeedback.type === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
-                            {shareFeedback.message}
-                          </p>
-                        )}
-                        <p className="text-xs text-slate-500">
-                          Un nouvel email s'ouvrira avec un message pré-rempli contenant ce produit et son lien détaillé.
-                        </p>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShareFormProductId(null);
-                              setShareFeedback(null);
-                            }}
-                            className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-white"
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-                          >
-                            Envoyer
-                          </button>
-                        </div>
-                      </form>
-                    )}
                   </article>
                 );
               })}
@@ -360,7 +387,101 @@ export const HomePage = () => {
             </div>
           )}
         </section>
-      </main>
+        {activeShareProduct &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  closeShareDialog();
+                }
+              }}
+            >
+              <section
+                id="product-share-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={shareDialogTitleId}
+                aria-describedby={shareDialogDescriptionId}
+                className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+              >
+                <header className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    Partage par e-mail
+                  </p>
+                  <h2 id={shareDialogTitleId} className="text-2xl font-bold text-slate-900">
+                    Partager {activeShareProduct.name}
+                  </h2>
+                  <p id={shareDialogDescriptionId} className="text-sm text-slate-600">
+                    Renseignez une adresse e-mail. Le bouton envoyer ouvrira votre application de messagerie avec le produit prérempli.
+                  </p>
+                </header>
+
+                <form onSubmit={handleShareSubmit} className="mt-6 space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="product-share-email" className="block text-sm font-medium text-slate-800">
+                      Adresse e-mail du destinataire
+                    </label>
+                    <input
+                      ref={shareInputRef}
+                      id="product-share-email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={shareDialogEmail}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setShareEmails((prev) => ({ ...prev, [activeShareProduct.id]: value }));
+                        setShareFeedback((prev) =>
+                          prev?.productId === activeShareProduct.id ? null : prev,
+                        );
+                      }}
+                      aria-invalid={shareFeedback?.productId === activeShareProduct.id && shareFeedback.type === 'error'}
+                      aria-describedby="product-share-email-hint product-share-email-feedback"
+                      placeholder="ami@exemple.com"
+                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      required
+                    />
+                    <p id="product-share-email-hint" className="text-sm text-slate-500">
+                      Le message sera prérempli avec le nom du produit et son lien direct.
+                    </p>
+                    <p
+                      id="product-share-email-feedback"
+                      role="status"
+                      aria-live="polite"
+                      className={`text-sm ${
+                        shareFeedback?.productId === activeShareProduct.id && shareFeedback.type === 'error'
+                          ? 'text-red-600'
+                          : 'text-emerald-700'
+                      }`}
+                    >
+                      {shareFeedback?.productId === activeShareProduct.id ? shareFeedback.message : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button
+                      ref={shareCancelButtonRef}
+                      type="button"
+                      onClick={closeShareDialog}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    >
+                      Envoyer par e-mail
+                    </button>
+                  </div>
+                </form>
+              </section>
+            </div>,
+            document.body,
+          )}
+      </div>
     </SiteLayout>
   );
 };
+

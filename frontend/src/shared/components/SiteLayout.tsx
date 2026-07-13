@@ -13,7 +13,7 @@ export const SiteLayout = ({
 }: SiteLayoutProps) => (
   <div className="site-layout">
     <SiteHeader variant={headerVariant} />
-    <main className="site-layout__content">{children}</main>
+    <div className="site-layout__content">{children}</div>
     <SiteFooter />
   </div>
 );

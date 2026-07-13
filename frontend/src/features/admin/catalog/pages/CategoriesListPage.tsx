@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { deleteCategory, fetchAdminCategories } from '@/features/catalog/api';
+import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/api';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
-import type { CatalogCategory } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
@@ -16,14 +16,6 @@ export const CategoriesListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
-    void loadCategories();
-  }, [isAdmin]);
 
   const loadCategories = async () => {
     setLoading(true);
@@ -38,6 +30,11 @@ export const CategoriesListPage = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void loadCategories();
+  }, [isAdmin]);
 
   const handleDelete = async (categoryId: number) => {
     if (!window.confirm('Supprimer cette catégorie ?')) {
@@ -57,16 +54,13 @@ export const CategoriesListPage = () => {
   };
 
   const filteredCategories = useMemo(() => {
-    if (!search.trim()) {
-      return categories;
-    }
-
-    const lowerSearch = search.trim().toLowerCase();
+    const term = search.trim().toLowerCase();
+    if (!term) return categories;
 
     return categories.filter(
       (category) =>
-        category.name.toLowerCase().includes(lowerSearch) ||
-        category.slug.toLowerCase().includes(lowerSearch),
+        category.name.toLowerCase().includes(term) ||
+        category.slug.toLowerCase().includes(term),
     );
   }, [categories, search]);
 
@@ -90,19 +84,29 @@ export const CategoriesListPage = () => {
     <PageContainer
       title="Catégories"
       headerActions={
-        <Link to="/admin/catalog/categories/new" className="register-form__submit">
+        <Link
+          to="/admin/catalog/categories/new"
+          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
           Ajouter une catégorie
         </Link>
       }
     >
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <input
-          type="search"
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} affichée
+          {filteredCategories.length > 1 ? 's' : ''}
+        </p>
+        <p className="text-sm text-slate-500">
+          Filtrez par nom ou slug.
+        </p>
+      </div>
+
+      <div className="mb-6 max-w-sm">
+        <SearchFilter
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={setSearch}
           placeholder="Rechercher par nom ou slug..."
-          className="register-form__input"
-          style={{ maxWidth: 320 }}
         />
       </div>
 
@@ -114,55 +118,59 @@ export const CategoriesListPage = () => {
       )}
 
       {loading ? (
-        <p className="muted">Chargement des catégories...</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Chargement des catégories...
+        </div>
       ) : filteredCategories.length === 0 ? (
-        <p className="muted">Aucune catégorie ne correspond à votre recherche.</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Aucune catégorie ne correspond à votre recherche.
+        </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: 8 }}>Nom</th>
-              <th style={{ textAlign: 'left', padding: 8 }}>Slug</th>
-              <th style={{ textAlign: 'center', padding: 8, width: 120 }}>Visibilité</th>
-              <th style={{ textAlign: 'center', padding: 8, width: 160 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCategories.map((category) => (
-              <tr key={category.id} style={{ borderTop: '1px solid rgba(148,163,184,.25)' }}>
-                <td style={{ padding: 8 }}>
-                  <strong>{category.name}</strong>
-                  {category.description && (
-                    <p className="muted" style={{ marginTop: 4 }}>
-                      {category.description}
-                    </p>
-                  )}
-                </td>
-                <td style={{ padding: 8 }}>{category.slug}</td>
-                <td style={{ textAlign: 'center', padding: 8 }}>
-                  {category.isVisible ? 'Visible' : 'Masquée'}
-                </td>
-                <td style={{ padding: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
-                  <Link
-                    to={`/admin/catalog/categories/${category.id}/edit`}
-                    className="register-form__submit"
-                    style={{ background: '#e5e7eb', color: '#111827' }}
-                  >
-                    Modifier
-                  </Link>
-                  <button
-                    type="button"
-                    className="register-form__submit"
-                    style={{ background: '#fee2e2', color: '#991b1b' }}
-                    onClick={() => void handleDelete(category.id)}
-                  >
-                    Supprimer
-                  </button>
-                </td>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Slug</th>
+                <th>Visibilité</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredCategories.map((category) => (
+                <tr key={category.id}>
+                  <td>
+                    <strong>{category.name}</strong>
+                    {category.description && (
+                      <p className="muted" style={{ marginTop: 4 }}>
+                        {category.description}
+                      </p>
+                    )}
+                  </td>
+                  <td>{category.slug}</td>
+                  <td>{category.isVisible ? 'Visible' : 'Masquée'}</td>
+                  <td>
+                    <div className="catalog-admin-actions">
+                      <Link
+                        to={`/admin/catalog/categories/${category.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                      >
+                        Modifier
+                      </Link>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(category.id)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </PageContainer>
   );

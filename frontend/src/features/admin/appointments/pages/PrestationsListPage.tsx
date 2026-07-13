@@ -7,6 +7,9 @@ import type { Prestation } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
+const formatPrice = (priceCents: number) =>
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(priceCents / 100);
+
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Prestations');
 
@@ -15,14 +18,6 @@ export const PrestationsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
-    void loadPrestations();
-  }, [isAdmin]);
 
   const loadPrestations = async () => {
     setLoading(true);
@@ -38,6 +33,11 @@ export const PrestationsListPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    void loadPrestations();
+  }, [isAdmin]);
+
   const handleDelete = async (prestationId: number) => {
     if (!window.confirm('Supprimer cette prestation ?')) {
       return;
@@ -49,18 +49,16 @@ export const PrestationsListPage = () => {
     try {
       await deletePrestation(prestationId);
       await loadPrestations();
-      setMessage('Prestation supprimee.');
+      setMessage('Prestation supprimée.');
     } catch (err: any) {
       setError(err?.message ?? 'Impossible de supprimer la prestation');
     }
   };
 
-  const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2);
-
   if (guardLoading) {
     return (
       <PageContainer title="Prestations">
-        <p className="muted">Verification des droits...</p>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
@@ -68,7 +66,7 @@ export const PrestationsListPage = () => {
   if (!isAdmin) {
     return (
       <PageContainer title="Prestations">
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
@@ -77,11 +75,23 @@ export const PrestationsListPage = () => {
     <PageContainer
       title="Prestations"
       headerActions={
-        <Link to="/admin/appointments/prestations/new" className="register-form__submit">
+        <Link
+          to="/admin/appointments/prestations/new"
+          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
           Ajouter une prestation
         </Link>
       }
     >
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          {prestations.length} prestation{prestations.length > 1 ? 's' : ''} au catalogue.
+        </p>
+        <p className="text-sm text-slate-500">
+          Configurez les services proposés pour les rendez-vous ou les devis.
+        </p>
+      </div>
+
       {error && <div className="register-form__alert">{error}</div>}
       {message && (
         <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
@@ -90,48 +100,53 @@ export const PrestationsListPage = () => {
       )}
 
       {loading ? (
-        <p className="muted">Chargement des prestations...</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Chargement des prestations...
+        </div>
       ) : prestations.length === 0 ? (
-        <p className="muted">Aucune prestation enregistree.</p>
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
+          Aucune prestation enregistrée.
+        </div>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: 8 }}>Nom</th>
-              <th style={{ textAlign: 'left', padding: 8 }}>Duree (min)</th>
-              <th style={{ textAlign: 'left', padding: 8 }}>Prix (EUR)</th>
-              <th style={{ textAlign: 'center', padding: 8, width: 200 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {prestations.map((prestation) => (
-              <tr key={prestation.id} style={{ borderTop: '1px solid rgba(148,163,184,.25)' }}>
-                <td style={{ padding: 8 }}>{prestation.name}</td>
-                <td style={{ padding: 8 }}>{prestation.durationMinutes}</td>
-                <td style={{ padding: 8 }}>{formatPrice(prestation.priceCents)}</td>
-                <td style={{ padding: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
-                  <Link
-                    to={`/admin/appointments/prestations/${prestation.id}/edit`}
-                    className="register-form__submit"
-                    style={{ background: '#e5e7eb', color: '#111827' }}
-                  >
-                    Modifier
-                  </Link>
-                  <button
-                    type="button"
-                    className="register-form__submit"
-                    style={{ background: '#fee2e2', color: '#991b1b' }}
-                    onClick={() => void handleDelete(prestation.id)}
-                  >
-                    Supprimer
-                  </button>
-                </td>
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Durée</th>
+                <th>Prix</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {prestations.map((prestation) => (
+                <tr key={prestation.id}>
+                  <td>{prestation.name}</td>
+                  <td>{prestation.durationMinutes} min</td>
+                  <td>{formatPrice(prestation.priceCents)}</td>
+                  <td>
+                    <div className="catalog-admin-actions">
+                      <Link
+                        to={`/admin/appointments/prestations/${prestation.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                      >
+                        Modifier
+                      </Link>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(prestation.id)}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </PageContainer>
   );
 };
-

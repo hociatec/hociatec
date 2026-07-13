@@ -62,7 +62,7 @@ export const MyFavoritesPage = () => {
     void removeFavorite(productId)
       .then(() => {
         setFavorites((prev) => prev.filter((favorite) => favorite.product.id !== productId));
-        show('Produit retire de vos favoris.');
+        show('Produit retiré de vos favoris.');
       })
       .catch((err: unknown) => {
         const message =
@@ -76,23 +76,23 @@ export const MyFavoritesPage = () => {
 
   return (
     <SiteLayout>
-      <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+      <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
         <header className="space-y-3 text-slate-800">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
             Mon espace
           </p>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold">Mes favoris</h1>
-              <p className="text-slate-600">
-                Retrouvez rapidement les produits que vous avez mis de cote pour vos prochains
+              <h1 className="text-3xl font-semibold text-slate-900">Mes favoris</h1>
+              <p className="mt-2 max-w-2xl text-slate-600">
+                Retrouvez rapidement les produits que vous avez mis de côté pour vos prochains
                 projets.
               </p>
             </div>
             {hasFavorites && (
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-500"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={loadFavorites}
                 disabled={status === 'loading'}
               >
@@ -103,30 +103,30 @@ export const MyFavoritesPage = () => {
         </header>
 
         {status === 'loading' && (
-          <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-600">
+          <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center text-slate-600 shadow-sm">
             Chargement de vos favoris...
           </div>
         )}
 
         {status === 'error' && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-800">
             <p className="font-semibold">Impossible de charger vos favoris.</p>
-            {error && <p className="text-sm text-red-700 mt-2">{error}</p>}
+            {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
             <button
               type="button"
-              className="mt-4 inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              className="mt-4 inline-flex items-center rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
               onClick={loadFavorites}
             >
-              Reessayer
+              Réessayer
             </button>
           </div>
         )}
 
         {status === 'success' && !hasFavorites && (
           <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-slate-800">Aucun favori pour le moment</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">Aucun favori pour le moment</h2>
             <p className="mt-3 text-slate-600">
-              Explorez le catalogue et ajoutez vos produits preferes pour les retrouver facilement.
+              Explorez le catalogue et ajoutez vos produits préférés pour les retrouver facilement.
             </p>
             <Link
               to="/catalogue/vente"
@@ -145,57 +145,59 @@ export const MyFavoritesPage = () => {
               return (
                 <li
                   key={product.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center"
+                  className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300"
                 >
-                  <Link
-                    to={`/catalogue/produits/${product.slug}`}
-                    className="flex flex-1 items-center gap-4 text-left"
-                  >
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.imageAlt ?? product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-slate-400">
-                          {product.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-                        {product.category.name}
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <Link
+                      to={`/catalogue/produits/${product.slug}`}
+                      className="flex flex-1 items-center gap-4 text-left"
+                    >
+                      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.imageAlt ?? product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-slate-400">
+                            {product.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                          {product.category.name}
+                        </p>
+                        <h2 className="text-xl font-semibold text-slate-900">{product.name}</h2>
+                        {product.shortDescription && (
+                          <p className="text-sm text-slate-600">{product.shortDescription}</p>
+                        )}
+                        <p className="text-xs text-slate-500">
+                          Ajouté le {formatDate(favorite.addedAt) || 'inconnu'}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="flex flex-col items-start gap-3 lg:items-end">
+                      <p className="text-lg font-semibold text-slate-900">
+                        {formatPrice(unitPriceCents, product.sellingType)}
                       </p>
-                      <h3 className="text-xl font-semibold text-slate-900">{product.name}</h3>
-                      {product.shortDescription && (
-                        <p className="text-sm text-slate-600">{product.shortDescription}</p>
-                      )}
-                      <p className="text-xs text-slate-500">
-                        Ajoute le {formatDate(favorite.addedAt) || 'inconnu'}
-                      </p>
-                    </div>
-                  </Link>
-                  <div className="flex flex-col items-start gap-3 md:items-end">
-                    <p className="text-lg font-semibold text-slate-900">
-                      {formatPrice(unitPriceCents, product.sellingType)}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Link
-                        to={`/catalogue/produits/${product.slug}`}
-                        className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-500"
-                      >
-                        Voir le produit
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(product.id)}
-                        disabled={removingId === product.id}
-                        className="inline-flex items-center rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {removingId === product.id ? 'Retrait...' : 'Retirer'}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          to={`/catalogue/produits/${product.slug}`}
+                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                        >
+                          Voir le produit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(product.id)}
+                          disabled={removingId === product.id}
+                          className="inline-flex items-center rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:border-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {removingId === product.id ? 'Retrait...' : 'Retirer'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </li>

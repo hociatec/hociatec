@@ -18,7 +18,7 @@ export const PageContainer = ({
         </h1>
         {headerActions}
       </header>
-      <main className="card__content">{children}</main>
+      <section className="card__content">{children}</section>
     </div>
   </div>
 );
