@@ -39,7 +39,7 @@ export const CategoryFormPage = () => {
   const isEdit = useMemo(() => Boolean(categoryId), [categoryId]);
   const navigate = useNavigate();
 
-  useDocumentTitle(isEdit ? 'Admin - Modifier une categorie' : 'Admin - Nouvelle categorie');
+  useDocumentTitle(isEdit ? 'Admin - Modifier une catégorie' : 'Admin - Nouvelle catégorie');
 
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<CategoryFormState>(emptyForm);
@@ -61,7 +61,7 @@ export const CategoryFormPage = () => {
         const category = await fetchAdminCategory(Number(categoryId));
         populateForm(category);
       } catch (err: any) {
-        setError(err?.message ?? 'Impossible de charger la categorie.');
+        setError(err?.message ?? 'Impossible de charger la catégorie.');
       } finally {
         setInitialLoading(false);
       }
@@ -123,7 +123,7 @@ export const CategoryFormPage = () => {
     const payload = parsePayload();
 
     if (!payload.name) {
-      setError('Le nom de la categorie est requis.');
+      setError('Le nom de la catégorie est requis.');
       return;
     }
 
@@ -134,10 +134,10 @@ export const CategoryFormPage = () => {
     try {
       if (isEdit) {
         await updateCategory(Number(categoryId), payload);
-        setMessage('Categorie mise a jour.');
+        setMessage('Catégorie mise à jour.');
       } else {
         await createCategory(payload);
-        setMessage('Categorie creee.');
+        setMessage('Catégorie créée.');
         setForm(emptyForm);
       }
 
@@ -145,7 +145,7 @@ export const CategoryFormPage = () => {
         navigate('/admin/catalog/categories');
       }, 600);
     } catch (err: any) {
-      setError(err?.message ?? 'Impossible d\'enregistrer la categorie.');
+      setError(err?.message ?? "Impossible d'enregistrer la catégorie.");
     } finally {
       setLoading(false);
     }
@@ -153,23 +153,23 @@ export const CategoryFormPage = () => {
 
   if (guardLoading) {
     return (
-      <PageContainer title={isEdit ? 'Modifier une categorie' : 'Nouvelle categorie'}>
-        <p className="muted">Verification des droits...</p>
+      <PageContainer title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
 
   if (!isAdmin) {
     return (
-      <PageContainer title={isEdit ? 'Modifier une categorie' : 'Nouvelle categorie'}>
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+      <PageContainer title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
 
   return (
     <PageContainer
-      title={isEdit ? 'Modifier une categorie' : 'Nouvelle categorie'}
+      title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}
       headerActions={
         <button
           type="button"
@@ -177,7 +177,7 @@ export const CategoryFormPage = () => {
           style={{ background: '#e5e7eb', color: '#111827' }}
           onClick={() => navigate('/admin/catalog/categories')}
         >
-          Retour a la liste
+          Retour à la liste
         </button>
       }
     >
@@ -189,7 +189,7 @@ export const CategoryFormPage = () => {
       )}
 
       {initialLoading ? (
-        <p className="muted">Chargement de la categorie...</p>
+        <p className="muted">Chargement de la catégorie...</p>
       ) : (
         <form
           onSubmit={handleSubmit}
@@ -236,11 +236,11 @@ export const CategoryFormPage = () => {
               checked={form.isVisible}
               onChange={handleChange}
             />
-            <span className="register-form__label">Categorie visible</span>
+            <span className="register-form__label">Catégorie visible</span>
           </label>
 
           <button className="register-form__submit" type="submit" disabled={loading}>
-            {loading ? 'Enregistrement...' : isEdit ? 'Mettre a jour' : 'Creer'}
+            {loading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
           </button>
         </form>
       )}

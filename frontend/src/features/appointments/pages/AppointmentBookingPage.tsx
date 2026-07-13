@@ -6,7 +6,7 @@ import { useToast } from '@/shared/components/ui/toast';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { fetchAvailability, fetchPrestations } from '../api';
+import { bookAppointment, fetchAvailability, fetchPrestations } from '../api';
 import type { AvailabilitySlot, Prestation } from '../types';
 import FullCalendar from '@fullcalendar/react';
 import type { DatesSetArg, CalendarApi } from '@fullcalendar/core';
@@ -118,7 +118,6 @@ export const AppointmentBookingPage = () => {
     }
     setBooking(true);
     try {
-      const { bookAppointment } = await import('../api');
       await bookAppointment({
         prestationId: selectedPrestation.id,
         startAt: selectedSlot.start,

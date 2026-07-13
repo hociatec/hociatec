@@ -8,6 +8,9 @@ const rootDir = dirname(fileURLToPath(import.meta.url));
 export default defineConfig(() => ({
   base: '/',
   plugins: [react()],
+  build: {
+    chunkSizeWarningLimit: 900,
+  },
   server: {
     proxy: {
       '/api': {

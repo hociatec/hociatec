@@ -44,7 +44,7 @@ class CreateCategoryController extends AbstractController
             $category = $this->categoryService->create($name, $slug, $description, $isVisible);
         } catch (Throwable $exception) {
             return ApiResponse::error(
-                'Impossible de creer la categorie.',
+                'Impossible de créer la catégorie.',
                 Response::HTTP_BAD_REQUEST,
                 [$exception->getMessage()]
             );

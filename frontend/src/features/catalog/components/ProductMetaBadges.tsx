@@ -31,16 +31,18 @@ export const ProductMetaBadges = ({
 }: ProductMetaBadgesProps) => {
   const sellingTypeClass =
     sellingType === 'rental' ? 'product-meta__item--rental' : 'product-meta__item--sale';
+  const sellingTypeText = sellingTypeLabel[sellingType];
+  const accessibleLabel = `${categoryName} (${sellingTypeText.toLowerCase()})`;
 
   return (
     <div className={clsx('product-meta', variantClassName[variant], className)}>
-      <div className={clsx('product-meta__item', sellingTypeClass)}>
-        <span className="product-meta__label">Type</span>
-        <span className="product-meta__value">{sellingTypeLabel[sellingType]}</span>
-      </div>
-      <div className={clsx('product-meta__item', 'product-meta__item--category')}>
-        <span className="product-meta__label">Catégorie</span>
-        <span className="product-meta__value">{categoryName}</span>
+      <div
+        className={clsx('product-meta__item', sellingTypeClass)}
+        aria-label={accessibleLabel}
+      >
+        <span className="product-meta__text" aria-hidden="true">
+          {categoryName} ({sellingTypeText})
+        </span>
       </div>
     </div>
   );

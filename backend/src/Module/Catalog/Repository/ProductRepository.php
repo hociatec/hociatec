@@ -39,6 +39,11 @@ class ProductRepository extends ServiceEntityRepository
         ?string $search = null,
         ?bool $onlyFeatured = null,
         ?string $sellingType = null,
+        ?string $brand = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
+        ?string $sort = null,
     ): array
     {
         $qb = $this->createQueryBuilder('p')
@@ -47,8 +52,7 @@ class ProductRepository extends ServiceEntityRepository
             ->andWhere('p.isPublished = :published')
             ->andWhere('c.isVisible = :visible')
             ->setParameter('published', true)
-            ->setParameter('visible', true)
-            ->orderBy('p.name', 'ASC');
+            ->setParameter('visible', true);
 
         if ($onlyFeatured === true) {
             $qb
@@ -79,6 +83,38 @@ class ProductRepository extends ServiceEntityRepository
                 ->andWhere('p.sellingType = :stype')
                 ->setParameter('stype', $sellingType);
         }
+
+        if ($brand !== null && $brand !== '') {
+            $qb
+                ->andWhere('LOWER(p.brand) = LOWER(:brand)')
+                ->setParameter('brand', trim($brand));
+        }
+
+        if ($storageCapacity !== null && $storageCapacity !== '') {
+            $qb
+                ->andWhere('LOWER(p.storageCapacity) = LOWER(:storageCapacity)')
+                ->setParameter('storageCapacity', trim($storageCapacity));
+        }
+
+        if ($memoryRam !== null && $memoryRam !== '') {
+            $qb
+                ->andWhere('LOWER(p.memoryRam) = LOWER(:memoryRam)')
+                ->setParameter('memoryRam', trim($memoryRam));
+        }
+
+        if ($color !== null && $color !== '') {
+            $qb
+                ->andWhere('LOWER(p.color) = LOWER(:color)')
+                ->setParameter('color', trim($color));
+        }
+
+        match ($sort) {
+            'price_asc' => $qb->orderBy('p.priceCents', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'price_desc' => $qb->orderBy('p.priceCents', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'release_year_desc' => $qb->orderBy('p.releaseYear', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'release_year_asc' => $qb->orderBy('p.releaseYear', 'ASC')->addOrderBy('p.name', 'ASC'),
+            default => $qb->orderBy('p.name', 'ASC'),
+        };
 
         return $qb->getQuery()->getResult();
     }

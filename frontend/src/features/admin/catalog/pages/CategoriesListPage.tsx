@@ -8,7 +8,7 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const CategoriesListPage = () => {
-  useDocumentTitle('Admin - Categories');
+  useDocumentTitle('Admin - Catégories');
 
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
@@ -33,14 +33,14 @@ export const CategoriesListPage = () => {
       const items = await fetchAdminCategories();
       setCategories(items);
     } catch (err: any) {
-      setError(err?.message ?? 'Impossible de charger les categories.');
+      setError(err?.message ?? 'Impossible de charger les catégories.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (categoryId: number) => {
-    if (!window.confirm('Supprimer cette categorie ?')) {
+    if (!window.confirm('Supprimer cette catégorie ?')) {
       return;
     }
 
@@ -50,9 +50,9 @@ export const CategoriesListPage = () => {
     try {
       await deleteCategory(categoryId);
       await loadCategories();
-      setMessage('Categorie supprimee.');
+      setMessage('Catégorie supprimée.');
     } catch (err: any) {
-      setError(err?.message ?? 'Impossible de supprimer la categorie.');
+      setError(err?.message ?? 'Impossible de supprimer la catégorie.');
     }
   };
 
@@ -72,26 +72,26 @@ export const CategoriesListPage = () => {
 
   if (guardLoading) {
     return (
-      <PageContainer title="Categories">
-        <p className="muted">Verification des droits...</p>
+      <PageContainer title="Catégories">
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
 
   if (!isAdmin) {
     return (
-      <PageContainer title="Categories">
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+      <PageContainer title="Catégories">
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
 
   return (
     <PageContainer
-      title="Categories"
+      title="Catégories"
       headerActions={
         <Link to="/admin/catalog/categories/new" className="register-form__submit">
-          Ajouter une categorie
+          Ajouter une catégorie
         </Link>
       }
     >
@@ -114,16 +114,16 @@ export const CategoriesListPage = () => {
       )}
 
       {loading ? (
-        <p className="muted">Chargement des categories...</p>
+        <p className="muted">Chargement des catégories...</p>
       ) : filteredCategories.length === 0 ? (
-        <p className="muted">Aucune categorie ne correspond a votre recherche.</p>
+        <p className="muted">Aucune catégorie ne correspond à votre recherche.</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
           <thead>
             <tr>
               <th style={{ textAlign: 'left', padding: 8 }}>Nom</th>
               <th style={{ textAlign: 'left', padding: 8 }}>Slug</th>
-              <th style={{ textAlign: 'center', padding: 8, width: 120 }}>Visibilite</th>
+              <th style={{ textAlign: 'center', padding: 8, width: 120 }}>Visibilité</th>
               <th style={{ textAlign: 'center', padding: 8, width: 160 }}>Actions</th>
             </tr>
           </thead>
@@ -140,7 +140,7 @@ export const CategoriesListPage = () => {
                 </td>
                 <td style={{ padding: 8 }}>{category.slug}</td>
                 <td style={{ textAlign: 'center', padding: 8 }}>
-                  {category.isVisible ? 'Visible' : 'Masquee'}
+                  {category.isVisible ? 'Visible' : 'Masquée'}
                 </td>
                 <td style={{ padding: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
                   <Link

@@ -31,7 +31,7 @@ class UpdateCategoryController extends AbstractController
         $category = $this->categoryRepository->find($id);
 
         if ($category === null) {
-            return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -53,7 +53,7 @@ class UpdateCategoryController extends AbstractController
             $category = $this->categoryService->update($category, $name, $slug, $description, $isVisible);
         } catch (Throwable $exception) {
             return ApiResponse::error(
-                'Impossible de mettre a jour la categorie.',
+                'Impossible de mettre à jour la catégorie.',
                 Response::HTTP_BAD_REQUEST,
                 [$exception->getMessage()]
             );

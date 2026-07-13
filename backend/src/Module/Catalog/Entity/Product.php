@@ -64,6 +64,24 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageAlt = null;
 
+    #[ORM\Column(length: 80, nullable: true)]
+    private ?string $brand = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $variantGroup = null;
+
+    #[ORM\Column(type: 'smallint', nullable: true)]
+    private ?int $releaseYear = null;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $storageCapacity = null;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $memoryRam = null;
+
+    #[ORM\Column(length: 60, nullable: true)]
+    private ?string $color = null;
+
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage2Name', size: 'galleryImage2Size')]
     private ?File $galleryImage2File = null;
 
@@ -233,6 +251,87 @@ class Product
             throw new \InvalidArgumentException('Type de vente/location invalide.');
         }
         $this->sellingType = $type;
+        return $this;
+    }
+
+    public function getBrand(): ?string
+    {
+        return $this->brand;
+    }
+
+    public function setBrand(?string $brand): self
+    {
+        $normalized = $brand !== null ? trim($brand) : null;
+        $this->brand = $normalized !== '' ? $normalized : null;
+
+        return $this;
+    }
+
+    public function getVariantGroup(): ?string
+    {
+        return $this->variantGroup;
+    }
+
+    public function setVariantGroup(?string $variantGroup): self
+    {
+        $normalized = $variantGroup !== null ? trim($variantGroup) : null;
+        $this->variantGroup = $normalized !== '' ? $normalized : null;
+
+        return $this;
+    }
+
+    public function getReleaseYear(): ?int
+    {
+        return $this->releaseYear;
+    }
+
+    public function setReleaseYear(?int $releaseYear): self
+    {
+        if ($releaseYear !== null && ($releaseYear < 2000 || $releaseYear > 2100)) {
+            throw new \InvalidArgumentException('Année de modèle invalide.');
+        }
+
+        $this->releaseYear = $releaseYear;
+
+        return $this;
+    }
+
+    public function getStorageCapacity(): ?string
+    {
+        return $this->storageCapacity;
+    }
+
+    public function setStorageCapacity(?string $storageCapacity): self
+    {
+        $normalized = $storageCapacity !== null ? trim($storageCapacity) : null;
+        $this->storageCapacity = $normalized !== '' ? $normalized : null;
+
+        return $this;
+    }
+
+    public function getMemoryRam(): ?string
+    {
+        return $this->memoryRam;
+    }
+
+    public function setMemoryRam(?string $memoryRam): self
+    {
+        $normalized = $memoryRam !== null ? trim($memoryRam) : null;
+        $this->memoryRam = $normalized !== '' ? $normalized : null;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $normalized = $color !== null ? trim($color) : null;
+        $this->color = $normalized !== '' ? $normalized : null;
+
         return $this;
     }
 

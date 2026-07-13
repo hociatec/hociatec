@@ -33,6 +33,12 @@ export interface CatalogProduct {
   description: string;
   priceCents: number;
   sellingType: 'sale' | 'rental';
+  brand?: string | null;
+  variantGroup?: string | null;
+  releaseYear?: number | null;
+  storageCapacity?: string | null;
+  memoryRam?: string | null;
+  color?: string | null;
   stock: number;
   isPublished: boolean;
   isFeaturedHome: boolean;
@@ -96,6 +102,12 @@ export interface UpsertProductPayload {
   shortDescription?: string | null;
   price: number;
   sellingType?: 'sale' | 'rental';
+  brand?: string | null;
+  variantGroup?: string | null;
+  releaseYear?: number | null;
+  storageCapacity?: string | null;
+  memoryRam?: string | null;
+  color?: string | null;
   stock: number;
   isPublished: boolean;
   isFeaturedHome: boolean;
@@ -105,6 +117,11 @@ export interface UpsertProductPayload {
   imageAlt?: string | null;
   removeImage?: boolean;
   removeGallery?: number[];
+  variants?: Array<{
+    color?: string | null;
+    storageCapacity?: string | null;
+    stock: number;
+  }>;
   // discounts
   discountEnabled?: boolean;
   discountType?: 'percent' | 'fixed';
@@ -177,6 +194,11 @@ export const fetchPublicProducts = async (params: {
   q?: string;
   homepage?: boolean;
   sellingType?: 'sale' | 'rental';
+  brand?: string;
+  storageCapacity?: string;
+  memoryRam?: string;
+  color?: string;
+  sort?: 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc';
 } = {}) => {
   const queryParams: Record<string, string> = {};
 
@@ -194,6 +216,26 @@ export const fetchPublicProducts = async (params: {
 
   if (params.sellingType) {
     queryParams.sellingType = params.sellingType;
+  }
+
+  if (params.brand) {
+    queryParams.brand = params.brand;
+  }
+
+  if (params.storageCapacity) {
+    queryParams.storageCapacity = params.storageCapacity;
+  }
+
+  if (params.memoryRam) {
+    queryParams.memoryRam = params.memoryRam;
+  }
+
+  if (params.color) {
+    queryParams.color = params.color;
+  }
+
+  if (params.sort) {
+    queryParams.sort = params.sort;
   }
 
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
@@ -308,6 +350,29 @@ const buildProductFormData = (payload: UpsertProductPayload) => {
   formData.set('price', payload.price.toString());
   if (payload.sellingType) {
     formData.set('sellingType', payload.sellingType);
+  }
+  if (payload.brand !== undefined) {
+    formData.set('brand', payload.brand ?? '');
+  }
+  if (payload.variantGroup !== undefined) {
+    formData.set('variantGroup', payload.variantGroup ?? '');
+  }
+  if (payload.releaseYear !== undefined && payload.releaseYear !== null) {
+    formData.set('releaseYear', payload.releaseYear.toString());
+  } else if (payload.releaseYear === null) {
+    formData.set('releaseYear', '');
+  }
+  if (payload.storageCapacity !== undefined) {
+    formData.set('storageCapacity', payload.storageCapacity ?? '');
+  }
+  if (payload.memoryRam !== undefined) {
+    formData.set('memoryRam', payload.memoryRam ?? '');
+  }
+  if (payload.color !== undefined) {
+    formData.set('color', payload.color ?? '');
+  }
+  if (payload.variants && payload.variants.length > 0) {
+    formData.set('variants', JSON.stringify(payload.variants));
   }
   formData.set('stock', payload.stock.toString());
   formData.set('isPublished', payload.isPublished ? '1' : '0');

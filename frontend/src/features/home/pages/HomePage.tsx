@@ -174,6 +174,14 @@ export const HomePage = () => {
                 const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteUrl)}`;
                 const mailSubject = encodeURIComponent(`Découvrir: ${product.name}`);
                 const mailBody = encodeURIComponent(`${product.shortDescription ?? ''}\r\n\r\n${absoluteUrl}`);
+                const compactSpecs = [
+                  product.brand?.trim(),
+                  product.storageCapacity?.trim(),
+                  product.memoryRam?.trim(),
+                  product.color?.trim(),
+                ]
+                  .filter(Boolean)
+                  .join(' • ');
                 const handleShareSubmit = (event: FormEvent<HTMLFormElement>) => {
                   event.preventDefault();
                   const rawEmail = shareEmails[product.id] ?? '';
@@ -223,6 +231,11 @@ export const HomePage = () => {
                         sellingType={product.sellingType}
                         categoryName={product.category.name}
                       />
+                      {compactSpecs.length > 0 && (
+                        <p className="catalog-product-card__spec-summary" aria-label="Caractéristiques principales">
+                          {compactSpecs}
+                        </p>
+                      )}
                     </header>
 
                     <Link to={`/catalogue/produits/${product.slug}`} className="block">
@@ -339,34 +352,12 @@ export const HomePage = () => {
             </div>
           )}
           {!loadingProducts && !errorProducts && products.length === 0 && (
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {[
-              {
-                name: "Laptop Vega Air 13",
-                desc: "13 pouces léger, silencieux et performant.",
-                price: "989,00 €",
-              },
-              {
-                name: "Gaming Laptop Nova X15",
-                desc: "15 pouces, écran 240 Hz, idéal pour le jeu et la création.",
-                price: "1 899,00 €",
-              },
-              {
-                name: "Chromebook Flexia 12",
-                desc: "Ordinateur convertible, compact et tactile.",
-                price: "649,00 €",
-              },
-            ].map((p, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition p-5"
-              >
-                <p className="text-xl font-semibold text-gray-900 mb-2">{p.name}</p>
-                <p className="text-gray-600 mb-3">{p.desc}</p>
-                <p className="text-blue-700 font-bold">{p.price}</p>
-              </div>
-            ))}
-          </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+              <p className="text-lg font-semibold text-slate-900">Aucun produit mis en avant pour le moment</p>
+              <p className="mt-2 text-sm text-slate-600">
+                Les produits tendances réapparaîtront ici dès que le catalogue sera réalimenté.
+              </p>
+            </div>
           )}
         </section>
       </main>

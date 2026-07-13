@@ -14,6 +14,14 @@ const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2).replac
 
 export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const productLink = `/catalogue/produits/${product.slug}`;
+  const compactSpecs = [
+    product.brand?.trim(),
+    product.storageCapacity?.trim(),
+    product.memoryRam?.trim(),
+    product.color?.trim(),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' • ');
 
   return (
     <article className="catalog-product-card">
@@ -46,6 +54,11 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           sellingType={product.sellingType}
           categoryName={product.category.name}
         />
+        {compactSpecs.length > 0 && (
+          <p className="catalog-product-card__spec-summary" aria-label="Caractéristiques principales">
+            {compactSpecs}
+          </p>
+        )}
         {product.shortDescription && (
           <p className="catalog-product-card__excerpt">{product.shortDescription}</p>
         )}

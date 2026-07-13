@@ -38,9 +38,24 @@ final class ProductService
         ?string $search,
         ?bool $onlyFeatured = null,
         ?string $sellingType = null,
+        ?string $brand = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
+        ?string $sort = null,
     ): array
     {
-        return $this->productRepository->findPublished($categorySlug, $search, $onlyFeatured, $sellingType);
+        return $this->productRepository->findPublished(
+            $categorySlug,
+            $search,
+            $onlyFeatured,
+            $sellingType,
+            $brand,
+            $storageCapacity,
+            $memoryRam,
+            $color,
+            $sort,
+        );
     }
 
     public function findPublishedBySlug(string $slug): ?Product
@@ -65,6 +80,13 @@ final class ProductService
         array $galleryFiles,
         ?string $imageAlt,
         ?string $sellingType = 'sale',
+        ?string $brand = null,
+        ?string $variantGroup = null,
+        ?int $releaseYear = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
+        array $variantDefinitions = [],
         ?bool $discountEnabled = null,
         ?string $discountType = null,
         ?int $discountValue = null,
@@ -92,7 +114,13 @@ final class ProductService
             ->setShortDescription($shortDescription)
             ->setIsPublished($isPublished)
             ->setIsFeaturedHome($isFeaturedHome)
-            ->setImageAlt($imageAlt);
+            ->setImageAlt($imageAlt)
+            ->setBrand($brand)
+            ->setVariantGroup($variantGroup)
+            ->setReleaseYear($releaseYear)
+            ->setStorageCapacity($storageCapacity)
+            ->setMemoryRam($memoryRam)
+            ->setColor($color);
 
         if ($sellingType !== null) {
             $product->setSellingType($sellingType);
@@ -118,6 +146,42 @@ final class ProductService
         $this->hydrateGallery($product, $galleryFiles, []);
 
         $this->entityManager->persist($product);
+
+        foreach ($variantDefinitions as $index => $variantDefinition) {
+            if (!is_array($variantDefinition)) {
+                continue;
+            }
+
+            $variantStock = isset($variantDefinition['stock']) ? (int) $variantDefinition['stock'] : $stock;
+            $variantColor = isset($variantDefinition['color']) && is_string($variantDefinition['color'])
+                ? trim($variantDefinition['color'])
+                : null;
+            $variantStorage = isset($variantDefinition['storageCapacity']) && is_string($variantDefinition['storageCapacity'])
+                ? trim($variantDefinition['storageCapacity'])
+                : null;
+
+            if ($variantStock < 0) {
+                continue;
+            }
+
+            if (($variantColor === null || $variantColor === '') && ($variantStorage === null || $variantStorage === '')) {
+                continue;
+            }
+
+            $variantProduct = $this->createVariantCopy(
+                $product,
+                $name,
+                $sku,
+                $slug,
+                $variantColor !== null && $variantColor !== '' ? $variantColor : null,
+                $variantStorage !== null && $variantStorage !== '' ? $variantStorage : null,
+                $variantStock,
+                $index + 1
+            );
+
+            $this->entityManager->persist($variantProduct);
+        }
+
         $this->entityManager->flush();
 
         return $product;
@@ -144,6 +208,12 @@ final class ProductService
         array $galleryToRemove = [],
         bool $removeImage = false,
         ?string $sellingType = null,
+        ?string $brand = null,
+        ?string $variantGroup = null,
+        ?int $releaseYear = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
         ?bool $discountEnabled = null,
         ?string $discountType = null,
         ?int $discountValue = null,
@@ -168,7 +238,13 @@ final class ProductService
             ->setIsPublished($isPublished)
             ->setIsFeaturedHome($isFeaturedHome)
             ->setCategory($category)
-            ->setImageAlt($imageAlt);
+            ->setImageAlt($imageAlt)
+            ->setBrand($brand)
+            ->setVariantGroup($variantGroup)
+            ->setReleaseYear($releaseYear)
+            ->setStorageCapacity($storageCapacity)
+            ->setMemoryRam($memoryRam)
+            ->setColor($color);
 
         if ($sellingType !== null) {
             $product->setSellingType($sellingType);
@@ -204,6 +280,111 @@ final class ProductService
     {
         $this->entityManager->remove($product);
         $this->entityManager->flush();
+    }
+
+    /**
+     * @param array<string, mixed> $variantDefinition
+     */
+    private function createVariantCopy(
+        Product $template,
+        string $baseName,
+        string $baseSku,
+        ?string $baseSlug,
+        ?string $color,
+        ?string $storageCapacity,
+        int $stock,
+        int $index,
+    ): Product {
+        $variantName = $this->buildVariantName($baseName, $color, $storageCapacity);
+        $variantSku = $this->buildVariantSku($baseSku, $color, $storageCapacity, $index);
+        $variantSlug = $this->buildVariantSlug($baseSlug ?? $baseName, $color, $storageCapacity, $index);
+
+        $variantProduct = new Product(
+            $variantName,
+            $variantSlug,
+            $variantSku,
+            $template->getDescription(),
+            $template->getPriceCents(),
+            $stock,
+            $template->getCategory(),
+        );
+
+        $variantProduct
+            ->setShortDescription($template->getShortDescription())
+            ->setIsPublished($template->isPublished())
+            ->setIsFeaturedHome($template->isFeaturedHome())
+            ->setImageAlt($template->getImageAlt())
+            ->setBrand($template->getBrand())
+            ->setVariantGroup($template->getVariantGroup())
+            ->setReleaseYear($template->getReleaseYear())
+            ->setStorageCapacity($storageCapacity)
+            ->setMemoryRam($template->getMemoryRam())
+            ->setColor($color)
+            ->setSellingType($template->getSellingType())
+            ->setDiscountEnabled($template->isDiscountEnabled())
+            ->setDiscountType($template->getDiscountType())
+            ->setDiscountValue($template->getDiscountValue())
+            ->setDiscountStartsAt($template->getDiscountStartsAt())
+            ->setDiscountEndsAt($template->getDiscountEndsAt())
+            ->setImageName($template->getImageName())
+            ->setImageSize($template->getImageSize())
+            ->setGalleryImage2Name($template->getGalleryImage2Name())
+            ->setGalleryImage2Size($template->getGalleryImage2Size())
+            ->setGalleryImage3Name($template->getGalleryImage3Name())
+            ->setGalleryImage3Size($template->getGalleryImage3Size())
+            ->setGalleryImage4Name($template->getGalleryImage4Name())
+            ->setGalleryImage4Size($template->getGalleryImage4Size());
+
+        return $variantProduct;
+    }
+
+    private function buildVariantName(string $baseName, ?string $color, ?string $storageCapacity): string
+    {
+        $parts = [];
+
+        if ($color !== null && $color !== '') {
+            $parts[] = $color;
+        }
+
+        if ($storageCapacity !== null && $storageCapacity !== '') {
+            $parts[] = $storageCapacity;
+        }
+
+        if ($parts === []) {
+            return $baseName;
+        }
+
+        return sprintf('%s (%s)', $baseName, implode(') (', $parts));
+    }
+
+    private function buildVariantSku(string $baseSku, ?string $color, ?string $storageCapacity, int $index): string
+    {
+        $suffix = $this->slugify(trim((string) $color . ' ' . (string) $storageCapacity));
+        if ($suffix === 'produit') {
+            $suffix = (string) ($index + 1);
+        }
+
+        return strtoupper(sprintf('%s-%s', $baseSku, $suffix));
+    }
+
+    private function buildVariantSlug(string $baseSlugOrName, ?string $color, ?string $storageCapacity, int $index): string
+    {
+        $base = $this->slugify($baseSlugOrName);
+        $suffix = $this->slugify(trim((string) $color . ' ' . (string) $storageCapacity));
+
+        if ($suffix === 'produit') {
+            $suffix = (string) ($index + 1);
+        }
+
+        $candidate = sprintf('%s-%s', $base, $suffix);
+        $attempt = 1;
+
+        while ($this->productRepository->existsWithSlug($candidate, null)) {
+            ++$attempt;
+            $candidate = sprintf('%s-%s-%d', $base, $suffix, $attempt);
+        }
+
+        return $candidate;
     }
 
     private function assertValidData(

@@ -49,6 +49,17 @@ class UpdateProductController extends AbstractController
         );
         $categoryId = (int) $request->request->get('categoryId', $product->getCategory()->getId());
         $imageAlt = $request->request->get('imageAlt', $product->getImageAlt());
+        $brandValue = $request->request->get('brand', $product->getBrand());
+        $brand = is_string($brandValue) && trim($brandValue) !== '' ? trim($brandValue) : null;
+        $variantGroupValue = $request->request->get('variantGroup', $product->getVariantGroup());
+        $variantGroup = is_string($variantGroupValue) && trim($variantGroupValue) !== '' ? trim($variantGroupValue) : null;
+        $releaseYear = $this->normalizeOptionalInt($request->request->get('releaseYear', $product->getReleaseYear()));
+        $storageCapacityValue = $request->request->get('storageCapacity', $product->getStorageCapacity());
+        $storageCapacity = is_string($storageCapacityValue) && trim($storageCapacityValue) !== '' ? trim($storageCapacityValue) : null;
+        $memoryRamValue = $request->request->get('memoryRam', $product->getMemoryRam());
+        $memoryRam = is_string($memoryRamValue) && trim($memoryRamValue) !== '' ? trim($memoryRamValue) : null;
+        $colorValue = $request->request->get('color', $product->getColor());
+        $color = is_string($colorValue) && trim($colorValue) !== '' ? trim($colorValue) : null;
         $removeImage = $this->normalizeBoolean($request->request->get('removeImage', false));
         $slugValue = $request->request->get('slug', $product->getSlug());
         $slug = $slugValue !== null && $slugValue !== '' ? (string) $slugValue : null;
@@ -85,13 +96,13 @@ class UpdateProductController extends AbstractController
         }
 
         if ($priceCents < 0) {
-            return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiResponse::error('Le prix doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $category = $this->categoryRepository->find($categoryId);
 
         if ($category === null) {
-            return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         $galleryPayload = $request->files->get('gallery', []);
@@ -154,6 +165,12 @@ class UpdateProductController extends AbstractController
                 $galleryToRemove,
                 $removeImage,
                 $sellingType,
+                $brand,
+                $variantGroup,
+                $releaseYear,
+                $storageCapacity,
+                $memoryRam,
+                $color,
                 $discountEnabled,
                 $discountTypeNorm === 'fixed' ? 'fixed_cents' : $discountTypeNorm,
                 $discountValue,
@@ -162,7 +179,7 @@ class UpdateProductController extends AbstractController
             );
         } catch (Throwable $exception) {
             return ApiResponse::error(
-                'Impossible de mettre a jour le produit.',
+                'Impossible de mettre à jour le produit.',
                 Response::HTTP_BAD_REQUEST,
                 [$exception->getMessage()]
             );
@@ -209,5 +226,14 @@ class UpdateProductController extends AbstractController
         }
 
         return (bool) $value;
+    }
+
+    private function normalizeOptionalInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return is_numeric($value) ? (int) $value : null;
     }
 }

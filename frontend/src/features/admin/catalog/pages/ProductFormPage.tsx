@@ -22,6 +22,12 @@ type ProductFormState = {
   sku: string;
   price: string;
   sellingType: 'sale' | 'rental';
+  brand: string;
+  variantGroup: string;
+  releaseYear: string;
+  storageCapacity: string;
+  memoryRam: string;
+  color: string;
   stock: string;
   shortDescription: string;
   description: string;
@@ -36,12 +42,24 @@ type ProductFormState = {
   discountEndsAt: string; // yyyy-mm-dd
 };
 
+type VariantRowState = {
+  color: string;
+  storageCapacity: string;
+  stock: string;
+};
+
 const emptyForm: ProductFormState = {
   name: '',
   slug: '',
   sku: '',
   price: '0',
   sellingType: 'sale',
+  brand: '',
+  variantGroup: '',
+  releaseYear: '',
+  storageCapacity: '',
+  memoryRam: '',
+  color: '',
   stock: '0',
   shortDescription: '',
   description: '',
@@ -57,6 +75,23 @@ const emptyForm: ProductFormState = {
 };
 
 const GALLERY_SIZE = 4;
+const DEFAULT_STORAGE_OPTIONS = ['64 Go', '128 Go', '256 Go', '512 Go', '1 To', '2 To'];
+const DEFAULT_COLOR_OPTIONS = [
+  'Noir',
+  'Blanc',
+  'Bleu',
+  'Bleu ciel',
+  'Bleu outremer',
+  'Vert',
+  'Vert nuit',
+  'Rose',
+  'Rouge',
+  'Violet',
+  'Violet intense',
+  'Titane naturel',
+  'Graphite',
+  'Or',
+];
 
 const slugify = (value: string) =>
   value
@@ -81,6 +116,7 @@ export const ProductFormPage = () => {
   const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [variantRows, setVariantRows] = useState<VariantRowState[]>([]);
 
   const [galleryFiles, setGalleryFiles] = useState<Array<File | null>>(
     Array.from({ length: GALLERY_SIZE }, () => null),
@@ -132,7 +168,7 @@ export const ProductFormPage = () => {
           setForm((prev) => ({ ...prev, categoryId: categoryList[0].id.toString() }));
         }
       } catch (err: any) {
-        setError(err?.message ?? 'Impossible de charger les donnees du produit.');
+        setError(err?.message ?? 'Impossible de charger les données du produit.');
       } finally {
         setInitialLoading(false);
       }
@@ -148,6 +184,12 @@ export const ProductFormPage = () => {
       sku: product.sku,
       price: (product.priceCents / 100).toString(),
       sellingType: product.sellingType,
+      brand: product.brand ?? '',
+      variantGroup: product.variantGroup ?? '',
+      releaseYear: product.releaseYear?.toString() ?? '',
+      storageCapacity: product.storageCapacity ?? '',
+      memoryRam: product.memoryRam ?? '',
+      color: product.color ?? '',
       stock: product.stock.toString(),
       shortDescription: product.shortDescription ?? '',
       description: product.description,
@@ -176,6 +218,7 @@ export const ProductFormPage = () => {
     setGalleryPreviews(populatedGallery);
     setGalleryFiles(Array.from({ length: GALLERY_SIZE }, () => null));
     setGalleryToRemove([]);
+    setVariantRows([]);
   };
 
   const resetGalleryState = () => {
@@ -296,6 +339,20 @@ export const ProductFormPage = () => {
     });
   };
 
+  const addVariantRow = () => {
+    setVariantRows((previous) => [...previous, { color: '', storageCapacity: '', stock: '0' }]);
+  };
+
+  const updateVariantRow = (index: number, field: keyof VariantRowState, value: string) => {
+    setVariantRows((previous) =>
+      previous.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)),
+    );
+  };
+
+  const removeVariantRow = (index: number) => {
+    setVariantRows((previous) => previous.filter((_, rowIndex) => rowIndex !== index));
+  };
+
   const parsePrice = (value: string) => {
     const normalized = value.replace(',', '.');
     const parsed = Number(normalized);
@@ -308,20 +365,43 @@ export const ProductFormPage = () => {
 
     const priceValue = parsePrice(form.price);
     const stockValue = Number.parseInt(form.stock, 10);
+    const releaseYearValue =
+      form.releaseYear.trim() === '' ? null : Number.parseInt(form.releaseYear.trim(), 10);
     const categoryId = Number.parseInt(form.categoryId, 10);
+    const variantPayload = variantRows
+      .map((row) => {
+        const stock = Number.parseInt(row.stock, 10);
+
+        return {
+          color: row.color.trim() || null,
+          storageCapacity: row.storageCapacity.trim() || null,
+          stock,
+        };
+      })
+      .filter((row) => row.color !== null || row.storageCapacity !== null);
 
     if (Number.isNaN(priceValue) || priceValue < 0) {
-      setError('Le prix indique est invalide.');
+      setError('Le prix indiqué est invalide.');
       return;
     }
 
     if (Number.isNaN(stockValue) || stockValue < 0) {
-      setError('Le stock doit etre un entier positif.');
+      setError('Le stock doit être un entier positif.');
+      return;
+    }
+
+    if (releaseYearValue !== null && (Number.isNaN(releaseYearValue) || releaseYearValue < 2000 || releaseYearValue > 2100)) {
+      setError('L’année du modèle doit être comprise entre 2000 et 2100.');
       return;
     }
 
     if (Number.isNaN(categoryId)) {
-      setError('Merci de selectionner une categorie.');
+      setError('Merci de sélectionner une catégorie.');
+      return;
+    }
+
+    if (variantPayload.some((row) => Number.isNaN(row.stock) || row.stock < 0)) {
+      setError('Le stock des variantes doit être un entier positif.');
       return;
     }
 
@@ -331,6 +411,13 @@ export const ProductFormPage = () => {
 
     const payload: UpsertProductPayload = {
       sellingType: form.sellingType,
+      brand: form.brand.trim() || null,
+      variantGroup: form.variantGroup.trim() || null,
+      releaseYear: releaseYearValue,
+      storageCapacity: form.storageCapacity.trim() || null,
+      memoryRam: form.memoryRam.trim() || null,
+      color: form.color.trim() || null,
+      variants: !isEdit && variantPayload.length > 0 ? variantPayload : undefined,
       name: form.name.trim(),
       slug: form.slug.trim() ? form.slug.trim() : null,
       sku: form.sku.trim(),
@@ -366,10 +453,11 @@ export const ProductFormPage = () => {
 
     void action
       .then(() => {
-        setMessage(isEdit ? 'Produit mis a jour.' : 'Produit cree.');
+        setMessage(isEdit ? 'Produit mis à jour.' : 'Produit créé.');
         if (!isEdit) {
           setForm(emptyForm);
           resetGalleryState();
+          setVariantRows([]);
         }
 
         setTimeout(() => {
@@ -426,7 +514,7 @@ export const ProductFormPage = () => {
         </div>
         {index === 0 && (
           <p className="muted" style={{ marginTop: 6 }}>
-            Image principale affichee sur les cartes produits.
+            Image principale affichée sur les cartes produits.
           </p>
         )}
         {markedForRemoval && (
@@ -439,7 +527,7 @@ export const ProductFormPage = () => {
   if (guardLoading) {
     return (
       <PageContainer title={isEdit ? 'Modifier un produit' : 'Nouveau produit'}>
-        <p className="muted">Verification des droits...</p>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
@@ -447,7 +535,7 @@ export const ProductFormPage = () => {
   if (!isAdmin) {
     return (
       <PageContainer title={isEdit ? 'Modifier un produit' : 'Nouveau produit'}>
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
@@ -462,7 +550,7 @@ export const ProductFormPage = () => {
           style={{ background: '#e5e7eb', color: '#111827' }}
           onClick={() => navigate('/admin/catalog/products')}
         >
-          Retour a la liste
+          Retour à la liste
         </button>
       }
     >
@@ -509,7 +597,83 @@ export const ProductFormPage = () => {
                 required
               />
             </label>
+            <label>
+              Marque (optionnel)
+              <input
+                name="brand"
+                value={form.brand}
+                onChange={handleChange}
+                maxLength={80}
+                placeholder="Apple, Samsung, Xiaomi..."
+              />
+            </label>
+            <label>
+              Groupe de variantes / modèle parent (optionnel)
+              <input
+                name="variantGroup"
+                value={form.variantGroup}
+                onChange={handleChange}
+                maxLength={120}
+                placeholder="iPhone 17, Galaxy S25..."
+              />
+              <span className="muted">
+                Sert à regrouper les variantes couleur d’un même modèle.
+              </span>
+            </label>
+            <label>
+              Année du modèle (optionnel)
+              <input
+                name="releaseYear"
+                value={form.releaseYear}
+                onChange={handleChange}
+                inputMode="numeric"
+                placeholder="2025"
+              />
+            </label>
+            <label>
+              Capacité de stockage (optionnel)
+              <input
+                name="storageCapacity"
+                value={form.storageCapacity}
+                onChange={handleChange}
+                maxLength={40}
+                placeholder="256 Go"
+                list="storage-capacities"
+              />
+            </label>
+            <label>
+              Mémoire RAM (optionnel)
+              <input
+                name="memoryRam"
+                value={form.memoryRam}
+                onChange={handleChange}
+                maxLength={40}
+                placeholder="8 Go"
+              />
+            </label>
+            <label>
+              Couleur (optionnel)
+              <input
+                name="color"
+                value={form.color}
+                onChange={handleChange}
+                maxLength={60}
+                placeholder="Noir, Bleu, Vert..."
+                list="color-options"
+              />
+            </label>
           </div>
+
+          <datalist id="storage-capacities">
+            {DEFAULT_STORAGE_OPTIONS.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
+          <datalist id="color-options">
+            {DEFAULT_COLOR_OPTIONS.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
 
           <div className="catalog-form-row">
             <span className="register-form__label">Remise</span>
@@ -578,7 +742,7 @@ export const ProductFormPage = () => {
               />
             </label>
             <label>
-              Stock disponible
+              Stock de cette variante
               <input
                 name="stock"
                 type="number"
@@ -587,11 +751,12 @@ export const ProductFormPage = () => {
                 onChange={handleChange}
                 required
               />
+              <span className="muted">Le stock est géré par variante, donc par combinaison couleur / stockage.</span>
             </label>
             <label>
-              Categorie
+              Catégorie
               <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-                <option value="">Selectionnez une categorie</option>
+                <option value="">Sélectionnez une catégorie</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -600,6 +765,74 @@ export const ProductFormPage = () => {
               </select>
             </label>
           </div>
+
+          {!isEdit && (
+            <div className="catalog-form-row">
+              <span className="register-form__label">Variantes supplémentaires</span>
+              <p className="muted" style={{ marginBottom: 12 }}>
+                Chaque ligne crée un produit distinct avec son propre stock.
+              </p>
+              <div style={{ display: 'grid', gap: 12 }}>
+                {variantRows.map((row, index) => (
+                  <div
+                    key={`${index}-${row.color}-${row.storageCapacity}`}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) auto',
+                      gap: 12,
+                      alignItems: 'end',
+                    }}
+                  >
+                    <label>
+                      Couleur
+                      <input
+                        value={row.color}
+                        onChange={(event) => updateVariantRow(index, 'color', event.target.value)}
+                        list="color-options"
+                        placeholder="Rouge"
+                      />
+                    </label>
+                    <label>
+                      Stockage
+                      <input
+                        value={row.storageCapacity}
+                        onChange={(event) =>
+                          updateVariantRow(index, 'storageCapacity', event.target.value)
+                        }
+                        list="storage-capacities"
+                        placeholder="128 Go"
+                      />
+                    </label>
+                    <label>
+                      Stock
+                      <input
+                        type="number"
+                        min="0"
+                        value={row.stock}
+                        onChange={(event) => updateVariantRow(index, 'stock', event.target.value)}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="register-form__submit"
+                      style={{ background: '#fee2e2', color: '#991b1b', height: 44 }}
+                      onClick={() => removeVariantRow(index)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="register-form__submit"
+                  style={{ background: '#e5e7eb', color: '#111827', width: 'fit-content' }}
+                  onClick={addVariantRow}
+                >
+                  Ajouter une variante
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="catalog-form-row">
             <label>
@@ -616,7 +849,7 @@ export const ProductFormPage = () => {
 
           <div className="catalog-form-row">
             <label>
-              Description detaillee
+              Description détaillée
               <textarea
                 name="description"
                 rows={6}
@@ -636,13 +869,13 @@ export const ProductFormPage = () => {
 
           <div className="catalog-form-row catalog-form-row--columns">
             <label>
-              Texte alternatif (accessibilite)
+              Texte alternatif (accessibilité)
               <input
                 name="imageAlt"
                 value={form.imageAlt}
                 onChange={handleChange}
                 maxLength={160}
-                placeholder="Decrivez brièvement l'image principale"
+                placeholder="Décrivez brièvement l'image principale"
               />
             </label>
           </div>
@@ -670,7 +903,7 @@ export const ProductFormPage = () => {
 
           <div className="catalog-form-actions">
             <button className="register-form__submit" type="submit" disabled={saving}>
-              {saving ? 'Enregistrement...' : isEdit ? 'Mettre a jour' : 'Creer'}
+              {saving ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
             </button>
           </div>
         </form>

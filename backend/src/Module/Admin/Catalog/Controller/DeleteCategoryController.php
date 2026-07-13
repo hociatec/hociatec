@@ -29,14 +29,14 @@ class DeleteCategoryController extends AbstractController
         $category = $this->categoryRepository->find($id);
 
         if ($category === null) {
-            return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
             $this->categoryService->delete($category);
         } catch (Throwable $exception) {
             return ApiResponse::error(
-                'Impossible de supprimer la categorie.',
+                'Impossible de supprimer la catégorie.',
                 Response::HTTP_BAD_REQUEST,
                 [$exception->getMessage()]
             );

@@ -63,7 +63,7 @@ export const ProductsListPage = () => {
     try {
       await deleteProduct(productId);
       setProducts((prev) => prev.filter((product) => product.id !== productId));
-      setMessage('Produit supprime.');
+      setMessage('Produit supprimé.');
     } catch (err: any) {
       setError(err?.message ?? 'Impossible de supprimer le produit.');
     }
@@ -78,7 +78,8 @@ export const ProductsListPage = () => {
         term.length === 0 ||
         product.name.toLowerCase().includes(term) ||
         product.slug.toLowerCase().includes(term) ||
-        product.sku.toLowerCase().includes(term);
+        product.sku.toLowerCase().includes(term) ||
+        (product.brand?.toLowerCase().includes(term) ?? false);
 
       const matchCategory = !filterSlug || product.category.slug === filterSlug;
 
@@ -89,7 +90,7 @@ export const ProductsListPage = () => {
   if (guardLoading) {
     return (
       <PageContainer title="Produits">
-        <p className="muted">Verification des droits...</p>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
@@ -97,7 +98,7 @@ export const ProductsListPage = () => {
   if (!isAdmin) {
     return (
       <PageContainer title="Produits">
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
@@ -144,7 +145,8 @@ export const ProductsListPage = () => {
           <thead>
             <tr>
               <th>Produit</th>
-              <th>Categorie</th>
+              <th>Groupe</th>
+              <th>Catégorie</th>
               <th>Prix</th>
               <th>Stock</th>
               <th>Statut</th>
@@ -157,6 +159,24 @@ export const ProductsListPage = () => {
                 <td>
                   <div className="catalog-admin-product-cell">
                     <strong>{product.name}</strong>
+                    {product.brand && (
+                      <span className="muted">Marque : {product.brand}</span>
+                    )}
+                    {product.variantGroup && (
+                      <span className="muted">Groupe : {product.variantGroup}</span>
+                    )}
+                    {product.releaseYear && (
+                      <span className="muted">Modèle : {product.releaseYear}</span>
+                    )}
+                    {product.color && (
+                      <span className="muted">Couleur : {product.color}</span>
+                    )}
+                    {product.storageCapacity && (
+                      <span className="muted">Stockage : {product.storageCapacity}</span>
+                    )}
+                    {product.memoryRam && (
+                      <span className="muted">RAM : {product.memoryRam}</span>
+                    )}
                     <span className="muted">Slug : {product.slug}</span>
                     <span className="muted">SKU {product.sku}</span>
                     {product.isFeaturedHome && (
@@ -164,12 +184,20 @@ export const ProductsListPage = () => {
                     )}
                   </div>
                 </td>
+                <td>{product.variantGroup ?? '-'}</td>
                 <td>{product.category.name}</td>
                 <td>
                   {formatPrice(product.priceCents)}{product.sellingType === 'rental' ? ' / mois' : ''}
                 </td>
-                <td>{product.stock}</td>
-                <td>{product.isPublished ? 'Publie' : 'Brouillon'}</td>
+                <td>
+                  <div className="catalog-admin-product-cell">
+                    <strong>{product.stock}</strong>
+                    <span className="muted">
+                      {product.color ? `Couleur : ${product.color}` : 'Variante par défaut'}
+                    </span>
+                  </div>
+                </td>
+                <td>{product.isPublished ? 'Publié' : 'Brouillon'}</td>
                 <td>
                   <div className="catalog-admin-actions">
                     <Link

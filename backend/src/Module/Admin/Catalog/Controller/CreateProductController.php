@@ -41,6 +41,35 @@ class CreateProductController extends AbstractController
         $slugValue = $request->request->get('slug');
         $slug = $slugValue !== null && $slugValue !== '' ? (string) $slugValue : null;
         $imageAlt = $request->request->get('imageAlt');
+        $brandValue = $request->request->get('brand');
+        $brand = is_string($brandValue) && trim($brandValue) !== '' ? trim($brandValue) : null;
+        $variantGroupValue = $request->request->get('variantGroup');
+        $variantGroup = is_string($variantGroupValue) && trim($variantGroupValue) !== '' ? trim($variantGroupValue) : null;
+        $releaseYear = $this->normalizeOptionalInt($request->request->get('releaseYear'));
+        $storageCapacityValue = $request->request->get('storageCapacity');
+        $storageCapacity = is_string($storageCapacityValue) && trim($storageCapacityValue) !== '' ? trim($storageCapacityValue) : null;
+        $memoryRamValue = $request->request->get('memoryRam');
+        $memoryRam = is_string($memoryRamValue) && trim($memoryRamValue) !== '' ? trim($memoryRamValue) : null;
+        $colorValue = $request->request->get('color');
+        $color = is_string($colorValue) && trim($colorValue) !== '' ? trim($colorValue) : null;
+        $variantsValue = $request->request->get('variants');
+        $variantDefinitions = [];
+        if (is_string($variantsValue) && trim($variantsValue) !== '') {
+            $decodedVariants = json_decode($variantsValue, true);
+            if (is_array($decodedVariants)) {
+                foreach ($decodedVariants as $variantRow) {
+                    if (!is_array($variantRow)) {
+                        continue;
+                    }
+
+                    $variantDefinitions[] = [
+                        'color' => isset($variantRow['color']) && is_string($variantRow['color']) ? trim($variantRow['color']) : null,
+                        'storageCapacity' => isset($variantRow['storageCapacity']) && is_string($variantRow['storageCapacity']) ? trim($variantRow['storageCapacity']) : null,
+                        'stock' => isset($variantRow['stock']) ? (int) $variantRow['stock'] : 0,
+                    ];
+                }
+            }
+        }
         $priceCents = $this->normalizePriceToCents($priceRaw);
         $sellingType = (string) ($request->request->get('sellingType', 'sale'));
 
@@ -74,13 +103,13 @@ class CreateProductController extends AbstractController
         }
 
         if ($priceCents < 0) {
-            return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiResponse::error('Le prix doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $category = $this->categoryRepository->find($categoryId);
 
         if ($category === null) {
-            return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         $galleryPayload = $request->files->get('gallery', []);
@@ -119,6 +148,13 @@ class CreateProductController extends AbstractController
                 $galleryFiles,
                 $imageAlt !== '' ? (string) $imageAlt : null,
                 $sellingType,
+                $brand,
+                $variantGroup,
+                $releaseYear,
+                $storageCapacity,
+                $memoryRam,
+                $color,
+                $variantDefinitions,
                 $discountEnabled,
                 $discountTypeNorm === 'fixed' ? 'fixed_cents' : $discountTypeNorm,
                 $discountValue,
@@ -127,7 +163,7 @@ class CreateProductController extends AbstractController
             );
         } catch (Throwable $exception) {
             return ApiResponse::error(
-                'Impossible de creer le produit.',
+                'Impossible de créer le produit.',
                 Response::HTTP_BAD_REQUEST,
                 [$exception->getMessage()]
             );
@@ -174,5 +210,14 @@ class CreateProductController extends AbstractController
         }
 
         return (bool) $value;
+    }
+
+    private function normalizeOptionalInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return is_numeric($value) ? (int) $value : null;
     }
 }

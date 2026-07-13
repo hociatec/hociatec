@@ -9,6 +9,7 @@ import { ProductCartActions } from '@/features/cart/components/ProductCartAction
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
+import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
 
@@ -24,6 +25,11 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [brand, setBrand] = useState('all');
+  const [storageCapacity, setStorageCapacity] = useState('all');
+  const [memoryRam, setMemoryRam] = useState('all');
+  const [color, setColor] = useState('all');
+  const [sort, setSort] = useState('release_year_desc');
 
   const pageTitle = title ?? (sellingType === 'rental' ? 'Location' : 'Vente');
   const canonicalUrl = `${SITE_URL}/catalogue/${sellingType === 'rental' ? 'location' : 'vente'}`;
@@ -60,21 +66,69 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
     setLoading(true);
     setError(null);
 
-    const params: { sellingType: 'sale' | 'rental'; q?: string } = {
+    const params: {
+      sellingType: 'sale' | 'rental';
+      q?: string;
+      brand?: string;
+      storageCapacity?: string;
+      memoryRam?: string;
+      color?: string;
+      sort?: 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc';
+    } = {
       sellingType,
+      sort: sort as 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc',
     };
     const trimmed = search.trim();
     if (trimmed.length > 0) {
       params.q = trimmed;
+    }
+    if (brand !== 'all') {
+      params.brand = brand;
+    }
+    if (storageCapacity !== 'all') {
+      params.storageCapacity = storageCapacity;
+    }
+    if (memoryRam !== 'all') {
+      params.memoryRam = memoryRam;
+    }
+    if (color !== 'all') {
+      params.color = color;
     }
 
     void fetchPublicProducts(params)
       .then((items) => setProducts(items))
       .catch((err: Error) => setError(err.message || 'Impossible de charger les produits.'))
       .finally(() => setLoading(false));
-  }, [sellingType, search]);
+  }, [sellingType, search, brand, storageCapacity, memoryRam, color, sort]);
 
   const total = useMemo(() => products.length, [products]);
+  const brandOptions = useMemo(() => {
+    const brands = Array.from(new Set(products.map((product) => product.brand?.trim()).filter(Boolean) as string[]))
+      .sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return [
+      { value: 'all', label: 'Toutes les marques' },
+      ...brands.map((item) => ({ value: item, label: item })),
+    ];
+  }, [products]);
+  const storageOptions = useMemo(() => {
+    const values = Array.from(new Set(products.map((product) => product.storageCapacity?.trim()).filter(Boolean) as string[]))
+      .sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return [{ value: 'all', label: 'Toutes les capacités' }, ...values.map((item) => ({ value: item, label: item }))];
+  }, [products]);
+  const memoryOptions = useMemo(() => {
+    const values = Array.from(new Set(products.map((product) => product.memoryRam?.trim()).filter(Boolean) as string[]))
+      .sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return [{ value: 'all', label: 'Toutes les RAM' }, ...values.map((item) => ({ value: item, label: item }))];
+  }, [products]);
+  const colorOptions = useMemo(() => {
+    const values = Array.from(new Set(products.map((product) => product.color?.trim()).filter(Boolean) as string[]))
+      .sort((a, b) => a.localeCompare(b, 'fr'));
+
+    return [{ value: 'all', label: 'Toutes les couleurs' }, ...values.map((item) => ({ value: item, label: item }))];
+  }, [products]);
 
   return (
     <SiteLayout headerVariant="light">
@@ -98,6 +152,11 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
             <ResetFiltersButton
               onReset={() => {
                 setSearch('');
+                setBrand('all');
+                setStorageCapacity('all');
+                setMemoryRam('all');
+                setColor('all');
+                setSort('release_year_desc');
               }}
             />
           }
@@ -106,6 +165,41 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
             value={search}
             onChange={setSearch}
             placeholder="Rechercher par nom, description ou SKU..."
+          />
+          <SelectFilter
+            value={brand}
+            onChange={setBrand}
+            options={brandOptions}
+            ariaLabel="Marque"
+          />
+          <SelectFilter
+            value={storageCapacity}
+            onChange={setStorageCapacity}
+            options={storageOptions}
+            ariaLabel="Capacité de stockage"
+          />
+          <SelectFilter
+            value={memoryRam}
+            onChange={setMemoryRam}
+            options={memoryOptions}
+            ariaLabel="Mémoire RAM"
+          />
+          <SelectFilter
+            value={color}
+            onChange={setColor}
+            options={colorOptions}
+            ariaLabel="Couleur"
+          />
+          <SelectFilter
+            value={sort}
+            onChange={setSort}
+            options={[
+              { value: 'release_year_desc', label: 'Du plus récent au moins récent' },
+              { value: 'release_year_asc', label: 'Du moins récent au plus récent' },
+              { value: 'price_asc', label: 'Prix croissant' },
+              { value: 'price_desc', label: 'Prix décroissant' },
+            ]}
+            ariaLabel="Tri"
           />
         </FilterBar>
 

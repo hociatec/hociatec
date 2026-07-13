@@ -26,7 +26,7 @@ class ShowCategoryController extends AbstractController
         $category = $this->categoryRepository->find($id);
 
         if ($category === null) {
-            return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         return ApiResponse::success(CatalogFormatter::formatCategory($category, true));

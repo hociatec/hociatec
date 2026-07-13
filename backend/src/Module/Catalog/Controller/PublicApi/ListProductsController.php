@@ -27,6 +27,11 @@ class ListProductsController extends AbstractController
         $search = $request->query->get('q');
         $homepageParam = $request->query->get('homepage');
         $sellingTypeParam = $request->query->get('sellingType');
+        $brandParam = $request->query->get('brand');
+        $storageCapacityParam = $request->query->get('storageCapacity');
+        $memoryRamParam = $request->query->get('memoryRam');
+        $colorParam = $request->query->get('color');
+        $sortParam = $request->query->get('sort');
         $onlyFeatured = null;
 
         if ($homepageParam !== null) {
@@ -38,6 +43,11 @@ class ListProductsController extends AbstractController
             $search !== null ? (string) $search : null,
             $onlyFeatured === true ? true : null,
             $this->normalizeSellingType($sellingTypeParam),
+            $brandParam !== null ? trim((string) $brandParam) : null,
+            $storageCapacityParam !== null ? trim((string) $storageCapacityParam) : null,
+            $memoryRamParam !== null ? trim((string) $memoryRamParam) : null,
+            $colorParam !== null ? trim((string) $colorParam) : null,
+            $this->normalizeSort($sortParam),
         );
 
         return ApiResponse::success([
@@ -75,5 +85,18 @@ class ListProductsController extends AbstractController
 
         $v = is_string($value) ? strtolower($value) : (string) $value;
         return in_array($v, ['sale', 'rental'], true) ? $v : null;
+    }
+
+    private function normalizeSort(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $v = is_string($value) ? strtolower($value) : (string) $value;
+
+        return in_array($v, ['price_asc', 'price_desc', 'release_year_desc', 'release_year_asc'], true)
+            ? $v
+            : null;
     }
 }
