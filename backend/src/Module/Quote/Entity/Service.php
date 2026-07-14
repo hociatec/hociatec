@@ -27,6 +27,12 @@ class Service
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $unit = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $durationValue = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $durationUnit = null;
+
     #[ORM\Column(type: 'integer')]
     private int $priceCents;
 
@@ -89,6 +95,28 @@ class Service
         return $this;
     }
 
+    public function getDurationValue(): ?int
+    {
+        return $this->durationValue;
+    }
+
+    public function setDurationValue(?int $durationValue): self
+    {
+        $this->durationValue = $durationValue;
+        return $this;
+    }
+
+    public function getDurationUnit(): ?string
+    {
+        return $this->durationUnit;
+    }
+
+    public function setDurationUnit(?string $durationUnit): self
+    {
+        $this->durationUnit = $durationUnit;
+        return $this;
+    }
+
     public function getPriceCents(): int
     {
         return $this->priceCents;
@@ -127,4 +155,3 @@ class Service
         $this->updatedAt = new DateTimeImmutable();
     }
 }
-

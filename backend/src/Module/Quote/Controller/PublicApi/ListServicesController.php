@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/public/quotes/services', name: 'api_public_quotes_services_list', methods: ['GET'])]
+#[Route('/api/public/services', name: 'api_public_services_list', methods: ['GET'])]
 #[RateLimiter('public_api')]
 class ListServicesController extends AbstractController
 {

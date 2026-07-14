@@ -32,13 +32,13 @@ class CreateAddressController extends AbstractController
         try {
             $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (\Throwable) {
-            return ApiResponse::error('Invalid JSON payload.');
+            return ApiResponse::error('Payload JSON invalide.');
         }
 
         $input = ShippingAddressInput::fromArray($payload);
         $violations = $this->validator->validate($input);
         if ($violations->count() > 0) {
-            return ApiResponse::error('Validation failed.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $this->formatViolations($violations));
+            return ApiResponse::error('Validation des donnees echouee.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $this->formatViolations($violations));
         }
 
         /** @var User $user */

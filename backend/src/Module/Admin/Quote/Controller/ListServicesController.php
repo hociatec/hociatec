@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/admin/quotes/services', name: 'api_admin_quotes_services_list', methods: ['GET'])]
+#[Route('/api/admin/services', name: 'api_admin_services_list', methods: ['GET'])]
 #[IsGranted('ROLE_ADMIN')]
 class ListServicesController extends AbstractController
 {
@@ -29,4 +29,3 @@ class ListServicesController extends AbstractController
         ]);
     }
 }
-

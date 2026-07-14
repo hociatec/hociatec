@@ -1,18 +1,23 @@
 ﻿import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
+import { IPHONE_DISTRIBUTION_PATH } from '@/features/mobile/config/iphoneDistribution';
 import { UserAccountMenu } from './ui/user-account-menu';
 
 interface SiteHeaderProps {
   variant?: 'light' | 'transparent';
+  showCatalogSearch?: boolean;
 }
 
-export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
+export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }: SiteHeaderProps) => {
   const { user, status, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { cart } = useCart();
+  const [search, setSearch] = useState('');
 
   const handleLogout = () => {
     logout();
@@ -20,6 +25,12 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
   };
 
   const isAuthenticated = status === 'authenticated' && Boolean(user);
+
+  const handleCatalogSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = search.trim();
+    navigate(trimmed ? `/catalogue/recherche?q=${encodeURIComponent(trimmed)}` : '/catalogue/recherche');
+  };
 
   const linkClass = (path: string, extraClass = '') =>
     [
@@ -43,8 +54,7 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
     <header className={`site-header site-header--${variant}`}>
       <div className="site-header__container">
         <Link to="/" className="site-header__brand">
-          <img src="/logo.png" alt="Logo Hociatec" className="site-header__brand-logo" width={40} height={40} />
-          <span>hociatec</span>
+          <img src="/logo.png" alt="Hociatec" className="site-header__brand-logo" width={180} height={180} />
         </Link>
         <nav className="site-header__nav" aria-label="Navigation principale">
           <Link
@@ -68,6 +78,28 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
               .join(' ')}
           >
             Location
+          </Link>
+          <Link
+            to="/services"
+            className={[
+              'site-header__link',
+              location.pathname === '/services' ? 'site-header__link--active' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            Services
+          </Link>
+          <Link
+            to={IPHONE_DISTRIBUTION_PATH}
+            className={[
+              'site-header__link',
+              location.pathname === IPHONE_DISTRIBUTION_PATH ? 'site-header__link--active' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            App iPhone
           </Link>
           <button
             type="button"
@@ -97,7 +129,21 @@ export const SiteHeader = ({ variant = 'transparent' }: SiteHeaderProps) => {
             Demander un audit
           </button>
         </nav>
-        <div className="site-header__actions">
+        <div className="site-header__actions" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
+          {showCatalogSearch && (
+            <form onSubmit={handleCatalogSearch} className="site-header__search" role="search" aria-label="Recherche catalogue">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Rechercher un produit, une marque..."
+                aria-label="Rechercher dans le catalogue"
+              />
+              <button type="submit" className="site-header__search-button">
+                Rechercher
+              </button>
+            </form>
+          )}
           <button
             type="button"
             className={linkClass('/panier')}

@@ -3,9 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   createProduct,
+  deleteProduct,
+  fetchAdminBrands,
   fetchAdminCategories,
   fetchAdminProduct,
+  fetchAdminProducts,
   updateProduct,
+  type CatalogBrand,
   type CatalogCategory,
   type CatalogProduct,
   type UpsertProductPayload,
@@ -101,9 +105,29 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+const extractNumericValue = (value: string | null | undefined) => {
+  if (!value) {
+    return '';
+  }
+
+  const match = value.match(/\d+/);
+
+  return match ? match[0] : '';
+};
+
+const buildVariantIdentityKey = (color: string | null | undefined, storageCapacity: string | null | undefined) =>
+  `${(color ?? '').trim().toLowerCase()}|${(storageCapacity ?? '').trim().toLowerCase()}`;
+
+const formatVariantConflictLabel = (color: string | null | undefined, storageCapacity: string | null | undefined) => {
+  const parts = [color?.trim(), storageCapacity?.trim()].filter((value): value is string => Boolean(value));
+
+  return parts.length > 0 ? parts.join(' / ') : 'cette variante';
+};
+
 export const ProductFormPage = () => {
   const { productId } = useParams();
   const isEdit = useMemo(() => Boolean(productId), [productId]);
+  const currentProductId = useMemo(() => (productId ? Number(productId) : null), [productId]);
   const navigate = useNavigate();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier un produit' : 'Admin - Nouveau produit');
@@ -112,11 +136,16 @@ export const ProductFormPage = () => {
 
   const [form, setForm] = useState<ProductFormState>(emptyForm);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [brands, setBrands] = useState<CatalogBrand[]>([]);
+  const [brandQuery, setBrandQuery] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deletingVariantId, setDeletingVariantId] = useState<number | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [variantRows, setVariantRows] = useState<VariantRowState[]>([]);
+  const [groupVariants, setGroupVariants] = useState<CatalogProduct[]>([]);
+  const [currentVariantPosition, setCurrentVariantPosition] = useState(1);
 
   const [galleryFiles, setGalleryFiles] = useState<Array<File | null>>(
     Array.from({ length: GALLERY_SIZE }, () => null),
@@ -152,20 +181,44 @@ export const ProductFormPage = () => {
 
     setInitialLoading(true);
     setError(null);
+    setMessage(null);
 
     const load = async () => {
       try {
-        const [categoryList, product] = await Promise.all([
+        const [categoryList, brandList, product, adminProducts] = await Promise.all([
           fetchAdminCategories(),
+          fetchAdminBrands(),
           isEdit ? fetchAdminProduct(Number(productId)) : Promise.resolve(null),
+          isEdit ? fetchAdminProducts() : Promise.resolve([]),
         ]);
 
         setCategories(categoryList);
+        setBrands(brandList);
 
         if (product) {
           hydrateFromProduct(product);
+          if (product.variantGroup) {
+            const relatedVariants = adminProducts
+              .filter((item) => item.variantGroup === product.variantGroup)
+              .sort((left, right) => {
+                const leftPosition = left.variantPosition ?? Number.MAX_SAFE_INTEGER;
+                const rightPosition = right.variantPosition ?? Number.MAX_SAFE_INTEGER;
+
+                if (leftPosition !== rightPosition) {
+                  return leftPosition - rightPosition;
+                }
+
+                return left.id - right.id;
+              });
+
+            setGroupVariants(relatedVariants.length > 0 ? relatedVariants : [product]);
+          } else {
+            setGroupVariants([product]);
+          }
         } else if (categoryList.length > 0) {
           setForm((prev) => ({ ...prev, categoryId: categoryList[0].id.toString() }));
+          setBrandQuery('');
+          setGroupVariants([]);
         }
       } catch (err: any) {
         setError(err?.message ?? 'Impossible de charger les données du produit.');
@@ -178,17 +231,20 @@ export const ProductFormPage = () => {
   }, [isAdmin, isEdit, productId]);
 
   const hydrateFromProduct = (product: CatalogProduct) => {
+    const productBrand = product.brand ?? '';
+    setCurrentVariantPosition(product.variantPosition ?? 1);
+
     setForm({
       name: product.name,
       slug: product.slug,
       sku: product.sku,
       price: (product.priceCents / 100).toString(),
       sellingType: product.sellingType,
-      brand: product.brand ?? '',
+      brand: productBrand,
       variantGroup: product.variantGroup ?? '',
       releaseYear: product.releaseYear?.toString() ?? '',
-      storageCapacity: product.storageCapacity ?? '',
-      memoryRam: product.memoryRam ?? '',
+      storageCapacity: extractNumericValue(product.storageCapacity),
+      memoryRam: extractNumericValue(product.memoryRam),
       color: product.color ?? '',
       stock: product.stock.toString(),
       shortDescription: product.shortDescription ?? '',
@@ -206,6 +262,7 @@ export const ProductFormPage = () => {
       discountStartsAt: product.discount?.startsAt ? product.discount.startsAt.substring(0, 10) : '',
       discountEndsAt: product.discount?.endsAt ? product.discount.endsAt.substring(0, 10) : '',
     });
+    setBrandQuery(productBrand);
 
     const populatedGallery = Array.from({ length: GALLERY_SIZE }, () => null as string | null);
     product.gallery.forEach((item) => {
@@ -339,6 +396,56 @@ export const ProductFormPage = () => {
     });
   };
 
+  const handleBrandQueryChange = (value: string) => {
+    setBrandQuery(value);
+
+    setForm((prev) => {
+      const selectedBrand =
+        prev.brand.trim() === ''
+          ? null
+          : brands.find((brand) => brand.name.toLowerCase() === prev.brand.trim().toLowerCase()) ?? null;
+
+      if (selectedBrand !== null && selectedBrand.name.toLowerCase() === value.trim().toLowerCase()) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        brand: '',
+      };
+    });
+  };
+
+  const handleBrandSelection = (brand: CatalogBrand) => {
+    setBrandQuery(brand.name);
+    setForm((prev) => ({
+      ...prev,
+      brand: brand.name,
+    }));
+  };
+
+  const filteredBrands = useMemo(() => {
+    const search = brandQuery.trim().toLowerCase();
+
+    if (search === '') {
+      return form.brand
+        ? brands.filter((brand) => brand.name.toLowerCase() === form.brand.trim().toLowerCase())
+        : [];
+    }
+
+    return brands
+      .filter((brand) => brand.name.toLowerCase().includes(search))
+      .slice(0, 8);
+  }, [brandQuery, brands, form.brand]);
+
+  const formatVariantDetails = (product: CatalogProduct) => {
+    const details = [product.color, product.storageCapacity].filter(
+      (value): value is string => Boolean(value && value.trim() !== ''),
+    );
+
+    return details.length > 0 ? details.join(' • ') : 'Aucune précision';
+  };
+
   const addVariantRow = () => {
     setVariantRows((previous) => [...previous, { color: '', storageCapacity: '', stock: '0' }]);
   };
@@ -351,6 +458,48 @@ export const ProductFormPage = () => {
 
   const removeVariantRow = (index: number) => {
     setVariantRows((previous) => previous.filter((_, rowIndex) => rowIndex !== index));
+  };
+
+  const handleDeleteVariant = (variant: CatalogProduct) => {
+    if (groupVariants.length <= 1 || deletingVariantId !== null) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Supprimer la variante ${formatVariantDetails(variant)} ?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingVariantId(variant.id);
+    setError(null);
+    setMessage(null);
+
+    void deleteProduct(variant.id)
+      .then(() => {
+        const remainingVariants = groupVariants.filter((item) => item.id !== variant.id);
+
+        if (variant.id === currentProductId) {
+          const nextVariant = remainingVariants[0] ?? null;
+
+          if (nextVariant) {
+            void navigate(`/admin/catalog/products/${nextVariant.id}/edit`);
+            return;
+          }
+
+          void navigate('/admin/catalog/products');
+          return;
+        }
+
+        setGroupVariants(remainingVariants);
+        setMessage('Variante supprimée.');
+      })
+      .catch((err: any) => {
+        setError(err?.message ?? 'Impossible de supprimer la variante.');
+      })
+      .finally(() => setDeletingVariantId(null));
   };
 
   const parsePrice = (value: string) => {
@@ -371,10 +520,13 @@ export const ProductFormPage = () => {
     const variantPayload = variantRows
       .map((row) => {
         const stock = Number.parseInt(row.stock, 10);
+        const storageCapacity =
+          row.storageCapacity.trim() === '' ? null : Number.parseInt(row.storageCapacity.trim(), 10);
 
         return {
           color: row.color.trim() || null,
-          storageCapacity: row.storageCapacity.trim() || null,
+          storageCapacity:
+            storageCapacity !== null && !Number.isNaN(storageCapacity) ? `${storageCapacity} Go` : null,
           stock,
         };
       })
@@ -405,19 +557,71 @@ export const ProductFormPage = () => {
       return;
     }
 
+    const selectedBrand =
+      form.brand.trim() === ''
+        ? null
+        : brands.find((brand) => brand.name.toLowerCase() === form.brand.trim().toLowerCase()) ?? null;
+    const storageCapacityValue =
+      form.storageCapacity.trim() === '' ? null : Number.parseInt(form.storageCapacity.trim(), 10);
+    const memoryRamValue =
+      form.memoryRam.trim() === '' ? null : Number.parseInt(form.memoryRam.trim(), 10);
+
+    if (selectedBrand === null) {
+      setError('La marque est obligatoire. Recherchez puis cochez une marque existante.');
+      return;
+    }
+
+    if (storageCapacityValue !== null && (Number.isNaN(storageCapacityValue) || storageCapacityValue < 1 || storageCapacityValue > 4096)) {
+      setError('Le stockage doit être un nombre compris entre 1 et 4096.');
+      return;
+    }
+
+    if (memoryRamValue !== null && (Number.isNaN(memoryRamValue) || memoryRamValue < 1 || memoryRamValue > 256)) {
+      setError('La mémoire RAM doit être un nombre compris entre 1 et 256.');
+      return;
+    }
+
+    const existingVariantKeys = new Set(
+      groupVariants
+        .filter((variant) => variant.id !== currentProductId)
+        .map((variant) => buildVariantIdentityKey(variant.color, variant.storageCapacity)),
+    );
+    const currentVariantKey = buildVariantIdentityKey(
+      form.color.trim() || null,
+      storageCapacityValue !== null && !Number.isNaN(storageCapacityValue) ? `${storageCapacityValue} Go` : null,
+    );
+
+    if (existingVariantKeys.has(currentVariantKey)) {
+      setError(`La variante ${formatVariantConflictLabel(form.color, storageCapacityValue !== null && !Number.isNaN(storageCapacityValue) ? `${storageCapacityValue} Go` : null)} existe déjà.`);
+      return;
+    }
+
+    const incomingVariantKeys = new Set<string>([currentVariantKey]);
+
+    for (const row of variantPayload) {
+      const key = buildVariantIdentityKey(row.color, row.storageCapacity);
+
+      if (existingVariantKeys.has(key) || incomingVariantKeys.has(key)) {
+        setError(`La variante ${formatVariantConflictLabel(row.color, row.storageCapacity)} existe déjà.`);
+        return;
+      }
+
+      incomingVariantKeys.add(key);
+    }
+
     const galleryPayload = galleryFiles.some(Boolean) ? galleryFiles : undefined;
     const removeGalleryPayload =
       galleryToRemove.length > 0 ? Array.from(new Set(galleryToRemove)) : undefined;
 
     const payload: UpsertProductPayload = {
       sellingType: form.sellingType,
-      brand: form.brand.trim() || null,
-      variantGroup: form.variantGroup.trim() || null,
+      brandId: selectedBrand?.id ?? null,
+      variantGroup: null,
       releaseYear: releaseYearValue,
-      storageCapacity: form.storageCapacity.trim() || null,
-      memoryRam: form.memoryRam.trim() || null,
+      storageCapacity: storageCapacityValue !== null ? `${storageCapacityValue} Go` : null,
+      memoryRam: memoryRamValue !== null ? `${memoryRamValue} Go` : null,
       color: form.color.trim() || null,
-      variants: !isEdit && variantPayload.length > 0 ? variantPayload : undefined,
+      variants: variantPayload.length > 0 ? variantPayload : undefined,
       name: form.name.trim(),
       slug: form.slug.trim() ? form.slug.trim() : null,
       sku: form.sku.trim(),
@@ -518,7 +722,7 @@ export const ProductFormPage = () => {
           </p>
         )}
         {markedForRemoval && (
-          <p className="catalog-gallery-alert">L'image sera supprimee lors de l'enregistrement.</p>
+          <p className="catalog-gallery-alert">L'image sera supprimée lors de l'enregistrement.</p>
         )}
       </div>
     );
@@ -565,104 +769,208 @@ export const ProductFormPage = () => {
         <p className="muted">Chargement du produit...</p>
       ) : (
         <form className="catalog-form-grid" onSubmit={handleSubmit}>
-          <div className="catalog-form-row catalog-form-row--columns">
-            <label>
-              Nom du produit
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                maxLength={180}
-                required
-              />
-            </label>
-            <label>
-              Slug (URL)
-              <input
-                name="slug"
-                value={form.slug}
-                onChange={handleChange}
-                maxLength={200}
-                placeholder="ex : solution-supervision"
-              />
-            </label>
-            <label>
-              SKU
-              <input
-                name="sku"
-                value={form.sku}
-                onChange={handleChange}
-                maxLength={60}
-                placeholder="Identifiant interne"
-                required
-              />
-            </label>
-            <label>
-              Marque (optionnel)
-              <input
-                name="brand"
-                value={form.brand}
-                onChange={handleChange}
-                maxLength={80}
-                placeholder="Apple, Samsung, Xiaomi..."
-              />
-            </label>
-            <label>
-              Groupe de variantes / modèle parent (optionnel)
-              <input
-                name="variantGroup"
-                value={form.variantGroup}
-                onChange={handleChange}
-                maxLength={120}
-                placeholder="iPhone 17, Galaxy S25..."
-              />
-              <span className="muted">
-                Sert à regrouper les variantes couleur d’un même modèle.
-              </span>
-            </label>
-            <label>
-              Année du modèle (optionnel)
-              <input
-                name="releaseYear"
-                value={form.releaseYear}
-                onChange={handleChange}
-                inputMode="numeric"
-                placeholder="2025"
-              />
-            </label>
-            <label>
-              Capacité de stockage (optionnel)
-              <input
-                name="storageCapacity"
-                value={form.storageCapacity}
-                onChange={handleChange}
-                maxLength={40}
-                placeholder="256 Go"
-                list="storage-capacities"
-              />
-            </label>
-            <label>
-              Mémoire RAM (optionnel)
-              <input
-                name="memoryRam"
-                value={form.memoryRam}
-                onChange={handleChange}
-                maxLength={40}
-                placeholder="8 Go"
-              />
-            </label>
-            <label>
-              Couleur (optionnel)
-              <input
-                name="color"
-                value={form.color}
-                onChange={handleChange}
-                maxLength={60}
-                placeholder="Noir, Bleu, Vert..."
-                list="color-options"
-              />
-            </label>
-          </div>
+          {isEdit && groupVariants.length > 1 && (
+            <section className="catalog-form-section catalog-variant-switcher">
+              <div className="catalog-form-section__header">
+                <h2 className="catalog-form-section__title">Variantes enregistrées</h2>
+                <p className="catalog-form-section__description">
+                  Chaque variante est un produit distinct. Choisissez celle que vous voulez modifier.
+                </p>
+              </div>
+
+              <div className="catalog-variant-switcher__list">
+                {groupVariants.map((variant, index) => {
+                  const isActive = variant.id === currentProductId;
+
+                  return (
+                    <div key={variant.id} className="catalog-variant-switcher__card">
+                      <button
+                        type="button"
+                        className={`catalog-variant-switcher__item${isActive ? ' is-active' : ''}`}
+                        onClick={() => {
+                          if (isActive) {
+                            return;
+                          }
+
+                          setError(null);
+                          setMessage(null);
+                          void navigate(`/admin/catalog/products/${variant.id}/edit`);
+                        }}
+                      >
+                        <span className="catalog-variant-switcher__eyebrow">
+                          Variante {variant.variantPosition ?? index + 1}
+                        </span>
+                        <span className="catalog-variant-switcher__name">
+                          {formatVariantDetails(variant)}
+                        </span>
+                        <span className="catalog-variant-switcher__meta">
+                          SKU : {variant.sku} · Stock : {variant.stock}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="catalog-variant-switcher__remove"
+                        disabled={deletingVariantId !== null}
+                        onClick={() => handleDeleteVariant(variant)}
+                      >
+                        {deletingVariantId === variant.id ? 'Suppression...' : 'Retirer la variante'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <section className="catalog-form-section">
+            <div className="catalog-form-section__header">
+              <h2 className="catalog-form-section__title">Informations générales</h2>
+              <p className="catalog-form-section__description">
+                Renseignez les informations communes au produit avant de définir ses variantes.
+              </p>
+            </div>
+
+            <div className="catalog-form-row catalog-form-row--columns">
+              <label>
+                Nom du produit
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  maxLength={180}
+                  required
+                />
+              </label>
+              <label>
+                SKU
+                <input
+                  name="sku"
+                  value={form.sku}
+                  onChange={handleChange}
+                  maxLength={60}
+                  placeholder="Identifiant interne"
+                  required
+                />
+              </label>
+              <label>
+                Slug (URL)
+                <input
+                  name="slug"
+                  value={form.slug}
+                  onChange={handleChange}
+                  maxLength={200}
+                  placeholder="ex : solution-supervision"
+                />
+              </label>
+              <label>
+                Catégorie
+                <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
+                  <option value="">Sélectionnez une catégorie</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Type du produit
+                <select name="sellingType" value={form.sellingType} onChange={handleChange}>
+                  <option value="sale">Vente</option>
+                  <option value="rental">Location</option>
+                </select>
+              </label>
+              <label>
+                {form.sellingType === 'rental' ? 'Prix mensuel (euros TTC / mois)' : 'Prix (en euros TTC)'}
+                <input
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.price}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+              <label>
+                Année du modèle
+                <input
+                  name="releaseYear"
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  step="1"
+                  value={form.releaseYear}
+                  onChange={handleChange}
+                  placeholder="2025"
+                />
+              </label>
+              <label>
+                Mémoire RAM (Go)
+                <input
+                  name="memoryRam"
+                  type="number"
+                  min="1"
+                  max="256"
+                  step="1"
+                  value={form.memoryRam}
+                  onChange={handleChange}
+                  placeholder="8"
+                />
+              </label>
+            </div>
+
+            <div className="catalog-brand-picker">
+              <label htmlFor="product-brand-search">
+                Marque
+                <input
+                  id="product-brand-search"
+                  name="brandSearch"
+                  value={brandQuery}
+                  onChange={(event) => handleBrandQueryChange(event.target.value)}
+                  maxLength={80}
+                  placeholder="Tapez une ou plusieurs lettres"
+                  required
+                />
+              </label>
+              <div className="catalog-brand-picker__header">
+                <span className="muted">
+                  La marque est obligatoire. Recherchez puis cochez une marque existante.
+                </span>
+                {form.brand && (
+                  <span className="catalog-brand-picker__selected">
+                    Marque choisie : {form.brand}
+                  </span>
+                )}
+              </div>
+              <div className="catalog-brand-picker__results">
+                {brandQuery.trim() === '' ? (
+                  <p className="catalog-brand-picker__empty">
+                    Saisissez au moins une lettre pour afficher les marques disponibles.
+                  </p>
+                ) : filteredBrands.length === 0 ? (
+                  <p className="catalog-brand-picker__empty">
+                    Aucune marque trouvée. Ajoutez-la d’abord dans l’onglet Marques.
+                  </p>
+                ) : (
+                  filteredBrands.map((brand) => {
+                    const checked = form.brand.toLowerCase() === brand.name.toLowerCase();
+
+                    return (
+                      <label key={brand.id} className={`catalog-brand-picker__option${checked ? ' is-selected' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => handleBrandSelection(brand)}
+                        />
+                        <span>{brand.name}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </section>
 
           <datalist id="storage-capacities">
             {DEFAULT_STORAGE_OPTIONS.map((option) => (
@@ -721,118 +1029,141 @@ export const ProductFormPage = () => {
             </div>
           </div>
 
-          <div className="catalog-form-row catalog-form-row--columns">
-            <label>
-              Type du produit
-              <select name="sellingType" value={form.sellingType} onChange={handleChange}>
-                <option value="sale">Vente</option>
-                <option value="rental">Location</option>
-              </select>
-            </label>
-            <label>
-              {form.sellingType === 'rental' ? 'Prix mensuel (euros TTC / mois)' : 'Prix (en euros TTC)'}
-              <input
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.price}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <label>
-              Stock de cette variante
-              <input
-                name="stock"
-                type="number"
-                min="0"
-                value={form.stock}
-                onChange={handleChange}
-                required
-              />
-              <span className="muted">Le stock est géré par variante, donc par combinaison couleur / stockage.</span>
-            </label>
-            <label>
-              Catégorie
-              <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-                <option value="">Sélectionnez une catégorie</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {!isEdit && (
-            <div className="catalog-form-row">
-              <span className="register-form__label">Variantes supplémentaires</span>
-              <p className="muted" style={{ marginBottom: 12 }}>
-                Chaque ligne crée un produit distinct avec son propre stock.
+          <section className="catalog-form-section">
+            <div className="catalog-form-section__header">
+              <h2 className="catalog-form-section__title">Variante {currentVariantPosition}</h2>
+              <p className="catalog-form-section__description">
+                Définissez la variante affichée avec sa couleur, son stockage et son stock.
               </p>
-              <div style={{ display: 'grid', gap: 12 }}>
-                {variantRows.map((row, index) => (
-                  <div
-                    key={`${index}-${row.color}-${row.storageCapacity}`}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) auto',
-                      gap: 12,
-                      alignItems: 'end',
-                    }}
-                  >
-                    <label>
+            </div>
+
+            <div className="catalog-form-row catalog-form-row--columns">
+              <label htmlFor="product-main-color">
+                Couleur
+                <select
+                  id="product-main-color"
+                  name="color"
+                  value={form.color}
+                  onChange={handleChange}
+                >
+                  <option value="">Sélectionnez une couleur</option>
+                  {DEFAULT_COLOR_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label htmlFor="product-main-storage">
+                Stockage
+                <input
+                  id="product-main-storage"
+                  name="storageCapacity"
+                  type="number"
+                  min="1"
+                  max="4096"
+                  step="1"
+                  value={form.storageCapacity}
+                  onChange={handleChange}
+                  placeholder="256"
+                />
+              </label>
+              <label>
+                Stock
+                <input
+                  name="stock"
+                  type="number"
+                  min="0"
+                  value={form.stock}
+                  onChange={handleChange}
+                  required
+                />
+                <span className="muted">Le stock est géré pour chaque variante individuellement.</span>
+              </label>
+            </div>
+          </section>
+
+          <section className="catalog-form-section">
+            <div className="catalog-form-section__header">
+              <h2 className="catalog-form-section__title">Variantes supplémentaires</h2>
+              <p className="catalog-form-section__description">
+                Ajoutez des variantes avec leur couleur, leur stockage et leur stock propre.
+              </p>
+            </div>
+
+            <div className="catalog-variants-list">
+              {variantRows.map((row, index) => (
+                <div key={`${index}-${row.color}-${row.storageCapacity}`} className="catalog-variant-card">
+                  <div className="catalog-variant-card__header">
+                    <h3 className="catalog-variant-card__title">Variante {index + 1}</h3>
+                    <button
+                      type="button"
+                      className="register-form__submit"
+                      style={{ background: '#fee2e2', color: '#991b1b' }}
+                      onClick={() => removeVariantRow(index)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+
+                  <div className="catalog-form-row catalog-form-row--columns">
+                    <label htmlFor={`variant-color-${index}`}>
                       Couleur
-                      <input
+                      <select
+                        id={`variant-color-${index}`}
                         value={row.color}
                         onChange={(event) => updateVariantRow(index, 'color', event.target.value)}
-                        list="color-options"
-                        placeholder="Rouge"
-                      />
+                      >
+                        <option value="">Sélectionnez une couleur</option>
+                        {DEFAULT_COLOR_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </label>
-                    <label>
+                    <label htmlFor={`variant-storage-${index}`}>
                       Stockage
                       <input
+                        id={`variant-storage-${index}`}
+                        type="number"
+                        min="1"
+                        max="4096"
+                        step="1"
                         value={row.storageCapacity}
                         onChange={(event) =>
                           updateVariantRow(index, 'storageCapacity', event.target.value)
                         }
-                        list="storage-capacities"
-                        placeholder="128 Go"
+                        placeholder="128"
                       />
                     </label>
-                    <label>
+                    <label htmlFor={`variant-stock-${index}`}>
                       Stock
                       <input
+                        id={`variant-stock-${index}`}
                         type="number"
                         min="0"
                         value={row.stock}
                         onChange={(event) => updateVariantRow(index, 'stock', event.target.value)}
                       />
                     </label>
-                    <button
-                      type="button"
-                      className="register-form__submit"
-                      style={{ background: '#fee2e2', color: '#991b1b', height: 44 }}
-                      onClick={() => removeVariantRow(index)}
-                    >
-                      Supprimer
-                    </button>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  className="register-form__submit"
-                  style={{ background: '#e5e7eb', color: '#111827', width: 'fit-content' }}
-                  onClick={addVariantRow}
-                >
-                  Ajouter une variante
-                </button>
-              </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                className="register-form__submit"
+                style={{ background: '#e5e7eb', color: '#111827', width: 'fit-content' }}
+                onClick={addVariantRow}
+              >
+                Ajouter une variante
+              </button>
             </div>
-          )}
+          </section>
+
+          <section className="catalog-form-section">
+          </section>
 
           <div className="catalog-form-row">
             <label>

@@ -11,12 +11,16 @@ import {
   clearAuthToken,
   getPersistedToken,
   persistAuthToken,
+  persistRefreshToken,
+  getPersistedRefreshToken,
 } from '../../../shared/lib/httpClient';
+import axios from 'axios';
 import type { AuthUser } from '../../../shared/types/auth';
 import {
   fetchCurrentUser,
   loginUser,
-  type LoginPayload,
+  refreshUserSession,
+  type LoginFormPayload,
   updateProfile as updateProfileRequest,
   deleteAccount as deleteAccountRequest,
   type UpdateProfilePayload,
@@ -27,7 +31,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginFormPayload) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const loadUser = useCallback(async () => {
     const persistedToken = getPersistedToken();
+    const persistedRefreshToken = getPersistedRefreshToken();
 
     if (!persistedToken) {
       setToken(null);
@@ -82,10 +87,37 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       setStatus('authenticated');
     } catch (error) {
       console.error('Unable to fetch current user', error);
-      clearAuthToken();
-      setToken(null);
-      setUser(null);
-      setStatus('unauthenticated');
+
+      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+        if (persistedRefreshToken) {
+          try {
+            const refreshedTokens = await refreshUserSession(persistedRefreshToken);
+            const remember = typeof window !== 'undefined'
+              ? window.localStorage.getItem('hociatec.auth.refresh.token') !== null
+              : false;
+
+            persistAuthToken(refreshedTokens.token, remember);
+            persistRefreshToken(refreshedTokens.refreshToken, remember);
+
+            const currentUser = await fetchCurrentUser();
+            setToken(refreshedTokens.token);
+            setUser(currentUser);
+            setStatus('authenticated');
+            return;
+          } catch (refreshError) {
+            console.error('Unable to refresh current session', refreshError);
+          }
+        }
+
+        clearAuthToken();
+        setToken(null);
+        setUser(null);
+        setStatus('unauthenticated');
+        return;
+      }
+
+      setToken(persistedToken);
+      setStatus('authenticated');
     }
   }, []);
 
@@ -94,20 +126,31 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [loadUser]);
 
   const login = useCallback(
-    async (payload: LoginPayload) => {
+    async (payload: LoginFormPayload) => {
       setStatus('loading');
 
-      const tokens = await loginUser(payload);
-      persistAuthToken(tokens.token);
-      setToken(tokens.token);
-
-      await loadUser();
-
-      // Best-effort fetch to trigger potential cart merge server-side and persist token
       try {
-        await fetchCart();
-      } catch (e) {
-        // ignore cart errors during login
+        const { rememberMe = false, ...credentials } = payload;
+        const tokens = await loginUser(credentials);
+        persistAuthToken(tokens.token, rememberMe);
+        persistRefreshToken(tokens.refreshToken, rememberMe);
+        setToken(tokens.token);
+
+        await loadUser();
+
+        // Best-effort fetch to trigger potential cart merge server-side and persist token
+        try {
+          await fetchCart();
+        } catch (e) {
+          // ignore cart errors during login
+        }
+      } catch (error) {
+        clearAuthToken();
+        setToken(null);
+        setUser(null);
+        setStatus('unauthenticated');
+
+        throw error;
       }
     },
     [loadUser],

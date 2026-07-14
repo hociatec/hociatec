@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/admin/quotes/services/{id}', name: 'api_admin_quotes_services_delete', methods: ['DELETE'])]
+#[Route('/api/admin/services/{id}', name: 'api_admin_services_delete', methods: ['DELETE'])]
 #[IsGranted('ROLE_ADMIN')]
 class DeleteServiceController extends AbstractController
 {
@@ -36,4 +36,3 @@ class DeleteServiceController extends AbstractController
         return ApiResponse::success(['deleted' => true]);
     }
 }
-

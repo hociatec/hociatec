@@ -317,8 +317,8 @@ export const ProfilePage = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Cette action entraine la suppression de votre compte et de vos acces aux services
-                    Hociatec. Un membre de notre equipe vous recontactera pour finaliser la procedure.
+                    Cette action entraîne la suppression de votre compte et de vos accès aux services
+                    Hociatec. Un membre de notre équipe vous recontactera pour finaliser la procédure.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

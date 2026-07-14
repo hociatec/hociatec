@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -164,7 +164,11 @@ export const CartPage = () => {
 
     setIsCheckout(true);
     void checkoutOrder(addressId)
-      .then((order) => navigate(`/orders/${order.id}?confirmed=1`))
+      .then((order) =>
+        navigate(`/orders/${order.id}`, {
+          state: { justConfirmed: true },
+        }),
+      )
       .catch(() =>
         show('Erreur lors de la validation de la commande.', { variant: 'error' })
       )

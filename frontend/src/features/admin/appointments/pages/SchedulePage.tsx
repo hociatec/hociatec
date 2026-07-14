@@ -87,9 +87,9 @@ export const SchedulePage = () => {
     try {
       const updated = await updateConfiguration(sanitizedConfiguration as WorkingDay[]);
       setConfiguration(normalizeDays(updated));
-      setConfigurationMessage('Configuration enregistree.');
+      setConfigurationMessage('Configuration enregistrée.');
     } catch (error: any) {
-      setConfigurationError(error?.message || 'Impossible de mettre a jour la configuration');
+      setConfigurationError(error?.message || 'Impossible de mettre à jour la configuration');
     } finally {
       setSavingConfiguration(false);
     }
@@ -97,22 +97,22 @@ export const SchedulePage = () => {
 
   if (guardLoading) {
     return (
-      <PageContainer title="Configuration des creneaux">
-        <p className="muted">Verification des droits...</p>
+      <PageContainer title="Configuration des créneaux">
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
 
   if (!isAdmin) {
     return (
-      <PageContainer title="Configuration des creneaux">
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+      <PageContainer title="Configuration des créneaux">
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer title="Configuration des creneaux">
+    <PageContainer title="Configuration des créneaux">
       {configurationError && <div className="register-form__alert">{configurationError}</div>}
       {configurationMessage && (
         <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
@@ -147,7 +147,7 @@ export const SchedulePage = () => {
                 <Fragment>
                   <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                     <label className="register-form__field" style={{ flex: '1 1 160px' }}>
-                      <span className="register-form__label">Debut</span>
+                      <span className="register-form__label">Début</span>
                       <input
                         type="time"
                         className="register-form__input"
@@ -178,7 +178,7 @@ export const SchedulePage = () => {
 
                   <div style={{ display: 'grid', gap: 8 }}>
                     <span className="register-form__label">Pauses</span>
-                    {day.breaks.length === 0 && <p className="muted">Aucune pause definie.</p>}
+                    {day.breaks.length === 0 && <p className="muted">Aucune pause définie.</p>}
                     {day.breaks.map((pause, index) => (
                       <div
                         key={`${day.dayOfWeek}-${index}`}
@@ -197,7 +197,7 @@ export const SchedulePage = () => {
                             }))
                           }
                         />
-                        <span>a</span>
+                        <span>à</span>
                         <input
                           type="time"
                           className="register-form__input"

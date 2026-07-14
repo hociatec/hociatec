@@ -14,8 +14,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(
-    '/api/admin/quotes/services/{id}',
-    name: 'api_admin_quotes_services_get',
+    '/api/admin/services/{id}',
+    name: 'api_admin_services_get',
     methods: ['GET'],
     requirements: ['id' => '\d+']
 )]

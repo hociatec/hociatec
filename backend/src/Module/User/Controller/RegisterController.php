@@ -32,19 +32,19 @@ class RegisterController extends AbstractController
         try {
             $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (Throwable) {
-            return ApiResponse::error('Invalid JSON payload.', JsonResponse::HTTP_BAD_REQUEST);
+            return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $input = RegisterUserInput::fromArray($payload);
         $violations = $this->validator->validate($input);
 
         if ($violations->count() > 0) {
-            return ApiResponse::error('Validation failed.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $this->formatViolations($violations));
+            return ApiResponse::error('Validation des donnees echouee.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $this->formatViolations($violations));
         }
 
         if ($input->password !== $input->confirmPassword) {
             return ApiResponse::error(
-                'Validation failed.',
+                'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
                 ['confirmPassword: Les mots de passe ne correspondent pas.']
             );

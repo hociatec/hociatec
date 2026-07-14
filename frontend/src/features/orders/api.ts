@@ -71,7 +71,7 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto> => {
     return order;
   }
 
-  const message = data.status === 'error' ? data.message : 'Echec de validation de la commande';
+  const message = data.status === 'error' ? data.message : 'Ã‰chec de validation de la commande';
   throw new Error(message);
 };
 
@@ -162,7 +162,7 @@ export const updateAdminOrderStatus = async (
   if (isApiOk(data)) {
     return (data.data?.order as OrderDto) ?? ({} as OrderDto);
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre a jour le statut';
+  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le statut';
   throw new Error(message);
 };
 

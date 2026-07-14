@@ -53,6 +53,12 @@ class Quote
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $conditions = null;
 
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?DateTimeImmutable $validFrom = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?DateTimeImmutable $validUntil = null;
+
     /** @var Collection<int, QuoteItem> */
     #[ORM\OneToMany(mappedBy: 'quote', targetEntity: QuoteItem::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
@@ -100,6 +106,12 @@ class Quote
     public function getConditions(): ?string { return $this->conditions; }
     public function setConditions(?string $conditions): self { $this->conditions = $conditions; return $this; }
 
+    public function getValidFrom(): ?DateTimeImmutable { return $this->validFrom; }
+    public function setValidFrom(?DateTimeImmutable $validFrom): self { $this->validFrom = $validFrom; return $this; }
+
+    public function getValidUntil(): ?DateTimeImmutable { return $this->validUntil; }
+    public function setValidUntil(?DateTimeImmutable $validUntil): self { $this->validUntil = $validUntil; return $this; }
+
     /** @return Collection<int, QuoteItem> */
     public function getItems(): Collection { return $this->items; }
 
@@ -131,4 +143,3 @@ class Quote
         $this->updatedAt = new DateTimeImmutable();
     }
 }
-

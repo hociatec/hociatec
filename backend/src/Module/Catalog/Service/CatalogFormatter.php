@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Service;
 
+use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Entity\Product;
 
@@ -38,6 +39,25 @@ final class CatalogFormatter
     /**
      * @return array<string, mixed>
      */
+    public static function formatBrand(Brand $brand, ?int $productsCount = null): array
+    {
+        $data = [
+            'id' => $brand->getId(),
+            'name' => $brand->getName(),
+            'createdAt' => $brand->getCreatedAt()->format(DATE_ATOM),
+            'updatedAt' => $brand->getUpdatedAt()->format(DATE_ATOM),
+        ];
+
+        if ($productsCount !== null) {
+            $data['productsCount'] = $productsCount;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public static function formatProduct(Product $product, bool $includePrivateFields = false): array
     {
         $gallery = self::formatGallery($product);
@@ -52,7 +72,9 @@ final class CatalogFormatter
             'priceCents' => $product->getPriceCents(),
             'sellingType' => $product->getSellingType(),
             'brand' => $product->getBrand(),
+            'brandId' => $product->getBrandId(),
             'variantGroup' => $product->getVariantGroup(),
+            'variantPosition' => $product->getVariantPosition(),
             'releaseYear' => $product->getReleaseYear(),
             'storageCapacity' => $product->getStorageCapacity(),
             'memoryRam' => $product->getMemoryRam(),
@@ -89,7 +111,6 @@ final class CatalogFormatter
             );
         }
 
-        // Attach discount metadata if configured
         if ($product->isDiscountEnabled() && $product->getDiscountType() !== null && $product->getDiscountValue() !== null) {
             $data['discount'] = [
                 'type' => $product->getDiscountType(),

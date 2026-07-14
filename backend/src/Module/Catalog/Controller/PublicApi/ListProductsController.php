@@ -23,6 +23,9 @@ class ListProductsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = max(1, min(48, (int) $request->query->get('perPage', 12)));
+        $offset = ($page - 1) * $perPage;
         $categorySlug = $request->query->get('category');
         $search = $request->query->get('q');
         $homepageParam = $request->query->get('homepage');
@@ -31,6 +34,9 @@ class ListProductsController extends AbstractController
         $storageCapacityParam = $request->query->get('storageCapacity');
         $memoryRamParam = $request->query->get('memoryRam');
         $colorParam = $request->query->get('color');
+        $minPriceParam = $request->query->get('minPrice');
+        $maxPriceParam = $request->query->get('maxPrice');
+        $inStockParam = $request->query->get('inStock');
         $sortParam = $request->query->get('sort');
         $onlyFeatured = null;
 
@@ -38,16 +44,59 @@ class ListProductsController extends AbstractController
             $onlyFeatured = $this->normalizeBoolean($homepageParam);
         }
 
+        $normalizedSellingType = $this->normalizeSellingType($sellingTypeParam);
+        $normalizedBrand = $brandParam !== null ? trim((string) $brandParam) : null;
+        $normalizedStorage = $storageCapacityParam !== null ? trim((string) $storageCapacityParam) : null;
+        $normalizedMemory = $memoryRamParam !== null ? trim((string) $memoryRamParam) : null;
+        $normalizedColor = $colorParam !== null ? trim((string) $colorParam) : null;
+        $normalizedMinPrice = $this->normalizePriceToCents($minPriceParam);
+        $normalizedMaxPrice = $this->normalizePriceToCents($maxPriceParam);
+        $normalizedInStock = $inStockParam !== null ? $this->normalizeBoolean($inStockParam) : null;
+        $normalizedSort = $this->normalizeSort($sortParam);
+
         $products = $this->productService->listPublished(
             $categorySlug !== null ? (string) $categorySlug : null,
             $search !== null ? (string) $search : null,
             $onlyFeatured === true ? true : null,
-            $this->normalizeSellingType($sellingTypeParam),
-            $brandParam !== null ? trim((string) $brandParam) : null,
-            $storageCapacityParam !== null ? trim((string) $storageCapacityParam) : null,
-            $memoryRamParam !== null ? trim((string) $memoryRamParam) : null,
-            $colorParam !== null ? trim((string) $colorParam) : null,
-            $this->normalizeSort($sortParam),
+            $normalizedSellingType,
+            $normalizedBrand,
+            $normalizedStorage,
+            $normalizedMemory,
+            $normalizedColor,
+            $normalizedMinPrice,
+            $normalizedMaxPrice,
+            $normalizedInStock,
+            $normalizedSort,
+            $perPage,
+            $offset,
+        );
+
+        $total = $this->productService->countPublished(
+            $categorySlug !== null ? (string) $categorySlug : null,
+            $search !== null ? (string) $search : null,
+            $onlyFeatured === true ? true : null,
+            $normalizedSellingType,
+            $normalizedBrand,
+            $normalizedStorage,
+            $normalizedMemory,
+            $normalizedColor,
+            $normalizedMinPrice,
+            $normalizedMaxPrice,
+            $normalizedInStock,
+        );
+
+        $facets = $this->productService->collectPublishedFacets(
+            $categorySlug !== null ? (string) $categorySlug : null,
+            $search !== null ? (string) $search : null,
+            $onlyFeatured === true ? true : null,
+            $normalizedSellingType,
+            $normalizedBrand,
+            $normalizedStorage,
+            $normalizedMemory,
+            $normalizedColor,
+            $normalizedMinPrice,
+            $normalizedMaxPrice,
+            $normalizedInStock,
         );
 
         return ApiResponse::success([
@@ -55,6 +104,13 @@ class ListProductsController extends AbstractController
                 static fn ($product) => CatalogFormatter::formatProduct($product),
                 $products
             ),
+            'meta' => [
+                'page' => $page,
+                'perPage' => $perPage,
+                'total' => $total,
+                'totalPages' => max(1, (int) ceil($total / $perPage)),
+            ],
+            'facets' => $facets,
         ]);
     }
 
@@ -95,8 +151,34 @@ class ListProductsController extends AbstractController
 
         $v = is_string($value) ? strtolower($value) : (string) $value;
 
-        return in_array($v, ['price_asc', 'price_desc', 'release_year_desc', 'release_year_asc'], true)
+        return in_array($v, ['relevance', 'price_asc', 'price_desc', 'release_year_desc', 'release_year_asc', 'name_desc', 'stock_desc', 'stock_asc', 'created_desc'], true)
             ? $v
             : null;
+    }
+
+    private function normalizePriceToCents(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return max(0, $value * 100);
+        }
+
+        if (is_float($value)) {
+            return max(0, (int) round($value * 100));
+        }
+
+        if (is_string($value)) {
+            $normalized = str_replace(',', '.', trim($value));
+            if ($normalized === '' || !is_numeric($normalized)) {
+                return null;
+            }
+
+            return max(0, (int) round(((float) $normalized) * 100));
+        }
+
+        return null;
     }
 }

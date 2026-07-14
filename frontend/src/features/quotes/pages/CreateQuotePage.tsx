@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPublicQuote, fetchPublicQuoteServices } from '@/features/quotes/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPublicQuote, fetchPublicQuoteServices, generateMyQuotePdf } from '@/features/quotes/api';
 import { fetchPublicProducts } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { SiteLayout } from '@/shared/components/SiteLayout';
@@ -11,11 +11,47 @@ import { useToast } from '@/shared/components/ui/toast';
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
+const DEFAULT_QUOTE_CONDITIONS = `Le présent devis constitue une offre valable jusqu'à la date de fin de validité qui y figure. Il devient contractuel à compter de son acceptation expresse par le client.
+Le devis est établi sur la base des informations communiquées par le client. Toute prestation, fourniture ou demande complémentaire non prévue au devis initial fera l'objet d'un accord écrit complémentaire ou d'un avenant.
+Sauf stipulation particulière, les délais d'exécution ou de livraison sont indicatifs et courent à compter de la réception de l'acceptation du devis et, le cas échéant, de l'acompte prévu.
+Sauf mention contraire, les prix sont exprimés en euros. Les taxes applicables sont celles en vigueur au jour de la facturation.
+Pour les clients professionnels uniquement, tout retard de paiement pourra entraîner l'application de pénalités de retard exigibles sans rappel, calculées au taux de refinancement de la BCE majoré de 10 points, ainsi qu'une indemnité forfaitaire de 40 euros pour frais de recouvrement.
+Pour les clients consommateurs, les garanties légales applicables demeurent celles prévues par la loi.`;
+
+const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+
+const createDefaultValidity = () => {
+  const validFrom = new Date();
+  const validUntil = new Date(validFrom);
+  validUntil.setDate(validUntil.getDate() + 30);
+
+  return {
+    validFrom: toDateInputValue(validFrom),
+    validUntil: toDateInputValue(validUntil),
+  };
+};
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '-';
+
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return date.toLocaleDateString('fr-FR');
+};
+
 export const CreateQuotePage = () => {
   useDocumentTitle('Créer un devis');
   const { user, status } = useAuth();
   const toast = useToast();
-  const [form, setForm] = useState<any>({ customer: {}, items: [], discountCents: 0, shippingCents: 0 });
+  const [form, setForm] = useState<any>({
+    customer: {},
+    items: [],
+    discountCents: 0,
+    shippingCents: 0,
+    conditions: DEFAULT_QUOTE_CONDITIONS,
+    ...createDefaultValidity(),
+  });
   const [message, setMessage] = useState<string | null>(null);
   const [savedQuote, setSavedQuote] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,6 +170,9 @@ export const CreateQuotePage = () => {
     setForm((f: any) => ({ ...f, items: f.items.filter((_: any, i: number) => i !== index) }));
   };
 
+  const findProductItemIndex = (productId: number) =>
+    (form.items ?? []).findIndex((it: any) => it.type === 'product' && it.productId === productId);
+
   const submit = async () => {
     if (status !== 'authenticated' || !user) {
       toast.show('Veuillez vous connecter pour enregistrer votre devis.', { variant: 'info' });
@@ -145,67 +184,55 @@ export const CreateQuotePage = () => {
     try {
       const created = await createPublicQuote(form);
       setSavedQuote(created ?? null);
-      toast.show('Devis enregistre dans votre espace.', { variant: 'success' });
-      setMessage('Devis enregistrÃ© dans votre espace.');
+      toast.show('Devis enregistré dans votre espace.', { variant: 'success' });
+      setMessage('Devis enregistré dans votre espace.');
     } catch (e: any) {
-      toast.show((e?.message ?? 'Echec de la creation du devis.'), { variant: 'error' });
-      setError(e?.message ?? 'Ã‰chec de la crÃ©ation du devis.');
+      toast.show((e?.message ?? 'Échec de la création du devis.'), { variant: 'error' });
+      setError(e?.message ?? 'Échec de la création du devis.');
     } finally {
       setSaving(false);
     }
   };
 
-  const printPdf = () => {
-    const data = {
-      number: savedQuote?.number ?? '(Brouillon)',
-      customer: form.customer ?? {},
-      items: form.items ?? [],
-      totals,
-    } as any;
+  const handleDownloadPdf = async () => {
+    if (status !== 'authenticated' || !user) {
+      toast.show('Veuillez vous connecter pour télécharger votre devis en PDF.', { variant: 'info' });
+      return;
+    }
 
-    const rows = (data.items as any[]).map((it) => {
-      const isRental = it.sellingType === 'rental' || it.sellingType === 'location';
-      const months = isRental ? Math.max(1, (it as any).rentalMonths ?? 1) : 1;
-      const line = Math.max(0, (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0));
-      const price = formatPrice(it.unitPriceCents ?? 0) + (isRental ? ' / mois' : '');
-      const qtyStr = `${it.quantity ?? 1}${isRental ? ' Ã— ' + months + 'm' : ''}`;
-      const lineStr = formatPrice(line);
-      return `<tr><td>${it.name ?? ''}</td><td style="text-align:center;">${qtyStr}</td><td style="text-align:right;">${price}</td><td style="text-align:right;">${(it.vatRate ?? 0)}%</td><td style="text-align:right;">${formatPrice(it.discountCents ?? 0)}</td><td style="text-align:right;">${lineStr}</td></tr>`;
-    }).join('');
+    if ((form.items ?? []).length === 0) {
+      toast.show('Ajoutez au moins un élément avant de télécharger le PDF.', { variant: 'info' });
+      return;
+    }
 
-    const html = `<!doctype html>
-<html><head><meta charset="utf-8"/><title>Devis ${data.number}</title>
-<style>
-  body{font-family:Arial,sans-serif;padding:24px;color:#111}
-  h1{font-size:20px;margin:0 0 8px}
-  .meta{color:#475569;margin-bottom:16px}
-  table{width:100%;border-collapse:collapse;margin-top:12px}
-  th,td{border:1px solid #e2e8f0;padding:8px;font-size:12px}
-  th{background:#f8fafc;text-align:left}
-  tfoot td{font-weight:bold}
-</style></head><body>
-  <h1>Devis ${data.number}</h1>
-  <div class="meta">
-    ${data.customer?.name ?? ''}${data.customer?.email ? ' - ' + data.customer.email : ''}
-  </div>
-  <table>
-    <thead><tr><th>Nom</th><th>QtÃ©</th><th>Prix HT</th><th>TVA %</th><th>Remise</th><th>Total</th></tr></thead>
-    <tbody>${rows}</tbody>
-    <tfoot>
-      <tr><td colspan="5">Total HT</td><td style="text-align:right;">${formatPrice(totals.ht)}</td></tr>
-      <tr><td colspan="5">TVA</td><td style="text-align:right;">${formatPrice(totals.vat)}</td></tr>
-      <tr><td colspan="5">TTC</td><td style="text-align:right;">${formatPrice(totals.ttc)}</td></tr>
-    </tfoot>
-  </table>
-</body></html>`;
+    try {
+      let quote = savedQuote;
+      if (!quote) {
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+        quote = await createPublicQuote(form);
+        setSavedQuote(quote ?? null);
+        setMessage('Devis enregistré dans votre espace.');
+      }
 
-    const win = window.open('', '_blank');
-    if (!win) return;
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    win.print();
+      const pdf = await generateMyQuotePdf(quote.id);
+      const fileName = `${quote.number ?? 'devis'}.pdf`;
+      const blobUrl = window.URL.createObjectURL(pdf);
+      const link = window.document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (e: any) {
+      const messageText = e?.message ?? 'Échec de la génération du PDF.';
+      toast.show(messageText, { variant: 'error' });
+      setError(messageText);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -244,9 +271,9 @@ export const CreateQuotePage = () => {
                 <p className="text-sm text-slate-500">Recherche des produits...</p>
               )}
               <div className="space-y-6">
-                {filteredServices.length > 0 && (
+                {searchQuery.trim().length >= 2 && filteredServices.length > 0 && (
                   <div>
-                    <h2 className="text-lg font-semibold mb-2">Services ({filteredServices.length})</h2>
+                    <h2 className="text-lg font-semibold mb-2">Services disponibles ({filteredServices.length})</h2>
                     <div className="space-y-2 max-h-64 overflow-auto">
                       {filteredServices.map((s) => (
                         <div key={s.id} className="rounded border border-slate-200 p-2">
@@ -282,55 +309,93 @@ export const CreateQuotePage = () => {
                 )}
                 {products.length > 0 && (
                   <div>
-                    <h2 className="text-lg font-semibold mb-2">Produits ({Math.min(products.length, 20)})</h2>
+                    <h2 className="text-lg font-semibold mb-2">Produits trouvés ({Math.min(products.length, 20)})</h2>
                     <div className="space-y-2 max-h-64 overflow-auto">
                       {products.slice(0, 20).map((p) => (
                         <div key={p.id} className="rounded border border-slate-200 p-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-3">
                             <div>
                               <div className="text-sm font-semibold">{p.name}</div>
-                              <div className="text-xs text-slate-500">RÃ©fÃ©rence: {p.sku}</div>
+                              <div className="text-xs text-slate-500">Référence: {p.sku}</div>
                               <div className="text-xs text-slate-500">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(((p.effectivePriceCents ?? p.priceCents) ?? 0) / 100)}{(p.sellingType === 'rental' || p.sellingType === 'location') ? ' / mois' : ''}</div>
                             </div>
-                            <button
-                              type="button"
-                              className={(p.sellingType === 'rental' || p.sellingType === 'location')
-                                ? 'register-form__submit'
-                                : ((form.items ?? []).some((it: any) => it.type === 'product' && it.productId === p.id)
-                                    ? 'catalog-admin-actions__delete'
-                                    : 'register-form__submit')}
-                              onClick={() => {
-                                if (p.sellingType === 'rental' || p.sellingType === 'location') {
+                            {p.sellingType === 'rental' || p.sellingType === 'location' ? (
+                              <button
+                                type="button"
+                                className="register-form__submit"
+                                onClick={() => {
                                   const exists = (form.items ?? []).some(
                                     (it: any) => it.type === 'product' && it.productId === p.id,
                                   );
                                   if (exists) {
-                                    // Demander confirmation uniquement si une ligne pour ce produit existe dÃ©jÃ 
                                     setRentalCandidate(p);
                                     setRentalDialogOpen(true);
                                   } else {
-                                    // PremiÃ¨re fois: ajouter directement une nouvelle ligne (pas de dialogue)
                                     addProductLineFromProduct(p);
                                   }
-                                } else {
-                                  const exists = (form.items ?? []).some((it: any) => it.type === 'product' && it.productId === p.id);
-                                  if (exists) {
-                                    setForm((f: any) => ({
-                                      ...f,
-                                      items: f.items.filter((it: any) => !(it.type === 'product' && it.productId === p.id)),
-                                    }));
-                                  } else {
-                                    addProductLineFromProduct(p);
-                                  }
-                                }
-                              }}
-                            >
-                              {(p.sellingType === 'rental' || p.sellingType === 'location')
-                                ? 'Ajouter'
-                                : ((form.items ?? []).some((it: any) => it.type === 'product' && it.productId === p.id)
-                                    ? 'Retirer'
-                                    : 'Ajouter')}
-                            </button>
+                                }}
+                              >
+                                Ajouter
+                              </button>
+                            ) : findProductItemIndex(p.id) >= 0 ? (
+                              <div className="inline-flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  className="px-2 py-1 border rounded"
+                                  aria-label={`Diminuer la quantité de ${p.name}`}
+                                  onClick={() => {
+                                    const index = findProductItemIndex(p.id);
+                                    if (index < 0) return;
+                                    const currentQuantity = Math.max(1, form.items[index]?.quantity ?? 1);
+                                    if (currentQuantity <= 1) {
+                                      removeItem(index);
+                                      return;
+                                    }
+                                    updateItem(index, { quantity: currentQuantity - 1 });
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  className="w-16 text-center border rounded py-1"
+                                  aria-label={`Quantité de ${p.name}`}
+                                  value={Math.max(1, form.items[findProductItemIndex(p.id)]?.quantity ?? 1)}
+                                  onChange={(e) => {
+                                    const index = findProductItemIndex(p.id);
+                                    if (index < 0) return;
+                                    const nextQuantity = Number.parseInt(e.target.value, 10);
+                                    if (Number.isNaN(nextQuantity) || nextQuantity <= 0) {
+                                      removeItem(index);
+                                      return;
+                                    }
+                                    updateItem(index, { quantity: nextQuantity });
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  className="px-2 py-1 border rounded"
+                                  aria-label={`Augmenter la quantité de ${p.name}`}
+                                  onClick={() => {
+                                    const index = findProductItemIndex(p.id);
+                                    if (index < 0) return;
+                                    const currentQuantity = Math.max(1, form.items[index]?.quantity ?? 1);
+                                    updateItem(index, { quantity: currentQuantity + 1 });
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="register-form__submit"
+                                onClick={() => addProductLineFromProduct(p)}
+                              >
+                                Ajouter
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -363,7 +428,7 @@ export const CreateQuotePage = () => {
                             <div className="inline-flex items-center gap-2">
                             <button
                               type="button"
-                              aria-label="Diminuer la quantitÃ©"
+                              aria-label="Diminuer la quantité"
                               className="px-2 py-1 border rounded"
                               onClick={() =>
                                 updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) - 1) })
@@ -383,7 +448,7 @@ export const CreateQuotePage = () => {
                             />
                             <button
                               type="button"
-                              aria-label="Augmenter la quantitÃ©"
+                              aria-label="Augmenter la quantité"
                               className="px-2 py-1 border rounded"
                               onClick={() =>
                                 updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) + 1) })
@@ -454,6 +519,10 @@ export const CreateQuotePage = () => {
           <div className="space-y-6">
             <section>
               <h3 className="font-semibold mb-2">Total</h3>
+              <div className="space-y-1 mb-3 text-sm text-slate-600">
+                <div className="flex justify-between"><span>Début de validité</span><strong>{formatDate(form.validFrom)}</strong></div>
+                <div className="flex justify-between"><span>Fin de validité</span><strong>{formatDate(form.validUntil)}</strong></div>
+              </div>
               <div className="flex justify-between"><span>Remise globale</span><strong>{formatPrice(form.discountCents ?? 0)}</strong></div>
               <div className="space-y-1">
                 <div className="flex justify-between"><span>Total HT</span><strong>{formatPrice(totals.ht)}</strong></div>
@@ -466,7 +535,7 @@ export const CreateQuotePage = () => {
               <button type="button" className="register-form__submit" onClick={() => void submit()} disabled={saving}>
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </button>
-              <button type="button" className="hero__button hero__button--ghost" onClick={() => printPdf()} disabled={(form.items ?? []).length === 0}>
+              <button type="button" className="hero__button hero__button--ghost" onClick={() => void handleDownloadPdf()} disabled={saving || (form.items ?? []).length === 0}>
                 Télécharger le PDF
               </button>
             </div>
@@ -478,7 +547,7 @@ export const CreateQuotePage = () => {
           title="Ajouter une location au devis ?"
           description={
             <div>
-              Voulez-vous vraiment ajouter le produit en location Ã  <strong>{rentalCandidate?.name ?? ''}</strong> Ã  votre devis ?
+              Voulez-vous vraiment ajouter le produit en location à <strong>{rentalCandidate?.name ?? ''}</strong> à votre devis ?
             </div>
           }
           confirmLabel="Oui, ajouter"
@@ -499,8 +568,4 @@ export const CreateQuotePage = () => {
     </SiteLayout>
   );
 };
-
-
-
-
 

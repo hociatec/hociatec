@@ -231,7 +231,7 @@ export const updateCartItemQuantity = async (
     );
     const cart = handleCartResponse(
       data,
-      'Impossible de mettre a jour la quantite.',
+      'Impossible de mettre à jour la quantité.',
     );
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
@@ -241,7 +241,7 @@ export const updateCartItemQuantity = async (
   } catch (error) {
     throw toCartError(
       error,
-      'Impossible de mettre a jour la quantite.',
+      'Impossible de mettre à jour la quantité.',
     );
   }
 };

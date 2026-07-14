@@ -10,6 +10,6 @@ class UserAlreadyExistsException extends RuntimeException
 {
     public static function forEmail(string $email): self
     {
-        return new self(sprintf('A user already exists with email "%s".', $email));
+        return new self(sprintf('Un utilisateur existe deja avec l\'adresse e-mail "%s".', $email));
     }
 }

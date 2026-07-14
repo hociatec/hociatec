@@ -5,8 +5,9 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { cancelAppointment, fetchMyAppointments } from '../api';
 import type { AppointmentItem } from '../types';
 
-const formatDate = (iso: string) => new Date(iso).toLocaleString();
+const formatDate = (iso: string) => new Date(iso).toLocaleString('fr-FR');
 const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2);
+const PAST_APPOINTMENTS_PER_PAGE = 5;
 
 export const MyAppointmentsPage = () => {
   useDocumentTitle('Mes rendez-vous');
@@ -16,12 +17,14 @@ export const MyAppointmentsPage = () => {
   const [upcoming, setUpcoming] = useState<AppointmentItem[]>([]);
   const [past, setPast] = useState<AppointmentItem[]>([]);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [pastPage, setPastPage] = useState(1);
 
   const loadAppointments = async () => {
     try {
       const data = await fetchMyAppointments();
       setUpcoming(data.upcoming);
       setPast(data.past);
+      setPastPage(1);
     } catch (err: any) {
       setError(err?.message || 'Erreur lors du chargement de mes rendez-vous');
     } finally {
@@ -30,7 +33,7 @@ export const MyAppointmentsPage = () => {
   };
 
   useEffect(() => {
-    loadAppointments();
+    void loadAppointments();
   }, []);
 
   const handleCancel = async (id: number) => {
@@ -43,7 +46,7 @@ export const MyAppointmentsPage = () => {
       await cancelAppointment(id);
       await loadAppointments();
     } catch (err: any) {
-      alert(err?.message || 'Erreur lors de l\'annulation du rendez-vous');
+      alert(err?.message || "Erreur lors de l'annulation du rendez-vous");
     } finally {
       setCancellingId(null);
     }
@@ -71,12 +74,12 @@ export const MyAppointmentsPage = () => {
             </div>
             {appointment.status && (
               <div className="muted" style={{ marginTop: 4 }}>
-                Statut: {appointment.status}
+                Statut : {appointment.status}
               </div>
             )}
             {canCancel && (
               <button
-                onClick={() => handleCancel(appointment.id)}
+                onClick={() => void handleCancel(appointment.id)}
                 disabled={cancellingId === appointment.id}
                 style={{
                   marginTop: 8,
@@ -98,6 +101,12 @@ export const MyAppointmentsPage = () => {
     </ul>
   );
 
+  const totalPastPages = Math.max(1, Math.ceil(past.length / PAST_APPOINTMENTS_PER_PAGE));
+  const paginatedPast = past.slice(
+    (pastPage - 1) * PAST_APPOINTMENTS_PER_PAGE,
+    pastPage * PAST_APPOINTMENTS_PER_PAGE,
+  );
+
   return (
     <SiteLayout>
       <PageContainer title="Mes rendez-vous">
@@ -107,20 +116,53 @@ export const MyAppointmentsPage = () => {
         {!loading && !error && (
           <div style={{ display: 'grid', gap: 24 }}>
             <section>
-              <h2>A venir</h2>
+              <h2>À venir</h2>
               {upcoming.length === 0 ? (
-                <p className="muted">Aucun rendez-vous a venir.</p>
+                <p className="muted">Aucun rendez-vous à venir.</p>
               ) : (
                 renderList(upcoming, true)
               )}
             </section>
 
             <section>
-              <h2>Passes</h2>
+              <h2>Passés</h2>
               {past.length === 0 ? (
-                <p className="muted">Aucun rendez-vous passe.</p>
+                <p className="muted">Aucun rendez-vous passé.</p>
               ) : (
-                renderList(past, false)
+                <>
+                  {renderList(paginatedPast, false)}
+                  {totalPastPages > 1 && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 8,
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        marginTop: 12,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="site-header__link"
+                        disabled={pastPage === 1}
+                        onClick={() => setPastPage((page) => Math.max(1, page - 1))}
+                      >
+                        Précédent
+                      </button>
+                      <span className="muted">
+                        Page {pastPage} sur {totalPastPages}
+                      </span>
+                      <button
+                        type="button"
+                        className="site-header__link"
+                        disabled={pastPage === totalPastPages}
+                        onClick={() => setPastPage((page) => Math.min(totalPastPages, page + 1))}
+                      >
+                        Suivant
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
           </div>

@@ -17,12 +17,12 @@ class PrestationFixtures extends Fixture
      */
     private const PRESTATIONS = [
         ['name' => 'Diagnostic PC complet', 'duration' => 60, 'price' => 4900],
-        ['name' => 'Installation systeme et pilotes', 'duration' => 90, 'price' => 7500],
+        ['name' => 'Installation système et pilotes', 'duration' => 90, 'price' => 7500],
         ['name' => 'Optimisation gaming desktop', 'duration' => 75, 'price' => 6900],
-        ['name' => 'Migration de donnees', 'duration' => 80, 'price' => 7200],
-        ['name' => 'Depannage express smartphone', 'duration' => 45, 'price' => 4200],
+        ['name' => 'Migration de données', 'duration' => 80, 'price' => 7200],
+        ['name' => 'Dépannage express smartphone', 'duration' => 45, 'price' => 4200],
         ['name' => 'Nettoyage thermique PC portable', 'duration' => 70, 'price' => 6100],
-        ['name' => 'Installation reseau et nas', 'duration' => 120, 'price' => 9900],
+        ['name' => 'Installation réseau et NAS', 'duration' => 120, 'price' => 9900],
         ['name' => 'Audit parc informatique', 'duration' => 180, 'price' => 14900],
     ];
 

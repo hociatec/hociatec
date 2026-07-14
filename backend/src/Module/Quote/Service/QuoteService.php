@@ -7,13 +7,20 @@ namespace App\Module\Quote\Service;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Entity\Service as QuoteServiceEntity;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Repository\ServiceRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 class QuoteService
 {
+    public const DEFAULT_CONDITIONS = "Le présent devis constitue une offre valable jusqu'à la date de fin de validité qui y figure. Il devient contractuel à compter de son acceptation expresse par le client.
+Le devis est établi sur la base des informations communiquées par le client. Toute prestation, fourniture ou demande complémentaire non prévue au devis initial fera l'objet d'un accord écrit complémentaire ou d'un avenant.
+Sauf stipulation particulière, les délais d'exécution ou de livraison sont indicatifs et courent à compter de la réception de l'acceptation du devis et, le cas échéant, de l'acompte prévu.
+Sauf mention contraire, les prix sont exprimés en euros. Les taxes applicables sont celles en vigueur au jour de la facturation.
+Pour les clients professionnels uniquement, tout retard de paiement pourra entraîner l'application de pénalités de retard exigibles sans rappel, calculées au taux de refinancement de la BCE majoré de 10 points, ainsi qu'une indemnité forfaitaire de 40 euros pour frais de recouvrement.
+Pour les clients consommateurs, les garanties légales applicables demeurent celles prévues par la loi.";
+
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly QuoteRepository $quoteRepository,
@@ -64,7 +71,9 @@ class QuoteService
             ->setCustomerAddress($source->getCustomerAddress())
             ->setGlobalDiscountCents($source->getGlobalDiscountCents())
             ->setShippingCents($source->getShippingCents())
-            ->setConditions($source->getConditions());
+            ->setConditions($source->getConditions())
+            ->setValidFrom($source->getValidFrom())
+            ->setValidUntil($source->getValidUntil());
 
         foreach ($source->getItems() as $item) {
             $new = new QuoteItem($item->getName(), $item->getUnitPriceCents());
@@ -104,7 +113,23 @@ class QuoteService
 
         $quote->setGlobalDiscountCents((int) ($payload['discountCents'] ?? 0));
         $quote->setShippingCents((int) ($payload['shippingCents'] ?? 0));
-        $quote->setConditions(self::strOrNull($payload['conditions'] ?? null));
+
+        if (array_key_exists('conditions', $payload) || !$clearItems) {
+            $quote->setConditions(self::strOrNull($payload['conditions'] ?? null) ?? self::DEFAULT_CONDITIONS);
+        }
+
+        if (array_key_exists('validFrom', $payload)) {
+            $quote->setValidFrom(self::dateOrNull($payload['validFrom'] ?? null));
+        } elseif (!$clearItems && $quote->getValidFrom() === null) {
+            $quote->setValidFrom(new DateTimeImmutable('today'));
+        }
+
+        if (array_key_exists('validUntil', $payload)) {
+            $quote->setValidUntil(self::dateOrNull($payload['validUntil'] ?? null));
+        } elseif (!$clearItems && $quote->getValidUntil() === null) {
+            $baseDate = $quote->getValidFrom() ?? new DateTimeImmutable('today');
+            $quote->setValidUntil($baseDate->modify('+30 days'));
+        }
 
         if ($clearItems) {
             foreach ($quote->getItems() as $existing) {
@@ -131,17 +156,14 @@ class QuoteService
         $name = (string) ($raw['name'] ?? '');
         $unitPriceCents = isset($raw['unitPriceCents']) ? (int) $raw['unitPriceCents'] : null;
 
-        // If a productId is provided, fill defaults from product when missing
         if (isset($raw['productId'])) {
             $product = $this->productRepository->find((int) $raw['productId']);
             if ($product !== null) {
                 if ($name === '') { $name = $product->getName(); }
                 if ($unitPriceCents === null) { $unitPriceCents = $product->getPriceCents(); }
-                // Default unit for rental products if not provided
                 if (!isset($raw['unit']) && strtolower($product->getSellingType()) === 'rental') {
                     $raw['unit'] = 'jour';
                 }
-                // Default type to product if not provided
                 if (!isset($raw['type'])) { $raw['type'] = QuoteItem::TYPE_PRODUCT; }
             }
         }
@@ -156,7 +178,6 @@ class QuoteService
         $item->setQuantity((int) ($raw['quantity'] ?? 1));
 
         if (isset($raw['vatRate'])) {
-            // vatRate provided as percentage (e.g. 20 or 20.0)
             $item->setVatRateBps((int) round(((float) $raw['vatRate']) * 100));
         } elseif (isset($raw['vatRateBps'])) {
             $item->setVatRateBps((int) $raw['vatRateBps']);
@@ -164,7 +185,6 @@ class QuoteService
 
         $item->setDiscountCents((int) ($raw['discountCents'] ?? 0));
 
-        // Optional link to product/service
         if (isset($raw['productId'])) {
             $item->setProductId((int) $raw['productId']);
         }
@@ -191,5 +211,20 @@ class QuoteService
         if ($v === null) { return null; }
         $s = trim((string) $v);
         return $s === '' ? null : $s;
+    }
+
+    public static function dateOrNull(mixed $value): ?DateTimeImmutable
+    {
+        $normalized = self::strOrNull($value);
+        if ($normalized === null) {
+            return null;
+        }
+
+        $date = DateTimeImmutable::createFromFormat('Y-m-d', $normalized);
+        if ($date === false) {
+            throw new \InvalidArgumentException('Format de date invalide. Utilisez YYYY-MM-DD.');
+        }
+
+        return $date->setTime(0, 0);
     }
 }

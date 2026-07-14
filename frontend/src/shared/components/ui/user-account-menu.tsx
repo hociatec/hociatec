@@ -78,7 +78,7 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
   };
 
   return (
-    <div className="site-header__account" ref={containerRef}>
+    <div className="site-header__account" ref={containerRef} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end' }}>
       <button
         type="button"
         id={triggerId}
@@ -113,9 +113,8 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
         aria-labelledby={triggerId}
         aria-hidden={!isOpen}
         hidden={!isOpen}
-        className="site-header__account-panel"
+        className="site-header__account-panel" style={{ position: 'absolute', top: 'calc(100% + 0.75rem)', right: 0, maxWidth: 'min(280px, calc(100vw - 3rem))' }}
       >
-        <p className="site-header__account-panel-title">Acces rapide</p>
         <div className="site-header__account-panel-content">
           <Link
             to="/favorites"
@@ -154,13 +153,6 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
             Mes audits
           </Link>
           <Link
-            to="/audits/request"
-            className="site-header__account-item"
-            onClick={() => closeMenu({ focusTrigger: false })}
-          >
-            Demander un audit
-          </Link>
-          <Link
             to="/orders/me"
             className="site-header__account-item"
             onClick={() => closeMenu({ focusTrigger: false })}
@@ -172,7 +164,7 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
             className="site-header__account-item site-header__account-item--danger"
             onClick={handleLogout}
           >
-            Se deconnecter
+            Se déconnecter
           </button>
         </div>
       </section>

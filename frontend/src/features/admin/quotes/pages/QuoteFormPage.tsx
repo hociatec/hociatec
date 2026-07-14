@@ -20,6 +20,26 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
+const DEFAULT_QUOTE_CONDITIONS = `Le présent devis constitue une offre valable jusqu'à la date de fin de validité qui y figure. Il devient contractuel à compter de son acceptation expresse par le client.
+Le devis est établi sur la base des informations communiquées par le client. Toute prestation, fourniture ou demande complémentaire non prévue au devis initial fera l'objet d'un accord écrit complémentaire ou d'un avenant.
+Sauf stipulation particulière, les délais d'exécution ou de livraison sont indicatifs et courent à compter de la réception de l'acceptation du devis et, le cas échéant, de l'acompte prévu.
+Sauf mention contraire, les prix sont exprimés en euros. Les taxes applicables sont celles en vigueur au jour de la facturation.
+Pour les clients professionnels uniquement, tout retard de paiement pourra entraîner l'application de pénalités de retard exigibles sans rappel, calculées au taux de refinancement de la BCE majoré de 10 points, ainsi qu'une indemnité forfaitaire de 40 euros pour frais de recouvrement.
+Pour les clients consommateurs, les garanties légales applicables demeurent celles prévues par la loi.`;
+
+const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+
+const createDefaultValidity = () => {
+  const validFrom = new Date();
+  const validUntil = new Date(validFrom);
+  validUntil.setDate(validUntil.getDate() + 30);
+
+  return {
+    validFrom: toDateInputValue(validFrom),
+    validUntil: toDateInputValue(validUntil),
+  };
+};
+
 type Item = {
   id?: number;
   type: 'service' | 'product' | 'custom';
@@ -52,8 +72,8 @@ const adaptQuoteForSave = (source: any) => {
       return {
         ...rest,
         description: baseDescription && baseDescription.length > 0
-          ? `${baseDescription} - Duree: ${months} mois`
-          : `Duree: ${months} mois`,
+          ? `${baseDescription} - Dur�e: ${months} mois`
+          : `Dur�e: ${months} mois`,
         unit: item.unit ?? 'mois',
         quantity: Math.max(1, item.quantity ?? 1) * months,
       };
@@ -108,17 +128,26 @@ export const QuoteFormPage = () => {
       setServices(svc);
       setProducts(prods);
       setQuote(
-        q ?? {
-          status: 'draft',
-          customer: {},
-          items: [],
-          discountCents: 0,
-          shippingCents: 0,
-          conditions: '',
-        },
+        q
+          ? {
+              ...createDefaultValidity(),
+              ...q,
+              conditions: q.conditions ?? DEFAULT_QUOTE_CONDITIONS,
+              validFrom: q.validFrom ?? createDefaultValidity().validFrom,
+              validUntil: q.validUntil ?? createDefaultValidity().validUntil,
+            }
+          : {
+              status: 'draft',
+              customer: {},
+              items: [],
+              discountCents: 0,
+              shippingCents: 0,
+              conditions: DEFAULT_QUOTE_CONDITIONS,
+              ...createDefaultValidity(),
+            },
       );
     } catch (e: any) {
-      const msg = e?.message ?? 'Echec de sauvegarde.';
+      const msg = e?.message ?? 'Échec de sauvegarde.';
       setError(msg);
       try { toast.show(msg, { variant: 'error' }); } catch {}
     } finally {
@@ -206,7 +235,7 @@ export const QuoteFormPage = () => {
         unit: undefined,
         quantity: 1,
         unitPriceCents: (p.effectivePriceCents ?? p.priceCents),
-        vatRate: 20, // par defaut si TVA non definie dans le produit
+        vatRate: 20, // par d�faut si TVA non d�finie dans le produit
         discountCents: 0,
       };
       return { ...q, items: [...q.items, it] };
@@ -245,7 +274,7 @@ export const QuoteFormPage = () => {
       setMessage('Enregistr�.');
       try { toast.show('Devis enregistr�.', { variant: 'success' }); } catch {}
     } catch (e: any) {
-      const msg = e?.message ?? 'Echec de sauvegarde.';
+      const msg = e?.message ?? 'Échec de sauvegarde.';
       setError(msg);
       try { toast.show(msg, { variant: 'error' }); } catch {}
     } finally {
@@ -641,9 +670,25 @@ export const QuoteFormPage = () => {
                     onChange={(e) => setQuote({ ...quote, shippingCents: Math.max(0, Math.round(Number(e.target.value.replace(',', '.')) * 100)) })}
                   />
                 </label>
+                <label className="flex items-center gap-2">
+                  Début de validité
+                  <input
+                    type="date"
+                    value={quote.validFrom ?? ''}
+                    onChange={(e) => setQuote({ ...quote, validFrom: e.target.value })}
+                  />
+                </label>
+                <label className="flex items-center gap-2">
+                  Fin de validité
+                  <input
+                    type="date"
+                    value={quote.validUntil ?? ''}
+                    onChange={(e) => setQuote({ ...quote, validUntil: e.target.value })}
+                  />
+                </label>
                 <label className="flex flex-col gap-2">
                   Conditions
-                  <textarea rows={5} value={quote.conditions ?? ''} onChange={(e) => setQuote({ ...quote, conditions: e.target.value })} />
+                  <textarea rows={7} value={quote.conditions ?? ''} onChange={(e) => setQuote({ ...quote, conditions: e.target.value })} />
                 </label>
               </div>
             </section>

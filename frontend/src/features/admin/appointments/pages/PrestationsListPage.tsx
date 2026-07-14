@@ -11,7 +11,7 @@ const formatPrice = (priceCents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(priceCents / 100);
 
 export const PrestationsListPage = () => {
-  useDocumentTitle('Admin - Prestations');
+  useDocumentTitle('Admin - Prestations de rendez-vous');
 
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [prestations, setPrestations] = useState<Prestation[]>([]);
@@ -57,7 +57,7 @@ export const PrestationsListPage = () => {
 
   if (guardLoading) {
     return (
-      <PageContainer title="Prestations">
+      <PageContainer title="Prestations de rendez-vous">
         <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
@@ -65,7 +65,7 @@ export const PrestationsListPage = () => {
 
   if (!isAdmin) {
     return (
-      <PageContainer title="Prestations">
+      <PageContainer title="Prestations de rendez-vous">
         <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
@@ -73,7 +73,7 @@ export const PrestationsListPage = () => {
 
   return (
     <PageContainer
-      title="Prestations"
+      title="Prestations de rendez-vous"
       headerActions={
         <Link
           to="/admin/appointments/prestations/new"
@@ -88,7 +88,14 @@ export const PrestationsListPage = () => {
           {prestations.length} prestation{prestations.length > 1 ? 's' : ''} au catalogue.
         </p>
         <p className="text-sm text-slate-500">
-          Configurez les services proposés pour les rendez-vous ou les devis.
+          Ces prestations sont utilisées uniquement pour la prise de rendez-vous et la planification des interventions.
+        </p>
+        <p className="text-sm text-sky-700">
+          Pour le catalogue de services global, utilisez{' '}
+          <Link to="/admin/services" className="font-semibold underline">
+            Services
+          </Link>
+          .
         </p>
       </div>
 

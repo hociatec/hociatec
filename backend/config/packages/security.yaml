@@ -24,8 +24,8 @@ security:
                 check_path: /api/auth/login
                 username_path: email
                 password_path: password
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+                success_handler: App\Module\Auth\Security\AuthenticationSuccessHandler
+                failure_handler: App\Module\Auth\Security\AuthenticationFailureHandler
             login_throttling:
                 max_attempts: 5
                 interval: '15 minutes'
@@ -40,8 +40,10 @@ security:
         - { path: ^/api/health, roles: PUBLIC_ACCESS }
         - { path: ^/metrics, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/verify, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/password-reset, roles: PUBLIC_ACCESS }
         - { path: ^/activation, roles: PUBLIC_ACCESS }
         - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api/admin, roles: ROLE_ADMIN }

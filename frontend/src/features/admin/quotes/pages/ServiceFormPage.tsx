@@ -10,14 +10,38 @@ type ServiceFormState = {
   title: string;
   description: string;
   unit: string;
+  durationValue: string;
+  durationUnit: 'hour' | 'day';
   price: string;
   vatRate: string;
 };
 
+type ServicePayload = {
+  title: string;
+  description: string;
+  unit: string;
+  durationValue: number | '';
+  durationUnit: 'hour' | 'day' | '';
+  price: number;
+  vatRate: number;
+};
+
+const BILLING_MODE_OPTIONS = [
+  { value: 'prix fixe', label: 'Prix fixe' },
+  { value: 'heure', label: 'Par heure' },
+  { value: 'jour', label: 'Par jour' },
+  { value: 'intervention', label: 'Par intervention' },
+  { value: 'audit', label: 'Par audit' },
+  { value: 'installation', label: 'Par installation' },
+  { value: 'maintenance', label: 'Par maintenance' },
+] as const;
+
 const emptyForm: ServiceFormState = {
   title: '',
   description: '',
-  unit: '',
+  unit: 'prix fixe',
+  durationValue: '',
+  durationUnit: 'hour',
   price: '0',
   vatRate: '20',
 };
@@ -48,7 +72,9 @@ export const ServiceFormPage = () => {
         setForm({
           title: svc?.title ?? '',
           description: svc?.description ?? '',
-          unit: svc?.unit ?? '',
+          unit: svc?.unit ?? 'prix fixe',
+          durationValue: svc?.durationValue ? String(svc.durationValue) : '',
+          durationUnit: svc?.durationUnit === 'day' ? 'day' : 'hour',
           price: svc ? (svc.priceCents / 100).toFixed(2) : '0',
           vatRate: svc ? String(svc.vatRate ?? 0) : '0',
         });
@@ -72,7 +98,7 @@ export const ServiceFormPage = () => {
     return Number.isFinite(parsed) ? parsed : Number.NaN;
   };
 
-  const buildPayload = () => {
+  const buildPayload = (): ServicePayload | null => {
     const title = form.title.trim();
     if (!title) {
       setError('Veuillez renseigner un titre.');
@@ -92,12 +118,31 @@ export const ServiceFormPage = () => {
     }
 
     const description = form.description.trim();
-    const unit = form.unit.trim();
+    const unit = form.unit.trim().toLowerCase();
+    const durationValue = form.durationValue.trim();
+
+    if (!BILLING_MODE_OPTIONS.some((option) => option.value === unit)) {
+      setError('Veuillez sélectionner un mode de facturation valide.');
+      return null;
+    }
+
+    if (durationValue !== '') {
+      const parsedDurationValue = Number.parseInt(durationValue, 10);
+      if (!Number.isFinite(parsedDurationValue) || parsedDurationValue <= 0) {
+        setError('Veuillez renseigner une durée estimée valide.');
+        return null;
+      }
+    }
+
+    const parsedDurationValue = durationValue === '' ? '' : Number.parseInt(durationValue, 10);
+    const parsedDurationUnit: ServicePayload['durationUnit'] = durationValue === '' ? '' : form.durationUnit;
 
     return {
       title,
       description,
       unit,
+      durationValue: parsedDurationValue,
+      durationUnit: parsedDurationUnit,
       price,
       vatRate,
     };
@@ -123,10 +168,10 @@ export const ServiceFormPage = () => {
         await createAdminQuoteService(payload);
         setMessage('Service créé.');
       }
-      navigate('/admin/quotes/services');
+      navigate('/admin/services');
     } catch (e: any) {
       const serverMessage = e?.response?.data?.message ?? e?.message;
-      setError(serverMessage ?? 'Echec de sauvegarde.');
+      setError(serverMessage ?? 'Échec de sauvegarde.');
     } finally {
       setSaving(false);
     }
@@ -135,14 +180,14 @@ export const ServiceFormPage = () => {
   if (guardLoading) {
     return (
       <PageContainer title={isEdit ? 'Modifier un service' : 'Nouveau service'}>
-        <p className="muted">Verification des droits...</p>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
   if (!isAdmin) {
     return (
       <PageContainer title={isEdit ? 'Modifier un service' : 'Nouveau service'}>
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
@@ -155,12 +200,15 @@ export const ServiceFormPage = () => {
           type="button"
           className="register-form__submit"
           style={{ background: '#e5e7eb', color: '#111827' }}
-          onClick={() => navigate('/admin/quotes/services')}
+          onClick={() => navigate('/admin/services')}
         >
-          Retour a la liste
+          Retour à la liste
         </button>
       }
     >
+      <p className="mb-4 text-sm text-slate-600">
+        Renseignez ici les informations complètes du service, y compris sa durée estimée lorsqu’elle est connue.
+      </p>
       {error && <div className="register-form__alert">{error}</div>}
       {message && (
         <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
@@ -192,20 +240,64 @@ export const ServiceFormPage = () => {
             <textarea
               className="register-form__input"
               rows={4}
-              placeholder="Details affiches sur le devis"
+              placeholder="Détails affichés dans le catalogue et les parcours associés"
               value={form.description}
               onChange={handleChange('description')}
             />
           </label>
 
           <label className="register-form__field">
-            <span className="register-form__label">Unite (ex: heure)</span>
-            <input
+            <span className="register-form__label">Mode de facturation</span>
+            <select
               className="register-form__input"
               value={form.unit}
-              onChange={handleChange('unit')}
-            />
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  unit: event.target.value,
+                }))
+              }
+            >
+              {BILLING_MODE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
+
+          <div className="grid gap-4 md:grid-cols-[1fr_180px]">
+            <label className="register-form__field">
+              <span className="register-form__label">Durée estimée</span>
+              <input
+                className="register-form__input"
+                type="number"
+                min="1"
+                step="1"
+                inputMode="numeric"
+                placeholder="Ex: 2"
+                value={form.durationValue}
+                onChange={handleChange('durationValue')}
+              />
+            </label>
+
+            <label className="register-form__field">
+              <span className="register-form__label">Unité de durée</span>
+              <select
+                className="register-form__input"
+                value={form.durationUnit}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    durationUnit: event.target.value === 'day' ? 'day' : 'hour',
+                  }))
+                }
+              >
+                <option value="hour">Heure(s)</option>
+                <option value="day">Jour(s)</option>
+              </select>
+            </label>
+          </div>
 
           <label className="register-form__field">
             <span className="register-form__label">Prix HT (EUR)</span>
@@ -232,7 +324,7 @@ export const ServiceFormPage = () => {
           </label>
 
           <button type="submit" className="register-form__submit" disabled={saving}>
-            {saving ? 'Sauvegarde...' : isEdit ? 'Mettre a jour' : 'Creer'}
+            {saving ? 'Sauvegarde...' : isEdit ? 'Mettre à jour' : 'Créer'}
           </button>
         </form>
       )}

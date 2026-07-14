@@ -114,27 +114,56 @@ body {
 .site-header__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #38bdf8;
+  gap: 0;
   text-decoration: none;
-  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
 
 .site-header__brand-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  object-fit: cover;
-  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
-  background: #0f172a;
+  width: auto;
+  height: 56px;
+  max-width: min(180px, 32vw);
+  object-fit: contain;
+  display: block;
 }
 
 .site-header__nav {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.site-header__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.site-header__search input {
+  min-width: 240px;
+  border: none;
+  background: transparent;
+  color: #e2e8f0;
+  padding: 0.55rem 0.85rem;
+  outline: none;
+}
+
+.site-header__search input::placeholder {
+  color: #94a3b8;
+}
+
+.site-header__search-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .site-header__link {
@@ -685,6 +714,15 @@ body {
 
   .site-header__nav {
     flex-wrap: wrap;
+  }
+
+  .site-header__search {
+    width: 100%;
+  }
+
+  .site-header__search input {
+    min-width: 0;
+    width: 100%;
   }
 
   .site-footer__container {

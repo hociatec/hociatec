@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import { httpClient } from '../../shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '../../shared/types/api';
 
@@ -7,6 +9,14 @@ export interface CatalogCategory {
   slug: string;
   description: string | null;
   isVisible: boolean;
+  createdAt: string;
+  updatedAt: string;
+  productsCount?: number;
+}
+
+export interface CatalogBrand {
+  id: number;
+  name: string;
   createdAt: string;
   updatedAt: string;
   productsCount?: number;
@@ -34,7 +44,13 @@ export interface CatalogProduct {
   priceCents: number;
   sellingType: 'sale' | 'rental';
   brand?: string | null;
+  brandId?: number | null;
   variantGroup?: string | null;
+  variantPosition?: number;
+  variantsCount?: number;
+  totalStock?: number;
+  variantColors?: string[];
+  variantStorages?: string[];
   releaseYear?: number | null;
   storageCapacity?: string | null;
   memoryRam?: string | null;
@@ -82,8 +98,46 @@ export interface ProductPublicReview {
   };
 }
 
+export interface CatalogSearchMeta {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface CatalogFacetCount {
+  value: string;
+  count: number;
+  extra?: string | null;
+}
+
+export interface CatalogSearchFacets {
+  brands: CatalogFacetCount[];
+  categories: CatalogFacetCount[];
+  storageCapacities: CatalogFacetCount[];
+  memoryRams: CatalogFacetCount[];
+  colors: CatalogFacetCount[];
+  price: {
+    min: number | null;
+    max: number | null;
+  };
+}
+
 export interface ShareProductEmailPayload {
   email: string;
+}
+
+export class CatalogApiError extends Error {
+  public readonly statusCode?: number;
+
+  constructor(
+    message: string,
+    statusCode?: number,
+  ) {
+    super(message);
+    this.name = 'CatalogApiError';
+    this.statusCode = statusCode;
+  }
 }
 
 export interface CategoryWithProducts {
@@ -98,6 +152,10 @@ export interface UpsertCategoryPayload {
   isVisible?: boolean;
 }
 
+export interface UpsertBrandPayload {
+  name: string;
+}
+
 export interface UpsertProductPayload {
   name: string;
   sku: string;
@@ -106,7 +164,7 @@ export interface UpsertProductPayload {
   shortDescription?: string | null;
   price: number;
   sellingType?: 'sale' | 'rental';
-  brand?: string | null;
+  brandId?: number | null;
   variantGroup?: string | null;
   releaseYear?: number | null;
   storageCapacity?: string | null;
@@ -146,7 +204,7 @@ export const fetchPublicCategories = async () => {
     return data.data.items;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de charger les categories.'));
+  throw new Error(extractErrorMessage(data, 'Impossible de charger les catégories.'));
 };
 
 export const fetchPublicCategory = async (slug: string) => {
@@ -158,7 +216,7 @@ export const fetchPublicCategory = async (slug: string) => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Categorie introuvable.'));
+  throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
 };
 
 export const fetchPublicProduct = async (slug: string) => {
@@ -174,16 +232,32 @@ export const fetchPublicProduct = async (slug: string) => {
 };
 
 export const shareProductByEmail = async (slug: string, payload: ShareProductEmailPayload) => {
-  const { data } = await httpClient.post<ApiResponse<{ sent: boolean; to: string; message: string }>>(
-    `/api/public/catalog/products/${slug}/share`,
-    payload,
-  );
+  try {
+    const { data } = await httpClient.post<ApiResponse<{ sent: boolean; to: string; message: string }>>(
+      `/api/public/catalog/products/${slug}/share`,
+      payload,
+    );
 
-  if (data.status === 'success') {
-    return data.data;
+    if (data.status === 'success') {
+      return data.data;
+    }
+
+    throw new CatalogApiError(
+      extractErrorMessage(data, "Impossible d'envoyer le produit par e-mail."),
+    );
+  } catch (error) {
+    if (isAxiosError(error)) {
+      const response = error.response?.data as ApiResponse<unknown> | undefined;
+      throw new CatalogApiError(
+        response
+          ? extractErrorMessage(response, "Impossible d'envoyer le produit par e-mail.")
+          : "Impossible d'envoyer le produit par e-mail.",
+        error.response?.status,
+      );
+    }
+
+    throw error;
   }
-
-  throw new Error(extractErrorMessage(data, "Impossible d'envoyer le produit par e-mail."));
 };
 
 export const fetchProductReviews = async (
@@ -215,7 +289,10 @@ export const fetchPublicProducts = async (params: {
   storageCapacity?: string;
   memoryRam?: string;
   color?: string;
-  sort?: 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc';
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: 'relevance' | 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc' | 'name_desc' | 'stock_desc' | 'stock_asc' | 'created_desc';
 } = {}) => {
   const queryParams: Record<string, string> = {};
 
@@ -251,6 +328,18 @@ export const fetchPublicProducts = async (params: {
     queryParams.color = params.color;
   }
 
+  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice)) {
+    queryParams.minPrice = String(params.minPrice);
+  }
+
+  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice)) {
+    queryParams.maxPrice = String(params.maxPrice);
+  }
+
+  if (params.inStock !== undefined) {
+    queryParams.inStock = params.inStock ? '1' : '0';
+  }
+
   if (params.sort) {
     queryParams.sort = params.sort;
   }
@@ -267,6 +356,51 @@ export const fetchPublicProducts = async (params: {
   throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
 };
 
+export const searchPublicProducts = async (params: {
+  category?: string;
+  q?: string;
+  homepage?: boolean;
+  sellingType?: 'sale' | 'rental';
+  brand?: string;
+  storageCapacity?: string;
+  memoryRam?: string;
+  color?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  page?: number;
+  perPage?: number;
+  sort?: 'relevance' | 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc' | 'name_desc' | 'stock_desc' | 'stock_asc' | 'created_desc';
+} = {}) => {
+  const queryParams: Record<string, string> = {};
+
+  if (params.category) queryParams.category = params.category;
+  if (params.q) queryParams.q = params.q;
+  if (params.homepage !== undefined) queryParams.homepage = params.homepage ? '1' : '0';
+  if (params.sellingType) queryParams.sellingType = params.sellingType;
+  if (params.brand) queryParams.brand = params.brand;
+  if (params.storageCapacity) queryParams.storageCapacity = params.storageCapacity;
+  if (params.memoryRam) queryParams.memoryRam = params.memoryRam;
+  if (params.color) queryParams.color = params.color;
+  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice)) queryParams.minPrice = String(params.minPrice);
+  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice)) queryParams.maxPrice = String(params.maxPrice);
+  if (params.inStock !== undefined) queryParams.inStock = params.inStock ? '1' : '0';
+  if (params.page !== undefined) queryParams.page = String(params.page);
+  if (params.perPage !== undefined) queryParams.perPage = String(params.perPage);
+  if (params.sort) queryParams.sort = params.sort;
+
+  const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>>(
+    '/api/public/catalog/products',
+    { params: queryParams },
+  );
+
+  if (data.status === 'success') {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
+};
+
 export const fetchAdminCategories = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
     '/api/admin/catalog/categories',
@@ -276,7 +410,7 @@ export const fetchAdminCategories = async () => {
     return data.data.items;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de recuperer les categories.'));
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les catégories.'));
 };
 
 export const fetchAdminCategory = async (id: number) => {
@@ -288,7 +422,7 @@ export const fetchAdminCategory = async (id: number) => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Categorie introuvable.'));
+  throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
 };
 
 export const createCategory = async (payload: UpsertCategoryPayload) => {
@@ -301,7 +435,7 @@ export const createCategory = async (payload: UpsertCategoryPayload) => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Creation de categorie impossible.'));
+  throw new Error(extractErrorMessage(data, 'Création de catégorie impossible.'));
 };
 
 export const updateCategory = async (id: number, payload: UpsertCategoryPayload) => {
@@ -314,7 +448,7 @@ export const updateCategory = async (id: number, payload: UpsertCategoryPayload)
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Mise a jour de la categorie impossible.'));
+  throw new Error(extractErrorMessage(data, 'Mise à jour de la catégorie impossible.'));
 };
 
 export const deleteCategory = async (id: number) => {
@@ -326,7 +460,69 @@ export const deleteCategory = async (id: number) => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Suppression de la categorie impossible.'));
+  throw new Error(extractErrorMessage(data, 'Suppression de la catégorie impossible.'));
+};
+
+export const fetchAdminBrands = async () => {
+  const { data } = await httpClient.get<ApiResponse<{ items: CatalogBrand[] }>>(
+    '/api/admin/catalog/brands',
+  );
+
+  if (data.status === 'success') {
+    return data.data.items;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les marques.'));
+};
+
+export const fetchAdminBrand = async (id: number) => {
+  const { data } = await httpClient.get<ApiResponse<CatalogBrand>>(
+    "/api/admin/catalog/brands/" + id,
+  );
+
+  if (data.status === 'success') {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Marque introuvable.'));
+};
+
+export const createBrand = async (payload: UpsertBrandPayload) => {
+  const { data } = await httpClient.post<ApiResponse<CatalogBrand>>(
+    '/api/admin/catalog/brands',
+    payload,
+  );
+
+  if (isApiOk(data)) {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Création de la marque impossible.'));
+};
+
+export const updateBrand = async (id: number, payload: UpsertBrandPayload) => {
+  const { data } = await httpClient.put<ApiResponse<CatalogBrand>>(
+    "/api/admin/catalog/brands/" + id,
+    payload,
+  );
+
+  if (data.status === 'success') {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Mise à jour de la marque impossible.'));
+};
+
+export const deleteBrand = async (id: number) => {
+  const { data } = await httpClient.delete<ApiResponse<{ id: number }>>(
+    "/api/admin/catalog/brands/" + id,
+  );
+
+  if (data.status === 'success') {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Suppression de la marque impossible.'));
 };
 
 export const fetchAdminProducts = async () => {
@@ -338,7 +534,7 @@ export const fetchAdminProducts = async () => {
     return data.data.items;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de recuperer les produits.'));
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
 };
 
 export const fetchAdminProduct = async (id: number) => {
@@ -368,8 +564,10 @@ const buildProductFormData = (payload: UpsertProductPayload) => {
   if (payload.sellingType) {
     formData.set('sellingType', payload.sellingType);
   }
-  if (payload.brand !== undefined) {
-    formData.set('brand', payload.brand ?? '');
+  if (payload.brandId !== undefined && payload.brandId !== null) {
+    formData.set('brandId', payload.brandId.toString());
+  } else if (payload.brandId === null) {
+    formData.set('brandId', '');
   }
   if (payload.variantGroup !== undefined) {
     formData.set('variantGroup', payload.variantGroup ?? '');
@@ -488,7 +686,7 @@ export const updateProduct = async (id: number, payload: UpsertProductPayload) =
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Mise a jour du produit impossible.'));
+  throw new Error(extractErrorMessage(data, 'Mise à jour du produit impossible.'));
 };
 
 export const deleteProduct = async (id: number) => {

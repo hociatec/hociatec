@@ -14,11 +14,14 @@ const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2).replac
 
 export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const productLink = `/catalogue/produits/${product.slug}`;
+  const availableColors = product.variantColors ?? (product.color ? [product.color] : []);
+  const availableStorages =
+    product.variantStorages ?? (product.storageCapacity ? [product.storageCapacity] : []);
   const compactSpecs = [
     product.brand?.trim(),
-    product.storageCapacity?.trim(),
     product.memoryRam?.trim(),
-    product.color?.trim(),
+    (product.variantsCount ?? 1) > 1 ? null : product.storageCapacity?.trim(),
+    (product.variantsCount ?? 1) > 1 ? null : product.color?.trim(),
   ]
     .filter((value): value is string => Boolean(value))
     .join(' • ');
@@ -48,7 +51,6 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
               {product.name}
             </Link>
           </h3>
-          {/* Suppression du badge "Accueil" */}
         </header>
         <ProductMetaBadges
           sellingType={product.sellingType}
@@ -59,13 +61,29 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
             {compactSpecs}
           </p>
         )}
+        {(product.variantsCount ?? 1) > 1 && (
+          <div className="catalog-product-card__variant-summary">
+            {availableStorages.length > 0 && (
+              <p className="catalog-product-card__variant-line">
+                <strong>Stockages :</strong> {availableStorages.join(', ')}
+              </p>
+            )}
+            {availableColors.length > 0 && (
+              <p className="catalog-product-card__variant-line">
+                <strong>Coloris :</strong> {availableColors.join(', ')}
+              </p>
+            )}
+          </div>
+        )}
         {product.shortDescription && (
           <p className="catalog-product-card__excerpt">{product.shortDescription}</p>
         )}
         <footer className="catalog-product-card__footer">
-          <span className="catalog-product-card__price">
-            {formatPrice(product.priceCents)} EUR{product.sellingType === 'rental' ? ' / mois' : ''}
-          </span>
+          <div className="catalog-product-card__footer-main">
+            <span className="catalog-product-card__price">
+              {formatPrice(product.priceCents)} EUR{product.sellingType === 'rental' ? ' / mois' : ''}
+            </span>
+          </div>
           {actionSlot ? (
             <div className="catalog-product-card__actions">{actionSlot}</div>
           ) : null}

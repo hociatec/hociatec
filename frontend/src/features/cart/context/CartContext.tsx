@@ -89,7 +89,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     const message =
       err instanceof Error
         ? err.message
-        : 'Une erreur est survenue lors de la mise a jour du panier.';
+        : 'Une erreur est survenue lors de la mise à jour du panier.';
 
     if (
       err instanceof CartApiError &&

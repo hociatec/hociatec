@@ -54,7 +54,7 @@ export const fetchAvailability = async ({
     return data.data.slots;
   }
 
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des creneaux'));
+  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des crÃ©neaux'));
 };
 
 export const bookAppointment = async (payload: AppointmentPayload) => {
@@ -67,7 +67,7 @@ export const bookAppointment = async (payload: AppointmentPayload) => {
     return data.data;
   }
 
-  throw new Error(data.message || 'Impossible de creer le rendez-vous');
+  throw new Error(data.message || 'Impossible de créer le rendez-vous');
 };
 
 export const fetchMyAppointments = async () => {

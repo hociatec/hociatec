@@ -182,7 +182,7 @@ export const AddressesPage = () => {
                 Aucune adresse enregistrée.
               </div>
             ) : (
-              <ul className="space-y-4">
+              <ul className="list-none space-y-4">
                 {items.map((it) => (
                   <li key={it.id} className="rounded-2xl border border-slate-200 p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -287,7 +287,7 @@ export const AddressesPage = () => {
                   </label>
                 </div>
               </div>
-              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
@@ -301,7 +301,7 @@ export const AddressesPage = () => {
                   onClick={handleUpdate}
                   disabled={savingId === editing.id}
                 >
-                  {savingId === editing.id ? 'Sauvegarde...' : 'Enregistrer'}
+                  {savingId === editing.id ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </div>

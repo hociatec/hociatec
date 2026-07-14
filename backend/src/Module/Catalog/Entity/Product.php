@@ -64,11 +64,15 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageAlt = null;
 
-    #[ORM\Column(length: 80, nullable: true)]
-    private ?string $brand = null;
+    #[ORM\ManyToOne(targetEntity: Brand::class)]
+    #[ORM\JoinColumn(name: 'brand_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Brand $brandReference = null;
 
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $variantGroup = null;
+
+    #[ORM\Column(type: 'smallint', options: ['default' => 1])]
+    private int $variantPosition = 1;
 
     #[ORM\Column(type: 'smallint', nullable: true)]
     private ?int $releaseYear = null;
@@ -256,13 +260,22 @@ class Product
 
     public function getBrand(): ?string
     {
-        return $this->brand;
+        return $this->brandReference?->getName();
     }
 
-    public function setBrand(?string $brand): self
+    public function getBrandId(): ?int
     {
-        $normalized = $brand !== null ? trim($brand) : null;
-        $this->brand = $normalized !== '' ? $normalized : null;
+        return $this->brandReference?->getId();
+    }
+
+    public function getBrandReference(): ?Brand
+    {
+        return $this->brandReference;
+    }
+
+    public function setBrandReference(?Brand $brand): self
+    {
+        $this->brandReference = $brand;
 
         return $this;
     }
@@ -276,6 +289,22 @@ class Product
     {
         $normalized = $variantGroup !== null ? trim($variantGroup) : null;
         $this->variantGroup = $normalized !== '' ? $normalized : null;
+
+        return $this;
+    }
+
+    public function getVariantPosition(): int
+    {
+        return $this->variantPosition;
+    }
+
+    public function setVariantPosition(int $variantPosition): self
+    {
+        if ($variantPosition < 1) {
+            throw new \InvalidArgumentException('Position de variante invalide.');
+        }
+
+        $this->variantPosition = $variantPosition;
 
         return $this;
     }

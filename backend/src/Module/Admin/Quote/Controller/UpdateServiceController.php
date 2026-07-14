@@ -17,14 +17,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
 
 #[Route(
-    '/api/admin/quotes/services/{id}',
-    name: 'api_admin_quotes_services_update',
+    '/api/admin/services/{id}',
+    name: 'api_admin_services_update',
     methods: ['POST', 'PUT', 'PATCH'],
     requirements: ['id' => '\d+']
 )]
 #[IsGranted('ROLE_ADMIN')]
 class UpdateServiceController extends AbstractController
 {
+    private const BILLING_MODES = [
+        'prix fixe',
+        'heure',
+        'jour',
+        'intervention',
+        'audit',
+        'installation',
+        'maintenance',
+    ];
+
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly ServiceRepository $serviceRepository,
@@ -40,9 +50,11 @@ class UpdateServiceController extends AbstractController
 
         $title = trim((string) ($request->request->get('title') ?? $service->getTitle()));
         $description = $request->request->get('description');
-        $unit = $request->request->get('unit');
         $priceRaw = $request->request->get('price');
         $vatRaw = $request->request->get('vatRate');
+        $hasDurationValue = $request->request->has('durationValue');
+        $hasDurationUnit = $request->request->has('durationUnit');
+        $hasBillingMode = $request->request->has('unit');
 
         if ($title === '') {
             return ApiResponse::error('Titre invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -51,7 +63,31 @@ class UpdateServiceController extends AbstractController
         try {
             $service->setTitle($title);
             $service->setDescription($description !== '' ? (string) $description : null);
-            $service->setUnit($unit !== '' ? (string) $unit : null);
+
+            if ($hasBillingMode) {
+                $unit = $this->normalizeBillingMode($request->request->get('unit'));
+                if ($unit === null) {
+                    return ApiResponse::error('Mode de facturation invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+
+                $service->setUnit($unit);
+            }
+
+            if ($hasDurationValue || $hasDurationUnit) {
+                $durationValue = $this->normalizeDurationValue(
+                    $hasDurationValue ? $request->request->get('durationValue') : $service->getDurationValue()
+                );
+                $durationUnit = $this->normalizeDurationUnit(
+                    $hasDurationUnit ? $request->request->get('durationUnit') : $service->getDurationUnit()
+                );
+
+                if (($durationValue === null) !== ($durationUnit === null)) {
+                    return ApiResponse::error('La durée doit contenir une valeur et une unité.', Response::HTTP_UNPROCESSABLE_ENTITY);
+                }
+
+                $service->setDurationValue($durationValue);
+                $service->setDurationUnit($durationUnit);
+            }
 
             if ($priceRaw !== null) {
                 $price = $this->normalizePriceToCents($priceRaw);
@@ -73,6 +109,17 @@ class UpdateServiceController extends AbstractController
         return ApiResponse::success(QuoteFormatter::formatService($service));
     }
 
+    private function normalizeBillingMode(mixed $unit): ?string
+    {
+        if (!is_string($unit) || trim($unit) === '') {
+            return 'prix fixe';
+        }
+
+        $normalized = mb_strtolower(trim($unit));
+
+        return in_array($normalized, self::BILLING_MODES, true) ? $normalized : null;
+    }
+
     private function normalizePriceToCents(mixed $price): int
     {
         if (is_int($price)) { return $price * 100; }
@@ -91,5 +138,24 @@ class UpdateServiceController extends AbstractController
         if (is_float($vat)) { return (int) round($vat * 100); }
         if (is_string($vat)) { return (int) round(((float) str_replace(',', '.', $vat)) * 100); }
         return 0;
+    }
+
+    private function normalizeDurationValue(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $durationValue = (int) $value;
+        return $durationValue > 0 ? $durationValue : null;
+    }
+
+    private function normalizeDurationUnit(mixed $unit): ?string
+    {
+        if (!is_string($unit) || $unit === '') {
+            return null;
+        }
+
+        return in_array($unit, ['hour', 'day'], true) ? $unit : null;
     }
 }

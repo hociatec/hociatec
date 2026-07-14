@@ -11,8 +11,18 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
+const formatDuration = (service: any) => {
+  if (!service?.durationValue || !service?.durationUnit) return '—';
+
+  if (service.durationUnit === 'day') {
+    return `${service.durationValue} jour${service.durationValue > 1 ? 's' : ''}`;
+  }
+
+  return `${service.durationValue} heure${service.durationValue > 1 ? 's' : ''}`;
+};
+
 export const ServicesListPage = () => {
-  useDocumentTitle('Admin - Services devis');
+  useDocumentTitle('Admin - Services');
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,13 +68,18 @@ export const ServicesListPage = () => {
 
   return (
     <PageContainer
-      title="Services devis"
+      title="Services"
       headerActions={
-        <Link to="/admin/quotes/services/new" className="register-form__submit">
+        <Link to="/admin/services/new" className="register-form__submit">
           Nouveau service
         </Link>
       }
     >
+      <div className="mb-6 space-y-1">
+        <p className="text-sm text-slate-600">
+          Gérez ici votre catalogue de services, leurs tarifs, leur mode de facturation et leur durée estimée.
+        </p>
+      </div>
       <FilterBar>
         <SearchFilter value={search} onChange={setSearch} placeholder="Rechercher..." />
       </FilterBar>
@@ -85,7 +100,8 @@ export const ServicesListPage = () => {
           <thead>
             <tr>
               <th>Titre</th>
-              <th>Unité</th>
+              <th>Mode de facturation</th>
+              <th>Durée</th>
               <th>Prix</th>
               <th>TVA</th>
               <th></th>
@@ -100,12 +116,13 @@ export const ServicesListPage = () => {
                     <span className="muted">{s.description ?? ''}</span>
                   </div>
                 </td>
-                <td>{s.unit ?? 'â€”'}</td>
+                <td>{s.unit?.trim() || 'Prix fixe'}</td>
+                <td>{formatDuration(s)}</td>
                 <td>{formatPrice(s.priceCents)}</td>
                 <td>{s.vatRate?.toFixed(2) ?? '0'}%</td>
                 <td>
                   <div className="catalog-admin-actions">
-                    <Link to={`/admin/quotes/services/${s.id}/edit`} className="catalog-admin-actions__edit">
+                    <Link to={`/admin/services/${s.id}/edit`} className="catalog-admin-actions__edit">
                       Modifier
                     </Link>
                     <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(s.id)}>
@@ -121,5 +138,3 @@ export const ServicesListPage = () => {
     </PageContainer>
   );
 };
-
-

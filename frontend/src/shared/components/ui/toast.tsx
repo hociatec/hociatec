@@ -1,4 +1,13 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 
@@ -35,6 +44,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const idRef = useRef(1);
   const timeoutsRef = useRef<Map<number, number>>(new Map());
   const location = useLocation();
+  const navigationKey = [location.key, location.pathname, location.search, location.hash].join(":");
 
   const clearToastTimeout = useCallback((id: number) => {
     if (typeof window === 'undefined') {
@@ -65,32 +75,73 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [clearToastTimeout],
   );
 
+  const scheduleRemoval = useCallback(
+    (id: number, duration: number) => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      clearToastTimeout(id);
+      const timeoutId = window.setTimeout(() => remove(id), duration);
+      timeoutsRef.current.set(id, timeoutId);
+    },
+    [clearToastTimeout, remove],
+  );
+
   const show = useCallback<ToastContextValue['show']>(
     (message, options = {}) => {
-      const id = idRef.current++;
       const now = Date.now();
       const duration = options.duration ?? 30000;
       const variant = options.variant ?? 'success';
-      const persistent = true;
+      const persistent = options.persistent ?? false;
+      const expiresAt = now + duration;
+      const duplicate = toasts.find(
+        (toast) =>
+          toast.message === message &&
+          toast.variant === variant &&
+          toast.persistent === persistent,
+      );
+
+      if (duplicate) {
+        setToasts((list) =>
+          list.map((toast) =>
+            toast.id === duplicate.id
+              ? {
+                  ...toast,
+                  expiresAt,
+                }
+              : toast,
+          ),
+        );
+
+        if (persistent) {
+          clearToastTimeout(duplicate.id);
+        } else {
+          scheduleRemoval(duplicate.id, duration);
+        }
+
+        return duplicate.id;
+      }
+
+      const id = idRef.current++;
 
       const item: ToastItem = {
         id,
         message,
         variant,
         persistent,
-        expiresAt: now + duration,
+        expiresAt,
       };
 
       setToasts((list) => [...list, item]);
 
-      if (typeof window !== 'undefined') {
-        const timeoutId = window.setTimeout(() => remove(id), duration);
-        timeoutsRef.current.set(id, timeoutId);
+      if (!persistent) {
+        scheduleRemoval(id, duration);
       }
 
       return id;
     },
-    [remove],
+    [clearToastTimeout, scheduleRemoval, toasts],
   );
 
   useEffect(() => {
@@ -115,9 +166,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     clearAllToasts();
-  }, [location.pathname, clearAllToasts]);
+  }, [navigationKey, clearAllToasts]);
 
   const value = useMemo(() => ({ show }), [show]);
 

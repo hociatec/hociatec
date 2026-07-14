@@ -6,6 +6,7 @@ namespace App\Module\Catalog\Controller\PublicApi;
 
 use App\Module\Catalog\Service\ProductService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +26,7 @@ class ShareProductEmailController extends AbstractController
     public function __construct(
         private readonly ProductService $productService,
         private readonly MailerInterface $mailer,
+        private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
     ) {
@@ -39,7 +41,7 @@ class ShareProductEmailController extends AbstractController
 
         $payload = json_decode($request->getContent(), true);
         if (!is_array($payload)) {
-            return ApiResponse::error('Invalid JSON payload.', JsonResponse::HTTP_BAD_REQUEST);
+            return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $payload = array_map(
@@ -64,47 +66,64 @@ class ShareProductEmailController extends AbstractController
                 $errors[] = sprintf('%s: %s', $violation->getPropertyPath(), $violation->getMessage());
             }
 
-            return ApiResponse::error('Validation failed.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $errors);
+            return ApiResponse::error('Validation des donnees echouee.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $errors);
         }
 
         $recipientEmail = (string) ($payload['email'] ?? '');
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
         $productUrl = rtrim($request->getSchemeAndHttpHost(), '/') . '/catalogue/produits/' . rawurlencode($product->getSlug());
-        $subject = sprintf('Decouvrir : %s', $product->getName());
-        $summary = $product->getShortDescription() ?: 'Consultez la fiche produit pour obtenir tous les details.';
-
-        $email = (new Email())
-            ->from(new Address($from, 'Hociatec'))
-            ->to(new Address($recipientEmail))
-            ->subject($subject)
-            ->html(
-                '<p>Bonjour,</p>' .
-                '<p>Voici un produit qui pourrait vous interesser :</p>' .
-                '<p><strong>' . htmlspecialchars($product->getName()) . '</strong></p>' .
-                '<p>' . htmlspecialchars($summary) . '</p>' .
-                '<p><strong>Prix :</strong> ' . number_format($product->getEffectivePriceCents() / 100, 2, ',', ' ') . ' EUR</p>' .
-                '<p><a href="' . htmlspecialchars($productUrl) . '">Voir la fiche produit</a></p>'
-            );
+        $subject = sprintf('Découvrir : %s', $product->getName());
+        $summary = $product->getShortDescription() ?: 'Consultez la fiche produit pour obtenir tous les détails.';
+        $plainMessage =
+            "Bonjour,\n\n" .
+            "Voici un produit qui pourrait vous intéresser :\n\n" .
+            $product->getName() . "\n" .
+            $summary . "\n" .
+            'Prix : ' . number_format($product->getEffectivePriceCents() / 100, 2, ',', ' ') . " EUR\n" .
+            'Voir la fiche produit : ' . $productUrl . "\n";
 
         try {
-            $this->mailer->send($email);
+            $this->ovhRoundcubeMailer->send($recipientEmail, $subject, $plainMessage);
         } catch (\Throwable $exception) {
-            $this->logger->error('Product share email send failed', [
+            $this->logger->warning('Product share email send failed with OVH Roundcube primary transport', [
                 'exception' => $exception,
                 'productId' => $product->getId(),
                 'recipient' => $recipientEmail,
             ]);
 
-            return ApiResponse::error(
-                "Impossible d'envoyer le message pour le moment.",
-                JsonResponse::HTTP_SERVICE_UNAVAILABLE
-            );
+            try {
+                $email = (new Email())
+                    ->from(new Address($from, 'Hociatec'))
+                    ->to(new Address($recipientEmail))
+                    ->subject($subject)
+                    ->html(
+                        '<p>Bonjour,</p>' .
+                        '<p>Voici un produit qui pourrait vous intéresser :</p>' .
+                        '<p><strong>' . htmlspecialchars($product->getName()) . '</strong></p>' .
+                        '<p>' . htmlspecialchars($summary) . '</p>' .
+                        '<p><strong>Prix :</strong> ' . number_format($product->getEffectivePriceCents() / 100, 2, ',', ' ') . ' EUR</p>' .
+                        '<p><a href="' . htmlspecialchars($productUrl) . '">Voir la fiche produit</a></p>'
+                    );
+
+                $this->mailer->send($email);
+            } catch (\Throwable $fallbackException) {
+                $this->logger->error('Product share email send failed with SMTP fallback', [
+                    'exception' => $fallbackException,
+                    'productId' => $product->getId(),
+                    'recipient' => $recipientEmail,
+                ]);
+
+                return ApiResponse::error(
+                    "Impossible d'envoyer le message pour le moment.",
+                    JsonResponse::HTTP_SERVICE_UNAVAILABLE
+                );
+            }
         }
 
         return ApiResponse::success([
             'sent' => true,
             'to' => $recipientEmail,
-            'message' => 'Le produit a ete envoye par e-mail.',
+            'message' => 'Le produit a été envoyé par e-mail.',
         ]);
     }
 }

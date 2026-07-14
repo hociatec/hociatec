@@ -17,11 +17,17 @@ final class QuoteFormatter
      */
     public static function formatService(QuoteServiceEntity $service): array
     {
+        $durationValue = $service->getDurationValue();
+        $durationUnit = $service->getDurationUnit();
+
         return [
             'id' => $service->getId(),
             'title' => $service->getTitle(),
             'description' => $service->getDescription(),
             'unit' => $service->getUnit(),
+            'durationValue' => $durationValue,
+            'durationUnit' => $durationUnit,
+            'durationLabel' => self::formatServiceDurationLabel($durationValue, $durationUnit),
             'priceCents' => $service->getPriceCents(),
             'vatRate' => $service->getVatRateBps() / 100,
         ];
@@ -55,6 +61,8 @@ final class QuoteFormatter
             'discountCents' => $quote->getGlobalDiscountCents(),
             'shippingCents' => $quote->getShippingCents(),
             'conditions' => $quote->getConditions(),
+            'validFrom' => $quote->getValidFrom()?->format('Y-m-d'),
+            'validUntil' => $quote->getValidUntil()?->format('Y-m-d'),
             'totals' => [
                 'ht' => $totals['totalHt'],
                 'vat' => $totals['totalVat'],
@@ -93,4 +101,16 @@ final class QuoteFormatter
         ];
     }
 
+    private static function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string
+    {
+        if ($durationValue === null || $durationValue <= 0 || $durationUnit === null || $durationUnit === '') {
+            return null;
+        }
+
+        if ($durationUnit === 'day') {
+            return $durationValue . ' ' . ($durationValue > 1 ? 'jours' : 'jour');
+        }
+
+        return $durationValue . ' ' . ($durationValue > 1 ? 'heures' : 'heure');
+    }
 }

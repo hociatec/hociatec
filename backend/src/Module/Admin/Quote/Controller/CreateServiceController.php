@@ -17,10 +17,20 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
 
-#[Route('/api/admin/quotes/services', name: 'api_admin_quotes_services_create', methods: ['POST'])]
+#[Route('/api/admin/services', name: 'api_admin_services_create', methods: ['POST'])]
 #[IsGranted('ROLE_ADMIN')]
 class CreateServiceController extends AbstractController
 {
+    private const BILLING_MODES = [
+        'prix fixe',
+        'heure',
+        'jour',
+        'intervention',
+        'audit',
+        'installation',
+        'maintenance',
+    ];
+
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly ServiceRepository $serviceRepository,
@@ -31,7 +41,9 @@ class CreateServiceController extends AbstractController
     {
         $title = trim((string) $request->request->get('title', ''));
         $description = $request->request->get('description');
-        $unit = $request->request->get('unit');
+        $unit = $this->normalizeBillingMode($request->request->get('unit'));
+        $durationValue = $this->normalizeDurationValue($request->request->get('durationValue'));
+        $durationUnit = $this->normalizeDurationUnit($request->request->get('durationUnit'));
         $priceRaw = $request->request->get('price');
         $vatRaw = $request->request->get('vatRate');
 
@@ -42,10 +54,20 @@ class CreateServiceController extends AbstractController
             return ApiResponse::error('Titre ou prix invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        if ($unit === null) {
+            return ApiResponse::error('Mode de facturation invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if (($durationValue === null) !== ($durationUnit === null)) {
+            return ApiResponse::error('La durée doit contenir une valeur et une unité.', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         try {
             $service = new QuoteServiceEntity($title, $priceCents, $vatBps);
             $service->setDescription($description !== '' ? (string) $description : null);
-            $service->setUnit($unit !== '' ? (string) $unit : null);
+            $service->setUnit($unit);
+            $service->setDurationValue($durationValue);
+            $service->setDurationUnit($durationUnit);
             $this->em->persist($service);
             $this->em->flush();
         } catch (Throwable $e) {
@@ -53,6 +75,17 @@ class CreateServiceController extends AbstractController
         }
 
         return ApiResponse::created(QuoteFormatter::formatService($service));
+    }
+
+    private function normalizeBillingMode(mixed $unit): ?string
+    {
+        if (!is_string($unit) || trim($unit) === '') {
+            return 'prix fixe';
+        }
+
+        $normalized = mb_strtolower(trim($unit));
+
+        return in_array($normalized, self::BILLING_MODES, true) ? $normalized : null;
     }
 
     private function normalizePriceToCents(mixed $price): int
@@ -74,5 +107,23 @@ class CreateServiceController extends AbstractController
         if (is_string($vat)) { return (int) round(((float) str_replace(',', '.', $vat)) * 100); }
         return 0;
     }
-}
 
+    private function normalizeDurationValue(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $durationValue = (int) $value;
+        return $durationValue > 0 ? $durationValue : null;
+    }
+
+    private function normalizeDurationUnit(mixed $unit): ?string
+    {
+        if (!is_string($unit) || $unit === '') {
+            return null;
+        }
+
+        return in_array($unit, ['hour', 'day'], true) ? $unit : null;
+    }
+}

@@ -46,7 +46,7 @@ export const createPrestation = async (payload: UpsertPrestationPayload) => {
     return data.data;
   }
 
-  throw new Error(data.message || 'Impossible de creer la prestation');
+  throw new Error(data.message || 'Impossible de créer la prestation');
 };
 
 export const updatePrestation = async (id: number, payload: UpsertPrestationPayload) => {
@@ -59,7 +59,7 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de mettre a jour la prestation'));
+  throw new Error(extractErrorMessage(data, 'Impossible de mettre à jour la prestation'));
 };
 
 export const deletePrestation = async (id: number) => {
@@ -96,5 +96,5 @@ export const updateConfiguration = async (days: WorkingDay[]) => {
     return data.data.days;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de mettre a jour la configuration'));
+  throw new Error(extractErrorMessage(data, 'Impossible de mettre à jour la configuration'));
 };

@@ -32,6 +32,12 @@ const LoginPage = lazy(() =>
 const RegisterPage = lazy(() =>
   import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })),
 );
+const ForgotPasswordPage = lazy(() =>
+  import('@/features/auth/pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })),
+);
+const ResetPasswordPage = lazy(() =>
+  import('@/features/auth/pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })),
+);
 const AppointmentBookingPage = lazy(() =>
   import('@/features/appointments/pages/AppointmentBookingPage').then((module) => ({
     default: module.AppointmentBookingPage,
@@ -45,6 +51,16 @@ const MyAppointmentsPage = lazy(() =>
 const CategoriesListPage = lazy(() =>
   import('@/features/admin/catalog/pages/CategoriesListPage').then((module) => ({
     default: module.CategoriesListPage,
+  })),
+);
+const BrandsListPage = lazy(() =>
+  import('@/features/admin/catalog/pages/BrandsListPage').then((module) => ({
+    default: module.BrandsListPage,
+  })),
+);
+const BrandFormPage = lazy(() =>
+  import('@/features/admin/catalog/pages/BrandFormPage').then((module) => ({
+    default: module.BrandFormPage,
   })),
 );
 const CategoryFormPage = lazy(() =>
@@ -75,6 +91,11 @@ const ProductPage = lazy(() =>
 const SellingTypePage = lazy(() =>
   import('@/features/catalog/pages/SellingTypePage').then((module) => ({
     default: module.SellingTypePage,
+  })),
+);
+const CatalogSearchPage = lazy(() =>
+  import('@/features/catalog/pages/CatalogSearchPage').then((module) => ({
+    default: module.CatalogSearchPage,
   })),
 );
 const CartPage = lazy(() =>
@@ -112,8 +133,17 @@ const ServiceFormPage = lazy(() =>
 const CreateQuotePage = lazy(() =>
   import('@/features/quotes/pages/CreateQuotePage').then((module) => ({ default: module.CreateQuotePage })),
 );
+const ServicesCatalogPage = lazy(() =>
+  import('@/features/quotes/pages/ServicesCatalogPage').then((module) => ({ default: module.ServicesCatalogPage })),
+);
+const ServiceDetailPage = lazy(() =>
+  import('@/features/quotes/pages/ServiceDetailPage').then((module) => ({ default: module.ServiceDetailPage })),
+);
 const MyQuotesPage = lazy(() =>
   import('@/features/quotes/pages/MyQuotesPage').then((module) => ({ default: module.MyQuotesPage })),
+);
+const MyQuoteDetailPage = lazy(() =>
+  import('@/features/quotes/pages/MyQuoteDetailPage').then((module) => ({ default: module.MyQuoteDetailPage })),
 );
 const OrdersListPage = lazy(() =>
   import('@/features/admin/orders/pages/OrdersListPage').then((module) => ({
@@ -172,6 +202,11 @@ const MyFavoritesPage = lazy(() =>
     default: module.MyFavoritesPage,
   })),
 );
+const IphoneDistributionPage = lazy(() =>
+  import('@/features/mobile/pages/IphoneDistributionPage').then((module) => ({
+    default: module.IphoneDistributionPage,
+  })),
+);
 
 const RouteFallback = () => (
   <div className="site-layout">
@@ -185,15 +220,21 @@ export const AppRoutes = () => (
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/iphone" element={<IphoneDistributionPage />} />
       <Route path="/legal/cgu" element={<CguPage />} />
       <Route path="/legal/cgv" element={<CgvPage />} />
       <Route path="/legal/confidentialite" element={<PrivacyPage />} />
       <Route path="/legal/mentions-legales" element={<MentionsPage />} />
       <Route path="/activation/:token" element={<ActivationPage />} />
       <Route path="/catalogue/produits/:slug" element={<ProductPage />} />
+      <Route path="/catalogue/recherche" element={<CatalogSearchPage />} />
       <Route path="/catalogue/vente" element={<SellingTypePage sellingType="sale" title="Vente" />} />
       <Route path="/catalogue/location" element={<SellingTypePage sellingType="rental" title="Location" />} />
+      <Route path="/services" element={<ServicesCatalogPage />} />
+      <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
       <Route path="/panier" element={<CartPage />} />
       <Route path="/catalogue/:slug" element={<CategoryPage />} />
       <Route path="/devis/nouveau" element={<CreateQuotePage />} />
@@ -202,6 +243,14 @@ export const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <MyQuotesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/quotes/me/:quoteId"
+        element={
+          <ProtectedRoute>
+            <MyQuoteDetailPage />
           </ProtectedRoute>
         }
       />
@@ -306,6 +355,11 @@ export const AppRoutes = () => (
             <Route path="new" element={<CategoryFormPage />} />
             <Route path=":categoryId/edit" element={<CategoryFormPage />} />
           </Route>
+          <Route path="brands">
+            <Route index element={<BrandsListPage />} />
+            <Route path="new" element={<BrandFormPage />} />
+            <Route path=":brandId/edit" element={<BrandFormPage />} />
+          </Route>
           <Route path="products">
             <Route index element={<ProductsListPage />} />
             <Route path="new" element={<ProductFormPage />} />
@@ -315,11 +369,11 @@ export const AppRoutes = () => (
         <Route path="quotes">
           <Route index element={<QuotesListPage />} />
           <Route path=":quoteId/edit" element={<QuoteFormPage />} />
-          <Route path="services">
-            <Route index element={<ServicesListPage />} />
-            <Route path="new" element={<ServiceFormPage />} />
-            <Route path=":serviceId/edit" element={<ServiceFormPage />} />
-          </Route>
+        </Route>
+        <Route path="services">
+          <Route index element={<ServicesListPage />} />
+          <Route path="new" element={<ServiceFormPage />} />
+          <Route path=":serviceId/edit" element={<ServiceFormPage />} />
         </Route>
         <Route path="orders">
           <Route index element={<OrdersListPage />} />

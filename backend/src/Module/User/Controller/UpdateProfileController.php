@@ -37,7 +37,7 @@ class UpdateProfileController extends AbstractController
         try {
             $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (Throwable) {
-            return ApiResponse::error('Invalid JSON payload.', JsonResponse::HTTP_BAD_REQUEST);
+            return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         /** @var User $user */
@@ -48,7 +48,7 @@ class UpdateProfileController extends AbstractController
 
         if ($violations->count() > 0) {
             return ApiResponse::error(
-                'Validation failed.',
+                'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
                 $this->formatViolations($violations)
             );
@@ -58,7 +58,7 @@ class UpdateProfileController extends AbstractController
         if ($newPassword !== null && $newPassword !== '') {
             if (mb_strlen($newPassword) < 8) {
                 return ApiResponse::error(
-                    'Validation failed.',
+                    'Validation des donnees echouee.',
                     JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
                     ['password: Ce champ doit contenir au moins 8 caracteres.']
                 );
@@ -66,7 +66,7 @@ class UpdateProfileController extends AbstractController
 
             if (!preg_match('/^(?=.*[A-Z])(?=.*\d).{8,}$/', $newPassword)) {
                 return ApiResponse::error(
-                    'Validation failed.',
+                    'Validation des donnees echouee.',
                     JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
                     ['password: Le mot de passe doit contenir au moins une majuscule et un chiffre.']
                 );

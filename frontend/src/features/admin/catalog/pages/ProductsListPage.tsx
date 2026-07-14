@@ -14,14 +14,9 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
+import { groupMatchesFilters } from '@/features/catalog/utils/groupProducts';
 
 import '@/features/catalog/pages/CatalogPages.css';
-
-const formatPrice = (priceCents: number) =>
-  new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(priceCents / 100);
 
 export const ProductsListPage = () => {
   useDocumentTitle('Admin - Produits');
@@ -73,7 +68,7 @@ export const ProductsListPage = () => {
     const term = search.trim().toLowerCase();
     const filterSlug = filterCategory === 'all' ? null : filterCategory;
 
-    return products.filter((product) => {
+    return groupMatchesFilters(products, (product) => {
       const matchSearch =
         term.length === 0 ||
         product.name.toLowerCase().includes(term) ||
@@ -163,11 +158,8 @@ export const ProductsListPage = () => {
             <thead>
               <tr>
                 <th>Produit</th>
-                <th>Groupe</th>
-                <th>Catégorie</th>
-                <th>Prix</th>
-                <th>Stock</th>
-                <th>Statut</th>
+                <th>Nombre de variantes</th>
+                <th>Stock total</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -175,38 +167,20 @@ export const ProductsListPage = () => {
               {filteredProducts.map((product) => (
                 <tr key={product.id}>
                   <td>
-                    <div className="catalog-admin-product-cell">
-                      <strong>{product.name}</strong>
-                      {product.brand && <span className="muted">Marque : {product.brand}</span>}
-                      {product.variantGroup && <span className="muted">Groupe : {product.variantGroup}</span>}
-                      {product.releaseYear && <span className="muted">Modèle : {product.releaseYear}</span>}
-                      {product.color && <span className="muted">Couleur : {product.color}</span>}
-                      {product.storageCapacity && <span className="muted">Stockage : {product.storageCapacity}</span>}
-                      {product.memoryRam && <span className="muted">RAM : {product.memoryRam}</span>}
-                      <span className="muted">Slug : {product.slug}</span>
-                      <span className="muted">SKU {product.sku}</span>
-                      {product.isFeaturedHome && (
-                        <span className="catalog-featured-badge">Accueil</span>
-                      )}
-                    </div>
+                    <strong className="catalog-admin-product-cell__title">{product.name}</strong>
                   </td>
-                  <td>{product.variantGroup ?? '-'}</td>
-                  <td>{product.category.name}</td>
-                  <td>
-                    {formatPrice(product.priceCents)}
-                    {product.sellingType === 'rental' ? ' / mois' : ''}
-                  </td>
-                  <td>
-                    <div className="catalog-admin-product-cell">
-                      <strong>{product.stock}</strong>
-                      <span className="muted">
-                        {product.color ? `Couleur : ${product.color}` : 'Variante par défaut'}
-                      </span>
-                    </div>
-                  </td>
-                  <td>{product.isPublished ? 'Publié' : 'Brouillon'}</td>
+                  <td>{product.variantsCount ?? 1}</td>
+                  <td>{product.totalStock ?? product.stock}</td>
                   <td>
                     <div className="catalog-admin-actions">
+                      <Link
+                        to={`/catalogue/produits/${product.slug}`}
+                        className="catalog-admin-actions__edit"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Voir
+                      </Link>
                       <Link
                         to={`/admin/catalog/products/${product.id}/edit`}
                         className="catalog-admin-actions__edit"

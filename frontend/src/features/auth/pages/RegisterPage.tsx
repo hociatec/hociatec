@@ -56,16 +56,16 @@ export const RegisterPage = () => {
     setErrorDetails([]);
 
     if (form.password !== form.confirmPassword) {
-      setError('Les mots de passe doivent etre identiques.');
-      try { toast.show('Les mots de passe doivent etre identiques.', { variant: 'error' }); } catch {}
+      setError('Les mots de passe doivent être identiques.');
+      try { toast.show('Les mots de passe doivent être identiques.', { variant: 'error' }); } catch {}
       return;
     }
 
     if (!PASSWORD_RULE.test(form.password)) {
       setError(
-        'Le mot de passe doit contenir au moins 8 caracteres, une majuscule et un chiffre.',
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
       );
-      try { toast.show('Le mot de passe doit contenir au moins 8 caracteres, une majuscule et un chiffre.', { variant: 'error' }); } catch {}
+      try { toast.show('Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.', { variant: 'error' }); } catch {}
       return;
     }
 
@@ -78,7 +78,7 @@ export const RegisterPage = () => {
       }
 
       await registerUser(form);
-      try { toast.show('Compte cr��. V�rifiez vos emails pour activer votre compte.', { variant: 'success' }); } catch {}
+      try { toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', { variant: 'success' }); } catch {}
       navigate('/login', { state: { registered: true } });
     } catch (submissionError) {
       console.error(submissionError);
@@ -273,7 +273,7 @@ export const RegisterPage = () => {
             <div className="register-form__guidelines">
               <p>Le mot de passe doit respecter les critères suivants :</p>
               <ul>
-                <li>Au moins 8 caracteres</li>
+                <li>Au moins 8 caractères</li>
                 <li>Au moins une lettre majuscule</li>
                 <li>Au moins un chiffre</li>
               </ul>

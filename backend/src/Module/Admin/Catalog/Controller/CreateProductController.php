@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\ProductService;
@@ -24,6 +25,7 @@ class CreateProductController extends AbstractController
     public function __construct(
         private readonly ProductService $productService,
         private readonly CategoryRepository $categoryRepository,
+        private readonly BrandRepository $brandRepository,
     ) {
     }
 
@@ -36,13 +38,12 @@ class CreateProductController extends AbstractController
         $priceRaw = $request->request->get('price', 0);
         $stock = (int) $request->request->get('stock', 0);
         $categoryId = (int) $request->request->get('categoryId', 0);
+        $brandId = $this->normalizeOptionalInt($request->request->get('brandId'));
         $isPublished = $this->normalizeBoolean($request->request->get('isPublished', '1'));
         $isFeaturedHome = $this->normalizeBoolean($request->request->get('isFeaturedHome', false));
         $slugValue = $request->request->get('slug');
         $slug = $slugValue !== null && $slugValue !== '' ? (string) $slugValue : null;
         $imageAlt = $request->request->get('imageAlt');
-        $brandValue = $request->request->get('brand');
-        $brand = is_string($brandValue) && trim($brandValue) !== '' ? trim($brandValue) : null;
         $variantGroupValue = $request->request->get('variantGroup');
         $variantGroup = is_string($variantGroupValue) && trim($variantGroupValue) !== '' ? trim($variantGroupValue) : null;
         $releaseYear = $this->normalizeOptionalInt($request->request->get('releaseYear'));
@@ -73,7 +74,6 @@ class CreateProductController extends AbstractController
         $priceCents = $this->normalizePriceToCents($priceRaw);
         $sellingType = (string) ($request->request->get('sellingType', 'sale'));
 
-        // Discounts
         $discountEnabled = $this->normalizeBoolean($request->request->get('discountEnabled', false));
         $discountType = $request->request->get('discountType');
         $discountValueRaw = $request->request->get('discountValue');
@@ -89,12 +89,12 @@ class CreateProductController extends AbstractController
             if ($discountTypeNorm === 'percent') {
                 $discountValue = (int) round((float) str_replace(',', '.', (string) $discountValueRaw));
             } elseif ($discountTypeNorm === 'fixed') {
-                // convert euros to cents
                 $discountValue = $this->normalizePriceToCents($discountValueRaw);
             }
         }
 
-        $discountStartsAt = null; $discountEndsAt = null;
+        $discountStartsAt = null;
+        $discountEndsAt = null;
         if (is_string($discountStartsAtRaw) && $discountStartsAtRaw !== '') {
             $discountStartsAt = new \DateTimeImmutable($discountStartsAtRaw);
         }
@@ -110,6 +110,14 @@ class CreateProductController extends AbstractController
 
         if ($category === null) {
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $brand = null;
+        if ($brandId !== null) {
+            $brand = $this->brandRepository->find($brandId);
+            if ($brand === null) {
+                return ApiResponse::error('Marque introuvable.', Response::HTTP_NOT_FOUND);
+            }
         }
 
         $galleryPayload = $request->files->get('gallery', []);

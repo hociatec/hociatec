@@ -38,6 +38,15 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult() !== null;
     }
 
+    public function findOneByEmailInsensitive(string $email): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('LOWER(u.email) = LOWER(:email)')
+            ->setParameter('email', $email)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function existsByEmailExcludingUser(string $email, int $userId): bool
     {
         return $this->createQueryBuilder('u')
@@ -64,6 +73,15 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.verificationToken = :token')
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneByPasswordResetToken(string $token): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.passwordResetToken = :token')
             ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();

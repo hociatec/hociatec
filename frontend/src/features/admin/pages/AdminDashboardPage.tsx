@@ -20,12 +20,12 @@ interface Section {
 const sections: Section[] = [
   {
     id: 'prestations',
-    title: 'Prestations et creneaux',
-    subtitle: 'Gerez vos services et vos horaires.',
+    title: 'Rendez-vous et prestations',
+    subtitle: 'Prestations réservables, durées, tarifs et créneaux de rendez-vous.',
     links: [
       {
         to: '/admin/appointments/prestations',
-        title: 'Lister les prestations',
+        title: 'Prestations de rendez-vous',
         icon: <Layers3 className="h-6 w-6 text-brand-400" />,
       },
       {
@@ -35,7 +35,7 @@ const sections: Section[] = [
       },
       {
         to: '/admin/appointments/schedule',
-        title: 'Configurer les creneaux',
+        title: 'Configurer les créneaux',
         icon: <CalendarDays className="h-6 w-6 text-brand-400" />,
       },
     ],
@@ -60,16 +60,26 @@ const sections: Section[] = [
   {
     id: 'catalogue',
     title: 'Catalogue produits',
-    subtitle: 'Gerez vos categories et vos produits.',
+    subtitle: 'Gérez vos catégories, vos marques et vos produits.',
     links: [
       {
         to: '/admin/catalog/categories',
-        title: 'Lister les categories',
+        title: 'Lister les catégories',
         icon: <Layers3 className="h-6 w-6 text-brand-400" />,
       },
       {
         to: '/admin/catalog/categories/new',
-        title: 'Ajouter une categorie',
+        title: 'Ajouter une catégorie',
+        icon: <Plus className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/catalog/brands',
+        title: 'Lister les marques',
+        icon: <Layers3 className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/catalog/brands/new',
+        title: 'Ajouter une marque',
         icon: <Plus className="h-6 w-6 text-brand-400" />,
       },
       {
@@ -85,9 +95,31 @@ const sections: Section[] = [
     ],
   },
   {
+    id: 'services',
+    title: 'Services',
+    subtitle: 'Catalogue autonome des offres et interventions proposées par Hociatec.',
+    links: [
+      {
+        to: '/admin/services',
+        title: 'Catalogue services',
+        icon: <Layers3 className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/services/new',
+        title: 'Nouveau service',
+        icon: <Plus className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/services',
+        title: 'Voir la page services',
+        icon: <ArrowRight className="h-6 w-6 text-brand-400" />,
+      },
+    ],
+  },
+  {
     id: 'devis',
     title: 'Devis',
-    subtitle: 'Gerez vos devis et votre catalogue de services.',
+    subtitle: 'Création, suivi et gestion des devis. Les devis peuvent intégrer des services du catalogue.',
     links: [
       {
         to: '/admin/quotes',
@@ -97,16 +129,6 @@ const sections: Section[] = [
       {
         to: '/devis/nouveau',
         title: 'Créer un devis (espace client)',
-        icon: <Plus className="h-6 w-6 text-brand-400" />,
-      },
-      {
-        to: '/admin/quotes/services',
-        title: 'Services (catalogue)',
-        icon: <Layers3 className="h-6 w-6 text-brand-400" />,
-      },
-      {
-        to: '/admin/quotes/services/new',
-        title: 'Nouveau service',
         icon: <Plus className="h-6 w-6 text-brand-400" />,
       },
     ],
@@ -126,7 +148,7 @@ const sections: Section[] = [
   {
     id: 'commandes',
     title: 'Commandes',
-    subtitle: 'Gerez les commandes clients et leurs statuts.',
+    subtitle: 'Gérez les commandes clients et leurs statuts.',
     links: [
       {
         to: '/admin/orders',
@@ -150,7 +172,7 @@ export const AdminDashboardPage = () => {
           Tableau de bord
         </h1>
         <p className="mt-5 text-base text-slate-300">
-          Accedez rapidement a vos outils de gestion.
+          Accédez rapidement à vos outils de gestion. Les prestations pilotent les rendez-vous. Les services et les devis sont gérés séparément.
         </p>
       </header>
 

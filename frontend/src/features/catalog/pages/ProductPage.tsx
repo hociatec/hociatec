@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { fetchProductReviews, fetchPublicProduct, fetchPublicProducts, type CatalogProduct, type ProductPublicReview } from '../api';
@@ -34,6 +34,11 @@ const formatDate = (value: string) => {
   });
 };
 
+const buildVariantGroupKey = (product: CatalogProduct) =>
+  product.variantGroup?.trim() ||
+  product.name.replace(/\s*\([^)]*\)\s*$/u, '').replace(/\s*\([^)]*\)\s*$/u, '').trim() ||
+  product.sku;
+
 export const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -55,12 +60,10 @@ export const ProductPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteAction, setFavoriteAction] = useState<'idle' | 'saving'>('idle');
   const isAuthenticated = authStatus === 'authenticated';
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedStorage, setSelectedStorage] = useState<string | null>(null);
-
-  const extractBaseProductName = useCallback((value: string) => value.replace(/\s*\([^)]*\)\s*$/u, '').replace(/\s*\([^)]*\)\s*$/u, '').trim(), []);
-
-  const canonicalUrl = slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
+  const preserveVariantTransitionRef = useRef(false);
+  const pendingVariantSlugRef = useRef<string | null>(null);
+  const previousSlidesSignatureRef = useRef<string>('');
+  const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
   const productStructuredData = product
     ? {
         '@context': 'https://schema.org',
@@ -80,6 +83,33 @@ export const ProductPage = () => {
         },
       }
     : undefined;
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+
+    return () => {
+      window.history.scrollRestoration = previousRestoration;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!slug) {
+      return;
+    }
+
+    if (preserveVariantTransitionRef.current) {
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
+  }, [slug]);
 
   useDocumentTitle(product ? `${product.name} - Catalogue` : 'Produit - Catalogue');
   useMetaTags({
@@ -119,17 +149,49 @@ export const ProductPage = () => {
 
   useEffect(() => {
     if (!slug) return;
+
+    if (pendingVariantSlugRef.current === slug) {
+      pendingVariantSlugRef.current = null;
+      setLoading(false);
+      setError(null);
+      preserveVariantTransitionRef.current = false;
+      return;
+    }
+
+    if (product?.slug === slug) {
+      setLoading(false);
+      setError(null);
+      preserveVariantTransitionRef.current = false;
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     void fetchPublicProduct(slug)
-      .then((result) => setProduct(result))
+      .then((result) => {
+        setProduct(result);
+        preserveVariantTransitionRef.current = false;
+      })
       .catch((err: Error) => setError(err.message || 'Produit introuvable.'))
-      .finally(() => setLoading(false));
-  }, [slug]);
+      .finally(() => {
+        setLoading(false);
+        preserveVariantTransitionRef.current = false;
+      });
+  }, [slug, product?.slug]);
 
   useEffect(() => {
-    setActiveSlide(0);
+    if (!product) {
+      return;
+    }
+
+    if (preserveVariantTransitionRef.current) {
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }
   }, [product?.id]);
 
   useEffect(() => {
@@ -148,12 +210,10 @@ export const ProductPage = () => {
   useEffect(() => {
     if (!product) {
       setColorVariants([]);
-      setSelectedColor(null);
-      setSelectedStorage(null);
       return;
     }
 
-    const variantGroup = product.variantGroup?.trim() || extractBaseProductName(product.name);
+    const variantGroup = buildVariantGroupKey(product);
 
     void fetchPublicProducts({
       category: product.category.slug,
@@ -162,24 +222,13 @@ export const ProductPage = () => {
     })
       .then((items) => {
         const variants = items.filter(
-          (item) => (item.variantGroup?.trim() || extractBaseProductName(item.name)) === variantGroup,
+          (item) => buildVariantGroupKey(item) === variantGroup,
         );
         setColorVariants(variants.length > 0 ? variants : [product]);
       })
       .catch(() => setColorVariants([product]));
-  }, [
-    product,
-    extractBaseProductName,
-  ]);
+  }, [product]);
 
-  useEffect(() => {
-    if (!product) {
-      return;
-    }
-
-    setSelectedColor(product.color ?? null);
-    setSelectedStorage(product.storageCapacity ?? null);
-  }, [product?.id]);
 
   useEffect(() => {
     if (!product?.id || !isAuthenticated) {
@@ -211,18 +260,6 @@ export const ProductPage = () => {
     };
   }, [isAuthenticated, product?.id]);
 
-  useEffect(() => {
-    if (!product || product.gallery.length <= 1) {
-      return;
-    }
-
-    const interval = window.setInterval(() => {
-      setActiveSlide((previous) => (previous + 1) % product.gallery.length);
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, [product]);
-
   const slides =
     product && product.gallery.length > 0
       ? product.gallery
@@ -236,6 +273,19 @@ export const ProductPage = () => {
             },
           ]
         : [];
+
+  useEffect(() => {
+    const signature = slides.map((slide) => slide.url).join('|');
+    const previousSignature = previousSlidesSignatureRef.current;
+
+    if (signature === previousSignature) {
+      setActiveSlide((previous) => (slides.length === 0 ? 0 : Math.min(previous, slides.length - 1)));
+      return;
+    }
+
+    previousSlidesSignatureRef.current = signature;
+    setActiveSlide(0);
+  }, [slides]);
 
   const productDates = useMemo(() => {
     if (!product) return null;
@@ -255,80 +305,87 @@ export const ProductPage = () => {
         ? 'Retirer des favoris'
         : 'Ajouter aux favoris';
   const favoriteButtonDisabled = favoriteAction === 'saving' || favoriteStatus === 'loading';
-  const availableColors = useMemo(() => {
-    const map = new Map<string, { product: CatalogProduct; stock: number }>();
+  const variantOptions = useMemo(
+    () =>
+      [...colorVariants]
+        .sort((left, right) => {
+          const leftPosition = left.variantPosition ?? Number.MAX_SAFE_INTEGER;
+          const rightPosition = right.variantPosition ?? Number.MAX_SAFE_INTEGER;
 
-    for (const item of colorVariants) {
-      const key = item.color?.trim() || 'default';
-      const existing = map.get(key);
-      if (!existing) {
-        map.set(key, { product: item, stock: item.stock });
-      } else {
-        existing.stock += item.stock;
-      }
-    }
+          if (leftPosition !== rightPosition) {
+            return leftPosition - rightPosition;
+          }
 
-    return Array.from(map.entries()).map(([key, item]) => ({
-      key,
-      label: item.product.color ?? 'Couleur par défaut',
-      product: item.product,
-      stock: item.stock,
-      active: item.product.id === product?.id,
-    }));
-  }, [colorVariants, product?.id]);
+          return left.id - right.id;
+        })
+        .map((variant) => {
+          const storage = variant.storageCapacity?.trim() || null;
+          const color = variant.color?.trim() || null;
+          const attributes = [storage, color].filter((value): value is string => Boolean(value));
+          const title = color ?? storage ?? variant.name;
+          const subtitle =
+            storage && color
+              ? `${storage} • ${color}`
+              : attributes.length > 0
+                ? attributes.join(' • ')
+                : 'Version disponible';
 
-  const availableStorages = useMemo(() => {
-    const map = new Map<string, { product: CatalogProduct; stock: number }>();
-
-    for (const item of colorVariants) {
-      const key = item.storageCapacity?.trim() || 'default';
-      const existing = map.get(key);
-      if (!existing) {
-        map.set(key, { product: item, stock: item.stock });
-      } else {
-        existing.stock += item.stock;
-      }
-    }
-
-    return Array.from(map.entries()).map(([key, item]) => ({
-      key,
-      label: item.product.storageCapacity ?? 'Stockage par défaut',
-      product: item.product,
-      stock: item.stock,
-      active: item.product.id === product?.id,
-    }));
-  }, [colorVariants, product?.id]);
-
-  const findVariant = useCallback(
-    (color?: string | null, storageCapacity?: string | null) => {
-      const matches = colorVariants.find((variant) => {
-        const variantColor = variant.color?.trim() || null;
-        const variantStorage = variant.storageCapacity?.trim() || null;
-        return (
-          (color === undefined || color === null || variantColor === color) &&
-          (storageCapacity === undefined || storageCapacity === null || variantStorage === storageCapacity)
-        );
-      });
-
-      if (matches) {
-        return matches;
-      }
-
-      if (color !== undefined && color !== null) {
-        return colorVariants.find((variant) => (variant.color?.trim() || null) === color) ?? null;
-      }
-
-      if (storageCapacity !== undefined && storageCapacity !== null) {
-        return (
-          colorVariants.find((variant) => (variant.storageCapacity?.trim() || null) === storageCapacity) ??
-          null
-        );
-      }
-
-      return null;
-    },
+          return {
+            id: variant.id,
+            slug: variant.slug,
+            title,
+            subtitle,
+            storage,
+            color,
+            priceLabel: `${formatPrice(variant.priceCents)}${variant.sellingType === 'rental' ? ' / mois' : ''}`,
+            stockLabel:
+              variant.stock > 0
+                ? `${variant.stock} en stock`
+                : 'Indisponible',
+            isAvailable: variant.stock > 0,
+          };
+        }),
     [colorVariants],
   );
+  const variantGroups = useMemo(() => {
+    const groups = new Map<string, typeof variantOptions>();
+
+    variantOptions.forEach((variant) => {
+      const key = variant.storage ?? 'Autres versions';
+      const items = groups.get(key) ?? [];
+      items.push(variant);
+      groups.set(key, items);
+    });
+
+    return Array.from(groups.entries()).map(([storage, items]) => ({
+      storage,
+      items: items.sort((left, right) => left.title.localeCompare(right.title, 'fr')),
+    }));
+  }, [variantOptions]);
+
+  const handleVariantChange = (variantId: string) => {
+    const target = colorVariants.find((variant) => variant.id === Number(variantId));
+
+    if (!target || target.id === product?.id) {
+      return;
+    }
+
+    preserveVariantTransitionRef.current = true;
+    pendingVariantSlugRef.current = target.slug;
+    setProduct(target);
+    setLoading(false);
+    setError(null);
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    void navigate(`/catalogue/produits/${target.slug}`, {
+      state: {
+        preserveScroll: true,
+      },
+    });
+  };
 
   const handleAddFavorite = () => {
     if (!product) {
@@ -516,66 +573,34 @@ export const ProductPage = () => {
                   </Link>
                 )}
               </div>
-              {availableColors.length > 0 && (
+              {variantOptions.length > 1 && (
                 <div className="catalog-detail-variant-picker">
-                  <strong>Couleur</strong>
-                  <div className="catalog-detail-variant-picker__options">
-                    {availableColors.map((variant) => (
-                      <button
-                        key={variant.product.id}
-                        type="button"
-                        className={`catalog-detail-variant-picker__option${variant.active ? ' is-active' : ''}`}
-                        onClick={() => {
-                          if (!variant.active) {
-                            const target = findVariant(variant.label === 'Couleur par défaut' ? null : variant.label, selectedStorage);
-                            navigate(`/catalogue/produits/${target?.slug ?? variant.product.slug}`);
-                          }
-                        }}
-                        disabled={variant.stock <= 0}
-                        title={
-                          variant.stock <= 0
-                            ? `${variant.label} indisponible`
-                            : `${variant.label} · ${variant.stock} en stock`
-                        }
-                        aria-pressed={variant.active}
-                        aria-label={`${variant.label}${variant.stock > 0 ? `, ${variant.stock} en stock` : ', indisponible'}`}
-                      >
-                        {variant.label}
-                        <span className="catalog-detail-variant-picker__stock">
-                          {variant.stock > 0 ? `${variant.stock}` : '0'}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {availableStorages.length > 0 && (
-                <div className="catalog-detail-variant-picker">
-                  <strong>Stockage</strong>
-                  <div className="catalog-detail-variant-picker__options">
-                    {availableStorages.map((variant) => (
-                      <button
-                        key={variant.product.id}
-                        type="button"
-                        className={`catalog-detail-variant-picker__option${variant.active ? ' is-active' : ''}`}
-                        onClick={() => {
-                          const target = findVariant(selectedColor, variant.label === 'Stockage par défaut' ? null : variant.label);
-                          navigate(`/catalogue/produits/${target?.slug ?? variant.product.slug}`);
-                        }}
-                        disabled={variant.stock <= 0}
-                        title={
-                          variant.stock <= 0
-                            ? `${variant.label} indisponible`
-                            : `${variant.label} · ${variant.stock} en stock`
-                        }
-                        aria-pressed={variant.active}
-                        aria-label={`${variant.label}${variant.stock > 0 ? `, ${variant.stock} en stock` : ', indisponible'}`}
-                      >
-                        {variant.label}
-                        <span className="catalog-detail-variant-picker__stock">
-                          {variant.stock > 0 ? `${variant.stock}` : '0'}
-                        </span>
-                      </button>
+                  <strong>Choisir une variante</strong>
+                  <div className="catalog-detail-variant-groups" aria-label="Variantes du produit">
+                    {variantGroups.map((group) => (
+                      <section key={group.storage} className="catalog-detail-variant-group">
+                        <h3 className="catalog-detail-variant-group__title">{group.storage}</h3>
+                        <div className="catalog-detail-variant-picker__grid" role="list">
+                          {group.items.map((variant) => (
+                            <button
+                              key={variant.id}
+                              type="button"
+                              className={`catalog-detail-variant-card${variant.id === product.id ? ' is-active' : ''}`}
+                              onClick={() => handleVariantChange(String(variant.id))}
+                              aria-pressed={variant.id === product.id}
+                            >
+                              <span className="catalog-detail-variant-card__title">
+                                {variant.title}
+                              </span>
+                              <span className="catalog-detail-variant-card__footer">
+                                <span className="catalog-detail-variant-card__price">
+                                  ({variant.priceLabel})
+                                </span>
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 </div>

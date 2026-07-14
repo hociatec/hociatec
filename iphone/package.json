@@ -1,0 +1,49 @@
+{
+  "name": "iphone",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "dependencies": {
+    "expo": "~57.0.4",
+    "expo-constants": "~57.0.3",
+    "expo-dev-client": "^57.0.5",
+    "expo-font": "~57.0.0",
+    "expo-linking": "~57.0.2",
+    "expo-router": "~57.0.4",
+    "expo-splash-screen": "~57.0.2",
+    "expo-status-bar": "~57.0.0",
+    "expo-symbols": "~57.0.0",
+    "expo-web-browser": "~57.0.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-reanimated": "4.5.0",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "start:dev-client": "expo start --dev-client",
+    "doctor": "npx expo-doctor",
+    "eas:login": "npx eas-cli@latest login",
+    "eas:whoami": "npx eas-cli@latest whoami",
+    "eas:configure": "npx eas-cli@latest build:configure",
+    "build:ios:development": "npx eas-cli@latest build --platform ios --profile development",
+    "build:ios:preview": "npx eas-cli@latest build --platform ios --profile preview",
+    "build:ios:production": "npx eas-cli@latest build --platform ios --profile production",
+    "start:local": "mkdir -p .expo/dev .tmp/expo-home .tmp/expo-tmp && mv .expo/dev/logs .expo/dev/logs.stale 2>/dev/null || true && mv .expo/types .expo/types.stale 2>/dev/null || true && mkdir -p .expo/dev/logs .expo/types && HOME=$(pwd)/.tmp/expo-home TMPDIR=$(pwd)/.tmp/expo-tmp EXPO_NO_TELEMETRY=1 expo start",
+    "start:local:dev-client": "mkdir -p .expo/dev .tmp/expo-home .tmp/expo-tmp && mv .expo/dev/logs .expo/dev/logs.stale 2>/dev/null || true && mv .expo/types .expo/types.stale 2>/dev/null || true && mkdir -p .expo/dev/logs .expo/types && HOME=$(pwd)/.tmp/expo-home TMPDIR=$(pwd)/.tmp/expo-tmp EXPO_NO_TELEMETRY=1 expo start --dev-client",
+    "android": "expo start --android",
+    "android:local": "mkdir -p .expo/dev .tmp/expo-home .tmp/expo-tmp && mv .expo/dev/logs .expo/dev/logs.stale 2>/dev/null || true && mv .expo/types .expo/types.stale 2>/dev/null || true && mkdir -p .expo/dev/logs .expo/types && HOME=$(pwd)/.tmp/expo-home TMPDIR=$(pwd)/.tmp/expo-tmp EXPO_NO_TELEMETRY=1 expo start --android",
+    "ios": "expo start --ios",
+    "ios:local": "mkdir -p .expo/dev .tmp/expo-home .tmp/expo-tmp && mv .expo/dev/logs .expo/dev/logs.stale 2>/dev/null || true && mv .expo/types .expo/types.stale 2>/dev/null || true && mkdir -p .expo/dev/logs .expo/types && HOME=$(pwd)/.tmp/expo-home TMPDIR=$(pwd)/.tmp/expo-tmp EXPO_NO_TELEMETRY=1 expo start --ios",
+    "web": "expo start --web",
+    "web:local": "mkdir -p .expo/dev .tmp/expo-home .tmp/expo-tmp && mv .expo/dev/logs .expo/dev/logs.stale 2>/dev/null || true && mv .expo/types .expo/types.stale 2>/dev/null || true && mkdir -p .expo/dev/logs .expo/types && HOME=$(pwd)/.tmp/expo-home TMPDIR=$(pwd)/.tmp/expo-tmp EXPO_NO_TELEMETRY=1 expo start --web"
+  },
+  "private": true
+}

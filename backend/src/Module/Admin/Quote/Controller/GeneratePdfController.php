@@ -38,7 +38,7 @@ class GeneratePdfController extends AbstractController
             $pdf = $this->pdfService->render($quote, $totals);
         } catch (\Throwable $e) {
             return ApiResponse::error(
-                'Generation PDF indisponible: installer dompdf/dompdf.',
+                'Génération PDF accessible indisponible.',
                 Response::HTTP_NOT_IMPLEMENTED,
                 [$e->getMessage()]
             );

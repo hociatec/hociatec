@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Contact\Controller;
 
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -13,8 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -23,6 +24,7 @@ class ContactController extends AbstractController
 {
     public function __construct(
         private readonly MailerInterface $mailer,
+        private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
         #[Autowire(service: 'limiter.contact_public')]
@@ -34,10 +36,9 @@ class ContactController extends AbstractController
     {
         $payload = json_decode($request->getContent(), true);
         if (!is_array($payload)) {
-            return ApiResponse::error('Invalid JSON payload.', JsonResponse::HTTP_BAD_REQUEST);
+            return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Rate limit by IP to limiter abuse
         $limiter = $this->contactLimiter->create($request->getClientIp() ?? 'anon');
         $limit = $limiter->consume(1);
         if (!$limit->isAccepted()) {
@@ -47,7 +48,6 @@ class ContactController extends AbstractController
             );
         }
 
-        // Trim incoming strings to avoid blank/space-only payloads
         $payload = array_map(
             static fn ($value) => is_string($value) ? trim($value) : $value,
             $payload
@@ -67,53 +67,85 @@ class ContactController extends AbstractController
                 $errors[] = sprintf('%s: %s', $violation->getPropertyPath(), $violation->getMessage());
             }
 
-            return ApiResponse::error('Validation failed.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $errors);
+            return ApiResponse::error('Validation des donnees echouee.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $errors);
         }
 
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
         $to = $_ENV['CONTACT_RECIPIENT'] ?? $from;
-
-        $email = (new Email())
-            ->from(new Address($from, 'Hociatec'))
-            ->to(new Address($to, 'Hociatec Contact'))
-            ->replyTo(new Address($payload['email'], $payload['name']))
-            ->subject('[Contact] ' . $payload['subject'])
-            ->html(
-                '<p><strong>Nom:</strong> ' . htmlspecialchars($payload['name']) . '</p>' .
-                '<p><strong>Email:</strong> ' . htmlspecialchars($payload['email']) . '</p>' .
-                '<p><strong>Message:</strong></p>' .
-                '<p>' . nl2br(htmlspecialchars($payload['message'])) . '</p>'
-            );
+        $contactBody =
+            "Nom : {$payload['name']}\n" .
+            "E-mail : {$payload['email']}\n" .
+            "Sujet : {$payload['subject']}\n\n" .
+            $payload['message'];
 
         try {
-            $this->mailer->send($email);
-        } catch (\Throwable $e) {
-            $this->logger->error('Contact email send failed', ['exception' => $e]);
-
-            return ApiResponse::error(
-                "Impossible d'envoyer le message pour le moment.",
-                JsonResponse::HTTP_SERVICE_UNAVAILABLE
+            $this->ovhRoundcubeMailer->send(
+                $to,
+                '[Contact] ' . $payload['subject'],
+                $contactBody,
+                $payload['email']
             );
+        } catch (\Throwable $e) {
+            $this->logger->warning('Contact email send failed with OVH Roundcube primary transport', ['exception' => $e]);
+
+            try {
+                $email = (new Email())
+                    ->from(new Address($from, 'Hociatec'))
+                    ->to(new Address($to, 'Hociatec Contact'))
+                    ->replyTo(new Address($payload['email'], $payload['name']))
+                    ->subject('[Contact] ' . $payload['subject'])
+                    ->html(
+                        '<p><strong>Nom :</strong> ' . htmlspecialchars($payload['name']) . '</p>' .
+                        '<p><strong>E-mail :</strong> ' . htmlspecialchars($payload['email']) . '</p>' .
+                        '<p><strong>Message :</strong></p>' .
+                        '<p>' . nl2br(htmlspecialchars($payload['message'])) . '</p>'
+                    );
+
+                $this->mailer->send($email);
+            } catch (\Throwable $fallbackException) {
+                $this->logger->error('Contact email send failed with SMTP fallback', ['exception' => $fallbackException]);
+
+                return ApiResponse::error(
+                    "Impossible d'envoyer le message pour le moment.",
+                    JsonResponse::HTTP_SERVICE_UNAVAILABLE
+                );
+            }
         }
 
-        // Send an acknowledgement to the sender (non-blocking)
         try {
-            $ack = (new Email())
-                ->from(new Address($from, 'Hociatec'))
-                ->to(new Address($payload['email'], $payload['name']))
-                ->subject('Merci de nous avoir contactés')
-                ->html(
-                    '<p>Bonjour ' . htmlspecialchars($payload['name']) . ',</p>' .
-                    '<p>Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.</p>' .
-                    '<p>Résumé de votre message:</p>' .
-                    '<blockquote style="border-left:4px solid #ddd;padding-left:8px;color:#444">' .
-                    nl2br(htmlspecialchars($payload['message'])) .
-                    '</blockquote>' .
-                    '<p>Cet email est automatique, merci de ne pas y répondre. Nous reviendrons vers vous dès que possible.</p>'
-                );
-            $this->mailer->send($ack);
+            $ackBody =
+                "Bonjour {$payload['name']},\n\n" .
+                "Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.\n\n" .
+                "Résumé de votre message :\n" .
+                $payload['message'] . "\n\n" .
+                "Cet e-mail est automatique, merci de ne pas y répondre.";
+
+            $this->ovhRoundcubeMailer->send(
+                $payload['email'],
+                'Merci de nous avoir contactés',
+                $ackBody
+            );
         } catch (\Throwable $e) {
-            $this->logger->warning('Contact acknowledgement send failed', ['exception' => $e]);
+            $this->logger->warning('Contact acknowledgement send failed with OVH Roundcube primary transport', ['exception' => $e]);
+
+            try {
+                $ack = (new Email())
+                    ->from(new Address($from, 'Hociatec'))
+                    ->to(new Address($payload['email'], $payload['name']))
+                    ->subject('Merci de nous avoir contactés')
+                    ->html(
+                        '<p>Bonjour ' . htmlspecialchars($payload['name']) . ',</p>' .
+                        '<p>Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.</p>' .
+                        '<p>Résumé de votre message :</p>' .
+                        '<blockquote style="border-left:4px solid #ddd;padding-left:8px;color:#444">' .
+                        nl2br(htmlspecialchars($payload['message'])) .
+                        '</blockquote>' .
+                        '<p>Cet e-mail est automatique, merci de ne pas y répondre. Nous reviendrons vers vous dès que possible.</p>'
+                    );
+                $this->mailer->send($ack);
+            } catch (\Throwable $fallbackException) {
+                $this->logger->warning('Contact acknowledgement send failed with SMTP fallback', ['exception' => $fallbackException]);
+            }
         }
 
         return ApiResponse::success(['message' => 'Votre message a été envoyé.']);

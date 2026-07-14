@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
   createPrestation,
@@ -29,7 +29,7 @@ export const PrestationFormPage = () => {
   const isEdit = Boolean(prestationId);
   const navigate = useNavigate();
 
-  useDocumentTitle(isEdit ? 'Admin - Modifier une prestation' : 'Admin - Nouvelle prestation');
+  useDocumentTitle(isEdit ? 'Admin - Modifier une prestation de rendez-vous' : 'Admin - Nouvelle prestation de rendez-vous');
 
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<PrestationFormState>(emptyForm);
@@ -96,10 +96,10 @@ export const PrestationFormPage = () => {
     try {
       if (isEdit) {
         await updatePrestation(Number(prestationId), payload);
-        setMessage('Prestation mise a jour.');
+        setMessage('Prestation mise à jour.');
       } else {
         await createPrestation(payload);
-        setMessage('Prestation creee.');
+        setMessage('Prestation créée.');
         setForm(emptyForm);
       }
 
@@ -115,23 +115,23 @@ export const PrestationFormPage = () => {
 
   if (guardLoading) {
     return (
-      <PageContainer title={isEdit ? 'Modifier une prestation' : 'Nouvelle prestation'}>
-        <p className="muted">Verification des droits...</p>
+      <PageContainer title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}>
+        <p className="muted">Vérification des droits...</p>
       </PageContainer>
     );
   }
 
   if (!isAdmin) {
     return (
-      <PageContainer title={isEdit ? 'Modifier une prestation' : 'Nouvelle prestation'}>
-        <div className="register-form__alert">Acces restreint aux administrateurs.</div>
+      <PageContainer title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}>
+        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
       </PageContainer>
     );
   }
 
   return (
     <PageContainer
-      title={isEdit ? 'Modifier une prestation' : 'Nouvelle prestation'}
+      title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}
       headerActions={
         <button
           type="button"
@@ -143,6 +143,13 @@ export const PrestationFormPage = () => {
         </button>
       }
     >
+      <p className="mb-4 text-sm text-slate-600">
+        Cette fiche sert à la réservation de rendez-vous. Pour gérer le catalogue de services autonome de l’entreprise, utilisez{' '}
+        <Link to="/admin/services" className="font-semibold underline">
+          Services
+        </Link>
+        .
+      </p>
       {error && <div className="register-form__alert">{error}</div>}
       {message && (
         <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
@@ -175,8 +182,10 @@ export const PrestationFormPage = () => {
               type="number"
               min={5}
               step={5}
+              inputMode="numeric"
               value={form.durationMinutes}
               onChange={handleChange('durationMinutes')}
+              required
             />
           </label>
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Catalog\Service\CatalogFormatter;
@@ -26,6 +27,7 @@ class UpdateProductController extends AbstractController
         private readonly ProductRepository $productRepository,
         private readonly ProductService $productService,
         private readonly CategoryRepository $categoryRepository,
+        private readonly BrandRepository $brandRepository,
     ) {
     }
 
@@ -44,13 +46,10 @@ class UpdateProductController extends AbstractController
         $priceRaw = $request->request->get('price', $product->getPriceCents() / 100);
         $stock = (int) $request->request->get('stock', $product->getStock());
         $isPublished = $this->normalizeBoolean($request->request->get('isPublished', $product->isPublished()));
-        $isFeaturedHome = $this->normalizeBoolean(
-            $request->request->get('isFeaturedHome', $product->isFeaturedHome())
-        );
+        $isFeaturedHome = $this->normalizeBoolean($request->request->get('isFeaturedHome', $product->isFeaturedHome()));
         $categoryId = (int) $request->request->get('categoryId', $product->getCategory()->getId());
+        $brandId = $this->normalizeOptionalInt($request->request->get('brandId', $product->getBrandId()));
         $imageAlt = $request->request->get('imageAlt', $product->getImageAlt());
-        $brandValue = $request->request->get('brand', $product->getBrand());
-        $brand = is_string($brandValue) && trim($brandValue) !== '' ? trim($brandValue) : null;
         $variantGroupValue = $request->request->get('variantGroup', $product->getVariantGroup());
         $variantGroup = is_string($variantGroupValue) && trim($variantGroupValue) !== '' ? trim($variantGroupValue) : null;
         $releaseYear = $this->normalizeOptionalInt($request->request->get('releaseYear', $product->getReleaseYear()));
@@ -60,6 +59,24 @@ class UpdateProductController extends AbstractController
         $memoryRam = is_string($memoryRamValue) && trim($memoryRamValue) !== '' ? trim($memoryRamValue) : null;
         $colorValue = $request->request->get('color', $product->getColor());
         $color = is_string($colorValue) && trim($colorValue) !== '' ? trim($colorValue) : null;
+        $variantsValue = $request->request->get('variants');
+        $variantDefinitions = [];
+        if (is_string($variantsValue) && trim($variantsValue) !== '') {
+            $decodedVariants = json_decode($variantsValue, true);
+            if (is_array($decodedVariants)) {
+                foreach ($decodedVariants as $variantRow) {
+                    if (!is_array($variantRow)) {
+                        continue;
+                    }
+
+                    $variantDefinitions[] = [
+                        'color' => isset($variantRow['color']) && is_string($variantRow['color']) ? trim($variantRow['color']) : null,
+                        'storageCapacity' => isset($variantRow['storageCapacity']) && is_string($variantRow['storageCapacity']) ? trim($variantRow['storageCapacity']) : null,
+                        'stock' => isset($variantRow['stock']) ? (int) $variantRow['stock'] : 0,
+                    ];
+                }
+            }
+        }
         $removeImage = $this->normalizeBoolean($request->request->get('removeImage', false));
         $slugValue = $request->request->get('slug', $product->getSlug());
         $slug = $slugValue !== null && $slugValue !== '' ? (string) $slugValue : null;
@@ -67,7 +84,6 @@ class UpdateProductController extends AbstractController
 
         $priceCents = $this->normalizePriceToCents($priceRaw);
 
-        // Discounts
         $discountEnabled = $this->normalizeBoolean($request->request->get('discountEnabled', false));
         $discountType = $request->request->get('discountType');
         $discountValueRaw = $request->request->get('discountValue');
@@ -87,7 +103,8 @@ class UpdateProductController extends AbstractController
             }
         }
 
-        $discountStartsAt = null; $discountEndsAt = null;
+        $discountStartsAt = null;
+        $discountEndsAt = null;
         if (is_string($discountStartsAtRaw) && $discountStartsAtRaw !== '') {
             $discountStartsAt = new \DateTimeImmutable($discountStartsAtRaw);
         }
@@ -103,6 +120,14 @@ class UpdateProductController extends AbstractController
 
         if ($category === null) {
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $brand = null;
+        if ($brandId !== null) {
+            $brand = $this->brandRepository->find($brandId);
+            if ($brand === null) {
+                return ApiResponse::error('Marque introuvable.', Response::HTTP_NOT_FOUND);
+            }
         }
 
         $galleryPayload = $request->files->get('gallery', []);
@@ -171,6 +196,7 @@ class UpdateProductController extends AbstractController
                 $storageCapacity,
                 $memoryRam,
                 $color,
+                $variantDefinitions,
                 $discountEnabled,
                 $discountTypeNorm === 'fixed' ? 'fixed_cents' : $discountTypeNorm,
                 $discountValue,

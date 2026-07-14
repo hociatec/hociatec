@@ -22,7 +22,7 @@ export const useCatalogMenu = () => {
         setStatus('ready');
       })
       .catch((err: Error) => {
-        setError(err.message || 'Impossible de charger les categories.');
+        setError(err.message || 'Impossible de charger les catégories.');
         setStatus('error');
       });
   }, [status]);

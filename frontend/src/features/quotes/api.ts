@@ -28,6 +28,8 @@ export interface QuoteInput {
   discountCents?: number;
   shippingCents?: number;
   conditions?: string | null;
+  validFrom?: string | null;
+  validUntil?: string | null;
 }
 
 export const fetchAdminQuotes = async (params?: { q?: string; status?: string }) => {
@@ -71,12 +73,12 @@ export const sendAdminQuoteEmail = async (id: number, to?: string) => {
 };
 
 export const fetchAdminQuoteServices = async () => {
-  const res = await httpClient.get('/api/admin/quotes/services');
+  const res = await httpClient.get('/api/admin/services');
   return (res.data?.data?.items ?? []) as any[];
 };
 
 export const fetchAdminQuoteService = async (id: number) => {
-  const res = await httpClient.get(`/api/admin/quotes/services/${id}`);
+  const res = await httpClient.get(`/api/admin/services/${id}`);
   return res.data?.data as any;
 };
 
@@ -84,6 +86,8 @@ export const createAdminQuoteService = async (payload: {
   title: string;
   description?: string;
   unit?: string;
+  durationValue?: number | '';
+  durationUnit?: 'hour' | 'day' | '';
   price: number; // euros
   vatRate: number; // percent
 }) => {
@@ -91,9 +95,11 @@ export const createAdminQuoteService = async (payload: {
   form.append('title', payload.title);
   if (payload.description) form.append('description', payload.description);
   if (payload.unit) form.append('unit', payload.unit);
+  if (payload.durationValue !== undefined) form.append('durationValue', String(payload.durationValue));
+  if (payload.durationUnit) form.append('durationUnit', payload.durationUnit);
   form.append('price', String(payload.price));
   form.append('vatRate', String(payload.vatRate));
-  const res = await httpClient.post('/api/admin/quotes/services', form, {
+  const res = await httpClient.post('/api/admin/services', form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -103,13 +109,21 @@ export const createAdminQuoteService = async (payload: {
 
 export const updateAdminQuoteService = async (
   id: number,
-  payload: Partial<{ title: string; description: string; unit: string; price: number; vatRate: number }>,
+  payload: Partial<{
+    title: string;
+    description: string;
+    unit: string;
+    durationValue: number | '';
+    durationUnit: 'hour' | 'day' | '';
+    price: number;
+    vatRate: number;
+  }>,
 ) => {
   const form = new FormData();
   for (const [k, v] of Object.entries(payload)) {
     if (v !== undefined && v !== null) form.append(k, String(v));
   }
-  const res = await httpClient.post(`/api/admin/quotes/services/${id}`, form, {
+  const res = await httpClient.post(`/api/admin/services/${id}`, form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -118,7 +132,7 @@ export const updateAdminQuoteService = async (
 };
 
 export const deleteAdminQuoteService = async (id: number) => {
-  const res = await httpClient.delete(`/api/admin/quotes/services/${id}`);
+  const res = await httpClient.delete(`/api/admin/services/${id}`);
   return res.data?.data as any;
 };
 
@@ -128,13 +142,28 @@ export const createPublicQuote = async (payload: QuoteInput) => {
 };
 
 export const fetchPublicQuoteServices = async () => {
-  const res = await httpClient.get('/api/public/quotes/services');
+  const res = await httpClient.get('/api/public/services');
   return (res.data?.data?.items ?? []) as any[];
+};
+
+export const fetchPublicQuoteService = async (id: number) => {
+  const res = await httpClient.get(`/api/public/services/${id}`);
+  return res.data?.data as any;
 };
 
 export const fetchMyQuotes = async () => {
   const res = await httpClient.get('/api/quotes/me');
   return (res.data?.data?.items ?? []) as any[];
+};
+
+export const fetchMyQuote = async (id: number) => {
+  const res = await httpClient.get(`/api/quotes/me/${id}`);
+  return res.data?.data as any;
+};
+
+export const generateMyQuotePdf = async (id: number) => {
+  const res = await httpClient.post(`/api/quotes/me/${id}/pdf`, null, { responseType: 'blob' });
+  return res.data as Blob;
 };
 
 export const deleteMyQuote = async (id: number) => {

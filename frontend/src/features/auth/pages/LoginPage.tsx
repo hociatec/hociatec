@@ -9,9 +9,12 @@ import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
 
+import './LoginPage.css';
+
 interface LoginFormState {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 interface LocationState {
@@ -19,6 +22,7 @@ interface LocationState {
 }
 
 export const LoginPage = () => {
+  const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
   useDocumentTitle('Connexion');
 
   const navigate = useNavigate();
@@ -29,15 +33,28 @@ export const LoginPage = () => {
   const [form, setForm] = useState<LoginFormState>({
     email: '',
     password: '',
+    rememberMe: false,
   });
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const parsedErrorDetails = useMemo(
     () => (errorDetails.length > 0 ? [...errorDetails] : []),
     [errorDetails],
   );
+
+  useEffect(() => {
+    try {
+      const rememberedEmail = window.localStorage.getItem(REMEMBERED_EMAIL_KEY);
+      if (rememberedEmail) {
+        setForm((prev) => ({ ...prev, email: rememberedEmail, rememberMe: true }));
+      }
+    } catch {
+      /* noop */
+    }
+  }, [REMEMBERED_EMAIL_KEY]);
 
   useEffect(() => {
     const state = location.state as LocationState | null;
@@ -49,8 +66,8 @@ export const LoginPage = () => {
   }, [location.state]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, checked, type } = event.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -60,6 +77,16 @@ export const LoginPage = () => {
     setNotice(null);
 
     try {
+      try {
+        if (form.rememberMe) {
+          window.localStorage.setItem(REMEMBERED_EMAIL_KEY, form.email.trim());
+        } else {
+          window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+      } catch {
+        /* noop */
+      }
+
       await login(form);
       const state: any = location.state as any;
       const redirectTo = (state?.redirectTo as string | undefined)
@@ -138,16 +165,39 @@ export const LoginPage = () => {
           </div>
           <div className="form-field">
             <label htmlFor="password">Mot de passe</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
+            <div className="login-form__password-wrapper">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+              <button
+                type="button"
+                className="login-form__password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showPassword ? 'Masquer' : 'Afficher'}
+              </button>
+            </div>
+            <Link to="/forgot-password" className="login-form__help-link">
+              Mot de passe oublié ?
+            </Link>
           </div>
+          <label className="login-form__remember">
+            <input
+              id="rememberMe"
+              name="rememberMe"
+              type="checkbox"
+              checked={form.rememberMe}
+              onChange={handleChange}
+            />
+            <span>Se souvenir de moi</span>
+          </label>
           <button className="button" type="submit" disabled={status === 'loading'}>
             {status === 'loading' ? 'Connexion en cours...' : 'Se connecter'}
           </button>
