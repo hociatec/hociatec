@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+﻿import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Accordion,
@@ -9,28 +9,29 @@ import {
 import { SiteLayout } from "../../../shared/components/SiteLayout";
 import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
 import { useMetaTags } from "@/shared/hooks/useMetaTags";
-import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api";
+import { fetchPublicProducts, shareProductByEmail, type CatalogProduct } from "@/features/catalog/api";
 import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
 import { ProductCartActions } from "@/features/cart/components/ProductCartActions";
 import { Mail, Facebook } from "lucide-react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
+import { useToast } from "@/shared/components/ui/toast";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const HomePage = () => {
-  useDocumentTitle("Le numérique à taille humaine");
+  useDocumentTitle("Le numÃ©rique Ã  taille humaine");
   useMetaTags({
-    title: 'Hociatec — Le numérique à taille humaine',
+    title: 'Hociatec â€” Le numÃ©rique Ã  taille humaine',
     description:
-      'Vente/location de matériel, formation, conception, audits. Une approche accessible, durable et pensée pour vous.',
+      'Vente/location de matÃ©riel, formation, conception, audits. Une approche accessible, durable et pensÃ©e pour vous.',
     type: 'website',
     canonicalUrl: SITE_URL,
     structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
   });
 
-  // Ferme la section ouverte quand on appuie sur Échap
+  // Ferme la section ouverte quand on appuie sur Ã‰chap
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -51,11 +52,13 @@ export const HomePage = () => {
   const [shareFeedback, setShareFeedback] = useState<
     { productId: number; type: 'error' | 'info'; message: string } | null
   >(null);
+  const [shareSubmitting, setShareSubmitting] = useState(false);
   const shareInputRef = useRef<HTMLInputElement | null>(null);
   const shareCancelButtonRef = useRef<HTMLButtonElement | null>(null);
   const shareTriggerRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const shareDialogTitleId = useId();
   const shareDialogDescriptionId = useId();
+  const { show: showToast } = useToast();
 
   const closeShareDialog = () => {
     const productId = shareDialogProduct?.id ?? null;
@@ -135,11 +138,10 @@ export const HomePage = () => {
   }, [shareDialogProduct]);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const buildProductUrl = (slug: string) => `${origin}/catalogue/produits/${slug}`;
   const activeShareProduct = shareDialogProduct;
   const shareDialogEmail = activeShareProduct ? shareEmails[activeShareProduct.id] ?? '' : '';
 
-  const handleShareSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleShareSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!activeShareProduct) {
@@ -148,10 +150,6 @@ export const HomePage = () => {
 
     const rawEmail = shareDialogEmail;
     const normalizedEmail = rawEmail.trim();
-    const mailSubject = encodeURIComponent(`Découvrir : ${activeShareProduct.name}`);
-    const mailBody = encodeURIComponent(
-      `${activeShareProduct.shortDescription ?? ''}\r\n\r\n${buildProductUrl(activeShareProduct.slug)}`,
-    );
 
     if (normalizedEmail === '') {
       setShareFeedback({
@@ -171,15 +169,30 @@ export const HomePage = () => {
       return;
     }
 
-    const mailto = `mailto:${encodeURIComponent(normalizedEmail)}?subject=${mailSubject}&body=${mailBody}`;
-    window.location.href = mailto;
-
-    setShareFeedback({
-      productId: activeShareProduct.id,
-      type: 'info',
-      message: 'Votre application de messagerie va s’ouvrir avec le produit prérempli.',
-    });
-    closeShareDialog();
+    try {
+      setShareSubmitting(true);
+      await shareProductByEmail(activeShareProduct.slug, { email: normalizedEmail });
+      setShareFeedback({
+        productId: activeShareProduct.id,
+        type: 'info',
+        message: 'Le produit a ete envoye par e-mail.',
+      });
+      showToast('Le produit a ete envoye par e-mail.', { variant: 'success' });
+      closeShareDialog();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Impossible d'envoyer le produit par e-mail.";
+      setShareFeedback({
+        productId: activeShareProduct.id,
+        type: 'error',
+        message,
+      });
+      showToast(message, { variant: 'error' });
+    } finally {
+      setShareSubmitting(false);
+    }
   };
 
   return (
@@ -188,88 +201,88 @@ export const HomePage = () => {
         {/* HERO */}
         <section className="text-center mx-auto max-w-4xl px-6 mb-12">
           <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900">
-            Hociatec, une entreprise à taille humaine
+            Hociatec, une entreprise Ã  taille humaine
           </h1>
           <p className="mt-4 text-lg text-gray-700">
-            Le numérique, oui — mais accessible, durable et pensé pour vous.
+            Le numÃ©rique, oui â€” mais accessible, durable et pensÃ© pour vous.
           </p>
           <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
-            Vente, reprise, formation, conception, location : Hociatec vous accompagne à chaque étape,
-            que vous soyez particulier ou professionnel. Une approche simple, concrète et humaine
-            pour avancer sereinement dans le monde numérique.
+            Vente, reprise, formation, conception, location : Hociatec vous accompagne Ã  chaque Ã©tape,
+            que vous soyez particulier ou professionnel. Une approche simple, concrÃ¨te et humaine
+            pour avancer sereinement dans le monde numÃ©rique.
           </p>
         </section>
 
         {/* TITRE ACCROCHEUR */}
         <div className="text-center mb-12 px-6">
           <p className="text-3xl md:text-4xl font-bold text-gray-900">
-            Des solutions concrètes pour tous vos besoins numériques
+            Des solutions concrÃ¨tes pour tous vos besoins numÃ©riques
           </p>
           <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
-            Découvrez nos services et choisissez ce qui correspond à vos besoins.
+            DÃ©couvrez nos services et choisissez ce qui correspond Ã  vos besoins.
           </p>
         </div>
 
-        {/* ACCORDÉON DES SERVICES */}
+        {/* ACCORDÃ‰ON DES SERVICES */}
         <section className="mx-auto max-w-4xl px-6">
           <Accordion type="single" collapsible className="space-y-3">
-            {/* 1️⃣ Vente + Reconditionné */}
+            {/* 1ï¸âƒ£ Vente + ReconditionnÃ© */}
             <AccordionItem value="vente-recond-rachat">
               <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Du matériel neuf, reconditionné et revalorisé, sans compromis
+                Du matÃ©riel neuf, reconditionnÃ© et revalorisÃ©, sans compromis
               </AccordionTrigger>
               <AccordionContent className="text-gray-700 leading-relaxed">
-                Chez Hociatec, nous proposons un large choix de matériel informatique : ordinateurs,
-                écrans, composants et accessoires — du neuf, du reconditionné testé et garanti.
-                Chaque produit est sélectionné pour sa fiabilité, ses performances et son impact écologique limité.
+                Chez Hociatec, nous proposons un large choix de matÃ©riel informatique : ordinateurs,
+                Ã©crans, composants et accessoires â€” du neuf, du reconditionnÃ© testÃ© et garanti.
+                Chaque produit est sÃ©lectionnÃ© pour sa fiabilitÃ©, ses performances et son impact Ã©cologique limitÃ©.
                 <br /><br />
-                Nous reprenons également vos anciens appareils pour les remettre à neuf.
-                Ce que nous pouvons réparer, nous le faisons. Ce que nous pouvons réutiliser, nous le revalorisons.
-                Résultat : moins de déchets, plus de durabilité, et un choix responsable sans sacrifier la qualité.
+                Nous reprenons Ã©galement vos anciens appareils pour les remettre Ã  neuf.
+                Ce que nous pouvons rÃ©parer, nous le faisons. Ce que nous pouvons rÃ©utiliser, nous le revalorisons.
+                RÃ©sultat : moins de dÃ©chets, plus de durabilitÃ©, et un choix responsable sans sacrifier la qualitÃ©.
               </AccordionContent>
             </AccordionItem>
 
-            {/* 2️⃣ Formations */}
+            {/* 2ï¸âƒ£ Formations */}
             <AccordionItem value="formations">
               <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Apprenez à maîtriser le numérique
+                Apprenez Ã  maÃ®triser le numÃ©rique
               </AccordionTrigger>
               <AccordionContent className="text-gray-700 leading-relaxed">
-                Que vous soyez novice ou confirmé, nos formations sont conçues pour s’adapter à vous.
-                En individuel ou en petit groupe, sur site ou à distance, nous vous aidons à comprendre
-                et utiliser vos outils numériques au quotidien.
+                Que vous soyez novice ou confirmÃ©, nos formations sont conÃ§ues pour sâ€™adapter Ã  vous.
+                En individuel ou en petit groupe, sur site ou Ã  distance, nous vous aidons Ã  comprendre
+                et utiliser vos outils numÃ©riques au quotidien.
                 <br /><br />
-                Bureautique, cybersécurité, développement, création de site — nos formateurs
-                vous accompagnent pas à pas pour que la technologie devienne un atout, pas une contrainte.
+                Bureautique, cybersÃ©curitÃ©, dÃ©veloppement, crÃ©ation de site â€” nos formateurs
+                vous accompagnent pas Ã  pas pour que la technologie devienne un atout, pas une contrainte.
               </AccordionContent>
             </AccordionItem>
 
-            {/* 3️⃣ Création site / logiciel */}
+            {/* 3ï¸âƒ£ CrÃ©ation site / logiciel */}
             <AccordionItem value="creation">
               <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
                 Concevez vos outils digitaux sur mesure
               </AccordionTrigger>
               <AccordionContent className="text-gray-700 leading-relaxed">
-                Besoin d’un site internet, d’un logiciel professionnel ou d’une application ?
-                Notre équipe développe des solutions sur mesure, évolutives et simples à utiliser.
+                Besoin dâ€™un site internet, dâ€™un logiciel professionnel ou dâ€™une application ?
+                Notre Ã©quipe dÃ©veloppe des solutions sur mesure, Ã©volutives et simples Ã  utiliser.
                 <br /><br />
-                Nous vous accompagnons à chaque étape — conception, développement, mise en ligne
-                et maintenance — avec des conseils clairs et une approche personnalisée.
-                L’objectif : créer des outils utiles, performants et alignés sur vos besoins réels.
+                Nous vous accompagnons Ã  chaque Ã©tape â€” conception, dÃ©veloppement, mise en ligne
+                et maintenance â€” avec des conseils clairs et une approche personnalisÃ©e.
+                Lâ€™objectif : crÃ©er des outils utiles, performants et alignÃ©s sur vos besoins rÃ©els.
               </AccordionContent>
             </AccordionItem>
 
-            {/* 4️⃣ Location */}
+            {/* 4ï¸âƒ£ Location */}
             <AccordionItem value="location">
               <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Louez, testez, évoluez librement
+                Louez, testez, Ã©voluez librement
               </AccordionTrigger>
               <AccordionContent className="text-gray-700 leading-relaxed">
-                Vous avez besoin d’un poste temporaire, d’un ordinateur pour une mission, une formation
-                ou un événement ? Hociatec propose la location de matériel informatique courte ou longue durée.
+                Vous avez besoin dâ€™un poste temporaire, dâ€™un ordinateur pour une mission, une formation
+                ou un Ã©vÃ©nement ? Hociatec propose la location de matÃ©riel informatique courte ou longue durÃ©e.
                 <br /><br />
-                Vous profitez de matériel fiable et configuré selon vos besoins,
-                sans immobiliser votre budget. Une solution souple, économique et accompagnée par notre support technique.
+                Vous profitez de matÃ©riel fiable et configurÃ© selon vos besoins,
+                sans immobiliser votre budget. Une solution souple, Ã©conomique et accompagnÃ©e par notre support technique.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -289,7 +302,7 @@ export const HomePage = () => {
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
               {products.map((product) => {
-                const absoluteUrl = buildProductUrl(product.slug);
+                const absoluteUrl = `${origin}/catalogue/produits/${product.slug}`;
                 const fbShare = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteUrl)}`;
                 const compactSpecs = [
                   product.brand?.trim(),
@@ -298,7 +311,7 @@ export const HomePage = () => {
                   product.color?.trim(),
                 ]
                   .filter(Boolean)
-                  .join(' • ');
+                  .join(' â€¢ ');
 
                 return (
                   <article key={product.id} className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition p-5 flex flex-col gap-4">
@@ -309,14 +322,14 @@ export const HomePage = () => {
                         </Link>
                       </h3>
                       <p className="text-xs text-slate-500 tracking-wide">
-                        Référence produit: <span className="font-semibold">{product.sku}</span>
+                        RÃ©fÃ©rence produit: <span className="font-semibold">{product.sku}</span>
                       </p>
                       <ProductMetaBadges
                         sellingType={product.sellingType}
                         categoryName={product.category.name}
                       />
                       {compactSpecs.length > 0 && (
-                        <p className="catalog-product-card__spec-summary" aria-label="Caractéristiques principales">
+                        <p className="catalog-product-card__spec-summary" aria-label="CaractÃ©ristiques principales">
                           {compactSpecs}
                         </p>
                       )}
@@ -344,7 +357,7 @@ export const HomePage = () => {
                       <span className="text-blue-700 font-bold">
                         {(product.priceCents / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                       </span>
-                      <div className="flex items-center gap-2" role="toolbar" aria-label="Actions du produit">
+                      <div className="flex items-center gap-2" aria-label="Actions du produit">
                         <ProductCartActions product={product} />
                         <button
                           type="button"
@@ -382,7 +395,7 @@ export const HomePage = () => {
             <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
               <p className="text-lg font-semibold text-slate-900">Aucun produit mis en avant pour le moment</p>
               <p className="mt-2 text-sm text-slate-600">
-                Les produits tendances réapparaîtront ici dès que le catalogue sera réalimenté.
+                Les produits tendances rÃ©apparaÃ®tront ici dÃ¨s que le catalogue sera rÃ©alimentÃ©.
               </p>
             </div>
           )}
@@ -413,11 +426,11 @@ export const HomePage = () => {
                     Partager {activeShareProduct.name}
                   </h2>
                   <p id={shareDialogDescriptionId} className="text-sm text-slate-600">
-                    Renseignez une adresse e-mail. Le bouton envoyer ouvrira votre application de messagerie avec le produit prérempli.
+                    Renseignez une adresse e-mail. Le bouton envoyer transmettra le produit par e-mail.
                   </p>
                 </header>
 
-                <form onSubmit={handleShareSubmit} className="mt-6 space-y-4">
+                <form onSubmit={handleShareSubmit} className="mt-6 space-y-4" aria-busy={shareSubmitting}>
                   <div className="space-y-2">
                     <label htmlFor="product-share-email" className="block text-sm font-medium text-slate-800">
                       Adresse e-mail du destinataire
@@ -441,9 +454,10 @@ export const HomePage = () => {
                       placeholder="ami@exemple.com"
                       className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                       required
+                      disabled={shareSubmitting}
                     />
                     <p id="product-share-email-hint" className="text-sm text-slate-500">
-                      Le message sera prérempli avec le nom du produit et son lien direct.
+                      Le message sera prÃ©rempli avec le nom du produit et son lien direct.
                     </p>
                     <p
                       id="product-share-email-feedback"
@@ -464,15 +478,17 @@ export const HomePage = () => {
                       ref={shareCancelButtonRef}
                       type="button"
                       onClick={closeShareDialog}
+                      disabled={shareSubmitting}
                       className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
                     >
                       Annuler
                     </button>
                     <button
                       type="submit"
+                      disabled={shareSubmitting}
                       className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
                     >
-                      Envoyer par e-mail
+                      {shareSubmitting ? 'Envoi en cours...' : 'Envoyer par e-mail'}
                     </button>
                   </div>
                 </form>
@@ -484,4 +500,6 @@ export const HomePage = () => {
     </SiteLayout>
   );
 };
+
+
 

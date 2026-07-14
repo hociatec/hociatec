@@ -82,6 +82,10 @@ export interface ProductPublicReview {
   };
 }
 
+export interface ShareProductEmailPayload {
+  email: string;
+}
+
 export interface CategoryWithProducts {
   category: CatalogCategory;
   products: CatalogProduct[];
@@ -167,6 +171,19 @@ export const fetchPublicProduct = async (slug: string) => {
   }
 
   throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
+};
+
+export const shareProductByEmail = async (slug: string, payload: ShareProductEmailPayload) => {
+  const { data } = await httpClient.post<ApiResponse<{ sent: boolean; to: string; message: string }>>(
+    `/api/public/catalog/products/${slug}/share`,
+    payload,
+  );
+
+  if (data.status === 'success') {
+    return data.data;
+  }
+
+  throw new Error(extractErrorMessage(data, "Impossible d'envoyer le produit par e-mail."));
 };
 
 export const fetchProductReviews = async (
