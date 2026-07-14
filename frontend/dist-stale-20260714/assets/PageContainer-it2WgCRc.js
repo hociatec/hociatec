@@ -1,0 +1,1 @@
+import{j as s}from"./index-Dm_zEHQp.js";const d=({title:a,headerActions:e,children:c})=>s.jsx("div",{className:"app-background",children:s.jsxs("div",{className:"card",children:[s.jsxs("header",{className:"card__header",children:[s.jsx("h1",{className:"card__title",children:a}),e]}),s.jsx("section",{className:"card__content",children:c})]})});export{d as P};

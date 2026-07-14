@@ -1,0 +1,1 @@
+import{j as a}from"./index-Dm_zEHQp.js";const n=({value:l,onChange:r,options:s,ariaLabel:t})=>a.jsx("select",{"aria-label":t,value:l,onChange:e=>r(e.target.value),style:{borderRadius:999,padding:"10px 18px"},children:s.map(e=>a.jsx("option",{value:e.value,children:e.label},e.value))});export{n as S};
