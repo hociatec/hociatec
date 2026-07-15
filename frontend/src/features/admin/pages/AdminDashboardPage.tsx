@@ -1,5 +1,6 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Layers3, Package, Plus, FileText, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CalendarDays, FileText, House, Layers3, Mail, Package, Plus, ShieldCheck } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -17,7 +18,34 @@ interface Section {
   links: SectionLink[];
 }
 
+const ADMIN_DEFAULT_TAB_KEY = 'hociatec.admin.dashboard.defaultTab';
+
+const readDefaultAdminTab = () => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(ADMIN_DEFAULT_TAB_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const writeDefaultAdminTab = (value: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(ADMIN_DEFAULT_TAB_KEY, value);
+  } catch {
+    /* noop */
+  }
+};
+
 const sections: Section[] = [
+  {
+    id: 'home',
+    title: 'Accueil',
+    subtitle: 'Point d’entrée admin et réglages rapides.',
+    links: [
+    ],
+  },
   {
     id: 'prestations',
     title: 'Rendez-vous et prestations',
@@ -37,23 +65,6 @@ const sections: Section[] = [
         to: '/admin/appointments/schedule',
         title: 'Configurer les créneaux',
         icon: <CalendarDays className="h-6 w-6 text-brand-400" />,
-      },
-    ],
-  },
-  {
-    id: 'rendezvous',
-    title: 'Rendez-vous',
-    subtitle: 'Consultez et planifiez vos rendez-vous.',
-    links: [
-      {
-        to: '/appointments/me',
-        title: 'Lister les rendez-vous',
-        icon: <CalendarDays className="h-6 w-6 text-brand-400" />,
-      },
-      {
-        to: '/appointments/book',
-        title: 'Ajouter un rendez-vous',
-        icon: <Plus className="h-6 w-6 text-brand-400" />,
       },
     ],
   },
@@ -117,6 +128,23 @@ const sections: Section[] = [
     ],
   },
   {
+    id: 'marketing',
+    title: 'Marketing',
+    subtitle: 'Campagnes email ciblées, templates par scénario et relances clients.',
+    links: [
+      {
+        to: '/admin/marketing',
+        title: 'Campagnes email',
+        icon: <Mail className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/marketing/templates',
+        title: 'Templates email',
+        icon: <FileText className="h-6 w-6 text-brand-400" />,
+      },
+    ],
+  },
+  {
     id: 'devis',
     title: 'Devis',
     subtitle: 'Création, suivi et gestion des devis. Les devis peuvent intégrer des services du catalogue.',
@@ -161,6 +189,21 @@ const sections: Section[] = [
 
 export const AdminDashboardPage = () => {
   useDocumentTitle('Administration');
+  const [defaultSection, setDefaultSection] = useState<string>(sections[0]?.id ?? 'home');
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = readDefaultAdminTab();
+    if (saved && sections.some((section) => section.id === saved)) {
+      setDefaultSection(saved);
+    }
+  }, []);
+
+  const sectionTitleMap = useMemo(
+    () =>
+      Object.fromEntries(sections.map((section) => [section.id, section.title])),
+    [],
+  );
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-12">
@@ -172,12 +215,17 @@ export const AdminDashboardPage = () => {
           Tableau de bord
         </h1>
         <p className="mt-5 text-base text-slate-300">
-          Accédez rapidement à vos outils de gestion. Les prestations pilotent les rendez-vous. Les services et les devis sont gérés séparément.
+          Centralisez la gestion de votre activité, pilotez vos contenus, suivez vos opérations et accédez rapidement à vos outils d’administration.
         </p>
       </header>
 
-      <Tabs defaultValue={sections[0]?.id ?? ''} className="w-full">
-        <TabsList className="mx-auto mb-10 grid w-full max-w-4xl grid-cols-1 gap-3 sm:grid-cols-4">
+      <Tabs
+        defaultValue={sections[0]?.id ?? 'home'}
+        value={defaultSection}
+        onValueChange={setDefaultSection}
+        className="w-full"
+      >
+        <TabsList className="mx-auto mb-10 grid w-full max-w-5xl grid-cols-1 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {sections.map((section) => (
             <TabsTrigger
               key={section.id}
@@ -195,6 +243,35 @@ export const AdminDashboardPage = () => {
               <h2 className="text-2xl font-semibold text-white">{section.title}</h2>
               <p className="mt-2 text-slate-400">{section.subtitle}</p>
             </div>
+
+            {section.id === 'home' && (
+              <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <House className="h-6 w-6 text-brand-400" />
+                  <h3 className="text-lg font-semibold text-white">Onglet par défaut</h3>
+                </div>
+                <p className="mb-4 text-sm text-slate-400">
+                  Choisissez l’onglet affiché automatiquement à l’ouverture du dashboard admin sur ce navigateur.
+                </p>
+                <select
+                  className="register-form__input"
+                  value={defaultSection}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setDefaultSection(next);
+                    writeDefaultAdminTab(next);
+                    setSavedMessage(`Onglet par défaut enregistré: ${sectionTitleMap[next] ?? next}.`);
+                  }}
+                >
+                  {sections.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title}
+                    </option>
+                  ))}
+                </select>
+                {savedMessage && <p className="mt-3 text-sm text-emerald-300">{savedMessage}</p>}
+              </div>
+            )}
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {section.links.map((link) => (
