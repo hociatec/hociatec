@@ -120,18 +120,18 @@ export const OrdersListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Client</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th scope="col">#</th>
+                <th scope="col">Client</th>
+                <th scope="col">Date</th>
+                <th scope="col">Total</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id}>
-                  <td>{o.number}</td>
+                  <th scope="row">{o.number}</th>
                   <td>{o.shipping?.name}</td>
                   <td>{new Date(o.createdAt).toLocaleDateString('fr-FR')}</td>
                   <td>{formatPrice(o.totalPriceCents)}</td>
@@ -153,6 +153,7 @@ export const OrdersListPage = () => {
                             options,
                           });
                         }}
+                        aria-label={`Modifier le statut de la commande ${o.number}`}
                       >
                         Modifier le statut
                       </button>

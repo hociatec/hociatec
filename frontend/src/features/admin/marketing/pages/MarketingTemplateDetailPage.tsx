@@ -63,7 +63,7 @@ export const MarketingTemplateDetailPage = () => {
           {template && (
             <>
               <Link
-                to={`/admin/marketing?templateId=${template.id}`}
+                to={`/admin/marketing/new?templateId=${template.id}`}
                 className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
               >
                 Utiliser en campagne
@@ -164,7 +164,7 @@ export const MarketingTemplateDetailPage = () => {
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-slate-900">Actions rapides</h2>
                 <div className="mt-4 space-y-3 text-sm">
-                  <Link to={`/admin/marketing?templateId=${template.id}`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
+                  <Link to={`/admin/marketing/new?templateId=${template.id}`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
                     Créer une campagne avec ce template
                   </Link>
                   <Link to={`/admin/marketing/templates/${template.id}/edit`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">

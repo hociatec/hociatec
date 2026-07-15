@@ -32,6 +32,20 @@ export interface Cart {
   totalPriceCents: number;
   appliedPromotion: CartPromotion | null;
   eligiblePromotions: CartPromotion[];
+  appliedVoucher: {
+    id: number;
+    name: string;
+    code: string;
+    description?: string | null;
+    discountType: 'percent' | 'fixed_cents';
+    discountValue: number;
+    discountAmountCents: number;
+    isActive: boolean;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  } | null;
+  enteredVoucherCode?: string | null;
+  voucherCodeStatus?: 'none' | 'applied' | 'invalid' | 'ineligible';
   updatedAt: string;
 }
 

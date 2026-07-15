@@ -48,7 +48,10 @@ export const ProductsListPage = () => {
   }, [isAdmin]);
 
   const handleDelete = async (productId: number) => {
-    if (!window.confirm('Supprimer ce produit ?')) {
+    const product = products.find((item) => item.id === productId);
+    const productLabel = product ? `"${product.name}"` : 'ce produit';
+
+    if (!window.confirm(`Supprimer ${productLabel} ?`)) {
       return;
     }
 
@@ -157,18 +160,18 @@ export const ProductsListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Produit</th>
-                <th>Nombre de variantes</th>
-                <th>Stock total</th>
-                <th>Actions</th>
+                <th scope="col">Produit</th>
+                <th scope="col">Nombre de variantes</th>
+                <th scope="col">Stock total</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
                 <tr key={product.id}>
-                  <td>
+                  <th scope="row">
                     <strong className="catalog-admin-product-cell__title">{product.name}</strong>
-                  </td>
+                  </th>
                   <td>{product.variantsCount ?? 1}</td>
                   <td>{product.totalStock ?? product.stock}</td>
                   <td>
@@ -178,12 +181,14 @@ export const ProductsListPage = () => {
                         className="catalog-admin-actions__edit"
                         target="_blank"
                         rel="noreferrer"
+                        aria-label={`Voir le produit ${product.name}`}
                       >
                         Voir
                       </Link>
                       <Link
                         to={`/admin/catalog/products/${product.id}/edit`}
                         className="catalog-admin-actions__edit"
+                        aria-label={`Modifier le produit ${product.name}`}
                       >
                         Modifier
                       </Link>
@@ -191,6 +196,7 @@ export const ProductsListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(product.id)}
+                        aria-label={`Supprimer le produit ${product.name}`}
                       >
                         Supprimer
                       </button>

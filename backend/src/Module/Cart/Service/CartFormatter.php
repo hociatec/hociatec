@@ -8,11 +8,15 @@ use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Promotion\Service\PromotionEngine;
+use App\Module\Voucher\Service\VoucherEngine;
 use App\Module\User\Entity\User;
 
 final class CartFormatter
 {
-    public function __construct(private readonly PromotionEngine $promotionEngine)
+    public function __construct(
+        private readonly PromotionEngine $promotionEngine,
+        private readonly VoucherEngine $voucherEngine,
+    )
     {
     }
 
@@ -47,7 +51,17 @@ final class CartFormatter
             $totalQuantity += $quantity;
         }
 
-        $summary = $this->promotionEngine->calculateCartSummary($cart, $user);
+        $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
+        $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user);
+        $summary = ($cart->getVoucherCode() !== null && ($voucherSummary['voucherCodeStatus'] ?? 'none') === 'applied')
+            ? $voucherSummary
+            : [
+                'subtotalPriceCents' => $promotionSummary['subtotalPriceCents'],
+                'discountAmountCents' => $promotionSummary['discountAmountCents'],
+                'totalPriceCents' => $promotionSummary['totalPriceCents'],
+                'appliedPromotion' => $promotionSummary['appliedPromotion'],
+                'eligiblePromotions' => $promotionSummary['eligiblePromotions'],
+            ];
 
         return [
             'token' => $cart->getToken(),
@@ -56,8 +70,11 @@ final class CartFormatter
             'subtotalPriceCents' => $summary['subtotalPriceCents'],
             'discountAmountCents' => $summary['discountAmountCents'],
             'totalPriceCents' => $summary['totalPriceCents'],
-            'appliedPromotion' => $summary['appliedPromotion'],
-            'eligiblePromotions' => $summary['eligiblePromotions'],
+            'appliedPromotion' => $promotionSummary['appliedPromotion'],
+            'eligiblePromotions' => $promotionSummary['eligiblePromotions'],
+            'appliedVoucher' => $voucherSummary['appliedVoucher'] ?? null,
+            'enteredVoucherCode' => $voucherSummary['enteredVoucherCode'] ?? null,
+            'voucherCodeStatus' => $voucherSummary['voucherCodeStatus'] ?? 'none',
             'updatedAt' => $cart->getUpdatedAt()->format(DATE_ATOM),
         ];
     }

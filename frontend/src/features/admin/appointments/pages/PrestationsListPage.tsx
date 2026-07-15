@@ -39,7 +39,10 @@ export const PrestationsListPage = () => {
   }, [isAdmin]);
 
   const handleDelete = async (prestationId: number) => {
-    if (!window.confirm('Supprimer cette prestation ?')) {
+    const prestation = prestations.find((item) => item.id === prestationId);
+    const prestationLabel = prestation ? `"${prestation.name}"` : 'cette prestation';
+
+    if (!window.confirm(`Supprimer ${prestationLabel} ?`)) {
       return;
     }
 
@@ -119,16 +122,16 @@ export const PrestationsListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Durée</th>
-                <th>Prix</th>
-                <th>Actions</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Durée</th>
+                <th scope="col">Prix</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {prestations.map((prestation) => (
                 <tr key={prestation.id}>
-                  <td>{prestation.name}</td>
+                  <th scope="row">{prestation.name}</th>
                   <td>{prestation.durationMinutes} min</td>
                   <td>{formatPrice(prestation.priceCents)}</td>
                   <td>
@@ -136,6 +139,7 @@ export const PrestationsListPage = () => {
                       <Link
                         to={`/admin/appointments/prestations/${prestation.id}/edit`}
                         className="catalog-admin-actions__edit"
+                        aria-label={`Modifier la prestation ${prestation.name}`}
                       >
                         Modifier
                       </Link>
@@ -143,6 +147,7 @@ export const PrestationsListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(prestation.id)}
+                        aria-label={`Supprimer la prestation ${prestation.name}`}
                       >
                         Supprimer
                       </button>

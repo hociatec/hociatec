@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { deletePromotion, fetchPromotionAudiences, fetchPromotions, type Promotion } from '@/features/admin/promotions/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 const formatDiscount = (promotion: Promotion) =>
@@ -13,6 +14,7 @@ const formatDiscount = (promotion: Promotion) =>
 
 export const PromotionsListPage = () => {
   useDocumentTitle('Admin - Promotions');
+  const toast = useToast();
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [audiences, setAudiences] = useState<Record<string, { label: string; description: string }>>({});
@@ -50,12 +52,18 @@ export const PromotionsListPage = () => {
   }, [promotions, query, statusFilter]);
 
   const handleDelete = async (promotionId: number) => {
-    if (!window.confirm('Supprimer cette promotion ?')) return;
+    const promotion = promotions.find((item) => item.id === promotionId);
+    const promotionLabel = promotion ? `"${promotion.name}" (${promotion.slug})` : 'cette promotion';
+
+    if (!window.confirm(`Supprimer ${promotionLabel} ?`)) return;
     try {
       await deletePromotion(promotionId);
       setPromotions((prev) => prev.filter((item) => item.id !== promotionId));
+      toast.show('Promotion supprimée.', { variant: 'success' });
     } catch (err: any) {
-      setError(err?.message ?? 'Suppression impossible.');
+      const message = err?.message ?? 'Suppression impossible.';
+      setError(message);
+      toast.show(message, { variant: 'error' });
     }
   };
 
@@ -70,17 +78,19 @@ export const PromotionsListPage = () => {
     <PageContainer
       title="Promotions"
       headerActions={
-        <Link
-          to="/admin/promotions/new"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
-          Nouvelle promotion
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            to="/admin/promotions/new"
+            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            Nouvelle promotion
+          </Link>
+        </div>
       }
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-slate-600">
-          Créez des remises automatiques par montant ou pourcentage et ciblez des audiences précises.
+          Créez des remises automatiques.
         </p>
         <p className="text-sm text-slate-500">
           La meilleure promotion éligible est appliquée automatiquement dans le panier.
@@ -117,21 +127,21 @@ export const PromotionsListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Remise</th>
-                <th>Audience</th>
-                <th>Statut</th>
-                <th>Validité</th>
-                <th>Actions</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Remise</th>
+                <th scope="col">Audience</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Validité</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredPromotions.map((promotion) => (
                 <tr key={promotion.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{promotion.name}</strong>
                     <div className="muted">{promotion.slug}</div>
-                  </td>
+                  </th>
                   <td>{formatDiscount(promotion)}</td>
                   <td>{audiences[promotion.audienceKey]?.label ?? promotion.audienceKey}</td>
                   <td>{promotion.isActive ? 'Active' : 'Inactive'}</td>
@@ -142,10 +152,19 @@ export const PromotionsListPage = () => {
                   </td>
                   <td>
                     <div className="catalog-admin-actions">
-                      <Link to={`/admin/promotions/${promotion.id}/edit`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/promotions/${promotion.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                        aria-label={`Modifier la promotion ${promotion.name}`}
+                      >
                         Modifier
                       </Link>
-                      <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(promotion.id)}>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(promotion.id)}
+                        aria-label={`Supprimer la promotion ${promotion.name}`}
+                      >
                         Supprimer
                       </button>
                     </div>

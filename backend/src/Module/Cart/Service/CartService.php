@@ -8,6 +8,8 @@ use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\Catalog\Entity\Product;
+use App\Module\Voucher\Service\VoucherEngine;
+use App\Module\User\Entity\User;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
@@ -17,6 +19,7 @@ final class CartService
     public function __construct(
         private readonly CartSessionRepository $cartSessions,
         private readonly EntityManagerInterface $entityManager,
+        private readonly VoucherEngine $voucherEngine,
     ) {
     }
 
@@ -181,6 +184,37 @@ final class CartService
         return $cart;
     }
 
+    public function applyVoucherCode(?string $token, string $voucherCode, ?User $user = null): CartSession
+    {
+        $cart = $this->resolveCartForMutation($token, $user);
+
+        $summary = $this->voucherEngine->calculateCartSummary($cart, $user, $voucherCode);
+        $status = (string) ($summary['voucherCodeStatus'] ?? 'none');
+        if ($status !== 'applied') {
+            if ($status === 'ineligible') {
+                throw new InvalidArgumentException('Ce bon de réduction n\'est pas éligible pour ce panier.');
+            }
+
+            throw new InvalidArgumentException('Bon de réduction invalide.');
+        }
+
+        $cart->setVoucherCode($voucherCode);
+        $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        return $cart;
+    }
+
+    public function clearVoucherCode(?string $token, ?User $user = null): CartSession
+    {
+        $cart = $this->resolveCartForMutation($token, $user);
+        $cart->setVoucherCode(null);
+        $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        return $cart;
+    }
+
     public function findCartByToken(?string $token): ?CartSession
     {
         if ($token === null || trim($token) === '') {
@@ -201,6 +235,37 @@ final class CartService
         $this->entityManager->flush();
 
         return $cart;
+    }
+
+    private function createCartForUser(User $user): CartSession
+    {
+        $cart = $this->createCart();
+        $cart->setUser($user);
+        $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        return $cart;
+    }
+
+    private function resolveCartForMutation(?string $token, ?User $user): CartSession
+    {
+        if ($user !== null) {
+            $userCart = $this->cartSessions->findOneByUser($user);
+            if ($userCart !== null) {
+                return $userCart;
+            }
+        }
+
+        $cart = $this->findCartByToken($token);
+        if ($cart !== null) {
+            return $cart;
+        }
+
+        if ($user !== null) {
+            return $this->createCartForUser($user);
+        }
+
+        return $this->createCart();
     }
 
     private function determineRentalMonths(Product $product, ?int $requestedMonths, ?CartItem $existingItem = null): ?int

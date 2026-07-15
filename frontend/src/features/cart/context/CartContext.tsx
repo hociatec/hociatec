@@ -9,11 +9,13 @@ import {
 
 import {
   addCartItem,
+  applyVoucherCode as applyVoucherCodeRequest,
   CartApiError,
+  clearCart as clearCartRequest,
+  clearVoucherCode as clearVoucherCodeRequest,
   fetchCart,
   removeCartItem,
   updateCartItemQuantity,
-  clearCart as clearCartRequest,
 } from '@/features/cart/api';
 import type { Cart, CartStatus } from '@/features/cart/types';
 import {
@@ -39,6 +41,8 @@ interface CartContextValue {
     options?: CartActionOptions,
   ) => Promise<void>;
   clear: () => Promise<void>;
+  applyVoucherCode: (voucherCode: string) => Promise<void>;
+  clearVoucherCode: (cartToken?: string) => Promise<void>;
   refresh: () => Promise<void>;
   isProductInCart: (productId: number, options?: CartActionOptions) => boolean;
   isProductPending: (productId: number) => boolean;
@@ -57,6 +61,8 @@ const defaultValue: CartContextValue = {
   removeItem: rejectedPromise,
   setItemQuantity: rejectedPromise,
   clear: rejectedPromise,
+  applyVoucherCode: rejectedPromise,
+  clearVoucherCode: rejectedPromise,
   refresh: rejectedPromise,
   isProductInCart: () => false,
   isProductPending: () => false,
@@ -89,7 +95,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     const message =
       err instanceof Error
         ? err.message
-        : 'Une erreur est survenue lors de la mise à jour du panier.';
+        : 'Une erreur est survenue lors de la mise Ã  jour du panier.';
 
     if (
       err instanceof CartApiError &&
@@ -219,6 +225,28 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     } finally {
       setIsClearing(false);
     }
+  }, [handleCartError, toast]);
+
+  const applyVoucherCode = useCallback(async (voucherCode: string) => {
+    try {
+      const updatedCart = await applyVoucherCodeRequest(voucherCode);
+      setCart(updatedCart);
+      setError(null);
+    } catch (err) {
+      handleCartError(err);
+      throw err;
+    }
+  }, [handleCartError]);
+
+  const clearVoucherCode = useCallback(async (cartToken?: string) => {
+    try {
+      const updatedCart = await clearVoucherCodeRequest(cartToken);
+      setCart(updatedCart);
+      setError(null);
+    } catch (err) {
+      handleCartError(err);
+      throw err;
+    }
   }, [handleCartError]);
 
   const isProductInCart = useCallback(
@@ -259,6 +287,8 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
       removeItem,
       setItemQuantity,
       clear,
+      applyVoucherCode,
+      clearVoucherCode,
       refresh,
       isProductInCart,
       isProductPending,
@@ -266,7 +296,9 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     }),
     [
       addItem,
+      applyVoucherCode,
       clear,
+      clearVoucherCode,
       cart,
       error,
       isProductInCart,

@@ -197,20 +197,20 @@ export const AdminAuditsListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Numéro</th>
-                <th>Type</th>
-                <th>Statut</th>
-                <th>URL</th>
-                <th>Actions</th>
+                <th scope="col">Numéro</th>
+                <th scope="col">Type</th>
+                <th scope="col">Statut</th>
+                <th scope="col">URL</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {view.map((a) => (
                 <tr key={a.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{a.number}</strong>
                     <div className="muted">{new Date(a.createdAt).toLocaleDateString('fr-FR')}</div>
-                  </td>
+                  </th>
                   <td>{typeLabel(a.type)}</td>
                   <td>{statusLabel(a.status)}</td>
                   <td className="max-w-[320px] truncate">{a.url}</td>
@@ -218,6 +218,7 @@ export const AdminAuditsListPage = () => {
                     <Link
                       className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
                       to={`/admin/audits/${a.id}`}
+                      aria-label={`Ouvrir l'audit ${a.number}`}
                     >
                       Ouvrir
                     </Link>

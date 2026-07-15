@@ -113,8 +113,10 @@ final class PromotionEngine
     {
         $now = new \DateTimeImmutable();
         $eligiblePromotions = [];
-        $bestPromotion = null;
-        $bestDiscount = 0;
+        $bestAutomaticPromotion = null;
+        $bestAutomaticDiscount = 0;
+        $appliedPromotion = null;
+        $appliedDiscount = 0;
         $userStats = $user ? $this->loadUserStats($user) : null;
 
         foreach ($this->promotions->findActiveForDate($now) as $promotion) {
@@ -134,17 +136,22 @@ final class PromotionEngine
 
             $eligiblePromotions[] = $formatted;
 
-            if ($discountAmount > $bestDiscount) {
-                $bestDiscount = $discountAmount;
-                $bestPromotion = $formatted;
+            if ($discountAmount > $bestAutomaticDiscount) {
+                $bestAutomaticDiscount = $discountAmount;
+                $bestAutomaticPromotion = $formatted;
             }
+        }
+
+        if ($appliedPromotion === null) {
+            $appliedPromotion = $bestAutomaticPromotion;
+            $appliedDiscount = $bestAutomaticDiscount;
         }
 
         return [
             'subtotalPriceCents' => $subtotalPriceCents,
-            'discountAmountCents' => $bestDiscount,
-            'totalPriceCents' => max(0, $subtotalPriceCents - $bestDiscount),
-            'appliedPromotion' => $bestPromotion,
+            'discountAmountCents' => $appliedDiscount,
+            'totalPriceCents' => max(0, $subtotalPriceCents - $appliedDiscount),
+            'appliedPromotion' => $appliedPromotion,
             'eligiblePromotions' => $eligiblePromotions,
         ];
     }

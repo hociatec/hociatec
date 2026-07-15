@@ -147,7 +147,7 @@ const sections: Section[] = [
   {
     id: 'promotions',
     title: 'Promotions',
-    subtitle: 'Remises automatiques panier par audience, ancienneté client et montant.',
+    subtitle: 'Remises automatiques panier et accès aux bons de réduction séparés.',
     links: [
       {
         to: '/admin/promotions',
@@ -158,6 +158,11 @@ const sections: Section[] = [
         to: '/admin/promotions/new',
         title: 'Créer une promotion',
         icon: <Plus className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/vouchers',
+        title: 'Bons de réduction',
+        icon: <FileText className="h-6 w-6 text-brand-400" />,
       },
     ],
   },

@@ -11,6 +11,7 @@ import {
   type PromotionPayload,
 } from '@/features/admin/promotions/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type FormState = {
@@ -20,7 +21,7 @@ type FormState = {
   discountType: 'percent' | 'fixed_cents';
   discountValue: string;
   audienceKey: string;
-  minimumCartTotalCents: string;
+  minimumCartTotalEuros: string;
   registeredDays: string;
   minimumOrders: string;
   inactiveDays: string;
@@ -34,9 +35,9 @@ const emptyForm: FormState = {
   slug: '',
   description: '',
   discountType: 'percent',
-  discountValue: '10',
+  discountValue: '',
   audienceKey: 'all_users',
-  minimumCartTotalCents: '0',
+  minimumCartTotalEuros: '0',
   registeredDays: '30',
   minimumOrders: '3',
   inactiveDays: '90',
@@ -45,11 +46,19 @@ const emptyForm: FormState = {
   endsAt: '',
 };
 
+const centsToEuroInput = (value: number) => (value / 100).toFixed(2);
+
+const euroInputToCents = (value: string) => {
+  const normalized = Number.parseFloat(value.replace(',', '.'));
+  return Number.isFinite(normalized) ? Math.max(0, Math.round(normalized * 100)) : 0;
+};
+
 export const PromotionFormPage = () => {
   const { promotionId } = useParams();
   const isEdit = useMemo(() => Boolean(promotionId), [promotionId]);
   useDocumentTitle(isEdit ? 'Admin - Modifier une promotion' : 'Admin - Nouvelle promotion');
   const navigate = useNavigate();
+  const toast = useToast();
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [audiences, setAudiences] = useState<Record<string, PromotionAudienceDefinition>>({});
@@ -72,9 +81,9 @@ export const PromotionFormPage = () => {
           slug: promotion.slug,
           description: promotion.description ?? '',
           discountType: promotion.discountType,
-          discountValue: String(promotion.discountValue),
+          discountValue: promotion.discountType === 'fixed_cents' ? centsToEuroInput(promotion.discountValue) : String(promotion.discountValue),
           audienceKey: promotion.audienceKey,
-          minimumCartTotalCents: String(promotion.criteria.minimumCartTotalCents ?? 0),
+          minimumCartTotalEuros: centsToEuroInput(Number(promotion.criteria.minimumCartTotalCents ?? 0)),
           registeredDays: String(promotion.criteria.registeredDays ?? 30),
           minimumOrders: String(promotion.criteria.minimumOrders ?? 3),
           inactiveDays: String(promotion.criteria.inactiveDays ?? 90),
@@ -83,13 +92,17 @@ export const PromotionFormPage = () => {
           endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '',
         });
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger la promotion.'))
+      .catch((err: any) => {
+        const message = err?.message ?? 'Impossible de charger la promotion.';
+        setError(message);
+        toast.show(message, { variant: 'error' });
+      })
       .finally(() => setInitialLoading(false));
-  }, [isAdmin, isEdit, promotionId]);
+  }, [isAdmin, isEdit, promotionId, toast]);
 
   const payload = useMemo<PromotionPayload>(() => {
     const criteria: Record<string, string | number | boolean> = {
-      minimumCartTotalCents: Number.parseInt(form.minimumCartTotalCents, 10) || 0,
+      minimumCartTotalCents: euroInputToCents(form.minimumCartTotalEuros),
     };
 
     if (form.audienceKey === 'new_users') {
@@ -107,7 +120,9 @@ export const PromotionFormPage = () => {
       slug: form.slug.trim(),
       description: form.description.trim() || null,
       discountType: form.discountType,
-      discountValue: Number.parseInt(form.discountValue, 10) || 0,
+      discountValue: form.discountType === 'fixed_cents'
+        ? euroInputToCents(form.discountValue)
+        : Number.parseInt(form.discountValue, 10) || 0,
       audienceKey: form.audienceKey,
       criteria,
       isActive: form.isActive,
@@ -124,12 +139,16 @@ export const PromotionFormPage = () => {
     try {
       if (isEdit && promotionId) {
         await updatePromotion(Number(promotionId), payload);
+        toast.show('Promotion mise à jour.', { variant: 'success' });
       } else {
         await createPromotion(payload);
+        toast.show('Promotion créée.', { variant: 'success' });
       }
       navigate('/admin/promotions');
     } catch (err: any) {
-      setError(err?.message ?? 'Enregistrement impossible.');
+      const message = err?.message ?? 'Enregistrement impossible.';
+      setError(message);
+      toast.show(message, { variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -182,12 +201,12 @@ export const PromotionFormPage = () => {
               <span className="register-form__label">Type de remise</span>
               <select className="register-form__input" value={form.discountType} onChange={(event) => setForm((prev) => ({ ...prev, discountType: event.target.value as 'percent' | 'fixed_cents' }))}>
                 <option value="percent">Pourcentage</option>
-                <option value="fixed_cents">Montant fixe en centimes</option>
+                <option value="fixed_cents">Montant fixe en euros</option>
               </select>
             </label>
             <label className="register-form__field">
-              <span className="register-form__label">Valeur</span>
-              <input className="register-form__input" type="number" min={1} value={form.discountValue} onChange={(event) => setForm((prev) => ({ ...prev, discountValue: event.target.value }))} />
+              <span className="register-form__label">Valeur {form.discountType === 'percent' ? '(%)' : '(EUR)'}</span>
+              <input className="register-form__input" type="number" min={1} step={form.discountType === 'percent' ? 1 : 0.01} value={form.discountValue} onChange={(event) => setForm((prev) => ({ ...prev, discountValue: event.target.value }))} placeholder={form.discountType === 'percent' ? 'Ex: 10' : 'Ex: 15,00'} />
             </label>
           </div>
 
@@ -210,8 +229,8 @@ export const PromotionFormPage = () => {
           ) : null}
 
           <label className="register-form__field">
-            <span className="register-form__label">Panier minimum en centimes</span>
-            <input className="register-form__input" type="number" min={0} step={100} value={form.minimumCartTotalCents} onChange={(event) => setForm((prev) => ({ ...prev, minimumCartTotalCents: event.target.value }))} />
+            <span className="register-form__label">Panier minimum en euros</span>
+            <input className="register-form__input" type="number" min={0} step={0.01} value={form.minimumCartTotalEuros} onChange={(event) => setForm((prev) => ({ ...prev, minimumCartTotalEuros: event.target.value }))} />
           </label>
 
           {form.audienceKey === 'new_users' && (

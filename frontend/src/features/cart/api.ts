@@ -13,6 +13,7 @@ export type CartErrorCode =
   | 'cart_not_found'
   | 'token_missing'
   | 'product_not_found'
+  | 'voucher_code_missing'
   | 'unknown';
 
 export class CartApiError extends Error {
@@ -58,7 +59,9 @@ const toCartError = (error: unknown, fallback: string): never => {
       const normalized = message.toLowerCase();
       const code = normalized.includes('token')
         ? 'token_missing'
-        : 'unknown';
+        : normalized.includes('bon de réduction') || normalized.includes('bon')
+          ? 'voucher_code_missing'
+          : 'unknown';
       if (code === 'token_missing') {
         clearCartToken();
       }
@@ -231,7 +234,7 @@ export const updateCartItemQuantity = async (
     );
     const cart = handleCartResponse(
       data,
-      'Impossible de mettre � jour la quantit�.',
+      'Impossible de mettre à jour la quantité.',
     );
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
@@ -241,7 +244,7 @@ export const updateCartItemQuantity = async (
   } catch (error) {
     throw toCartError(
       error,
-      'Impossible de mettre � jour la quantit�.',
+      'Impossible de mettre à jour la quantité.',
     );
   }
 };
@@ -259,5 +262,38 @@ export const clearCart = async (): Promise<Cart> => {
     return cart;
   } catch (error) {
     throw toCartError(error, 'Impossible de vider le panier.');
+  }
+};
+
+export const applyVoucherCode = async (voucherCode: string): Promise<Cart> => {
+  try {
+    const { data, headers } = await httpClient.post<ApiResponse<CartPayload>>(
+      '/api/public/cart/voucher-code',
+      { voucherCode },
+    );
+    const cart = handleCartResponse(data, 'Impossible d\'appliquer le bon de réduction.');
+    const headerToken = extractCartTokenFromHeaders(headers);
+    if (typeof headerToken === 'string' && headerToken !== '') {
+      persistCartToken(headerToken);
+    }
+    return cart;
+  } catch (error) {
+    throw toCartError(error, 'Impossible d\'appliquer le bon de réduction.');
+  }
+};
+
+export const clearVoucherCode = async (cartToken?: string): Promise<Cart> => {
+  try {
+    const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart/voucher-code', {
+      params: cartToken ? { cartToken } : undefined,
+    });
+    const cart = handleCartResponse(data, 'Impossible de supprimer le bon de réduction.');
+    const headerToken = extractCartTokenFromHeaders(headers);
+    if (typeof headerToken === 'string' && headerToken !== '') {
+      persistCartToken(headerToken);
+    }
+    return cart;
+  } catch (error) {
+    throw toCartError(error, 'Impossible de supprimer le bon de réduction.');
   }
 };

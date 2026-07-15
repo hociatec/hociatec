@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -22,7 +22,6 @@ const formatPrice = (valueInCents: number) =>
 
 export const OrderDetailPage = () => {
   const { orderId } = useParams();
-  const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
   useDocumentTitle('Détail de la commande');
@@ -56,20 +55,6 @@ export const OrderDetailPage = () => {
         setStatus('error');
       });
   }, [orderId]);
-
-  useEffect(() => {
-    if (!order) return;
-    const targetReview = params.get('review');
-    if (!targetReview) return;
-    const element = document.getElementById(`order-item-${targetReview}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add('ring-2', 'ring-blue-300');
-      window.setTimeout(() => {
-        element.classList.remove('ring-2', 'ring-blue-300');
-      }, 2000);
-    }
-  }, [order, params]);
 
   useEffect(() => {
     setReviewForms({});
@@ -171,7 +156,7 @@ export const OrderDetailPage = () => {
                 </div>
                 {order.appliedPromotion ? (
                   <div className="mt-2 text-sm text-green-700">
-                    Promotion appliquée: {order.appliedPromotion.name}
+                    Réduction appliquée: {order.appliedPromotion.name}
                   </div>
                 ) : null}
               </div>
@@ -269,7 +254,7 @@ export const OrderDetailPage = () => {
                                 </div>
                               ) : it.canReview ? (
                                 <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
-                                  <p className="font-medium mb-2">Donner votre avis</p>
+                                  <p className="font-medium mb-2">Évaluer ce produit</p>
                                   <div className="flex items-center gap-1 mb-3">
                                     {[1, 2, 3, 4, 5].map((score) => (
                                       <button
@@ -285,6 +270,8 @@ export const OrderDetailPage = () => {
                                             success: false,
                                           })
                                         }
+                                        aria-label={`Attribuer ${score} etoile${score > 1 ? 's' : ''} au produit ${it.productName}`}
+                                        aria-pressed={score === form.score}
                                       >
                                         ★
                                       </button>
@@ -311,7 +298,7 @@ export const OrderDetailPage = () => {
                                   )}
                                   {form.success && (
                                     <div className="mt-2 text-sm text-green-700">
-                                      Merci pour votre avis !
+                                      Merci pour votre évaluation !
                                     </div>
                                   )}
                                   <button
@@ -319,6 +306,7 @@ export const OrderDetailPage = () => {
                                     className="register-form__submit mt-3"
                                     onClick={() => void handleSubmitReview(it.orderItemId)}
                                     disabled={form.submitting}
+                                    aria-label={`Envoyer l'evaluation du produit ${it.productName}`}
                                   >
                                     {form.submitting ? 'Envoi...' : 'Envoyer mon avis'}
                                   </button>

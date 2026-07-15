@@ -49,7 +49,10 @@ export const QuotesListPage = () => {
   }, [quotes, fromDate, toDate]);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Supprimer ce devis ?')) return;
+    const quote = quotes.find((item) => item.id === id);
+    const quoteLabel = quote ? `le devis ${quote.number}` : 'ce devis';
+
+    if (!window.confirm(`Supprimer ${quoteLabel} ?`)) return;
     setError(null);
     setMessage(null);
     try {
@@ -168,20 +171,20 @@ export const QuotesListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Numéro</th>
-                <th>Client</th>
-                <th>Statut</th>
-                <th>Total TTC</th>
-                <th>Actions</th>
+                <th scope="col">Numéro</th>
+                <th scope="col">Client</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Total TTC</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((q) => (
                 <tr key={q.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{q.number}</strong>
                     <div className="muted">{new Date(q.createdAt).toLocaleDateString('fr-FR')}</div>
-                  </td>
+                  </th>
                   <td>
                     <div>
                       <strong>{q.customer?.name ?? '-'}</strong>
@@ -192,13 +195,18 @@ export const QuotesListPage = () => {
                   <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
                   <td>
                     <div className="catalog-admin-actions">
-                      <Link to={`/admin/quotes/${q.id}/edit`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/quotes/${q.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                        aria-label={`Ouvrir le devis ${q.number}`}
+                      >
                         Ouvrir
                       </Link>
                       <button
                         type="button"
                         className="catalog-admin-actions__edit"
                         onClick={() => void handleDuplicate(q.id)}
+                        aria-label={`Dupliquer le devis ${q.number}`}
                       >
                         Dupliquer
                       </button>
@@ -206,6 +214,7 @@ export const QuotesListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(q.id)}
+                        aria-label={`Supprimer le devis ${q.number}`}
                       >
                         Supprimer
                       </button>

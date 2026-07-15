@@ -41,6 +41,9 @@ class CartSession
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
+    #[ORM\Column(name: 'promotion_code', length: 64, nullable: true)]
+    private ?string $voucherCode = null;
+
     public function __construct(string $token)
     {
         $this->token = $token;
@@ -159,6 +162,28 @@ class CartSession
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getVoucherCode(): ?string
+    {
+        return $this->voucherCode;
+    }
+
+    public function setVoucherCode(?string $voucherCode): self
+    {
+        if ($voucherCode === null) {
+            $this->voucherCode = null;
+            $this->touch();
+
+            return $this;
+        }
+
+        $normalized = trim($voucherCode);
+        $this->voucherCode = $normalized !== '' ? mb_strtoupper($normalized) : null;
+        $this->touch();
+
         return $this;
     }
 

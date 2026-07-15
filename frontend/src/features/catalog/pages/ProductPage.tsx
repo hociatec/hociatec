@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { fetchProductReviews, fetchPublicProduct, fetchPublicProducts, type CatalogProduct, type ProductPublicReview } from '../api';
@@ -84,33 +84,6 @@ export const ProductPage = () => {
       }
     : undefined;
 
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const previousRestoration = window.history.scrollRestoration;
-    window.history.scrollRestoration = 'manual';
-
-    return () => {
-      window.history.scrollRestoration = previousRestoration;
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!slug) {
-      return;
-    }
-
-    if (preserveVariantTransitionRef.current) {
-      return;
-    }
-
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
-  }, [slug]);
-
   useDocumentTitle(product ? `${product.name} - Catalogue` : 'Produit - Catalogue');
   useMetaTags({
     title: product ? `${product.name} — Catalogue` : 'Produit - Catalogue',
@@ -179,20 +152,6 @@ export const ProductPage = () => {
         preserveVariantTransitionRef.current = false;
       });
   }, [slug, product?.slug]);
-
-  useEffect(() => {
-    if (!product) {
-      return;
-    }
-
-    if (preserveVariantTransitionRef.current) {
-      return;
-    }
-
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }
-  }, [product?.id]);
 
   useEffect(() => {
     if (!product) return;
@@ -376,15 +335,7 @@ export const ProductPage = () => {
     setLoading(false);
     setError(null);
 
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-    void navigate(`/catalogue/produits/${target.slug}`, {
-      state: {
-        preserveScroll: true,
-      },
-    });
+    void navigate(`/catalogue/produits/${target.slug}`);
   };
 
   const handleAddFavorite = () => {

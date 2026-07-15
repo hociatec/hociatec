@@ -45,7 +45,10 @@ export const ServicesListPage = () => {
   }, [services, search]);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Supprimer ce service ?')) return;
+    const service = services.find((item) => item.id === id);
+    const serviceLabel = service ? `"${service.title}"` : 'ce service';
+
+    if (!window.confirm(`Supprimer ${serviceLabel} ?`)) return;
     await deleteAdminQuoteService(id);
     setServices((prev) => prev.filter((s) => s.id !== id));
     setMessage('Service supprime.');
@@ -99,33 +102,42 @@ export const ServicesListPage = () => {
         <table className="catalog-admin-table">
           <thead>
             <tr>
-              <th>Titre</th>
-              <th>Mode de facturation</th>
-              <th>Durée</th>
-              <th>Prix</th>
-              <th>TVA</th>
-              <th></th>
+              <th scope="col">Titre</th>
+              <th scope="col">Mode de facturation</th>
+              <th scope="col">Durée</th>
+              <th scope="col">Prix</th>
+              <th scope="col">TVA</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((s) => (
               <tr key={s.id}>
-                <td>
+                <th scope="row">
                   <div className="catalog-admin-product-cell">
                     <strong>{s.title}</strong>
                     <span className="muted">{s.description ?? ''}</span>
                   </div>
-                </td>
+                </th>
                 <td>{s.unit?.trim() || 'Prix fixe'}</td>
                 <td>{formatDuration(s)}</td>
                 <td>{formatPrice(s.priceCents)}</td>
                 <td>{s.vatRate?.toFixed(2) ?? '0'}%</td>
                 <td>
                   <div className="catalog-admin-actions">
-                    <Link to={`/admin/services/${s.id}/edit`} className="catalog-admin-actions__edit">
+                    <Link
+                      to={`/admin/services/${s.id}/edit`}
+                      className="catalog-admin-actions__edit"
+                      aria-label={`Modifier le service ${s.title}`}
+                    >
                       Modifier
                     </Link>
-                    <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(s.id)}>
+                    <button
+                      type="button"
+                      className="catalog-admin-actions__delete"
+                      onClick={() => void handleDelete(s.id)}
+                      aria-label={`Supprimer le service ${s.title}`}
+                    >
                       Supprimer
                     </button>
                   </div>

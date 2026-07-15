@@ -1,2 +1,6 @@
 # Local Git credentials (repo-local store). Do NOT commit tokens.
 .git-credentials
+
+# Local Git object recovery/backup artifacts.
+.git-alt-objects/
+.git-objects-rebuilt*/

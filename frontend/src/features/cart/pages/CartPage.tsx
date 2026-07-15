@@ -32,6 +32,8 @@ export const CartPage = () => {
     removeItem,
     setItemQuantity,
     clear,
+    applyVoucherCode,
+    clearVoucherCode,
     isProductPending,
     isClearing,
   } = useCart();
@@ -44,9 +46,15 @@ export const CartPage = () => {
   const [addresses, setAddresses] = useState<AddressDto[]>([]);
   const [addressesLoading, setAddressesLoading] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [promotionCode, setPromotionCode] = useState('');
+  const [isApplyingPromotionCode, setIsApplyingPromotionCode] = useState(false);
 
   const isLoading = status === 'loading';
   const hasItems = !!(cart && cart.items.length > 0);
+
+  useEffect(() => {
+    setPromotionCode(cart?.enteredVoucherCode ?? '');
+  }, [cart?.enteredVoucherCode]);
 
   const shoppingLink = useMemo(
     () =>
@@ -128,6 +136,28 @@ export const CartPage = () => {
       );
     }
   }, [clear, show]);
+
+  const handleApplyPromotionCode = useCallback(() => {
+    const trimmed = promotionCode.trim();
+    if (trimmed === '') {
+      show('Saisissez un code promo.', { variant: 'info' });
+      return;
+    }
+
+    setIsApplyingPromotionCode(true);
+    void applyVoucherCode(trimmed)
+      .then(() => show('Bon de réduction appliqué.', { variant: 'success' }))
+      .catch((err: any) => show(err?.message ?? 'Impossible d\'appliquer le bon de réduction.', { variant: 'error' }))
+      .finally(() => setIsApplyingPromotionCode(false));
+  }, [applyVoucherCode, promotionCode, show]);
+
+  const handleClearPromotionCode = useCallback(() => {
+    setIsApplyingPromotionCode(true);
+    void clearVoucherCode(cart?.token)
+      .then(() => show('Bon de réduction supprimé.', { variant: 'success' }))
+      .catch((err: any) => show(err?.message ?? 'Impossible de supprimer le bon de réduction.', { variant: 'error' }))
+      .finally(() => setIsApplyingPromotionCode(false));
+  }, [cart?.token, clearVoucherCode, show]);
 
   // --- Adresses ---
   useEffect(() => {
@@ -377,15 +407,50 @@ export const CartPage = () => {
                 </div>
               </div>
 
-              {cart?.appliedPromotion ? (
+              <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b' }}>
+                  Bon de réduction
+                </div>
+                <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(0,1fr) auto auto' }}>
+                  <input
+                    type="text"
+                    className="register-form__input"
+                    value={promotionCode}
+                    onChange={(event) => setPromotionCode(event.target.value.toUpperCase())}
+                    placeholder="Entrez votre bon de réduction"
+                    disabled={isApplyingPromotionCode}
+                  />
+                  <button type="button" className="register-form__submit" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode}>
+                    {isApplyingPromotionCode ? 'Validation...' : 'Appliquer'}
+                  </button>
+                  {cart?.enteredVoucherCode ? (
+                    <button type="button" className="hero__button hero__button--ghost" onClick={handleClearPromotionCode} disabled={isApplyingPromotionCode}>
+                      Supprimer le bon de réduction
+                    </button>
+                  ) : null}
+                </div>
+                {cart?.voucherCodeStatus === 'invalid' ? (
+                  <div style={{ color: '#b91c1c', fontSize: 14 }}>Ce bon de réduction est invalide.</div>
+                ) : null}
+                {cart?.voucherCodeStatus === 'ineligible' ? (
+                  <div style={{ color: '#b45309', fontSize: 14 }}>Ce bon de réduction existe mais n’est pas éligible pour ce panier.</div>
+                ) : null}
+              </div>
+
+              {cart?.appliedVoucher ? (
                 <div style={{ marginTop: 16, borderRadius: 16, border: '1px solid #bbf7d0', background: '#f0fdf4', padding: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#047857' }}>
-                    Promotion appliquée
+                    Bon de réduction appliqué
                   </div>
-                  <div style={{ marginTop: 6, fontWeight: 700, color: '#14532d' }}>{cart.appliedPromotion.name}</div>
+                  <div style={{ marginTop: 6, fontWeight: 700, color: '#14532d' }}>{cart.appliedVoucher.name}</div>
                   <div style={{ marginTop: 4, fontSize: 14, color: '#166534' }}>
-                    Remise {formatPromotionValue(cart.appliedPromotion.discountType, cart.appliedPromotion.discountValue)}.
+                    Remise {formatPromotionValue(cart.appliedVoucher.discountType, cart.appliedVoucher.discountValue)}.
                   </div>
+                  {cart.appliedVoucher.code ? (
+                    <div style={{ marginTop: 4, fontSize: 13, color: '#166534' }}>
+                      Code: {cart.appliedVoucher.code}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 

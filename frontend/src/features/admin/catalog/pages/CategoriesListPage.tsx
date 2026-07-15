@@ -37,7 +37,10 @@ export const CategoriesListPage = () => {
   }, [isAdmin]);
 
   const handleDelete = async (categoryId: number) => {
-    if (!window.confirm('Supprimer cette catégorie ?')) {
+    const category = categories.find((item) => item.id === categoryId);
+    const categoryLabel = category ? `"${category.name}"` : 'cette categorie';
+
+    if (!window.confirm(`Supprimer ${categoryLabel} ?`)) {
       return;
     }
 
@@ -130,23 +133,23 @@ export const CategoriesListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Slug</th>
-                <th>Visibilité</th>
-                <th>Actions</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Slug</th>
+                <th scope="col">Visibilité</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCategories.map((category) => (
                 <tr key={category.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{category.name}</strong>
                     {category.description && (
                       <p className="muted" style={{ marginTop: 4 }}>
                         {category.description}
                       </p>
                     )}
-                  </td>
+                  </th>
                   <td>{category.slug}</td>
                   <td>{category.isVisible ? 'Visible' : 'Masquée'}</td>
                   <td>
@@ -154,6 +157,7 @@ export const CategoriesListPage = () => {
                       <Link
                         to={`/admin/catalog/categories/${category.id}/edit`}
                         className="catalog-admin-actions__edit"
+                        aria-label={`Modifier la categorie ${category.name}`}
                       >
                         Modifier
                       </Link>
@@ -161,6 +165,7 @@ export const CategoriesListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(category.id)}
+                        aria-label={`Supprimer la categorie ${category.name}`}
                       >
                         Supprimer
                       </button>

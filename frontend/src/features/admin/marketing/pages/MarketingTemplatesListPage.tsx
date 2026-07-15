@@ -143,34 +143,47 @@ export const MarketingTemplatesListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Scénario</th>
-                <th>Slug</th>
-                <th>Statut</th>
-                <th>Mise à jour</th>
-                <th>Actions</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Scénario</th>
+                <th scope="col">Slug</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Mise à jour</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredTemplates.map((template) => (
                 <tr key={template.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{template.name}</strong>
                     <div className="muted">{template.subjectTemplate}</div>
-                  </td>
+                  </th>
                   <td>{segments[template.scenarioKey]?.label ?? template.scenarioKey}</td>
                   <td>{template.slug}</td>
                   <td>{template.isActive ? 'Actif' : 'Désactivé'}</td>
                   <td>{template.updatedAt ? new Date(template.updatedAt).toLocaleDateString('fr-FR') : '-'}</td>
                   <td>
                     <div className="catalog-admin-actions">
-                      <Link to={`/admin/marketing/templates/${template.id}`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/marketing/templates/${template.id}`}
+                        className="catalog-admin-actions__edit"
+                        aria-label={`Voir le template ${template.name}`}
+                      >
                         Voir
                       </Link>
-                      <Link to={`/admin/marketing/templates/${template.id}/edit`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/marketing/templates/${template.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                        aria-label={`Modifier le template ${template.name}`}
+                      >
                         Modifier
                       </Link>
-                      <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(template.id)}>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(template.id)}
+                        aria-label={`Supprimer le template ${template.name}`}
+                      >
                         Supprimer
                       </button>
                     </div>

@@ -1,4 +1,4 @@
-import type { PropsWithChildren, ReactNode } from 'react';
+import { useId, type PropsWithChildren, type ReactNode } from 'react';
 
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -13,18 +13,19 @@ export const PageContainer = ({
   children,
 }: PageContainerProps) => {
   useDocumentTitle(title);
+  const titleId = useId();
 
   return (
     <div className="app-background">
-      <div className="card">
+      <section className="card" role="main" aria-labelledby={titleId} tabIndex={-1}>
         <header className="card__header">
-          <h1 className="card__title">
+          <h1 id={titleId} className="card__title">
             {title}
           </h1>
           {headerActions}
         </header>
         <section className="card__content">{children}</section>
-      </div>
+      </section>
     </div>
   );
 };

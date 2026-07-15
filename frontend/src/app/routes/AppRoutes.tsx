@@ -185,6 +185,11 @@ const MarketingCampaignsPage = lazy(() =>
     default: module.MarketingCampaignsPage,
   })),
 );
+const MarketingCampaignFormPage = lazy(() =>
+  import('@/features/admin/marketing/pages/MarketingCampaignFormPage').then((module) => ({
+    default: module.MarketingCampaignFormPage,
+  })),
+);
 const MarketingTemplatesListPage = lazy(() =>
   import('@/features/admin/marketing/pages/MarketingTemplatesListPage').then((module) => ({
     default: module.MarketingTemplatesListPage,
@@ -208,6 +213,16 @@ const PromotionsListPage = lazy(() =>
 const PromotionFormPage = lazy(() =>
   import('@/features/admin/promotions/pages/PromotionFormPage').then((module) => ({
     default: module.PromotionFormPage,
+  })),
+);
+const VouchersPage = lazy(() =>
+  import('@/features/admin/vouchers/pages/VouchersPage').then((module) => ({
+    default: module.VouchersPage,
+  })),
+);
+const VoucherFormPage = lazy(() =>
+  import('@/features/admin/vouchers/pages/VoucherFormPage').then((module) => ({
+    default: module.VoucherFormPage,
   })),
 );
 const AdminAuditDetailPage = lazy(() =>
@@ -410,6 +425,7 @@ export const AppRoutes = () => (
         </Route>
         <Route path="marketing">
           <Route index element={<MarketingCampaignsPage />} />
+          <Route path="new" element={<MarketingCampaignFormPage />} />
           <Route path="templates">
             <Route index element={<MarketingTemplatesListPage />} />
             <Route path="new" element={<MarketingTemplateFormPage />} />
@@ -421,6 +437,11 @@ export const AppRoutes = () => (
           <Route index element={<PromotionsListPage />} />
           <Route path="new" element={<PromotionFormPage />} />
           <Route path=":promotionId/edit" element={<PromotionFormPage />} />
+        </Route>
+        <Route path="vouchers">
+          <Route index element={<VouchersPage />} />
+          <Route path="new" element={<VoucherFormPage />} />
+          <Route path=":voucherId/edit" element={<VoucherFormPage />} />
         </Route>
         <Route path="audits">
           <Route index element={<AdminAuditsListPage />} />

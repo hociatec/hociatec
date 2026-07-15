@@ -130,23 +130,24 @@ export const BrandsListPage = () => {
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th>Nom</th>
-                <th>Produits liés</th>
-                <th>Actions</th>
+                <th scope="col">Nom</th>
+                <th scope="col">Produits liés</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredBrands.map((brand) => (
                 <tr key={brand.id}>
-                  <td>
+                  <th scope="row">
                     <strong>{brand.name}</strong>
-                  </td>
+                  </th>
                   <td>{brand.productsCount ?? 0}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
                         to={`/admin/catalog/brands/${brand.id}/edit`}
                         className="catalog-admin-actions__edit"
+                        aria-label={`Modifier la marque ${brand.name}`}
                       >
                         Modifier
                       </Link>
@@ -154,6 +155,7 @@ export const BrandsListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(brand)}
+                        aria-label={`Supprimer la marque ${brand.name}`}
                       >
                         Supprimer
                       </button>

@@ -92,7 +92,6 @@ export const AppointmentBookingPage = () => {
     if (!available || available.length === 0) return;
     setSelectedDate(info.date);
     setStep(3);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // --- Créneaux du jour sélectionné
@@ -159,7 +158,6 @@ export const AppointmentBookingPage = () => {
     if (selectedSlot && step === 3) {
       setModalMode('recap');
       setModalOpen(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [selectedSlot, step]);
 

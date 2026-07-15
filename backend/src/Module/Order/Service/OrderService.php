@@ -11,6 +11,7 @@ use App\Module\Order\Entity\OrderItem;
 use App\Module\Promotion\Service\PromotionEngine;
 use App\Module\User\Entity\User;
 use App\Module\User\Entity\ShippingAddress;
+use App\Module\Voucher\Service\VoucherEngine;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
@@ -24,6 +25,7 @@ final class OrderService
         private readonly OrderNumberGenerator $numberGenerator,
         private readonly MessageBusInterface $bus,
         private readonly PromotionEngine $promotionEngine,
+        private readonly VoucherEngine $voucherEngine,
     ) {
     }
 
@@ -38,7 +40,11 @@ final class OrderService
             throw new InvalidArgumentException('Le panier est vide.');
         }
 
-        $cartSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
+        $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
+        $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user, $cart->getVoucherCode());
+        $cartSummary = ($cart->getVoucherCode() !== null && ($voucherSummary['voucherCodeStatus'] ?? 'none') === 'applied')
+            ? $voucherSummary
+            : $promotionSummary;
 
         $order = $this->em->wrapInTransaction(function (EntityManagerInterface $em) use ($user, $cart, $address, $cartSummary): Order {
             $order = new Order($this->numberGenerator->generate(), $user);
@@ -52,8 +58,8 @@ final class OrderService
                 ->setSubtotalPriceCents((int) $cartSummary['subtotalPriceCents'])
                 ->setDiscountAmountCents((int) $cartSummary['discountAmountCents'])
                 ->setTotalPriceCents((int) $cartSummary['totalPriceCents'])
-                ->setAppliedPromotionName($cartSummary['appliedPromotion']['name'] ?? null)
-                ->setAppliedPromotionSlug($cartSummary['appliedPromotion']['slug'] ?? null);
+                ->setAppliedPromotionName($cartSummary['appliedVoucher']['name'] ?? ($cartSummary['appliedPromotion']['name'] ?? null))
+                ->setAppliedPromotionSlug($cartSummary['appliedVoucher']['code'] ?? ($cartSummary['appliedPromotion']['slug'] ?? null));
 
             foreach ($cart->getItems() as $cartItem) {
                 $product = $cartItem->getProduct();
