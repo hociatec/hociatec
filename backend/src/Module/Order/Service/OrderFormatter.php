@@ -22,7 +22,6 @@ final class OrderFormatter
     public static function formatOrder(Order $order, array $ratingsByOrderItemId = []): array
     {
         $items = [];
-        $total = 0;
         $pendingReviews = 0;
 
         /** @var OrderItem $item */
@@ -48,7 +47,6 @@ final class OrderFormatter
                 'canReview' => $canReview,
                 'review' => $hasReview ? ProductReviewFormatter::formatRating($rating, true) : null,
             ];
-            $total += $line;
         }
 
         $status = $order->getStatus();
@@ -65,7 +63,13 @@ final class OrderFormatter
             'number' => $order->getNumber(),
             'status' => $status,
             'statusLabel' => $statusLabel,
-            'totalPriceCents' => $total,
+            'subtotalPriceCents' => $order->getSubtotalPriceCents(),
+            'discountAmountCents' => $order->getDiscountAmountCents(),
+            'totalPriceCents' => $order->getTotalPriceCents(),
+            'appliedPromotion' => $order->getAppliedPromotionName() !== null ? [
+                'name' => $order->getAppliedPromotionName(),
+                'slug' => $order->getAppliedPromotionSlug(),
+            ] : null,
             'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
             'pendingReviewsCount' => $pendingReviews,
             'hasPendingReviews' => $pendingReviews > 0,

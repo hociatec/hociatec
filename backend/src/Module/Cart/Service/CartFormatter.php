@@ -7,21 +7,22 @@ namespace App\Module\Cart\Service;
 use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Catalog\Service\CatalogFormatter;
+use App\Module\Promotion\Service\PromotionEngine;
+use App\Module\User\Entity\User;
 
 final class CartFormatter
 {
-    private function __construct()
+    public function __construct(private readonly PromotionEngine $promotionEngine)
     {
     }
 
     /**
      * @return array<string, mixed>
      */
-    public static function formatCart(CartSession $cart): array
+    public function formatCart(CartSession $cart, ?User $user = null): array
     {
         $items = [];
         $totalQuantity = 0;
-        $totalPriceCents = 0;
 
         /** @var CartItem $item */
         foreach ($cart->getItems() as $item) {
@@ -44,14 +45,19 @@ final class CartFormatter
             ];
 
             $totalQuantity += $quantity;
-            $totalPriceCents += $linePrice;
         }
+
+        $summary = $this->promotionEngine->calculateCartSummary($cart, $user);
 
         return [
             'token' => $cart->getToken(),
             'items' => $items,
             'totalQuantity' => $totalQuantity,
-            'totalPriceCents' => $totalPriceCents,
+            'subtotalPriceCents' => $summary['subtotalPriceCents'],
+            'discountAmountCents' => $summary['discountAmountCents'],
+            'totalPriceCents' => $summary['totalPriceCents'],
+            'appliedPromotion' => $summary['appliedPromotion'],
+            'eligiblePromotions' => $summary['eligiblePromotions'],
             'updatedAt' => $cart->getUpdatedAt()->format(DATE_ATOM),
         ];
     }

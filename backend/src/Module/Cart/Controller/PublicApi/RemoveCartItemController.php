@@ -7,6 +7,7 @@ namespace App\Module\Cart\Controller\PublicApi;
 use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
+use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class RemoveCartItemController extends AbstractController
     public function __construct(
         private readonly CartService $cartService,
         private readonly ProductRepository $productRepository,
+        private readonly CartFormatter $cartFormatter,
     ) {
     }
 
@@ -38,7 +40,6 @@ class RemoveCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $rentalMonths = null;
         $queryRentalMonths = $this->extractRentalMonths($request);
         if ($queryRentalMonths instanceof JsonResponse) {
             return $queryRentalMonths;
@@ -55,8 +56,9 @@ class RemoveCartItemController extends AbstractController
             return ApiResponse::error($exception->getMessage(), $status);
         }
 
+        $user = $this->getUser();
         $response = ApiResponse::success([
-            'cart' => CartFormatter::formatCart($cart),
+            'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
         ]);
 
         $response->headers->set('X-Cart-Token', $cart->getToken());

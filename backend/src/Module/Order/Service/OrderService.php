@@ -8,6 +8,7 @@ use App\Module\Cart\Entity\CartSession;
 use App\Module\Catalog\Entity\Product;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderItem;
+use App\Module\Promotion\Service\PromotionEngine;
 use App\Module\User\Entity\User;
 use App\Module\User\Entity\ShippingAddress;
 use Doctrine\DBAL\LockMode;
@@ -22,6 +23,7 @@ final class OrderService
         private readonly EntityManagerInterface $em,
         private readonly OrderNumberGenerator $numberGenerator,
         private readonly MessageBusInterface $bus,
+        private readonly PromotionEngine $promotionEngine,
     ) {
     }
 
@@ -36,7 +38,9 @@ final class OrderService
             throw new InvalidArgumentException('Le panier est vide.');
         }
 
-        $order = $this->em->wrapInTransaction(function (EntityManagerInterface $em) use ($user, $cart, $address): Order {
+        $cartSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
+
+        $order = $this->em->wrapInTransaction(function (EntityManagerInterface $em) use ($user, $cart, $address, $cartSummary): Order {
             $order = new Order($this->numberGenerator->generate(), $user);
 
             $order
@@ -44,9 +48,12 @@ final class OrderService
                 ->setShippingName($address->getName())
                 ->setShippingAddress($address->getAddress())
                 ->setShippingPostalCode($address->getPostalCode())
-                ->setShippingCity($address->getCity());
-
-            $total = 0;
+                ->setShippingCity($address->getCity())
+                ->setSubtotalPriceCents((int) $cartSummary['subtotalPriceCents'])
+                ->setDiscountAmountCents((int) $cartSummary['discountAmountCents'])
+                ->setTotalPriceCents((int) $cartSummary['totalPriceCents'])
+                ->setAppliedPromotionName($cartSummary['appliedPromotion']['name'] ?? null)
+                ->setAppliedPromotionSlug($cartSummary['appliedPromotion']['slug'] ?? null);
 
             foreach ($cart->getItems() as $cartItem) {
                 $product = $cartItem->getProduct();
@@ -70,17 +77,13 @@ final class OrderService
                 $lockedProduct->setStock($currentStock - $quantity);
 
                 $unitPrice = $lockedProduct->getPriceCents();
-                $line = $unitPrice * $quantity;
 
                 $item = new OrderItem($lockedProduct->getName(), $lockedProduct->getSku(), $unitPrice, $quantity);
                 $item->setProduct($lockedProduct);
                 $order->addItem($item);
                 $em->persist($item);
-
-                $total += $line;
             }
 
-            $order->setTotalPriceCents($total);
             $em->persist($order);
             $em->flush();
 

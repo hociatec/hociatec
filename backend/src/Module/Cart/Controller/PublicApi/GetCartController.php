@@ -6,6 +6,7 @@ namespace App\Module\Cart\Controller\PublicApi;
 
 use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
+use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,17 +18,20 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimiter('public_api')]
 class GetCartController extends AbstractController
 {
-    public function __construct(private readonly CartService $cartService)
-    {
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly CartFormatter $cartFormatter,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         $token = $this->extractToken($request);
         $cart = $this->cartService->viewCart($token);
+        $user = $this->getUser();
 
         $response = ApiResponse::success([
-            'cart' => CartFormatter::formatCart($cart),
+            'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
         ]);
 
         $response->headers->set('X-Cart-Token', $cart->getToken());

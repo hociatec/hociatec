@@ -32,7 +32,13 @@ export interface OrderDto {
   number: string;
   status: 'pending' | 'confirmed' | 'delivered' | string;
   statusLabel?: string;
+  subtotalPriceCents?: number;
+  discountAmountCents?: number;
   totalPriceCents: number;
+  appliedPromotion?: {
+    name: string;
+    slug: string | null;
+  } | null;
   createdAt: string;
   pendingReviewsCount?: number;
   hasPendingReviews?: boolean;
@@ -63,10 +69,8 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto> => {
     { addressId },
   );
 
-  // Our ApiResponse structure always wraps with status: 'ok' | 'error'
   if (isApiOk(data)) {
-    // created returns the entity directly as data, normalize it
-    const payload = (data.data as unknown) as Record<string, unknown>;
+    const payload = data.data as unknown as Record<string, unknown>;
     const order = (payload.order ?? payload) as OrderDto;
     return order;
   }
@@ -137,7 +141,6 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
   throw new Error(message);
 };
 
-// Admin API
 export const fetchAdminOrders = async (
   status: 'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled' = 'all',
 ): Promise<OrderDto[]> => {
@@ -162,7 +165,7 @@ export const updateAdminOrderStatus = async (
   if (isApiOk(data)) {
     return (data.data?.order as OrderDto) ?? ({} as OrderDto);
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le statut';
+  const message = data.status === 'error' ? data.message : 'Impossible de mettre Ã  jour le statut';
   throw new Error(message);
 };
 

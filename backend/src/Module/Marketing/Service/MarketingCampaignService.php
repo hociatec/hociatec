@@ -36,6 +36,13 @@ final class MarketingCampaignService
                 'description' => 'Audience large pour une annonce générale ou une nouveauté.',
                 'defaults' => [],
             ],
+            'recent_verified_users' => [
+                'label' => 'Nouveaux comptes vérifiés',
+                'description' => 'Utilisateurs vérifiés inscrits récemment, utiles pour une première conversion.',
+                'defaults' => [
+                    'registeredDays' => 30,
+                ],
+            ],
             'customers_with_orders' => [
                 'label' => 'Clients ayant déjà commandé',
                 'description' => 'Cible les utilisateurs avec au moins une commande.',
@@ -50,10 +57,36 @@ final class MarketingCampaignService
                     'minimumOrders' => 3,
                 ],
             ],
+            'single_order_customers' => [
+                'label' => 'Clients avec une seule commande',
+                'description' => 'Parfait pour déclencher une deuxième commande avec une relance ciblée.',
+                'defaults' => [],
+            ],
+            'recent_customers' => [
+                'label' => 'Clients récents',
+                'description' => 'Clients ayant commandé dans une fenêtre récente, pour cross-sell ou accompagnement.',
+                'defaults' => [
+                    'recentDays' => 30,
+                ],
+            ],
+            'high_value_customers' => [
+                'label' => 'Clients à forte valeur',
+                'description' => 'Clients dont le cumul de commandes dépasse un montant donné.',
+                'defaults' => [
+                    'minimumTotalCents' => 50000,
+                ],
+            ],
             'customers_without_review' => [
                 'label' => 'Clients sans avis',
                 'description' => 'Utilisateurs ayant au moins un article commandé sans avis publié.',
                 'defaults' => [],
+            ],
+            'customers_with_pending_reviews' => [
+                'label' => 'Clients avec plusieurs avis en attente',
+                'description' => 'Clients ayant plusieurs produits commandés encore sans avis.',
+                'defaults' => [
+                    'minimumPendingReviews' => 2,
+                ],
             ],
             'inactive_customers' => [
                 'label' => 'Clients inactifs',
@@ -66,6 +99,13 @@ final class MarketingCampaignService
                 'label' => 'Comptes vérifiés sans commande',
                 'description' => 'Nouveaux comptes ou prospects à convertir.',
                 'defaults' => [],
+            ],
+            'verified_without_orders_recent' => [
+                'label' => 'Comptes récents sans commande',
+                'description' => 'Comptes vérifiés créés récemment mais encore sans commande.',
+                'defaults' => [
+                    'registeredDays' => 30,
+                ],
             ],
         ];
     }
@@ -168,6 +208,14 @@ final class MarketingCampaignService
             case 'all_verified_users':
                 break;
 
+            case 'recent_verified_users':
+                $registeredDays = max(7, (int) ($criteria['registeredDays'] ?? 30));
+                $threshold = new \DateTimeImmutable(sprintf('-%d days', $registeredDays));
+                $qb
+                    ->andWhere('u.createdAt >= :registeredThreshold')
+                    ->setParameter('registeredThreshold', $threshold);
+                break;
+
             case 'customers_with_orders':
                 $minimumOrders = max(1, (int) ($criteria['minimumOrders'] ?? 1));
                 $qb
@@ -186,12 +234,49 @@ final class MarketingCampaignService
                     ->setParameter('minimumOrders', $minimumOrders);
                 break;
 
+            case 'single_order_customers':
+                $qb
+                    ->join(Order::class, 'o', 'WITH', 'o.user = u')
+                    ->groupBy('u.id')
+                    ->having('COUNT(o.id) = 1');
+                break;
+
+            case 'recent_customers':
+                $recentDays = max(7, (int) ($criteria['recentDays'] ?? 30));
+                $threshold = new \DateTimeImmutable(sprintf('-%d days', $recentDays));
+                $qb
+                    ->join(Order::class, 'o', 'WITH', 'o.user = u')
+                    ->andWhere('o.createdAt >= :recentThreshold')
+                    ->setParameter('recentThreshold', $threshold);
+                break;
+
+            case 'high_value_customers':
+                $minimumTotalCents = max(1000, (int) ($criteria['minimumTotalCents'] ?? 50000));
+                $qb
+                    ->join(Order::class, 'o', 'WITH', 'o.user = u')
+                    ->groupBy('u.id')
+                    ->having('SUM(o.totalPriceCents) >= :minimumTotalCents')
+                    ->setParameter('minimumTotalCents', $minimumTotalCents);
+                break;
+
             case 'customers_without_review':
                 $qb
                     ->join(Order::class, 'o', 'WITH', 'o.user = u')
                     ->join(OrderItem::class, 'oi', 'WITH', 'oi.order = o')
                     ->leftJoin(ProductRating::class, 'r', 'WITH', 'r.orderItem = oi')
                     ->andWhere('r.id IS NULL');
+                break;
+
+            case 'customers_with_pending_reviews':
+                $minimumPendingReviews = max(1, (int) ($criteria['minimumPendingReviews'] ?? 2));
+                $qb
+                    ->join(Order::class, 'o', 'WITH', 'o.user = u')
+                    ->join(OrderItem::class, 'oi', 'WITH', 'oi.order = o')
+                    ->leftJoin(ProductRating::class, 'r', 'WITH', 'r.orderItem = oi')
+                    ->andWhere('r.id IS NULL')
+                    ->groupBy('u.id')
+                    ->having('COUNT(DISTINCT oi.id) >= :minimumPendingReviews')
+                    ->setParameter('minimumPendingReviews', $minimumPendingReviews);
                 break;
 
             case 'inactive_customers':
@@ -208,6 +293,16 @@ final class MarketingCampaignService
                 $qb
                     ->leftJoin(Order::class, 'o', 'WITH', 'o.user = u')
                     ->andWhere('o.id IS NULL');
+                break;
+
+            case 'verified_without_orders_recent':
+                $registeredDays = max(7, (int) ($criteria['registeredDays'] ?? 30));
+                $threshold = new \DateTimeImmutable(sprintf('-%d days', $registeredDays));
+                $qb
+                    ->leftJoin(Order::class, 'o', 'WITH', 'o.user = u')
+                    ->andWhere('o.id IS NULL')
+                    ->andWhere('u.createdAt >= :registeredThreshold')
+                    ->setParameter('registeredThreshold', $threshold);
                 break;
 
             default:
@@ -239,11 +334,17 @@ final class MarketingCampaignService
     {
         return match ($segmentKey) {
             'all_verified_users' => 'Tous les comptes vérifiés.',
+            'recent_verified_users' => sprintf('Comptes vérifiés créés depuis moins de %d jours.', max(7, (int) ($criteria['registeredDays'] ?? 30))),
             'customers_with_orders' => sprintf('Clients avec au moins %d commande(s).', max(1, (int) ($criteria['minimumOrders'] ?? 1))),
             'loyal_customers' => sprintf('Clients avec au moins %d commandes.', max(2, (int) ($criteria['minimumOrders'] ?? 3))),
+            'single_order_customers' => 'Clients ayant exactement une commande.',
+            'recent_customers' => sprintf('Clients ayant commandé au cours des %d derniers jours.', max(7, (int) ($criteria['recentDays'] ?? 30))),
+            'high_value_customers' => sprintf('Clients avec au moins %.2f EUR de commandes cumulées.', max(1000, (int) ($criteria['minimumTotalCents'] ?? 50000)) / 100),
             'customers_without_review' => 'Clients ayant commandé mais sans avis publié sur au moins un article.',
+            'customers_with_pending_reviews' => sprintf('Clients avec au moins %d avis en attente.', max(1, (int) ($criteria['minimumPendingReviews'] ?? 2))),
             'inactive_customers' => sprintf('Clients inactifs depuis plus de %d jours.', max(30, (int) ($criteria['inactiveDays'] ?? 90))),
             'verified_without_orders' => 'Comptes vérifiés sans aucune commande.',
+            'verified_without_orders_recent' => sprintf('Comptes vérifiés créés depuis moins de %d jours et sans commande.', max(7, (int) ($criteria['registeredDays'] ?? 30))),
             default => 'Audience marketing.',
         };
     }
@@ -254,7 +355,7 @@ final class MarketingCampaignService
     private function buildContext(User $user, string $frontendUrl): array
     {
         $orderStats = $this->entityManager->createQueryBuilder()
-            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt')
+            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt', 'COALESCE(SUM(o.totalPriceCents), 0) AS totalSpentCents')
             ->from(Order::class, 'o')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user)
@@ -288,10 +389,14 @@ final class MarketingCampaignService
             'full_name' => $user->getFullName(),
             'email' => $user->getEmail(),
             'order_count' => (string) ((int) ($orderStats['ordersCount'] ?? 0)),
+            'total_spent_eur' => number_format(((int) ($orderStats['totalSpentCents'] ?? 0)) / 100, 2, ',', ' '),
             'last_order_date' => $orderStats['lastOrderAt'] instanceof \DateTimeInterface
                 ? $orderStats['lastOrderAt']->format('d/m/Y')
                 : '',
             'last_order_number' => $lastOrder instanceof Order ? $lastOrder->getNumber() : '',
+            'days_since_last_order' => $orderStats['lastOrderAt'] instanceof \DateTimeInterface
+                ? (string) (new \DateTimeImmutable())->diff(\DateTimeImmutable::createFromInterface($orderStats['lastOrderAt']))->days
+                : '',
             'pending_reviews_count' => (string) $pendingReviewsCount,
             'app_frontend_url' => $frontendUrl,
         ];

@@ -19,6 +19,9 @@ const formatPrice = (valueInCents: number) =>
     currency: 'EUR',
   }).format(valueInCents / 100);
 
+const formatPromotionValue = (discountType: 'percent' | 'fixed_cents', discountValue: number) =>
+  discountType === 'percent' ? `${discountValue}%` : formatPrice(discountValue);
+
 export const CartPage = () => {
   useDocumentTitle('Mon panier');
 
@@ -338,6 +341,11 @@ export const CartPage = () => {
                 </div>
                 <br />
                 <div className="cart-summary-row">
+                  <span className="cart-summary-label">Sous-total</span>
+                  <span className="cart-summary-value">{formatPrice(cart?.subtotalPriceCents ?? 0)}</span>
+                </div>
+                <br />
+                <div className="cart-summary-row">
                 <span className="cart-summary-label">Mis à jour le&nbsp;</span>
                   <span className="cart-summary-value">
                     {cart
@@ -349,6 +357,17 @@ export const CartPage = () => {
                       : '-'}
                   </span>
                 </div>
+                {(cart?.discountAmountCents ?? 0) > 0 && (
+                  <>
+                    <br />
+                    <div className="cart-summary-row">
+                      <span className="cart-summary-label">Remise</span>
+                      <span className="cart-summary-value" style={{ color: '#047857', fontWeight: 700 }}>
+                        - {formatPrice(cart?.discountAmountCents ?? 0)}
+                      </span>
+                    </div>
+                  </>
+                )}
                 <br />
                 <div className="cart-summary-row cart-summary-total">
                 <span className="cart-summary-label">Total TTC&nbsp;</span>
@@ -357,6 +376,38 @@ export const CartPage = () => {
                   </span>
                 </div>
               </div>
+
+              {cart?.appliedPromotion ? (
+                <div style={{ marginTop: 16, borderRadius: 16, border: '1px solid #bbf7d0', background: '#f0fdf4', padding: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#047857' }}>
+                    Promotion appliquée
+                  </div>
+                  <div style={{ marginTop: 6, fontWeight: 700, color: '#14532d' }}>{cart.appliedPromotion.name}</div>
+                  <div style={{ marginTop: 4, fontSize: 14, color: '#166534' }}>
+                    Remise {formatPromotionValue(cart.appliedPromotion.discountType, cart.appliedPromotion.discountValue)}.
+                  </div>
+                </div>
+              ) : null}
+
+              {cart && cart.eligiblePromotions.length > 1 ? (
+                <div style={{ marginTop: 16, borderRadius: 16, border: '1px solid #e2e8f0', background: '#fff', padding: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b' }}>
+                    Promotions éligibles
+                  </div>
+                  <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
+                    {cart.eligiblePromotions
+                      .filter((promotion) => promotion.id !== cart.appliedPromotion?.id)
+                      .map((promotion) => (
+                        <div key={promotion.id} style={{ borderRadius: 14, background: '#f8fafc', padding: 12 }}>
+                          <div style={{ fontWeight: 600, color: '#0f172a' }}>{promotion.name}</div>
+                          <div style={{ marginTop: 4, fontSize: 14, color: '#475569' }}>
+                            {formatPromotionValue(promotion.discountType, promotion.discountValue)} potentiels, soit {formatPrice(promotion.discountAmountCents)}.
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ) : null}
 
               {authStatus === 'authenticated' && (
                 <>

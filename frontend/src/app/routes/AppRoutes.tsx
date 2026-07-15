@@ -190,9 +190,24 @@ const MarketingTemplatesListPage = lazy(() =>
     default: module.MarketingTemplatesListPage,
   })),
 );
+const MarketingTemplateDetailPage = lazy(() =>
+  import('@/features/admin/marketing/pages/MarketingTemplateDetailPage').then((module) => ({
+    default: module.MarketingTemplateDetailPage,
+  })),
+);
 const MarketingTemplateFormPage = lazy(() =>
   import('@/features/admin/marketing/pages/MarketingTemplateFormPage').then((module) => ({
     default: module.MarketingTemplateFormPage,
+  })),
+);
+const PromotionsListPage = lazy(() =>
+  import('@/features/admin/promotions/pages/PromotionsListPage').then((module) => ({
+    default: module.PromotionsListPage,
+  })),
+);
+const PromotionFormPage = lazy(() =>
+  import('@/features/admin/promotions/pages/PromotionFormPage').then((module) => ({
+    default: module.PromotionFormPage,
   })),
 );
 const AdminAuditDetailPage = lazy(() =>
@@ -398,8 +413,14 @@ export const AppRoutes = () => (
           <Route path="templates">
             <Route index element={<MarketingTemplatesListPage />} />
             <Route path="new" element={<MarketingTemplateFormPage />} />
+            <Route path=":templateId" element={<MarketingTemplateDetailPage />} />
             <Route path=":templateId/edit" element={<MarketingTemplateFormPage />} />
           </Route>
+        </Route>
+        <Route path="promotions">
+          <Route index element={<PromotionsListPage />} />
+          <Route path="new" element={<PromotionFormPage />} />
+          <Route path=":promotionId/edit" element={<PromotionFormPage />} />
         </Route>
         <Route path="audits">
           <Route index element={<AdminAuditsListPage />} />

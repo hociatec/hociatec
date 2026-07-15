@@ -169,8 +169,21 @@ export const OrderDetailPage = () => {
                 <div className="text-sm text-gray-600">
                   Passée le {new Date(order.createdAt).toLocaleDateString('fr-FR')}
                 </div>
+                {order.appliedPromotion ? (
+                  <div className="mt-2 text-sm text-green-700">
+                    Promotion appliquée: {order.appliedPromotion.name}
+                  </div>
+                ) : null}
               </div>
               <div className="text-right space-y-2">
+                {typeof order.subtotalPriceCents === 'number' && (order.discountAmountCents ?? 0) > 0 ? (
+                  <div className="text-sm text-gray-600">
+                    <div>Sous-total: {formatPrice(order.subtotalPriceCents)}</div>
+                    <div style={{ color: '#047857', fontWeight: 600 }}>
+                      Remise: - {formatPrice(order.discountAmountCents ?? 0)}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="font-semibold">{formatPrice(order.totalPriceCents)}</div>
                 <div className="text-sm capitalize">Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
                 {order.status === 'pending' && (

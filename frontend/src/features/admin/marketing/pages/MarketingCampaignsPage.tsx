@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
@@ -22,6 +22,10 @@ type FormState = {
   segmentKey: string;
   minimumOrders: string;
   inactiveDays: string;
+  registeredDays: string;
+  recentDays: string;
+  minimumTotalCents: string;
+  minimumPendingReviews: string;
   subject: string;
   htmlBody: string;
   textBody: string;
@@ -33,14 +37,105 @@ const emptyForm: FormState = {
   segmentKey: 'customers_without_review',
   minimumOrders: '3',
   inactiveDays: '90',
+  registeredDays: '30',
+  recentDays: '30',
+  minimumTotalCents: '50000',
+  minimumPendingReviews: '2',
   subject: '',
   htmlBody: '',
   textBody: '',
 };
 
+const segmentAdvice: Record<string, string[]> = {
+  all_verified_users: [
+    'À utiliser pour une annonce globale, une nouveauté catalogue ou une information institutionnelle.',
+    'Privilégiez un objet simple avec une promesse claire.',
+    'Évitez de multiplier les offres dans un même message.',
+  ],
+  recent_verified_users: [
+    'Proposez une première action simple: découverte, rendez-vous ou premier achat.',
+    'Le bon angle consiste à rassurer sur la valeur du service.',
+    'Une offre limitée dans le temps améliore souvent la conversion.',
+  ],
+  customers_with_orders: [
+    'Travaillez le cross-sell ou la montée en gamme à partir de l’historique d’achat.',
+    'Un rappel de confiance fonctionne mieux qu’un discours trop commercial.',
+    'Ajoutez une recommandation produit ou service liée aux commandes précédentes.',
+  ],
+  loyal_customers: [
+    'Réservez un ton plus exclusif: fidélité, avant-première, offre privée.',
+    'Ces profils répondent bien aux avantages réservés et aux messages personnalisés.',
+    'Mettez en avant la relation dans la durée, pas seulement la remise.',
+  ],
+  single_order_customers: [
+    'Le principal objectif est d’obtenir une deuxième commande.',
+    'Appuyez-vous sur l’expérience de la première commande pour relancer.',
+    'Une offre complémentaire ou un accompagnement humain est souvent pertinent.',
+  ],
+  recent_customers: [
+    'Idéal pour un suivi post-achat, un service complémentaire ou un rappel d’usage.',
+    'N’envoyez pas trop vite une nouvelle offre purement commerciale.',
+    'Le meilleur levier est souvent l’aide à la prise en main.',
+  ],
+  high_value_customers: [
+    'Ces clients méritent un ton premium et un message plus sélectif.',
+    'Privilégiez l’exclusivité, la priorité de traitement ou une offre sur mesure.',
+    'Évitez les promotions génériques qui dégradent la perception de valeur.',
+  ],
+  customers_without_review: [
+    'Le message doit être court, direct et centré sur le retour d’expérience.',
+    'Rappelez que l’avis aide les autres clients et améliore le service.',
+    'Une relance simple fonctionne mieux qu’une offre trop agressive.',
+  ],
+  customers_with_pending_reviews: [
+    'Priorisez un ton de rappel bienveillant avec une action facile à comprendre.',
+    'Mentionner le nombre d’avis restants augmente la clarté du message.',
+    'Ne surchargez pas le mail: un seul objectif, déposer les avis.',
+  ],
+  inactive_customers: [
+    'La réactivation fonctionne mieux avec une nouveauté ou un bénéfice concret.',
+    'Rappelez la dernière relation commerciale pour recréer le contexte.',
+    'Une échéance courte aide à faire revenir les profils tièdes.',
+  ],
+  verified_without_orders: [
+    'Le but est de transformer l’inscription en premier passage à l’action.',
+    'Montrez immédiatement quoi faire ensuite: découvrir, demander, réserver, commander.',
+    'Réduisez la friction et évitez les messages trop longs.',
+  ],
+  verified_without_orders_recent: [
+    'Fenêtre idéale pour une séquence de bienvenue ou de conversion rapide.',
+    'Mettez en avant une première étape évidente et peu engageante.',
+    'Le message doit être clair, rassurant et orienté action.',
+  ],
+};
+
+const formatCampaignCriteria = (campaign: MarketingCampaign) => {
+  const criteria = campaign.criteria ?? {};
+
+  switch (campaign.segmentKey) {
+    case 'customers_with_orders':
+    case 'loyal_customers':
+      return `min ${criteria.minimumOrders ?? 1} commande(s)`;
+    case 'inactive_customers':
+      return `${criteria.inactiveDays ?? 90} jours d'inactivité`;
+    case 'recent_verified_users':
+    case 'verified_without_orders_recent':
+      return `inscrits depuis ${criteria.registeredDays ?? 30} jours`;
+    case 'recent_customers':
+      return `commande sous ${criteria.recentDays ?? 30} jours`;
+    case 'high_value_customers':
+      return `${((Number(criteria.minimumTotalCents ?? 50000) || 50000) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
+    case 'customers_with_pending_reviews':
+      return `${criteria.minimumPendingReviews ?? 2} avis en attente`;
+    default:
+      return 'Ciblage standard';
+  }
+};
+
 export const MarketingCampaignsPage = () => {
   useDocumentTitle('Admin - Campagnes email');
   const { isAdmin, loading: guardLoading } = useRequireAdmin();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
   const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
@@ -66,6 +161,21 @@ export const MarketingCampaignsPage = () => {
       .finally(() => setLoading(false));
   }, [isAdmin]);
 
+  useEffect(() => {
+    const templateId = searchParams.get('templateId');
+    if (!templateId || templates.length === 0) return;
+
+    const template = templates.find((item) => String(item.id) === templateId);
+    if (!template) return;
+
+    setForm((prev) => ({ ...prev, templateId }));
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('templateId');
+      return next;
+    }, { replace: true });
+  }, [searchParams, setSearchParams, templates]);
+
   const selectedTemplate = useMemo(
     () => templates.find((item) => String(item.id) === form.templateId) ?? null,
     [templates, form.templateId],
@@ -79,19 +189,70 @@ export const MarketingCampaignsPage = () => {
       htmlBody: selectedTemplate.htmlBody,
       textBody: selectedTemplate.textBody ?? '',
       segmentKey: selectedTemplate.scenarioKey,
+      name: prev.name || `Campagne - ${selectedTemplate.name}`,
     }));
   }, [selectedTemplate]);
 
+  useEffect(() => {
+    const defaults = segments[form.segmentKey]?.defaults;
+    if (!defaults) return;
+
+    setForm((prev) => ({
+      ...prev,
+      minimumOrders: defaults.minimumOrders !== undefined ? String(defaults.minimumOrders) : prev.minimumOrders,
+      inactiveDays: defaults.inactiveDays !== undefined ? String(defaults.inactiveDays) : prev.inactiveDays,
+      registeredDays: defaults.registeredDays !== undefined ? String(defaults.registeredDays) : prev.registeredDays,
+      recentDays: defaults.recentDays !== undefined ? String(defaults.recentDays) : prev.recentDays,
+      minimumTotalCents: defaults.minimumTotalCents !== undefined ? String(defaults.minimumTotalCents) : prev.minimumTotalCents,
+      minimumPendingReviews: defaults.minimumPendingReviews !== undefined ? String(defaults.minimumPendingReviews) : prev.minimumPendingReviews,
+    }));
+  }, [form.segmentKey, segments]);
+
   const criteria = useMemo(() => {
     const next: Record<string, string | number | boolean> = {};
+
     if (form.segmentKey === 'customers_with_orders' || form.segmentKey === 'loyal_customers') {
       next.minimumOrders = Number.parseInt(form.minimumOrders, 10) || 1;
     }
     if (form.segmentKey === 'inactive_customers') {
       next.inactiveDays = Number.parseInt(form.inactiveDays, 10) || 90;
     }
+    if (form.segmentKey === 'recent_verified_users' || form.segmentKey === 'verified_without_orders_recent') {
+      next.registeredDays = Number.parseInt(form.registeredDays, 10) || 30;
+    }
+    if (form.segmentKey === 'recent_customers') {
+      next.recentDays = Number.parseInt(form.recentDays, 10) || 30;
+    }
+    if (form.segmentKey === 'high_value_customers') {
+      next.minimumTotalCents = Number.parseInt(form.minimumTotalCents, 10) || 50000;
+    }
+    if (form.segmentKey === 'customers_with_pending_reviews') {
+      next.minimumPendingReviews = Number.parseInt(form.minimumPendingReviews, 10) || 2;
+    }
+
     return next;
-  }, [form.segmentKey, form.minimumOrders, form.inactiveDays]);
+  }, [
+    form.inactiveDays,
+    form.minimumOrders,
+    form.minimumPendingReviews,
+    form.minimumTotalCents,
+    form.recentDays,
+    form.registeredDays,
+    form.segmentKey,
+  ]);
+
+  const activeTemplates = useMemo(
+    () => templates.filter((item) => item.isActive),
+    [templates],
+  );
+
+  const templatesForSegment = useMemo(
+    () => activeTemplates.filter((item) => item.scenarioKey === form.segmentKey),
+    [activeTemplates, form.segmentKey],
+  );
+
+  const lastCampaign = campaigns[0] ?? null;
+  const audienceAdvice = segmentAdvice[form.segmentKey] ?? segmentAdvice.all_verified_users;
 
   const handlePreview = async () => {
     setPreviewLoading(true);
@@ -160,20 +321,49 @@ export const MarketingCampaignsPage = () => {
     <PageContainer
       title="Campagnes email"
       headerActions={
-        <Link
-          to="/admin/marketing/templates"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
-          Gérer les templates
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/admin/marketing/templates"
+            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+          >
+            Bibliothèque des templates
+          </Link>
+          <Link
+            to="/admin/marketing/templates/new"
+            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          >
+            Nouveau template
+          </Link>
+        </div>
       }
     >
+      <div className="mb-8 grid gap-4 md:grid-cols-4">
+        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Templates actifs</div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">{activeTemplates.length}</div>
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Audiences disponibles</div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">{Object.keys(segments).length}</div>
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Campagnes envoyées</div>
+          <div className="mt-2 text-3xl font-semibold text-slate-900">{campaigns.length}</div>
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Dernier envoi</div>
+          <div className="mt-2 text-sm font-semibold text-slate-900">
+            {lastCampaign ? new Date(lastCampaign.sentAt).toLocaleDateString('fr-FR') : 'Aucun'}
+          </div>
+        </div>
+      </div>
+
       <div className="mb-6 space-y-1">
         <p className="text-sm text-slate-600">
-          Créez des campagnes ciblées selon le comportement des utilisateurs.
+          Activez vos relances marketing avec des audiences ciblées, des critères métier et des templates réutilisables.
         </p>
         <p className="text-sm text-slate-500">
-          Exemples rentables: relance d’avis, réactivation client, offre fidélité, conversion des comptes sans commande.
+          L’espace permet maintenant de cibler l’acquisition, la réactivation, la fidélisation et la collecte d’avis depuis l’admin.
         </p>
       </div>
 
@@ -189,35 +379,42 @@ export const MarketingCampaignsPage = () => {
           Chargement...
         </div>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <form onSubmit={handleSend} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
             <label className="register-form__field">
               <span className="register-form__label">Nom de campagne</span>
               <input className="register-form__input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
             </label>
 
-            <label className="register-form__field">
-              <span className="register-form__label">Template</span>
-              <select className="register-form__input" value={form.templateId} onChange={(event) => setForm((prev) => ({ ...prev, templateId: event.target.value }))}>
-                <option value="">Sans template</option>
-                {templates.filter((item) => item.isActive).map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="register-form__field">
+                <span className="register-form__label">Template</span>
+                <select className="register-form__input" value={form.templateId} onChange={(event) => setForm((prev) => ({ ...prev, templateId: event.target.value }))}>
+                  <option value="">Sans template</option>
+                  {activeTemplates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="register-form__field">
-              <span className="register-form__label">Audience</span>
-              <select className="register-form__input" value={form.segmentKey} onChange={(event) => setForm((prev) => ({ ...prev, segmentKey: event.target.value }))}>
-                {Object.entries(segments).map(([key, segment]) => (
-                  <option key={key} value={key}>
-                    {segment.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <label className="register-form__field">
+                <span className="register-form__label">Audience</span>
+                <select className="register-form__input" value={form.segmentKey} onChange={(event) => setForm((prev) => ({ ...prev, segmentKey: event.target.value }))}>
+                  {Object.entries(segments).map(([key, segment]) => (
+                    <option key={key} value={key}>
+                      {segment.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+              <strong className="block text-slate-900">{segments[form.segmentKey]?.label ?? 'Audience marketing'}</strong>
+              <span>{segments[form.segmentKey]?.description ?? 'Choisissez une audience pour afficher son comportement cible.'}</span>
+            </div>
 
             {(form.segmentKey === 'customers_with_orders' || form.segmentKey === 'loyal_customers') && (
               <label className="register-form__field">
@@ -230,6 +427,35 @@ export const MarketingCampaignsPage = () => {
               <label className="register-form__field">
                 <span className="register-form__label">Inactivité en jours</span>
                 <input className="register-form__input" type="number" min={30} value={form.inactiveDays} onChange={(event) => setForm((prev) => ({ ...prev, inactiveDays: event.target.value }))} />
+              </label>
+            )}
+
+            {(form.segmentKey === 'recent_verified_users' || form.segmentKey === 'verified_without_orders_recent') && (
+              <label className="register-form__field">
+                <span className="register-form__label">Ancienneté maximale du compte en jours</span>
+                <input className="register-form__input" type="number" min={7} value={form.registeredDays} onChange={(event) => setForm((prev) => ({ ...prev, registeredDays: event.target.value }))} />
+              </label>
+            )}
+
+            {form.segmentKey === 'recent_customers' && (
+              <label className="register-form__field">
+                <span className="register-form__label">Commande au cours des X derniers jours</span>
+                <input className="register-form__input" type="number" min={7} value={form.recentDays} onChange={(event) => setForm((prev) => ({ ...prev, recentDays: event.target.value }))} />
+              </label>
+            )}
+
+            {form.segmentKey === 'high_value_customers' && (
+              <label className="register-form__field">
+                <span className="register-form__label">Montant cumulé minimum en centimes</span>
+                <input className="register-form__input" type="number" min={1000} step={100} value={form.minimumTotalCents} onChange={(event) => setForm((prev) => ({ ...prev, minimumTotalCents: event.target.value }))} />
+                <span className="text-xs text-slate-500">Exemple: 50000 = 500,00 EUR.</span>
+              </label>
+            )}
+
+            {form.segmentKey === 'customers_with_pending_reviews' && (
+              <label className="register-form__field">
+                <span className="register-form__label">Nombre minimum d’avis en attente</span>
+                <input className="register-form__input" type="number" min={1} value={form.minimumPendingReviews} onChange={(event) => setForm((prev) => ({ ...prev, minimumPendingReviews: event.target.value }))} />
               </label>
             )}
 
@@ -284,13 +510,54 @@ export const MarketingCampaignsPage = () => {
             </div>
 
             <div className="register-form-card" style={{ display: 'grid', gap: 12 }}>
-              <h2 className="text-xl font-semibold text-slate-900">Suggestions utiles</h2>
-              <ul className="list-disc pl-5 text-sm text-slate-600">
-                <li>Relance d’avis pour les clients sans retour après commande.</li>
-                <li>Réactivation à 90 jours pour les anciens clients inactifs.</li>
-                <li>Offre fidélité pour les clients avec plusieurs commandes.</li>
-                <li>Offre de bienvenue pour les comptes vérifiés sans commande.</li>
-              </ul>
+              <h2 className="text-xl font-semibold text-slate-900">Leviers conseillés</h2>
+              <div className="space-y-2 text-sm text-slate-600">
+                {audienceAdvice.map((item) => (
+                  <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="register-form-card" style={{ display: 'grid', gap: 12 }}>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold text-slate-900">Templates recommandés</h2>
+                <Link to="/admin/marketing/templates" className="text-sm font-semibold text-slate-700 hover:text-slate-900">
+                  Voir toute la bibliothèque
+                </Link>
+              </div>
+              {templatesForSegment.length === 0 ? (
+                <p className="text-sm text-slate-500">Aucun template actif n’est encore associé à cette audience.</p>
+              ) : (
+                <div className="space-y-3">
+                  {templatesForSegment.slice(0, 4).map((template) => (
+                    <div key={template.id} className="rounded-2xl border border-slate-200 px-4 py-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <strong className="block text-slate-900">{template.name}</strong>
+                          <div className="mt-1 text-sm text-slate-500">{template.subjectTemplate}</div>
+                        </div>
+                        <button
+                          type="button"
+                          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                          onClick={() => setForm((prev) => ({ ...prev, templateId: String(template.id) }))}
+                        >
+                          Utiliser
+                        </button>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                        <Link to={`/admin/marketing/templates/${template.id}`} className="font-semibold text-slate-700 hover:text-slate-900">
+                          Voir le détail
+                        </Link>
+                        <Link to={`/admin/marketing/templates/${template.id}/edit`} className="font-semibold text-slate-500 hover:text-slate-700">
+                          Modifier
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -309,6 +576,7 @@ export const MarketingCampaignsPage = () => {
                 <tr>
                   <th>Campagne</th>
                   <th>Audience</th>
+                  <th>Critère</th>
                   <th>Destinataires</th>
                   <th>Envoyée le</th>
                 </tr>
@@ -321,6 +589,7 @@ export const MarketingCampaignsPage = () => {
                       <div className="muted">{campaign.template?.name ?? campaign.subjectSnapshot}</div>
                     </td>
                     <td>{segments[campaign.segmentKey]?.label ?? campaign.segmentKey}</td>
+                    <td>{formatCampaignCriteria(campaign)}</td>
                     <td>{campaign.recipientsCount}</td>
                     <td>{new Date(campaign.sentAt).toLocaleString('fr-FR')}</td>
                   </tr>

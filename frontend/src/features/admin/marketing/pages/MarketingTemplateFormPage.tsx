@@ -100,14 +100,26 @@ export const MarketingTemplateFormPage = () => {
     <PageContainer
       title={isEdit ? 'Modifier un template email' : 'Nouveau template email'}
       headerActions={
-        <button
-          type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
-          onClick={() => navigate('/admin/marketing/templates')}
-        >
-          Retour à la liste
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="register-form__submit"
+            style={{ background: '#e5e7eb', color: '#111827' }}
+            onClick={() => navigate('/admin/marketing/templates')}
+          >
+            Retour à la liste
+          </button>
+          {isEdit && templateId ? (
+            <button
+              type="button"
+              className="register-form__submit"
+              style={{ background: '#f8fafc', color: '#111827', border: '1px solid #cbd5e1' }}
+              onClick={() => navigate(`/admin/marketing/templates/${templateId}`)}
+            >
+              Voir le détail
+            </button>
+          ) : null}
+        </div>
       }
     >
       {error && <div className="register-form__alert">{error}</div>}
@@ -146,6 +158,13 @@ export const MarketingTemplateFormPage = () => {
             </select>
           </label>
 
+          {segments[form.scenarioKey] ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+              <strong className="block text-slate-900">{segments[form.scenarioKey].label}</strong>
+              <span>{segments[form.scenarioKey].description}</span>
+            </div>
+          ) : null}
+
           <label className="register-form__field">
             <span className="register-form__label">Objet</span>
             <input className="register-form__input" value={form.subjectTemplate} onChange={(event) => setForm((prev) => ({ ...prev, subjectTemplate: event.target.value }))} />
@@ -167,7 +186,7 @@ export const MarketingTemplateFormPage = () => {
           </label>
 
           <p className="text-sm text-slate-500">
-            Variables disponibles: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{order_count}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{pending_reviews_count}}'}, {'{{app_frontend_url}}'}.
+            Variables disponibles: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{order_count}}'}, {'{{total_spent_eur}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{days_since_last_order}}'}, {'{{pending_reviews_count}}'}, {'{{app_frontend_url}}'}.
           </p>
 
           <button className="register-form__submit" type="submit" disabled={loading}>

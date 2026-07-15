@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, FileText, House, Layers3, Mail, Package, Plus, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BadgePercent, CalendarDays, FileText, House, Layers3, Mail, Package, Plus, ShieldCheck } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -141,6 +141,23 @@ const sections: Section[] = [
         to: '/admin/marketing/templates',
         title: 'Templates email',
         icon: <FileText className="h-6 w-6 text-brand-400" />,
+      },
+    ],
+  },
+  {
+    id: 'promotions',
+    title: 'Promotions',
+    subtitle: 'Remises automatiques panier par audience, ancienneté client et montant.',
+    links: [
+      {
+        to: '/admin/promotions',
+        title: 'Lister les promotions',
+        icon: <BadgePercent className="h-6 w-6 text-brand-400" />,
+      },
+      {
+        to: '/admin/promotions/new',
+        title: 'Créer une promotion',
+        icon: <Plus className="h-6 w-6 text-brand-400" />,
       },
     ],
   },
