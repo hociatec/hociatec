@@ -11,32 +11,38 @@ export const NumberRangeFilter = ({ min = null, max = null, onChange, step = 1 }
   const idMin = useId();
   const idMax = useId();
 
-  const parse = (v: string) => (v === '' ? null : Number(v));
+  const parse = (v: string) => {
+    if (v === '') return null;
+    const parsed = Number(v);
+    if (Number.isNaN(parsed)) return null;
+    return Math.max(0, parsed);
+  };
 
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-      <label htmlFor={idMin} className="sr-only">Min</label>
+      <label htmlFor={idMin} className="sr-only">Prix min</label>
       <input
         id={idMin}
         type="number"
+        min={0}
         step={step}
         value={min ?? ''}
         onChange={(e) => onChange({ min: parse(e.target.value), max })}
-        placeholder="Min"
+        placeholder="Prix min"
         style={{ width: 100, border: '1px solid rgba(148, 163, 184, 0.6)', borderRadius: 10, padding: '10px 12px' }}
       />
       <span className="muted">à</span>
-      <label htmlFor={idMax} className="sr-only">Max</label>
+      <label htmlFor={idMax} className="sr-only">Prix max</label>
       <input
         id={idMax}
         type="number"
+        min={0}
         step={step}
         value={max ?? ''}
         onChange={(e) => onChange({ min, max: parse(e.target.value) })}
-        placeholder="Max"
+        placeholder="Prix max"
         style={{ width: 100, border: '1px solid rgba(148, 163, 184, 0.6)', borderRadius: 10, padding: '10px 12px' }}
       />
     </div>
   );
 };
-

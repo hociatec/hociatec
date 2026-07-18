@@ -29,7 +29,7 @@ const ALL = 'all';
 const toNullableNumber = (value: string | null) => {
   if (!value) return null;
   const parsed = Number(value);
-  return Number.isNaN(parsed) ? null : parsed;
+  return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
 };
 
 export const CategoryPage = () => {
