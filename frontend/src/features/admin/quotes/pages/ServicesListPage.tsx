@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
@@ -23,21 +22,19 @@ const formatDuration = (service: any) => {
 
 export const ServicesListPage = () => {
   useDocumentTitle('Admin - Services');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void fetchAdminQuoteServices()
       .then((items) => setServices(items))
       .catch((e: any) => setError(e?.message ?? 'Chargement impossible.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -53,21 +50,6 @@ export const ServicesListPage = () => {
     setServices((prev) => prev.filter((s) => s.id !== id));
     setMessage('Service supprime.');
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Services">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Services">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

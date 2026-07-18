@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Admin\Voucher\Controller;
 
 use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Repository\VoucherRepository;
 use App\Module\Voucher\Service\VoucherFormatter;
+use App\Module\Voucher\Service\VoucherManager;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,8 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateVoucherController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly VoucherRepository $vouchers,
+        private readonly VoucherManager $voucherManager,
     ) {
     }
 
@@ -34,36 +32,20 @@ final class CreateVoucherController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $name = trim((string) ($payload['name'] ?? ''));
-        $code = $this->normalizeCode($payload['code'] ?? null);
-        $discountType = trim((string) ($payload['discountType'] ?? ''));
-        $discountValue = (int) ($payload['discountValue'] ?? 0);
-
-        if ($name === '' || $code === '' || $discountType === '') {
-            return ApiResponse::error('Champs obligatoires manquants.', Response::HTTP_BAD_REQUEST);
+        try {
+            $voucher = $this->voucherManager->create([
+                'name' => trim((string) ($payload['name'] ?? '')),
+                'code' => $this->normalizeCode($payload['code'] ?? null),
+                'description' => isset($payload['description']) ? trim((string) $payload['description']) : null,
+                'discountType' => trim((string) ($payload['discountType'] ?? '')),
+                'discountValue' => (int) ($payload['discountValue'] ?? 0),
+                'isActive' => (bool) ($payload['isActive'] ?? true),
+                'startsAt' => $this->parseDate($payload['startsAt'] ?? null),
+                'endsAt' => $this->parseDate($payload['endsAt'] ?? null),
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
-
-        if ($this->vouchers->findOneByCode($code) !== null) {
-            return ApiResponse::error('Ce code existe déjà.', Response::HTTP_BAD_REQUEST);
-        }
-
-        if (!\in_array($discountType, [Voucher::TYPE_PERCENT, Voucher::TYPE_FIXED_CENTS], true)) {
-            return ApiResponse::error('Type de remise invalide.', Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($discountValue <= 0) {
-            return ApiResponse::error('La valeur de remise doit être supérieure à zéro.', Response::HTTP_BAD_REQUEST);
-        }
-
-        $voucher = new Voucher($name, $code, $discountType, $discountValue);
-        $voucher
-            ->setDescription(isset($payload['description']) ? trim((string) $payload['description']) : null)
-            ->setIsActive((bool) ($payload['isActive'] ?? true))
-            ->setStartsAt($this->parseDate($payload['startsAt'] ?? null))
-            ->setEndsAt($this->parseDate($payload['endsAt'] ?? null));
-
-        $this->entityManager->persist($voucher);
-        $this->entityManager->flush();
 
         return ApiResponse::created([
             'voucher' => VoucherFormatter::formatVoucher($voucher),

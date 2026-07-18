@@ -52,7 +52,11 @@ class UpdateAddressController extends AbstractController
             ->setName($input->name)
             ->setAddress($input->address)
             ->setPostalCode($input->postalCode)
-            ->setCity($input->city);
+            ->setCity($input->city)
+            ->setCompany($input->company)
+            ->setCompanySiren($input->companySiren)
+            ->setCompanyVatNumber($input->companyVatNumber)
+            ->setPurchaseOrderNumber($input->purchaseOrderNumber);
 
         $this->addresses->save($address, true);
 

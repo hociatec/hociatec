@@ -15,7 +15,9 @@ import {
   AlertDialogTrigger,
 } from '@/shared/components/ui/alert-dialog';
 import {
+  buildOrderInvoiceFilename,
   cancelMyOrder,
+  downloadOrderInvoicePdf,
   fetchMyOrders,
   formatOrderStatusFr,
   type OrderDto,
@@ -30,7 +32,6 @@ export const MyOrdersPage = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
-
 
   useEffect(() => {
     setStatus('loading');
@@ -55,7 +56,7 @@ export const MyOrdersPage = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Mon espace</p>
           <h1 className="text-3xl font-semibold text-slate-900">Mes commandes</h1>
           <p className="max-w-2xl text-slate-600">
-            Suivez l&apos;historique de vos achats et consultez le détail de chaque commande pour évaluer les produits livrés.
+            Suivez l&apos;historique de vos achats, consultez vos factures et ouvrez chaque commande pour évaluer les produits livrés.
           </p>
         </header>
 
@@ -90,7 +91,7 @@ export const MyOrdersPage = () => {
                     <th scope="row" className="px-4 py-3 font-medium">{o.number}</th>
                     <td className="px-4 py-3">{new Date(o.createdAt).toLocaleDateString('fr-FR')}</td>
                     <td className="px-4 py-3">{formatPrice(o.totalPriceCents)}</td>
-                    <td className="px-4 py-3 capitalize">{o.statusLabel ?? formatOrderStatusFr(o.status)}</td>
+                    <td className="px-4 py-3">{o.statusLabel ?? formatOrderStatusFr(o.status)}</td>
                     <td className="px-4 py-3">
                       {(o.pendingReviewsCount ?? 0) > 0
                         ? `${o.pendingReviewsCount} produit${(o.pendingReviewsCount ?? 0) > 1 ? 's' : ''}`
@@ -104,6 +105,14 @@ export const MyOrdersPage = () => {
                         >
                           Voir le détail
                         </Link>
+
+                        <button
+                          type="button"
+                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                          onClick={() => void downloadOrderInvoicePdf(o.id, buildOrderInvoiceFilename(o))}
+                        >
+                          Télécharger la facture
+                        </button>
 
                         {o.status === 'pending' && (
                           <AlertDialog>
@@ -130,7 +139,14 @@ export const MyOrdersPage = () => {
                                       .then(() => {
                                         setOrders((prev) =>
                                           prev.map((x) =>
-                                            x.id === o.id ? { ...x, status: 'cancelled', statusLabel: 'annulée' } : x,
+                                            x.id === o.id
+                                              ? {
+                                                  ...x,
+                                                  status: 'cancelled',
+                                                  statusLabel: 'Annulée',
+                                                  invoice: x.invoice ? { ...x.invoice, status: 'cancelled' } : x.invoice,
+                                                }
+                                              : x,
                                           ),
                                         );
                                       })

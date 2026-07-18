@@ -48,4 +48,17 @@ final class VoucherRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * @return list<Voucher>
+     */
+    public function findByRecipientUserId(int $userId): array
+    {
+        return $this->createQueryBuilder('v')
+            ->andWhere('v.recipientUserId = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('v.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

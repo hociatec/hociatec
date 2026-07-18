@@ -28,6 +28,12 @@ final class CartService
         $cart = $this->findCartByToken($token);
 
         if ($cart !== null) {
+            if ($cart->isConverted()) {
+                return $cart->getUser() instanceof User
+                    ? $this->createCartForUser($cart->getUser())
+                    : $this->createCart();
+            }
+
             return $cart;
         }
 
@@ -258,6 +264,10 @@ final class CartService
 
         $cart = $this->findCartByToken($token);
         if ($cart !== null) {
+            if ($cart->isConverted()) {
+                return $user !== null ? $this->createCartForUser($user) : $this->createCart();
+            }
+
             return $cart;
         }
 

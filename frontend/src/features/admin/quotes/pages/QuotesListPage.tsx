@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote } from '@/features/quotes/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
+import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote, formatQuoteStatus, sendAdminQuoteEmail } from '@/features/quotes/api';
 import { useToast } from '@/shared/components/ui/toast';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -14,10 +13,18 @@ import { DateRangeFilter } from '@/shared/components/filters/DateRangeFilter';
 const formatPrice = (cents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
+const formatDate = (value?: string | null) => {
+  if (!value) return '-';
+
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return '-';
+
+  return date.toLocaleDateString('fr-FR');
+};
+
 export const QuotesListPage = () => {
   const toast = useToast();
   useDocumentTitle('Admin - Devis');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,14 +35,13 @@ export const QuotesListPage = () => {
   const [toDate, setToDate] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void fetchAdminQuotes({ q: search.trim() || undefined, status: filterStatus })
       .then((items) => setQuotes(items))
       .catch((err: any) => setError(err?.message ?? 'Impossible de charger les devis.'))
       .finally(() => setLoading(false));
-  }, [isAdmin, search, filterStatus]);
+  }, [search, filterStatus]);
 
   const filtered = useMemo(() => {
     const fromTs = fromDate ? new Date(fromDate).getTime() : null;
@@ -86,20 +92,29 @@ export const QuotesListPage = () => {
     }
   };
 
-  if (guardLoading) {
-    return (
-      <PageContainer title="Devis">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Devis">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
+  const handleSendEmail = async (id: number) => {
+    const quote = quotes.find((item) => item.id === id);
+    const defaultEmail = quote?.customer?.email ?? '';
+    const to = window.prompt('Destinataire (e-mail)', defaultEmail) ?? undefined;
+    if (to === undefined) return;
+
+    setError(null);
+    setMessage(null);
+    try {
+      const response = await sendAdminQuoteEmail(id, to);
+      const nextMessage = response?.message ?? 'E-mail envoyé.';
+      setMessage(nextMessage);
+      try {
+        toast.show(nextMessage, { variant: 'success' });
+      } catch {}
+    } catch (e: any) {
+      const msg = e?.message ?? 'Envoi impossible.';
+      setError(msg);
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch {}
+    }
+  };
 
   return (
     <PageContainer
@@ -173,7 +188,9 @@ export const QuotesListPage = () => {
               <tr>
                 <th scope="col">Numéro</th>
                 <th scope="col">Client</th>
+                <th scope="col">E-mail</th>
                 <th scope="col">Statut</th>
+                <th scope="col">Fin de validité</th>
                 <th scope="col">Total TTC</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -182,31 +199,42 @@ export const QuotesListPage = () => {
               {filtered.map((q) => (
                 <tr key={q.id}>
                   <th scope="row">
-                    <strong>{q.number}</strong>
-                    <div className="muted">{new Date(q.createdAt).toLocaleDateString('fr-FR')}</div>
+                    <Link
+                      to={`/admin/quotes/${q.id}`}
+                      className="catalog-admin-table__primary-link"
+                    >
+                      <strong>{q.number}</strong>
+                    </Link>
                   </th>
                   <td>
-                    <div>
-                      <strong>{q.customer?.name ?? '-'}</strong>
-                      <div className="muted">{q.customer?.email ?? ''}</div>
-                    </div>
+                    <strong>{q.customer?.name ?? '-'}</strong>
                   </td>
-                  <td>{q.status}</td>
+                  <td>{q.customer?.email ?? '-'}</td>
+                  <td>{formatQuoteStatus(q.status)}</td>
+                  <td>{formatDate(q.validUntil)}</td>
                   <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
                         to={`/admin/quotes/${q.id}/edit`}
                         className="catalog-admin-actions__edit"
-                        aria-label={`Ouvrir le devis ${q.number}`}
+                        aria-label="Modifier"
                       >
-                        Ouvrir
+                        Modifier
                       </Link>
                       <button
                         type="button"
                         className="catalog-admin-actions__edit"
+                        onClick={() => void handleSendEmail(q.id)}
+                        aria-label="Envoyer"
+                      >
+                        Envoyer
+                      </button>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__edit"
                         onClick={() => void handleDuplicate(q.id)}
-                        aria-label={`Dupliquer le devis ${q.number}`}
+                        aria-label="Dupliquer"
                       >
                         Dupliquer
                       </button>
@@ -214,7 +242,7 @@ export const QuotesListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(q.id)}
-                        aria-label={`Supprimer le devis ${q.number}`}
+                        aria-label="Supprimer"
                       >
                         Supprimer
                       </button>

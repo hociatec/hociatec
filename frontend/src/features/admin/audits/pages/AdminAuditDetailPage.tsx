@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditEventDto, type AuditListItemDto } from '@/features/audits/api';
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'non commencé',
-  in_progress: 'en cours',
-  review: 'en revue',
-  done: 'finalisé',
+  new: 'Non commencé',
+  in_progress: 'En cours',
+  review: 'En revue',
+  done: 'Finalisé',
 };
 
 const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const AdminAuditDetailPage = () => {
   useDocumentTitle('Admin - Audit');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const params = useParams();
   const navigate = useNavigate();
   const id = Number(params.auditId);
@@ -27,18 +25,18 @@ export const AdminAuditDetailPage = () => {
   const pollTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !id) return;
+    if (!id) return;
     setLoading(true);
     setError(null);
     void adminFetchAudit(id)
       .then(setAudit)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
-  }, [id, isAdmin]);
+  }, [id]);
 
   // Poll audit detail every 10s (avoid when typing comments)
   useEffect(() => {
-    if (!isAdmin || !id) return;
+    if (!id) return;
     pollTimer.current = window.setInterval(() => {
       if (document.hidden) return;
       // If there are pending debounced comment updates, skip refresh to avoid overwriting the input
@@ -49,7 +47,7 @@ export const AdminAuditDetailPage = () => {
         .catch(() => {/* ignore background error */});
     }, 10000);
     return () => { if (pollTimer.current) window.clearInterval(pollTimer.current); };
-  }, [id, isAdmin]);
+  }, [id]);
 
   const grouped = useMemo(() => {
     if (!audit) return {} as Record<string, AuditItemDto[]>;
@@ -115,21 +113,6 @@ export const AdminAuditDetailPage = () => {
     };
   }, []);
 
-  if (guardLoading) {
-    return (
-      <PageContainer title="Audit">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Audit">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
-
   return (
     <PageContainer title={`Audit ${audit?.number ?? ''}`}>
       {loading && <p>Chargement…</p>}
@@ -137,7 +120,7 @@ export const AdminAuditDetailPage = () => {
       {audit && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">Client: {audit.client?.name} ({audit.client?.email})</div>
+            <div className="text-sm text-gray-700">Client : {audit.client?.name} ({audit.client?.email})</div>
             <div className="space-x-2">
               <select value={audit.status} onChange={(e) => void updateStatus(e.target.value)} className="border rounded p-1 text-sm">
                 <option value="new">{statusLabel('new')}</option>
@@ -162,7 +145,7 @@ export const AdminAuditDetailPage = () => {
                   a.href = url; a.download = `${audit.number}-synthese.pdf`; a.click();
                   URL.revokeObjectURL(url);
                 } catch {}
-              }}>Synthèse PDF</button>
+              }}>Télécharger la synthèse PDF</button>
               <button className="underline" onClick={() => navigate('/admin/audits')}>Retour</button>
             </div>
           </div>
@@ -215,7 +198,7 @@ export const AdminAuditDetailPage = () => {
               <ul className="space-y-1 text-sm text-gray-700">
                 {(audit.events as AuditEventDto[]).map((e) => (
                   <li key={e.id}>
-                    <span className="text-gray-500">{new Date(e.createdAt).toLocaleString()}:</span>
+                    <span className="text-gray-500">{new Date(e.createdAt).toLocaleString('fr-FR')} :</span>
                     {' '}{e.message || e.type}
                     {e.actor?.name ? ` — ${e.actor.name}` : ''}
                   </li>

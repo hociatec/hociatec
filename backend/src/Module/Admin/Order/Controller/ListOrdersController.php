@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Admin\Order\Controller;
 
 use App\Module\Order\Entity\Order;
+use App\Module\Order\Repository\OrderEventRepository;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Order\Service\OrderIssueInspector;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,15 +18,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders', name: 'api_admin_orders_list', methods: ['GET'])]
 #[IsGranted('ROLE_ADMIN')]
-class ListOrdersController extends AbstractController
+final class ListOrdersController extends AbstractController
 {
-    public function __construct(private readonly OrderRepository $orders)
-    {
+    public function __construct(
+        private readonly OrderRepository $orders,
+        private readonly OrderEventRepository $events,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         $status = $request->query->get('status');
+        $health = $request->query->get('health');
 
         $qb = $this->orders->createQueryBuilder('o')
             ->orderBy('o.createdAt', 'DESC');
@@ -33,12 +38,44 @@ class ListOrdersController extends AbstractController
             $qb->andWhere('o.status = :status')->setParameter('status', $status);
         }
 
+        if ($health === 'issues') {
+            $qb
+                ->leftJoin('App\Module\Order\Entity\OrderEvent', 'e', 'WITH', 'e.order = o')
+                ->andWhere(
+                    $qb->expr()->orX(
+                        'o.invoicePdfPath IS NULL',
+                        'o.invoiceXmlPath IS NULL',
+                        'o.orderCreatedEmailSentAt IS NULL',
+                        $qb->expr()->in('e.type', ':issueTypes'),
+                    )
+                )
+                ->setParameter('issueTypes', [
+                    'email_failed',
+                    'invoice_generation_failed',
+                    'post_processing_failed',
+                ])
+                ->groupBy('o.id');
+        }
+
+        /** @var list<Order> $orders */
+        $orders = $qb->getQuery()->getResult();
+        $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);
+
         $items = array_map(
-            fn(Order $o) => OrderFormatter::formatOrder($o),
-            $qb->getQuery()->getResult(),
+            static function (Order $order) use ($issueEventsByOrderId): array {
+                $issueReasons = OrderIssueInspector::getOperationalIssues(
+                    $order,
+                    $issueEventsByOrderId[$order->getId() ?? 0] ?? [],
+                );
+
+                return OrderFormatter::formatOrder($order, [], [
+                    'hasIssues' => $issueReasons !== [],
+                    'issueReasons' => $issueReasons,
+                ]);
+            },
+            $orders,
         );
 
         return ApiResponse::success(['items' => $items]);
     }
 }
-

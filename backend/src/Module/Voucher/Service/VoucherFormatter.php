@@ -27,6 +27,9 @@ final class VoucherFormatter
             'isActive' => $voucher->isActive(),
             'startsAt' => $voucher->getStartsAt()?->format(DATE_ATOM),
             'endsAt' => $voucher->getEndsAt()?->format(DATE_ATOM),
+            'recipientUserId' => $voucher->getRecipientUserId(),
+            'recipientEmail' => $voucher->getRecipientEmail(),
+            'sentAt' => $voucher->getSentAt()?->format(DATE_ATOM),
             'createdAt' => $voucher->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $voucher->getUpdatedAt()->format(DATE_ATOM),
         ];

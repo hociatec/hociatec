@@ -159,6 +159,13 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
           >
             Mes commandes
           </Link>
+          <Link
+            to="/vouchers/me"
+            className="site-header__account-item"
+            onClick={() => closeMenu({ focusTrigger: false })}
+          >
+            Mes bons de réduction
+          </Link>
           <button
             type="button"
             className="site-header__account-item site-header__account-item--danger"

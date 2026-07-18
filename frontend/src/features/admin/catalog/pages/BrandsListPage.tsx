@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { PageContainer } from '@/shared/components/PageContainer';
@@ -10,7 +9,6 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 export const BrandsListPage = () => {
   useDocumentTitle('Admin - Marques');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,12 +30,8 @@ export const BrandsListPage = () => {
   };
 
   useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
     void loadBrands();
-  }, [isAdmin]);
+  }, []);
 
   const handleDelete = async (brand: CatalogBrand) => {
     if (!window.confirm(`Supprimer la marque "${brand.name}" ? Les produits liés perdront cette marque.`)) {
@@ -65,22 +59,6 @@ export const BrandsListPage = () => {
 
     return brands.filter((brand) => brand.name.toLowerCase().includes(term));
   }, [brands, search]);
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Marques">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Marques">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

@@ -475,6 +475,17 @@
   text-align: left;
 }
 
+.catalog-admin-table__primary-link {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.catalog-admin-table__primary-link:hover {
+  color: #0369a1;
+  text-decoration: underline;
+}
+
 .catalog-admin-actions {
   display: flex;
   gap: 8px;

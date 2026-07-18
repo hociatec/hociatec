@@ -45,6 +45,15 @@ class Voucher
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $endsAt = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $recipientUserId = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    private ?string $recipientEmail = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $sentAt = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $createdAt;
 
@@ -79,6 +88,12 @@ class Voucher
     public function setStartsAt(?DateTimeImmutable $startsAt): self { $this->startsAt = $startsAt; return $this; }
     public function getEndsAt(): ?DateTimeImmutable { return $this->endsAt; }
     public function setEndsAt(?DateTimeImmutable $endsAt): self { $this->endsAt = $endsAt; return $this; }
+    public function getRecipientUserId(): ?int { return $this->recipientUserId; }
+    public function setRecipientUserId(?int $recipientUserId): self { $this->recipientUserId = $recipientUserId; return $this; }
+    public function getRecipientEmail(): ?string { return $this->recipientEmail; }
+    public function setRecipientEmail(?string $recipientEmail): self { $this->recipientEmail = $recipientEmail; return $this; }
+    public function getSentAt(): ?DateTimeImmutable { return $this->sentAt; }
+    public function setSentAt(?DateTimeImmutable $sentAt): self { $this->sentAt = $sentAt; return $this; }
     public function getCreatedAt(): DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): DateTimeImmutable { return $this->updatedAt; }
 

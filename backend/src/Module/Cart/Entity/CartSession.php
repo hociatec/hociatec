@@ -44,6 +44,12 @@ class CartSession
     #[ORM\Column(name: 'promotion_code', length: 64, nullable: true)]
     private ?string $voucherCode = null;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $convertedAt = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $convertedOrderId = null;
+
     public function __construct(string $token)
     {
         $this->token = $token;
@@ -182,6 +188,30 @@ class CartSession
 
         $normalized = trim($voucherCode);
         $this->voucherCode = $normalized !== '' ? mb_strtoupper($normalized) : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getConvertedAt(): ?DateTimeImmutable
+    {
+        return $this->convertedAt;
+    }
+
+    public function getConvertedOrderId(): ?int
+    {
+        return $this->convertedOrderId;
+    }
+
+    public function isConverted(): bool
+    {
+        return $this->convertedAt !== null;
+    }
+
+    public function markConverted(int $orderId): self
+    {
+        $this->convertedAt = new DateTimeImmutable();
+        $this->convertedOrderId = $orderId;
         $this->touch();
 
         return $this;

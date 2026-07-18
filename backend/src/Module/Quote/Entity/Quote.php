@@ -69,6 +69,9 @@ class Quote
     #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $updatedAt;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?DateTimeImmutable $createdEmailSentAt = null;
+
     public function __construct(string $number)
     {
         $this->number = $number;
@@ -136,6 +139,8 @@ class Quote
 
     public function getCreatedAt(): DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): DateTimeImmutable { return $this->updatedAt; }
+    public function getCreatedEmailSentAt(): ?DateTimeImmutable { return $this->createdEmailSentAt; }
+    public function setCreatedEmailSentAt(?DateTimeImmutable $createdEmailSentAt): self { $this->createdEmailSentAt = $createdEmailSentAt; return $this; }
 
     #[ORM\PreUpdate]
     public function touch(): void

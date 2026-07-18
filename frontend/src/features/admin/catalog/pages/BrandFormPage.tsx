@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   createBrand,
   fetchAdminBrand,
@@ -27,7 +26,6 @@ export const BrandFormPage = () => {
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une marque' : 'Admin - Nouvelle marque');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<BrandFormState>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -35,7 +33,7 @@ export const BrandFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit) {
+    if (!isEdit) {
       return;
     }
 
@@ -54,7 +52,7 @@ export const BrandFormPage = () => {
     };
 
     void loadBrand();
-  }, [brandId, isAdmin, isEdit]);
+  }, [brandId, isEdit]);
 
   const populateForm = (brand: CatalogBrand) => {
     setForm({ name: brand.name });
@@ -97,22 +95,6 @@ export const BrandFormPage = () => {
       setLoading(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une marque' : 'Nouvelle marque'}>
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une marque' : 'Nouvelle marque'}>
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

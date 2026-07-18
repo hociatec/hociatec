@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Service\QuoteCalculator;
+use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteService as QuoteDomainService;
 use App\Shared\Http\ApiResponse;
@@ -23,6 +24,7 @@ class CreateQuoteController extends AbstractController
     public function __construct(
         private readonly QuoteDomainService $quoteService,
         private readonly QuoteCalculator $calculator,
+        private readonly QuoteEmailService $quoteEmailService,
     ) {
     }
 
@@ -36,7 +38,15 @@ class CreateQuoteController extends AbstractController
             return ApiResponse::error('Impossible de creer le devis.', Response::HTTP_BAD_REQUEST, [$e->getMessage()]);
         }
 
-        return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator));
+        $data = QuoteFormatter::formatQuote($quote, $this->calculator);
+
+        try {
+            $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
+        } catch (Throwable $exception) {
+            $data['emailNotificationSent'] = false;
+            $data['emailNotificationError'] = $exception->getMessage();
+        }
+
+        return ApiResponse::created($data);
     }
 }
-

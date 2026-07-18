@@ -6,6 +6,7 @@ namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
+use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteService as QuoteDomainService;
 use App\Shared\Http\ApiResponse;
@@ -25,6 +26,7 @@ class UpdateQuoteController extends AbstractController
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteDomainService $quoteService,
         private readonly QuoteCalculator $calculator,
+        private readonly QuoteEmailService $quoteEmailService,
     ) {
     }
 
@@ -43,7 +45,15 @@ class UpdateQuoteController extends AbstractController
             return ApiResponse::error('Impossible de mettre a jour le devis.', Response::HTTP_BAD_REQUEST, [$e->getMessage()]);
         }
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        $data = QuoteFormatter::formatQuote($quote, $this->calculator);
+
+        try {
+            $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
+        } catch (Throwable $exception) {
+            $data['emailNotificationSent'] = false;
+            $data['emailNotificationError'] = $exception->getMessage();
+        }
+
+        return ApiResponse::success($data);
     }
 }
-

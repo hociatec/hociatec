@@ -258,7 +258,7 @@ export const CreateQuotePage = () => {
             </section>
 
             <section>
-              <h3 className="font-semibold mb-2">éléments du devis</h3>
+              <h3 className="font-semibold mb-2">Éléments du devis</h3>
               <div className="mb-4">
                 <input
                   type="search"
@@ -536,7 +536,7 @@ export const CreateQuotePage = () => {
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </button>
               <button type="button" className="hero__button hero__button--ghost" onClick={() => void handleDownloadPdf()} disabled={saving || (form.items ?? []).length === 0}>
-                Télécharger le PDF
+                Télécharger
               </button>
             </div>
           </div>
@@ -568,4 +568,3 @@ export const CreateQuotePage = () => {
     </SiteLayout>
   );
 };
-

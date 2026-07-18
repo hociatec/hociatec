@@ -5,20 +5,21 @@ declare(strict_types=1);
 namespace App\Module\Admin\Order\Controller;
 
 use App\Module\Order\Entity\Order;
+use App\Module\Order\Message\OrderStatusChangedMessage;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\OrderFormatter;
 use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Workflow\WorkflowInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Module\Order\Message\OrderStatusChangedMessage;
+use Symfony\Component\Workflow\WorkflowInterface;
 
 #[Route('/api/admin/orders/{orderId}/status', name: 'api_admin_orders_update_status', methods: ['PATCH'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -30,6 +31,7 @@ class UpdateOrderStatusController extends AbstractController
         #[Autowire(service: 'state_machine.order_status')]
         private readonly WorkflowInterface $stateMachine,
         private readonly MessageBusInterface $bus,
+        private readonly OrderEventLogger $events,
     ) {
     }
 
@@ -59,12 +61,11 @@ class UpdateOrderStatusController extends AbstractController
 
         $old = $order->getStatus();
 
-        // Map desired status to transition and apply via state machine
         $transition = match ($status) {
             Order::STATUS_CONFIRMED => 'confirm',
             Order::STATUS_DELIVERED => 'deliver',
             Order::STATUS_CANCELLED => 'cancel',
-            Order::STATUS_PENDING => null, // no-op or invalid from other states
+            Order::STATUS_PENDING => null,
             default => null,
         };
 
@@ -73,11 +74,36 @@ class UpdateOrderStatusController extends AbstractController
         }
 
         $this->stateMachine->apply($order, $transition);
+
+        if ($status === Order::STATUS_CANCELLED) {
+            $order->setInvoiceStatus(Order::INVOICE_STATUS_CANCELLED);
+        } elseif ($status === Order::STATUS_DELIVERED) {
+            $order->setDeliveryStatus(Order::DELIVERY_STATUS_DELIVERED);
+            if ($order->getDeliveryDeliveredAt() === null) {
+                $order->setDeliveryDeliveredAt(new \DateTimeImmutable());
+            }
+            if ($order->getDeliveryShippedAt() === null) {
+                $order->setDeliveryShippedAt(new \DateTimeImmutable());
+            }
+        } elseif ($status === Order::STATUS_CONFIRMED && $order->getDeliveryStatus() === '') {
+            $order->setDeliveryStatus(Order::DELIVERY_STATUS_PREPARING);
+        }
+
         $this->em->persist($order);
         $this->em->flush();
+        $actor = $this->getUser();
+        $this->events->log(
+            $order,
+            $actor instanceof \App\Module\User\Entity\User ? $actor : null,
+            'status_changed',
+            sprintf(
+                'Statut : %s -> %s',
+                OrderFormatter::formatStatusLabel($old),
+                OrderFormatter::formatStatusLabel($order->getStatus()),
+            ),
+        );
 
-        $this->bus->dispatch(new OrderStatusChangedMessage($order->getId() ?? 0, $order->getNumber(), $old, $order->getStatus()))
-        ;
+        $this->bus->dispatch(new OrderStatusChangedMessage($order->getId() ?? 0, $order->getNumber(), $old, $order->getStatus()));
 
         return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
     }

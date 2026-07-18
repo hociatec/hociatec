@@ -14,7 +14,6 @@ import {
   type CatalogProduct,
   type UpsertProductPayload,
 } from '@/features/catalog/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -132,8 +131,6 @@ export const ProductFormPage = () => {
 
   useDocumentTitle(isEdit ? 'Admin - Modifier un produit' : 'Admin - Nouveau produit');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
-
   const [form, setForm] = useState<ProductFormState>(emptyForm);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
@@ -175,10 +172,6 @@ export const ProductFormPage = () => {
   );
 
   useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
     setInitialLoading(true);
     setError(null);
     setMessage(null);
@@ -228,7 +221,7 @@ export const ProductFormPage = () => {
     };
 
     void load();
-  }, [isAdmin, isEdit, productId]);
+  }, [isEdit, productId]);
 
   const hydrateFromProduct = (product: CatalogProduct) => {
     const productBrand = product.brand ?? '';
@@ -727,22 +720,6 @@ export const ProductFormPage = () => {
       </div>
     );
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier un produit' : 'Nouveau produit'}>
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier un produit' : 'Nouveau produit'}>
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

@@ -210,6 +210,18 @@ class ProductRepository extends ServiceEntityRepository
             ->execute();
     }
 
+    public function countLowStock(int $threshold = 3): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->andWhere('p.stock <= :threshold')
+            ->andWhere('p.isPublished = :published')
+            ->setParameter('threshold', max(0, $threshold))
+            ->setParameter('published', true)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function existsWithSku(string $sku, ?int $excludeId = null): bool
     {
         $qb = $this->createQueryBuilder('p')

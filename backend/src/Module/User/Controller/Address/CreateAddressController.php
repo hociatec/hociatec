@@ -44,6 +44,11 @@ class CreateAddressController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $address = new ShippingAddress($user, $input->name, $input->address, $input->postalCode, $input->city);
+        $address
+            ->setCompany($input->company)
+            ->setCompanySiren($input->companySiren)
+            ->setCompanyVatNumber($input->companyVatNumber)
+            ->setPurchaseOrderNumber($input->purchaseOrderNumber);
         $this->addresses->save($address, true);
 
         // set default if requested or first address

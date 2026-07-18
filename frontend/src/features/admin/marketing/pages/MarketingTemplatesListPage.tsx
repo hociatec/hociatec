@@ -1,35 +1,39 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
-import { deleteMarketingTemplate, fetchMarketingSegments, fetchMarketingTemplates, type MarketingTemplate } from '@/features/admin/marketing/api';
+import { deleteMarketingTemplate, fetchMarketingSegments, fetchMarketingTemplates, type MarketingSegmentDefinition, type MarketingTemplate } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const MarketingTemplatesListPage = () => {
-  useDocumentTitle('Admin - Templates email');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
+  const location = useLocation();
+  const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
+  useDocumentTitle(isTransactionalView ? 'Admin - E-mails transactionnels' : 'Admin - Modèles d’e-mail');
   const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
-  const [segments, setSegments] = useState<Record<string, { label: string; description: string }>>({});
+  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [scenarioFilter, setScenarioFilter] = useState('all');
+  const [usageFilter, setUsageFilter] = useState(isTransactionalView ? 'transactional' : 'all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
-    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments()])
+    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments('templates')])
       .then(([templatesList, segmentsList]) => {
         setTemplates(templatesList);
         setSegments(segmentsList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger les templates.'))
+      .catch((err: any) => setError(err?.message ?? 'Impossible de charger les modèles.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
+
+  useEffect(() => {
+    setUsageFilter(isTransactionalView ? 'transactional' : 'all');
+  }, [isTransactionalView]);
 
   const filteredTemplates = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -40,60 +44,67 @@ export const MarketingTemplatesListPage = () => {
         || template.slug.toLowerCase().includes(normalizedQuery)
         || template.subjectTemplate.toLowerCase().includes(normalizedQuery);
       const matchesScenario = scenarioFilter === 'all' || template.scenarioKey === scenarioFilter;
+      const matchesUsage = usageFilter === 'all'
+        || (usageFilter === 'transactional' && segments[template.scenarioKey]?.type === 'transactional')
+        || (usageFilter === 'campaign' && segments[template.scenarioKey]?.type !== 'transactional');
       const matchesStatus = statusFilter === 'all'
         || (statusFilter === 'active' && template.isActive)
         || (statusFilter === 'inactive' && !template.isActive);
 
-      return matchesQuery && matchesScenario && matchesStatus;
+      return matchesQuery && matchesScenario && matchesUsage && matchesStatus;
     });
-  }, [query, scenarioFilter, statusFilter, templates]);
+  }, [query, scenarioFilter, statusFilter, templates, usageFilter, segments]);
 
   const handleDelete = async (templateId: number) => {
-    if (!window.confirm('Supprimer ce template ?')) return;
+    if (!window.confirm('Supprimer ce modèle ?')) return;
     setError(null);
     setMessage(null);
     try {
       await deleteMarketingTemplate(templateId);
       setTemplates((prev) => prev.filter((item) => item.id !== templateId));
-      setMessage('Template supprimé.');
+      setMessage('Modèle supprimé.');
     } catch (err: any) {
       setError(err?.message ?? 'Suppression impossible.');
     }
   };
 
-  if (guardLoading) {
-    return <PageContainer title="Templates email"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Templates email"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
-
   return (
     <PageContainer
-      title="Templates email"
+      title={isTransactionalView ? 'E-mails transactionnels' : 'Modèles d’e-mail'}
       headerActions={
         <div className="flex flex-wrap gap-3">
+          {isTransactionalView ? (
+            <Link
+              to="/admin"
+              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            >
+              Retour au dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/admin/marketing"
+              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            >
+              Retour aux campagnes
+            </Link>
+          )}
           <Link
-            to="/admin/marketing"
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
-          >
-            Retour aux campagnes
-          </Link>
-          <Link
-            to="/admin/marketing/templates/new"
+            to={isTransactionalView ? '/admin/transactional-emails/new' : '/admin/marketing/templates/new'}
             className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Nouveau template
+            Nouveau modèle
           </Link>
         </div>
       }
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-slate-600">
-          {templates.length} template{templates.length > 1 ? 's' : ''} enregistré{templates.length > 1 ? 's' : ''}.
+          {templates.length} modèle{templates.length > 1 ? 's' : ''} enregistré{templates.length > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-slate-500">
-          Filtrez votre bibliothèque par usage métier, statut ou recherche libre pour retrouver rapidement le bon message.
+          {isTransactionalView
+            ? 'Gérez ici les e-mails automatiques envoyés pour les commandes et les factures.'
+            : 'Filtrez votre bibliothèque par usage métier, statut ou recherche libre pour retrouver rapidement le bon message.'}
         </p>
       </div>
 
@@ -104,11 +115,21 @@ export const MarketingTemplatesListPage = () => {
         </div>
       )}
 
-      <div className="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)]">
+      <div className="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-4">
         <label className="register-form__field">
           <span className="register-form__label">Recherche</span>
           <input className="register-form__input" placeholder="Nom, slug ou objet..." value={query} onChange={(event) => setQuery(event.target.value)} />
         </label>
+        {!isTransactionalView ? (
+          <label className="register-form__field">
+            <span className="register-form__label">Usage</span>
+            <select className="register-form__input" value={usageFilter} onChange={(event) => setUsageFilter(event.target.value)}>
+              <option value="all">Tous</option>
+              <option value="transactional">Transactionnels</option>
+              <option value="campaign">Marketing</option>
+            </select>
+          </label>
+        ) : null}
         <label className="register-form__field">
           <span className="register-form__label">Scénario</span>
           <select className="register-form__input" value={scenarioFilter} onChange={(event) => setScenarioFilter(event.target.value)}>
@@ -132,11 +153,11 @@ export const MarketingTemplatesListPage = () => {
 
       {loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des templates...
+          Chargement des modèles...
         </div>
       ) : filteredTemplates.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucun template ne correspond aux filtres actuels.
+          Aucun modèle ne correspond aux filtres actuels.
         </div>
       ) : (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -158,23 +179,26 @@ export const MarketingTemplatesListPage = () => {
                     <strong>{template.name}</strong>
                     <div className="muted">{template.subjectTemplate}</div>
                   </th>
-                  <td>{segments[template.scenarioKey]?.label ?? template.scenarioKey}</td>
+                  <td>
+                    <div>{segments[template.scenarioKey]?.label ?? template.scenarioKey}</div>
+                    <div className="muted">{segments[template.scenarioKey]?.type === 'transactional' ? 'Transactionnel' : 'Marketing'}</div>
+                  </td>
                   <td>{template.slug}</td>
                   <td>{template.isActive ? 'Actif' : 'Désactivé'}</td>
                   <td>{template.updatedAt ? new Date(template.updatedAt).toLocaleDateString('fr-FR') : '-'}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
-                        to={`/admin/marketing/templates/${template.id}`}
+                        to={isTransactionalView ? `/admin/transactional-emails/${template.id}` : `/admin/marketing/templates/${template.id}`}
                         className="catalog-admin-actions__edit"
-                        aria-label={`Voir le template ${template.name}`}
+                        aria-label={`Voir le modèle ${template.name}`}
                       >
                         Voir
                       </Link>
                       <Link
-                        to={`/admin/marketing/templates/${template.id}/edit`}
+                        to={isTransactionalView ? `/admin/transactional-emails/${template.id}/edit` : `/admin/marketing/templates/${template.id}/edit`}
                         className="catalog-admin-actions__edit"
-                        aria-label={`Modifier le template ${template.name}`}
+                        aria-label={`Modifier le modèle ${template.name}`}
                       >
                         Modifier
                       </Link>
@@ -182,7 +206,7 @@ export const MarketingTemplatesListPage = () => {
                         type="button"
                         className="catalog-admin-actions__delete"
                         onClick={() => void handleDelete(template.id)}
-                        aria-label={`Supprimer le template ${template.name}`}
+                        aria-label={`Supprimer le modèle ${template.name}`}
                       >
                         Supprimer
                       </button>

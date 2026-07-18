@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   createPromotion,
   fetchPromotion,
@@ -59,7 +58,6 @@ export const PromotionFormPage = () => {
   useDocumentTitle(isEdit ? 'Admin - Modifier une promotion' : 'Admin - Nouvelle promotion');
   const navigate = useNavigate();
   const toast = useToast();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [audiences, setAudiences] = useState<Record<string, PromotionAudienceDefinition>>({});
   const [loading, setLoading] = useState(false);
@@ -67,12 +65,11 @@ export const PromotionFormPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     void fetchPromotionAudiences().then(setAudiences).catch(() => undefined);
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit || !promotionId) return;
+    if (!isEdit || !promotionId) return;
     setInitialLoading(true);
     void fetchPromotion(Number(promotionId))
       .then((promotion) => {
@@ -98,7 +95,7 @@ export const PromotionFormPage = () => {
         toast.show(message, { variant: 'error' });
       })
       .finally(() => setInitialLoading(false));
-  }, [isAdmin, isEdit, promotionId, toast]);
+  }, [isEdit, promotionId, toast]);
 
   const payload = useMemo<PromotionPayload>(() => {
     const criteria: Record<string, string | number | boolean> = {
@@ -153,13 +150,6 @@ export const PromotionFormPage = () => {
       setLoading(false);
     }
   };
-
-  if (guardLoading) {
-    return <PageContainer title="Promotion"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Promotion"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
 
   return (
     <PageContainer

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Http;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -12,20 +13,14 @@ final class OvhRoundcubeMailer
 {
     private const DISCOVERY_URL = 'https://msservices.eu.ovhapis.com/1.0/webmail/';
 
-    private readonly \Symfony\Component\HttpClient\CurlHttpClient $httpClient;
+    private readonly HttpClientInterface $httpClient;
 
     public function __construct()
     {
-        $client = HttpClient::create([
+        $this->httpClient = HttpClient::create([
             'timeout' => 20,
             'max_redirects' => 0,
         ]);
-
-        if (!$client instanceof \Symfony\Component\HttpClient\CurlHttpClient) {
-            throw new \RuntimeException('Unexpected HTTP client implementation.');
-        }
-
-        $this->httpClient = $client;
     }
 
     public function supportsConfiguredMailbox(): bool
@@ -73,24 +68,33 @@ final class OvhRoundcubeMailer
             ], '', '&', \PHP_QUERY_RFC3986),
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Referer' => $webmailUrl . '?_task=login',
+                'Referer' => $webmailUrl . '?_task=login',
                 ],
             ],
-            [302]
+            [200, 302]
         );
 
         $location = $loginResponse->getHeaders(false)['location'][0] ?? null;
-        if (!is_string($location) || !str_contains($location, '_task=mail')) {
-            throw new \RuntimeException('Roundcube login failed.');
+        if (is_string($location) && str_contains($location, '_task=mail')) {
+            $this->request('GET', $this->resolveUrl($webmailUrl, $location), $cookies, [], [200]);
+        } else {
+            $loginResponseHtml = $loginResponse->getContent();
+            if (
+                str_contains($loginResponseHtml, '_task=login')
+                && str_contains($loginResponseHtml, '_action=login')
+            ) {
+                throw new \RuntimeException('Roundcube login failed.');
+            }
         }
 
-        $composeRedirect = $this->request('GET', $webmailUrl . '?_task=mail&_action=compose', $cookies, [], [302]);
+        $composeEntryUrl = $webmailUrl . '?_task=mail&_action=compose';
+        $composeRedirect = $this->request('GET', $composeEntryUrl, $cookies, [], [200, 302]);
         $composeLocation = $composeRedirect->getHeaders(false)['location'][0] ?? null;
-        if (!is_string($composeLocation) || $composeLocation === '') {
-            throw new \RuntimeException('Roundcube compose redirect is missing.');
+        if (is_string($composeLocation) && $composeLocation !== '') {
+            $composePage = $this->request('GET', $this->resolveUrl($webmailUrl, $composeLocation), $cookies);
+        } else {
+            $composePage = $composeRedirect;
         }
-
-        $composePage = $this->request('GET', $this->resolveUrl($webmailUrl, $composeLocation), $cookies);
         $composeHtml = $composePage->getContent();
         $composeToken = $this->extractInputValue($composeHtml, '_token');
         $composeId = $this->extractInputValue($composeHtml, '_id');
@@ -138,6 +142,16 @@ final class OvhRoundcubeMailer
      */
     private function resolveCredentials(): ?array
     {
+        $ovhEmail = $_ENV['OVH_WEBMAIL_EMAIL'] ?? $_SERVER['OVH_WEBMAIL_EMAIL'] ?? null;
+        $ovhPassword = $_ENV['OVH_WEBMAIL_PASSWORD'] ?? $_SERVER['OVH_WEBMAIL_PASSWORD'] ?? null;
+
+        if (is_string($ovhEmail) && $ovhEmail !== '' && is_string($ovhPassword) && $ovhPassword !== '') {
+            return [
+                'email' => $ovhEmail,
+                'password' => $ovhPassword,
+            ];
+        }
+
         $dsn = $_ENV['MAILER_DSN'] ?? $_SERVER['MAILER_DSN'] ?? null;
         if (!is_string($dsn) || $dsn === '') {
             return null;

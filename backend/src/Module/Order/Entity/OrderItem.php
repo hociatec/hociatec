@@ -6,8 +6,8 @@ namespace App\Module\Order\Entity;
 
 use App\Module\Catalog\Entity\Product;
 use App\Module\Order\Repository\OrderItemRepository;
-use Doctrine\ORM\Mapping as ORM;
 use App\Shared\Value\Money;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[ORM\Table(name: 'order_items')]
@@ -38,6 +38,18 @@ class OrderItem
     #[ORM\Column(type: 'integer')]
     private int $quantity;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 2000])]
+    private int $vatRateBps = 2000;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $lineSubtotalCents = 0;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $lineVatCents = 0;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $lineTotalCents = 0;
+
     public function __construct(string $productName, string $productSku, int $unitPriceCents, int $quantity)
     {
         $this->productName = $productName;
@@ -58,8 +70,19 @@ class OrderItem
     public function getProductSku(): string { return $this->productSku; }
     public function getUnitPriceCents(): int { return $this->unitPriceCents; }
     public function getQuantity(): int { return $this->quantity; }
+    public function getVatRateBps(): int { return $this->vatRateBps; }
+    public function setVatRateBps(int $vatRateBps): self { $this->vatRateBps = max(0, $vatRateBps); return $this; }
+    public function getLineSubtotalCents(): int { return $this->lineSubtotalCents; }
+    public function setLineSubtotalCents(int $lineSubtotalCents): self { $this->lineSubtotalCents = max(0, $lineSubtotalCents); return $this; }
+    public function getLineVatCents(): int { return $this->lineVatCents; }
+    public function setLineVatCents(int $lineVatCents): self { $this->lineVatCents = max(0, $lineVatCents); return $this; }
+    public function getLineTotalCents(): int { return $this->lineTotalCents; }
+    public function setLineTotalCents(int $lineTotalCents): self { $this->lineTotalCents = max(0, $lineTotalCents); return $this; }
 
-    public function getLinePriceCents(): int { return $this->unitPriceCents * $this->quantity; }
+    public function getLinePriceCents(): int
+    {
+        return $this->lineTotalCents > 0 ? $this->lineTotalCents : $this->unitPriceCents * $this->quantity;
+    }
 
     public function getUnitPriceMoney(string $currency = 'EUR'): Money
     {
@@ -68,6 +91,6 @@ class OrderItem
 
     public function getLinePriceMoney(string $currency = 'EUR'): Money
     {
-        return $this->getUnitPriceMoney($currency)->multiply($this->quantity);
+        return Money::ofCents($this->getLinePriceCents(), $currency);
     }
 }

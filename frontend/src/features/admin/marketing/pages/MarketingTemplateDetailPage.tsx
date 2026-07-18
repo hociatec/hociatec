@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
-import { fetchMarketingSegments, fetchMarketingTemplate, type MarketingTemplate } from '@/features/admin/marketing/api';
+import { fetchMarketingSegments, fetchMarketingTemplate, type MarketingSegmentDefinition, type MarketingTemplate } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -18,58 +17,67 @@ const availableVariables = [
   '{{days_since_last_order}}',
   '{{pending_reviews_count}}',
   '{{app_frontend_url}}',
+  '{{order_number}}',
+  '{{order_status}}',
+  '{{order_status_label}}',
+  '{{previous_order_status}}',
+  '{{previous_order_status_label}}',
+  '{{invoice_number}}',
+  '{{invoice_date}}',
+  '{{order_total_eur}}',
+  '{{order_created_at}}',
+  '{{billing_name}}',
+  '{{purchase_order_number}}',
+  '{{order_detail_url}}',
+  '{{orders_list_url}}',
 ];
 
 export const MarketingTemplateDetailPage = () => {
-  useDocumentTitle('Admin - Détail template email');
+  const location = useLocation();
+  const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
+  useDocumentTitle(isTransactionalView ? 'Admin - Détail d’un e-mail transactionnel' : 'Admin - Détail d’un modèle d’e-mail');
   const { templateId } = useParams();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [template, setTemplate] = useState<MarketingTemplate | null>(null);
-  const [segments, setSegments] = useState<Record<string, { label: string; description: string }>>({});
+  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !templateId) return;
+    if (!templateId) return;
     setLoading(true);
     setError(null);
-    void Promise.all([fetchMarketingTemplate(Number(templateId)), fetchMarketingSegments()])
+    void Promise.all([fetchMarketingTemplate(Number(templateId)), fetchMarketingSegments(isTransactionalView ? 'transactional' : 'templates')])
       .then(([templateItem, segmentsList]) => {
         setTemplate(templateItem);
         setSegments(segmentsList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le template.'))
+      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le modèle.'))
       .finally(() => setLoading(false));
-  }, [isAdmin, templateId]);
-
-  if (guardLoading) {
-    return <PageContainer title="Template email"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Template email"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
+  }, [templateId, isTransactionalView]);
 
   return (
     <PageContainer
-      title={template ? template.name : 'Détail template email'}
+      title={template ? template.name : (isTransactionalView ? 'Détail d’un e-mail transactionnel' : 'Détail d’un modèle d’e-mail')}
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link
-            to="/admin/marketing/templates"
+            to={isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates'}
             className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
           >
             Retour à la bibliothèque
           </Link>
           {template && (
             <>
+              {!isTransactionalView && segments[template.scenarioKey]?.type !== 'transactional' ? (
+                <Link
+                  to={`/admin/marketing/new?templateId=${template.id}`}
+                  className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                >
+                  Utiliser en campagne
+                </Link>
+              ) : null}
               <Link
-                to={`/admin/marketing/new?templateId=${template.id}`}
-                className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
-              >
-                Utiliser en campagne
-              </Link>
-              <Link
-                to={`/admin/marketing/templates/${template.id}/edit`}
+                to={isTransactionalView ? `/admin/transactional-emails/${template.id}/edit` : `/admin/marketing/templates/${template.id}/edit`}
                 className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 Modifier
@@ -83,11 +91,11 @@ export const MarketingTemplateDetailPage = () => {
 
       {loading ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement du template...
+          Chargement du modèle...
         </div>
       ) : !template ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Template introuvable.
+          Modèle introuvable.
         </div>
       ) : (
         <div className="space-y-8">
@@ -95,6 +103,7 @@ export const MarketingTemplateDetailPage = () => {
             <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Scénario</div>
               <div className="mt-2 text-sm font-semibold text-slate-900">{segments[template.scenarioKey]?.label ?? template.scenarioKey}</div>
+              <div className="mt-1 text-xs text-slate-500">{segments[template.scenarioKey]?.type === 'transactional' ? 'Transactionnel' : 'Marketing'}</div>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Statut</div>
@@ -129,7 +138,7 @@ export const MarketingTemplateDetailPage = () => {
                   </div>
                   <div className="md:col-span-2">
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Description d’usage</div>
-                    <div className="mt-2 text-sm text-slate-600">{segments[template.scenarioKey]?.description ?? 'Scénario métier associé au template.'}</div>
+                    <div className="mt-2 text-sm text-slate-600">{segments[template.scenarioKey]?.description ?? 'Scénario métier associé au modèle.'}</div>
                   </div>
                 </div>
               </div>
@@ -164,14 +173,16 @@ export const MarketingTemplateDetailPage = () => {
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-slate-900">Actions rapides</h2>
                 <div className="mt-4 space-y-3 text-sm">
-                  <Link to={`/admin/marketing/new?templateId=${template.id}`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
-                    Créer une campagne avec ce template
+                  {segments[template.scenarioKey]?.type !== 'transactional' ? (
+                    <Link to={`/admin/marketing/new?templateId=${template.id}`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
+                      Créer une campagne avec ce modèle
+                    </Link>
+                  ) : null}
+                  <Link to={isTransactionalView ? `/admin/transactional-emails/${template.id}/edit` : `/admin/marketing/templates/${template.id}/edit`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
+                    Modifier ce modèle
                   </Link>
-                  <Link to={`/admin/marketing/templates/${template.id}/edit`} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
-                    Modifier ce template
-                  </Link>
-                  <Link to="/admin/marketing/templates/new" className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
-                    Dupliquer manuellement dans un nouveau template
+                  <Link to={isTransactionalView ? '/admin/transactional-emails/new' : '/admin/marketing/templates/new'} className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900">
+                    Dupliquer manuellement dans un nouveau modèle
                   </Link>
                 </div>
               </div>

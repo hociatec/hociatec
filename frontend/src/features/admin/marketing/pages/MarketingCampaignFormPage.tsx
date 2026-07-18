@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   fetchMarketingSegments,
   fetchMarketingTemplates,
@@ -109,7 +108,6 @@ const segmentAdvice: Record<string, string[]> = {
 
 export const MarketingCampaignFormPage = () => {
   useDocumentTitle('Admin - Nouvelle campagne email');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [searchParams, setSearchParams] = useSearchParams();
   const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
   const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
@@ -122,17 +120,16 @@ export const MarketingCampaignFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
-    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments()])
+    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments('campaigns')])
       .then(([templatesList, segmentsList]) => {
-        setTemplates(templatesList);
+        setTemplates(templatesList.filter((item) => item.scenarioKey in segmentsList));
         setSegments(segmentsList);
       })
       .catch((err: any) => setError(err?.message ?? 'Impossible de charger le module marketing.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
     const templateId = searchParams.get('templateId');
@@ -267,13 +264,6 @@ export const MarketingCampaignFormPage = () => {
       setSaving(false);
     }
   };
-
-  if (guardLoading) {
-    return <PageContainer title="Nouvelle campagne email"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Nouvelle campagne email"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
 
   return (
     <PageContainer

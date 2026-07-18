@@ -14,10 +14,10 @@ const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
 };
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'non commencé',
-  in_progress: 'en cours',
-  review: 'en revue',
-  done: 'finalisé',
+  new: 'Non commencé',
+  in_progress: 'En cours',
+  review: 'En revue',
+  done: 'Finalisé',
 };
 
 const typeLabel = (t: string) => TYPE_LABELS[t as AuditListItemDto['type']] ?? t;
@@ -67,7 +67,7 @@ export const MyAuditsPage = () => {
                 <div className="font-medium">{a.number} — {typeLabel(a.type)}</div>
                 <div className="text-sm text-gray-600">{a.url}</div>
               </div>
-              <div className="text-sm capitalize">{statusLabel(a.status)}</div>
+              <div className="text-sm">{statusLabel(a.status)}</div>
               <div>
                 <Link className="underline" to={`/audits/me/${a.id}`}>Détails</Link>
               </div>

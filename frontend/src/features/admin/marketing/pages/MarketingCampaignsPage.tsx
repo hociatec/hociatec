@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   fetchMarketingCampaigns,
   fetchMarketingSegments,
@@ -37,8 +36,7 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
 };
 
 export const MarketingCampaignsPage = () => {
-  useDocumentTitle('Admin - Campagnes email');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
+  useDocumentTitle('Admin - Campagnes e-mail');
   const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
   const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
@@ -46,7 +44,6 @@ export const MarketingCampaignsPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments(), fetchMarketingCampaigns()])
@@ -57,7 +54,7 @@ export const MarketingCampaignsPage = () => {
       })
       .catch((err: any) => setError(err?.message ?? 'Impossible de charger le module marketing.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   const activeTemplates = useMemo(
     () => templates.filter((item) => item.isActive),
@@ -66,29 +63,22 @@ export const MarketingCampaignsPage = () => {
 
   const lastCampaign = campaigns[0] ?? null;
 
-  if (guardLoading) {
-    return <PageContainer title="Campagnes email"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Campagnes email"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
-
   return (
     <PageContainer
-      title="Campagnes email"
+      title="Campagnes e-mail"
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link
             to="/admin/marketing/templates"
             className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
           >
-            Bibliothèque des templates
+            Bibliothèque des modèles
           </Link>
           <Link
             to="/admin/marketing/templates/new"
             className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Nouveau template
+            Nouveau modèle
           </Link>
           <Link
             to="/admin/marketing/new"
@@ -101,7 +91,7 @@ export const MarketingCampaignsPage = () => {
     >
       <div className="mb-8 grid gap-4 md:grid-cols-4">
         <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Templates actifs</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Modèles actifs</div>
           <div className="mt-2 text-3xl font-semibold text-slate-900">{activeTemplates.length}</div>
         </div>
         <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
@@ -122,7 +112,7 @@ export const MarketingCampaignsPage = () => {
 
       <div className="mb-6 space-y-1">
         <p className="text-sm text-slate-600">
-          Activez vos relances marketing avec des audiences ciblées, des critères métier et des templates réutilisables.
+          Activez vos relances marketing avec des audiences ciblées, des critères métier et des modèles réutilisables.
         </p>
         <p className="text-sm text-slate-500">
           L’espace permet maintenant de cibler l’acquisition, la réactivation, la fidélisation et la collecte d’avis depuis l’admin.
@@ -148,7 +138,7 @@ export const MarketingCampaignsPage = () => {
               to="/admin/marketing/templates"
               className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
             >
-              Parcourir les templates
+              Parcourir les modèles
             </Link>
           </div>
         </div>

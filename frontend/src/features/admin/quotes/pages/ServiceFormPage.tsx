@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { createAdminQuoteService, fetchAdminQuoteService, updateAdminQuoteService } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type ServiceFormState = {
@@ -52,7 +51,6 @@ export const ServiceFormPage = () => {
   const serviceId = Number.isNaN(parsedServiceId) ? null : parsedServiceId;
   const isEdit = serviceId !== null;
   useDocumentTitle(isEdit ? 'Admin - Modifier un service' : 'Admin - Nouveau service');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const navigate = useNavigate();
 
   const [form, setForm] = useState<ServiceFormState>(emptyForm);
@@ -62,7 +60,7 @@ export const ServiceFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit || serviceId === null) {
+    if (!isEdit || serviceId === null) {
       return;
     }
     setInitialLoading(true);
@@ -81,7 +79,7 @@ export const ServiceFormPage = () => {
       })
       .catch((e: any) => setError(e?.message ?? 'Chargement impossible.'))
       .finally(() => setInitialLoading(false));
-  }, [isAdmin, isEdit, serviceId]);
+  }, [isEdit, serviceId]);
 
   const handleChange =
     (field: keyof ServiceFormState) =>
@@ -176,21 +174,6 @@ export const ServiceFormPage = () => {
       setSaving(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier un service' : 'Nouveau service'}>
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier un service' : 'Nouveau service'}>
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

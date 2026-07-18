@@ -7,8 +7,8 @@ Endpoints (Admin)
 - POST `/api/admin/quotes/{id}` update (autosave-friendly)
 - DELETE `/api/admin/quotes/{id}` delete
 - POST `/api/admin/quotes/{id}/duplicate` duplicate
-- POST `/api/admin/quotes/{id}/pdf` generate PDF (stub until dompdf installed)
-- POST `/api/admin/quotes/{id}/send-email` send by email (stub until mailer configured)
+- POST `/api/admin/quotes/{id}/pdf` generate PDF
+- POST `/api/admin/quotes/{id}/send-email` send by email
 
 Services catalog (Admin)
 - GET `/api/admin/quotes/services` list
@@ -23,8 +23,10 @@ Numbering
 - DEV-YYYY-#### with yearly counter from creation date.
 
 PDF generation
-- Requires an external library (e.g. `dompdf/dompdf`). After installing, implement a PDF service and call it from `GeneratePdfController`.
+- Uses the accessible PDF renderer configured by `QuotePdfService`.
 
 Email sending
-- Install and configure `symfony/mailer` and a transport, then implement send logic in `SendQuoteEmailController`.
+- Sends the quote by email through the configured transport.
+- The PDF is attached when generation succeeds.
+- If PDF generation fails, the email is still sent without attachment when possible.
 

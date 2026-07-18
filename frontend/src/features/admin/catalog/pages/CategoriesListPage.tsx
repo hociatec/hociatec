@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
@@ -10,7 +9,6 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +30,8 @@ export const CategoriesListPage = () => {
   };
 
   useEffect(() => {
-    if (!isAdmin) return;
     void loadCategories();
-  }, [isAdmin]);
+  }, []);
 
   const handleDelete = async (categoryId: number) => {
     const category = categories.find((item) => item.id === categoryId);
@@ -66,22 +63,6 @@ export const CategoriesListPage = () => {
         category.slug.toLowerCase().includes(term),
     );
   }, [categories, search]);
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Catégories">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Catégories">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

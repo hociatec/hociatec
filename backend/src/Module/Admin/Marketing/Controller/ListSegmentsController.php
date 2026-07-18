@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Marketing\Controller;
 
-use App\Module\Marketing\Service\MarketingCampaignService;
+use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -15,14 +16,22 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ListSegmentsController extends AbstractController
 {
-    public function __construct(private readonly MarketingCampaignService $campaignService)
+    public function __construct(private readonly EmailTemplateScenarioProvider $scenarioProvider)
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
+        $type = (string) $request->query->get('type', 'templates');
+
+        $items = match ($type) {
+            'campaigns' => $this->scenarioProvider->getCampaignScenarioDefinitions(),
+            'transactional' => $this->scenarioProvider->getTransactionalTemplateScenarioDefinitions(),
+            default => $this->scenarioProvider->getTemplateScenarioDefinitions(),
+        };
+
         return ApiResponse::success([
-            'items' => $this->campaignService->getSegmentDefinitions(),
+            'items' => $items,
         ]);
     }
 }

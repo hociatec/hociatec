@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   createMarketingTemplate,
   fetchMarketingSegments,
   fetchMarketingTemplate,
   updateMarketingTemplate,
+  type MarketingSegmentDefinition,
   type MarketingTemplatePayload,
 } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
@@ -17,8 +17,8 @@ type FormState = MarketingTemplatePayload;
 const emptyForm: FormState = {
   name: '',
   slug: '',
-  scenarioKey: 'customers_without_review',
-  subjectTemplate: '',
+  scenarioKey: 'order_created',
+  subjectTemplate: 'Commande {{order_number}} enregistrée',
   htmlBody: '<p>Bonjour {{first_name}},</p><p>Votre message ici.</p>',
   textBody: 'Bonjour {{first_name}},\n\nVotre message ici.',
   isActive: true,
@@ -27,23 +27,27 @@ const emptyForm: FormState = {
 export const MarketingTemplateFormPage = () => {
   const { templateId } = useParams();
   const isEdit = useMemo(() => Boolean(templateId), [templateId]);
-  useDocumentTitle(isEdit ? 'Admin - Modifier un template email' : 'Admin - Nouveau template email');
+  const location = useLocation();
+  const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
+  useDocumentTitle(
+    isEdit
+      ? isTransactionalView ? 'Admin - Modifier un e-mail transactionnel' : 'Admin - Modifier un modèle d’e-mail'
+      : isTransactionalView ? 'Admin - Nouvel e-mail transactionnel' : 'Admin - Nouveau modèle d’e-mail',
+  );
   const navigate = useNavigate();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [segments, setSegments] = useState<Record<string, { label: string; description: string }>>({});
+  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [initialLoading, setInitialLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
-    void fetchMarketingSegments().then(setSegments).catch(() => undefined);
-  }, [isAdmin]);
+    void fetchMarketingSegments(isTransactionalView ? 'transactional' : 'templates').then(setSegments).catch(() => undefined);
+  }, [isTransactionalView]);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit || !templateId) return;
+    if (!isEdit || !templateId) return;
     setInitialLoading(true);
     setError(null);
     void fetchMarketingTemplate(Number(templateId))
@@ -58,9 +62,9 @@ export const MarketingTemplateFormPage = () => {
           isActive: template.isActive,
         });
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le template.'))
+      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le modèle.'))
       .finally(() => setInitialLoading(false));
-  }, [isAdmin, isEdit, templateId]);
+  }, [isEdit, templateId]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -76,12 +80,12 @@ export const MarketingTemplateFormPage = () => {
     try {
       if (isEdit && templateId) {
         await updateMarketingTemplate(Number(templateId), form);
-        setMessage('Template mis à jour.');
+        setMessage('Modèle mis à jour.');
       } else {
         await createMarketingTemplate(form);
-        setMessage('Template créé.');
+        setMessage('Modèle créé.');
       }
-      setTimeout(() => navigate('/admin/marketing/templates'), 500);
+      setTimeout(() => navigate(isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates'), 500);
     } catch (err: any) {
       setError(err?.message ?? 'Enregistrement impossible.');
     } finally {
@@ -89,23 +93,16 @@ export const MarketingTemplateFormPage = () => {
     }
   };
 
-  if (guardLoading) {
-    return <PageContainer title="Template email"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Template email"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
-
   return (
     <PageContainer
-      title={isEdit ? 'Modifier un template email' : 'Nouveau template email'}
+      title={isEdit ? (isTransactionalView ? 'Modifier un e-mail transactionnel' : 'Modifier un modèle d’e-mail') : (isTransactionalView ? 'Nouvel e-mail transactionnel' : 'Nouveau modèle d’e-mail')}
       headerActions={
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
             className="register-form__submit"
             style={{ background: '#e5e7eb', color: '#111827' }}
-            onClick={() => navigate('/admin/marketing/templates')}
+            onClick={() => navigate(isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates')}
           >
             Retour à la liste
           </button>
@@ -114,7 +111,7 @@ export const MarketingTemplateFormPage = () => {
               type="button"
               className="register-form__submit"
               style={{ background: '#f8fafc', color: '#111827', border: '1px solid #cbd5e1' }}
-              onClick={() => navigate(`/admin/marketing/templates/${templateId}`)}
+              onClick={() => navigate(isTransactionalView ? `/admin/transactional-emails/${templateId}` : `/admin/marketing/templates/${templateId}`)}
             >
               Voir le détail
             </button>
@@ -130,7 +127,7 @@ export const MarketingTemplateFormPage = () => {
       )}
 
       {initialLoading ? (
-        <p className="muted">Chargement du template...</p>
+        <p className="muted">Chargement du modèle...</p>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
           <label className="register-form__field">
@@ -150,11 +147,24 @@ export const MarketingTemplateFormPage = () => {
               value={form.scenarioKey}
               onChange={(event) => setForm((prev) => ({ ...prev, scenarioKey: event.target.value }))}
             >
-              {Object.entries(segments).map(([key, segment]) => (
-                <option key={key} value={key}>
-                  {segment.label}
-                </option>
-              ))}
+              <optgroup label="Emails transactionnels">
+                {Object.entries(segments)
+                  .filter(([, segment]) => segment.type === 'transactional')
+                  .map(([key, segment]) => (
+                    <option key={key} value={key}>
+                      {segment.label}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Templates marketing">
+                {Object.entries(segments)
+                  .filter(([, segment]) => segment.type !== 'transactional')
+                  .map(([key, segment]) => (
+                    <option key={key} value={key}>
+                      {segment.label}
+                    </option>
+                  ))}
+              </optgroup>
             </select>
           </label>
 
@@ -186,7 +196,7 @@ export const MarketingTemplateFormPage = () => {
           </label>
 
           <p className="text-sm text-slate-500">
-            Variables disponibles: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{order_count}}'}, {'{{total_spent_eur}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{days_since_last_order}}'}, {'{{pending_reviews_count}}'}, {'{{app_frontend_url}}'}.
+            Variables disponibles: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{order_number}}'}, {'{{order_status}}'}, {'{{order_status_label}}'}, {'{{previous_order_status}}'}, {'{{previous_order_status_label}}'}, {'{{invoice_number}}'}, {'{{invoice_date}}'}, {'{{order_total_eur}}'}, {'{{order_created_at}}'}, {'{{billing_name}}'}, {'{{purchase_order_number}}'}, {'{{order_detail_url}}'}, {'{{orders_list_url}}'}, {'{{app_frontend_url}}'}, {'{{order_count}}'}, {'{{total_spent_eur}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{days_since_last_order}}'}, {'{{pending_reviews_count}}'}, {'{{voucher_name}}'}, {'{{voucher_code}}'}, {'{{voucher_description}}'}, {'{{voucher_discount_type}}'}, {'{{voucher_discount_value}}'}, {'{{voucher_value_label}}'}, {'{{voucher_starts_at}}'}, {'{{voucher_ends_at}}'}, {'{{voucher_is_active}}'}, {'{{shop_url}}'}, {'{{cart_url}}'}.
           </p>
 
           <button className="register-form__submit" type="submit" disabled={loading}>

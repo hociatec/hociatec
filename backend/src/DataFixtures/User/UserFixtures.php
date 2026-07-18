@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\DataFixtures\User;
 
-use App\Module\User\Entity\User;
 use App\Module\User\Entity\ShippingAddress;
+use App\Module\User\Entity\User;
 use DateInterval;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -69,8 +69,15 @@ class UserFixtures extends Fixture
             $user->setPassword($hashedPassword);
 
             $manager->persist($user);
-            // create initial address
+
             $shipping = new ShippingAddress($user, $firstName . ' ' . $lastName, $address, $postalCode, $city);
+            if ($i % 4 === 0) {
+                $shipping
+                    ->setCompany(sprintf('Societe %s %d', $lastName, $i))
+                    ->setCompanySiren(sprintf('%09d', 900000000 + $i))
+                    ->setCompanyVatNumber('FR' . sprintf('%011d', 93000000000 + $i))
+                    ->setPurchaseOrderNumber(sprintf('BC-%04d', $i));
+            }
             $shipping->setIsDefault(true);
             $manager->persist($shipping);
             $this->addReference(self::getReferenceName($i), $user);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import {
   deleteProduct,
@@ -8,33 +8,33 @@ import {
   type CatalogCategory,
   type CatalogProduct,
 } from '@/features/catalog/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
-import { groupMatchesFilters } from '@/features/catalog/utils/groupProducts';
+import { groupCatalogProducts } from '@/features/catalog/utils/groupProducts';
 
 import '@/features/catalog/pages/CatalogPages.css';
 
+const getStockLevel = (product: CatalogProduct) => product.totalStock ?? product.stock;
+
 export const ProductsListPage = () => {
   useDocumentTitle('Admin - Produits');
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [stockFilter, setStockFilter] = useState<'all' | 'low'>(
+    (searchParams.get('stock') as 'all' | 'low' | null) ?? 'all',
+  );
 
   useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -45,7 +45,7 @@ export const ProductsListPage = () => {
       })
       .catch((err: any) => setError(err?.message ?? 'Impossible de charger les produits.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   const handleDelete = async (productId: number) => {
     const product = products.find((item) => item.id === productId);
@@ -70,8 +70,9 @@ export const ProductsListPage = () => {
   const filteredProducts = useMemo(() => {
     const term = search.trim().toLowerCase();
     const filterSlug = filterCategory === 'all' ? null : filterCategory;
+    const groupedProducts = groupCatalogProducts(products);
 
-    return groupMatchesFilters(products, (product) => {
+    return groupedProducts.filter((product) => {
       const matchSearch =
         term.length === 0 ||
         product.name.toLowerCase().includes(term) ||
@@ -80,26 +81,27 @@ export const ProductsListPage = () => {
         (product.brand?.toLowerCase().includes(term) ?? false);
 
       const matchCategory = !filterSlug || product.category.slug === filterSlug;
+      const totalStock = getStockLevel(product);
+      const matchStock = stockFilter !== 'low' || totalStock <= 3;
 
-      return matchSearch && matchCategory;
+      return matchSearch && matchCategory && matchStock;
     });
-  }, [products, search, filterCategory]);
+  }, [products, search, filterCategory, stockFilter]);
 
-  if (guardLoading) {
-    return (
-      <PageContainer title="Produits">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim() !== '') next.set('search', search.trim());
+    if (filterCategory !== 'all') next.set('category', filterCategory);
+    if (stockFilter !== 'all') next.set('stock', stockFilter);
+    setSearchParams(next, { replace: true });
+  }, [search, filterCategory, stockFilter, setSearchParams]);
 
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Produits">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setFilterCategory(categoryParam);
+    }
+  }, [searchParams]);
 
   return (
     <PageContainer
@@ -123,6 +125,16 @@ export const ProductsListPage = () => {
         </p>
       </div>
 
+      {stockFilter === 'low' && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+          <div className="font-semibold">Produits à réapprovisionner</div>
+          <div className="mt-1">
+            Cette vue affiche uniquement les produits avec un stock inférieur ou égal à 3.
+            Utilise le bouton <span className="font-semibold">Réapprovisionner</span> pour ouvrir directement la fiche produit.
+          </div>
+        </div>
+      )}
+
       <FilterBar>
         <SearchFilter
           value={search}
@@ -137,6 +149,15 @@ export const ProductsListPage = () => {
             ...categories.map((c) => ({ value: c.slug, label: c.name })),
           ]}
           ariaLabel="Catégorie"
+        />
+        <SelectFilter
+          value={stockFilter}
+          onChange={(value) => setStockFilter(value as 'all' | 'low')}
+          options={[
+            { value: 'all', label: 'Tous les stocks' },
+            { value: 'low', label: 'Stock faible (≤ 3)' },
+          ]}
+          ariaLabel="Stock"
         />
       </FilterBar>
 
@@ -171,11 +192,32 @@ export const ProductsListPage = () => {
                 <tr key={product.id}>
                   <th scope="row">
                     <strong className="catalog-admin-product-cell__title">{product.name}</strong>
+                    <div className="muted">SKU {product.sku}</div>
                   </th>
                   <td>{product.variantsCount ?? 1}</td>
-                  <td>{product.totalStock ?? product.stock}</td>
+                  <td>
+                    <div className="font-medium text-slate-900">{getStockLevel(product)}</div>
+                    {getStockLevel(product) <= 0 ? (
+                      <div className="mt-1 inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+                        Rupture
+                      </div>
+                    ) : getStockLevel(product) <= 3 ? (
+                      <div className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
+                        Stock critique
+                      </div>
+                    ) : null}
+                  </td>
                   <td>
                     <div className="catalog-admin-actions">
+                      {getStockLevel(product) <= 3 ? (
+                        <Link
+                          to={`/admin/catalog/products/${product.id}/edit`}
+                          className="catalog-admin-actions__edit"
+                          aria-label={`Réapprovisionner le produit ${product.name}`}
+                        >
+                          Réapprovisionner
+                        </Link>
+                      ) : null}
                       <Link
                         to={`/catalogue/produits/${product.slug}`}
                         className="catalog-admin-actions__edit"

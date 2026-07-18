@@ -6,7 +6,7 @@ import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { checkoutOrder } from '@/features/orders/api';
+import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/features/orders/api';
 import { fetchMyAddresses, type AddressDto } from '@/features/addresses/api';
 import { useToast } from '@/shared/components/ui/toast';
 import type { CartItem as CartLine } from '@/features/cart/types';
@@ -34,6 +34,7 @@ export const CartPage = () => {
     clear,
     applyVoucherCode,
     clearVoucherCode,
+    resetAfterCheckout,
     isProductPending,
     isClearing,
   } = useCart();
@@ -51,6 +52,7 @@ export const CartPage = () => {
 
   const isLoading = status === 'loading';
   const hasItems = !!(cart && cart.items.length > 0);
+  const isPromotionCodeEmpty = promotionCode.trim() === '';
 
   useEffect(() => {
     setPromotionCode(cart?.enteredVoucherCode ?? '');
@@ -197,16 +199,23 @@ export const CartPage = () => {
 
     setIsCheckout(true);
     void checkoutOrder(addressId)
-      .then((order) =>
+      .then((result) => {
+        if ((result as CheckoutRedirectDto).mode === 'redirect') {
+          window.location.assign((result as CheckoutRedirectDto).checkoutUrl);
+          return;
+        }
+
+        const order = result as OrderDto;
+        resetAfterCheckout();
         navigate(`/orders/${order.id}`, {
           state: { justConfirmed: true },
-        }),
-      )
-      .catch(() =>
-        show('Erreur lors de la validation de la commande.', { variant: 'error' })
+        });
+      })
+      .catch((err: unknown) =>
+        show(err instanceof Error ? err.message : 'Erreur lors de la validation de la commande.', { variant: 'error' })
       )
       .finally(() => setIsCheckout(false));
-  }, [authStatus, hasItems, selectedAddressId, addresses, navigate, show]);
+  }, [authStatus, hasItems, selectedAddressId, addresses, navigate, resetAfterCheckout, show]);
 
   // --- Render ---
   return (
@@ -420,7 +429,7 @@ export const CartPage = () => {
                     placeholder="Entrez votre bon de réduction"
                     disabled={isApplyingPromotionCode}
                   />
-                  <button type="button" className="register-form__submit" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode}>
+                  <button type="button" className="register-form__submit" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode || isPromotionCodeEmpty}>
                     {isApplyingPromotionCode ? 'Validation...' : 'Appliquer'}
                   </button>
                   {cart?.enteredVoucherCode ? (

@@ -4,8 +4,27 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
-import { cancelMyOrder, fetchOrderById, formatOrderStatusFr, submitOrderItemReview, type OrderDto } from '../api';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/components/ui/alert-dialog';
+import {
+  buildOrderInvoiceFilename,
+  cancelMyOrder,
+  downloadOrderInvoicePdf,
+  downloadOrderInvoiceXml,
+  fetchOrderById,
+  formatOrderStatusFr,
+  submitOrderItemReview,
+  type OrderDto,
+} from '../api';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/shared/components/ui/alert-dialog';
 
 type ReviewFormState = {
   score: number;
@@ -19,6 +38,9 @@ const formatPrice = (valueInCents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
     valueInCents / 100,
   );
+
+const formatDate = (value?: string | null) =>
+  value ? new Date(value).toLocaleDateString('fr-FR') : '-';
 
 export const OrderDetailPage = () => {
   const { orderId } = useParams();
@@ -138,12 +160,12 @@ export const OrderDetailPage = () => {
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-semibold mb-4">Détail de la commande</h1>
+        <h1 className="mb-4 text-2xl font-semibold">Détail de la commande</h1>
         {isLoading && <p>Chargement...</p>}
         {error && <div className="text-red-600">{error}</div>}
         {justConfirmed && (
-          <div className="mb-4 p-3 rounded bg-green-50 text-green-800">
-            Merci, votre commande a bien été enregistrée.
+          <div className="mb-4 rounded bg-green-50 p-3 text-green-800">
+            Merci, votre commande a bien été validée et confirmée.
           </div>
         )}
         {order && (
@@ -160,7 +182,7 @@ export const OrderDetailPage = () => {
                   </div>
                 ) : null}
               </div>
-              <div className="text-right space-y-2">
+              <div className="space-y-2 text-right">
                 {typeof order.subtotalPriceCents === 'number' && (order.discountAmountCents ?? 0) > 0 ? (
                   <div className="text-sm text-gray-600">
                     <div>Sous-total: {formatPrice(order.subtotalPriceCents)}</div>
@@ -170,11 +192,13 @@ export const OrderDetailPage = () => {
                   </div>
                 ) : null}
                 <div className="font-semibold">{formatPrice(order.totalPriceCents)}</div>
-                <div className="text-sm capitalize">Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
+                <div className="text-sm capitalize">
+                  Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}
+                </div>
                 {order.status === 'pending' && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <button type="button" className="underline text-red-600">
+                      <button type="button" className="text-red-600 underline">
                         Annuler la commande
                       </button>
                     </AlertDialogTrigger>
@@ -204,26 +228,97 @@ export const OrderDetailPage = () => {
               </div>
             </div>
 
+            {order.invoice && (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold">Facture</h2>
+                    {order.invoice.number ? (
+                      <div className="text-sm text-slate-600">{order.invoice.number}</div>
+                    ) : null}
+                    {order.invoice.issuedAt ? (
+                      <div className="text-sm text-slate-500">
+                        Émise le {new Date(order.invoice.issuedAt).toLocaleDateString('fr-FR')}
+                      </div>
+                    ) : null}
+                    <div className="text-sm text-slate-500">
+                      Format électronique: {order.invoice.electronicFormat}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      onClick={() => void downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))}
+                    >
+                      Télécharger la facture PDF
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      onClick={() => void downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))}
+                    >
+                      Télécharger le XML
+                    </button>
+                  </div>
+                </div>
+                <div className="text-sm">
+                  <div>{order.invoice.billingName}</div>
+                  {order.invoice.billingCompany ? <div>{order.invoice.billingCompany}</div> : null}
+                  {order.invoice.billingCompanySiren ? <div>SIREN : {order.invoice.billingCompanySiren}</div> : null}
+                  {order.invoice.billingCompanyVatNumber ? <div>TVA : {order.invoice.billingCompanyVatNumber}</div> : null}
+                  {order.invoice.purchaseOrderNumber ? <div>Bon de commande : {order.invoice.purchaseOrderNumber}</div> : null}
+                  <div>{order.invoice.billingAddress}</div>
+                  <div>
+                    {order.invoice.billingPostalCode} {order.invoice.billingCity}
+                  </div>
+                  {order.invoice.billingEmail ? <div>{order.invoice.billingEmail}</div> : null}
+                </div>
+              </div>
+            )}
+
             <div>
-              <h2 className="font-semibold mb-2">Livraison</h2>
+              <h2 className="mb-2 font-semibold">Livraison</h2>
               <div className="text-sm">
-                <div>{order.shipping.name}</div>
+                <div>{order.customerDisplayName || order.invoice?.billingName || order.shipping.name}</div>
                 <div>{order.shipping.address}</div>
                 <div>
                   {order.shipping.postalCode} {order.shipping.city}
                 </div>
               </div>
+              {order.delivery ? (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                  <div className="font-semibold text-slate-900">{order.delivery.statusLabel ?? 'Préparation en cours'}</div>
+                  <div className="mt-2"><span className="font-medium text-slate-900">Transporteur</span> : {order.delivery.carrier || '-'}</div>
+                  <div><span className="font-medium text-slate-900">Numéro de suivi</span> : {order.delivery.trackingNumber || '-'}</div>
+                  <div><span className="font-medium text-slate-900">Date estimée</span> : {formatDate(order.delivery.estimatedAt)}</div>
+                  <div><span className="font-medium text-slate-900">Expédiée le</span> : {formatDate(order.delivery.shippedAt)}</div>
+                  <div><span className="font-medium text-slate-900">Livrée le</span> : {formatDate(order.delivery.deliveredAt)}</div>
+                  {order.delivery.trackingUrl ? (
+                    <div className="mt-3">
+                      <a
+                        href={order.delivery.trackingUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      >
+                        Suivre le colis
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             <div>
-              <h2 className="font-semibold mb-2">Articles</h2>
+              <h2 className="mb-2 font-semibold">Articles</h2>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left border-b">
+                  <tr className="border-b text-left">
                     <th className="py-2">Produit</th>
                     <th className="py-2">SKU</th>
                     <th className="py-2">Prix unitaire</th>
-                    <th className="py-2">Quantite</th>
+                    <th className="py-2">Quantité</th>
                     <th className="py-2 text-right">Sous-total</th>
                   </tr>
                 </thead>
@@ -254,8 +349,8 @@ export const OrderDetailPage = () => {
                                 </div>
                               ) : it.canReview ? (
                                 <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
-                                  <p className="font-medium mb-2">Évaluer ce produit</p>
-                                  <div className="flex items-center gap-1 mb-3">
+                                  <p className="mb-2 font-medium">Évaluer ce produit</p>
+                                  <div className="mb-3 flex items-center gap-1">
                                     {[1, 2, 3, 4, 5].map((score) => (
                                       <button
                                         key={score}

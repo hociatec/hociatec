@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { deleteMyQuote, fetchMyQuotes, generateMyQuotePdf } from '@/features/quotes/api';
+import { deleteMyQuote, fetchMyQuotes, formatQuoteStatus, generateMyQuotePdf } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -99,7 +99,7 @@ export const MyQuotesPage = () => {
                 return (
                   <tr key={q.id}>
                     <td>{q.number}</td>
-                    <td>{q.status}</td>
+                    <td>{formatQuoteStatus(q.status)}</td>
                     <td>{formatDate(q.createdAt)}</td>
                     <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
                     <td>

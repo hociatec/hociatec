@@ -49,6 +49,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isVerified = false;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $adminNotes = null;
+
+    #[ORM\Column(type: 'json')]
+    private array $adminTags = [];
+
     #[ORM\Column(length: 100, nullable: true, unique: true)]
     private ?string $verificationToken = null;
 
@@ -210,6 +216,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function getAdminNotes(): ?string
+    {
+        return $this->adminNotes;
+    }
+
+    public function setAdminNotes(?string $adminNotes): self
+    {
+        $this->adminNotes = $adminNotes !== null ? trim($adminNotes) : null;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getAdminTags(): array
+    {
+        return array_values(array_filter(
+            array_map(static fn (mixed $tag): string => trim((string) $tag), $this->adminTags),
+            static fn (string $tag): bool => $tag !== '',
+        ));
+    }
+
+    /**
+     * @param list<string> $adminTags
+     */
+    public function setAdminTags(array $adminTags): self
+    {
+        $normalized = [];
+        foreach ($adminTags as $tag) {
+            $value = trim((string) $tag);
+            if ($value === '') {
+                continue;
+            }
+
+            $normalized[] = $value;
+        }
+
+        $this->adminTags = array_values(array_unique($normalized));
 
         return $this;
     }

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import {
   createVoucher,
   fetchVoucher,
@@ -60,14 +59,13 @@ export const VoucherFormPage = () => {
   useDocumentTitle(isEdit ? 'Admin - Modifier un bon' : 'Admin - Nouveau bon');
   const navigate = useNavigate();
   const toast = useToast();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit || editingId === null) return;
+    if (!isEdit || editingId === null) return;
     setLoading(true);
     setError(null);
     void fetchVoucher(editingId)
@@ -92,7 +90,7 @@ export const VoucherFormPage = () => {
         toast.show(message, { variant: 'error' });
       })
       .finally(() => setLoading(false));
-  }, [editingId, isAdmin, isEdit, toast]);
+  }, [editingId, isEdit, toast]);
 
   const payload = useMemo<VoucherPayload>(
     () => ({
@@ -135,22 +133,6 @@ export const VoucherFormPage = () => {
       setSaving(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Bon de réduction">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Bon de réduction">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

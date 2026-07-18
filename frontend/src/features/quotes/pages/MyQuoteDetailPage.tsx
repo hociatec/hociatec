@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { fetchMyQuote, generateMyQuotePdf } from '@/features/quotes/api';
+import { fetchMyQuote, formatQuoteStatus, generateMyQuotePdf } from '@/features/quotes/api';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
@@ -36,7 +36,7 @@ export const MyQuoteDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
-  useDocumentTitle(quote ? `Devis ${quote.number}` : 'Détail du devis');
+  useDocumentTitle(quote ? `Devis ${quote.number}` : 'Consulter le devis');
 
   useEffect(() => {
     const id = Number(quoteId);
@@ -94,7 +94,7 @@ export const MyQuoteDetailPage = () => {
             <Link to="/quotes/me" className="muted">
               Retour à mes devis
             </Link>
-            <h1 style={{ margin: '0.5rem 0 0', fontSize: '2rem', fontWeight: 800 }}>Détail du devis</h1>
+            <h1 style={{ margin: '0.5rem 0 0', fontSize: '2rem', fontWeight: 800 }}>Consulter le devis</h1>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button type="button" className="catalog-admin-actions__edit" onClick={() => navigate('/quotes/me')}>
@@ -106,7 +106,7 @@ export const MyQuoteDetailPage = () => {
               onClick={() => void handleDownload()}
               disabled={downloading || !quote}
             >
-              {downloading ? 'Téléchargement...' : 'Télécharger le PDF'}
+              {downloading ? 'Téléchargement...' : 'Télécharger'}
             </button>
           </div>
         </div>
@@ -135,7 +135,7 @@ export const MyQuoteDetailPage = () => {
                 </div>
                 <div>
                   <div className="muted">Statut</div>
-                  <div style={{ fontWeight: 700 }}>{quote.status}</div>
+                  <div style={{ fontWeight: 700 }}>{formatQuoteStatus(quote.status)}</div>
                 </div>
                 <div>
                   <div className="muted">Date</div>
@@ -175,11 +175,11 @@ export const MyQuoteDetailPage = () => {
                 <div className="catalog-form-section__header">
                   <h2 className="catalog-form-section__title">Totaux</h2>
                 </div>
-                <div>Total HT: {formatPrice(quote?.totals?.ht ?? 0)}</div>
-                <div>TVA: {formatPrice(quote?.totals?.vat ?? 0)}</div>
-                <div>Total TTC: {formatPrice(quote?.totals?.ttc ?? 0)}</div>
-                {quote.discountCents ? <div>Remise: {formatPrice(quote.discountCents)}</div> : null}
-                {quote.shippingCents ? <div>Frais: {formatPrice(quote.shippingCents)}</div> : null}
+                <div>Total HT : {formatPrice(quote?.totals?.ht ?? 0)}</div>
+                <div>TVA : {formatPrice(quote?.totals?.vat ?? 0)}</div>
+                <div>Total TTC : {formatPrice(quote?.totals?.ttc ?? 0)}</div>
+                {quote.discountCents ? <div>Remise : {formatPrice(quote.discountCents)}</div> : null}
+                {quote.shippingCents ? <div>Frais : {formatPrice(quote.shippingCents)}</div> : null}
               </div>
             </section>
 

@@ -4,7 +4,6 @@ import type { FormEvent } from 'react';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
-import { IPHONE_DISTRIBUTION_PATH } from '@/features/mobile/config/iphoneDistribution';
 import { UserAccountMenu } from './ui/user-account-menu';
 
 interface SiteHeaderProps {
@@ -25,6 +24,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
   };
 
   const isAuthenticated = status === 'authenticated' && Boolean(user);
+  const isAdmin = (user?.roles ?? []).includes('ROLE_ADMIN');
 
   const handleCatalogSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,17 +90,6 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           >
             Services
           </Link>
-          <Link
-            to={IPHONE_DISTRIBUTION_PATH}
-            className={[
-              'site-header__link',
-              location.pathname === IPHONE_DISTRIBUTION_PATH ? 'site-header__link--active' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            App iPhone
-          </Link>
           <button
             type="button"
             className={`site-header__cta${
@@ -154,14 +143,16 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           </button>
           {isAuthenticated ? (
             <>
-              <Link
-                to="/admin"
-                className={`site-header__admin-button${
-                  adminActive ? ' site-header__admin-button--active' : ''
-                }`}
-              >
-                Admin
-              </Link>
+              {isAdmin ? (
+                <Link
+                  to="/admin"
+                  className={`site-header__admin-button${
+                    adminActive ? ' site-header__admin-button--active' : ''
+                  }`}
+                >
+                  Admin
+                </Link>
+              ) : null}
               <UserAccountMenu onLogout={handleLogout} profileActive={profileActive} />
             </>
           ) : (

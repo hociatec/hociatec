@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 
 const AdminLayout = lazy(() =>
@@ -120,6 +121,11 @@ const QuoteFormPage = lazy(() =>
     default: module.QuoteFormPage,
   })),
 );
+const AdminQuoteDetailPage = lazy(() =>
+  import('@/features/admin/quotes/pages/AdminQuoteDetailPage').then((module) => ({
+    default: module.AdminQuoteDetailPage,
+  })),
+);
 const ServicesListPage = lazy(() =>
   import('@/features/admin/quotes/pages/ServicesListPage').then((module) => ({
     default: module.ServicesListPage,
@@ -150,11 +156,47 @@ const OrdersListPage = lazy(() =>
     default: module.OrdersListPage,
   })),
 );
+const AdminOrderDetailPage = lazy(() =>
+  import('@/features/admin/orders/pages/AdminOrderDetailPage').then((module) => ({
+    default: module.AdminOrderDetailPage,
+  })),
+);
+const PaymentsListPage = lazy(() =>
+  import('@/features/admin/payments/pages/PaymentsListPage').then((module) => ({
+    default: module.PaymentsListPage,
+  })),
+);
+const PaymentDetailPage = lazy(() =>
+  import('@/features/admin/payments/pages/PaymentDetailPage').then((module) => ({
+    default: module.PaymentDetailPage,
+  })),
+);
+const AdminCustomersListPage = lazy(() =>
+  import('@/features/admin/customers/pages/AdminCustomersListPage').then((module) => ({
+    default: module.AdminCustomersListPage,
+  })),
+);
+const AdminCustomerDetailPage = lazy(() =>
+  import('@/features/admin/customers/pages/AdminCustomerDetailPage').then((module) => ({
+    default: module.AdminCustomerDetailPage,
+  })),
+);
+const AdminCustomerVoucherPage = lazy(() =>
+  import('@/features/admin/customers/pages/AdminCustomerVoucherPage').then((module) => ({
+    default: module.AdminCustomerVoucherPage,
+  })),
+);
+const MyVouchersPage = lazy(() =>
+  import('@/features/vouchers/pages/MyVouchersPage').then((module) => ({ default: module.MyVouchersPage })),
+);
 const MyOrdersPage = lazy(() =>
   import('@/features/orders/pages/MyOrdersPage').then((module) => ({ default: module.MyOrdersPage })),
 );
 const OrderDetailPage = lazy(() =>
   import('@/features/orders/pages/OrderDetailPage').then((module) => ({ default: module.OrderDetailPage })),
+);
+const CheckoutSuccessPage = lazy(() =>
+  import('@/features/orders/pages/CheckoutSuccessPage').then((module) => ({ default: module.CheckoutSuccessPage })),
 );
 const ContactPage = lazy(() =>
   import('@/features/contact/pages/ContactPage').then((module) => ({ default: module.ContactPage })),
@@ -247,12 +289,6 @@ const MyFavoritesPage = lazy(() =>
     default: module.MyFavoritesPage,
   })),
 );
-const IphoneDistributionPage = lazy(() =>
-  import('@/features/mobile/pages/IphoneDistributionPage').then((module) => ({
-    default: module.IphoneDistributionPage,
-  })),
-);
-
 const RouteFallback = () => (
   <div className="site-layout">
     <div className="site-layout__content px-6 py-16 text-center text-slate-600">Chargement...</div>
@@ -268,7 +304,6 @@ export const AppRoutes = () => (
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/iphone" element={<IphoneDistributionPage />} />
       <Route path="/legal/cgu" element={<CguPage />} />
       <Route path="/legal/cgv" element={<CgvPage />} />
       <Route path="/legal/confidentialite" element={<PrivacyPage />} />
@@ -309,10 +344,26 @@ export const AppRoutes = () => (
         }
       />
       <Route
+        path="/vouchers/me"
+        element={
+          <ProtectedRoute>
+            <MyVouchersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/orders/:orderId"
         element={
           <ProtectedRoute>
             <OrderDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout/success"
+        element={
+          <ProtectedRoute>
+            <CheckoutSuccessPage />
           </ProtectedRoute>
         }
       />
@@ -381,7 +432,9 @@ export const AppRoutes = () => (
         path="/admin/*"
         element={
           <ProtectedRoute>
-            <AdminLayout />
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
           </ProtectedRoute>
         }
       >
@@ -413,6 +466,7 @@ export const AppRoutes = () => (
         </Route>
         <Route path="quotes">
           <Route index element={<QuotesListPage />} />
+          <Route path=":quoteId" element={<AdminQuoteDetailPage />} />
           <Route path=":quoteId/edit" element={<QuoteFormPage />} />
         </Route>
         <Route path="services">
@@ -422,6 +476,16 @@ export const AppRoutes = () => (
         </Route>
         <Route path="orders">
           <Route index element={<OrdersListPage />} />
+          <Route path=":orderId" element={<AdminOrderDetailPage />} />
+        </Route>
+        <Route path="payments">
+          <Route index element={<PaymentsListPage />} />
+          <Route path=":paymentId" element={<PaymentDetailPage />} />
+        </Route>
+        <Route path="customers">
+          <Route index element={<AdminCustomersListPage />} />
+          <Route path=":customerId" element={<AdminCustomerDetailPage />} />
+          <Route path=":customerId/vouchers/new" element={<AdminCustomerVoucherPage />} />
         </Route>
         <Route path="marketing">
           <Route index element={<MarketingCampaignsPage />} />
@@ -432,6 +496,12 @@ export const AppRoutes = () => (
             <Route path=":templateId" element={<MarketingTemplateDetailPage />} />
             <Route path=":templateId/edit" element={<MarketingTemplateFormPage />} />
           </Route>
+        </Route>
+        <Route path="transactional-emails">
+          <Route index element={<MarketingTemplatesListPage />} />
+          <Route path="new" element={<MarketingTemplateFormPage />} />
+          <Route path=":templateId" element={<MarketingTemplateDetailPage />} />
+          <Route path=":templateId/edit" element={<MarketingTemplateFormPage />} />
         </Route>
         <Route path="promotions">
           <Route index element={<PromotionsListPage />} />

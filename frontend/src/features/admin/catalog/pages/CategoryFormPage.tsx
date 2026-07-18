@@ -8,7 +8,6 @@ import {
   type CatalogCategory,
   type UpsertCategoryPayload,
 } from '@/features/catalog/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -41,7 +40,6 @@ export const CategoryFormPage = () => {
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une catégorie' : 'Admin - Nouvelle catégorie');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<CategoryFormState>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -49,7 +47,7 @@ export const CategoryFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin || !isEdit) {
+    if (!isEdit) {
       return;
     }
 
@@ -68,7 +66,7 @@ export const CategoryFormPage = () => {
     };
 
     void loadCategory();
-  }, [isAdmin, isEdit, categoryId]);
+  }, [isEdit, categoryId]);
 
   const populateForm = (category: CatalogCategory) => {
     setForm({
@@ -150,22 +148,6 @@ export const CategoryFormPage = () => {
       setLoading(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}>
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}>
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

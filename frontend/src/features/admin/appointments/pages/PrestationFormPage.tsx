@@ -7,7 +7,6 @@ import {
   updatePrestation,
   type UpsertPrestationPayload,
 } from '@/features/admin/appointments/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import type { Prestation } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -31,7 +30,6 @@ export const PrestationFormPage = () => {
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une prestation de rendez-vous' : 'Admin - Nouvelle prestation de rendez-vous');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [form, setForm] = useState<PrestationFormState>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -39,7 +37,7 @@ export const PrestationFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isEdit || !isAdmin) {
+    if (!isEdit) {
       return;
     }
 
@@ -112,22 +110,6 @@ export const PrestationFormPage = () => {
       setLoading(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}>
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}>
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 
 import { fetchConfiguration, updateConfiguration } from '@/features/admin/appointments/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import type { WorkingDay } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -27,7 +26,6 @@ const normalizeDays = (days: WorkingDay[]): WorkingDay[] =>
 export const SchedulePage = () => {
   useDocumentTitle('Admin - Creneaux');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [configuration, setConfiguration] = useState<WorkingDay[]>([]);
   const [configurationLoading, setConfigurationLoading] = useState(true);
   const [configurationMessage, setConfigurationMessage] = useState<string | null>(null);
@@ -35,12 +33,8 @@ export const SchedulePage = () => {
   const [savingConfiguration, setSavingConfiguration] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
-      return;
-    }
-
     void loadConfiguration();
-  }, [isAdmin]);
+  }, []);
 
   const loadConfiguration = async () => {
     setConfigurationLoading(true);
@@ -94,22 +88,6 @@ export const SchedulePage = () => {
       setSavingConfiguration(false);
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Configuration des créneaux">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Configuration des créneaux">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer title="Configuration des créneaux">

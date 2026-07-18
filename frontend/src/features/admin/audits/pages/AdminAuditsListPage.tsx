@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { PageContainer } from '@/shared/components/PageContainer';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/api';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
@@ -20,10 +19,10 @@ const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
 };
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'non commencé',
-  in_progress: 'en cours',
-  review: 'en revue',
-  done: 'finalisé',
+  new: 'Non commencé',
+  in_progress: 'En cours',
+  review: 'En revue',
+  done: 'Finalisé',
 };
 
 const typeLabel = (t: string) => TYPE_LABELS[t as AuditListItemDto['type']] ?? t;
@@ -31,7 +30,6 @@ const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']
 
 export const AdminAuditsListPage = () => {
   useDocumentTitle('Admin - Audits');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [items, setItems] = useState<AuditListItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,17 +42,15 @@ export const AdminAuditsListPage = () => {
   const [sort, setSort] = useState<'date_desc' | 'date_asc' | 'number_asc' | 'number_desc' | 'status_asc' | 'status_desc'>('date_desc');
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void adminFetchAudits()
       .then(setItems)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
-    if (!isAdmin) return;
     pollTimer.current = window.setInterval(() => {
       if (document.hidden) return;
       void adminFetchAudits()
@@ -64,22 +60,7 @@ export const AdminAuditsListPage = () => {
     return () => {
       if (pollTimer.current) window.clearInterval(pollTimer.current);
     };
-  }, [isAdmin]);
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Audits">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Audits">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -160,12 +141,12 @@ export const AdminAuditsListPage = () => {
           value={sort}
           onChange={(v) => setSort(v as any)}
           options={[
-            { value: 'date_desc', label: 'Date: récent → ancien' },
-            { value: 'date_asc', label: 'Date: ancien → récent' },
-            { value: 'number_asc', label: 'Numéro: A → Z' },
-            { value: 'number_desc', label: 'Numéro: Z → A' },
-            { value: 'status_asc', label: 'Statut: progression' },
-            { value: 'status_desc', label: 'Statut: régression' },
+            { value: 'date_desc', label: 'Date : récent → ancien' },
+            { value: 'date_asc', label: 'Date : ancien → récent' },
+            { value: 'number_asc', label: 'Numéro : A → Z' },
+            { value: 'number_desc', label: 'Numéro : Z → A' },
+            { value: 'status_asc', label: 'Statut : progression' },
+            { value: 'status_desc', label: 'Statut : régression' },
           ]}
           ariaLabel="Tri"
         />

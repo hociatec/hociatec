@@ -11,9 +11,8 @@ use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FavoriteRepository::class)]
-#[ORM\Table(name: 'user_favorites', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: 'UNIQ_5EDCA47EA76ED3954584665A', columns: ['user_id', 'product_id'])
-])]
+#[ORM\Table(name: 'user_favorites')]
+#[ORM\UniqueConstraint(name: 'UNIQ_5EDCA47EA76ED3954584665A', columns: ['user_id', 'product_id'])]
 class Favorite
 {
     #[ORM\Id]

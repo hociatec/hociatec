@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { deletePromotion, fetchPromotionAudiences, fetchPromotions, type Promotion } from '@/features/admin/promotions/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useToast } from '@/shared/components/ui/toast';
@@ -15,7 +14,6 @@ const formatDiscount = (promotion: Promotion) =>
 export const PromotionsListPage = () => {
   useDocumentTitle('Admin - Promotions');
   const toast = useToast();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [audiences, setAudiences] = useState<Record<string, { label: string; description: string }>>({});
   const [query, setQuery] = useState('');
@@ -24,7 +22,6 @@ export const PromotionsListPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void Promise.all([fetchPromotions(), fetchPromotionAudiences()])
@@ -34,7 +31,7 @@ export const PromotionsListPage = () => {
       })
       .catch((err: any) => setError(err?.message ?? 'Impossible de charger les promotions.'))
       .finally(() => setLoading(false));
-  }, [isAdmin]);
+  }, []);
 
   const filteredPromotions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -66,13 +63,6 @@ export const PromotionsListPage = () => {
       toast.show(message, { variant: 'error' });
     }
   };
-
-  if (guardLoading) {
-    return <PageContainer title="Promotions"><p className="muted">Vérification des droits...</p></PageContainer>;
-  }
-  if (!isAdmin) {
-    return <PageContainer title="Promotions"><div className="register-form__alert">Accès restreint aux administrateurs.</div></PageContainer>;
-  }
 
   return (
     <PageContainer

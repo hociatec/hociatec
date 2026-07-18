@@ -7,6 +7,10 @@ export interface AddressDto {
   address: string;
   postalCode: string;
   city: string;
+  company?: string | null;
+  companySiren?: string | null;
+  companyVatNumber?: string | null;
+  purchaseOrderNumber?: string | null;
   isDefault: boolean;
 }
 

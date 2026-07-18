@@ -5,16 +5,13 @@ import {
   createAdminQuote,
   fetchAdminQuote,
   fetchAdminQuoteServices,
-  sendAdminQuoteEmail,
   updateAdminQuote,
   generateAdminQuotePdf,
-  deleteAdminQuote,
 } from '@/features/quotes/api';
 import { fetchAdminProducts } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useToast } from '@/shared/components/ui/toast';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 const formatPrice = (cents: number) =>
@@ -72,8 +69,8 @@ const adaptQuoteForSave = (source: any) => {
       return {
         ...rest,
         description: baseDescription && baseDescription.length > 0
-          ? `${baseDescription} - DurÈe: ${months} mois`
-          : `DurÈe: ${months} mois`,
+          ? `${baseDescription} - Dur√©e: ${months} mois`
+          : `Dur√©e: ${months} mois`,
         unit: item.unit ?? 'mois',
         quantity: Math.max(1, item.quantity ?? 1) * months,
       };
@@ -85,7 +82,6 @@ const adaptQuoteForSave = (source: any) => {
 export const QuoteFormPage = () => {
   const toast = useToast();
   useDocumentTitle('Admin - Devis');
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const params = useParams();
   const navigate = useNavigate();
 
@@ -95,22 +91,21 @@ export const QuoteFormPage = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalCandidate, setRentalCandidate] = useState<any | null>(null);
-  // Recherche unifiÈe produits / services
+  // Recherche unifi√©e produits / services
   const [searchQuery, setSearchQuery] = useState('');
-  const filteredServices = useMemo(
-    () =>
-      services
-        .filter((s: any) => s.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-        .slice(0, 20),
-    [services, searchQuery],
-  );
-  const filteredProducts = useMemo(
-    () =>
-      products
-        .filter((p: any) => p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-        .slice(0, 20),
-    [products, searchQuery],
-  );
+  const trimmedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredServices = useMemo(() => {
+    if (trimmedSearchQuery === '') return [];
+    return services
+      .filter((s: any) => s.title.toLowerCase().includes(trimmedSearchQuery))
+      .slice(0, 20);
+  }, [services, trimmedSearchQuery]);
+  const filteredProducts = useMemo(() => {
+    if (trimmedSearchQuery === '') return [];
+    return products
+      .filter((p: any) => p.name.toLowerCase().includes(trimmedSearchQuery))
+      .slice(0, 20);
+  }, [products, trimmedSearchQuery]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,9 +151,8 @@ export const QuoteFormPage = () => {
   }, [isNew, params.quoteId]);
 
   useEffect(() => {
-    if (!isAdmin) return;
     void load();
-  }, [isAdmin, load]);
+  }, [load]);
 
   const total = useMemo(() => {
     if (!quote) return { ht: 0, vat: 0, ttc: 0 };
@@ -235,7 +229,7 @@ export const QuoteFormPage = () => {
         unit: undefined,
         quantity: 1,
         unitPriceCents: (p.effectivePriceCents ?? p.priceCents),
-        vatRate: 20, // par dÈfaut si TVA non dÈfinie dans le produit
+        vatRate: 20, // par d√©faut si TVA non d√©finie dans le produit
         discountCents: 0,
       };
       return { ...q, items: [...q.items, it] };
@@ -271,8 +265,15 @@ export const QuoteFormPage = () => {
         saved = await updateAdminQuote(Number(params.quoteId), payload);
       }
       setQuote(saved);
-      setMessage('EnregistrÈ.');
-      try { toast.show('Devis enregistrÈ.', { variant: 'success' }); } catch {}
+      const emailNotificationSent = saved?.emailNotificationSent === true;
+      const emailNotificationError = typeof saved?.emailNotificationError === 'string' ? saved.emailNotificationError : null;
+      const successMessage = emailNotificationSent
+        ? 'Devis enregistr√©. Email automatique envoy√© au client.'
+        : emailNotificationError
+          ? `Devis enregistr√©. Email automatique non envoy√© : ${emailNotificationError}`
+          : 'Devis enregistr√©.';
+      setMessage(successMessage);
+      try { toast.show(successMessage, { variant: emailNotificationSent ? 'success' : emailNotificationError ? 'info' : 'success' }); } catch {}
     } catch (e: any) {
       const msg = e?.message ?? '√âchec de sauvegarde.';
       setError(msg);
@@ -280,22 +281,6 @@ export const QuoteFormPage = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!quote?.id) return;
-    if (!window.confirm('Supprimer ce devis ?')) return;
-    await deleteAdminQuote(quote.id);
-    navigate('/admin/quotes');
-  };
-
-  const handleSendEmail = async () => {
-    if (!quote?.id) return;
-    const to = window.prompt("Destinataire (email)", quote.customer?.email ?? '') ?? undefined;
-    try {
-      const resp = await sendAdminQuoteEmail(quote.id, to);
-      alert(resp?.message ?? 'E-mail envoyÈ.');
-    } catch {}
   };
 
   const handleGeneratePdf = async () => {
@@ -311,47 +296,21 @@ export const QuoteFormPage = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e: any) {
-      alert(e?.message ?? "Impossible de gÈnÈrer le PDF.");
+      alert(e?.message ?? "Impossible de g√©n√©rer le PDF.");
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Devis">
-        <p className="muted">VÈrification des droits...</p>
-      </PageContainer>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Devis">
-        <div className="register-form__alert">AccËs restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer
       title={quote?.number ? `Devis ${quote.number}` : 'Nouveau devis'}
       headerActions={
-        <div className="catalog-admin-actions">
-          <button type="button" className="catalog-admin-actions__edit" onClick={() => void save()} disabled={saving}>
-            {saving ? 'Sauvegarde...' : 'Enregistrer'}
-          </button>
-          {!isNew && (
-            <>
-              <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleGeneratePdf()}>
-                TÈlÈcharger
-              </button>
-              <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleSendEmail()}>
-                Envoyer par e-mail
-              </button>
-              <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete()}>
-                Supprimer
-              </button>
-            </>
-          )}
-        </div>
+        !isNew ? (
+          <div className="catalog-admin-actions">
+            <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleGeneratePdf()}>
+              T√©l√©charger
+            </button>
+          </div>
+        ) : undefined
       }
     >
       {error && <div className="register-form__alert">{error}</div>}
@@ -378,13 +337,18 @@ export const QuoteFormPage = () => {
 
             <section>
               <h3 className="font-semibold mb-2">√âl√©ments du devis</h3>
-              <div className="mb-4">
+              <div className="mb-4 space-y-2">
                 <input
                   type="search"
                   placeholder="Rechercher un produit ou un service..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                {trimmedSearchQuery === '' && (
+                  <p className="text-sm text-slate-500">
+                    Lance une recherche pour afficher les produits et services √† ajouter au devis.
+                  </p>
+                )}
               </div>
               <div className="space-y-6">
                 {filteredServices.length > 0 && (
@@ -453,7 +417,7 @@ export const QuoteFormPage = () => {
                                     setRentalCandidate(p);
                                     setRentalDialogOpen(true);
                                   } else {
-                                    // PremiËre fois : ajouter directement une nouvelle ligne
+                                    // Premi√®re fois : ajouter directement une nouvelle ligne
                                     setQuote((q: any) => ({
                                       ...q,
                                       items: [
@@ -514,7 +478,7 @@ export const QuoteFormPage = () => {
                   <tr>
                     <th>Nom</th>
                     <th>Description</th>
-                    <th>QuantitÈ</th>
+                    <th>Quantit√©</th>
                     <th>Prix HT</th>
                     <th>TVA %</th>
                     <th>Remise</th>
@@ -551,7 +515,7 @@ export const QuoteFormPage = () => {
             updateItem(index, { quantity: Math.min(9999, next) });
           }
         }}
-        aria-label="Diminuer la quantitÈ"
+        aria-label="Diminuer la quantit√©"
       >
         -
       </button>
@@ -575,7 +539,7 @@ export const QuoteFormPage = () => {
         type="button"
         className="catalog-admin-actions__edit"
         onClick={() => updateItem(index, { quantity: Math.min(9999, (it.quantity ?? 1) + 1) })}
-        aria-label="Augmenter la quantitÈ"
+        aria-label="Augmenter la quantit√©"
       >
         +
       </button>
@@ -638,16 +602,16 @@ export const QuoteFormPage = () => {
 
           <div className="space-y-6">
             <section>
-              <h3 className="font-semibold mb-2">ParamËtres</h3>
+              <h3 className="font-semibold mb-2">Param√®tres</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   Statut
                   <select value={quote.status} onChange={(e) => setQuote({ ...quote, status: e.target.value })}>
                     <option value="draft">Brouillon</option>
-                    <option value="sent">EnvoyÈ</option>
-                    <option value="accepted">AcceptÈ</option>
-                    <option value="refused">RefusÈ</option>
-                    <option value="expired">ExpirÈ</option>
+                    <option value="sent">Envoy√©</option>
+                    <option value="accepted">Accept√©</option>
+                    <option value="refused">Refus√©</option>
+                    <option value="expired">Expir√©</option>
                   </select>
                 </label>
                 <label className="flex items-center gap-2">
@@ -705,12 +669,25 @@ export const QuoteFormPage = () => {
         </div>
       )}
 
+      {!loading && quote ? (
+        <div className="mt-8 flex items-center justify-end gap-3">
+          {!isNew && (
+            <button type="button" className="catalog-admin-actions__edit" onClick={() => void handleGeneratePdf()}>
+              T√©l√©charger
+            </button>
+          )}
+          <button type="button" className="register-form__submit" onClick={() => void save()} disabled={saving}>
+            {saving ? 'Sauvegarde...' : 'Enregistrer'}
+          </button>
+        </div>
+      ) : null}
+
       <ConfirmDialog
         open={rentalDialogOpen && Boolean(rentalCandidate)}
         title="Ajouter une location au devis ?"
         description={
           <div>
-            Voulez-vous vraiment ajouter le produit en location ‡ <strong>{rentalCandidate?.name ?? ''}</strong> ‡ votre devis ?
+            Voulez-vous vraiment ajouter le produit en location √† <strong>{rentalCandidate?.name ?? ''}</strong> √† votre devis ?
           </div>
         }
         confirmLabel="Oui, ajouter"
@@ -721,7 +698,7 @@ export const QuoteFormPage = () => {
         }}
         onConfirm={() => {
           if (rentalCandidate) {
-            // Ajouter une nouvelle ligne (pas d'incrÈment de quantitÈ)
+            // Ajouter une nouvelle ligne (pas d'incr√©ment de quantit√©)
             const p = rentalCandidate;
             setQuote((q: any) => ({
               ...q,
@@ -749,10 +726,6 @@ export const QuoteFormPage = () => {
     </PageContainer>
   );
 };
-
-
-
-
 
 
 

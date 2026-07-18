@@ -13,13 +13,45 @@ final class OrderFormatter
 {
     private function __construct() {}
 
-    /**
-     * @return array<string, mixed>
-     */
+    public static function formatStatusLabel(string $status): string
+    {
+        return match ($status) {
+            Order::STATUS_PENDING => 'En attente',
+            Order::STATUS_CONFIRMED => 'Confirmée',
+            Order::STATUS_DELIVERED => 'Livrée',
+            Order::STATUS_CANCELLED => 'Annulée',
+            default => $status,
+        };
+    }
+
+    public static function formatDeliveryStatusLabel(string $deliveryStatus): string
+    {
+        return match ($deliveryStatus) {
+            Order::DELIVERY_STATUS_PREPARING => 'Préparation en cours',
+            Order::DELIVERY_STATUS_SHIPPED => 'Expédiée',
+            Order::DELIVERY_STATUS_IN_TRANSIT => 'En transit',
+            Order::DELIVERY_STATUS_OUT_FOR_DELIVERY => 'En cours de livraison',
+            Order::DELIVERY_STATUS_DELIVERED => 'Livrée',
+            Order::DELIVERY_STATUS_ISSUE => 'Incident de livraison',
+            default => $deliveryStatus,
+        };
+    }
+
+    public static function formatInvoiceStatusLabel(string $invoiceStatus): string
+    {
+        return match ($invoiceStatus) {
+            Order::INVOICE_STATUS_ISSUED => 'Émise',
+            Order::INVOICE_STATUS_CANCELLED => 'Annulée',
+            default => $invoiceStatus,
+        };
+    }
+
     /**
      * @param array<int, ProductRating> $ratingsByOrderItemId
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
      */
-    public static function formatOrder(Order $order, array $ratingsByOrderItemId = []): array
+    public static function formatOrder(Order $order, array $ratingsByOrderItemId = [], array $extra = []): array
     {
         $items = [];
         $pendingReviews = 0;
@@ -43,6 +75,9 @@ final class OrderFormatter
                 'productSku' => $item->getProductSku(),
                 'quantity' => $item->getQuantity(),
                 'unitPriceCents' => $item->getUnitPriceCents(),
+                'vatRateBps' => $item->getVatRateBps(),
+                'lineSubtotalCents' => $item->getLineSubtotalCents(),
+                'lineVatCents' => $item->getLineVatCents(),
                 'linePriceCents' => $line,
                 'canReview' => $canReview,
                 'review' => $hasReview ? ProductReviewFormatter::formatRating($rating, true) : null,
@@ -50,17 +85,16 @@ final class OrderFormatter
         }
 
         $status = $order->getStatus();
-        $statusLabel = match ($status) {
-            Order::STATUS_PENDING => 'en attente',
-            Order::STATUS_CONFIRMED => 'confirmée',
-            Order::STATUS_DELIVERED => 'livrée',
-            Order::STATUS_CANCELLED => 'annulée',
-            default => $status,
-        };
+        $statusLabel = self::formatStatusLabel($status);
+
+        $deliveryStatus = $order->getDeliveryStatus();
+        $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
 
         return [
             'id' => $order->getId(),
             'number' => $order->getNumber(),
+            'userId' => $order->getUser()->getId(),
+            'customerDisplayName' => trim($order->getUser()->getFirstName() . ' ' . $order->getUser()->getLastName()),
             'status' => $status,
             'statusLabel' => $statusLabel,
             'subtotalPriceCents' => $order->getSubtotalPriceCents(),
@@ -79,7 +113,35 @@ final class OrderFormatter
                 'postalCode' => $order->getShippingPostalCode(),
                 'city' => $order->getShippingCity(),
             ],
+            'delivery' => [
+                'status' => $deliveryStatus,
+                'statusLabel' => $deliveryStatusLabel,
+                'carrier' => $order->getDeliveryCarrier(),
+                'trackingNumber' => $order->getDeliveryTrackingNumber(),
+                'trackingUrl' => $order->getDeliveryTrackingUrl(),
+                'estimatedAt' => $order->getDeliveryEstimatedAt()?->format(DATE_ATOM),
+                'shippedAt' => $order->getDeliveryShippedAt()?->format(DATE_ATOM),
+                'deliveredAt' => $order->getDeliveryDeliveredAt()?->format(DATE_ATOM),
+            ],
+            'invoice' => [
+                'number' => $order->getInvoiceNumber(),
+                'status' => $order->getInvoiceStatus(),
+                'statusLabel' => self::formatInvoiceStatusLabel($order->getInvoiceStatus()),
+                'issuedAt' => $order->getInvoicedAt()?->format(DATE_ATOM),
+                'billingName' => $order->getBillingName(),
+                'billingCompany' => $order->getBillingCompany(),
+                'billingCompanySiren' => $order->getBillingCompanySiren(),
+                'billingCompanyVatNumber' => $order->getBillingCompanyVatNumber(),
+                'purchaseOrderNumber' => $order->getPurchaseOrderNumber(),
+                'billingEmail' => $order->getBillingEmail(),
+                'billingAddress' => $order->getBillingAddress(),
+                'billingPostalCode' => $order->getBillingPostalCode(),
+                'billingCity' => $order->getBillingCity(),
+                'currencyCode' => $order->getCurrencyCode(),
+                'electronicFormat' => $order->getElectronicFormat(),
+            ],
             'items' => $items,
+            ...$extra,
         ];
     }
 }

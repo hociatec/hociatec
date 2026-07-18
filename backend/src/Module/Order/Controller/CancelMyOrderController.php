@@ -43,11 +43,13 @@ class CancelMyOrderController extends AbstractController
             return ApiResponse::error('Seules les commandes en attente peuvent etre annulees.', Response::HTTP_BAD_REQUEST);
         }
 
-        $order->setStatus(Order::STATUS_CANCELLED);
+        $order
+            ->setStatus(Order::STATUS_CANCELLED)
+            ->setInvoiceStatus(Order::INVOICE_STATUS_CANCELLED);
+
         $this->em->persist($order);
         $this->em->flush();
 
         return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
     }
 }
-

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { deleteVoucher, fetchVouchers, type Voucher } from '@/features/admin/vouchers/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useToast } from '@/shared/components/ui/toast';
@@ -12,13 +11,11 @@ const centsToEuro = (value: number) => (value / 100).toFixed(2);
 export const VouchersPage = () => {
   useDocumentTitle('Admin - Bons de réduction');
   const toast = useToast();
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     void fetchVouchers()
@@ -29,7 +26,7 @@ export const VouchersPage = () => {
         toast.show(message, { variant: 'error' });
       })
       .finally(() => setLoading(false));
-  }, [isAdmin, toast]);
+  }, [toast]);
 
   const handleDelete = async (voucherId: number) => {
     const voucher = vouchers.find((item) => item.id === voucherId);
@@ -47,22 +44,6 @@ export const VouchersPage = () => {
       toast.show(message, { variant: 'error' });
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Bons de réduction">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Bons de réduction">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

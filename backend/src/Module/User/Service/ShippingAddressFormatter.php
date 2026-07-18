@@ -21,6 +21,10 @@ final class ShippingAddressFormatter
             'address' => $address->getAddress(),
             'postalCode' => $address->getPostalCode(),
             'city' => $address->getCity(),
+            'company' => $address->getCompany(),
+            'companySiren' => $address->getCompanySiren(),
+            'companyVatNumber' => $address->getCompanyVatNumber(),
+            'purchaseOrderNumber' => $address->getPurchaseOrderNumber(),
             'isDefault' => $address->isDefault(),
         ];
     }

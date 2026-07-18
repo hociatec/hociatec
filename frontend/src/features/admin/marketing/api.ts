@@ -4,6 +4,7 @@ export type MarketingSegmentDefinition = {
   label: string;
   description: string;
   defaults: Record<string, string | number | boolean>;
+  type?: 'campaign' | 'transactional' | string;
 };
 
 export type MarketingTemplate = {
@@ -57,10 +58,12 @@ export type MarketingCampaignPayload = {
   textBody?: string | null;
 };
 
-export const fetchMarketingSegments = async (): Promise<Record<string, MarketingSegmentDefinition>> => {
+export const fetchMarketingSegments = async (
+  type: 'templates' | 'campaigns' | 'transactional' = 'templates',
+): Promise<Record<string, MarketingSegmentDefinition>> => {
   const { data } =
     await httpClient.get<{ data: { items: Record<string, MarketingSegmentDefinition> } }>(
-      '/api/admin/marketing/segments',
+      `/api/admin/marketing/segments?type=${type}`,
     );
   return data.data.items;
 };

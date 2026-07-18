@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -12,6 +12,42 @@ import {
   type AddressDto,
 } from '../api';
 
+type AddressFormState = {
+  name: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  company: string;
+  companySiren: string;
+  companyVatNumber: string;
+  purchaseOrderNumber: string;
+  isDefault?: boolean;
+};
+
+const emptyForm = (): AddressFormState => ({
+  name: '',
+  address: '',
+  postalCode: '',
+  city: '',
+  company: '',
+  companySiren: '',
+  companyVatNumber: '',
+  purchaseOrderNumber: '',
+  isDefault: false,
+});
+
+const toAddressPayload = (form: AddressFormState) => ({
+  name: form.name,
+  address: form.address,
+  postalCode: form.postalCode,
+  city: form.city,
+  company: form.company.trim() || undefined,
+  companySiren: form.companySiren.trim() || undefined,
+  companyVatNumber: form.companyVatNumber.trim() || undefined,
+  purchaseOrderNumber: form.purchaseOrderNumber.trim() || undefined,
+  isDefault: form.isDefault,
+});
+
 export const AddressesPage = () => {
   useDocumentTitle('Mes adresses');
   const { show } = useToast();
@@ -19,9 +55,9 @@ export const AddressesPage = () => {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | 'new' | null>(null);
 
-  const [form, setForm] = useState({ name: '', address: '', postalCode: '', city: '', isDefault: false });
+  const [form, setForm] = useState<AddressFormState>(emptyForm());
   const [editing, setEditing] = useState<AddressDto | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', address: '', postalCode: '', city: '' });
+  const [editForm, setEditForm] = useState<AddressFormState>(emptyForm());
 
   useEffect(() => {
     void fetchMyAddresses()
@@ -30,18 +66,12 @@ export const AddressesPage = () => {
       .finally(() => setLoading(false));
   }, [show]);
 
-  const resetForm = () => setForm({ name: '', address: '', postalCode: '', city: '', isDefault: false });
+  const resetForm = () => setForm(emptyForm());
 
   const handleCreate = () => {
     if (!form.name || !form.address || !form.postalCode || !form.city) return;
     setSavingId('new');
-    void createAddress({
-      name: form.name,
-      address: form.address,
-      postalCode: form.postalCode,
-      city: form.city,
-      isDefault: form.isDefault,
-    })
+    void createAddress(toAddressPayload(form))
       .then((a) => {
         setItems((prev) => [...prev, a].sort((x, y) => Number(y.isDefault) - Number(x.isDefault)));
         resetForm();
@@ -53,19 +83,22 @@ export const AddressesPage = () => {
 
   const openEdit = (addr: AddressDto) => {
     setEditing(addr);
-    setEditForm({ name: addr.name, address: addr.address, postalCode: addr.postalCode, city: addr.city });
+    setEditForm({
+      name: addr.name,
+      address: addr.address,
+      postalCode: addr.postalCode,
+      city: addr.city,
+      company: addr.company ?? '',
+      companySiren: addr.companySiren ?? '',
+      companyVatNumber: addr.companyVatNumber ?? '',
+      purchaseOrderNumber: addr.purchaseOrderNumber ?? '',
+    });
   };
 
   const handleUpdate = () => {
     if (!editing) return;
-    const payload = {
-      name: editForm.name,
-      address: editForm.address,
-      postalCode: editForm.postalCode,
-      city: editForm.city,
-    };
     setSavingId(editing.id);
-    void updateAddress(editing.id, payload)
+    void updateAddress(editing.id, toAddressPayload(editForm))
       .then((a) => {
         setItems((prev) => prev.map((it) => (it.id === a.id ? a : it)));
         show('Adresse mise à jour', { variant: 'success' });
@@ -86,6 +119,58 @@ export const AddressesPage = () => {
       .finally(() => setSavingId(null));
   };
 
+  const renderB2bFields = (
+    currentForm: AddressFormState,
+    setCurrentForm: Dispatch<SetStateAction<AddressFormState>>,
+  ) => (
+    <>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-sm font-semibold text-slate-900">Informations de facturation professionnelle</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Optionnel. À renseigner si la facture doit comporter des mentions société.
+        </p>
+      </div>
+      <label className="grid gap-2 text-sm font-medium text-slate-700">
+        Société
+        <input
+          className="rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+          placeholder="Nom de la société"
+          value={currentForm.company}
+          onChange={(e) => setCurrentForm((prev) => ({ ...prev, company: e.target.value }))}
+        />
+      </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="grid gap-2 text-sm font-medium text-slate-700">
+          SIREN client
+          <input
+            className="rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            placeholder="123456789"
+            value={currentForm.companySiren}
+            onChange={(e) => setCurrentForm((prev) => ({ ...prev, companySiren: e.target.value }))}
+          />
+        </label>
+        <label className="grid gap-2 text-sm font-medium text-slate-700">
+          TVA intracommunautaire
+          <input
+            className="rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+            placeholder="FR12345678901"
+            value={currentForm.companyVatNumber}
+            onChange={(e) => setCurrentForm((prev) => ({ ...prev, companyVatNumber: e.target.value }))}
+          />
+        </label>
+      </div>
+      <label className="grid gap-2 text-sm font-medium text-slate-700">
+        Bon de commande
+        <input
+          className="rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
+          placeholder="BC-2026-001"
+          value={currentForm.purchaseOrderNumber}
+          onChange={(e) => setCurrentForm((prev) => ({ ...prev, purchaseOrderNumber: e.target.value }))}
+        />
+      </label>
+    </>
+  );
+
   return (
     <SiteLayout>
       <div className="mx-auto max-w-6xl px-4 py-10">
@@ -94,7 +179,7 @@ export const AddressesPage = () => {
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Mon espace</p>
             <h1 className="text-3xl font-semibold text-slate-900">Mes adresses</h1>
             <p className="mt-2 max-w-2xl text-slate-600">
-              Gérez vos adresses de livraison et choisissez celle qui sera utilisée par défaut pour vos commandes.
+              Gérez vos adresses de livraison et les informations de facturation utilisées sur vos commandes.
             </p>
           </div>
         </div>
@@ -104,7 +189,7 @@ export const AddressesPage = () => {
             <div className="mb-5">
               <h2 className="text-xl font-semibold text-slate-900">Ajouter une adresse</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Renseignez une adresse claire pour faciliter la préparation et la livraison.
+                Renseignez une adresse claire pour faciliter la préparation, la livraison et la facturation.
               </p>
             </div>
             <div className="grid gap-4">
@@ -112,7 +197,7 @@ export const AddressesPage = () => {
                 Nom
                 <input
                   className="rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-slate-400"
-                  placeholder="Maison, bureau, etc."
+                  placeholder="Prénom Nom ou Libellé du lieu"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -146,10 +231,11 @@ export const AddressesPage = () => {
                   />
                 </label>
               </div>
+              {renderB2bFields(form, setForm)}
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                 <input
                   type="checkbox"
-                  checked={form.isDefault}
+                  checked={Boolean(form.isDefault)}
                   onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
                 />
                 Définir comme adresse par défaut
@@ -195,10 +281,16 @@ export const AddressesPage = () => {
                             </span>
                           )}
                         </div>
+                        {it.company ? <p className="text-sm font-medium text-slate-800">{it.company}</p> : null}
                         <p className="text-sm text-slate-700">{it.address}</p>
                         <p className="text-sm text-slate-600">
                           {it.postalCode} {it.city}
                         </p>
+                        {it.companySiren ? <p className="text-xs text-slate-500">SIREN : {it.companySiren}</p> : null}
+                        {it.companyVatNumber ? <p className="text-xs text-slate-500">TVA : {it.companyVatNumber}</p> : null}
+                        {it.purchaseOrderNumber ? (
+                          <p className="text-xs text-slate-500">Bon de commande : {it.purchaseOrderNumber}</p>
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2 lg:justify-end">
                         <button
@@ -286,6 +378,7 @@ export const AddressesPage = () => {
                     />
                   </label>
                 </div>
+                {renderB2bFields(editForm, setEditForm)}
               </div>
               <div className="mt-6 flex flex-wrap justify-end gap-3">
                 <button

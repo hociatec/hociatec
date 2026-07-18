@@ -6,7 +6,7 @@ namespace App\Module\Admin\Marketing\Controller;
 
 use App\Module\Marketing\Entity\EmailTemplate;
 use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Service\MarketingCampaignService;
+use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
 use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +23,7 @@ final class CreateTemplateController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly EmailTemplateRepository $templates,
-        private readonly MarketingCampaignService $campaignService,
+        private readonly EmailTemplateScenarioProvider $scenarioProvider,
     ) {
     }
 
@@ -42,7 +42,7 @@ final class CreateTemplateController extends AbstractController
             return ApiResponse::error('Veuillez renseigner tous les champs obligatoires.');
         }
 
-        if (!isset($this->campaignService->getSegmentDefinitions()[$scenarioKey])) {
+        if (!isset($this->scenarioProvider->getTemplateScenarioDefinitions()[$scenarioKey])) {
             return ApiResponse::error('Scénario de template invalide.');
         }
 

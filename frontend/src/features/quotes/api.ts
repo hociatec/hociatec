@@ -2,6 +2,20 @@ import { httpClient } from '@/shared/lib/httpClient';
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'refused' | 'expired';
 
+export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
+  draft: 'Brouillon',
+  sent: 'Envoyé',
+  accepted: 'Accepté',
+  refused: 'Refusé',
+  expired: 'Expiré',
+};
+
+export const formatQuoteStatus = (status?: string | null) => {
+  if (!status) return '-';
+
+  return QUOTE_STATUS_LABELS[status as QuoteStatus] ?? status;
+};
+
 export interface QuoteItemInput {
   id?: number;
   type: 'service' | 'product' | 'custom';

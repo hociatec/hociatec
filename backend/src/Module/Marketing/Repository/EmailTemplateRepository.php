@@ -22,4 +22,14 @@ class EmailTemplateRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['slug' => $slug]);
     }
+
+    public function findActiveOneByScenarioKey(string $scenarioKey): ?EmailTemplate
+    {
+        return $this->findOneBy([
+            'scenarioKey' => $scenarioKey,
+            'isActive' => true,
+        ], [
+            'updatedAt' => 'DESC',
+        ]);
+    }
 }

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import {
@@ -11,14 +12,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
-import { fetchAdminOrders, updateAdminOrderStatus, type OrderDto, formatOrderStatusFr } from '../../../orders/api';
+import { fetchAdminOrders, updateAdminOrderStatus, type OrderDto, formatInvoiceStatusFr, formatOrderStatusFr, formatPaymentStatusFr, formatStripePaymentStatusFr } from '../../../orders/api';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
+import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 
 const formatPrice = (valueInCents: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(valueInCents / 100);
 
 type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+type SortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'customer_asc';
 
 const nextStatusMap: Record<OrderStatus, Array<OrderStatus>> = {
   pending: ['confirmed', 'cancelled'],
@@ -30,11 +33,37 @@ const nextStatusMap: Record<OrderStatus, Array<OrderStatus>> = {
 const getNextStatuses = (status: OrderDto['status']): Array<OrderStatus> =>
   nextStatusMap[status as OrderStatus] ?? [];
 
+const getOrderCustomerLabel = (order: OrderDto) =>
+  order.customerDisplayName
+  || order.invoice?.billingName
+  || order.shipping?.name
+  || order.invoice?.billingEmail
+  || 'Client inconnu';
+
+const getPaymentLabel = (order: OrderDto) => {
+  if (!order.payment) {
+    return 'Aucun';
+  }
+
+  return order.payment.statusLabel
+    ?? formatPaymentStatusFr(order.payment.status);
+};
+
 export const OrdersListPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled'>(
+    (searchParams.get('status') as 'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled' | null) ?? 'all',
+  );
+  const [health, setHealth] = useState<'all' | 'issues'>(
+    (searchParams.get('health') as 'all' | 'issues' | null) ?? 'all',
+  );
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+  const [sort, setSort] = useState<SortKey>(
+    (searchParams.get('sort') as SortKey | null) ?? 'newest',
+  );
   const [editing, setEditing] = useState<{
     id: number;
     current: OrderStatus;
@@ -46,7 +75,7 @@ export const OrdersListPage = () => {
   useEffect(() => {
     setStatus('loading');
     setError(null);
-    void fetchAdminOrders(filter)
+    void fetchAdminOrders(filter, health)
       .then((items) => {
         setOrders(items);
         setStatus('success');
@@ -55,7 +84,56 @@ export const OrdersListPage = () => {
         setError(e instanceof Error ? e.message : 'Erreur');
         setStatus('error');
       });
-  }, [filter]);
+  }, [filter, health]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (filter !== 'all') next.set('status', filter);
+    if (health !== 'all') next.set('health', health);
+    if (search.trim() !== '') next.set('search', search.trim());
+    if (sort !== 'newest') next.set('sort', sort);
+    setSearchParams(next, { replace: true });
+  }, [filter, health, search, sort, setSearchParams]);
+
+  const filteredOrders = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const items = orders.filter((order) => {
+      if (normalizedSearch === '') {
+        return true;
+      }
+
+      const haystack = [
+        order.number,
+        getOrderCustomerLabel(order),
+        order.invoice?.billingEmail,
+        order.invoice?.billingCompany,
+        order.invoice?.number,
+        order.shipping?.address,
+        order.shipping?.city,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+
+    return [...items].sort((left, right) => {
+      switch (sort) {
+        case 'oldest':
+          return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+        case 'amount_desc':
+          return right.totalPriceCents - left.totalPriceCents;
+        case 'amount_asc':
+          return left.totalPriceCents - right.totalPriceCents;
+        case 'customer_asc':
+          return getOrderCustomerLabel(left).localeCompare(getOrderCustomerLabel(right), 'fr', { sensitivity: 'base' });
+        case 'newest':
+        default:
+          return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+      }
+    });
+  }, [orders, search, sort]);
 
   const handleConfirmUpdate = () => {
     if (!editing) return;
@@ -80,25 +158,51 @@ export const OrdersListPage = () => {
     <PageContainer title="Commandes">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-slate-600">
-          {orders.length} commande{orders.length > 1 ? 's' : ''} chargée{orders.length > 1 ? 's' : ''}.
+          {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} affichée{filteredOrders.length > 1 ? 's' : ''} sur {orders.length}.
         </p>
         <p className="text-sm text-slate-500">
-          Suivez les transitions de statut et les commandes en cours.
+          Recherchez une commande par numéro, client, email, société ou facture, puis triez la liste selon votre besoin.
         </p>
       </div>
 
       <FilterBar>
+        <SearchFilter
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher un client, une commande, un email, une facture..."
+        />
         <SelectFilter
           value={filter}
-          onChange={(v) => setFilter(v as any)}
+          onChange={(v) => setFilter(v as typeof filter)}
           options={[
-            { value: 'all', label: 'Tous' },
+            { value: 'all', label: 'Tous les statuts' },
             { value: 'pending', label: 'En attente' },
             { value: 'confirmed', label: 'Confirmé' },
             { value: 'delivered', label: 'Livré' },
             { value: 'cancelled', label: 'Annulé' },
           ]}
-          ariaLabel="Statut"
+          ariaLabel="Filtre statut"
+        />
+        <SelectFilter
+          value={sort}
+          onChange={(v) => setSort(v as SortKey)}
+          options={[
+            { value: 'newest', label: 'Plus récentes' },
+            { value: 'oldest', label: 'Plus anciennes' },
+            { value: 'amount_desc', label: 'Montant décroissant' },
+            { value: 'amount_asc', label: 'Montant croissant' },
+            { value: 'customer_asc', label: 'Client A → Z' },
+          ]}
+          ariaLabel="Tri commandes"
+        />
+        <SelectFilter
+          value={health}
+          onChange={(v) => setHealth(v as typeof health)}
+          options={[
+            { value: 'all', label: 'Toutes' },
+            { value: 'issues', label: 'Avec incident de traitement' },
+          ]}
+          ariaLabel="Filtre incident"
         />
       </FilterBar>
 
@@ -109,55 +213,115 @@ export const OrdersListPage = () => {
       )}
       {error && <div className="register-form__alert">{error}</div>}
 
-      {status === 'success' && orders.length === 0 ? (
+      {status === 'success' && filteredOrders.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune commande.
+          Aucune commande ne correspond aux filtres actuels.
         </div>
       ) : null}
 
-      {orders.length > 0 && (
+      {filteredOrders.length > 0 && (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <table className="catalog-admin-table">
             <thead>
               <tr>
-                <th scope="col">#</th>
+                <th scope="col">Commande</th>
                 <th scope="col">Client</th>
                 <th scope="col">Date</th>
+                <th scope="col">Facture</th>
+                <th scope="col">Paiement</th>
                 <th scope="col">Total</th>
                 <th scope="col">Statut</th>
                 <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => (
-                <tr key={o.id}>
-                  <th scope="row">{o.number}</th>
-                  <td>{o.shipping?.name}</td>
-                  <td>{new Date(o.createdAt).toLocaleDateString('fr-FR')}</td>
-                  <td>{formatPrice(o.totalPriceCents)}</td>
-                  <td className="capitalize">{o.statusLabel ?? formatOrderStatusFr(o.status)}</td>
+              {filteredOrders.map((order) => (
+                <tr key={order.id}>
+                  <th scope="row">
+                    <div className="font-semibold text-slate-900">{order.number}</div>
+                    {order.invoice?.purchaseOrderNumber ? (
+                      <div className="muted">BC: {order.invoice.purchaseOrderNumber}</div>
+                    ) : null}
+                  </th>
                   <td>
-                    {getNextStatuses(o.status).length === 0 ? (
-                      <span className="text-xs text-slate-500">Statut final</span>
+                    <div className="font-medium text-slate-900">{getOrderCustomerLabel(order)}</div>
+                    {order.invoice?.billingCompany ? (
+                      <div className="muted">{order.invoice.billingCompany}</div>
+                    ) : null}
+                    {order.invoice?.billingEmail ? (
+                      <div className="muted">{order.invoice.billingEmail}</div>
+                    ) : null}
+                  </td>
+                  <td>
+                    <div>{new Date(order.createdAt).toLocaleDateString('fr-FR')}</div>
+                    <div className="muted">
+                      {new Date(order.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </td>
+                  <td>
+                    {order.invoice?.number ? (
+                      <>
+                        <div>{order.invoice.number}</div>
+                        <div className="muted">{formatInvoiceStatusFr(order.invoice.status)}</div>
+                      </>
                     ) : (
-                      <button
-                        type="button"
-                        className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
-                        onClick={() => {
-                          const options = getNextStatuses(o.status);
-                          if (!options.length) return;
-                          setEditing({
-                            id: o.id,
-                            current: (o.status as OrderStatus) ?? 'pending',
-                            next: options[0],
-                            options,
-                          });
-                        }}
-                        aria-label={`Modifier le statut de la commande ${o.number}`}
-                      >
-                        Modifier le statut
-                      </button>
+                      <span className="text-xs text-slate-500">Aucune</span>
                     )}
+                  </td>
+                  <td>
+                    <div className="font-medium text-slate-900">{getPaymentLabel(order)}</div>
+                    {order.payment?.stripePaymentStatus ? (
+                      <div className="muted">
+                        Stripe: {order.payment.stripePaymentStatusLabel ?? formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
+                      </div>
+                    ) : null}
+                    {order.payment?.lastStripeEventType ? (
+                      <div className="muted">
+                        {order.payment.lastStripeEventLabel ?? order.payment.lastStripeEventType}
+                      </div>
+                    ) : null}
+                  </td>
+                  <td>{formatPrice(order.totalPriceCents)}</td>
+                  <td>
+                    <div className="capitalize">{order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
+                    {order.hasIssues && (order.issueReasons?.length ?? 0) > 0 ? (
+                      <div className="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                        <div className="font-semibold">Anomalies détectées</div>
+                        <ul className="mt-1 list-disc pl-4">
+                          {order.issueReasons?.map((reason) => (
+                            <li key={reason}>{reason}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </td>
+                  <td>
+                    <div className="flex flex-wrap gap-3">
+                      {getNextStatuses(order.status).length === 0 ? (
+                        <span className="inline-flex items-center text-xs text-slate-500">Statut final</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                          onClick={() => {
+                            const options = getNextStatuses(order.status);
+                            if (!options.length) return;
+                            setEditing({
+                              id: order.id,
+                              current: (order.status as OrderStatus) ?? 'pending',
+                              next: options[0],
+                              options,
+                            });
+                          }}
+                          aria-label={`Modifier le statut de la commande ${order.number}`}
+                        >
+                          Modifier le statut
+                        </button>
+                      )}
+                      <Link className="inline-flex items-center text-sm font-semibold underline" to={`/admin/orders/${order.id}`}>
+                        Détails
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -191,7 +355,7 @@ export const OrdersListPage = () => {
                     name="order-status"
                     value={option}
                     checked={editing?.next === option}
-                    onChange={() => setEditing((e) => (e ? { ...e, next: option } : e))}
+                    onChange={() => setEditing((current) => (current ? { ...current, next: option } : current))}
                   />{' '}
                   {formatOrderStatusFr(option)}
                 </label>

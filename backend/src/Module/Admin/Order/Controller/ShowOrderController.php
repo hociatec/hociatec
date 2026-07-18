@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Order\Controller;
 
+use App\Module\Order\Entity\OrderCheckoutSession;
+use App\Module\Order\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Repository\OrderEventRepository;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Order\Service\OrderIssueInspector;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,10 +19,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders/{orderId}', name: 'api_admin_orders_show', methods: ['GET'])]
 #[IsGranted('ROLE_ADMIN')]
-class ShowOrderController extends AbstractController
+final class ShowOrderController extends AbstractController
 {
-    public function __construct(private readonly OrderRepository $orders)
-    {
+    public function __construct(
+        private readonly OrderRepository $orders,
+        private readonly OrderEventRepository $events,
+        private readonly OrderCheckoutSessionRepository $payments,
+    ) {
     }
 
     public function __invoke(int $orderId): JsonResponse
@@ -28,7 +35,63 @@ class ShowOrderController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        $events = $this->events->findByOrder($order);
+        $issueReasons = OrderIssueInspector::getOperationalIssues($order, $events);
+
+        return ApiResponse::success([
+            'order' => OrderFormatter::formatOrder($order, [], [
+                'hasIssues' => $issueReasons !== [],
+                'issueReasons' => $issueReasons,
+            ]),
+            'payment' => $this->formatPayment($orderId),
+            'events' => array_map(static fn ($event) => [
+                'id' => $event->getId(),
+                'type' => $event->getType(),
+                'message' => $event->getMessage(),
+                'createdAt' => $event->getCreatedAt()->format(DATE_ATOM),
+                'actor' => [
+                    'id' => $event->getActorUserId(),
+                    'name' => $event->getActorName(),
+                ],
+            ], $events),
+            'processing' => [
+                'invoicePdfGenerated' => $order->getInvoicePdfPath() !== null,
+                'invoiceXmlGenerated' => $order->getInvoiceXmlPath() !== null,
+                'orderCreatedEmailSentAt' => $order->getOrderCreatedEmailSentAt()?->format(DATE_ATOM),
+                'invoiceEmailSentAt' => $order->getInvoiceEmailSentAt()?->format(DATE_ATOM),
+                'statusConfirmedEmailSentAt' => $order->getStatusConfirmedEmailSentAt()?->format(DATE_ATOM),
+                'statusDeliveredEmailSentAt' => $order->getStatusDeliveredEmailSentAt()?->format(DATE_ATOM),
+                'statusCancelledEmailSentAt' => $order->getStatusCancelledEmailSentAt()?->format(DATE_ATOM),
+            ],
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function formatPayment(int $orderId): ?array
+    {
+        $payment = $this->payments->findOneBy(['orderId' => $orderId]);
+        if (!$payment instanceof OrderCheckoutSession) {
+            return null;
+        }
+
+        return [
+            'id' => $payment->getId(),
+            'status' => $payment->getStatus(),
+            'statusLabel' => match ($payment->getStatus()) {
+                OrderCheckoutSession::STATUS_OPEN => 'Ouvert',
+                OrderCheckoutSession::STATUS_PAID => 'Payé',
+                OrderCheckoutSession::STATUS_EXPIRED => 'Expiré',
+                OrderCheckoutSession::STATUS_FAILED => 'Échoué',
+                default => $payment->getStatus(),
+            },
+            'stripePaymentStatus' => $payment->getStripePaymentStatus(),
+            'lastStripeEventType' => $payment->getLastStripeEventType(),
+            'failureCode' => $payment->getFailureCode(),
+            'failureMessage' => $payment->getFailureMessage(),
+            'completedAt' => $payment->getCompletedAt()?->format(DATE_ATOM),
+            'expiresAt' => $payment->getExpiresAt()?->format(DATE_ATOM),
+        ];
     }
 }
-

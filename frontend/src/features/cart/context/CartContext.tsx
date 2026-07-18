@@ -44,6 +44,7 @@ interface CartContextValue {
   applyVoucherCode: (voucherCode: string) => Promise<void>;
   clearVoucherCode: (cartToken?: string) => Promise<void>;
   refresh: () => Promise<void>;
+  resetAfterCheckout: () => void;
   isProductInCart: (productId: number, options?: CartActionOptions) => boolean;
   isProductPending: (productId: number) => boolean;
   isClearing: boolean;
@@ -64,6 +65,7 @@ const defaultValue: CartContextValue = {
   applyVoucherCode: rejectedPromise,
   clearVoucherCode: rejectedPromise,
   refresh: rejectedPromise,
+  resetAfterCheckout: () => undefined,
   isProductInCart: () => false,
   isProductPending: () => false,
   isClearing: false,
@@ -193,6 +195,14 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     }
   }, [handleCartError]);
 
+  const resetAfterCheckout = useCallback(() => {
+    clearCartToken();
+    setPendingProductIds([]);
+    setCart(null);
+    setError(null);
+    setStatus('ready');
+  }, []);
+
   const setItemQuantity = useCallback(
     async (productId: number, quantity: number, options?: CartActionOptions) => {
       setPending(productId, true);
@@ -290,6 +300,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
       applyVoucherCode,
       clearVoucherCode,
       refresh,
+      resetAfterCheckout,
       isProductInCart,
       isProductPending,
       isClearing,
@@ -303,6 +314,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
       error,
       isProductInCart,
       isProductPending,
+      resetAfterCheckout,
       refresh,
       setItemQuantity,
       status,

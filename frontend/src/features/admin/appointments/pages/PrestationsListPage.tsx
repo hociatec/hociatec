@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
-import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import type { Prestation } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -13,7 +12,6 @@ const formatPrice = (priceCents: number) =>
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Prestations de rendez-vous');
 
-  const { isAdmin, loading: guardLoading } = useRequireAdmin();
   const [prestations, setPrestations] = useState<Prestation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +32,8 @@ export const PrestationsListPage = () => {
   };
 
   useEffect(() => {
-    if (!isAdmin) return;
     void loadPrestations();
-  }, [isAdmin]);
+  }, []);
 
   const handleDelete = async (prestationId: number) => {
     const prestation = prestations.find((item) => item.id === prestationId);
@@ -57,22 +54,6 @@ export const PrestationsListPage = () => {
       setError(err?.message ?? 'Impossible de supprimer la prestation');
     }
   };
-
-  if (guardLoading) {
-    return (
-      <PageContainer title="Prestations de rendez-vous">
-        <p className="muted">Vérification des droits...</p>
-      </PageContainer>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer title="Prestations de rendez-vous">
-        <div className="register-form__alert">Accès restreint aux administrateurs.</div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer

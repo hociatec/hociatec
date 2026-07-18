@@ -5,10 +5,10 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto, type AuditListItemDto } from '../api';
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'non commencé',
-  in_progress: 'en cours',
-  review: 'en revue',
-  done: 'finalisé',
+  new: 'Non commencé',
+  in_progress: 'En cours',
+  review: 'En revue',
+  done: 'Finalisé',
 };
 
 const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
@@ -64,8 +64,8 @@ export const MyAuditDetailPage = () => {
         {data && (
           <div className="space-y-4">
             <h1 className="text-2xl font-semibold">Audit {data.number}</h1>
-            <div className="text-sm text-gray-700">Statut: {statusLabel(data.status)}</div>
-            <div className="text-sm text-gray-700">Cible: {data.url}</div>
+            <div className="text-sm text-gray-700">Statut : {statusLabel(data.status)}</div>
+            <div className="text-sm text-gray-700">Cible : {data.url}</div>
             <div className="flex gap-3">
               <button className="underline text-blue-700" onClick={async () => {
                 try {
@@ -80,7 +80,7 @@ export const MyAuditDetailPage = () => {
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a'); a.href = url; a.download = `${data.number}-synthese.pdf`; a.click(); URL.revokeObjectURL(url);
                 } catch {}
-              }}>Synthèse PDF</button>
+              }}>Télécharger la synthèse PDF</button>
             </div>
             {data.objectives && (
               <div>
@@ -96,8 +96,8 @@ export const MyAuditDetailPage = () => {
                     {items.map((it) => (
                       <li key={it.id} className="p-3 border rounded">
                         <div className="font-medium">{it.label}{it.level ? ` (${it.level})` : ''}</div>
-                        <div className="text-sm">Conformité: {it.isCompliant === null ? 'à évaluer' : it.isCompliant ? 'conforme' : 'non conforme'}</div>
-                        {it.comment && <div className="text-sm text-gray-700">Commentaire: {it.comment}</div>}
+                        <div className="text-sm">Conformité : {it.isCompliant === null ? 'À évaluer' : it.isCompliant ? 'Conforme' : 'Non conforme'}</div>
+                        {it.comment && <div className="text-sm text-gray-700">Commentaire : {it.comment}</div>}
                       </li>
                     ))}
                   </ul>
@@ -110,7 +110,7 @@ export const MyAuditDetailPage = () => {
                 <ul className="space-y-1 text-sm text-gray-700">
                   {((data as any).events as AuditEventDto[]).map((e) => (
                     <li key={e.id}>
-                      <span className="text-gray-500">{new Date(e.createdAt).toLocaleString()}:</span> {e.message || e.type}
+                      <span className="text-gray-500">{new Date(e.createdAt).toLocaleString('fr-FR')} :</span> {e.message || e.type}
                     </li>
                   ))}
                 </ul>

@@ -23,6 +23,18 @@ class ShippingAddressInput
     #[Assert\Length(max: 100)]
     public string $city;
 
+    #[Assert\Length(max: 180)]
+    public ?string $company = null;
+
+    #[Assert\Length(max: 20)]
+    public ?string $companySiren = null;
+
+    #[Assert\Length(max: 32)]
+    public ?string $companyVatNumber = null;
+
+    #[Assert\Length(max: 80)]
+    public ?string $purchaseOrderNumber = null;
+
     private function __construct() {}
 
     /**
@@ -35,8 +47,18 @@ class ShippingAddressInput
         $self->address = (string) ($payload['address'] ?? '');
         $self->postalCode = (string) ($payload['postalCode'] ?? '');
         $self->city = (string) ($payload['city'] ?? '');
+        $self->company = self::nullableString($payload['company'] ?? null);
+        $self->companySiren = self::nullableString($payload['companySiren'] ?? null);
+        $self->companyVatNumber = self::nullableString($payload['companyVatNumber'] ?? null);
+        $self->purchaseOrderNumber = self::nullableString($payload['purchaseOrderNumber'] ?? null);
 
         return $self;
     }
-}
 
+    private static function nullableString(mixed $value): ?string
+    {
+        $normalized = trim((string) ($value ?? ''));
+
+        return $normalized !== '' ? $normalized : null;
+    }
+}
