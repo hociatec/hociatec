@@ -48,7 +48,9 @@ export interface StockMovementDto {
 export interface EmailLogDto {
   type: string;
   scenario: string;
+  scenarioLabel?: string;
   status: string;
+  statusLabel?: string;
   recipient?: string | null;
   subject?: string | null;
   related?: { type: string; id: number; label: string };

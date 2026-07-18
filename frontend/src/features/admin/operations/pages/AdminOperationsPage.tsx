@@ -438,7 +438,7 @@ export const AdminOperationsPage = () => {
 
         <List title="Emails transactionnels" items={emails.map((item, index) => ({
           key: `${item.createdAt}-${index}`,
-          title: `${item.status === 'failed' ? 'Échec' : 'Envoyé'} · ${item.scenario}`,
+          title: `${item.statusLabel ?? (item.status === 'failed' ? 'Échec' : 'Envoyé')} · ${item.scenarioLabel ?? item.scenario}`,
           meta: `${item.recipient || 'Destinataire inconnu'} · ${item.related?.label || item.subject || ''} · ${formatDate(item.createdAt)}`,
         }))} />
         </div>

@@ -494,7 +494,9 @@ final class AdminOperationsController extends AbstractController
                     $items[] = [
                         'type' => 'transactional',
                         'scenario' => $scenario,
+                        'scenarioLabel' => $this->emailScenarioLabel($scenario),
                         'status' => 'sent',
+                        'statusLabel' => 'Envoyé',
                         'recipient' => $order->getBillingEmail() ?? $order->getUser()->getEmail(),
                         'subject' => 'Commande ' . $order->getNumber(),
                         'related' => ['type' => 'order', 'id' => $order->getId(), 'label' => $order->getNumber()],
@@ -507,7 +509,9 @@ final class AdminOperationsController extends AbstractController
             $items[] = [
                 'type' => 'transactional',
                 'scenario' => 'email_failed',
+                'scenarioLabel' => 'Email non envoyé',
                 'status' => 'failed',
+                'statusLabel' => 'Échec',
                 'recipient' => null,
                 'subject' => $event->getMessage(),
                 'related' => ['type' => 'order', 'id' => $event->getOrder()->getId(), 'label' => $event->getOrder()->getNumber()],
@@ -518,6 +522,20 @@ final class AdminOperationsController extends AbstractController
         usort($items, static fn (array $a, array $b): int => strcmp((string) $b['createdAt'], (string) $a['createdAt']));
 
         return $items;
+    }
+
+    private function emailScenarioLabel(string $scenario): string
+    {
+        return match ($scenario) {
+            'order_created' => 'Confirmation de commande',
+            'invoice' => 'Facture envoyée',
+            'status_confirmed' => 'Commande confirmée',
+            'status_delivered', 'order_status_delivered' => 'Commande livrée',
+            'status_cancelled', 'order_status_cancelled' => 'Commande annulée',
+            'customer_voucher_offer' => 'Bon de réduction client',
+            'email_failed' => 'Email non envoyé',
+            default => ucfirst(str_replace('_', ' ', $scenario)),
+        };
     }
 
     private function supportStatusLabel(string $status): string
