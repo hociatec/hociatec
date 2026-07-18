@@ -23,6 +23,11 @@ final class StripeApiClient
         return $this->request('GET', '/payment_intents/' . rawurlencode($paymentIntentId));
     }
 
+    public function createRefund(array $payload): array
+    {
+        return $this->request('POST', '/refunds', $payload);
+    }
+
     private function request(string $method, string $path, array $payload = []): array
     {
         $secretKey = (string) ($_ENV['STRIPE_SECRET_KEY'] ?? '');

@@ -214,7 +214,7 @@ class ProductRepository extends ServiceEntityRepository
     {
         return (int) $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
-            ->andWhere('p.stock <= :threshold')
+            ->andWhere('p.stock <= COALESCE(p.lowStockThreshold, :threshold)')
             ->andWhere('p.isPublished = :published')
             ->setParameter('threshold', max(0, $threshold))
             ->setParameter('published', true)
@@ -231,7 +231,7 @@ class ProductRepository extends ServiceEntityRepository
             ->addSelect('c', 'b')
             ->join('p.category', 'c')
             ->leftJoin('p.brandReference', 'b')
-            ->andWhere('p.stock <= :threshold')
+            ->andWhere('p.stock <= COALESCE(p.lowStockThreshold, :threshold)')
             ->andWhere('p.isPublished = :published')
             ->setParameter('threshold', max(0, $threshold))
             ->setParameter('published', true)

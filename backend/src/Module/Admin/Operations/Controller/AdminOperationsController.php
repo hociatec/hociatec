@@ -16,9 +16,11 @@ use App\Module\Order\Repository\OrderEventRepository;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Repository\RefundRequestRepository;
 use App\Module\Order\Service\InvoiceNumberGenerator;
+use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderInvoiceCalculator;
 use App\Module\Order\Service\OrderNumberGenerator;
+use App\Module\Order\Service\StripeApiClient;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
 use App\Module\Quote\Repository\QuoteRepository;
@@ -27,6 +29,7 @@ use App\Module\Support\Entity\SupportRequest;
 use App\Module\Support\Repository\SupportRequestRepository;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
+use App\Module\User\Service\AdminCustomerEmailService;
 use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -56,6 +59,9 @@ final class AdminOperationsController extends AbstractController
         private readonly InvoiceNumberGenerator $invoiceNumberGenerator,
         private readonly OrderInvoiceCalculator $invoiceCalculator,
         private readonly QuoteCalculator $quoteCalculator,
+        private readonly StripeApiClient $stripe,
+        private readonly AdminCustomerEmailService $customerEmails,
+        private readonly OrderEventLogger $orderEventLogger,
     ) {
     }
 
@@ -156,6 +162,42 @@ final class AdminOperationsController extends AbstractController
         return ApiResponse::success(['item' => $this->formatSupportRequest($support)]);
     }
 
+    #[Route('/support-requests/{id}/reply', name: 'api_admin_operations_support_reply', methods: ['POST'])]
+    public function replySupportRequest(int $id, Request $request): JsonResponse
+    {
+        $support = $this->supportRequests->find($id);
+        if (!$support instanceof SupportRequest) {
+            return ApiResponse::error('Demande SAV introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $payload = $this->jsonPayload($request);
+        $subject = trim((string) ($payload['subject'] ?? ('Réponse à votre demande SAV #' . $support->getId())));
+        $message = trim((string) ($payload['message'] ?? ''));
+        if ($message === '') {
+            return ApiResponse::error('Le message de réponse est obligatoire.', Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->customerEmails->send($support->getCustomer(), $subject, $message);
+        } catch (\InvalidArgumentException|\RuntimeException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+
+        $note = trim(sprintf(
+            "%s\n[%s] Réponse envoyée au client : %s",
+            (string) $support->getInternalNotes(),
+            (new \DateTimeImmutable())->format('d/m/Y H:i'),
+            $subject,
+        ));
+        $support
+            ->setInternalNotes($note)
+            ->setStatus((string) ($payload['status'] ?? SupportRequest::STATUS_WAITING_CUSTOMER));
+
+        $this->em->flush();
+
+        return ApiResponse::success(['sent' => true, 'item' => $this->formatSupportRequest($support)]);
+    }
+
     #[Route('/refunds', name: 'api_admin_operations_refunds_list', methods: ['GET'])]
     public function listRefunds(): JsonResponse
     {
@@ -210,6 +252,61 @@ final class AdminOperationsController extends AbstractController
         return ApiResponse::success(['item' => $this->formatRefund($refund)]);
     }
 
+    #[Route('/refunds/{id}/process-stripe', name: 'api_admin_operations_refunds_process_stripe', methods: ['POST'])]
+    public function processStripeRefund(int $id, Request $request): JsonResponse
+    {
+        $refund = $this->refunds->find($id);
+        if (!$refund instanceof RefundRequest) {
+            return ApiResponse::error('Remboursement introuvable.', Response::HTTP_NOT_FOUND);
+        }
+        if ($refund->getStripeRefundId() !== null || $refund->getStatus() === RefundRequest::STATUS_PROCESSED) {
+            return ApiResponse::error('Ce remboursement a déjà été traité.');
+        }
+        if ($refund->getAmountCents() <= 0) {
+            return ApiResponse::error('Le montant du remboursement doit être supérieur à zéro.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $payload = $this->jsonPayload($request);
+        $confirmation = trim((string) ($payload['confirmation'] ?? ''));
+        if ($confirmation !== 'REMBOURSER') {
+            return ApiResponse::error('Confirmation requise : saisis REMBOURSER pour déclencher Stripe.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $paymentIntentId = is_string($payload['paymentIntentId'] ?? null) && trim((string) $payload['paymentIntentId']) !== ''
+            ? trim((string) $payload['paymentIntentId'])
+            : $this->findPaymentIntentForOrder($refund->getOrder());
+        if ($paymentIntentId === null) {
+            return ApiResponse::error('Aucun PaymentIntent Stripe trouvé pour cette commande.', Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $stripeRefund = $this->stripe->createRefund([
+                'payment_intent' => $paymentIntentId,
+                'amount' => $refund->getAmountCents(),
+                'reason' => 'requested_by_customer',
+                'metadata[refund_request_id]' => (string) $refund->getId(),
+                'metadata[order_number]' => $refund->getOrder()->getNumber(),
+            ]);
+        } catch (\Throwable $exception) {
+            return ApiResponse::error('Stripe a refusé le remboursement : ' . $exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+
+        $stripeRefundId = is_string($stripeRefund['id'] ?? null) ? $stripeRefund['id'] : null;
+        $refund
+            ->setStripeRefundId($stripeRefundId)
+            ->setStatus(RefundRequest::STATUS_PROCESSED);
+        $this->em->flush();
+
+        $this->orderEventLogger->log(
+            $refund->getOrder(),
+            $this->currentAdmin(),
+            'refund_processed',
+            sprintf('Remboursement Stripe %s créé pour %s.', $stripeRefundId ?? '-', $refund->getAmountCents() / 100),
+        );
+
+        return ApiResponse::success(['item' => $this->formatRefund($refund), 'stripeRefund' => $stripeRefund]);
+    }
+
     #[Route('/stock-movements', name: 'api_admin_operations_stock_list', methods: ['GET'])]
     public function listStockMovements(): JsonResponse
     {
@@ -242,6 +339,71 @@ final class AdminOperationsController extends AbstractController
         $this->em->flush();
 
         return ApiResponse::created(['item' => $this->formatStockMovement($movement)]);
+    }
+
+    #[Route('/products/{id}/low-stock-threshold', name: 'api_admin_operations_product_low_stock_threshold', methods: ['PATCH'])]
+    public function updateLowStockThreshold(int $id, Request $request): JsonResponse
+    {
+        $product = $this->products->find($id);
+        if (!$product instanceof Product) {
+            return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $payload = $this->jsonPayload($request);
+        $threshold = (int) ($payload['threshold'] ?? -1);
+        if ($threshold < 0) {
+            return ApiResponse::error('Le seuil doit être un entier positif.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $product->setLowStockThreshold($threshold);
+        $this->em->flush();
+
+        return ApiResponse::success(['product' => $this->formatLowStockProduct($product)]);
+    }
+
+    #[Route('/fulfillment/orders', name: 'api_admin_operations_fulfillment_orders', methods: ['GET'])]
+    public function fulfillmentOrders(): JsonResponse
+    {
+        return ApiResponse::success([
+            'items' => array_map([$this, 'formatFulfillmentOrder'], $this->orders->findFulfillmentQueue(50)),
+        ]);
+    }
+
+    #[Route('/fulfillment/orders/{id}/ship', name: 'api_admin_operations_fulfillment_ship', methods: ['PATCH'])]
+    public function shipFulfillmentOrder(int $id, Request $request): JsonResponse
+    {
+        $order = $this->orders->find($id);
+        if (!$order instanceof Order) {
+            return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $payload = $this->jsonPayload($request);
+        $carrier = $this->normalizeNullableString($payload['carrier'] ?? $order->getDeliveryCarrier());
+        $trackingNumber = $this->normalizeNullableString($payload['trackingNumber'] ?? $order->getDeliveryTrackingNumber());
+        $trackingUrl = $this->normalizeNullableString($payload['trackingUrl'] ?? $order->getDeliveryTrackingUrl());
+        if ($trackingUrl !== null && filter_var($trackingUrl, FILTER_VALIDATE_URL) === false) {
+            return ApiResponse::error('Lien de suivi invalide.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $order
+            ->setStatus(Order::STATUS_CONFIRMED)
+            ->setDeliveryStatus(Order::DELIVERY_STATUS_SHIPPED)
+            ->setDeliveryCarrier($carrier)
+            ->setDeliveryTrackingNumber($trackingNumber)
+            ->setDeliveryTrackingUrl($trackingUrl);
+        if ($order->getDeliveryShippedAt() === null) {
+            $order->setDeliveryShippedAt(new \DateTimeImmutable());
+        }
+        $this->em->flush();
+
+        $this->orderEventLogger->log(
+            $order,
+            $this->currentAdmin(),
+            'order_shipped',
+            sprintf('Commande marquée expédiée%s.', $trackingNumber !== null ? ' avec suivi ' . $trackingNumber : ''),
+        );
+
+        return ApiResponse::success(['order' => $this->formatFulfillmentOrder($order)]);
     }
 
     #[Route('/email-logs', name: 'api_admin_operations_email_logs', methods: ['GET'])]
@@ -482,8 +644,64 @@ final class AdminOperationsController extends AbstractController
             'name' => $product->getName(),
             'sku' => $product->getSku(),
             'stock' => $product->getStock(),
+            'lowStockThreshold' => $product->getLowStockThreshold(),
             'category' => $product->getCategory()->getName(),
         ];
+    }
+
+    private function formatFulfillmentOrder(Order $order): array
+    {
+        return [
+            'id' => $order->getId(),
+            'number' => $order->getNumber(),
+            'status' => $order->getStatus(),
+            'statusLabel' => OrderFormatter::formatStatusLabel($order->getStatus()),
+            'customer' => [
+                'id' => $order->getUser()->getId(),
+                'name' => $order->getUser()->getFullName(),
+                'email' => $order->getUser()->getEmail(),
+            ],
+            'totalPriceCents' => $order->getTotalPriceCents(),
+            'shipping' => [
+                'name' => $order->getShippingName(),
+                'address' => $order->getShippingAddress(),
+                'postalCode' => $order->getShippingPostalCode(),
+                'city' => $order->getShippingCity(),
+            ],
+            'delivery' => [
+                'status' => $order->getDeliveryStatus(),
+                'statusLabel' => OrderFormatter::formatDeliveryStatusLabel($order->getDeliveryStatus()),
+                'carrier' => $order->getDeliveryCarrier(),
+                'trackingNumber' => $order->getDeliveryTrackingNumber(),
+                'trackingUrl' => $order->getDeliveryTrackingUrl(),
+            ],
+            'items' => array_map(static fn (OrderItem $item): array => [
+                'name' => $item->getProductName(),
+                'sku' => $item->getProductSku(),
+                'quantity' => $item->getQuantity(),
+            ], $order->getItems()->toArray()),
+            'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
+        ];
+    }
+
+    private function findPaymentIntentForOrder(Order $order): ?string
+    {
+        $payments = $this->payments->findBy(['orderId' => $order->getId()], ['createdAt' => 'DESC'], 5);
+        foreach ($payments as $payment) {
+            $paymentIntentId = $payment->getStripePaymentIntentId();
+            if ($paymentIntentId !== null && $paymentIntentId !== '') {
+                return $paymentIntentId;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        $normalized = trim((string) $value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     private function buildEmailLogs(): array

@@ -42,6 +42,9 @@ class Product
     #[ORM\Column(type: 'integer')]
     private int $stock;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 3])]
+    private int $lowStockThreshold = 3;
+
     #[ORM\Column(type: 'boolean')]
     private bool $isPublished = true;
 
@@ -372,6 +375,18 @@ class Product
     public function setStock(int $stock): self
     {
         $this->stock = $stock;
+
+        return $this;
+    }
+
+    public function getLowStockThreshold(): int
+    {
+        return $this->lowStockThreshold;
+    }
+
+    public function setLowStockThreshold(int $lowStockThreshold): self
+    {
+        $this->lowStockThreshold = max(0, $lowStockThreshold);
 
         return $this;
     }

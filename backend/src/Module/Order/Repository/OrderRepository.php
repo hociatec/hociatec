@@ -74,6 +74,25 @@ class OrderRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<Order>
+     */
+    public function findFulfillmentQueue(int $limit = 30): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.status IN (:orderStatuses)')
+            ->andWhere('o.deliveryStatus IN (:deliveryStatuses)')
+            ->setParameter('orderStatuses', [Order::STATUS_PENDING, Order::STATUS_CONFIRMED])
+            ->setParameter('deliveryStatuses', [
+                Order::DELIVERY_STATUS_PREPARING,
+                Order::DELIVERY_STATUS_ISSUE,
+            ])
+            ->orderBy('o.createdAt', 'ASC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return array{count:int,totalCents:int}
      */
     public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array

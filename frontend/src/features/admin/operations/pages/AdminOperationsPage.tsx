@@ -9,13 +9,19 @@ import {
   createStockMovement,
   createSupportRequest,
   fetchEmailLogs,
+  fetchFulfillmentOrders,
   fetchOperationsOverview,
   fetchRefunds,
   fetchStockMovements,
   fetchSupportRequests,
+  processStripeRefund,
+  replySupportRequest,
+  shipFulfillmentOrder,
+  updateLowStockThreshold,
   updateRefund,
   updateSupportRequest,
   type EmailLogDto,
+  type FulfillmentOrderDto,
   type OperationsOverviewDto,
   type RefundRequestDto,
   type StockMovementDto,
@@ -48,6 +54,7 @@ export const AdminOperationsPage = () => {
   const [refunds, setRefunds] = useState<RefundRequestDto[]>([]);
   const [stock, setStock] = useState<StockMovementDto[]>([]);
   const [emails, setEmails] = useState<EmailLogDto[]>([]);
+  const [fulfillmentOrders, setFulfillmentOrders] = useState<FulfillmentOrderDto[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -58,6 +65,10 @@ export const AdminOperationsPage = () => {
   const [quoteReference, setQuoteReference] = useState('');
   const [quoteConversionStatus, setQuoteConversionStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [quoteConversionMessage, setQuoteConversionMessage] = useState<string | null>(null);
+  const [shippingForms, setShippingForms] = useState<Record<number, { carrier: string; trackingNumber: string; trackingUrl: string }>>({});
+  const [supportReplies, setSupportReplies] = useState<Record<number, { subject: string; message: string }>>({});
+  const [refundConfirmations, setRefundConfirmations] = useState<Record<number, string>>({});
+  const [stockThresholds, setStockThresholds] = useState<Record<number, string>>({});
 
   const refresh = () => {
     setStatus('loading');
@@ -68,13 +79,15 @@ export const AdminOperationsPage = () => {
       fetchRefunds(),
       fetchStockMovements(),
       fetchEmailLogs(),
+      fetchFulfillmentOrders(),
     ])
-      .then(([overviewData, supportData, refundData, stockData, emailData]) => {
+      .then(([overviewData, supportData, refundData, stockData, emailData, fulfillmentData]) => {
         setOverview(overviewData);
         setSupport(supportData);
         setRefunds(refundData);
         setStock(stockData);
         setEmails(emailData);
+        setFulfillmentOrders(fulfillmentData);
         setStatus('success');
       })
       .catch((error: unknown) => {
@@ -175,6 +188,48 @@ export const AdminOperationsPage = () => {
       });
   };
 
+  const submitShipOrder = (orderId: number) => {
+    const payload = shippingForms[orderId] ?? { carrier: '', trackingNumber: '', trackingUrl: '' };
+    void shipFulfillmentOrder(orderId, payload)
+      .then(() => {
+        setMessage('Commande marquée comme expédiée.');
+        setShippingForms((previous) => ({ ...previous, [orderId]: { carrier: '', trackingNumber: '', trackingUrl: '' } }));
+        refresh();
+      })
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Erreur expédition.'));
+  };
+
+  const submitSupportReply = (supportId: number) => {
+    const payload = supportReplies[supportId] ?? { subject: `Réponse SAV #${supportId}`, message: '' };
+    void replySupportRequest(supportId, { ...payload, status: 'waiting_customer' })
+      .then(() => {
+        setMessage('Réponse SAV envoyée au client.');
+        setSupportReplies((previous) => ({ ...previous, [supportId]: { subject: '', message: '' } }));
+        refresh();
+      })
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Erreur réponse SAV.'));
+  };
+
+  const submitStripeRefund = (refundId: number) => {
+    void processStripeRefund(refundId, { confirmation: refundConfirmations[refundId] ?? '' })
+      .then((refund) => {
+        setMessage(`Remboursement Stripe traité : ${refund.stripeRefundId ?? 'référence Stripe créée'}.`);
+        setRefundConfirmations((previous) => ({ ...previous, [refundId]: '' }));
+        refresh();
+      })
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Erreur remboursement Stripe.'));
+  };
+
+  const submitStockThreshold = (productId: number) => {
+    const threshold = Number(stockThresholds[productId]);
+    void updateLowStockThreshold(productId, threshold)
+      .then(() => {
+        setMessage('Seuil de stock faible mis à jour.');
+        refresh();
+      })
+      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Erreur seuil stock.'));
+  };
+
   return (
     <PageContainer title="Centre exploitation">
       <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -251,7 +306,7 @@ export const AdminOperationsPage = () => {
                         <div className="mt-1 text-xs text-slate-500">{product.sku} · {product.category}</div>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.stock === 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
-                        Stock : {product.stock}
+                        Stock : {product.stock} / seuil {product.lowStockThreshold ?? overview.stock.lowStockThreshold ?? 3}
                       </span>
                     </div>
                   </a>
@@ -263,6 +318,37 @@ export const AdminOperationsPage = () => {
       )}
 
       <section className="mb-8 grid gap-6 xl:grid-cols-2">
+        <ActionCard
+          title="Préparer et expédier"
+          description="File des commandes à traiter. Renseigne le suivi puis marque la commande comme expédiée."
+        >
+          <div className="space-y-3">
+            {fulfillmentOrders.length === 0 ? (
+              <p className="text-sm text-slate-500">Aucune commande à préparer.</p>
+            ) : fulfillmentOrders.map((order) => {
+              const form = shippingForms[order.id] ?? { carrier: order.delivery.carrier ?? '', trackingNumber: order.delivery.trackingNumber ?? '', trackingUrl: order.delivery.trackingUrl ?? '' };
+              return (
+                <div key={order.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="font-semibold text-slate-950">{order.number} · {formatPrice(order.totalPriceCents)}</div>
+                      <div className="mt-1 text-xs text-slate-500">{order.customer.name} · {order.shipping.postalCode} {order.shipping.city}</div>
+                      <div className="mt-2 text-xs text-slate-600">{order.items.map((item) => `${item.quantity}× ${item.name}`).join(' · ')}</div>
+                    </div>
+                    <button className={secondaryActionClass} type="button" onClick={() => navigate(`/admin/orders/${order.id}`)}>Voir</button>
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    <input className={inputClass} placeholder="Transporteur" value={form.carrier} onChange={(e) => setShippingForms((p) => ({ ...p, [order.id]: { ...form, carrier: e.target.value } }))} />
+                    <input className={inputClass} placeholder="Numéro de suivi" value={form.trackingNumber} onChange={(e) => setShippingForms((p) => ({ ...p, [order.id]: { ...form, trackingNumber: e.target.value } }))} />
+                    <input className={inputClass} placeholder="Lien de suivi" value={form.trackingUrl} onChange={(e) => setShippingForms((p) => ({ ...p, [order.id]: { ...form, trackingUrl: e.target.value } }))} />
+                  </div>
+                  <button className={`${primaryActionClass} mt-3`} type="button" onClick={() => submitShipOrder(order.id)}>Marquer expédiée</button>
+                </div>
+              );
+            })}
+          </div>
+        </ActionCard>
+
         <ActionCard
           title="Créer un dossier SAV"
           description="À utiliser quand un client signale un problème ou quand une commande nécessite un suivi manuel."
@@ -406,13 +492,31 @@ export const AdminOperationsPage = () => {
           title: `#${item.id} · ${item.subject}`,
           meta: `${item.customer.name} · ${item.statusLabel} · ${formatDate(item.updatedAt)}`,
           action: (
-            <select className={inputClass} value={item.status} onChange={(e) => void updateSupportRequest(item.id, { status: e.target.value }).then(refresh)}>
-              <option value="new">Nouveau</option>
-              <option value="in_progress">En cours</option>
-              <option value="waiting_customer">En attente client</option>
-              <option value="resolved">Résolu</option>
-              <option value="refused">Refusé</option>
-            </select>
+            <div className="space-y-2">
+              <select className={inputClass} value={item.status} onChange={(e) => void updateSupportRequest(item.id, { status: e.target.value }).then(refresh)}>
+                <option value="new">Nouveau</option>
+                <option value="in_progress">En cours</option>
+                <option value="waiting_customer">En attente client</option>
+                <option value="resolved">Résolu</option>
+                <option value="refused">Refusé</option>
+              </select>
+              <input
+                className={inputClass}
+                placeholder="Sujet réponse client"
+                value={supportReplies[item.id]?.subject ?? `Réponse SAV #${item.id}`}
+                onChange={(e) => setSupportReplies((p) => ({ ...p, [item.id]: { subject: e.target.value, message: p[item.id]?.message ?? '' } }))}
+              />
+              <textarea
+                className={inputClass}
+                rows={2}
+                placeholder="Message à envoyer au client"
+                value={supportReplies[item.id]?.message ?? ''}
+                onChange={(e) => setSupportReplies((p) => ({ ...p, [item.id]: { subject: p[item.id]?.subject ?? `Réponse SAV #${item.id}`, message: e.target.value } }))}
+              />
+              <button className={secondaryActionClass} type="button" onClick={() => submitSupportReply(item.id)} disabled={!supportReplies[item.id]?.message}>
+                Répondre au client
+              </button>
+            </div>
           ),
         }))} />
 
@@ -421,12 +525,30 @@ export const AdminOperationsPage = () => {
           title: `#${item.id} · ${item.order.number} · ${formatPrice(item.amountCents)}`,
           meta: `${item.status} · ${item.reason || 'Sans motif'} · ${formatDate(item.updatedAt)}`,
           action: (
-            <select className={inputClass} value={item.status} onChange={(e) => void updateRefund(item.id, { status: e.target.value }).then(refresh)}>
-              <option value="requested">Demandé</option>
-              <option value="approved">Approuvé</option>
-              <option value="rejected">Refusé</option>
-              <option value="processed">Traité</option>
-            </select>
+            <div className="space-y-2">
+              <select className={inputClass} value={item.status} onChange={(e) => void updateRefund(item.id, { status: e.target.value }).then(refresh)}>
+                <option value="requested">Demandé</option>
+                <option value="approved">Approuvé</option>
+                <option value="rejected">Refusé</option>
+                <option value="processed">Traité</option>
+              </select>
+              <input
+                className={inputClass}
+                placeholder="Tape REMBOURSER pour déclencher Stripe"
+                value={refundConfirmations[item.id] ?? ''}
+                onChange={(e) => setRefundConfirmations((p) => ({ ...p, [item.id]: e.target.value }))}
+                disabled={Boolean(item.stripeRefundId) || item.status === 'processed'}
+              />
+              <button
+                className={secondaryActionClass}
+                type="button"
+                onClick={() => submitStripeRefund(item.id)}
+                disabled={(refundConfirmations[item.id] ?? '') !== 'REMBOURSER' || Boolean(item.stripeRefundId) || item.status === 'processed'}
+              >
+                Déclencher remboursement Stripe
+              </button>
+              {item.stripeRefundId && <p className="text-xs text-emerald-700">Stripe : {item.stripeRefundId}</p>}
+            </div>
           ),
         }))} />
 
@@ -434,6 +556,20 @@ export const AdminOperationsPage = () => {
           key: item.id,
           title: `${item.product.sku} · ${item.product.name}`,
           meta: `${item.delta > 0 ? '+' : ''}${item.delta} · ${item.stockBefore} → ${item.stockAfter} · ${formatDate(item.createdAt)}`,
+          action: (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="Nouveau seuil stock faible"
+                value={stockThresholds[item.product.id] ?? ''}
+                onChange={(e) => setStockThresholds((p) => ({ ...p, [item.product.id]: e.target.value }))}
+              />
+              <button className={secondaryActionClass} type="button" onClick={() => submitStockThreshold(item.product.id)} disabled={!stockThresholds[item.product.id]}>
+                Modifier seuil
+              </button>
+            </div>
+          ),
         }))} />
 
         <List title="Emails transactionnels" items={emails.map((item, index) => ({

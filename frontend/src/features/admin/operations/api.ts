@@ -19,6 +19,19 @@ export interface SupportRequestDto {
   resolvedAt?: string | null;
 }
 
+export interface FulfillmentOrderDto {
+  id: number;
+  number: string;
+  status: string;
+  statusLabel: string;
+  customer: { id: number; name: string; email: string };
+  totalPriceCents: number;
+  shipping: { name?: string | null; address?: string | null; postalCode?: string | null; city?: string | null };
+  delivery: { status: string; statusLabel: string; carrier?: string | null; trackingNumber?: string | null; trackingUrl?: string | null };
+  items: Array<{ name: string; sku: string; quantity: number }>;
+  createdAt: string;
+}
+
 export interface RefundRequestDto {
   id: number;
   order: { id: number; number: string };
@@ -63,7 +76,7 @@ export interface OperationsOverviewDto {
   stock: {
     lowStockThreshold?: number;
     lowStockCount: number;
-    lowStockItems?: Array<{ id: number; name: string; sku: string; stock: number; category: string }>;
+    lowStockItems?: Array<{ id: number; name: string; sku: string; stock: number; lowStockThreshold?: number; category: string }>;
     movements: StockMovementDto[];
   };
   emails: { items: EmailLogDto[] };
@@ -113,6 +126,15 @@ export const updateSupportRequest = async (id: number, payload: Partial<Pick<Sup
   return unwrap(data, 'Impossible de mettre à jour la demande SAV').item;
 };
 
+export const replySupportRequest = async (id: number, payload: { subject: string; message: string; status?: string }): Promise<SupportRequestDto> => {
+  try {
+    const { data } = await httpClient.post<ApiResponse<{ sent: boolean; item: SupportRequestDto }>>(`/api/admin/operations/support-requests/${id}/reply`, payload);
+    return unwrap(data, 'Impossible d’envoyer la réponse SAV').item;
+  } catch (error) {
+    return rethrowApiError(error, 'Impossible d’envoyer la réponse SAV');
+  }
+};
+
 export const fetchRefunds = async (): Promise<RefundRequestDto[]> => {
   const { data } = await httpClient.get<ApiResponse<{ items: RefundRequestDto[] }>>('/api/admin/operations/refunds');
   return unwrap(data, 'Impossible de charger les remboursements').items ?? [];
@@ -134,6 +156,15 @@ export const updateRefund = async (id: number, payload: Partial<Pick<RefundReque
   return unwrap(data, 'Impossible de mettre à jour le remboursement').item;
 };
 
+export const processStripeRefund = async (id: number, payload: { confirmation: string; paymentIntentId?: string }): Promise<RefundRequestDto> => {
+  try {
+    const { data } = await httpClient.post<ApiResponse<{ item: RefundRequestDto; stripeRefund: Record<string, unknown> }>>(`/api/admin/operations/refunds/${id}/process-stripe`, payload);
+    return unwrap(data, 'Impossible de déclencher le remboursement Stripe').item;
+  } catch (error) {
+    return rethrowApiError(error, 'Impossible de déclencher le remboursement Stripe');
+  }
+};
+
 export const fetchStockMovements = async (): Promise<StockMovementDto[]> => {
   const { data } = await httpClient.get<ApiResponse<{ items: StockMovementDto[] }>>('/api/admin/operations/stock-movements');
   return unwrap(data, 'Impossible de charger les mouvements de stock').items ?? [];
@@ -147,6 +178,29 @@ export const createStockMovement = async (payload: {
 }): Promise<StockMovementDto> => {
   const { data } = await httpClient.post<ApiResponse<{ item: StockMovementDto }>>('/api/admin/operations/stock-movements', payload);
   return unwrap(data, 'Impossible de créer le mouvement de stock').item;
+};
+
+export const updateLowStockThreshold = async (productId: number, threshold: number): Promise<void> => {
+  try {
+    const { data } = await httpClient.patch<ApiResponse<{ product: unknown }>>(`/api/admin/operations/products/${productId}/low-stock-threshold`, { threshold });
+    unwrap(data, 'Impossible de modifier le seuil de stock');
+  } catch (error) {
+    rethrowApiError(error, 'Impossible de modifier le seuil de stock');
+  }
+};
+
+export const fetchFulfillmentOrders = async (): Promise<FulfillmentOrderDto[]> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: FulfillmentOrderDto[] }>>('/api/admin/operations/fulfillment/orders');
+  return unwrap(data, 'Impossible de charger les commandes à préparer').items ?? [];
+};
+
+export const shipFulfillmentOrder = async (id: number, payload: { carrier?: string; trackingNumber?: string; trackingUrl?: string }): Promise<FulfillmentOrderDto> => {
+  try {
+    const { data } = await httpClient.patch<ApiResponse<{ order: FulfillmentOrderDto }>>(`/api/admin/operations/fulfillment/orders/${id}/ship`, payload);
+    return unwrap(data, 'Impossible de marquer la commande expédiée').order;
+  } catch (error) {
+    return rethrowApiError(error, 'Impossible de marquer la commande expédiée');
+  }
 };
 
 export const fetchEmailLogs = async (): Promise<EmailLogDto[]> => {
