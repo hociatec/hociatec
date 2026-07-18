@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
+use App\Module\Order\Entity\RefundRequest;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Repository\RefundRequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class StripeWebhookService
 {
     public function __construct(
         private readonly OrderCheckoutSessionRepository $checkoutSessions,
+        private readonly RefundRequestRepository $refunds,
         private readonly OrderService $orders,
         private readonly EntityManagerInterface $em,
         private readonly StripeApiClient $stripe,
@@ -19,7 +22,7 @@ final class StripeWebhookService
     }
 
     /**
-     * @return array{type:string, sessionId:string|null}
+     * @return array<string, mixed>
      */
     public function handle(string $payload, ?string $signatureHeader): array
     {
@@ -34,6 +37,7 @@ final class StripeWebhookService
         return match ($type) {
             'checkout.session.completed', 'checkout.session.async_payment_succeeded', 'checkout.session.expired', 'checkout.session.async_payment_failed' => $this->handleCheckoutSessionEvent($object, $type),
             'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($object, $type),
+            'refund.created', 'refund.updated', 'refund.failed' => $this->handleRefundEvent($object, $type),
             default => ['type' => $type, 'sessionId' => is_string($object['id'] ?? null) ? $object['id'] : null],
         };
     }
@@ -157,6 +161,44 @@ final class StripeWebhookService
     }
 
     /**
+     * @param array<string, mixed> $object
+     * @return array<string, mixed>
+     */
+    private function handleRefundEvent(array $object, string $type): array
+    {
+        $stripeRefundId = is_string($object['id'] ?? null) ? $object['id'] : null;
+        $refundRequestId = isset($object['metadata']['refund_request_id'])
+            ? (int) $object['metadata']['refund_request_id']
+            : 0;
+
+        if ($refundRequestId <= 0) {
+            return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => null];
+        }
+
+        $refund = $this->refunds->find($refundRequestId);
+        if (!$refund instanceof RefundRequest) {
+            return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => null];
+        }
+
+        if ($stripeRefundId !== null) {
+            $refund->setStripeRefundId($stripeRefundId);
+        }
+
+        $stripeStatus = is_string($object['status'] ?? null) ? $object['status'] : null;
+        if ($type === 'refund.failed' || in_array($stripeStatus, ['failed', 'canceled'], true)) {
+            $refund->setStatus(RefundRequest::STATUS_REJECTED);
+        } elseif ($stripeStatus === 'succeeded') {
+            $refund->setStatus(RefundRequest::STATUS_PROCESSED);
+        } elseif (in_array($stripeStatus, ['pending', 'requires_action'], true)) {
+            $refund->setStatus(RefundRequest::STATUS_APPROVED);
+        }
+
+        $this->em->flush();
+
+        return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => $refund->getId()];
+    }
+
+    /**
      * @return array{0:string|null,1:string|null,2:string|null}
      */
     private function fetchPaymentIntentFailure(string $paymentIntentId): array
@@ -183,8 +225,12 @@ final class StripeWebhookService
      */
     private function verifyAndDecodeEvent(string $payload, ?string $signatureHeader): array
     {
-        $secret = (string) ($_ENV['STRIPE_WEBHOOK_SECRET'] ?? '');
-        if ($secret === '') {
+        $secrets = array_values(array_filter([
+            (string) ($_ENV['STRIPE_WEBHOOK_SECRET'] ?? ''),
+            (string) ($_ENV['STRIPE_REFUND_WEBHOOK_SECRET'] ?? ''),
+        ], static fn (string $secret): bool => $secret !== ''));
+
+        if ($secrets === []) {
             throw new \RuntimeException('STRIPE_WEBHOOK_SECRET manquante.');
         }
 
@@ -210,12 +256,14 @@ final class StripeWebhookService
             throw new \RuntimeException('Signature Stripe expirée.');
         }
 
-        $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
         $matches = false;
-        foreach ($signatures as $signature) {
-            if (hash_equals($expected, $signature)) {
-                $matches = true;
-                break;
+        foreach ($secrets as $secret) {
+            $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
+            foreach ($signatures as $signature) {
+                if (hash_equals($expected, $signature)) {
+                    $matches = true;
+                    break 2;
+                }
             }
         }
 
