@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Entity;
 
+use App\Module\Order\Entity\Order;
 use App\Module\Quote\Repository\QuoteRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -71,6 +72,10 @@ class Quote
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?DateTimeImmutable $createdEmailSentAt = null;
+
+    #[ORM\OneToOne(targetEntity: Order::class)]
+    #[ORM\JoinColumn(name: 'converted_order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Order $convertedOrder = null;
 
     public function __construct(string $number)
     {
@@ -141,6 +146,8 @@ class Quote
     public function getUpdatedAt(): DateTimeImmutable { return $this->updatedAt; }
     public function getCreatedEmailSentAt(): ?DateTimeImmutable { return $this->createdEmailSentAt; }
     public function setCreatedEmailSentAt(?DateTimeImmutable $createdEmailSentAt): self { $this->createdEmailSentAt = $createdEmailSentAt; return $this; }
+    public function getConvertedOrder(): ?Order { return $this->convertedOrder; }
+    public function setConvertedOrder(?Order $convertedOrder): self { $this->convertedOrder = $convertedOrder; return $this; }
 
     #[ORM\PreUpdate]
     public function touch(): void

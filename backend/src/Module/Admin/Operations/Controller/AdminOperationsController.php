@@ -326,6 +326,12 @@ final class AdminOperationsController extends AbstractController
         if (!$quote instanceof Quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
+        if ($quote->getConvertedOrder() instanceof Order) {
+            return ApiResponse::error(sprintf(
+                'Ce devis a déjà été converti en commande %s.',
+                $quote->getConvertedOrder()->getNumber(),
+            ));
+        }
         if ($quote->getItems()->isEmpty()) {
             return ApiResponse::error('Le devis ne contient aucune ligne à convertir.');
         }
@@ -370,6 +376,7 @@ final class AdminOperationsController extends AbstractController
 
         $this->invoiceCalculator->snapshot($order);
         $this->em->persist($order);
+        $quote->setConvertedOrder($order);
         $quote->setStatus(Quote::STATUS_ACCEPTED);
         $this->em->flush();
 
