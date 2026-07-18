@@ -315,13 +315,21 @@ final class AdminOperationsController extends AbstractController
         return ApiResponse::success(['updated' => $updated]);
     }
 
-    #[Route('/quotes/{id}/convert-to-order', name: 'api_admin_operations_quote_convert', methods: ['POST'])]
-    public function convertQuoteToOrder(int $id): JsonResponse
+    #[Route('/quotes/{reference}/convert-to-order', name: 'api_admin_operations_quote_convert', methods: ['POST'])]
+    public function convertQuoteToOrder(string $reference): JsonResponse
     {
-        $quote = $this->quotes->find($id);
+        $reference = trim($reference);
+        $quote = ctype_digit($reference)
+            ? $this->quotes->find((int) $reference)
+            : $this->quotes->findOneBy(['number' => $reference]);
+
         if (!$quote instanceof Quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
+        if ($quote->getItems()->isEmpty()) {
+            return ApiResponse::error('Le devis ne contient aucune ligne à convertir.');
+        }
+
         $email = $quote->getCustomerEmail();
         if ($email === null || trim($email) === '') {
             return ApiResponse::error('Le devis doit avoir un email client pour être converti.');

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import {
@@ -41,6 +42,7 @@ const exportLabels: Record<string, string> = {
 };
 
 export const AdminOperationsPage = () => {
+  const navigate = useNavigate();
   const [overview, setOverview] = useState<OperationsOverviewDto | null>(null);
   const [support, setSupport] = useState<SupportRequestDto[]>([]);
   const [refunds, setRefunds] = useState<RefundRequestDto[]>([]);
@@ -53,7 +55,9 @@ export const AdminOperationsPage = () => {
   const [refundForm, setRefundForm] = useState({ orderId: '', amountCents: '', reason: '', internalNotes: '' });
   const [stockForm, setStockForm] = useState({ productId: '', delta: '', reason: 'adjustment', note: '' });
   const [bulkForm, setBulkForm] = useState({ orderIds: '', status: 'confirmed' });
-  const [quoteId, setQuoteId] = useState('');
+  const [quoteReference, setQuoteReference] = useState('');
+  const [quoteConversionStatus, setQuoteConversionStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [quoteConversionMessage, setQuoteConversionMessage] = useState<string | null>(null);
 
   const refresh = () => {
     setStatus('loading');
@@ -149,12 +153,26 @@ export const AdminOperationsPage = () => {
   };
 
   const submitQuoteConversion = () => {
-    void convertQuoteToOrder(Number(quoteId))
+    const reference = quoteReference.trim();
+    if (reference === '') {
+      setQuoteConversionStatus('error');
+      setQuoteConversionMessage('Renseigne l’ID ou le numéro du devis.');
+      return;
+    }
+
+    setQuoteConversionStatus('loading');
+    setQuoteConversionMessage(null);
+    void convertQuoteToOrder(reference)
       .then((order) => {
         setMessage(`Devis converti en commande ${order.number}.`);
-        setQuoteId('');
+        setQuoteReference('');
+        setQuoteConversionStatus('idle');
+        void navigate(`/admin/orders/${order.id}`);
       })
-      .catch((error: unknown) => setMessage(error instanceof Error ? error.message : 'Erreur conversion devis.'));
+      .catch((error: unknown) => {
+        setQuoteConversionStatus('error');
+        setQuoteConversionMessage(error instanceof Error ? error.message : 'Erreur conversion devis.');
+      });
   };
 
   return (
@@ -361,13 +379,18 @@ export const AdminOperationsPage = () => {
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
             <h3 className="font-semibold text-slate-900">Convertir un devis en commande</h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-              <Field label="ID devis" helper="Crée une commande depuis un devis accepté.">
-                <input className={inputClass} inputMode="numeric" placeholder="Ex. 77" value={quoteId} onChange={(e) => setQuoteId(e.target.value)} />
+              <Field label="ID ou numéro du devis" helper="Tu peux saisir l’ID interne ou le numéro visible dans la liste des devis.">
+                <input className={inputClass} placeholder="Ex. 77 ou DEV-2026-001" value={quoteReference} onChange={(e) => setQuoteReference(e.target.value)} />
               </Field>
-              <button className={primaryActionClass} type="button" onClick={submitQuoteConversion} disabled={!quoteId}>
-                Convertir
+              <button className={primaryActionClass} type="button" onClick={submitQuoteConversion} disabled={!quoteReference.trim() || quoteConversionStatus === 'loading'}>
+                {quoteConversionStatus === 'loading' ? 'Conversion...' : 'Convertir'}
               </button>
             </div>
+            {quoteConversionMessage && (
+              <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                {quoteConversionMessage}
+              </p>
+            )}
           </div>
         </ActionCard>
       </section>

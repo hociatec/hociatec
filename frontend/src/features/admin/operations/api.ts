@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import type { OrderDto } from '@/features/orders/api';
@@ -69,6 +71,17 @@ export interface OperationsOverviewDto {
 const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
   if (isApiOk(data)) return data.data as T;
   throw new Error(data.status === 'error' ? data.message : fallback);
+};
+
+const rethrowApiError = (error: unknown, fallback: string): never => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as ApiResponse<unknown> | undefined;
+    if (data?.status === 'error' && data.message) {
+      throw new Error(data.message);
+    }
+  }
+
+  throw new Error(error instanceof Error ? error.message : fallback);
 };
 
 export const fetchOperationsOverview = async (): Promise<OperationsOverviewDto> => {
@@ -144,7 +157,12 @@ export const bulkUpdateOrderStatus = async (orderIds: number[], status: string):
   return unwrap(data, 'Impossible de modifier les commandes').updated;
 };
 
-export const convertQuoteToOrder = async (quoteId: number): Promise<OrderDto> => {
-  const { data } = await httpClient.post<ApiResponse<{ order: OrderDto }>>(`/api/admin/operations/quotes/${quoteId}/convert-to-order`);
-  return unwrap(data, 'Impossible de convertir le devis').order;
+export const convertQuoteToOrder = async (quoteReference: string): Promise<OrderDto> => {
+  try {
+    const reference = encodeURIComponent(quoteReference.trim());
+    const { data } = await httpClient.post<ApiResponse<{ order: OrderDto }>>(`/api/admin/operations/quotes/${reference}/convert-to-order`);
+    return unwrap(data, 'Impossible de convertir le devis').order;
+  } catch (error) {
+    return rethrowApiError(error, 'Impossible de convertir le devis');
+  }
 };
