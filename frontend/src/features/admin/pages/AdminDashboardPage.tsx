@@ -14,6 +14,7 @@ import {
   CreditCard,
   Plus,
   ShieldCheck,
+  Wrench,
   Users,
 } from 'lucide-react';
 
@@ -76,6 +77,18 @@ const sections: Section[] = [
         to: '/admin/payments',
         title: 'Suivi des paiements',
         icon: <CreditCard className="h-6 w-6 text-brand-400" />,
+      },
+    ],
+  },
+  {
+    id: 'exploitation',
+    title: 'Exploitation',
+    subtitle: 'SAV, remboursements, stock, exports, emails, actions groupées et conversion des devis.',
+    links: [
+      {
+        to: '/admin/operations',
+        title: 'Centre exploitation',
+        icon: <Wrench className="h-6 w-6 text-brand-400" />,
       },
     ],
   },
@@ -437,6 +450,13 @@ export const AdminDashboardPage = () => {
                           <div className="text-sm text-slate-400">Stocks faibles</div>
                           <div className="mt-2 text-2xl font-semibold text-white">{dashboard.metrics.lowStockCount}</div>
                           <div className="mt-2 text-xs text-brand-300">Voir les produits</div>
+                        </Link>
+                        <Link to="/admin/operations" className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5 transition hover:border-brand-500 hover:bg-slate-800/80">
+                          <div className="text-sm text-slate-400">SAV / remboursements</div>
+                          <div className="mt-2 text-2xl font-semibold text-white">
+                            {(dashboard.metrics.supportOpenCount ?? 0) + (dashboard.metrics.refundsPendingCount ?? 0)}
+                          </div>
+                          <div className="mt-2 text-xs text-brand-300">Ouvrir exploitation</div>
                         </Link>
                       </div>
                     </section>

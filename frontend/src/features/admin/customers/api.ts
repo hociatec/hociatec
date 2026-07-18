@@ -96,6 +96,8 @@ export interface AdminDashboardDto {
     issuesCount: number;
     lowStockCount: number;
     customersCount: number;
+    supportOpenCount?: number;
+    refundsPendingCount?: number;
   };
   recentOrders: OrderDto[];
   recentEvents: Array<{

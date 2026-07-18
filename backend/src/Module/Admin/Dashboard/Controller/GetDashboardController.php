@@ -7,11 +7,15 @@ namespace App\Module\Admin\Dashboard\Controller;
 use App\Module\Catalog\Entity\Product;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Order\Entity\OrderCheckoutSession;
+use App\Module\Order\Entity\RefundRequest;
 use App\Module\Order\Entity\OrderEvent;
 use App\Module\Order\Repository\OrderEventRepository;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Repository\RefundRequestRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Support\Entity\SupportRequest;
+use App\Module\Support\Repository\SupportRequestRepository;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,6 +33,8 @@ final class GetDashboardController extends AbstractController
         private readonly OrderCheckoutSessionRepository $payments,
         private readonly UserRepository $users,
         private readonly ProductRepository $products,
+        private readonly SupportRequestRepository $supportRequests,
+        private readonly RefundRequestRepository $refunds,
     ) {
     }
 
@@ -71,6 +77,12 @@ final class GetDashboardController extends AbstractController
                 'issuesCount' => $this->orders->countWithOperationalIssues(),
                 'lowStockCount' => $this->countGroupedLowStockProducts(3),
                 'customersCount' => $this->users->count([]),
+                'supportOpenCount' => $this->supportRequests->count(['status' => [
+                    SupportRequest::STATUS_NEW,
+                    SupportRequest::STATUS_IN_PROGRESS,
+                    SupportRequest::STATUS_WAITING_CUSTOMER,
+                ]]),
+                'refundsPendingCount' => $this->refunds->count(['status' => RefundRequest::STATUS_REQUESTED]),
             ],
             'recentOrders' => $recentOrders,
             'recentEvents' => $recentEvents,

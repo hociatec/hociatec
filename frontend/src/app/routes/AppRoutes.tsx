@@ -27,6 +27,11 @@ const AdminDashboardPage = lazy(() =>
     default: module.AdminDashboardPage,
   })),
 );
+const AdminOperationsPage = lazy(() =>
+  import('@/features/admin/operations/pages/AdminOperationsPage').then((module) => ({
+    default: module.AdminOperationsPage,
+  })),
+);
 const LoginPage = lazy(() =>
   import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })),
 );
@@ -439,6 +444,7 @@ export const AppRoutes = () => (
         }
       >
         <Route index element={<AdminDashboardPage />} />
+        <Route path="operations" element={<AdminOperationsPage />} />
         <Route path="appointments">
           <Route index element={<Navigate to="prestations" replace />} />
           <Route path="prestations" element={<PrestationsListPage />} />
