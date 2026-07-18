@@ -81,6 +81,7 @@ export const ServicesListPage = () => {
       ) : filtered.length === 0 ? (
         <p className="muted">Aucun service.</p>
       ) : (
+        <div className="overflow-x-auto">
         <table className="catalog-admin-table">
           <thead>
             <tr>
@@ -128,6 +129,7 @@ export const ServicesListPage = () => {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </PageContainer>
   );

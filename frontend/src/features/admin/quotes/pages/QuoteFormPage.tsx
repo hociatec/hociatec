@@ -473,6 +473,7 @@ export const QuoteFormPage = () => {
                 )}
               </div>
 
+              <div className="overflow-x-auto">
               <table className="catalog-admin-table">
                 <thead>
                   <tr>
@@ -597,6 +598,7 @@ export const QuoteFormPage = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             </section>
           </div>
 
@@ -726,7 +728,6 @@ export const QuoteFormPage = () => {
     </PageContainer>
   );
 };
-
 
 
 

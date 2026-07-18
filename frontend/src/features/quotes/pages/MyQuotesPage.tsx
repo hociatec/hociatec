@@ -82,6 +82,7 @@ export const MyQuotesPage = () => {
         ) : items.length === 0 ? (
           <p className="muted">Aucun devis.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -133,6 +134,7 @@ export const MyQuotesPage = () => {
               })}
             </tbody>
           </table>
+          </div>
         )}
         <ConfirmDialog
           open={confirmOpen}

@@ -99,7 +99,7 @@ export const PrestationsListPage = () => {
           Aucune prestation enregistrée.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
           <table className="catalog-admin-table">
             <thead>
               <tr>

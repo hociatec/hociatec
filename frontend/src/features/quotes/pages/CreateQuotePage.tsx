@@ -403,6 +403,7 @@ export const CreateQuotePage = () => {
                   </div>
                 )}
               </div>
+              <div className="overflow-x-auto">
               <table className="catalog-admin-table">
                 <thead>
                   <tr>
@@ -513,6 +514,7 @@ export const CreateQuotePage = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             </section>
           </div>
 
