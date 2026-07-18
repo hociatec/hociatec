@@ -62,6 +62,8 @@ final class AdminOperationsController extends AbstractController
     #[Route('/overview', name: 'api_admin_operations_overview', methods: ['GET'])]
     public function overview(): JsonResponse
     {
+        $lowStockThreshold = 3;
+
         return ApiResponse::success([
             'support' => [
                 'openCount' => $this->supportRequests->count(['status' => [
@@ -76,7 +78,9 @@ final class AdminOperationsController extends AbstractController
                 'items' => array_map([$this, 'formatRefund'], $this->refunds->findBy([], ['updatedAt' => 'DESC'], 8)),
             ],
             'stock' => [
-                'lowStockCount' => $this->products->countLowStock(3),
+                'lowStockThreshold' => $lowStockThreshold,
+                'lowStockCount' => $this->products->countLowStock($lowStockThreshold),
+                'lowStockItems' => array_map([$this, 'formatLowStockProduct'], $this->products->findLowStock($lowStockThreshold, 8)),
                 'movements' => array_map([$this, 'formatStockMovement'], $this->stockMovements->findBy([], ['createdAt' => 'DESC'], 8)),
             ],
             'emails' => [
@@ -453,6 +457,17 @@ final class AdminOperationsController extends AbstractController
             'note' => $movement->getNote(),
             'actor' => $movement->getActor()?->getFullName(),
             'createdAt' => $movement->getCreatedAt()->format(DATE_ATOM),
+        ];
+    }
+
+    private function formatLowStockProduct(Product $product): array
+    {
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'sku' => $product->getSku(),
+            'stock' => $product->getStock(),
+            'category' => $product->getCategory()->getName(),
         ];
     }
 

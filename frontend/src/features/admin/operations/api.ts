@@ -56,7 +56,12 @@ export interface EmailLogDto {
 export interface OperationsOverviewDto {
   support: { openCount: number; items: SupportRequestDto[] };
   refunds: { pendingCount: number; items: RefundRequestDto[] };
-  stock: { lowStockCount: number; movements: StockMovementDto[] };
+  stock: {
+    lowStockThreshold?: number;
+    lowStockCount: number;
+    lowStockItems?: Array<{ id: number; name: string; sku: string; stock: number; category: string }>;
+    movements: StockMovementDto[];
+  };
   emails: { items: EmailLogDto[] };
   actions: Array<{ label: string; href: string }>;
 }

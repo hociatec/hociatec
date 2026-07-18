@@ -194,8 +194,52 @@ export const AdminOperationsPage = () => {
           <div className="grid gap-4 md:grid-cols-4">
             <StatCard label="SAV ouverts" value={overview.support.openCount} helper="Demandes client à traiter ou relancer." tone={overview.support.openCount > 0 ? 'warning' : 'neutral'} />
             <StatCard label="Remboursements" value={overview.refunds.pendingCount} helper="Suivis en attente de décision." tone={overview.refunds.pendingCount > 0 ? 'warning' : 'neutral'} />
-            <StatCard label="Stocks faibles" value={overview.stock.lowStockCount} helper="Produits à contrôler ou réapprovisionner." tone={overview.stock.lowStockCount > 0 ? 'warning' : 'neutral'} />
+            <StatCard
+              label="Produits en stock faible"
+              value={overview.stock.lowStockCount}
+              helper={`Produits publiés avec ${overview.stock.lowStockThreshold ?? 3} unités ou moins.`}
+              tone={overview.stock.lowStockCount > 0 ? 'warning' : 'neutral'}
+            />
             <StatCard label="Emails échoués" value={failedEmails} helper="Emails transactionnels non envoyés." tone={failedEmails > 0 ? 'danger' : 'neutral'} />
+          </div>
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-950">Détail des stocks faibles</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Le compteur correspond au nombre de produits publiés sous le seuil, pas au nombre d’unités restantes.
+                </p>
+              </div>
+              <a className={secondaryActionClass + ' text-center'} href="/admin/catalog/products?stock=low">
+                Voir tous les stocks faibles
+              </a>
+            </div>
+
+            {(overview.stock.lowStockItems ?? []).length === 0 ? (
+              <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Aucun produit publié n’est actuellement sous le seuil.
+              </p>
+            ) : (
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {(overview.stock.lowStockItems ?? []).map((product) => (
+                  <a
+                    key={product.id}
+                    className="rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-brand-300 hover:bg-brand-50"
+                    href={`/admin/catalog/products/${product.id}/edit`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-slate-950">{product.name}</div>
+                        <div className="mt-1 text-xs text-slate-500">{product.sku} · {product.category}</div>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.stock === 0 ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                        Stock : {product.stock}
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

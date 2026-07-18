@@ -222,6 +222,26 @@ class ProductRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return list<Product>
+     */
+    public function findLowStock(int $threshold = 3, int $limit = 8): array
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('c', 'b')
+            ->join('p.category', 'c')
+            ->leftJoin('p.brandReference', 'b')
+            ->andWhere('p.stock <= :threshold')
+            ->andWhere('p.isPublished = :published')
+            ->setParameter('threshold', max(0, $threshold))
+            ->setParameter('published', true)
+            ->orderBy('p.stock', 'ASC')
+            ->addOrderBy('p.name', 'ASC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
     public function existsWithSku(string $sku, ?int $excludeId = null): bool
     {
         $qb = $this->createQueryBuilder('p')
