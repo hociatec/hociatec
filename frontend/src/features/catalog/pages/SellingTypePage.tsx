@@ -34,6 +34,8 @@ const toNullableNumber = (value: string | null) => {
   return Number.isNaN(parsed) ? null : parsed;
 };
 
+const normalizeParam = (value: string | null) => (value && value.trim() !== '' ? value : ALL);
+
 export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<CatalogProduct[]>([]);
@@ -50,10 +52,11 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
   const [error, setError] = useState<string | null>(null);
 
   const search = searchParams.get('q') ?? '';
-  const brand = searchParams.get('brand') ?? ALL;
-  const storageCapacity = searchParams.get('storageCapacity') ?? ALL;
-  const memoryRam = searchParams.get('memoryRam') ?? ALL;
-  const color = searchParams.get('color') ?? ALL;
+  const category = normalizeParam(searchParams.get('category'));
+  const brand = normalizeParam(searchParams.get('brand'));
+  const storageCapacity = normalizeParam(searchParams.get('storageCapacity'));
+  const memoryRam = normalizeParam(searchParams.get('memoryRam'));
+  const color = normalizeParam(searchParams.get('color'));
   const sort = searchParams.get('sort') ?? (search.trim() ? 'relevance' : 'release_year_desc');
   const minPrice = toNullableNumber(searchParams.get('minPrice'));
   const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
@@ -95,6 +98,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
 
     void searchPublicProducts({
       q: search.trim() || undefined,
+      category: category !== ALL ? category : undefined,
       sellingType,
       brand: brand !== ALL ? brand : undefined,
       storageCapacity: storageCapacity !== ALL ? storageCapacity : undefined,
@@ -114,8 +118,17 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
       })
       .catch((err: Error) => setError(err.message || 'Impossible de charger les produits.'))
       .finally(() => setLoading(false));
-  }, [brand, color, inStock, maxPrice, memoryRam, minPrice, page, search, sellingType, sort, storageCapacity]);
+  }, [brand, category, color, inStock, maxPrice, memoryRam, minPrice, page, search, sellingType, sort, storageCapacity]);
 
+  const categoryOptions = useMemo(
+    () => [
+      { value: ALL, label: 'Toutes les catégories' },
+      ...facets.categories
+        .map((item) => ({ value: item.extra ?? '', label: `${item.value} (${item.count})` }))
+        .filter((item) => item.value !== ''),
+    ],
+    [facets.categories],
+  );
   const brandOptions = useMemo(
     () => [{ value: ALL, label: 'Toutes les marques' }, ...facets.brands.map((item) => ({ value: item.value, label: `${item.value} (${item.count})` }))],
     [facets.brands],
@@ -190,6 +203,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
               />
             }
           >
+            <SelectFilter value={category} onChange={(next) => updateParam('category', next)} options={categoryOptions} ariaLabel="Catégorie" />
             <SelectFilter value={brand} onChange={(next) => updateParam('brand', next)} options={brandOptions} ariaLabel="Marque" />
             <NumberRangeFilter min={minPrice} max={maxPrice} onChange={updatePriceRange} step={50} />
             <SelectFilter value={storageCapacity} onChange={(next) => updateParam('storageCapacity', next)} options={storageOptions} ariaLabel="Capacité de stockage" />
