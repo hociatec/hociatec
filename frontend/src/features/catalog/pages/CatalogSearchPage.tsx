@@ -159,6 +159,9 @@ export const CatalogSearchPage = () => {
       ...facets.colors.map((item) => ({ value: item.value, label: `${item.value} (${item.count})` })),
     ];
   }, [facets.colors]);
+  const showStorageFilter = facets.storageCapacities.length > 0 || storageCapacity !== ALL;
+  const showMemoryFilter = facets.memoryRams.length > 0 || memoryRam !== ALL;
+  const showColorFilter = facets.colors.length > 0 || color !== ALL;
 
   const pageNumbers = useMemo(() => {
     const start = Math.max(1, meta.page - 2);
@@ -217,9 +220,9 @@ export const CatalogSearchPage = () => {
             />
             <SelectFilter value={brand} onChange={(next) => updateParam('brand', next)} options={brandOptions} ariaLabel="Marque" />
             <NumberRangeFilter min={minPrice} max={maxPrice} onChange={updatePriceRange} step={50} />
-            <SelectFilter value={storageCapacity} onChange={(next) => updateParam('storageCapacity', next)} options={storageOptions} ariaLabel="Stockage" />
-            <SelectFilter value={memoryRam} onChange={(next) => updateParam('memoryRam', next)} options={memoryOptions} ariaLabel="Mémoire RAM" />
-            <SelectFilter value={color} onChange={(next) => updateParam('color', next)} options={colorOptions} ariaLabel="Couleur" />
+            {showStorageFilter && <SelectFilter value={storageCapacity} onChange={(next) => updateParam('storageCapacity', next)} options={storageOptions} ariaLabel="Stockage" />}
+            {showMemoryFilter && <SelectFilter value={memoryRam} onChange={(next) => updateParam('memoryRam', next)} options={memoryOptions} ariaLabel="Mémoire RAM" />}
+            {showColorFilter && <SelectFilter value={color} onChange={(next) => updateParam('color', next)} options={colorOptions} ariaLabel="Couleur" />}
             <SelectFilter
               value={sort}
               onChange={(next) => updateParam('sort', next)}
