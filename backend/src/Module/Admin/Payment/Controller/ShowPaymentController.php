@@ -7,6 +7,7 @@ namespace App\Module\Admin\Payment\Controller;
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Service\StripeApiClient;
+use App\Module\Order\Service\StripeCheckoutSessionSyncService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +22,7 @@ final class ShowPaymentController extends AbstractController
     public function __construct(
         private readonly OrderCheckoutSessionRepository $payments,
         private readonly StripeApiClient $stripe,
+        private readonly StripeCheckoutSessionSyncService $stripeSync,
     ) {
     }
 
@@ -30,6 +32,8 @@ final class ShowPaymentController extends AbstractController
         if (!$payment instanceof OrderCheckoutSession) {
             return ApiResponse::error('Paiement introuvable.', Response::HTTP_NOT_FOUND);
         }
+
+        $this->stripeSync->syncPayment($payment);
 
         return ApiResponse::success([
             'payment' => $this->formatPayment($payment),

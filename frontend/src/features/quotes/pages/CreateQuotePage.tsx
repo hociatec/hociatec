@@ -101,7 +101,7 @@ export const CreateQuotePage = () => {
     }
     setProductLoading(true);
     productDebounce.current = window.setTimeout(() => {
-      void fetchPublicProducts({ q })
+      void fetchPublicProducts({ q, perPage: 48, sort: 'relevance' })
         .then((items) => setProducts(items))
         .finally(() => setProductLoading(false));
     }, 300);
@@ -403,70 +403,60 @@ export const CreateQuotePage = () => {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto">
-              <table className="catalog-admin-table">
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Quantité</th>
-                    <th>Prix HT</th>
-                    <th>TVA %</th>
-                    <th>Remise</th>
-                    <th>Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {form.items.map((it: any, index: number) => {
-                    const isRental = it.sellingType === 'rental' || it.sellingType === 'location';
-                    const months = isRental ? Math.max(1, (it as any).rentalMonths ?? 1) : 1;
-                    const line = Math.max(0, (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0));
-                    return (
-                      <tr key={index}>
-                        <td>{it.name}</td>
-                        <td>
-                          <div className="flex flex-col items-start gap-2">
-                            <div className="inline-flex items-center gap-2">
-                            <button
-                              type="button"
-                              aria-label="Diminuer la quantité"
-                              className="px-2 py-1 border rounded"
-                              onClick={() =>
-                                updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) - 1) })
-                              }
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min={1}
-                              className="w-16 text-center border rounded py-1"
-                              value={it.quantity ?? 1}
-                              onChange={(e) => {
-                                const v = parseInt(e.target.value, 10);
-                                updateItem(index, { quantity: Number.isNaN(v) ? 1 : Math.max(1, v) });
-                              }}
-                            />
-                            <button
-                              type="button"
-                              aria-label="Augmenter la quantité"
-                              className="px-2 py-1 border rounded"
-                              onClick={() =>
-                                updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) + 1) })
-                              }
-                            >
-                              +
-                            </button>
+              <div className="mt-8 space-y-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-950">Votre sélection</h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Ajustez les quantités ou les durées avant d’enregistrer votre devis.
+                  </p>
+                </div>
+
+                {form.items.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center text-sm text-slate-600">
+                    Aucun élément ajouté. Recherchez un produit ou un service pour commencer votre devis.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {form.items.map((it: any, index: number) => {
+                      const isRental = it.sellingType === 'rental' || it.sellingType === 'location';
+                      const months = isRental ? Math.max(1, (it as any).rentalMonths ?? 1) : 1;
+                      const line = Math.max(0, (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0));
+
+                      return (
+                        <article key={index} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-base font-semibold text-slate-950">{it.name}</h4>
+                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                  {it.type === 'service' ? 'Service' : isRental ? 'Location' : 'Produit'}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-slate-600">
+                                {formatPrice(it.unitPriceCents)}
+                                {isRental ? ' / mois' : ''}
+                                {' · TVA '}
+                                {(it.vatRate ?? 0).toString()}%
+                                {(it.discountCents ?? 0) > 0 ? ` · Remise ${formatPrice(it.discountCents)}` : ''}
+                              </p>
                             </div>
-                            {isRental && (
-                              <div className="inline-flex items-center gap-2 text-sm text-slate-600">
-                                <span>Mois</span>
+
+                            <div className="text-left lg:text-right">
+                              <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Sous-total HT</p>
+                              <p className="mt-1 text-lg font-semibold text-slate-950">{formatPrice(line)}</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap items-center gap-3">
+                              <div className="inline-flex items-center gap-2">
+                                <span className="text-sm font-medium text-slate-700">Quantité</span>
                                 <button
                                   type="button"
-                                  aria-label="Diminuer le nombre de mois"
-                                  className="px-2 py-1 border rounded"
+                                  aria-label="Diminuer la quantité"
+                                  className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700 transition hover:border-slate-500"
                                   onClick={() =>
-                                    updateItem(index, { rentalMonths: Math.max(1, ((it as any).rentalMonths ?? 1) - 1) })
+                                    updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) - 1) })
                                   }
                                 >
                                   -
@@ -474,71 +464,104 @@ export const CreateQuotePage = () => {
                                 <input
                                   type="number"
                                   min={1}
-                                  className="w-16 text-center border rounded py-1"
-                                  value={Math.max(1, (it as any).rentalMonths ?? 1)}
+                                  className="h-9 w-16 rounded-lg border border-slate-300 text-center text-slate-900"
+                                  value={it.quantity ?? 1}
                                   onChange={(e) => {
                                     const v = parseInt(e.target.value, 10);
-                                    updateItem(index, { rentalMonths: Number.isNaN(v) ? 1 : Math.max(1, v) });
+                                    updateItem(index, { quantity: Number.isNaN(v) ? 1 : Math.max(1, v) });
                                   }}
                                 />
                                 <button
                                   type="button"
-                                  aria-label="Augmenter le nombre de mois"
-                                  className="px-2 py-1 border rounded"
+                                  aria-label="Augmenter la quantité"
+                                  className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700 transition hover:border-slate-500"
                                   onClick={() =>
-                                    updateItem(index, { rentalMonths: Math.max(1, ((it as any).rentalMonths ?? 1) + 1) })
+                                    updateItem(index, { quantity: Math.max(1, (it.quantity ?? 1) + 1) })
                                   }
                                 >
                                   +
                                 </button>
                               </div>
-                            )}
+
+                              {isRental && (
+                                <div className="inline-flex items-center gap-2">
+                                  <span className="text-sm font-medium text-slate-700">Durée</span>
+                                  <button
+                                    type="button"
+                                    aria-label="Diminuer le nombre de mois"
+                                    className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700 transition hover:border-slate-500"
+                                    onClick={() =>
+                                      updateItem(index, { rentalMonths: Math.max(1, ((it as any).rentalMonths ?? 1) - 1) })
+                                    }
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    className="h-9 w-16 rounded-lg border border-slate-300 text-center text-slate-900"
+                                    value={Math.max(1, (it as any).rentalMonths ?? 1)}
+                                    onChange={(e) => {
+                                      const v = parseInt(e.target.value, 10);
+                                      updateItem(index, { rentalMonths: Number.isNaN(v) ? 1 : Math.max(1, v) });
+                                    }}
+                                  />
+                                  <span className="text-sm text-slate-600">mois</span>
+                                  <button
+                                    type="button"
+                                    aria-label="Augmenter le nombre de mois"
+                                    className="h-9 w-9 rounded-lg border border-slate-300 text-slate-700 transition hover:border-slate-500"
+                                    onClick={() =>
+                                      updateItem(index, { rentalMonths: Math.max(1, ((it as any).rentalMonths ?? 1) + 1) })
+                                    }
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 px-4 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-50"
+                              onClick={() => removeItem(index)}
+                            >
+                              Retirer
+                            </button>
                           </div>
-                        </td>
-                        <td>
-                          {formatPrice(it.unitPriceCents)}
-                          {(it.sellingType === 'rental' || it.sellingType === 'location') ? ' / mois' : ''}
-                        </td>
-                        <td>{(it.vatRate ?? 0).toString()}%</td>
-                        <td>{formatPrice(it.discountCents ?? 0)}</td>
-                        <td>
-                          {formatPrice(line)}
-                        </td>
-                        <td>
-                          <button type="button" className="catalog-admin-actions__delete" onClick={() => removeItem(index)}>
-                            Retirer
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </section>
           </div>
 
           <div className="space-y-6">
-            <section>
-              <h3 className="font-semibold mb-2">Total</h3>
-              <div className="space-y-1 mb-3 text-sm text-slate-600">
-                <div className="flex justify-between"><span>Début de validité</span><strong>{formatDate(form.validFrom)}</strong></div>
-                <div className="flex justify-between"><span>Fin de validité</span><strong>{formatDate(form.validUntil)}</strong></div>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h3 className="font-semibold text-slate-950">Estimation</h3>
+              <p className="mt-1 text-sm text-slate-600">Montants calculés à partir de votre sélection.</p>
+              <div className="mt-4 space-y-2 border-b border-slate-100 pb-4 text-sm text-slate-600">
+                <div className="flex justify-between gap-4"><span>Début de validité</span><strong>{formatDate(form.validFrom)}</strong></div>
+                <div className="flex justify-between gap-4"><span>Fin de validité</span><strong>{formatDate(form.validUntil)}</strong></div>
+                {(form.discountCents ?? 0) > 0 && (
+                  <div className="flex justify-between gap-4"><span>Remise globale</span><strong>{formatPrice(form.discountCents ?? 0)}</strong></div>
+                )}
               </div>
-              <div className="flex justify-between"><span>Remise globale</span><strong>{formatPrice(form.discountCents ?? 0)}</strong></div>
-              <div className="space-y-1">
-                <div className="flex justify-between"><span>Total HT</span><strong>{formatPrice(totals.ht)}</strong></div>
-                <div className="flex justify-between"><span>TVA</span><strong>{formatPrice(totals.vat)}</strong></div>
-                <div className="flex justify-between"><span>TTC</span><strong>{formatPrice(totals.ttc)}</strong></div>
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between gap-4 text-sm text-slate-600"><span>Total HT</span><strong>{formatPrice(totals.ht)}</strong></div>
+                <div className="flex justify-between gap-4 text-sm text-slate-600"><span>TVA</span><strong>{formatPrice(totals.vat)}</strong></div>
+                <div className="flex justify-between gap-4 border-t border-slate-100 pt-3 text-lg text-slate-950"><span>Total TTC</span><strong>{formatPrice(totals.ttc)}</strong></div>
               </div>
             </section>
 
-            <div className="flex items-center gap-3">
-              <button type="button" className="register-form__submit" onClick={() => void submit()} disabled={saving}>
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
+            <div className="grid gap-3">
+              <button type="button" className="register-form__submit" onClick={() => void submit()} disabled={saving || (form.items ?? []).length === 0}>
+                {saving ? 'Enregistrement...' : 'Enregistrer dans mon espace'}
               </button>
               <button type="button" className="hero__button hero__button--ghost" onClick={() => void handleDownloadPdf()} disabled={saving || (form.items ?? []).length === 0}>
-                Télécharger
+                Télécharger le PDF
               </button>
             </div>
           </div>

@@ -100,7 +100,7 @@ export const MyQuotesPage = () => {
                 return (
                   <tr key={q.id}>
                     <td>{q.number}</td>
-                    <td>{formatQuoteStatus(q.status)}</td>
+                    <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
                     <td>{formatDate(q.createdAt)}</td>
                     <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
                     <td>

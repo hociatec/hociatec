@@ -10,6 +10,7 @@ import {
   fetchAdminOrderById,
   formatOrderStatusFr,
   formatStripeEventTypeFr,
+  formatStripeFailureCodeFr,
   formatStripePaymentStatusFr,
   resendAdminOrderEmail,
   retryAdminOrderInvoice,
@@ -94,6 +95,8 @@ export const AdminOrderDetailPage = () => {
       estimatedAt: toDateInputValue(data.order.delivery?.estimatedAt),
     });
   };
+
+  const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
 
   return (
     <PageContainer
@@ -238,15 +241,19 @@ export const AdminOrderDetailPage = () => {
                 <div className="mt-4 flex flex-wrap gap-3 text-sm">
                   <button
                     type="button"
-                    className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-800"
+                    className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => void downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))}
+                    disabled={!canDownloadInvoice}
+                    title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                   >
                     Télécharger la facture PDF
                   </button>
                   <button
                     type="button"
-                    className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 font-semibold text-slate-700 transition hover:border-slate-500"
+                    className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => void downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))}
+                    disabled={!canDownloadInvoice}
+                    title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                   >
                     Télécharger la facture XML
                   </button>
@@ -269,7 +276,7 @@ export const AdminOrderDetailPage = () => {
                   <div><span className="font-medium text-slate-900">Dernier événement Stripe</span> : {order.payment.lastStripeEventLabel ?? formatStripeEventTypeFr(order.payment.lastStripeEventType)}</div>
                   <div><span className="font-medium text-slate-900">Paiement confirmé le</span> : {order.payment.completedAt ? new Date(order.payment.completedAt).toLocaleString('fr-FR') : '-'}</div>
                   <div><span className="font-medium text-slate-900">Session expirée le</span> : {order.payment.expiresAt ? new Date(order.payment.expiresAt).toLocaleString('fr-FR') : '-'}</div>
-                  <div><span className="font-medium text-slate-900">Motif d’échec</span> : {order.payment.failureMessage || '-'}</div>
+                  <div><span className="font-medium text-slate-900">Motif d’échec</span> : {order.payment.failureMessage || formatStripeFailureCodeFr(order.payment.failureCode)}</div>
                 </div>
                 <div className="flex items-start">
                   <Link

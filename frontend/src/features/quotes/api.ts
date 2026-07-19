@@ -16,6 +16,15 @@ export const formatQuoteStatus = (status?: string | null) => {
   return QUOTE_STATUS_LABELS[status as QuoteStatus] ?? status;
 };
 
+const extractApiError = (error: unknown, fallback: string) => {
+  const responseData = (error as any)?.response?.data;
+  const apiMessage = responseData?.message ?? responseData?.error ?? responseData?.data?.message;
+
+  return typeof apiMessage === 'string' && apiMessage.trim() !== ''
+    ? apiMessage
+    : ((error as any)?.message ?? fallback);
+};
+
 export interface QuoteItemInput {
   id?: number;
   type: 'service' | 'product' | 'custom';
@@ -84,6 +93,25 @@ export const generateAdminQuotePdf = async (id: number) => {
 export const sendAdminQuoteEmail = async (id: number, to?: string) => {
   const res = await httpClient.post(`/api/admin/quotes/${id}/send-email`, to ? { to } : {});
   return res.data?.data as any;
+};
+
+export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) => {
+  try {
+    const res = await httpClient.patch(`/api/admin/quotes/${id}/status`, { status });
+    return res.data?.data as any;
+  } catch (error) {
+    throw new Error(extractApiError(error, 'Mise à jour impossible.'));
+  }
+};
+
+export const convertAdminQuoteToOrder = async (reference: string | number) => {
+  const encoded = encodeURIComponent(String(reference).trim());
+  try {
+    const res = await httpClient.post(`/api/admin/operations/quotes/${encoded}/convert-to-order`);
+    return res.data?.data as any;
+  } catch (error) {
+    throw new Error(extractApiError(error, 'Conversion impossible.'));
+  }
 };
 
 export const fetchAdminQuoteServices = async () => {
@@ -183,4 +211,22 @@ export const generateMyQuotePdf = async (id: number) => {
 export const deleteMyQuote = async (id: number) => {
   const res = await httpClient.delete(`/api/quotes/me/${id}`);
   return res.data?.data as any;
+};
+
+export const acceptMyQuote = async (id: number) => {
+  try {
+    const res = await httpClient.post(`/api/quotes/me/${id}/accept`);
+    return res.data?.data as any;
+  } catch (error) {
+    throw new Error(extractApiError(error, 'Impossible d’accepter le devis.'));
+  }
+};
+
+export const refuseMyQuote = async (id: number) => {
+  try {
+    const res = await httpClient.post(`/api/quotes/me/${id}/refuse`);
+    return res.data?.data as any;
+  } catch (error) {
+    throw new Error(extractApiError(error, 'Impossible de refuser le devis.'));
+  }
 };

@@ -7,6 +7,7 @@ namespace App\Module\Quote\Service;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
 use App\Module\Quote\Entity\Service as QuoteServiceEntity;
+use App\Module\Order\Service\OrderFormatter;
 
 final class QuoteFormatter
 {
@@ -47,6 +48,7 @@ final class QuoteFormatter
             'id' => $quote->getId(),
             'number' => $quote->getNumber(),
             'status' => $statusLabel,
+            'statusCode' => $statusCode,
             'statusLabel' => $statusLabel,
             'customer' => [
                 'name' => $quote->getCustomerName(),
@@ -69,6 +71,11 @@ final class QuoteFormatter
                 'ttc' => $totals['totalTtc'],
             ],
             'createdAt' => $quote->getCreatedAt()->format(DATE_ATOM),
+            'updatedAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
+            'sentAt' => $quote->getCreatedEmailSentAt()?->format(DATE_ATOM),
+            'convertedOrder' => $quote->getConvertedOrder() !== null
+                ? OrderFormatter::formatOrder($quote->getConvertedOrder())
+                : null,
         ];
     }
 

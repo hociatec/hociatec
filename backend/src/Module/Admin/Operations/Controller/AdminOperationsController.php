@@ -19,6 +19,7 @@ use App\Module\Order\Service\InvoiceNumberGenerator;
 use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderInvoiceCalculator;
+use App\Module\Order\Service\OrderNotificationEmailService;
 use App\Module\Order\Service\OrderNumberGenerator;
 use App\Module\Order\Service\StripeApiClient;
 use App\Module\Quote\Entity\Quote;
@@ -58,6 +59,7 @@ final class AdminOperationsController extends AbstractController
         private readonly OrderNumberGenerator $orderNumberGenerator,
         private readonly InvoiceNumberGenerator $invoiceNumberGenerator,
         private readonly OrderInvoiceCalculator $invoiceCalculator,
+        private readonly OrderNotificationEmailService $orderNotificationEmails,
         private readonly QuoteCalculator $quoteCalculator,
         private readonly StripeApiClient $stripe,
         private readonly AdminCustomerEmailService $customerEmails,
@@ -494,6 +496,9 @@ final class AdminOperationsController extends AbstractController
                 $quote->getConvertedOrder()->getNumber(),
             ));
         }
+        if ($quote->getStatus() !== Quote::STATUS_ACCEPTED) {
+            return ApiResponse::error('Le devis doit être accepté avant conversion en commande.');
+        }
         if ($quote->getItems()->isEmpty()) {
             return ApiResponse::error('Le devis ne contient aucune ligne à convertir.');
         }
@@ -520,18 +525,19 @@ final class AdminOperationsController extends AbstractController
             ->setBillingAddress($quote->getCustomerAddress())
             ->setSubtotalPriceCents((int) $totals['totalHt'])
             ->setDiscountAmountCents($quote->getGlobalDiscountCents())
-            ->setTotalPriceCents((int) $totals['totalTtc'])
-            ->setAppliedPromotionName('Conversion devis ' . $quote->getNumber())
-            ->setAppliedPromotionSlug($quote->getNumber());
+            ->setTotalPriceCents((int) $totals['totalTtc']);
 
         foreach ($quote->getItems() as $quoteItem) {
+            $product = $quoteItem->getProductId() !== null ? $this->products->find($quoteItem->getProductId()) : null;
             $item = new OrderItem(
                 $quoteItem->getName(),
-                'DEVIS-' . $quote->getNumber(),
+                $product instanceof Product ? $product->getSku() : 'DEVIS-' . $quote->getNumber(),
                 $quoteItem->getUnitPriceCents(),
                 $quoteItem->getQuantity(),
             );
-            $item->setVatRateBps($quoteItem->getVatRateBps());
+            $item
+                ->setProduct($product instanceof Product ? $product : null)
+                ->setVatRateBps($quoteItem->getVatRateBps());
             $order->addItem($item);
             $this->em->persist($item);
         }
@@ -542,7 +548,20 @@ final class AdminOperationsController extends AbstractController
         $quote->setStatus(Quote::STATUS_ACCEPTED);
         $this->em->flush();
 
-        return ApiResponse::created(['order' => OrderFormatter::formatOrder($order)]);
+        $emailNotificationSent = false;
+        $emailNotificationError = null;
+        try {
+            $emailNotificationSent = $this->orderNotificationEmails->sendOrderCreatedIfNeeded($order);
+        } catch (\Throwable $exception) {
+            $emailNotificationError = $exception->getMessage();
+            $this->orderEventLogger->log($order, null, 'email_failed', 'Échec email commande à régler: ' . $exception->getMessage());
+        }
+
+        return ApiResponse::created([
+            'order' => OrderFormatter::formatOrder($order),
+            'emailNotificationSent' => $emailNotificationSent,
+            'emailNotificationError' => $emailNotificationError,
+        ]);
     }
 
     #[Route('/exports/{resource}.csv', name: 'api_admin_operations_exports', methods: ['GET'])]

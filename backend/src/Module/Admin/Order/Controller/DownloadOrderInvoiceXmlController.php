@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Order\Controller;
 
+use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\InvoiceDownloadNameBuilder;
 use App\Module\Order\Service\OrderInvoiceDocumentService;
@@ -29,6 +30,10 @@ final class DownloadOrderInvoiceXmlController extends AbstractController
         $order = $this->orders->find($orderId);
         if ($order === null) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        if (in_array($order->getStatus(), [Order::STATUS_PENDING, Order::STATUS_CANCELLED], true)) {
+            return ApiResponse::error('La facture est disponible uniquement pour une commande réglée non annulée.', Response::HTTP_BAD_REQUEST);
         }
 
         try {

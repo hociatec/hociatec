@@ -1,1 +1,0 @@
-import{j as a}from"./index-Dm_zEHQp.js";const t=({className:s,rightActions:e,children:l})=>a.jsxs("div",{className:(s??"catalog-filter-bar")+(e?" justify-between":""),children:[a.jsx("div",{style:{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center",flex:1},children:l}),e&&a.jsx("div",{style:{marginLeft:"auto"},children:e})]});export{t as F};

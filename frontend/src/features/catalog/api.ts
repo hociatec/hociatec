@@ -292,6 +292,8 @@ export const fetchPublicProducts = async (params: {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
+  page?: number;
+  perPage?: number;
   sort?: 'relevance' | 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc' | 'name_desc' | 'stock_desc' | 'stock_asc' | 'created_desc';
 } = {}) => {
   const queryParams: Record<string, string> = {};
@@ -338,6 +340,14 @@ export const fetchPublicProducts = async (params: {
 
   if (params.inStock !== undefined) {
     queryParams.inStock = params.inStock ? '1' : '0';
+  }
+
+  if (params.page !== undefined) {
+    queryParams.page = String(params.page);
+  }
+
+  if (params.perPage !== undefined) {
+    queryParams.perPage = String(params.perPage);
   }
 
   if (params.sort) {

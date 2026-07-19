@@ -14,6 +14,10 @@ use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Repository\RefundRequestRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Quote\Entity\Quote;
+use App\Module\Quote\Repository\QuoteRepository;
+use App\Module\Quote\Service\QuoteCalculator;
+use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Support\Entity\SupportRequest;
 use App\Module\Support\Repository\SupportRequestRepository;
 use App\Module\User\Repository\UserRepository;
@@ -35,6 +39,8 @@ final class GetDashboardController extends AbstractController
         private readonly ProductRepository $products,
         private readonly SupportRequestRepository $supportRequests,
         private readonly RefundRequestRepository $refunds,
+        private readonly QuoteRepository $quotes,
+        private readonly QuoteCalculator $quoteCalculator,
     ) {
     }
 
@@ -84,6 +90,7 @@ final class GetDashboardController extends AbstractController
                 ]]),
                 'refundsPendingCount' => $this->refunds->count(['status' => RefundRequest::STATUS_REQUESTED]),
             ],
+            'notifications' => $this->buildNotifications(),
             'recentOrders' => $recentOrders,
             'recentEvents' => $recentEvents,
             'topCustomers' => $this->users->findAdminCustomerRows(null, 'highest_spent', 5),
@@ -100,6 +107,121 @@ final class GetDashboardController extends AbstractController
                 ),
             ],
         ]);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function buildNotifications(): array
+    {
+        $items = [];
+
+        foreach ($this->quotes->findAcceptedWaitingForConversion(8) as $quote) {
+            $items[] = [
+                'id' => 'quote-accepted-' . $quote->getId(),
+                'type' => 'quote_accepted',
+                'severity' => 'action',
+                'title' => 'Devis accepté à convertir',
+                'message' => sprintf('%s · %s', $quote->getNumber(), $quote->getCustomerEmail() ?? 'Client sans email'),
+                'createdAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
+                'to' => '/admin/quotes/' . $quote->getId(),
+                'resource' => [
+                    'type' => 'quote',
+                    'id' => $quote->getId(),
+                    'number' => $quote->getNumber(),
+                ],
+                'quote' => QuoteFormatter::formatQuote($quote, $this->quoteCalculator),
+            ];
+        }
+
+        foreach ($this->quotes->findRecentByStatuses([Quote::STATUS_REFUSED], 4) as $quote) {
+            $items[] = [
+                'id' => 'quote-refused-' . $quote->getId(),
+                'type' => 'quote_refused',
+                'severity' => 'info',
+                'title' => 'Devis refusé',
+                'message' => sprintf('%s · %s', $quote->getNumber(), $quote->getCustomerEmail() ?? 'Client sans email'),
+                'createdAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
+                'to' => '/admin/quotes/' . $quote->getId(),
+                'resource' => [
+                    'type' => 'quote',
+                    'id' => $quote->getId(),
+                    'number' => $quote->getNumber(),
+                ],
+            ];
+        }
+
+        foreach ($this->quotes->findRecentlyEmailed(4) as $quote) {
+            $items[] = [
+                'id' => 'quote-emailed-' . $quote->getId(),
+                'type' => 'quote_email_sent',
+                'severity' => 'info',
+                'title' => 'Devis envoyé au client',
+                'message' => sprintf('%s · %s', $quote->getNumber(), $quote->getCustomerEmail() ?? 'Client sans email'),
+                'createdAt' => ($quote->getCreatedEmailSentAt() ?? $quote->getUpdatedAt())->format(DATE_ATOM),
+                'to' => '/admin/quotes/' . $quote->getId(),
+                'resource' => [
+                    'type' => 'quote',
+                    'id' => $quote->getId(),
+                    'number' => $quote->getNumber(),
+                ],
+            ];
+        }
+
+        foreach ($this->orders->findPendingPaymentForAdmin(8) as $order) {
+            $items[] = [
+                'id' => 'order-pending-' . $order->getId(),
+                'type' => 'order_pending_payment',
+                'severity' => 'action',
+                'title' => 'Commande en attente de règlement',
+                'message' => sprintf('%s · %s', $order->getNumber(), $order->getUser()->getEmail()),
+                'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
+                'to' => '/admin/orders/' . $order->getId(),
+                'resource' => [
+                    'type' => 'order',
+                    'id' => $order->getId(),
+                    'number' => $order->getNumber(),
+                ],
+                'order' => OrderFormatter::formatOrder($order),
+            ];
+        }
+
+        foreach ($this->events->findBy([], ['createdAt' => 'DESC'], 12) as $event) {
+            if (!in_array($event->getType(), ['email_sent', 'email_resent', 'email_failed', 'payment_confirmed', 'order_created'], true)) {
+                continue;
+            }
+
+            $items[] = [
+                'id' => 'order-event-' . $event->getId(),
+                'type' => $event->getType(),
+                'severity' => $event->getType() === 'email_failed' ? 'danger' : 'info',
+                'title' => $this->formatNotificationTitle($event->getType()),
+                'message' => sprintf('%s · %s', $event->getOrder()->getNumber(), $event->getMessage() ?? $event->getType()),
+                'createdAt' => $event->getCreatedAt()->format(DATE_ATOM),
+                'to' => '/admin/orders/' . $event->getOrder()->getId(),
+                'resource' => [
+                    'type' => 'order',
+                    'id' => $event->getOrder()->getId(),
+                    'number' => $event->getOrder()->getNumber(),
+                ],
+            ];
+        }
+
+        usort($items, static fn (array $left, array $right): int => strcmp((string) $right['createdAt'], (string) $left['createdAt']));
+
+        return array_slice($items, 0, 12);
+    }
+
+    private function formatNotificationTitle(string $type): string
+    {
+        return match ($type) {
+            'email_sent' => 'Email client envoyé',
+            'email_resent' => 'Email client renvoyé',
+            'email_failed' => 'Email client non envoyé',
+            'payment_confirmed' => 'Paiement confirmé',
+            'order_created' => 'Commande créée',
+            default => $type,
+        };
     }
 
     /**

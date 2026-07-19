@@ -6,6 +6,8 @@ framework:
             # async: '%env(MESSENGER_TRANSPORT_DSN)%'
             # Use DSN from env; define MESSENGER_TRANSPORT_DSN in .env
             async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            failed: '%env(MESSENGER_FAILURE_TRANSPORT_DSN)%'
+        failure_transport: failed
         routing:
             App\Module\Order\Message\OrderCreatedMessage: async
             App\Module\Order\Message\OrderStatusChangedMessage: async

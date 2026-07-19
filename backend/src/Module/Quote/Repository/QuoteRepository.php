@@ -53,4 +53,46 @@ class QuoteRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @return list<Quote>
+     */
+    public function findAcceptedWaitingForConversion(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('q')
+            ->andWhere('q.status = :status')
+            ->andWhere('q.convertedOrder IS NULL')
+            ->setParameter('status', Quote::STATUS_ACCEPTED)
+            ->orderBy('q.updatedAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<Quote>
+     */
+    public function findRecentByStatuses(array $statuses, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('q')
+            ->andWhere('q.status IN (:statuses)')
+            ->setParameter('statuses', array_map(static fn (string $status): string => QuoteStatusTranslator::toCode($status), $statuses))
+            ->orderBy('q.updatedAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<Quote>
+     */
+    public function findRecentlyEmailed(int $limit = 6): array
+    {
+        return $this->createQueryBuilder('q')
+            ->andWhere('q.createdEmailSentAt IS NOT NULL')
+            ->orderBy('q.createdEmailSentAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
 }

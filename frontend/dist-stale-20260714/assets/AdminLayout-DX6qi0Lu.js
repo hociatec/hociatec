@@ -1,1 +1,0 @@
-import{j as t,O as s}from"./index-Dm_zEHQp.js";import{S as o}from"./SiteLayout-DtUD0DmD.js";const m=()=>t.jsx(o,{children:t.jsx("div",{className:"mx-auto w-full max-w-6xl px-6 py-12",children:t.jsx(s,{})})});export{m as AdminLayout};

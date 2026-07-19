@@ -110,8 +110,8 @@ final class EmailTemplateScenarioProvider
     {
         return [
             'order_created' => [
-                'label' => 'Commande confirmée',
-                'description' => 'Email envoyé juste après la validation d’une commande.',
+                'label' => 'Commande enregistrée / à régler',
+                'description' => 'Email envoyé quand une commande est créée, notamment après conversion d’un devis en commande à régler.',
                 'defaults' => [],
                 'type' => 'transactional',
             ],

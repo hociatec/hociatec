@@ -239,6 +239,25 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
   throw new Error(message);
 };
 
+export const checkoutExistingOrder = async (orderId: number, addressId?: number): Promise<OrderDto | CheckoutRedirectDto> => {
+  const { data } = await httpClient.post<ApiResponse<Record<string, unknown>>>(
+    `/api/orders/${orderId}/checkout`,
+    addressId ? { addressId } : {},
+  );
+
+  if (isApiOk(data)) {
+    const payload = data.data as unknown as Record<string, unknown>;
+    if (payload.mode === 'redirect') {
+      return payload as unknown as CheckoutRedirectDto;
+    }
+
+    return (payload.order ?? payload) as OrderDto;
+  }
+
+  const message = data.status === 'error' ? data.message : 'Impossible de lancer le règlement';
+  throw new Error(message);
+};
+
 export const fetchCheckoutSessionStatus = async (
   stripeSessionId: string,
 ): Promise<{ status: string; checkoutSessionId: string; orderId?: number | null; order?: OrderDto | null }> => {
@@ -545,6 +564,57 @@ export const formatStripePaymentStatusFr = (status?: string | null) => {
       return '-';
     default:
       return status;
+  }
+};
+
+export const formatStripeFailureCodeFr = (code?: string | null) => {
+  switch (code) {
+    case 'insufficient_funds':
+      return 'Fonds insuffisants';
+    case 'card_declined':
+      return 'Carte refusée';
+    case 'expired_card':
+      return 'Carte expirée';
+    case 'incorrect_cvc':
+      return 'Code CVC incorrect';
+    case 'incorrect_number':
+      return 'Numéro de carte incorrect';
+    case 'incorrect_zip':
+      return 'Code postal incorrect';
+    case 'invalid_cvc':
+      return 'Code CVC invalide';
+    case 'invalid_expiry_month':
+      return 'Mois d’expiration invalide';
+    case 'invalid_expiry_year':
+      return 'Année d’expiration invalide';
+    case 'lost_card':
+      return 'Carte déclarée perdue';
+    case 'stolen_card':
+      return 'Carte déclarée volée';
+    case 'processing_error':
+      return 'Erreur de traitement bancaire';
+    case 'authentication_required':
+      return 'Authentification bancaire requise';
+    case 'approve_with_id':
+      return 'Paiement à faire approuver par la banque';
+    case 'call_issuer':
+      return 'Banque émettrice à contacter';
+    case 'do_not_honor':
+      return 'Paiement refusé par la banque';
+    case 'generic_decline':
+      return 'Refus bancaire générique';
+    case 'pickup_card':
+      return 'Carte à retenir';
+    case 'reenter_transaction':
+      return 'Transaction à ressaisir';
+    case 'try_again_later':
+      return 'Paiement à réessayer plus tard';
+    case undefined:
+    case null:
+    case '':
+      return '-';
+    default:
+      return code;
   }
 };
 

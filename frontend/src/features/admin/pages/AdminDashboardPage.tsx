@@ -20,7 +20,7 @@ import {
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { fetchAdminDashboard, type AdminDashboardDto } from '@/features/admin/customers/api';
-import { formatOrderStatusFr, formatPaymentStatusFr, formatStripePaymentStatusFr } from '@/features/orders/api';
+import { formatOrderStatusFr, formatPaymentStatusFr, formatStripeFailureCodeFr, formatStripePaymentStatusFr } from '@/features/orders/api';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 interface SectionLink {
@@ -462,6 +462,61 @@ export const AdminDashboardPage = () => {
                     </section>
 
                     <section className="space-y-4">
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">Notifications admin</h3>
+                          <p className="text-sm text-slate-400">Devis acceptés, commandes à régler, emails et paiements récents.</p>
+                        </div>
+                        <Link to="/admin/quotes" className="text-sm font-medium text-brand-300 underline">
+                          Voir les devis
+                        </Link>
+                      </div>
+                      <div className="grid gap-3 xl:grid-cols-2">
+                        {(dashboard.notifications ?? []).length === 0 ? (
+                          <div className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5 text-sm text-slate-300">
+                            Aucune notification récente.
+                          </div>
+                        ) : (
+                          (dashboard.notifications ?? []).map((item) => {
+                            const isAction = item.severity === 'action';
+                            const isDanger = item.severity === 'danger';
+                            return (
+                              <Link
+                                key={item.id}
+                                to={item.to}
+                                className={`flex gap-3 rounded-2xl border p-4 transition hover:bg-slate-800/80 ${
+                                  isDanger
+                                    ? 'border-red-500/40 bg-red-500/10'
+                                    : isAction
+                                      ? 'border-amber-400/40 bg-amber-400/10'
+                                      : 'border-slate-700 bg-slate-800/50'
+                                }`}
+                              >
+                                <div className="mt-0.5">
+                                  {isDanger ? (
+                                    <CircleAlert className="h-5 w-5 text-red-300" />
+                                  ) : isAction ? (
+                                    <CircleAlert className="h-5 w-5 text-amber-300" />
+                                  ) : (
+                                    <CircleCheckBig className="h-5 w-5 text-emerald-300" />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-semibold text-white">{item.title}</div>
+                                  <div className="mt-1 truncate text-sm text-slate-300">{item.message || item.type}</div>
+                                  <div className="mt-2 text-xs text-slate-400">
+                                    {new Date(item.createdAt).toLocaleString('fr-FR')}
+                                  </div>
+                                </div>
+                                <ArrowRight className="mt-1 h-4 w-4 flex-none text-slate-500" />
+                              </Link>
+                            );
+                          })
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="space-y-4">
                       <div>
                         <h3 className="text-lg font-semibold text-white">Suivi des paiements</h3>
                         <p className="text-sm text-slate-400">Vue rapide des paiements confirmés, en attente et des cas à traiter.</p>
@@ -591,7 +646,7 @@ export const AdminDashboardPage = () => {
                                   {payment.stripePaymentStatusLabel ?? formatStripePaymentStatusFr(payment.stripePaymentStatus)}
                                 </div>
                                 <div className="text-xs text-slate-400">
-                                  {payment.failureMessage || (payment.orderId === null && payment.status === 'paid' ? 'Paiement confirmé sans commande liée.' : 'À contrôler')}
+                                  {payment.failureMessage || (payment.failureCode ? formatStripeFailureCodeFr(payment.failureCode) : (payment.orderId === null && payment.status === 'paid' ? 'Paiement confirmé sans commande liée.' : 'À contrôler'))}
                                 </div>
                               </div>
                               <div className="text-right">

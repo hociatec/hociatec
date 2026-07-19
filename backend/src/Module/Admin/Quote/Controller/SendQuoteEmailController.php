@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Repository\QuoteRepository;
+use App\Module\Quote\Entity\Quote;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Shared\Http\ApiResponse;
 use Psr\Log\LoggerInterface;
@@ -27,6 +29,7 @@ class SendQuoteEmailController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteEmailService $quoteEmailService,
+        private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -67,6 +70,10 @@ class SendQuoteEmailController extends AbstractController
                 Response::HTTP_SERVICE_UNAVAILABLE
             );
         }
+
+        $quote->setStatus(Quote::STATUS_SENT);
+        $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
+        $this->em->flush();
 
         return ApiResponse::success([
             'sent' => true,

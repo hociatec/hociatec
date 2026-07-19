@@ -1,0 +1,155 @@
+Points qui donnent une impression moins professionnelle sur le design Hociatec
+
+1. Identite visuelle pas assez affirmee
+- Le logo est propre, mais son style bleu/violet n'est pas vraiment repris dans toute l'interface.
+- Le site utilise beaucoup de cyan et de bleu slate generiques, ce qui donne une impression de template tech standard.
+- Il manque une palette officielle clairement appliquee partout: couleur principale, couleur secondaire, accent, fonds, bordures, etats.
+- Les gradients sont utilises souvent, mais sans systeme precis. Cela donne parfois un effet decoratif plutot qu'une vraie direction artistique.
+- L'image de marque "numerique a taille humaine" n'est pas assez visible dans le rendu: le site parait plus SaaS technique que service humain/proximite.
+
+2. Accueil trop faible visuellement
+- La premiere impression de la page d'accueil est trop textuelle.
+- Le hero manque d'un vrai impact visuel: pas d'image forte, pas de mise en scene du service, pas de produit visible.
+- Le titre "Hociatec, une entreprise a taille humaine" est correct, mais il ne donne pas immediatement une proposition commerciale forte.
+- Les blocs de texte sont longs et donnent une sensation de page institutionnelle basique.
+- L'accordeon des services est utile, mais comme element principal d'accueil, il manque de dynamisme et de valeur visuelle.
+- Les produits tendances arrivent tard et dependent du chargement API; si aucun produit n'est visible, la page manque encore plus de concret.
+
+3. Header trop charge
+- Trop d'actions sont visibles en meme temps: Vente, Location, Services, rendez-vous, devis, audit, recherche, panier, connexion/compte.
+- Les boutons d'action ont presque tous un poids visuel fort, donc l'utilisateur ne sait pas quelle action est prioritaire.
+- La barre de recherche dans le header prend beaucoup de place et peut etouffer la navigation.
+- Sur desktop, le header risque de paraitre dense et bruyant.
+- Sur mobile, cette quantite d'elements peut vite devenir difficile a organiser proprement.
+- Le header donne une impression fonctionnelle, mais pas premium.
+
+4. Manque de coherence entre les pages
+- Certaines pages utilisent beaucoup Tailwind directement.
+- D'autres pages utilisent des fichiers CSS dedies.
+- D'autres utilisent des composants UI type Radix/shadcn.
+- Le resultat donne des styles proches mais pas parfaitement alignes.
+- Les rayons de bordure varient beaucoup: 8px, 12px, 16px, 20px, 24px, 28px, pills arrondis.
+- Les ombres varient beaucoup en intensite, parfois trop fortes.
+- Les boutons n'ont pas toujours la meme taille, la meme forme, ni la meme hierarchie.
+- Les formulaires sombres ne ressemblent pas toujours aux pages catalogue ou espace client plus claires.
+
+5. Trop de style "template"
+- Les cartes blanches avec bordures grises, les gradients cyan et les boutons arrondis donnent une impression assez standard.
+- Il manque des details distinctifs propres a Hociatec.
+- Le site ne raconte pas assez visuellement le metier: vente, location, reconditionnement, formation, audit, accompagnement.
+- Les pages pourraient appartenir a beaucoup d'autres entreprises tech si on enlevait le logo.
+
+6. Hierarchie visuelle parfois faible
+- Plusieurs actions ont le meme niveau d'importance visuelle.
+- Les CTA secondaires peuvent ressembler aux CTA principaux.
+- Certaines sections ont de grands titres, puis beaucoup de texte, sans assez de rythme.
+- Les informations importantes ne ressortent pas toujours assez vite.
+- Les badges, prix, boutons et textes descriptifs se disputent parfois l'attention.
+
+7. Trop de texte visible
+- L'accueil explique beaucoup au lieu de montrer rapidement.
+- Les descriptions de services sont longues dans l'accordeon.
+- Certains blocs pourraient etre transformes en cartes plus scannables avec icones, chiffres, benefices courts.
+- L'effet global peut sembler lourd, surtout pour un visiteur qui veut comprendre rapidement ce que Hociatec propose.
+
+8. Visuels insuffisants
+- Le site manque d'images concretes de produits, de materiel, d'interventions ou d'environnements de travail.
+- Le logo est le seul asset fort visible dans le public.
+- Sans images, l'esthetique repose presque uniquement sur les couleurs et les cartes.
+- Pour un site de vente/location informatique, les produits doivent porter davantage l'experience visuelle.
+
+9. Catalogue correct mais pas encore premium
+- Les cartes produit sont lisibles, mais tres classiques.
+- Les images produit sont traitees de facon simple, sans vraie mise en valeur.
+- Les placeholders avec une lettre donnent une impression temporaire ou incomplete.
+- Les badges et specs sont utiles, mais pourraient etre mieux hierarchises.
+- Les filtres sont fonctionnels, mais l'apparence reste assez brute.
+- Le style catalogue manque d'une sensation e-commerce plus aboutie.
+
+10. Formulaires et pages compte trop heterogenes
+- Les pages login/register ont un style sombre avec grosses cartes et gradients.
+- L'espace client utilise un style clair, sobre, plus professionnel.
+- Le rendez-vous reutilise certains styles de register, ce qui donne une impression de bricolage visuel.
+- Les composants de formulaire ne semblent pas tous venir du meme systeme.
+- Les boutons texte comme "Afficher/Masquer" dans les champs mot de passe sont fonctionnels, mais pas tres elegants visuellement.
+
+11. Page rendez-vous visuellement moins aboutie
+- Le calendrier a un style partiellement natif FullCalendar, pas totalement integre au reste du site.
+- Les boutons de navigation du calendrier utilisent un style bleu clair different du reste.
+- Certains caracteres fleches et libelles longs peuvent sembler moins soignes.
+- La modale est correcte, mais son style blanc arrondi n'est pas parfaitement raccord avec les autres modales sombres du site.
+- Le parcours est fonctionnel, mais l'esthetique parait moins finie que l'espace client.
+
+12. Admin pas assez differencie
+- L'admin reutilise le layout public, ce qui ne donne pas une impression d'outil professionnel dedie.
+- Pour un back-office, il faudrait une interface plus dense, plus calme, avec navigation claire.
+- Les tableaux et actions admin semblent parfois tres basiques.
+- Les gradients et gros espacements du public ne sont pas toujours adaptes a une interface de gestion.
+
+13. Footer trop minimal
+- Le footer est propre, mais tres basique.
+- Il ne renforce pas assez la confiance: coordonnees, zone d'intervention, contact rapide, garanties, mentions utiles.
+- Il ne participe pas vraiment a l'identite visuelle du site.
+
+14. Responsive a surveiller
+- Le header contient beaucoup d'elements, donc il risque de se compresser difficilement sur petits ecrans.
+- Les longs libelles de boutons peuvent poser probleme sur mobile.
+- Les grilles et cartes semblent globalement prevues pour le responsive, mais la densite d'informations peut rester trop forte.
+
+15. Details qui peuvent donner une impression moins finie
+- Certains commentaires et styles semblent herites ou ajoutes au fil du temps.
+- Quelques noms de classes indiquent des reutilisations approximatives, par exemple des styles register utilises pour rendez-vous.
+- Les accents visuels ne sont pas toujours coherents entre les pages.
+- Les etats vides sont parfois simples et peu valorisants.
+- Les messages de chargement sont basiques.
+- Le site garde des traces visuelles de plusieurs iterations de design.
+
+Priorite de correction recommandee
+
+1. Definir une charte UI Hociatec:
+- palette officielle inspiree du logo
+- typographie
+- boutons
+- cartes
+- formulaires
+- badges
+- ombres
+- rayons de bordure
+
+2. Refaire le header:
+- simplifier les liens visibles
+- reduire le nombre de CTA
+- deplacer certaines actions dans un menu
+- mieux gerer la recherche catalogue
+
+3. Refaire l'accueil:
+- hero plus fort
+- visuel concret
+- proposition commerciale claire
+- services sous forme de blocs scannables
+- CTA prioritaires mieux choisis
+
+4. Harmoniser les composants:
+- un seul style de bouton
+- un seul style d'input
+- un seul style de carte
+- un seul style de modale
+- un seul style d'etat vide
+
+5. Moderniser le catalogue:
+- meilleures cartes produit
+- images plus valorisees
+- filtres plus propres
+- hierarchie prix/specs/actions plus nette
+
+6. Separer l'admin du public:
+- layout admin dedie
+- navigation laterale ou structure plus operationnelle
+- tableaux plus propres
+- moins d'effets decoratifs
+
+Conclusion
+
+Le site n'est pas mauvais visuellement, mais il n'a pas encore une finition professionnelle homogene.
+Le principal probleme n'est pas un manque de CSS, mais un manque de systeme visuel unifie.
+Avec une passe serieuse sur l'identite, le header, l'accueil et les composants communs, le site pourrait passer d'un rendu correct a un rendu beaucoup plus credible et professionnel.

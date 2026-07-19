@@ -99,6 +99,20 @@ export interface AdminDashboardDto {
     supportOpenCount?: number;
     refundsPendingCount?: number;
   };
+  notifications?: Array<{
+    id: string;
+    type: string;
+    severity: 'action' | 'danger' | 'info' | string;
+    title: string;
+    message?: string | null;
+    createdAt: string;
+    to: string;
+    resource?: {
+      type: string;
+      id?: number | null;
+      number?: string | null;
+    };
+  }>;
   recentOrders: OrderDto[];
   recentEvents: Array<{
     id: number;

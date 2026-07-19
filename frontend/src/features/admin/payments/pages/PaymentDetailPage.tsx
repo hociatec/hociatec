@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   fetchAdminPaymentById,
   formatPaymentStatusFr,
+  formatStripeFailureCodeFr,
   formatStripeEventTypeFr,
   formatStripePaymentStatusFr,
   type AdminPaymentDetailDto,
@@ -26,6 +27,15 @@ export const PaymentDetailPage = () => {
   const [liveStripe, setLiveStripe] = useState<AdminPaymentLiveStripeDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const liveFailureCode = liveStripe?.paymentIntent?.lastPaymentError?.declineCode
+    || liveStripe?.paymentIntent?.lastPaymentError?.code
+    || payment?.failureCode
+    || null;
+  const liveFailureMessage = liveStripe?.paymentIntent?.lastPaymentError?.message
+    || payment?.failureMessage
+    || formatStripeFailureCodeFr(liveFailureCode);
+  const liveFailureType = liveStripe?.paymentIntent?.lastPaymentError?.type
+    || (payment?.failureCode ? 'card_error' : null);
 
   useDocumentTitle(payment ? `Admin - Paiement ${payment.id}` : 'Admin - Paiement');
 
@@ -102,7 +112,7 @@ export const PaymentDetailPage = () => {
               <div><span className="font-medium text-slate-900">Dernier événement Stripe</span> : {payment.lastStripeEventLabel ?? formatStripeEventTypeFr(payment.lastStripeEventType)}</div>
               <div><span className="font-medium text-slate-900">Expiré le</span> : {formatDateTime(payment.expiresAt)}</div>
               <div><span className="font-medium text-slate-900">Complété le</span> : {formatDateTime(payment.completedAt)}</div>
-              <div><span className="font-medium text-slate-900">Motif d’échec</span> : {payment.failureMessage || '-'}</div>
+              <div><span className="font-medium text-slate-900">Motif d’échec</span> : {payment.failureMessage || formatStripeFailureCodeFr(payment.failureCode)}</div>
               <div><span className="font-medium text-slate-900">Code d’échec</span> : {payment.failureCode || '-'}</div>
             </div>
           </section>
@@ -118,9 +128,9 @@ export const PaymentDetailPage = () => {
                 <div><span className="font-medium text-slate-900">Session</span> : {liveStripe?.checkoutSession?.statusLabel || liveStripe?.checkoutSession?.status || '-'}</div>
                 <div><span className="font-medium text-slate-900">Paiement</span> : {liveStripe?.checkoutSession?.paymentStatusLabel ?? formatStripePaymentStatusFr(liveStripe?.checkoutSession?.paymentStatus)}</div>
                 <div><span className="font-medium text-slate-900">PaymentIntent</span> : {liveStripe?.paymentIntent?.statusLabel ?? formatStripePaymentStatusFr(liveStripe?.paymentIntent?.status)}</div>
-                <div><span className="font-medium text-slate-900">Message de refus</span> : {liveStripe?.paymentIntent?.lastPaymentError?.message || '-'}</div>
-                <div><span className="font-medium text-slate-900">Code de refus</span> : {liveStripe?.paymentIntent?.lastPaymentError?.declineCode || liveStripe?.paymentIntent?.lastPaymentError?.code || '-'}</div>
-                <div><span className="font-medium text-slate-900">Type d’erreur</span> : {liveStripe?.paymentIntent?.lastPaymentError?.type || '-'}</div>
+                <div><span className="font-medium text-slate-900">Message de refus</span> : {liveFailureMessage}</div>
+                <div><span className="font-medium text-slate-900">Code de refus</span> : {liveFailureCode || '-'}</div>
+                <div><span className="font-medium text-slate-900">Type d’erreur</span> : {liveFailureType || '-'}</div>
               </div>
             )}
           </section>

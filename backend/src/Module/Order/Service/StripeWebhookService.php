@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
+use App\Module\Order\Entity\Order;
+use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Entity\RefundRequest;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\RefundRequestRepository;
@@ -15,6 +17,7 @@ final class StripeWebhookService
     public function __construct(
         private readonly OrderCheckoutSessionRepository $checkoutSessions,
         private readonly RefundRequestRepository $refunds,
+        private readonly OrderRepository $orderRepository,
         private readonly OrderService $orders,
         private readonly EntityManagerInterface $em,
         private readonly StripeApiClient $stripe,
@@ -76,14 +79,21 @@ final class StripeWebhookService
             return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
         }
 
-        if ($checkout->getOrderId() !== null) {
-            return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
-        }
-
         $paymentIntentId = is_string($object['payment_intent'] ?? null) ? $object['payment_intent'] : null;
         $checkout->markPaid($paymentIntentId, $paymentStatus, $type);
         $this->em->persist($checkout);
         $this->em->flush();
+
+        if ($checkout->getOrderId() !== null) {
+            $order = $this->orderRepository->find($checkout->getOrderId());
+            if ($order instanceof Order && $order->getStatus() === Order::STATUS_PENDING) {
+                $order->setStatus(Order::STATUS_CONFIRMED);
+                $this->em->persist($order);
+                $this->em->flush();
+            }
+
+            return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
+        }
 
         $order = $this->orders->createFromCheckoutSession($checkout);
         $checkout->setOrderId($order->getId());
@@ -114,6 +124,7 @@ final class StripeWebhookService
                 $failureCode,
                 $failureMessage,
             );
+            $this->expireCheckoutSession($checkout);
         }
 
         $this->em->persist($checkout);
@@ -154,6 +165,7 @@ final class StripeWebhookService
             : null;
 
         $checkout->markFailed($paymentIntentId, $paymentStatus, $type, $failureCode, $failureMessage);
+        $this->expireCheckoutSession($checkout);
         $this->em->persist($checkout);
         $this->em->flush();
 
@@ -218,6 +230,15 @@ final class StripeWebhookService
             : null;
 
         return [$failureCode, $failureMessage, $paymentStatus];
+    }
+
+    private function expireCheckoutSession(OrderCheckoutSession $checkout): void
+    {
+        try {
+            $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
+        } catch (\Throwable) {
+            // The session may already be complete or expired by the time the webhook is processed.
+        }
     }
 
     /**

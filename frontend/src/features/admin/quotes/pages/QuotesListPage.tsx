@@ -103,6 +103,13 @@ export const QuotesListPage = () => {
     try {
       const response = await sendAdminQuoteEmail(id, to);
       const nextMessage = response?.message ?? 'E-mail envoyé.';
+      setQuotes((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? { ...item, statusCode: 'sent', statusLabel: 'Envoyé', status: 'Envoyé', sentAt: new Date().toISOString() }
+            : item,
+        ),
+      );
       setMessage(nextMessage);
       try {
         toast.show(nextMessage, { variant: 'success' });
@@ -210,7 +217,7 @@ export const QuotesListPage = () => {
                     <strong>{q.customer?.name ?? '-'}</strong>
                   </td>
                   <td>{q.customer?.email ?? '-'}</td>
-                  <td>{formatQuoteStatus(q.status)}</td>
+                  <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
                   <td>{formatDate(q.validUntil)}</td>
                   <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
                   <td>

@@ -7,6 +7,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   buildOrderInvoiceFilename,
   cancelMyOrder,
+  checkoutExistingOrder,
   downloadOrderInvoicePdf,
   downloadOrderInvoiceXml,
   fetchOrderById,
@@ -55,6 +56,7 @@ export const OrderDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
   const [justConfirmed, setJustConfirmed] = useState(false);
+  const [paying, setPaying] = useState(false);
   const emptyReviewForm: ReviewFormState = {
     score: 0,
     comment: '',
@@ -94,6 +96,7 @@ export const OrderDetailPage = () => {
   }, [location.pathname, location.search, location.state, navigate]);
 
   const isLoading = status === 'loading';
+  const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
 
   const getReviewForm = (orderItemId: number): ReviewFormState =>
     reviewForms[orderItemId] ?? emptyReviewForm;
@@ -149,6 +152,27 @@ export const OrderDetailPage = () => {
     }
   };
 
+  const handlePayOrder = async () => {
+    if (!order) return;
+
+    setPaying(true);
+    setError(null);
+
+    try {
+      const result = await checkoutExistingOrder(order.id);
+      if ('mode' in result && result.mode === 'redirect') {
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
+
+      setOrder(result as OrderDto);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Impossible de lancer le règlement.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
   const ReviewStarsDisplay = ({ value }: { value: number }) => (
     <span className="text-yellow-500 text-base">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -195,6 +219,16 @@ export const OrderDetailPage = () => {
                 <div className="text-sm capitalize">
                   Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}
                 </div>
+                {order.status === 'pending' && (
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={() => void handlePayOrder()}
+                    disabled={paying}
+                  >
+                    {paying ? 'Redirection...' : 'Régler cette commande'}
+                  </button>
+                )}
                 {order.status === 'pending' && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -248,15 +282,19 @@ export const OrderDetailPage = () => {
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))}
+                      disabled={!canDownloadInvoice}
+                      title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                     >
                       Télécharger la facture PDF
                     </button>
                     <button
                       type="button"
-                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))}
+                      disabled={!canDownloadInvoice}
+                      title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                     >
                       Télécharger le XML
                     </button>

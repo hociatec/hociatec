@@ -45,9 +45,14 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
       .trim();
 
   const profileActive =
+    location.pathname.startsWith('/mon-espace') ||
     location.pathname.startsWith('/profile') ||
     location.pathname.startsWith('/appointments/me') ||
-    location.pathname.startsWith('/favorites');
+    location.pathname.startsWith('/favorites') ||
+    location.pathname.startsWith('/quotes/me') ||
+    location.pathname.startsWith('/audits/me') ||
+    location.pathname.startsWith('/orders/me') ||
+    location.pathname.startsWith('/vouchers/me');
   const adminActive = location.pathname.startsWith('/admin');
 
   return (

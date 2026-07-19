@@ -89,6 +89,13 @@ final class OrderFormatter
 
         $deliveryStatus = $order->getDeliveryStatus();
         $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
+        $appliedPromotionName = $order->getAppliedPromotionName();
+        $appliedPromotion = $appliedPromotionName !== null && !str_starts_with($appliedPromotionName, 'Conversion devis ')
+            ? [
+                'name' => $appliedPromotionName,
+                'slug' => $order->getAppliedPromotionSlug(),
+            ]
+            : null;
 
         return [
             'id' => $order->getId(),
@@ -100,10 +107,7 @@ final class OrderFormatter
             'subtotalPriceCents' => $order->getSubtotalPriceCents(),
             'discountAmountCents' => $order->getDiscountAmountCents(),
             'totalPriceCents' => $order->getTotalPriceCents(),
-            'appliedPromotion' => $order->getAppliedPromotionName() !== null ? [
-                'name' => $order->getAppliedPromotionName(),
-                'slug' => $order->getAppliedPromotionSlug(),
-            ] : null,
+            'appliedPromotion' => $appliedPromotion,
             'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
             'pendingReviewsCount' => $pendingReviews,
             'hasPendingReviews' => $pendingReviews > 0,

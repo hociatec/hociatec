@@ -18,6 +18,11 @@ final class StripeApiClient
         return $this->request('GET', '/checkout/sessions/' . rawurlencode($sessionId));
     }
 
+    public function expireCheckoutSession(string $sessionId): array
+    {
+        return $this->request('POST', '/checkout/sessions/' . rawurlencode($sessionId) . '/expire');
+    }
+
     public function retrievePaymentIntent(string $paymentIntentId): array
     {
         return $this->request('GET', '/payment_intents/' . rawurlencode($paymentIntentId));

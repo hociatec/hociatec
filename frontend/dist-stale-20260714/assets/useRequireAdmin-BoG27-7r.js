@@ -1,1 +1,0 @@
-import{c as o,r}from"./index-Dm_zEHQp.js";const a=()=>{const{user:s,status:e}=o();return{isAdmin:r.useMemo(()=>(s?.roles??[]).includes("ROLE_ADMIN"),[s]),loading:e==="loading"||e==="idle"}};export{a as u};

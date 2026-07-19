@@ -1,1 +1,0 @@
-import{r as e}from"./index-Dm_zEHQp.js";import{n as u}from"./api-BlLAimpj.js";const g=()=>{const[o,a]=e.useState([]),[t,r]=e.useState("idle"),[c,i]=e.useState(null);return e.useEffect(()=>{t==="idle"&&(r("loading"),u().then(s=>{a(s),r("ready")}).catch(s=>{i(s.message||"Impossible de charger les categories."),r("error")}))},[t]),{categories:o,status:t,error:c}};export{g as u};

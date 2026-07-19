@@ -113,6 +113,11 @@ const HomePage = lazy(() =>
 const ProfilePage = lazy(() =>
   import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })),
 );
+const ClientDashboardPage = lazy(() =>
+  import('@/features/account/pages/ClientDashboardPage').then((module) => ({
+    default: module.ClientDashboardPage,
+  })),
+);
 const QuotesListPage = lazy(() =>
   import('@/features/admin/quotes/pages/QuotesListPage').then((module) => ({
     default: module.QuotesListPage,
@@ -373,6 +378,14 @@ export const AppRoutes = () => (
         }
       />
 
+      <Route
+        path="/mon-espace"
+        element={
+          <ProtectedRoute>
+            <ClientDashboardPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/profile"
         element={

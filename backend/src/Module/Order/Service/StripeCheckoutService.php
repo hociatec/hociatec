@@ -6,7 +6,9 @@ namespace App\Module\Order\Service;
 
 use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
+use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderCheckoutSession;
+use App\Module\Order\Entity\OrderItem;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Promotion\Service\PromotionEngine;
 use App\Module\User\Entity\ShippingAddress;
@@ -50,6 +52,13 @@ final class StripeCheckoutService
                 'local_checkout_token' => $localToken,
                 'cart_token' => $cart->getToken(),
                 'user_id' => (string) ($user->getId() ?? 0),
+            ],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'local_checkout_token' => $localToken,
+                    'cart_token' => $cart->getToken(),
+                    'user_id' => (string) ($user->getId() ?? 0),
+                ],
             ],
             'line_items' => [[
                 'price_data' => [
@@ -105,6 +114,97 @@ final class StripeCheckoutService
         return $checkout;
     }
 
+    public function createHostedCheckoutForOrder(User $user, Order $order, ShippingAddress $address): OrderCheckoutSession
+    {
+        $orderId = $order->getId();
+        if ($orderId === null) {
+            throw new \InvalidArgumentException('Commande invalide.');
+        }
+
+        $existing = $this->checkoutSessions->findReusableOpenSessionForOrder($user, $orderId);
+        if ($existing !== null && ($existing->getExpiresAt() === null || $existing->getExpiresAt() > new \DateTimeImmutable())) {
+            return $existing;
+        }
+
+        $payload = $this->buildItemsPayloadFromOrder($order);
+        $frontendUrl = rtrim((string) ($_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173'), '/');
+        $localToken = bin2hex(random_bytes(16));
+        $customerFullName = trim($user->getFirstName() . ' ' . $user->getLastName());
+
+        $sessionData = $this->stripe->createCheckoutSession([
+            'mode' => 'payment',
+            'success_url' => $frontendUrl . '/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $frontendUrl . '/orders/' . $orderId . '?payment=cancelled',
+            'customer_email' => $user->getEmail(),
+            'client_reference_id' => $localToken,
+            'locale' => 'fr',
+            'payment_method_types' => ['card'],
+            'metadata' => [
+                'local_checkout_token' => $localToken,
+                'order_id' => (string) $orderId,
+                'user_id' => (string) ($user->getId() ?? 0),
+            ],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'local_checkout_token' => $localToken,
+                    'order_id' => (string) $orderId,
+                    'user_id' => (string) ($user->getId() ?? 0),
+                ],
+            ],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => [
+                        'name' => 'Commande ' . $order->getNumber(),
+                        'description' => sprintf('%d ligne(s)', count($payload)),
+                    ],
+                    'unit_amount' => $order->getTotalPriceCents(),
+                ],
+                'quantity' => 1,
+            ]],
+        ]);
+
+        $checkout = new OrderCheckoutSession(
+            $localToken,
+            $user,
+            'order-' . $orderId,
+            (int) $address->getId(),
+            (string) $sessionData['id'],
+            (string) $sessionData['url'],
+        );
+
+        $checkout
+            ->setOrderId($orderId)
+            ->setCurrencyCode($order->getCurrencyCode())
+            ->setSubtotalPriceCents($order->getSubtotalPriceCents())
+            ->setDiscountAmountCents($order->getDiscountAmountCents())
+            ->setTotalPriceCents($order->getTotalPriceCents())
+            ->setAppliedPromotionName($order->getAppliedPromotionName())
+            ->setAppliedPromotionSlug($order->getAppliedPromotionSlug())
+            ->setCustomerFullName($customerFullName !== '' ? $customerFullName : $address->getName())
+            ->setCustomerEmail($user->getEmail())
+            ->setShippingName($order->getShippingName() ?: ($customerFullName !== '' ? $customerFullName : $address->getName()))
+            ->setShippingAddress($order->getShippingAddress() ?: $address->getAddress())
+            ->setShippingPostalCode($order->getShippingPostalCode() ?: $address->getPostalCode())
+            ->setShippingCity($order->getShippingCity() ?: $address->getCity())
+            ->setBillingName($order->getBillingName() ?: ($customerFullName !== '' ? $customerFullName : $address->getName()))
+            ->setBillingCompany($order->getBillingCompany() ?: $address->getCompany())
+            ->setBillingCompanySiren($order->getBillingCompanySiren() ?: $address->getCompanySiren())
+            ->setBillingCompanyVatNumber($order->getBillingCompanyVatNumber() ?: $address->getCompanyVatNumber())
+            ->setPurchaseOrderNumber($order->getPurchaseOrderNumber() ?: $address->getPurchaseOrderNumber())
+            ->setBillingEmail($order->getBillingEmail() ?: $user->getEmail())
+            ->setBillingAddress($order->getBillingAddress() ?: $address->getAddress())
+            ->setBillingPostalCode($order->getBillingPostalCode() ?: $address->getPostalCode())
+            ->setBillingCity($order->getBillingCity() ?: $address->getCity())
+            ->setItemsPayload($payload)
+            ->setExpiresAt(isset($sessionData['expires_at']) ? new \DateTimeImmutable('@' . (int) $sessionData['expires_at']) : null);
+
+        $this->em->persist($checkout);
+        $this->em->flush();
+
+        return $checkout;
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -131,6 +231,29 @@ final class StripeCheckoutService
                 'quantity' => $item->getQuantity(),
                 'vatRateBps' => 2000,
                 'rentalMonths' => $rentalMonths,
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildItemsPayloadFromOrder(Order $order): array
+    {
+        $items = [];
+
+        /** @var OrderItem $item */
+        foreach ($order->getItems() as $item) {
+            $product = $item->getProduct();
+            $items[] = [
+                'productId' => $product?->getId(),
+                'productName' => $item->getProductName(),
+                'productSku' => $item->getProductSku(),
+                'unitPriceCents' => $item->getUnitPriceCents(),
+                'quantity' => $item->getQuantity(),
+                'vatRateBps' => $item->getVatRateBps(),
             ];
         }
 

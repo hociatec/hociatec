@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { fetchAdminQuote, formatQuoteStatus, generateAdminQuotePdf } from '@/features/quotes/api';
+import {
+  convertAdminQuoteToOrder,
+  fetchAdminQuote,
+  formatQuoteStatus,
+  generateAdminQuotePdf,
+  sendAdminQuoteEmail,
+  updateAdminQuoteStatus,
+  type QuoteStatus,
+} from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
@@ -35,6 +43,7 @@ export const AdminQuoteDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useDocumentTitle(quote ? `Admin - Devis ${quote.number}` : 'Admin - Consulter le devis');
 
@@ -77,6 +86,68 @@ export const AdminQuoteDetailPage = () => {
     }
   };
 
+  const refreshQuote = async () => {
+    if (!quote) return;
+    const updated = await fetchAdminQuote(quote.id);
+    setQuote(updated);
+    return updated;
+  };
+
+  const handleSendEmail = async () => {
+    if (!quote) return;
+
+    const to = window.prompt('Destinataire (e-mail)', quote?.customer?.email ?? '') ?? undefined;
+    if (to === undefined) return;
+
+    setActionLoading('send');
+    try {
+      const response = await sendAdminQuoteEmail(quote.id, to);
+      await refreshQuote();
+      toast.show(response?.message ?? 'Devis envoyé.', { variant: 'success' });
+    } catch (e: any) {
+      toast.show(e?.message ?? 'Envoi impossible.', { variant: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUpdateStatus = async (status: QuoteStatus) => {
+    if (!quote) return;
+
+    setActionLoading(status);
+    try {
+      const updated = await updateAdminQuoteStatus(quote.id, status);
+      setQuote(updated);
+      toast.show('Statut mis à jour.', { variant: 'success' });
+    } catch (e: any) {
+      toast.show(e?.message ?? 'Mise à jour impossible.', { variant: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleConvertToOrder = async () => {
+    if (!quote) return;
+
+    setActionLoading('convert');
+    try {
+      const response = await convertAdminQuoteToOrder(quote.id);
+      const order = response?.order;
+      toast.show(order ? `Commande ${order.number} créée.` : 'Commande créée.', { variant: 'success' });
+      if (order?.id) {
+        navigate(`/admin/orders/${order.id}`);
+      } else {
+        await refreshQuote();
+      }
+    } catch (e: any) {
+      toast.show(e?.message ?? 'Conversion impossible.', { variant: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const quoteStatus = quote?.statusCode ?? quote?.status;
+
   return (
     <PageContainer
       title={quote ? `Devis ${quote.number}` : 'Consulter le devis'}
@@ -97,6 +168,44 @@ export const AdminQuoteDetailPage = () => {
             <Link to={`/admin/quotes/${quote.id}/edit`} className="catalog-admin-actions__edit">
               Modifier
             </Link>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => void handleSendEmail()}
+              disabled={actionLoading !== null}
+            >
+              {actionLoading === 'send' ? 'Envoi...' : 'Envoyer'}
+            </button>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => void handleUpdateStatus('accepted')}
+              disabled={actionLoading !== null || quoteStatus === 'accepted' || !!quote.convertedOrder}
+            >
+              Accepter
+            </button>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => void handleUpdateStatus('refused')}
+              disabled={actionLoading !== null || quoteStatus === 'refused' || !!quote.convertedOrder}
+            >
+              Refuser
+            </button>
+            {quote.convertedOrder ? (
+              <Link to={`/admin/orders/${quote.convertedOrder.id}`} className="catalog-admin-actions__edit">
+                Commande
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="register-form__submit"
+                onClick={() => void handleConvertToOrder()}
+                disabled={actionLoading !== null || quoteStatus !== 'accepted' || (quote.items ?? []).length === 0}
+              >
+                {actionLoading === 'convert' ? 'Conversion...' : 'Convertir'}
+              </button>
+            )}
           </div>
         ) : undefined
       }
@@ -120,7 +229,17 @@ export const AdminQuoteDetailPage = () => {
               </div>
               <div>
                 <div className="muted">Statut</div>
-                <div style={{ fontWeight: 700 }}>{formatQuoteStatus(quote.status)}</div>
+                <div style={{ fontWeight: 700 }}>{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                {quote.sentAt ? (
+                  <div className="muted" style={{ fontSize: '0.85rem' }}>
+                    Envoyé le {formatDateTime(quote.sentAt)}
+                  </div>
+                ) : null}
+                {quote.convertedOrder ? (
+                  <Link to={`/admin/orders/${quote.convertedOrder.id}`} className="underline text-sm">
+                    Commande {quote.convertedOrder.number}
+                  </Link>
+                ) : null}
               </div>
               <div>
                 <div className="muted">Créé le</div>
@@ -156,7 +275,7 @@ export const AdminQuoteDetailPage = () => {
 
             <div className="catalog-form-section">
               <div className="catalog-form-section__header">
-                <h2 className="catalog-form-section__title">Totaux</h2>
+                <h2 className="catalog-form-section__title">Total</h2>
               </div>
               <div>Total HT : {formatPrice(quote?.totals?.ht ?? 0)}</div>
               <div>TVA : {formatPrice(quote?.totals?.vat ?? 0)}</div>

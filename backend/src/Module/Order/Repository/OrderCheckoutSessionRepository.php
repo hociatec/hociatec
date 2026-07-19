@@ -49,6 +49,21 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findReusableOpenSessionForOrder(User $user, int $orderId): ?OrderCheckoutSession
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.user = :user')
+            ->andWhere('s.orderId = :orderId')
+            ->andWhere('s.status = :status')
+            ->setParameter('user', $user)
+            ->setParameter('orderId', $orderId)
+            ->setParameter('status', OrderCheckoutSession::STATUS_OPEN)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * @return array<string, int>
      */

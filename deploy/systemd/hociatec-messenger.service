@@ -1,0 +1,18 @@
+[Unit]
+Description=Hociatec Symfony Messenger worker
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/home/ubuntu/hociatec/backend
+Environment=APP_ENV=prod
+Environment=APP_DEBUG=0
+ExecStart=/usr/bin/php /home/ubuntu/hociatec/backend/bin/console messenger:consume async --time-limit=3600 --memory-limit=256M --no-interaction
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

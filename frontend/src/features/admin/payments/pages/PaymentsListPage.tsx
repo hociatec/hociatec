@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   fetchAdminPayments,
   formatPaymentStatusFr,
+  formatStripeFailureCodeFr,
   formatStripeEventTypeFr,
   formatStripePaymentStatusFr,
   type AdminPaymentDto,
@@ -104,9 +105,9 @@ export const PaymentsListPage = () => {
                     </div>
                   </td>
                   <td>
-                    {payment.failureMessage ? (
+                    {payment.failureMessage || payment.failureCode ? (
                       <div>
-                        <div>{payment.failureMessage}</div>
+                        <div>{payment.failureMessage || formatStripeFailureCodeFr(payment.failureCode)}</div>
                         {payment.failureCode ? <div className="muted">{payment.failureCode}</div> : null}
                       </div>
                     ) : (

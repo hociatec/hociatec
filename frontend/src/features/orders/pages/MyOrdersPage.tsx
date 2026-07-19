@@ -17,6 +17,7 @@ import {
 import {
   buildOrderInvoiceFilename,
   cancelMyOrder,
+  checkoutExistingOrder,
   downloadOrderInvoicePdf,
   fetchMyOrders,
   formatOrderStatusFr,
@@ -32,6 +33,7 @@ export const MyOrdersPage = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     setStatus('loading');
@@ -48,6 +50,27 @@ export const MyOrdersPage = () => {
   }, []);
 
   const isLoading = status === 'loading';
+  const canDownloadInvoice = (order: OrderDto) => !['pending', 'cancelled'].includes(order.status);
+
+  const handlePayOrder = async (orderId: number) => {
+    setPayingOrderId(orderId);
+    setError(null);
+
+    try {
+      const result = await checkoutExistingOrder(orderId);
+      if ('mode' in result && result.mode === 'redirect') {
+        window.location.assign(result.checkoutUrl);
+        return;
+      }
+
+      const updatedOrder = result as OrderDto;
+      setOrders((prev) => prev.map((order) => (order.id === orderId ? updatedOrder : order)));
+    } catch (e: any) {
+      setError(e?.message ?? 'Impossible de lancer le règlement.');
+    } finally {
+      setPayingOrderId(null);
+    }
+  };
 
   return (
     <SiteLayout>
@@ -106,10 +129,23 @@ export const MyOrdersPage = () => {
                           Voir le détail
                         </Link>
 
+                        {o.status === 'pending' && (
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            onClick={() => void handlePayOrder(o.id)}
+                            disabled={payingOrderId === o.id}
+                          >
+                            {payingOrderId === o.id ? 'Redirection...' : 'Régler'}
+                          </button>
+                        )}
+
                         <button
                           type="button"
-                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={() => void downloadOrderInvoicePdf(o.id, buildOrderInvoiceFilename(o))}
+                          disabled={!canDownloadInvoice(o)}
+                          title={!canDownloadInvoice(o) ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                         >
                           Télécharger la facture
                         </button>

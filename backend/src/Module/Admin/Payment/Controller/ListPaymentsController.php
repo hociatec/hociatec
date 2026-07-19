@@ -6,6 +6,7 @@ namespace App\Module\Admin\Payment\Controller;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Service\StripeCheckoutSessionSyncService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,6 +20,7 @@ final class ListPaymentsController extends AbstractController
 {
     public function __construct(
         private readonly OrderCheckoutSessionRepository $payments,
+        private readonly StripeCheckoutSessionSyncService $stripeSync,
     ) {
     }
 
@@ -26,6 +28,10 @@ final class ListPaymentsController extends AbstractController
     {
         $status = $request->query->get('status');
         $query = trim((string) $request->query->get('q', ''));
+
+        if ($query === '' && (!is_string($status) || $status === '' || in_array($status, ['all', OrderCheckoutSession::STATUS_FAILED, OrderCheckoutSession::STATUS_OPEN], true))) {
+            $this->stripeSync->syncRecentOpenPayments();
+        }
 
         $qb = $this->payments->createQueryBuilder('p')
             ->leftJoin('p.user', 'u')

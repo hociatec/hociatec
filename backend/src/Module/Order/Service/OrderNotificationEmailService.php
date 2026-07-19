@@ -6,6 +6,7 @@ namespace App\Module\Order\Service;
 
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Order\Entity\Order;
+use App\Module\Quote\Repository\QuoteRepository;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -20,6 +21,7 @@ final class OrderNotificationEmailService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly OrderEventLogger $events,
+        private readonly QuoteRepository $quotes,
     ) {
     }
 
@@ -171,6 +173,9 @@ final class OrderNotificationEmailService
         $frontendUrl = rtrim((string) ($_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173'), '/');
         $invoiceDate = $order->getInvoicedAt()?->format('d/m/Y') ?? '';
         $invoiceNumber = $order->getInvoiceNumber() ?? '';
+        $sourceQuote = $this->quotes->findOneBy(['convertedOrder' => $order]);
+        $quoteNumber = $sourceQuote?->getNumber() ?? '';
+        $isPendingPayment = $order->getStatus() === Order::STATUS_PENDING;
 
         return $extraContext + [
             'first_name' => $order->getUser()->getFirstName(),
@@ -180,6 +185,17 @@ final class OrderNotificationEmailService
             'order_number' => $order->getNumber(),
             'order_status' => $order->getStatus(),
             'order_status_label' => $this->formatStatus($order->getStatus()),
+            'order_email_status_title' => $isPendingPayment ? 'en attente de règlement' : 'confirmée',
+            'order_payment_instruction' => $isPendingPayment
+                ? 'Cette commande est en attente de règlement. Elle sera validée et confirmée uniquement après réception effective du paiement.'
+                : 'Cette commande est confirmée. Vous pouvez suivre sa préparation depuis votre espace client.',
+            'order_payment_next_step' => $isPendingPayment
+                ? 'Pour finaliser la commande, ouvrez le lien ci-dessous puis cliquez sur le bouton de règlement. Une fois le paiement accepté, la commande passera automatiquement au statut confirmé.'
+                : 'Aucune action de paiement supplémentaire n’est nécessaire pour cette commande.',
+            'quote_number' => $quoteNumber,
+            'order_origin_sentence' => $quoteNumber !== ''
+                ? 'Cette commande résulte de votre devis numéro ' . $quoteNumber . '. Les lignes, quantités et montants repris correspondent au devis accepté.'
+                : 'Cette commande a été enregistrée depuis votre espace client.',
             'invoice_number' => $invoiceNumber,
             'invoice_date' => $invoiceDate,
             'order_total_eur' => number_format($order->getTotalPriceCents() / 100, 2, ',', ' '),
@@ -201,9 +217,9 @@ final class OrderNotificationEmailService
     {
         return match ($scenarioKey) {
             'order_created' => [
-                'subject' => 'Commande {{order_number}} enregistrée',
-                'html' => '<p>Bonjour {{first_name}},</p><p>Votre commande <strong>{{order_number}}</strong> a bien été enregistrée pour un montant de <strong>{{order_total_eur}} EUR</strong>.</p><p>Vous pouvez suivre son évolution depuis votre espace client : <a href="{{order_detail_url}}">{{order_detail_url}}</a></p>',
-                'text' => "Bonjour {{first_name}},\n\nVotre commande {{order_number}} a bien été enregistrée pour un montant de {{order_total_eur}} EUR.\n\nSuivi de commande : {{order_detail_url}}",
+                'subject' => 'Commande {{order_number}} {{order_email_status_title}}',
+                'html' => '<p>Bonjour {{first_name}},</p><p>Votre commande <strong>{{order_number}}</strong> a bien été enregistrée pour un montant total de <strong>{{order_total_eur}} EUR</strong>.</p><p>{{order_origin_sentence}}</p><p>{{order_payment_instruction}}</p><p>{{order_payment_next_step}}</p><p>Accès commande : <a href="{{order_detail_url}}">{{order_detail_url}}</a></p>',
+                'text' => "Bonjour {{first_name}},\n\nVotre commande {{order_number}} a bien été enregistrée pour un montant total de {{order_total_eur}} EUR.\n\n{{order_origin_sentence}}\n\n{{order_payment_instruction}}\n\n{{order_payment_next_step}}\n\nAccès commande : {{order_detail_url}}",
             ],
             'order_invoice_issued' => [
                 'subject' => 'Votre facture {{invoice_number}} est disponible',

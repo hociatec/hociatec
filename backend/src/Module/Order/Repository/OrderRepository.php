@@ -76,6 +76,20 @@ class OrderRepository extends ServiceEntityRepository
     /**
      * @return list<Order>
      */
+    public function findPendingPaymentForAdmin(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', Order::STATUS_PENDING)
+            ->orderBy('o.createdAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<Order>
+     */
     public function findFulfillmentQueue(int $limit = 30): array
     {
         return $this->createQueryBuilder('o')

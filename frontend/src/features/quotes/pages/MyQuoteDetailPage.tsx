@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { fetchMyQuote, formatQuoteStatus, generateMyQuotePdf } from '@/features/quotes/api';
+import { acceptMyQuote, fetchMyQuote, formatQuoteStatus, generateMyQuotePdf, refuseMyQuote } from '@/features/quotes/api';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
@@ -35,6 +35,7 @@ export const MyQuoteDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<'accept' | 'refuse' | null>(null);
 
   useDocumentTitle(quote ? `Devis ${quote.number}` : 'Consulter le devis');
 
@@ -77,6 +78,24 @@ export const MyQuoteDetailPage = () => {
     }
   };
 
+  const handleStatusAction = async (action: 'accept' | 'refuse') => {
+    if (!quote) return;
+
+    setUpdatingStatus(action);
+    try {
+      const updated = action === 'accept' ? await acceptMyQuote(quote.id) : await refuseMyQuote(quote.id);
+      setQuote(updated);
+      toast.show(action === 'accept' ? 'Devis accepté.' : 'Devis refusé.', { variant: 'success' });
+    } catch (e: any) {
+      toast.show(e?.message ?? 'Impossible de mettre à jour le devis.', { variant: 'error' });
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const quoteStatus = quote?.statusCode ?? quote?.status;
+  const canAnswerQuote = quoteStatus === 'sent' && !quote?.convertedOrder;
+
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
@@ -108,6 +127,26 @@ export const MyQuoteDetailPage = () => {
             >
               {downloading ? 'Téléchargement...' : 'Télécharger'}
             </button>
+            {canAnswerQuote ? (
+              <>
+                <button
+                  type="button"
+                  className="register-form__submit"
+                  onClick={() => void handleStatusAction('accept')}
+                  disabled={updatingStatus !== null}
+                >
+                  {updatingStatus === 'accept' ? 'Acceptation...' : 'Accepter'}
+                </button>
+                <button
+                  type="button"
+                  className="catalog-admin-actions__edit"
+                  onClick={() => void handleStatusAction('refuse')}
+                  disabled={updatingStatus !== null}
+                >
+                  {updatingStatus === 'refuse' ? 'Refus...' : 'Refuser'}
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -135,7 +174,12 @@ export const MyQuoteDetailPage = () => {
                 </div>
                 <div>
                   <div className="muted">Statut</div>
-                  <div style={{ fontWeight: 700 }}>{formatQuoteStatus(quote.status)}</div>
+                  <div style={{ fontWeight: 700 }}>{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                  {quote.convertedOrder ? (
+                    <Link to={`/orders/${quote.convertedOrder.id}`} className="underline text-sm">
+                      Voir la commande {quote.convertedOrder.number}
+                    </Link>
+                  ) : null}
                 </div>
                 <div>
                   <div className="muted">Date</div>
@@ -173,7 +217,7 @@ export const MyQuoteDetailPage = () => {
 
               <div className="catalog-form-section">
                 <div className="catalog-form-section__header">
-                  <h2 className="catalog-form-section__title">Totaux</h2>
+                  <h2 className="catalog-form-section__title">Total</h2>
                 </div>
                 <div>Total HT : {formatPrice(quote?.totals?.ht ?? 0)}</div>
                 <div>TVA : {formatPrice(quote?.totals?.vat ?? 0)}</div>
