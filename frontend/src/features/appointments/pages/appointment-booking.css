@@ -70,4 +70,115 @@
   .calendar-nav button:hover {
     background: #d2e3fc;
   }
+
+/* Hociatec UI refresh */
+.modal-container {
+  background: #ffffff;
+  border: 1px solid #d8e1ec;
+  border-radius: 10px;
+  color: #07182f;
+  box-shadow: 0 28px 72px rgba(7, 24, 47, 0.18);
+}
+
+.modal-container h2 {
+  margin-top: 0;
+  color: #07182f;
+}
+
+.modal-container p,
+.recap-list {
+  color: #334155;
+}
+
+.calendar-nav button,
+.slot-card,
+.booking__checkbox,
+.register-form__back {
+  border: 1px solid #d8e1ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #07182f;
+  font-weight: 700;
+}
+
+.booking__checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.booking__checkbox + .booking__checkbox {
+  margin-top: 0.7rem;
+}
+
+.booking__checkbox input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  accent-color: #0b64d8;
+}
+
+.calendar-nav button:hover,
+.slot-card:hover,
+.slot-card.active,
+.register-form__back:hover {
+  background: #eaf6ff;
+  border-color: rgba(11, 100, 216, 0.35);
+  color: #073b8e;
+}
+
+.modal-actions {
+  align-items: center;
+}
+
+.register-form__submit,
+.register-form__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.register-form__submit {
+  border: 0;
+  background: linear-gradient(135deg, #0b64d8, #5b2df5);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
+}
+
+.register-form__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.booking__alert,
+.booking__empty {
+  margin: 0;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  line-height: 1.5;
+}
+
+.booking__alert {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.booking__empty {
+  border: 1px dashed #d8e1ec;
+  background: #f6f9fc;
+  color: #64748b;
+}
   

@@ -74,6 +74,14 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
+        "app:audit": "composer audit --locked",
+        "app:lint-container": "APP_ENV=prod php bin/console lint:container",
+        "app:validate": "composer validate --strict --no-check-publish",
+        "quality": [
+            "@app:validate",
+            "@app:audit",
+            "@app:lint-container"
+        ],
         "post-install-cmd": [
             "@auto-scripts"
         ],

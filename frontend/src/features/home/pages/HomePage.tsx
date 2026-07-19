@@ -1,18 +1,52 @@
 import { useEffect, useState } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { SiteLayout } from "../../../shared/components/SiteLayout";
 import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
 import { useMetaTags } from "@/shared/hooks/useMetaTags";
 import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api";
 import { ProductActionToolbar } from "@/features/catalog/components/ProductActionToolbar";
 import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
+import { getCatalogProductDisplayName } from "@/features/catalog/utils/productDisplay";
 import { Link } from "react-router-dom";
 import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
+
+const serviceHighlights = [
+  {
+    title: 'Matériel informatique',
+    text: 'Vente, location, reprise et reconditionnement avec une sélection pensée pour durer.',
+    to: '/catalogue/vente',
+  },
+  {
+    title: 'Interventions et rendez-vous',
+    text: 'Un accompagnement clair pour vos installations, besoins techniques et formations.',
+    to: '/appointments/book',
+  },
+  {
+    title: 'Projets sur mesure',
+    text: 'Devis, audits, sites, logiciels et conseils adaptés à votre contexte réel.',
+    to: '/devis/nouveau',
+  },
+];
+
+const HomeProductMedia = ({ product }: { product: CatalogProduct }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const productDisplayName = getCatalogProductDisplayName(product);
+
+  return (
+    <Link to={`/catalogue/produits/${product.slug}`} className="home-product-card__media">
+      {product.imageUrl && !imageFailed ? (
+        <img
+          src={product.imageUrl}
+          alt={product.imageAlt ?? productDisplayName}
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <div className="home-product-card__placeholder">
+          Produit
+        </div>
+      )}
+    </Link>
+  );
+};
 
 export const HomePage = () => {
   useDocumentTitle("Le numérique à taille humaine");
@@ -24,18 +58,6 @@ export const HomePage = () => {
     canonicalUrl: SITE_URL,
     structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
   });
-
-  // Ferme la section ouverte quand on appuie sur Échap
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        const openItems = document.querySelectorAll("[data-state=open]");
-        openItems.forEach((t) => (t as HTMLElement).click());
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
 
   // Produits mis en avant (accueil)
   const [products, setProducts] = useState<CatalogProduct[]>([]);
@@ -52,110 +74,75 @@ export const HomePage = () => {
 
   return (
     <SiteLayout>
-      <div className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 text-gray-800">
-        {/* HERO */}
-        <section className="text-center mx-auto max-w-4xl px-6 mb-12">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900">
-            Hociatec, une entreprise à taille humaine
-          </h1>
-          <p className="mt-4 text-lg text-gray-700">
-            Le numérique, oui — mais accessible, durable et pensé pour vous.
-          </p>
-          <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
-            Vente, reprise, formation, conception, location : Hociatec vous accompagne à chaque étape,
-            que vous soyez particulier ou professionnel. Une approche simple, concrète et humaine
-            pour avancer sereinement dans le monde numérique.
-          </p>
+      <div className="home-page">
+        <section className="home-hero">
+          <div className="home-hero__content">
+            <p className="home-hero__eyebrow">Informatique, services et accompagnement</p>
+            <h1>Hociatec simplifie vos besoins numériques</h1>
+            <p>
+              Vente, location, reconditionnement, audit et projets sur mesure avec une approche claire,
+              durable et humaine.
+            </p>
+            <div className="home-hero__actions">
+              <Link to="/catalogue/vente" className="home-button home-button--primary">Voir le catalogue</Link>
+              <Link to="/appointments/book" className="home-button home-button--secondary">Prendre rendez-vous</Link>
+            </div>
+          </div>
+          <div className="home-hero__visual" aria-hidden="true">
+            <img src="/hociatec-hero-workbench.png" alt="" />
+            <div className="home-hero__metric">
+              <strong>Vente · Location · Audit</strong>
+              <span>Un interlocuteur pour avancer plus vite.</span>
+            </div>
+          </div>
         </section>
 
-        {/* TITRE ACCROCHEUR */}
-        <div className="text-center mb-12 px-6">
-          <p className="text-3xl md:text-4xl font-bold text-gray-900">
-            Des solutions concrètes pour tous vos besoins numériques
-          </p>
-          <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
-            Découvrez nos services et choisissez ce qui correspond à vos besoins.
-          </p>
-        </div>
-
-        {/* ACCORDÉON DES SERVICES */}
-        <section className="mx-auto max-w-4xl px-6">
-          <Accordion type="single" collapsible className="space-y-3">
-            {/* 1️⃣ Vente + Reconditionné */}
-            <AccordionItem value="vente-recond-rachat">
-              <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Du matériel neuf, reconditionné et revalorisé, sans compromis
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-700 leading-relaxed">
-                Chez Hociatec, nous proposons un large choix de matériel informatique : ordinateurs,
-                écrans, composants et accessoires — du neuf, du reconditionné testé et garanti.
-                Chaque produit est sélectionné pour sa fiabilité, ses performances et son impact écologique limité.
-                <br /><br />
-                Nous reprenons également vos anciens appareils pour les remettre à neuf.
-                Ce que nous pouvons réparer, nous le faisons. Ce que nous pouvons réutiliser, nous le revalorisons.
-                Résultat : moins de déchets, plus de durabilité, et un choix responsable sans sacrifier la qualité.
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 2️⃣ Formations */}
-            <AccordionItem value="formations">
-              <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Apprenez à maîtriser le numérique
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-700 leading-relaxed">
-                Que vous soyez novice ou confirmé, nos formations sont conçues pour s'adapter à vous.
-                En individuel ou en petit groupe, sur site ou à distance, nous vous aidons à comprendre
-                et utiliser vos outils numériques au quotidien.
-                <br /><br />
-                Bureautique, cybersécurité, développement, création de site — nos formateurs
-                vous accompagnent pas à pas pour que la technologie devienne un atout, pas une contrainte.
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 3️⃣ Création site / logiciel */}
-            <AccordionItem value="creation">
-              <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Concevez vos outils digitaux sur mesure
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-700 leading-relaxed">
-                Besoin d'un site internet, d'un logiciel professionnel ou d'une application ?
-                Notre équipe développe des solutions sur mesure, évolutives et simples à utiliser.
-                <br /><br />
-                Nous vous accompagnons à chaque étape — conception, développement, mise en ligne
-                et maintenance — avec des conseils clairs et une approche personnalisée.
-                L'objectif : créer des outils utiles, performants et alignés sur vos besoins réels.
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* 4️⃣ Location */}
-            <AccordionItem value="location">
-              <AccordionTrigger className="text-left text-xl font-semibold text-gray-900">
-                Louez, testez, évoluez librement
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-700 leading-relaxed">
-                Vous avez besoin d'un poste temporaire, d'un ordinateur pour une mission, une formation
-                ou un événement ? Hociatec propose la location de matériel informatique courte ou longue durée.
-                <br /><br />
-                Vous profitez de matériel fiable et configuré selon vos besoins,
-                sans immobiliser votre budget. Une solution souple, économique et accompagnée par notre support technique.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+        <section className="home-services" aria-label="Services Hociatec">
+          <div className="home-section-heading">
+            <p>Solutions Hociatec</p>
+            <h2>Des services lisibles, du besoin jusqu'au suivi</h2>
+          </div>
+          <div className="home-services__grid">
+            {serviceHighlights.map((service) => (
+              <Link key={service.title} to={service.to} className="home-service-card">
+                <span>{service.title}</span>
+                <p>{service.text}</p>
+              </Link>
+            ))}
+          </div>
         </section>
 
-        {/* PRODUITS TENDANCES */}
-        <section className="mx-auto max-w-6xl px-6 mt-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-8">
-            Produits tendances
-          </h2>
+        <section className="home-feature-strip" aria-label="Engagements">
+          <div>
+            <strong>Conseil direct</strong>
+            <span>Une réponse claire avant de choisir.</span>
+          </div>
+          <div>
+            <strong>Matériel valorisé</strong>
+            <span>Neuf, reconditionné ou repris selon le besoin.</span>
+          </div>
+          <div>
+            <strong>Suivi centralisé</strong>
+            <span>Commandes, devis, audits et rendez-vous au même endroit.</span>
+          </div>
+        </section>
+
+        <section className="home-products">
+          <div className="home-section-heading home-section-heading--row">
+            <div>
+              <p>Catalogue</p>
+              <h2>Produits tendances</h2>
+            </div>
+            <Link to="/catalogue/vente" className="home-button home-button--secondary">Tous les produits</Link>
+          </div>
           {loadingProducts && (
-            <p className="text-center text-gray-600">Chargement des produits...</p>
+            <p className="home-loading">Chargement des produits...</p>
           )}
           {errorProducts && (
-            <div className="text-center text-red-600">{errorProducts}</div>
+            <div className="home-alert">{errorProducts}</div>
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            <div className="home-products__grid">
               {products.map((product) => {
                 const compactSpecs = [
                   product.brand?.trim(),
@@ -167,14 +154,14 @@ export const HomePage = () => {
                   .join(' • ');
 
                 return (
-                  <article key={product.id} className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition p-5 flex flex-col gap-4">
-                    <header className="space-y-1">
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        <Link to={`/catalogue/produits/${product.slug}`} className="hover:underline">
-                          {product.name}
+                  <article key={product.id} className="home-product-card">
+                    <header>
+                      <h3>
+                        <Link to={`/catalogue/produits/${product.slug}`}>
+                          {getCatalogProductDisplayName(product)}
                         </Link>
                       </h3>
-                      <p className="text-xs text-slate-500 tracking-wide">
+                      <p className="home-product-card__sku">
                         Référence produit: <span className="font-semibold">{product.sku}</span>
                       </p>
                       <ProductMetaBadges
@@ -188,26 +175,14 @@ export const HomePage = () => {
                       )}
                     </header>
 
-                    <Link to={`/catalogue/produits/${product.slug}`} className="block">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.imageAlt ?? product.name}
-                          className="w-full aspect-[4/3] object-cover rounded-lg border border-gray-200"
-                        />
-                      ) : (
-                        <div className="w-full aspect-[4/3] grid place-content-center rounded-lg border border-dashed border-gray-300 text-4xl font-bold text-slate-400">
-                          {product.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </Link>
+                    <HomeProductMedia product={product} />
 
                     {product.shortDescription && (
-                      <p className="text-sm text-slate-600">{product.shortDescription}</p>
+                      <p className="home-product-card__description">{product.shortDescription}</p>
                     )}
 
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-blue-700 font-bold">
+                    <div className="home-product-card__footer">
+                      <span>
                         {(product.priceCents / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                       </span>
                       <ProductActionToolbar product={product} />
@@ -218,11 +193,11 @@ export const HomePage = () => {
             </div>
           )}
           {!loadingProducts && !errorProducts && products.length === 0 && (
-            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-              <p className="text-lg font-semibold text-slate-900">Aucun produit mis en avant pour le moment</p>
-              <p className="mt-2 text-sm text-slate-600">
+            <div className="home-empty">
+              <p>Aucun produit mis en avant pour le moment</p>
+              <span>
                 Les produits tendances réapparaîtront ici dès que le catalogue sera réalimenté.
-              </p>
+              </span>
             </div>
           )}
         </section>
@@ -230,4 +205,3 @@ export const HomePage = () => {
     </SiteLayout>
   );
 };
-

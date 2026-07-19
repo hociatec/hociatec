@@ -1,6 +1,7 @@
 ﻿import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useRef, useState } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
+import { CalendarDays, ClipboardCheck, FileText, Search, ShoppingCart } from 'lucide-react';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -17,6 +18,8 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
   const location = useLocation();
   const { cart } = useCart();
   const [search, setSearch] = useState('');
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const servicesSummaryRef = useRef<HTMLElement | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -30,6 +33,26 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
     event.preventDefault();
     const trimmed = search.trim();
     navigate(trimmed ? `/catalogue/recherche?q=${encodeURIComponent(trimmed)}` : '/catalogue/recherche');
+  };
+
+  const closeServicesMenu = () => {
+    setServicesOpen(false);
+    servicesSummaryRef.current?.focus();
+  };
+
+  const handleServicesKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    closeServicesMenu();
+  };
+
+  const navigateFromServices = (path: string) => {
+    setServicesOpen(false);
+    navigate(path);
   };
 
   const linkClass = (path: string, extraClass = '') =>
@@ -60,6 +83,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
       <div className="site-header__container">
         <Link to="/" className="site-header__brand">
           <img src="/logo.png" alt="Hociatec" className="site-header__brand-logo" width={180} height={180} />
+          <span className="site-header__brand-name">Hociatec</span>
         </Link>
         <nav className="site-header__nav" aria-label="Navigation principale">
           <Link
@@ -95,37 +119,33 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           >
             Services
           </Link>
-          <button
-            type="button"
-            className={`site-header__cta${
-              location.pathname === '/appointments/book' ? ' site-header__cta--active' : ''
-            }`}
-            onClick={() => navigate('/appointments/book')}
+          <details
+            className="site-header__service-menu"
+            open={servicesOpen}
+            onToggle={(event) => setServicesOpen(event.currentTarget.open)}
+            onKeyDown={handleServicesKeyDown}
           >
-            Prendre rendez-vous
-          </button>
-          <button
-            type="button"
-            className={`site-header__cta${
-              location.pathname === '/devis/nouveau' ? ' site-header__cta--active' : ''
-            }`}
-            onClick={() => navigate('/devis/nouveau')}
-          >
-            Créer un devis
-          </button>
-          <button
-            type="button"
-            className={`site-header__cta${
-              location.pathname === '/audits/request' ? ' site-header__cta--active' : ''
-            }`}
-            onClick={() => navigate('/audits/request')}
-          >
-            Demander un audit
-          </button>
+            <summary ref={servicesSummaryRef} className="site-header__service-trigger">Nos prestations</summary>
+            <div className="site-header__service-panel">
+              <button type="button" onClick={() => navigateFromServices('/appointments/book')}>
+                <CalendarDays aria-hidden="true" />
+                <span>Prendre rendez-vous</span>
+              </button>
+              <button type="button" onClick={() => navigateFromServices('/devis/nouveau')}>
+                <FileText aria-hidden="true" />
+                <span>Créer un devis</span>
+              </button>
+              <button type="button" onClick={() => navigateFromServices('/audits/request')}>
+                <ClipboardCheck aria-hidden="true" />
+                <span>Demander un audit</span>
+              </button>
+            </div>
+          </details>
         </nav>
-        <div className="site-header__actions" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
+        <div className="site-header__actions">
           {showCatalogSearch && (
             <form onSubmit={handleCatalogSearch} className="site-header__search" role="search" aria-label="Recherche catalogue">
+              <Search aria-hidden="true" className="site-header__search-icon" />
               <input
                 type="search"
                 value={search}
@@ -134,7 +154,8 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
                 aria-label="Rechercher dans le catalogue"
               />
               <button type="submit" className="site-header__search-button">
-                Rechercher
+                <Search aria-hidden="true" />
+                <span>Rechercher</span>
               </button>
             </form>
           )}
@@ -144,7 +165,9 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
             onClick={() => navigate('/panier')}
             aria-label={`Mon panier (${cart?.totalQuantity ?? 0})`}
           >
-            {`Mon panier (${cart?.totalQuantity ?? 0})`}
+            <ShoppingCart aria-hidden="true" />
+            <span>Panier</span>
+            <span className="site-header__badge">{cart?.totalQuantity ?? 0}</span>
           </button>
           {isAuthenticated ? (
             <>

@@ -143,9 +143,7 @@ require_file "$BACKEND_DIR/config/jwt/public.pem" "JWT public key exists"
 
 section "Backend"
 run "Production env cache is generated" composer dump-env prod
-run "composer.json is valid" composer validate --strict --no-check-publish
-run "Composer audit has no known vulnerabilities" composer audit --locked
-run "Symfony container is valid" env APP_ENV=prod php bin/console lint:container
+run "Backend quality checks pass" composer run quality
 run "Doctrine mapping is valid" env APP_ENV=prod php bin/console doctrine:schema:validate --skip-sync --no-interaction
 run "Doctrine migrations are current" env APP_ENV=prod php bin/console doctrine:migrations:up-to-date --no-interaction
 run "Messenger transports exist" env APP_ENV=prod php bin/console messenger:setup-transports --no-interaction
@@ -154,7 +152,7 @@ run "Messenger failed commands are available" env APP_ENV=prod php bin/console m
 section "Frontend"
 cd "$FRONTEND_DIR"
 forbid_path "$FRONTEND_DIR/dist-stale-20260714" "No stale frontend dist directory is present"
-run "NPM audit has no production vulnerabilities" npm audit --omit=dev
+run "Frontend quality checks pass" npm run quality
 run "Frontend production build succeeds" npm run build
 
 section "Result"

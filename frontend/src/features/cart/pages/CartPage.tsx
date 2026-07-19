@@ -370,7 +370,6 @@ export const CartPage = () => {
               })}
             </ul>
 
-            {/* --- Récapitulatif --- */}
             <aside className="cart-page__summary" aria-label="Récapitulatif du panier">
               <h2>Récapitulatif</h2>
               <div className="cart-summary-table">
@@ -378,14 +377,12 @@ export const CartPage = () => {
                   <span className="cart-summary-label">Articles</span>
                   <span className="cart-summary-value">{cart?.totalQuantity ?? 0}</span>
                 </div>
-                <br />
                 <div className="cart-summary-row">
                   <span className="cart-summary-label">Sous-total</span>
                   <span className="cart-summary-value">{formatPrice(cart?.subtotalPriceCents ?? 0)}</span>
                 </div>
-                <br />
                 <div className="cart-summary-row">
-                <span className="cart-summary-label">Mis à jour le&nbsp;</span>
+                  <span className="cart-summary-label">Mis à jour le&nbsp;</span>
                   <span className="cart-summary-value">
                     {cart
                       ? new Date(cart.updatedAt).toLocaleDateString('fr-FR', {
@@ -397,66 +394,58 @@ export const CartPage = () => {
                   </span>
                 </div>
                 {(cart?.discountAmountCents ?? 0) > 0 && (
-                  <>
-                    <br />
-                    <div className="cart-summary-row">
-                      <span className="cart-summary-label">Remise</span>
-                      <span className="cart-summary-value" style={{ color: '#047857', fontWeight: 700 }}>
-                        - {formatPrice(cart?.discountAmountCents ?? 0)}
-                      </span>
-                    </div>
-                  </>
+                  <div className="cart-summary-row">
+                    <span className="cart-summary-label">Remise</span>
+                    <span className="cart-summary-value cart-summary-value--discount">
+                      - {formatPrice(cart?.discountAmountCents ?? 0)}
+                    </span>
+                  </div>
                 )}
-                <br />
                 <div className="cart-summary-row cart-summary-total">
-                <span className="cart-summary-label">Total TTC&nbsp;</span>
+                  <span className="cart-summary-label">Total TTC&nbsp;</span>
                   <span className="cart-summary-value cart-summary-total-value">
                     {formatPrice(cart?.totalPriceCents ?? 0)}
                   </span>
                 </div>
               </div>
 
-              <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b' }}>
-                  Bon de réduction
-                </div>
-                <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(0,1fr) auto auto' }}>
+              <div className="cart-promotion">
+                <div className="cart-promotion__label">Bon de réduction</div>
+                <div className="cart-promotion__form">
                   <input
                     type="text"
-                    className="register-form__input"
+                    className="cart-promotion__input"
                     value={promotionCode}
                     onChange={(event) => setPromotionCode(event.target.value.toUpperCase())}
                     placeholder="Entrez votre bon de réduction"
                     disabled={isApplyingPromotionCode}
                   />
-                  <button type="button" className="register-form__submit" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode || isPromotionCodeEmpty}>
+                  <button type="button" className="cart-promotion__button" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode || isPromotionCodeEmpty}>
                     {isApplyingPromotionCode ? 'Validation...' : 'Appliquer'}
                   </button>
                   {cart?.enteredVoucherCode ? (
-                    <button type="button" className="hero__button hero__button--ghost" onClick={handleClearPromotionCode} disabled={isApplyingPromotionCode}>
-                      Supprimer le bon de réduction
+                    <button type="button" className="cart-promotion__button cart-promotion__button--ghost" onClick={handleClearPromotionCode} disabled={isApplyingPromotionCode}>
+                      Supprimer
                     </button>
                   ) : null}
                 </div>
                 {cart?.voucherCodeStatus === 'invalid' ? (
-                  <div style={{ color: '#b91c1c', fontSize: 14 }}>Ce bon de réduction est invalide.</div>
+                  <div className="cart-promotion__message cart-promotion__message--error">Ce bon de réduction est invalide.</div>
                 ) : null}
                 {cart?.voucherCodeStatus === 'ineligible' ? (
-                  <div style={{ color: '#b45309', fontSize: 14 }}>Ce bon de réduction existe mais n’est pas éligible pour ce panier.</div>
+                  <div className="cart-promotion__message cart-promotion__message--warning">Ce bon de réduction existe mais n’est pas éligible pour ce panier.</div>
                 ) : null}
               </div>
 
               {cart?.appliedVoucher ? (
-                <div style={{ marginTop: 16, borderRadius: 16, border: '1px solid #bbf7d0', background: '#f0fdf4', padding: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#047857' }}>
-                    Bon de réduction appliqué
-                  </div>
-                  <div style={{ marginTop: 6, fontWeight: 700, color: '#14532d' }}>{cart.appliedVoucher.name}</div>
-                  <div style={{ marginTop: 4, fontSize: 14, color: '#166534' }}>
+                <div className="cart-promotion-card cart-promotion-card--success">
+                  <div className="cart-promotion-card__label">Bon de réduction appliqué</div>
+                  <div className="cart-promotion-card__title">{cart.appliedVoucher.name}</div>
+                  <div className="cart-promotion-card__text">
                     Remise {formatPromotionValue(cart.appliedVoucher.discountType, cart.appliedVoucher.discountValue)}.
                   </div>
                   {cart.appliedVoucher.code ? (
-                    <div style={{ marginTop: 4, fontSize: 13, color: '#166534' }}>
+                    <div className="cart-promotion-card__code">
                       Code: {cart.appliedVoucher.code}
                     </div>
                   ) : null}
@@ -464,17 +453,15 @@ export const CartPage = () => {
               ) : null}
 
               {cart && cart.eligiblePromotions.length > 1 ? (
-                <div style={{ marginTop: 16, borderRadius: 16, border: '1px solid #e2e8f0', background: '#fff', padding: 16 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b' }}>
-                    Promotions éligibles
-                  </div>
-                  <div style={{ marginTop: 10, display: 'grid', gap: 10 }}>
+                <div className="cart-promotion-card">
+                  <div className="cart-promotion-card__label">Promotions éligibles</div>
+                  <div className="cart-promotion-card__list">
                     {cart.eligiblePromotions
                       .filter((promotion) => promotion.id !== cart.appliedPromotion?.id)
                       .map((promotion) => (
-                        <div key={promotion.id} style={{ borderRadius: 14, background: '#f8fafc', padding: 12 }}>
-                          <div style={{ fontWeight: 600, color: '#0f172a' }}>{promotion.name}</div>
-                          <div style={{ marginTop: 4, fontSize: 14, color: '#475569' }}>
+                        <div key={promotion.id} className="cart-promotion-card__item">
+                          <div className="cart-promotion-card__item-title">{promotion.name}</div>
+                          <div className="cart-promotion-card__text">
                             {formatPromotionValue(promotion.discountType, promotion.discountValue)} potentiels, soit {formatPrice(promotion.discountAmountCents)}.
                           </div>
                         </div>

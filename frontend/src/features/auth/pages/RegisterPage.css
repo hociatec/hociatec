@@ -274,3 +274,59 @@
     padding: 2rem 1.75rem;
   }
 }
+
+/* Hociatec UI refresh */
+.register-intro,
+.register-form-card {
+  border-radius: 10px;
+  border: 1px solid #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+  box-shadow: 0 18px 48px rgba(7, 24, 47, 0.12);
+}
+
+.register-intro__eyebrow,
+.register-form__field span {
+  color: #0b64d8;
+}
+
+.register-intro__title,
+.register-form-card__header h2 {
+  color: #07182f;
+}
+
+.register-intro__subtitle,
+.register-intro__switch,
+.register-highlights li,
+.register-form-card__header p,
+.register-form__field,
+.register-form__guidelines {
+  color: #64748b;
+}
+
+.register-form__field input,
+.register-form__select {
+  border-radius: 8px;
+  border-color: #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+}
+
+.register-form__field input:focus,
+.register-form__select:focus {
+  border-color: #0b64d8;
+  box-shadow: 0 0 0 3px rgba(11, 100, 216, 0.14);
+}
+
+.register-form__guidelines {
+  border-color: rgba(11, 100, 216, 0.24);
+  border-radius: 8px;
+  background: #f6f9fc;
+}
+
+.register-form__submit {
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0b64d8, #5b2df5);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
+}

@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 
@@ -10,8 +9,12 @@ import { SITE_URL } from '../src/shared/config/seoConfig';
 const routesToPrerender = [
   '/',
   '/contact',
+  '/services',
+  '/appointments/book',
+  '/devis/nouveau',
   '/catalogue/vente',
   '/catalogue/location',
+  '/catalogue/recherche',
   '/legal/cgu',
   '/legal/cgv',
   '/legal/confidentialite',
@@ -25,7 +28,7 @@ const ensureTemplate = async () => {
   try {
     const template = await fs.readFile(path.join(distDir, 'index.html'), 'utf8');
     return template;
-  } catch (error) {
+  } catch {
     throw new Error(
       'Impossible de charger dist/index.html. Lancez "npm run build" avant le prérendu.',
     );

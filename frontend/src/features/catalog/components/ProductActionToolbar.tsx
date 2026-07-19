@@ -6,6 +6,7 @@ import { Facebook, Mail } from 'lucide-react';
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { CatalogApiError, shareProductByEmail, type CatalogProduct } from '@/features/catalog/api';
 import { useToast } from '@/shared/components/ui/toast';
+import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,15 +24,16 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
   const shareDialogTitleId = useId();
   const shareDialogDescriptionId = useId();
   const { show } = useToast();
+  const productDisplayName = getCatalogProductDisplayName(product);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const absoluteUrl = `${origin}/catalogue/produits/${product.slug}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteUrl)}`;
-  const mailtoSubject = `Découvrir : ${product.name}`;
+  const mailtoSubject = `Découvrir : ${productDisplayName}`;
   const mailtoBody = [
     'Bonjour,',
     '',
-    `Je te partage ce produit : ${product.name}`,
+    `Je te partage ce produit : ${productDisplayName}`,
     '',
     `Lien direct : ${absoluteUrl}`,
     '',
@@ -164,7 +166,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
 
   return (
     <>
-      <div className="flex items-center gap-2" aria-label="Actions du produit">
+      <div className="product-action-toolbar" aria-label="Actions du produit">
         <ProductCartActions product={product} />
         <button
           type="button"
@@ -216,7 +218,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
                   Partage par e-mail
                 </p>
                 <h2 id={shareDialogTitleId} className="text-2xl font-bold text-slate-900">
-                  Partager {product.name}
+                  Partager {productDisplayName}
                 </h2>
                 <p id={shareDialogDescriptionId} className="text-sm text-slate-600">
                   Renseignez une adresse e-mail. Le bouton envoyer transmettra le produit par e-mail.

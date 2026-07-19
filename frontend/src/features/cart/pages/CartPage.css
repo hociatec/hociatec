@@ -314,6 +314,138 @@
   color: #0f172a;
 }
 
+.cart-summary-value--discount {
+  color: #047857;
+  font-weight: 700;
+}
+
+.cart-promotion {
+  display: grid;
+  gap: 10px;
+}
+
+.cart-promotion__label,
+.cart-promotion-card__label {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cart-promotion__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+}
+
+.cart-promotion__input {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0.75rem 0.9rem;
+}
+
+.cart-promotion__input:focus-visible {
+  outline: 2px solid rgba(14, 165, 233, 0.35);
+  outline-offset: 2px;
+  border-color: #0ea5e9;
+}
+
+.cart-promotion__button {
+  border: none;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+}
+
+.cart-promotion__button:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.cart-promotion__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cart-promotion__button--ghost {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.cart-promotion__button--ghost:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.cart-promotion__message {
+  font-size: 0.9rem;
+}
+
+.cart-promotion__message--error {
+  color: #b91c1c;
+}
+
+.cart-promotion__message--warning {
+  color: #b45309;
+}
+
+.cart-promotion-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.cart-promotion-card--success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.cart-promotion-card--success .cart-promotion-card__label {
+  color: #047857;
+}
+
+.cart-promotion-card__title {
+  color: #14532d;
+  font-weight: 700;
+}
+
+.cart-promotion-card__text,
+.cart-promotion-card__code {
+  color: #166534;
+  font-size: 0.9rem;
+}
+
+.cart-promotion-card__code {
+  font-size: 0.82rem;
+}
+
+.cart-promotion-card__list {
+  display: grid;
+  gap: 10px;
+}
+
+.cart-promotion-card__item {
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.cart-promotion-card__item-title {
+  color: #0f172a;
+  font-weight: 600;
+}
+
 /* --- Section adresse --- */
 
 .cart-summary-address {
@@ -423,5 +555,13 @@
 
   .cart-summary-total .cart-summary-value {
     font-size: 1rem;
+  }
+
+  .cart-promotion__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cart-promotion__button {
+    width: 100%;
   }
 }

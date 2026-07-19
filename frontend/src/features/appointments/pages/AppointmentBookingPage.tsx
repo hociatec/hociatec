@@ -28,6 +28,7 @@ export const AppointmentBookingPage = () => {
 
   const [step, setStep] = useState(1);
   const [prestations, setPrestations] = useState<Prestation[]>([]);
+  const [prestationsError, setPrestationsError] = useState<string | null>(null);
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -42,20 +43,39 @@ export const AppointmentBookingPage = () => {
   // --- Charger les prestations
   useEffect(() => {
     (async () => {
-      const data = await fetchPrestations();
-      setPrestations(data);
+      try {
+        setPrestationsError(null);
+        const data = await fetchPrestations();
+        setPrestations(data);
+      } catch (error) {
+        setPrestationsError(
+          error instanceof Error
+            ? error.message
+            : 'Impossible de charger les prestations pour le moment.',
+        );
+      }
     })();
   }, []);
 
   // --- Charger la disponibilité dynamiquement (vue visible)
   const loadAvailabilityForView = async (start: Date, end: Date) => {
     if (!selectedPrestation) return;
-    const data = await fetchAvailability({
-      start: start.toISOString(),
-      end: end.toISOString(),
-      prestationId: selectedPrestation.id,
-    });
-    setSlots(data);
+    try {
+      const data = await fetchAvailability({
+        start: start.toISOString(),
+        end: end.toISOString(),
+        prestationId: selectedPrestation.id,
+      });
+      setSlots(data);
+    } catch (error) {
+      toast.show(
+        error instanceof Error
+          ? error.message
+          : 'Impossible de charger les créneaux disponibles.',
+        { variant: 'error' },
+      );
+      setSlots([]);
+    }
   };
 
   // --- Quand on change de mois / année
@@ -170,6 +190,14 @@ export const AppointmentBookingPage = () => {
       {step === 1 && (
         <div className="register-form-card">
           <h2>Étape 1 — Choisissez une prestation</h2>
+          {prestationsError && (
+            <div className="booking__alert" role="alert">
+              {prestationsError}
+            </div>
+          )}
+          {!prestationsError && prestations.length === 0 && (
+            <p className="booking__empty">Aucune prestation disponible pour le moment.</p>
+          )}
           {prestations.map((p) => (
             <label key={p.id} className="booking__checkbox">
               <input
@@ -292,7 +320,7 @@ export const AppointmentBookingPage = () => {
                       format(new Date(selectedSlot.end), 'HH:mm', { locale: fr })}
                   </li>
                   <li><strong>Durée :</strong> {selectedPrestation?.durationMinutes} min</li>
-                  <li><strong>Tarif :</strong> {selectedPrestation?.priceCents! / 100} €</li>
+                  <li><strong>Tarif :</strong> {selectedPrestation ? selectedPrestation.priceCents / 100 : 0} €</li>
                 </ul>
 
                 <div className="modal-actions">

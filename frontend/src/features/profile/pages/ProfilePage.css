@@ -258,6 +258,85 @@
     background-color 0.2s ease;
 }
 
+/* Hociatec UI refresh */
+.profile-hero,
+.profile-card {
+  border-radius: 10px;
+  border: 1px solid #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+  box-shadow: 0 18px 48px rgba(7, 24, 47, 0.12);
+}
+
+.profile-card--highlight,
+.profile-hero {
+  background: linear-gradient(135deg, rgba(234, 246, 255, 0.95), rgba(255, 255, 255, 0.98));
+}
+
+.profile-avatar,
+.profile-action-button--primary,
+.profile-form__button {
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0b64d8, #5b2df5);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
+}
+
+.profile-hero__eyebrow {
+  color: #0b64d8;
+}
+
+.profile-hero__title,
+.profile-card h2 {
+  color: #07182f;
+}
+
+.profile-hero__subtitle,
+.profile-form__field,
+.profile-form__field span {
+  color: #64748b;
+}
+
+.profile-action-button,
+.profile-action-button--ghost {
+  border-radius: 10px;
+  border-color: #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+}
+
+.profile-action-button:hover,
+.profile-action-button--ghost:hover {
+  border-color: rgba(11, 100, 216, 0.35);
+  background: #eaf6ff;
+  color: #073b8e;
+}
+
+.profile-action-button--danger {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.profile-action-button--danger:hover {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+.profile-form__field input,
+.profile-form__select {
+  border-radius: 8px;
+  border-color: #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+}
+
+.profile-form__field input:focus,
+.profile-form__select:focus {
+  border-color: #0b64d8;
+  box-shadow: 0 0 0 3px rgba(11, 100, 216, 0.14);
+}
+
 .profile-form__button--ghost {
   background: rgba(15, 23, 42, 0.55);
   border-color: rgba(148, 163, 184, 0.35);
@@ -342,4 +421,27 @@
   .profile-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.profile-form__button--ghost {
+  border-color: #d8e1ec;
+  background: #ffffff;
+  color: #07182f;
+}
+
+.profile-form__button--primary,
+.profile-form__button {
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0b64d8, #5b2df5);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
+}
+
+.profile-details dt,
+.profile-list {
+  color: #64748b;
+}
+
+.profile-details dd {
+  color: #07182f;
 }

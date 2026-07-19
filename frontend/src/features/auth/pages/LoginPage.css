@@ -95,3 +95,39 @@
   border: 1px solid rgba(248, 113, 113, 0.35);
   color: #fecdd3;
 }
+
+/* Hociatec UI refresh */
+.login-form__intro,
+.login-form__remember,
+.login-form__guidelines {
+  color: #64748b;
+}
+
+.login-form__password-toggle,
+.login-form__help-link {
+  color: #0b64d8;
+}
+
+.login-form__password-toggle:hover,
+.login-form__help-link:hover {
+  color: #073b8e;
+}
+
+.login-form__guidelines {
+  border-color: rgba(11, 100, 216, 0.24);
+  border-radius: 8px;
+  background: #f6f9fc;
+}
+
+.register-form__alert {
+  border-radius: 8px;
+  background: #eaf6ff;
+  border-color: #bfdbfe;
+  color: #073b8e;
+}
+
+.register-form__alert--error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}

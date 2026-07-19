@@ -34,6 +34,8 @@ Production hardening checklist (Hociatec)
 - Définir TRUSTED_PROXIES / TRUSTED_HOSTS comme ci‑dessus.
 - Activer HSTS côté proxy (ex: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload).
 - Vérifier que `/api/*` renvoie les en-têtes de sécurité: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`.
+- Servir aussi le frontend avec des en-têtes de sécurité. Le fichier `frontend/public/_headers` fournit une base compatible avec les hébergeurs statiques qui le supportent. Si Nginx/Apache sert le frontend, reporter ces mêmes valeurs dans la configuration du virtual host.
+- Vérifier que la CSP frontend autorise seulement les origines nécessaires: site, API `https://api.hociatec.fr`, images, et Stripe Checkout si le paiement redirigé est actif.
 
 5) Base de données
 - Créer un utilisateur dédié avec mot de passe fort (pas de root en prod).

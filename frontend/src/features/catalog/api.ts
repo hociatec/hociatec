@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
 
-import { httpClient } from '../../shared/lib/httpClient';
+import { getHttpErrorMessage, httpClient } from '../../shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '../../shared/types/api';
 
 export interface CatalogCategory {
@@ -196,39 +196,51 @@ const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =
   response.status === 'error' ? response.message : fallback;
 
 export const fetchPublicCategories = async () => {
-  const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
-    '/api/public/catalog/categories',
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
+      '/api/public/catalog/categories',
+    );
 
-  if (data.status === 'success') {
-    return data.data.items;
+    if (data.status === 'success') {
+      return data.data.items;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Impossible de charger les catégories.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de charger les catégories.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de charger les catégories.'));
 };
 
 export const fetchPublicCategory = async (slug: string) => {
-  const { data } = await httpClient.get<ApiResponse<CategoryWithProducts>>(
-    `/api/public/catalog/categories/${slug}`,
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<CategoryWithProducts>>(
+      `/api/public/catalog/categories/${slug}`,
+    );
 
-  if (data.status === 'success') {
-    return data.data;
+    if (data.status === 'success') {
+      return data.data;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Catégorie introuvable.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
 };
 
 export const fetchPublicProduct = async (slug: string) => {
-  const { data } = await httpClient.get<ApiResponse<CatalogProduct>>(
-    `/api/public/catalog/products/${slug}`,
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<CatalogProduct>>(
+      `/api/public/catalog/products/${slug}`,
+    );
 
-  if (data.status === 'success') {
-    return data.data;
+    if (data.status === 'success') {
+      return data.data;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Produit introuvable.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
 };
 
 export const shareProductByEmail = async (slug: string, payload: ShareProductEmailPayload) => {
@@ -264,20 +276,24 @@ export const fetchProductReviews = async (
   slug: string,
   params: { page?: number; perPage?: number } = {},
 ) => {
-  const { data } = await httpClient.get<
-    ApiResponse<{ items: ProductPublicReview[]; meta: { page: number; perPage: number; total: number; average: number } }>
-  >(`/api/public/catalog/products/${slug}/reviews`, {
-    params: {
-      page: params.page ?? 1,
-      perPage: params.perPage ?? 10,
-    },
-  });
+  try {
+    const { data } = await httpClient.get<
+      ApiResponse<{ items: ProductPublicReview[]; meta: { page: number; perPage: number; total: number; average: number } }>
+    >(`/api/public/catalog/products/${slug}/reviews`, {
+      params: {
+        page: params.page ?? 1,
+        perPage: params.perPage ?? 10,
+      },
+    });
 
-  if (isApiOk(data)) {
-    return data.data;
+    if (isApiOk(data)) {
+      return data.data;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Impossible de charger les avis.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de charger les avis.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de charger les avis.'));
 };
 
 export const fetchPublicProducts = async (params: {
@@ -354,16 +370,20 @@ export const fetchPublicProducts = async (params: {
     queryParams.sort = params.sort;
   }
 
-  const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
-    '/api/public/catalog/products',
-    { params: queryParams },
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
+      '/api/public/catalog/products',
+      { params: queryParams },
+    );
 
-  if (data.status === 'success') {
-    return data.data.items;
+    if (data.status === 'success') {
+      return data.data.items;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de charger les produits.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
 };
 
 export const searchPublicProducts = async (params: {
@@ -399,16 +419,20 @@ export const searchPublicProducts = async (params: {
   if (params.perPage !== undefined) queryParams.perPage = String(params.perPage);
   if (params.sort) queryParams.sort = params.sort;
 
-  const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>>(
-    '/api/public/catalog/products',
-    { params: queryParams },
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>>(
+      '/api/public/catalog/products',
+      { params: queryParams },
+    );
 
-  if (data.status === 'success') {
-    return data.data;
+    if (data.status === 'success') {
+      return data.data;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de charger les produits.'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
 };
 
 export const fetchAdminCategories = async () => {

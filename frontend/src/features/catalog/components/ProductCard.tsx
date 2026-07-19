@@ -1,9 +1,11 @@
 import '../pages/CatalogPages.css';
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { CatalogProduct } from '../api';
 import { ProductMetaBadges } from './ProductMetaBadges';
+import { getCatalogProductDisplayName } from '../utils/productDisplay';
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -13,7 +15,9 @@ interface ProductCardProps {
 const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2).replace('.', ',');
 
 export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
+  const [imageFailed, setImageFailed] = useState(false);
   const productLink = `/catalogue/produits/${product.slug}`;
+  const productDisplayName = getCatalogProductDisplayName(product);
   const availableColors = product.variantColors ?? (product.color ? [product.color] : []);
   const availableStorages =
     product.variantStorages ?? (product.storageCapacity ? [product.storageCapacity] : []);
@@ -28,18 +32,19 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
 
   return (
     <article className="catalog-product-card">
-      {product.imageUrl ? (
+      {product.imageUrl && !imageFailed ? (
         <Link to={productLink} className="catalog-product-card__image-link">
           <img
             src={product.imageUrl}
-            alt={product.imageAlt ?? product.name}
+            alt={product.imageAlt ?? productDisplayName}
             className="catalog-product-card__image"
+            onError={() => setImageFailed(true)}
           />
         </Link>
       ) : (
         <Link to={productLink} className="catalog-product-card__image-link">
           <div className="catalog-product-card__placeholder" aria-hidden="true">
-            <span>{product.name.charAt(0).toUpperCase()}</span>
+            <span>Produit</span>
           </div>
         </Link>
       )}
@@ -48,7 +53,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           <span className="catalog-product-card__sku">{product.sku}</span>
           <h3 className="catalog-product-card__title">
             <Link to={productLink} className="catalog-product-card__title-link">
-              {product.name}
+              {productDisplayName}
             </Link>
           </h3>
         </header>

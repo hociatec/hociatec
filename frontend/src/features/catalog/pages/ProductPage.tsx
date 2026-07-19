@@ -11,6 +11,7 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
 import { addFavorite, fetchFavorites, removeFavorite } from '@/features/favorites/api';
+import { getCatalogProductDisplayName } from '../utils/productDisplay';
 
 import './CatalogPages.css';
 
@@ -53,6 +54,7 @@ export const ProductPage = () => {
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [reviewsPage, setReviewsPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const [failedSlideUrls, setFailedSlideUrls] = useState<Set<string>>(() => new Set());
   const reviewsPerPage = 5;
   const { status: authStatus } = useAuth();
   const { show: showToast } = useToast();
@@ -60,15 +62,14 @@ export const ProductPage = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteAction, setFavoriteAction] = useState<'idle' | 'saving'>('idle');
   const isAuthenticated = authStatus === 'authenticated';
-  const preserveVariantTransitionRef = useRef(false);
-  const pendingVariantSlugRef = useRef<string | null>(null);
   const previousSlidesSignatureRef = useRef<string>('');
   const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
+  const productDisplayName = product ? getCatalogProductDisplayName(product) : null;
   const productStructuredData = product
     ? {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: product.name,
+        name: productDisplayName,
         description:
           product.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
         sku: product.sku,
@@ -84,9 +85,9 @@ export const ProductPage = () => {
       }
     : undefined;
 
-  useDocumentTitle(product ? `${product.name} - Catalogue` : 'Produit - Catalogue');
+  useDocumentTitle(productDisplayName ? `${productDisplayName} - Catalogue` : 'Produit - Catalogue');
   useMetaTags({
-    title: product ? `${product.name} — Catalogue` : 'Produit - Catalogue',
+    title: productDisplayName ? `${productDisplayName} — Catalogue` : 'Produit - Catalogue',
     description: product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
     imageUrl: product?.imageUrl ?? undefined,
     type: 'product',
@@ -123,18 +124,9 @@ export const ProductPage = () => {
   useEffect(() => {
     if (!slug) return;
 
-    if (pendingVariantSlugRef.current === slug) {
-      pendingVariantSlugRef.current = null;
-      setLoading(false);
-      setError(null);
-      preserveVariantTransitionRef.current = false;
-      return;
-    }
-
     if (product?.slug === slug) {
       setLoading(false);
       setError(null);
-      preserveVariantTransitionRef.current = false;
       return;
     }
 
@@ -144,12 +136,10 @@ export const ProductPage = () => {
     void fetchPublicProduct(slug)
       .then((result) => {
         setProduct(result);
-        preserveVariantTransitionRef.current = false;
       })
       .catch((err: Error) => setError(err.message || 'Produit introuvable.'))
       .finally(() => {
         setLoading(false);
-        preserveVariantTransitionRef.current = false;
       });
   }, [slug, product?.slug]);
 
@@ -178,6 +168,7 @@ export const ProductPage = () => {
       category: product.category.slug,
       sellingType: product.sellingType,
       sort: 'release_year_desc',
+      perPage: 100,
     })
       .then((items) => {
         const variants = items.filter(
@@ -219,32 +210,43 @@ export const ProductPage = () => {
     };
   }, [isAuthenticated, product?.id]);
 
-  const slides =
-    product && product.gallery.length > 0
-      ? product.gallery
-      : product && product.imageUrl
-        ? [
-            {
-              position: 0,
-              url: product.imageUrl,
-              alt: product.imageAlt ?? product.name,
-              isPrimary: true,
-            },
-          ]
-        : [];
+  const slides = useMemo(
+    () =>
+      product && product.gallery.length > 0
+        ? product.gallery
+        : product && product.imageUrl
+          ? [
+              {
+                position: 0,
+                url: product.imageUrl,
+                alt: product.imageAlt ?? productDisplayName ?? product.name,
+                isPrimary: true,
+              },
+            ]
+          : [],
+    [product],
+  );
+  const visibleSlides = useMemo(
+    () => slides.filter((slide) => !failedSlideUrls.has(slide.url)),
+    [failedSlideUrls, slides],
+  );
 
   useEffect(() => {
-    const signature = slides.map((slide) => slide.url).join('|');
+    const signature = visibleSlides.map((slide) => slide.url).join('|');
     const previousSignature = previousSlidesSignatureRef.current;
 
     if (signature === previousSignature) {
-      setActiveSlide((previous) => (slides.length === 0 ? 0 : Math.min(previous, slides.length - 1)));
+      setActiveSlide((previous) => (visibleSlides.length === 0 ? 0 : Math.min(previous, visibleSlides.length - 1)));
       return;
     }
 
     previousSlidesSignatureRef.current = signature;
     setActiveSlide(0);
-  }, [slides]);
+  }, [visibleSlides]);
+
+  useEffect(() => {
+    setFailedSlideUrls(new Set());
+  }, [product?.slug]);
 
   const productDates = useMemo(() => {
     if (!product) return null;
@@ -329,10 +331,7 @@ export const ProductPage = () => {
       return;
     }
 
-    preserveVariantTransitionRef.current = true;
-    pendingVariantSlugRef.current = target.slug;
-    setProduct(target);
-    setLoading(false);
+    setLoading(true);
     setError(null);
 
     void navigate(`/catalogue/produits/${target.slug}`);
@@ -383,13 +382,13 @@ export const ProductPage = () => {
   };
 
   const handleNextSlide = () => {
-    if (!product || slides.length <= 1) return;
-    setActiveSlide((previous) => (previous + 1) % slides.length);
+    if (!product || visibleSlides.length <= 1) return;
+    setActiveSlide((previous) => (previous + 1) % visibleSlides.length);
   };
 
   const handlePrevSlide = () => {
-    if (!product || slides.length <= 1) return;
-    setActiveSlide((previous) => (previous - 1 + slides.length) % slides.length);
+    if (!product || visibleSlides.length <= 1) return;
+    setActiveSlide((previous) => (previous - 1 + visibleSlides.length) % visibleSlides.length);
   };
 
   const handleLoadMoreReviews = () => {
@@ -425,19 +424,22 @@ export const ProductPage = () => {
         {!loading && !error && product && (
           <>
             <div className="catalog-detail-hero">
-              {slides.length > 0 ? (
+              {visibleSlides.length > 0 ? (
                 <div className="catalog-slider">
                   <div className="catalog-slider__viewport">
-                    {slides.map((slide, index) => (
+                    {visibleSlides.map((slide, index) => (
                       <img
                         key={slide.url + index}
                         src={slide.url}
                         alt={slide.alt}
                         className={`catalog-slider__image${index === activeSlide ? ' is-active' : ''}`}
+                        onError={() =>
+                          setFailedSlideUrls((previous) => new Set(previous).add(slide.url))
+                        }
                       />
                     ))}
                   </div>
-                  {slides.length > 1 && (
+                  {visibleSlides.length > 1 && (
                     <>
                       <button
                         type="button"
@@ -456,7 +458,7 @@ export const ProductPage = () => {
                         ›
                       </button>
                       <div className="catalog-slider__dots" role="tablist">
-                        {slides.map((slide, index) => (
+                        {visibleSlides.map((slide, index) => (
                           <button
                             key={slide.url + index}
                             type="button"
@@ -471,15 +473,15 @@ export const ProductPage = () => {
                   )}
                 </div>
               ) : (
-                <div className="catalog-product-card__placeholder" style={{ height: 320 }}>
-                  {product.name.charAt(0).toUpperCase()}
+                <div className="catalog-product-card__placeholder catalog-detail-hero__placeholder">
+                  Produit
                 </div>
               )}
             </div>
 
             <header className="catalog-detail-header">
               <span className="catalog-badge">{product.category.name}</span>
-              <h1>{product.name}</h1>
+              <h1>{productDisplayName}</h1>
               <p className="catalog-detail-summary">
                 {product.shortDescription ??
                   'Une solution personnalisee pour accelerer vos projets numeriques.'}
@@ -543,9 +545,15 @@ export const ProductPage = () => {
                               <span className="catalog-detail-variant-card__title">
                                 {variant.title}
                               </span>
+                              <span className="catalog-detail-variant-card__meta">
+                                {variant.subtitle}
+                              </span>
                               <span className="catalog-detail-variant-card__footer">
                                 <span className="catalog-detail-variant-card__price">
-                                  ({variant.priceLabel})
+                                  {variant.priceLabel}
+                                </span>
+                                <span className="catalog-detail-variant-card__stock">
+                                  {variant.stockLabel}
                                 </span>
                               </span>
                             </button>

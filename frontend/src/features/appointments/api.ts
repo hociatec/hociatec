@@ -1,4 +1,4 @@
-import { httpClient } from '@/shared/lib/httpClient';
+import { getHttpErrorMessage, httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 import type {
@@ -13,27 +13,35 @@ const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =
   response.status === 'error' ? response.message : fallback;
 
 export const fetchPrestations = async () => {
-  const { data } = await httpClient.get<ApiResponse<{ items: Prestation[] }>>(
-    '/api/public/appointments/prestations'
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: Prestation[] }>>(
+      '/api/public/appointments/prestations'
+    );
 
-  if (data.status === 'success') {
-    return data.data.items;
+    if (data.status === 'success') {
+      return data.data.items;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des prestations'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
 };
 
 export const fetchSchedule = async () => {
-  const { data } = await httpClient.get<ApiResponse<{ days: WorkingDay[] }>>(
-    '/api/public/appointments/schedule'
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ days: WorkingDay[] }>>(
+      '/api/public/appointments/schedule'
+    );
 
-  if (data.status === 'success') {
-    return data.data.days;
+    if (data.status === 'success') {
+      return data.data.days;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement du planning'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement du planning'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement du planning'));
 };
 
 export const fetchAvailability = async ({
@@ -45,29 +53,37 @@ export const fetchAvailability = async ({
   end: string;
   prestationId: number;
 }) => {
-  const { data } = await httpClient.get<ApiResponse<{ slots: AvailabilitySlot[] }>>(
-    '/api/public/appointments/availability',
-    { params: { start, end, prestationId } }
-  );
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ slots: AvailabilitySlot[] }>>(
+      '/api/public/appointments/availability',
+      { params: { start, end, prestationId } }
+    );
 
-  if (data.status === 'success') {
-    return data.data.slots;
+    if (data.status === 'success') {
+      return data.data.slots;
+    }
+
+    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des créneaux'));
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des créneaux'));
   }
-
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des créneaux'));
 };
 
 export const bookAppointment = async (payload: AppointmentPayload) => {
-  const { data } = await httpClient.post<ApiResponse<AppointmentItem>>(
-    '/api/appointments',
-    payload
-  );
+  try {
+    const { data } = await httpClient.post<ApiResponse<AppointmentItem>>(
+      '/api/appointments',
+      payload
+    );
 
-  if (isApiOk(data)) {
-    return data.data;
+    if (isApiOk(data)) {
+      return data.data;
+    }
+
+    throw new Error(data.message || 'Impossible de créer le rendez-vous');
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de créer le rendez-vous'));
   }
-
-  throw new Error(data.message || 'Impossible de cr�er le rendez-vous');
 };
 
 export const fetchMyAppointments = async () => {
