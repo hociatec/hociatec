@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Service;
 
+use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\OvhRoundcubeMailer;
@@ -20,6 +21,7 @@ class PasswordResetService
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
+        private readonly EmailTemplateRenderer $emailTemplates,
     ) {
     }
 
@@ -43,32 +45,34 @@ class PasswordResetService
         $resetLink = rtrim($frontendUrl, '/') . '/reset-password/' . $token;
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
 
-        try {
-            $plainMessage =
-                "Bonjour {$user->getFirstName()},\n\n" .
-                "Une demande de réinitialisation de mot de passe a été reçue pour votre compte Hociatec.\n" .
-                "Pour définir un nouveau mot de passe, ouvrez ce lien dans l'heure :\n" .
-                $resetLink . "\n\n" .
-                "Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.\n";
+        $content = $this->emailTemplates->renderScenario('password_reset', [
+            'first_name' => $user->getFirstName(),
+            'last_name' => $user->getLastName(),
+            'full_name' => $user->getFullName(),
+            'email' => $user->getEmail(),
+            'password_reset_url' => $resetLink,
+            'password_reset_expires_in' => '1 heure',
+            'app_frontend_url' => rtrim((string) $frontendUrl, '/'),
+        ], [
+            'subject' => 'Réinitialisez votre mot de passe Hociatec',
+            'html' => '<p>Bonjour {{first_name}},</p><p>Une demande de réinitialisation de mot de passe a été reçue pour votre compte Hociatec.</p><p>Le lien ci-dessous vous permet de définir un nouveau mot de passe. Il reste valide pendant {{password_reset_expires_in}}.</p><p><a href="{{password_reset_url}}">Réinitialiser mon mot de passe</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement cet e-mail.</p>',
+            'text' => "Bonjour {{first_name}},\n\nUne demande de réinitialisation de mot de passe a été reçue pour votre compte Hociatec.\nPour définir un nouveau mot de passe, ouvrez ce lien dans l'heure :\n{{password_reset_url}}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.",
+        ]);
 
+        try {
             $this->ovhRoundcubeMailer->send(
                 $user->getEmail(),
-                'Réinitialisez votre mot de passe Hociatec',
-                $plainMessage,
+                $content['subject'],
+                $content['text'],
             );
         } catch (\Throwable) {
             try {
                 $emailMessage = (new Email())
                     ->from(new Address($from, 'Hociatec'))
                     ->to(new Address($user->getEmail(), $user->getFullName()))
-                    ->subject('Réinitialisez votre mot de passe Hociatec')
-                    ->html(
-                        '<p>Bonjour ' . htmlspecialchars($user->getFirstName()) . ',</p>' .
-                        '<p>Une demande de réinitialisation de mot de passe a été reçue pour votre compte Hociatec.</p>' .
-                        '<p>Le lien ci-dessous vous permet de définir un nouveau mot de passe. Il reste valide pendant 1 heure.</p>' .
-                        '<p><a href="' . htmlspecialchars($resetLink) . '">Réinitialiser mon mot de passe</a></p>' .
-                        '<p>Si vous n\'êtes pas à l\'origine de cette demande, ignorez simplement cet e-mail.</p>'
-                    );
+                    ->subject($content['subject'])
+                    ->html($content['html'])
+                    ->text($content['text']);
 
                 $this->mailer->send($emailMessage);
             } catch (\Throwable) {

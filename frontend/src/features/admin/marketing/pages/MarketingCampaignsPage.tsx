@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +11,10 @@ import {
   type MarketingTemplate,
 } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminMetricCard, AdminMetricGrid, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroCents, formatFrenchDateTime, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 const formatCampaignCriteria = (campaign: MarketingCampaign) => {
   const criteria = campaign.criteria ?? {};
@@ -27,7 +31,7 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
     case 'recent_customers':
       return `commande sous ${criteria.recentDays ?? 30} jours`;
     case 'high_value_customers':
-      return `${((Number(criteria.minimumTotalCents ?? 50000) || 50000) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
+      return formatEuroCents(Number(criteria.minimumTotalCents ?? 50000) || 50000);
     case 'customers_with_pending_reviews':
       return `${criteria.minimumPendingReviews ?? 2} avis en attente`;
     default:
@@ -52,7 +56,7 @@ export const MarketingCampaignsPage = () => {
         setSegments(segmentsList);
         setCampaigns(campaignsList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le module marketing.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger le module marketing.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -64,94 +68,76 @@ export const MarketingCampaignsPage = () => {
   const lastCampaign = campaigns[0] ?? null;
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Campagnes e-mail"
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link
             to="/admin/marketing/templates"
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
           >
             Bibliothèque des modèles
           </Link>
-          <Link
-            to="/admin/marketing/templates/new"
-            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
+          <PrimaryLink to="/admin/marketing/templates/new">
             Nouveau modèle
-          </Link>
+          </PrimaryLink>
           <Link
             to="/admin/marketing/new"
-            className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+            className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800"
           >
             Créer une nouvelle campagne
           </Link>
         </div>
       }
     >
-      <div className="mb-8 grid gap-4 md:grid-cols-4">
-        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Modèles actifs</div>
-          <div className="mt-2 text-3xl font-semibold text-slate-900">{activeTemplates.length}</div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Audiences disponibles</div>
-          <div className="mt-2 text-3xl font-semibold text-slate-900">{Object.keys(segments).length}</div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Campagnes envoyées</div>
-          <div className="mt-2 text-3xl font-semibold text-slate-900">{campaigns.length}</div>
-        </div>
-        <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Dernier envoi</div>
-          <div className="mt-2 text-sm font-semibold text-slate-900">
-            {lastCampaign ? new Date(lastCampaign.sentAt).toLocaleDateString('fr-FR') : 'Aucun'}
-          </div>
-        </div>
-      </div>
+      <AdminMetricGrid columns={4}>
+        <AdminMetricCard label="Modèles actifs" value={activeTemplates.length} />
+        <AdminMetricCard label="Audiences disponibles" value={Object.keys(segments).length} />
+        <AdminMetricCard label="Campagnes envoyées" value={campaigns.length} />
+        <AdminMetricCard label="Dernier envoi" value={lastCampaign ? formatOptionalFrenchDate(lastCampaign.sentAt) : 'Aucun'} />
+      </AdminMetricGrid>
 
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           Activez vos relances marketing avec des audiences ciblées, des critères métier et des modèles réutilisables.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           L’espace permet maintenant de cibler l’acquisition, la réactivation, la fidélisation et la collecte d’avis depuis l’admin.
         </p>
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement...
-        </div>
-      ) : (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Création de campagne</h2>
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      <AdminListState
+        loading={loading}
+        isEmpty={false}
+        loadingLabel="Chargement..."
+        emptyLabel=""
+      >
+        <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-brand-900">Création de campagne</h2>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              to="/admin/marketing/new"
-              className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
+            <PrimaryLink to="/admin/marketing/new">
               Créer une nouvelle campagne
-            </Link>
+            </PrimaryLink>
             <Link
               to="/admin/marketing/templates"
-              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+              className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
             >
               Parcourir les modèles
             </Link>
           </div>
         </div>
-      )}
+      </AdminListState>
 
       <div className="mt-10">
-        <h2 className="mb-4 text-xl font-semibold text-slate-900">Historique des campagnes</h2>
-        {campaigns.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-            Aucune campagne envoyée.
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold text-brand-900">Historique des campagnes</h2>
+        <AdminListState
+          loading={loading}
+          isEmpty={campaigns.length === 0}
+          loadingLabel="Chargement..."
+          emptyLabel="Aucune campagne envoyée."
+        >
+          <AdminTableShell>
             <table className="catalog-admin-table">
               <thead>
                 <tr>
@@ -172,13 +158,13 @@ export const MarketingCampaignsPage = () => {
                     <td>{segments[campaign.segmentKey]?.label ?? campaign.segmentKey}</td>
                     <td>{formatCampaignCriteria(campaign)}</td>
                     <td>{campaign.recipientsCount}</td>
-                    <td>{new Date(campaign.sentAt).toLocaleString('fr-FR')}</td>
+                    <td>{formatFrenchDateTime(campaign.sentAt)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
+          </AdminTableShell>
+        </AdminListState>
       </div>
     </PageContainer>
   );

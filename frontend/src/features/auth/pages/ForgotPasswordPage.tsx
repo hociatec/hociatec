@@ -7,6 +7,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
 import './LoginPage.css';
 
@@ -61,8 +62,8 @@ export const ForgotPasswordPage = () => {
         <p className="login-form__intro">
           Saisissez l&apos;adresse e-mail liée à votre compte. Si elle existe, vous recevrez un lien pour définir un nouveau mot de passe.
         </p>
-        {message && <div className="register-form__alert" role="status">{message}</div>}
-        {error && <div className="register-form__alert register-form__alert--error" role="alert">{error}</div>}
+        {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
+        {error && <FeedbackMessage>{error}</FeedbackMessage>}
         <form className="card__content" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="email">Email</label>

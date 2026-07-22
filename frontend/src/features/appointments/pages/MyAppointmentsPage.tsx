@@ -4,9 +4,11 @@ import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { cancelAppointment, fetchMyAppointments } from '../api';
 import type { AppointmentItem } from '../types';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
+import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
-const formatDate = (iso: string) => new Date(iso).toLocaleString('fr-FR');
-const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2);
 const PAST_APPOINTMENTS_PER_PAGE = 5;
 
 export const MyAppointmentsPage = () => {
@@ -18,6 +20,7 @@ export const MyAppointmentsPage = () => {
   const [past, setPast] = useState<AppointmentItem[]>([]);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [pastPage, setPastPage] = useState(1);
+  const confirm = useConfirm();
 
   const loadAppointments = async () => {
     try {
@@ -25,8 +28,8 @@ export const MyAppointmentsPage = () => {
       setUpcoming(data.upcoming);
       setPast(data.past);
       setPastPage(1);
-    } catch (err: any) {
-      setError(err?.message || 'Erreur lors du chargement de mes rendez-vous');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Erreur lors du chargement de mes rendez-vous'));
     } finally {
       setLoading(false);
     }
@@ -37,7 +40,14 @@ export const MyAppointmentsPage = () => {
   }, []);
 
   const handleCancel = async (id: number) => {
-    if (!confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+    const confirmed = await confirm({
+      title: 'Annuler le rendez-vous',
+      description: 'Êtes-vous sûr de vouloir annuler ce rendez-vous ?',
+      confirmLabel: 'Annuler le rendez-vous',
+      cancelLabel: 'Conserver',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -45,15 +55,15 @@ export const MyAppointmentsPage = () => {
     try {
       await cancelAppointment(id);
       await loadAppointments();
-    } catch (err: any) {
-      alert(err?.message || "Erreur lors de l'annulation du rendez-vous");
+    } catch (err) {
+      setError(getHttpErrorMessage(err, "Erreur lors de l'annulation du rendez-vous"));
     } finally {
       setCancellingId(null);
     }
   };
 
   const renderList = (items: AppointmentItem[], showCancelButton = false) => (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 12 }}>
+    <ul className="grid list-none gap-3 p-0">
       {items.map((appointment) => {
         const isCancelled = appointment.status === 'Annulé';
         const canCancel = showCancelButton && !isCancelled;
@@ -61,19 +71,19 @@ export const MyAppointmentsPage = () => {
         return (
           <li
             key={appointment.id}
-            style={{ padding: 12, border: '1px solid rgba(148,163,184,.35)', borderRadius: 8 }}
+            className="rounded-lg border border-brand-200 p-3"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div className="flex flex-wrap justify-between gap-3">
               <strong>{appointment.prestation.name}</strong>
               <span className="muted">
-                {appointment.prestation.durationMinutes} min · {formatPrice(appointment.prestation.priceCents)} EUR
+                {appointment.prestation.durationMinutes} min · {formatEuroCents(appointment.prestation.priceCents)}
               </span>
             </div>
-            <div style={{ marginTop: 4 }}>
-              {formatDate(appointment.startAt)} - {formatDate(appointment.endAt)}
+            <div className="mt-1">
+              {formatOptionalFrenchDateTime(appointment.startAt)} - {formatOptionalFrenchDateTime(appointment.endAt)}
             </div>
             {appointment.status && (
-              <div className="muted" style={{ marginTop: 4 }}>
+              <div className="muted mt-1">
                 Statut : {appointment.status}
               </div>
             )}
@@ -81,16 +91,7 @@ export const MyAppointmentsPage = () => {
               <button
                 onClick={() => void handleCancel(appointment.id)}
                 disabled={cancellingId === appointment.id}
-                style={{
-                  marginTop: 8,
-                  padding: '6px 12px',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: cancellingId === appointment.id ? 'not-allowed' : 'pointer',
-                  opacity: cancellingId === appointment.id ? 0.6 : 1,
-                }}
+                className="mt-2 rounded bg-red-600 px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {cancellingId === appointment.id ? 'Annulation...' : 'Annuler le rendez-vous'}
               </button>
@@ -109,12 +110,16 @@ export const MyAppointmentsPage = () => {
 
   return (
     <SiteLayout>
-      <PageContainer title="Mes rendez-vous">
-        {loading && <p>Chargement...</p>}
-        {error && <div className="register-form__alert">{error}</div>}
+      <PageContainer size="medium" title="Mes rendez-vous">
+        <StableContent
+          loading={loading}
+          hasContent={upcoming.length > 0 || past.length > 0 || !loading}
+          loadingLabel="Chargement des rendez-vous..."
+        >
+          {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
-        {!loading && !error && (
-          <div style={{ display: 'grid', gap: 24 }}>
+          {!error && (
+          <div className="grid gap-6">
             <section>
               <h2>À venir</h2>
               {upcoming.length === 0 ? (
@@ -132,15 +137,7 @@ export const MyAppointmentsPage = () => {
                 <>
                   {renderList(paginatedPast, false)}
                   {totalPastPages > 1 && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 8,
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        marginTop: 12,
-                      }}
-                    >
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         className="site-header__link"
@@ -166,7 +163,8 @@ export const MyAppointmentsPage = () => {
               )}
             </section>
           </div>
-        )}
+          )}
+        </StableContent>
       </PageContainer>
     </SiteLayout>
   );

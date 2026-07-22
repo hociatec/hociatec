@@ -3,7 +3,9 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { fetchConfiguration, updateConfiguration } from '@/features/admin/appointments/api';
 import type { WorkingDay } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 const DAY_LABELS: Record<number, string> = {
   0: 'Lundi',
@@ -44,8 +46,8 @@ export const SchedulePage = () => {
     try {
       const days = await fetchConfiguration();
       setConfiguration(normalizeDays(days));
-    } catch (error: any) {
-      setConfigurationError(error?.message || 'Erreur lors du chargement de la configuration');
+    } catch (error) {
+      setConfigurationError(getHttpErrorMessage(error, 'Erreur lors du chargement de la configuration'));
     } finally {
       setConfigurationLoading(false);
     }
@@ -82,29 +84,25 @@ export const SchedulePage = () => {
       const updated = await updateConfiguration(sanitizedConfiguration as WorkingDay[]);
       setConfiguration(normalizeDays(updated));
       setConfigurationMessage('Configuration enregistrée.');
-    } catch (error: any) {
-      setConfigurationError(error?.message || 'Impossible de mettre à jour la configuration');
+    } catch (error) {
+      setConfigurationError(getHttpErrorMessage(error, 'Impossible de mettre à jour la configuration'));
     } finally {
       setSavingConfiguration(false);
     }
   };
 
   return (
-    <PageContainer title="Configuration des créneaux">
-      {configurationError && <div className="register-form__alert">{configurationError}</div>}
-      {configurationMessage && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {configurationMessage}
-        </div>
-      )}
+    <PageContainer size="admin" title="Configuration des créneaux">
+      {configurationError && <FeedbackMessage>{configurationError}</FeedbackMessage>}
+      {configurationMessage && <FeedbackMessage variant="success">{configurationMessage}</FeedbackMessage>}
 
       {configurationLoading ? (
-        <p className="muted">Chargement de la configuration...</p>
+        <LoadingState>Chargement de la configuration...</LoadingState>
       ) : (
-        <div style={{ display: 'grid', gap: 16 }}>
+        <div className="grid gap-4">
           {configuration.map((day) => (
-            <div key={day.dayOfWeek} className="register-form-card" style={{ display: 'grid', gap: 12 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div key={day.dayOfWeek} className="register-form-card form-card-grid">
+              <label className="booking__checkbox">
                 <input
                   type="checkbox"
                   checked={day.isWorkingDay}
@@ -123,8 +121,8 @@ export const SchedulePage = () => {
 
               {day.isWorkingDay && (
                 <Fragment>
-                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                    <label className="register-form__field" style={{ flex: '1 1 160px' }}>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="register-form__field">
                       <span className="register-form__label">Début</span>
                       <input
                         type="time"
@@ -138,7 +136,7 @@ export const SchedulePage = () => {
                         }
                       />
                     </label>
-                    <label className="register-form__field" style={{ flex: '1 1 160px' }}>
+                    <label className="register-form__field">
                       <span className="register-form__label">Fin</span>
                       <input
                         type="time"
@@ -154,13 +152,13 @@ export const SchedulePage = () => {
                     </label>
                   </div>
 
-                  <div style={{ display: 'grid', gap: 8 }}>
+                  <div className="grid gap-2">
                     <span className="register-form__label">Pauses</span>
                     {day.breaks.length === 0 && <p className="muted">Aucune pause définie.</p>}
                     {day.breaks.map((pause, index) => (
                       <div
                         key={`${day.dayOfWeek}-${index}`}
-                        style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}
+                        className="flex flex-wrap items-center gap-3"
                       >
                         <input
                           type="time"
@@ -191,8 +189,7 @@ export const SchedulePage = () => {
                         />
                         <button
                           type="button"
-                          className="register-form__submit"
-                          style={{ background: '#fee2e2', color: '#991b1b' }}
+                          className="catalog-admin-actions__delete"
                           onClick={() =>
                             updateDay(day.dayOfWeek, (current) => ({
                               ...current,
@@ -206,8 +203,7 @@ export const SchedulePage = () => {
                     ))}
                     <button
                       type="button"
-                      className="register-form__submit"
-                      style={{ background: '#e5e7eb', color: '#111827', width: 'fit-content' }}
+                      className="catalog-admin-actions__edit w-fit"
                       onClick={() =>
                         updateDay(day.dayOfWeek, (current) => ({
                           ...current,
@@ -228,7 +224,7 @@ export const SchedulePage = () => {
         </div>
       )}
 
-      <div style={{ marginTop: 16 }}>
+      <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
           className="register-form__submit"
@@ -239,8 +235,7 @@ export const SchedulePage = () => {
         </button>
         <button
           type="button"
-          className="register-form__submit"
-          style={{ marginLeft: 12, background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => void loadConfiguration()}
           disabled={savingConfiguration}
         >

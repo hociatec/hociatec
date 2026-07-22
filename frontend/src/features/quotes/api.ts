@@ -1,4 +1,7 @@
+import { isAxiosError } from 'axios';
+
 import { httpClient } from '@/shared/lib/httpClient';
+import type { ApiResponse } from '@/shared/types/api';
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'refused' | 'expired';
 
@@ -17,12 +20,121 @@ export const formatQuoteStatus = (status?: string | null) => {
 };
 
 const extractApiError = (error: unknown, fallback: string) => {
-  const responseData = (error as any)?.response?.data;
+  const responseData = isAxiosError(error)
+    ? (error.response?.data as { message?: unknown; error?: unknown; data?: { message?: unknown } } | undefined)
+    : undefined;
   const apiMessage = responseData?.message ?? responseData?.error ?? responseData?.data?.message;
 
   return typeof apiMessage === 'string' && apiMessage.trim() !== ''
     ? apiMessage
-    : ((error as any)?.message ?? fallback);
+    : error instanceof Error && error.message ? error.message : fallback;
+};
+
+export interface QuoteCustomerDto {
+  name: string | null;
+  email: string | null;
+  company: string | null;
+  address: string | null;
+}
+
+export interface QuoteLineTotalsDto {
+  ht: number;
+  vat: number;
+  ttc: number;
+}
+
+export interface QuoteItemDto {
+  id: number;
+  type: QuoteItemInput['type'];
+  productId: number | null;
+  serviceId: number | null;
+  name: string;
+  description: string | null;
+  unit: string | null;
+  quantity: number;
+  unitPriceCents: number;
+  vatRate: number;
+  discountCents: number;
+  lineTotals: QuoteLineTotalsDto;
+}
+
+export interface QuoteDto {
+  id: number;
+  number: string;
+  status: string;
+  statusCode: QuoteStatus;
+  statusLabel: string;
+  customer: QuoteCustomerDto;
+  items: QuoteItemDto[];
+  discountCents: number;
+  shippingCents: number;
+  conditions: string | null;
+  validFrom: string | null;
+  validUntil: string | null;
+  totals: QuoteLineTotalsDto;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
+  convertedOrder: { id: number; number: string } | null;
+  emailNotificationSent?: boolean;
+  emailNotificationError?: string | null;
+}
+
+export type AdminQuoteDto = QuoteDto;
+
+export interface QuoteServiceDto {
+  id: number;
+  title: string;
+  description: string | null;
+  unit: string | null;
+  durationValue: number | null;
+  durationUnit: 'hour' | 'day' | null;
+  durationLabel: string | null;
+  priceCents: number;
+  vatRate: number;
+}
+
+export interface AdminQuoteMutationDto {
+  quote: QuoteDto;
+}
+
+export interface AdminQuoteEmailDto {
+  sent: boolean;
+  to?: string;
+  attachmentIncluded?: boolean;
+  transport?: string;
+  message?: string;
+}
+
+export interface AdminQuoteStatusDto {
+  quote: QuoteDto;
+}
+
+export interface QuoteToOrderDto {
+  order: {
+    id: number;
+    number: string;
+  } & Record<string, unknown>;
+  emailNotificationSent?: boolean;
+  emailNotificationError?: string | null;
+}
+
+export interface QuoteServiceMutationDto {
+  service: QuoteServiceDto;
+}
+
+export interface DeleteDto {
+  id?: number;
+  deleted?: boolean;
+  removed?: boolean;
+}
+
+const unwrapData = <T>(response: ApiResponse<T>): T => {
+  if (response.status === 'error') {
+    throw new Error(response.message);
+  }
+
+  return response.data;
 };
 
 export interface QuoteItemInput {
@@ -35,7 +147,7 @@ export interface QuoteItemInput {
   unit?: string | null;
   quantity: number;
   unitPriceCents: number;
-  vatRate: number; // percentage e.g. 20 for 20%
+  vatRate: number;
   discountCents?: number;
 }
 
@@ -55,34 +167,34 @@ export interface QuoteInput {
   validUntil?: string | null;
 }
 
-export const fetchAdminQuotes = async (params?: { q?: string; status?: string }) => {
-  const res = await httpClient.get('/api/admin/quotes', { params });
-  return (res.data?.data?.items ?? []) as any[];
+export const fetchAdminQuotes = async (params?: { q?: string; status?: string }): Promise<QuoteDto[]> => {
+  const res = await httpClient.get<ApiResponse<{ items: QuoteDto[] }>>('/api/admin/quotes', { params });
+  return unwrapData(res.data).items;
 };
 
-export const fetchAdminQuote = async (id: number) => {
-  const res = await httpClient.get(`/api/admin/quotes/${id}`);
-  return res.data?.data as any;
+export const fetchAdminQuote = async (id: number): Promise<QuoteDto> => {
+  const res = await httpClient.get<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`);
+  return unwrapData(res.data);
 };
 
-export const createAdminQuote = async (payload: QuoteInput) => {
-  const res = await httpClient.post('/api/admin/quotes', payload);
-  return res.data?.data as any;
+export const createAdminQuote = async (payload: QuoteInput): Promise<QuoteDto> => {
+  const res = await httpClient.post<ApiResponse<QuoteDto>>('/api/admin/quotes', payload);
+  return unwrapData(res.data);
 };
 
-export const updateAdminQuote = async (id: number, payload: QuoteInput) => {
-  const res = await httpClient.post(`/api/admin/quotes/${id}`, payload);
-  return res.data?.data as any;
+export const updateAdminQuote = async (id: number, payload: QuoteInput): Promise<QuoteDto> => {
+  const res = await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`, payload);
+  return unwrapData(res.data);
 };
 
-export const deleteAdminQuote = async (id: number) => {
-  const res = await httpClient.delete(`/api/admin/quotes/${id}`);
-  return res.data?.data as any;
+export const deleteAdminQuote = async (id: number): Promise<DeleteDto> => {
+  const res = await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/quotes/${id}`);
+  return unwrapData(res.data);
 };
 
-export const duplicateAdminQuote = async (id: number) => {
-  const res = await httpClient.post(`/api/admin/quotes/${id}/duplicate`);
-  return res.data?.data as any;
+export const duplicateAdminQuote = async (id: number): Promise<QuoteDto> => {
+  const res = await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/duplicate`);
+  return unwrapData(res.data);
 };
 
 export const generateAdminQuotePdf = async (id: number) => {
@@ -91,14 +203,14 @@ export const generateAdminQuotePdf = async (id: number) => {
 };
 
 export const sendAdminQuoteEmail = async (id: number, to?: string) => {
-  const res = await httpClient.post(`/api/admin/quotes/${id}/send-email`, to ? { to } : {});
-  return res.data?.data as any;
+  const res = await httpClient.post<ApiResponse<AdminQuoteEmailDto>>(`/api/admin/quotes/${id}/send-email`, to ? { to } : {});
+  return unwrapData(res.data);
 };
 
 export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) => {
   try {
-    const res = await httpClient.patch(`/api/admin/quotes/${id}/status`, { status });
-    return res.data?.data as any;
+    const res = await httpClient.patch<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/status`, { status });
+    return unwrapData(res.data);
   } catch (error) {
     throw new Error(extractApiError(error, 'Mise à jour impossible.'));
   }
@@ -107,21 +219,21 @@ export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) =>
 export const convertAdminQuoteToOrder = async (reference: string | number) => {
   const encoded = encodeURIComponent(String(reference).trim());
   try {
-    const res = await httpClient.post(`/api/admin/operations/quotes/${encoded}/convert-to-order`);
-    return res.data?.data as any;
+    const res = await httpClient.post<ApiResponse<QuoteToOrderDto>>(`/api/admin/operations/quotes/${encoded}/convert-to-order`);
+    return unwrapData(res.data);
   } catch (error) {
     throw new Error(extractApiError(error, 'Conversion impossible.'));
   }
 };
 
-export const fetchAdminQuoteServices = async () => {
-  const res = await httpClient.get('/api/admin/services');
-  return (res.data?.data?.items ?? []) as any[];
+export const fetchAdminQuoteServices = async (): Promise<QuoteServiceDto[]> => {
+  const res = await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/admin/services');
+  return unwrapData(res.data).items;
 };
 
-export const fetchAdminQuoteService = async (id: number) => {
-  const res = await httpClient.get(`/api/admin/services/${id}`);
-  return res.data?.data as any;
+export const fetchAdminQuoteService = async (id: number): Promise<QuoteServiceDto> => {
+  const res = await httpClient.get<ApiResponse<QuoteServiceDto>>(`/api/admin/services/${id}`);
+  return unwrapData(res.data);
 };
 
 export const createAdminQuoteService = async (payload: {
@@ -130,9 +242,9 @@ export const createAdminQuoteService = async (payload: {
   unit?: string;
   durationValue?: number | '';
   durationUnit?: 'hour' | 'day' | '';
-  price: number; // euros
-  vatRate: number; // percent
-}) => {
+  price: number;
+  vatRate: number;
+}): Promise<QuoteServiceDto> => {
   const form = new FormData();
   form.append('title', payload.title);
   if (payload.description) form.append('description', payload.description);
@@ -141,12 +253,12 @@ export const createAdminQuoteService = async (payload: {
   if (payload.durationUnit) form.append('durationUnit', payload.durationUnit);
   form.append('price', String(payload.price));
   form.append('vatRate', String(payload.vatRate));
-  const res = await httpClient.post('/api/admin/services', form, {
+  const res = await httpClient.post<ApiResponse<QuoteServiceDto>>('/api/admin/services', form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return res.data?.data as any;
+  return unwrapData(res.data);
 };
 
 export const updateAdminQuoteService = async (
@@ -160,47 +272,47 @@ export const updateAdminQuoteService = async (
     price: number;
     vatRate: number;
   }>,
-) => {
+): Promise<QuoteServiceDto> => {
   const form = new FormData();
   for (const [k, v] of Object.entries(payload)) {
     if (v !== undefined && v !== null) form.append(k, String(v));
   }
-  const res = await httpClient.post(`/api/admin/services/${id}`, form, {
+  const res = await httpClient.post<ApiResponse<QuoteServiceDto>>(`/api/admin/services/${id}`, form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return res.data?.data as any;
+  return unwrapData(res.data);
 };
 
-export const deleteAdminQuoteService = async (id: number) => {
-  const res = await httpClient.delete(`/api/admin/services/${id}`);
-  return res.data?.data as any;
+export const deleteAdminQuoteService = async (id: number): Promise<DeleteDto> => {
+  const res = await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/services/${id}`);
+  return unwrapData(res.data);
 };
 
-export const createPublicQuote = async (payload: QuoteInput) => {
-  const res = await httpClient.post('/api/public/quotes', payload);
-  return res.data?.data as any;
+export const createPublicQuote = async (payload: QuoteInput): Promise<QuoteDto> => {
+  const res = await httpClient.post<ApiResponse<QuoteDto>>('/api/public/quotes', payload);
+  return unwrapData(res.data);
 };
 
-export const fetchPublicQuoteServices = async () => {
-  const res = await httpClient.get('/api/public/services');
-  return (res.data?.data?.items ?? []) as any[];
+export const fetchPublicQuoteServices = async (): Promise<QuoteServiceDto[]> => {
+  const res = await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/public/services');
+  return unwrapData(res.data).items;
 };
 
-export const fetchPublicQuoteService = async (id: number) => {
-  const res = await httpClient.get(`/api/public/services/${id}`);
-  return res.data?.data as any;
+export const fetchPublicQuoteService = async (id: number): Promise<QuoteServiceDto> => {
+  const res = await httpClient.get<ApiResponse<QuoteServiceDto>>(`/api/public/services/${id}`);
+  return unwrapData(res.data);
 };
 
-export const fetchMyQuotes = async () => {
-  const res = await httpClient.get('/api/quotes/me');
-  return (res.data?.data?.items ?? []) as any[];
+export const fetchMyQuotes = async (): Promise<QuoteDto[]> => {
+  const res = await httpClient.get<ApiResponse<{ items: QuoteDto[] }>>('/api/quotes/me');
+  return unwrapData(res.data).items;
 };
 
-export const fetchMyQuote = async (id: number) => {
-  const res = await httpClient.get(`/api/quotes/me/${id}`);
-  return res.data?.data as any;
+export const fetchMyQuote = async (id: number): Promise<QuoteDto> => {
+  const res = await httpClient.get<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}`);
+  return unwrapData(res.data);
 };
 
 export const generateMyQuotePdf = async (id: number) => {
@@ -208,15 +320,15 @@ export const generateMyQuotePdf = async (id: number) => {
   return res.data as Blob;
 };
 
-export const deleteMyQuote = async (id: number) => {
-  const res = await httpClient.delete(`/api/quotes/me/${id}`);
-  return res.data?.data as any;
+export const deleteMyQuote = async (id: number): Promise<DeleteDto> => {
+  const res = await httpClient.delete<ApiResponse<DeleteDto>>(`/api/quotes/me/${id}`);
+  return unwrapData(res.data);
 };
 
 export const acceptMyQuote = async (id: number) => {
   try {
-    const res = await httpClient.post(`/api/quotes/me/${id}/accept`);
-    return res.data?.data as any;
+    const res = await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/accept`);
+    return unwrapData(res.data);
   } catch (error) {
     throw new Error(extractApiError(error, 'Impossible d’accepter le devis.'));
   }
@@ -224,8 +336,8 @@ export const acceptMyQuote = async (id: number) => {
 
 export const refuseMyQuote = async (id: number) => {
   try {
-    const res = await httpClient.post(`/api/quotes/me/${id}/refuse`);
-    return res.data?.data as any;
+    const res = await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/refuse`);
+    return unwrapData(res.data);
   } catch (error) {
     throw new Error(extractApiError(error, 'Impossible de refuser le devis.'));
   }

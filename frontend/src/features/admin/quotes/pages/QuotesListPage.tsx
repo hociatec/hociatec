@@ -1,31 +1,27 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote, formatQuoteStatus, sendAdminQuoteEmail } from '@/features/quotes/api';
+import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote, formatQuoteStatus, sendAdminQuoteEmail, type QuoteDto } from '@/features/quotes/api';
 import { useToast } from '@/shared/components/ui/toast';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
+import { usePrompt } from '@/shared/components/ui/prompt';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { DateRangeFilter } from '@/shared/components/filters/DateRangeFilter';
-
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleDateString('fr-FR');
-};
+import { formatDateInputForDisplay, formatEuroCents } from '@/shared/lib/formatters';
 
 export const QuotesListPage = () => {
   const toast = useToast();
+  const confirm = useConfirm();
+  const prompt = usePrompt();
   useDocumentTitle('Admin - Devis');
-  const [quotes, setQuotes] = useState<any[]>([]);
+  const [quotes, setQuotes] = useState<QuoteDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -39,7 +35,7 @@ export const QuotesListPage = () => {
     setError(null);
     void fetchAdminQuotes({ q: search.trim() || undefined, status: filterStatus })
       .then((items) => setQuotes(items))
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger les devis.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger les devis.')))
       .finally(() => setLoading(false));
   }, [search, filterStatus]);
 
@@ -58,7 +54,14 @@ export const QuotesListPage = () => {
     const quote = quotes.find((item) => item.id === id);
     const quoteLabel = quote ? `le devis ${quote.number}` : 'ce devis';
 
-    if (!window.confirm(`Supprimer ${quoteLabel} ?`)) return;
+    const confirmed = await confirm({
+      title: 'Supprimer le devis',
+      description: `Supprimer ${quoteLabel} ?`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) return;
     setError(null);
     setMessage(null);
     try {
@@ -68,8 +71,8 @@ export const QuotesListPage = () => {
       try {
         toast.show('Devis supprimé.', { variant: 'success' });
       } catch {}
-    } catch (e: any) {
-      const msg = e?.message ?? 'Suppression impossible.';
+    } catch (e) {
+      const msg = getHttpErrorMessage(e, 'Suppression impossible.');
       setError(msg);
       try {
         toast.show(msg, { variant: 'error' });
@@ -83,8 +86,8 @@ export const QuotesListPage = () => {
       const copy = await duplicateAdminQuote(id);
       setQuotes((prev) => [copy, ...prev]);
       setMessage('Devis dupliqué.');
-    } catch (e: any) {
-      const msg = e?.message ?? 'Duplication impossible.';
+    } catch (e) {
+      const msg = getHttpErrorMessage(e, 'Duplication impossible.');
       setError(msg);
       try {
         toast.show(msg, { variant: 'error' });
@@ -95,14 +98,23 @@ export const QuotesListPage = () => {
   const handleSendEmail = async (id: number) => {
     const quote = quotes.find((item) => item.id === id);
     const defaultEmail = quote?.customer?.email ?? '';
-    const to = window.prompt('Destinataire (e-mail)', defaultEmail) ?? undefined;
-    if (to === undefined) return;
+    const to = await prompt({
+      title: 'Envoyer le devis',
+      description: quote?.number ? `Choisissez le destinataire du devis ${quote.number}.` : undefined,
+      label: 'Destinataire (e-mail)',
+      defaultValue: defaultEmail,
+      inputType: 'email',
+      inputMode: 'email',
+      confirmLabel: 'Envoyer',
+      cancelLabel: 'Annuler',
+    });
+    if (to === null) return;
 
     setError(null);
     setMessage(null);
     try {
       const response = await sendAdminQuoteEmail(id, to);
-      const nextMessage = response?.message ?? 'E-mail envoyé.';
+      const nextMessage = getHttpErrorMessage(response, 'E-mail envoyé.');
       setQuotes((prev) =>
         prev.map((item) =>
           item.id === id
@@ -114,8 +126,8 @@ export const QuotesListPage = () => {
       try {
         toast.show(nextMessage, { variant: 'success' });
       } catch {}
-    } catch (e: any) {
-      const msg = e?.message ?? 'Envoi impossible.';
+    } catch (e) {
+      const msg = getHttpErrorMessage(e, 'Envoi impossible.');
       setError(msg);
       try {
         toast.show(msg, { variant: 'error' });
@@ -124,22 +136,19 @@ export const QuotesListPage = () => {
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Devis"
       headerActions={
-        <Link
-          to="/devis/nouveau"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <PrimaryLink to="/admin/quotes/new">
           Nouveau devis
-        </Link>
+        </PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {filtered.length} devis affiché{filtered.length > 1 ? 's' : ''}.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Filtrez par numéro, client, statut et période.
         </p>
       </div>
@@ -173,23 +182,16 @@ export const QuotesListPage = () => {
         />
       </FilterBar>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des devis...
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucun devis.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={filtered.length === 0}
+        loadingLabel="Chargement des devis..."
+        emptyLabel="Aucun devis."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -218,8 +220,8 @@ export const QuotesListPage = () => {
                   </td>
                   <td>{q.customer?.email ?? '-'}</td>
                   <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
-                  <td>{formatDate(q.validUntil)}</td>
-                  <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
+                  <td>{formatDateInputForDisplay(q.validUntil)}</td>
+                  <td>{formatEuroCents(q?.totals?.ttc ?? 0)}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
@@ -259,8 +261,8 @@ export const QuotesListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

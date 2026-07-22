@@ -7,6 +7,7 @@ import {
   type CatalogProduct,
   type CatalogSearchFacets,
   type CatalogSearchMeta,
+  type CatalogSort,
   type CategoryWithProducts,
 } from '../api';
 import { ProductActionToolbar } from '../components/ProductActionToolbar';
@@ -21,10 +22,25 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { NumberRangeFilter } from '@/shared/components/filters/NumberRangeFilter';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 import './CatalogPages.css';
 
 const ALL = 'all';
+const catalogSorts: CatalogSort[] = [
+  'relevance',
+  'price_asc',
+  'price_desc',
+  'release_year_desc',
+  'release_year_asc',
+  'name_desc',
+  'stock_desc',
+  'stock_asc',
+  'created_desc',
+];
+const normalizeSort = (value: string | null, fallback: CatalogSort): CatalogSort =>
+  catalogSorts.includes(value as CatalogSort) ? (value as CatalogSort) : fallback;
 
 const toNullableNumber = (value: string | null) => {
   if (!value) return null;
@@ -56,7 +72,7 @@ export const CategoryPage = () => {
   const storageCapacity = searchParams.get('storageCapacity') ?? ALL;
   const memoryRam = searchParams.get('memoryRam') ?? ALL;
   const color = searchParams.get('color') ?? ALL;
-  const sort = searchParams.get('sort') ?? (search.trim() ? 'relevance' : 'release_year_desc');
+  const sort = normalizeSort(searchParams.get('sort'), search.trim() ? 'relevance' : 'release_year_desc');
   const minPrice = toNullableNumber(searchParams.get('minPrice'));
   const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
   const inStock = searchParams.get('inStock') === '1';
@@ -118,7 +134,7 @@ export const CategoryPage = () => {
     if (!slug) return;
     void fetchPublicCategory(slug)
       .then((result) => setData(result))
-      .catch((err: Error) => setError(err.message || 'Catégorie introuvable.'));
+      .catch((err: Error) => setError(err.message || "Cette catégorie n'est pas disponible pour le moment."))
   }, [slug]);
 
   useEffect(() => {
@@ -138,14 +154,14 @@ export const CategoryPage = () => {
       inStock,
       page,
       perPage,
-      sort: sort as any,
+      sort,
     })
       .then((result) => {
         setProducts(result.items);
         setMeta(result.meta);
         setFacets(result.facets);
       })
-      .catch((err: Error) => setError(err.message || 'Catégorie introuvable.'))
+      .catch((err: Error) => setError(err.message || "Les produits de cette catégorie n'ont pas pu être chargés."))
       .finally(() => setLoading(false));
   }, [brand, color, inStock, maxPrice, memoryRam, minPrice, page, search, slug, sort, storageCapacity]);
 
@@ -199,8 +215,8 @@ export const CategoryPage = () => {
           </nav>
         )}
 
-        {loading && <p>Chargement de la catégorie...</p>}
-        {error && <div className="register-form__alert">{error}</div>}
+        {loading && <LoadingState>Chargement des produits de cette catégorie...</LoadingState>}
+        {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
         {!loading && !error && data && (
           <>
@@ -209,10 +225,10 @@ export const CategoryPage = () => {
               <h1>{data.category.name}</h1>
               <div className="catalog-detail-metadata">
                 <span>{resultsSummary}</span>
-                <span>Actualisé le {new Date(data.category.updatedAt).toLocaleDateString()}</span>
+                <span>Actualisé le {formatOptionalFrenchDate(data.category.updatedAt)}</span>
               </div>
               {data.category.description && (
-                <p style={{ color: '#1e293b', maxWidth: 720 }}>{data.category.description}</p>
+                <p className="catalog-detail-description">{data.category.description}</p>
               )}
             </header>
 
@@ -237,7 +253,7 @@ export const CategoryPage = () => {
                   onChange={(next) => updateParam('sort', next)}
                   options={[
                     { value: search.trim() ? 'relevance' : 'release_year_desc', label: search.trim() ? 'Pertinence' : 'Plus récents' },
-                    { value: 'release_year_desc', label: 'Du plus récent au moins récent' },
+                    ...(search.trim() ? [{ value: 'release_year_desc' as const, label: 'Du plus récent au moins récent' }] : []),
                     { value: 'release_year_asc', label: 'Du moins récent au plus récent' },
                     { value: 'price_asc', label: 'Prix croissant' },
                     { value: 'price_desc', label: 'Prix décroissant' },
@@ -261,7 +277,7 @@ export const CategoryPage = () => {
             <section className="catalog-grid catalog-grid--products">
               {products.length === 0 ? (
                 <div className="catalog-empty-state">
-                  Aucun produit ne correspond à cette catégorie avec vos filtres.
+                  Aucun produit ne correspond à ces filtres dans cette catégorie. Essayez une autre marque, une autre capacité ou retirez le filtre stock.
                 </div>
               ) : (
                 products.map((product) => (

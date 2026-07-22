@@ -1,10 +1,11 @@
 ﻿import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { CalendarDays, ClipboardCheck, FileText, Search, ShoppingCart } from 'lucide-react';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
+import { AccountNotifications } from './AccountNotifications';
 import { UserAccountMenu } from './ui/user-account-menu';
 
 interface SiteHeaderProps {
@@ -20,6 +21,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
   const [search, setSearch] = useState('');
   const [servicesOpen, setServicesOpen] = useState(false);
   const servicesSummaryRef = useRef<HTMLElement | null>(null);
+  const searchId = useId();
 
   const handleLogout = () => {
     logout();
@@ -29,10 +31,10 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
   const isAuthenticated = status === 'authenticated' && Boolean(user);
   const isAdmin = (user?.roles ?? []).includes('ROLE_ADMIN');
 
-  const handleCatalogSearch = (event: FormEvent<HTMLFormElement>) => {
+  const handleGlobalSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = search.trim();
-    navigate(trimmed ? `/catalogue/recherche?q=${encodeURIComponent(trimmed)}` : '/catalogue/recherche');
+    navigate(trimmed ? `/recherche?q=${encodeURIComponent(trimmed)}` : '/recherche');
   };
 
   const closeServicesMenu = () => {
@@ -83,7 +85,6 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
       <div className="site-header__container">
         <Link to="/" className="site-header__brand">
           <img src="/logo.png" alt="Hociatec" className="site-header__brand-logo" width={180} height={180} />
-          <span className="site-header__brand-name">Hociatec</span>
         </Link>
         <nav className="site-header__nav" aria-label="Navigation principale">
           <Link
@@ -119,13 +120,26 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           >
             Services
           </Link>
+          <Link
+            to="/formations"
+            className={[
+              'site-header__link',
+              location.pathname === '/formations' || location.pathname.startsWith('/formations/')
+                ? 'site-header__link--active'
+                : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            Formations
+          </Link>
           <details
             className="site-header__service-menu"
             open={servicesOpen}
             onToggle={(event) => setServicesOpen(event.currentTarget.open)}
             onKeyDown={handleServicesKeyDown}
           >
-            <summary ref={servicesSummaryRef} className="site-header__service-trigger">Nos prestations</summary>
+            <summary ref={servicesSummaryRef} className="site-header__service-trigger">Prestations</summary>
             <div className="site-header__service-panel">
               <button type="button" onClick={() => navigateFromServices('/appointments/book')}>
                 <CalendarDays aria-hidden="true" />
@@ -144,14 +158,17 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
         </nav>
         <div className="site-header__actions">
           {showCatalogSearch && (
-            <form onSubmit={handleCatalogSearch} className="site-header__search" role="search" aria-label="Recherche catalogue">
+            <form onSubmit={handleGlobalSearch} className="site-header__search" role="search" aria-label="Recherche globale">
+              <label htmlFor={searchId} className="sr-only">
+                Rechercher un produit, un service ou une formation
+              </label>
               <Search aria-hidden="true" className="site-header__search-icon" />
               <input
+                id={searchId}
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Rechercher un produit, une marque..."
-                aria-label="Rechercher dans le catalogue"
+                placeholder="Produits, services, formations..."
               />
               <button type="submit" className="site-header__search-button">
                 <Search aria-hidden="true" />
@@ -161,7 +178,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           )}
           <button
             type="button"
-            className={linkClass('/panier')}
+            className={linkClass('/panier', 'site-header__cart-button')}
             onClick={() => navigate('/panier')}
             aria-label={`Mon panier (${cart?.totalQuantity ?? 0})`}
           >
@@ -181,6 +198,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
                   Admin
                 </Link>
               ) : null}
+              <AccountNotifications />
               <UserAccountMenu onLogout={handleLogout} profileActive={profileActive} />
             </>
           ) : (

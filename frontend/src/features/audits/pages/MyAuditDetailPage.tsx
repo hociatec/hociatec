@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto, type AuditListItemDto } from '../api';
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
@@ -17,7 +19,7 @@ export const MyAuditDetailPage = () => {
   useDocumentTitle('Détail de mon audit');
   const params = useParams();
   const id = Number(params.auditId);
-  const [data, setData] = useState<AuditDetailDto | null>(null);
+  const [data, setData] = useState<(AuditDetailDto & { events: AuditEventDto[] }) | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollTimer = useRef<number | null>(null);
@@ -59,22 +61,22 @@ export const MyAuditDetailPage = () => {
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
-        {loading && <p>Chargement…</p>}
-        {error && <div className="text-red-600">{error}</div>}
+        {loading && <LoadingState>Chargement de l'audit...</LoadingState>}
+        {error && <ErrorState>{error}</ErrorState>}
         {data && (
           <div className="space-y-4">
             <h1 className="text-2xl font-semibold">Audit {data.number}</h1>
             <div className="text-sm text-gray-700">Statut : {statusLabel(data.status)}</div>
             <div className="text-sm text-gray-700">Cible : {data.url}</div>
             <div className="flex gap-3">
-              <button className="underline text-blue-700" onClick={async () => {
+              <button className="underline text-brand-700" onClick={async () => {
                 try {
                   const blob = await clientDownloadAuditPdf(data.id);
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a'); a.href = url; a.download = `${data.number}-rapport.pdf`; a.click(); URL.revokeObjectURL(url);
                 } catch {}
               }}>Télécharger le PDF</button>
-              <button className="underline text-blue-700" onClick={async () => {
+              <button className="underline text-brand-700" onClick={async () => {
                 try {
                   const blob = await clientDownloadAuditSummaryPdf(data.id);
                   const url = URL.createObjectURL(blob);
@@ -104,13 +106,13 @@ export const MyAuditDetailPage = () => {
                 </div>
               ))}
             </div>
-            {Array.isArray((data as any).events) && (data as any).events.length > 0 && (
+            {data.events.length > 0 && (
               <div>
                 <div className="font-medium mb-2">Historique</div>
                 <ul className="space-y-1 text-sm text-gray-700">
-                  {((data as any).events as AuditEventDto[]).map((e) => (
+                  {data.events.map((e) => (
                     <li key={e.id}>
-                      <span className="text-gray-500">{new Date(e.createdAt).toLocaleString('fr-FR')} :</span> {e.message || e.type}
+                      <span className="text-gray-500">{formatOptionalFrenchDateTime(e.createdAt)} :</span> {e.message || e.type}
                     </li>
                   ))}
                 </ul>

@@ -11,9 +11,3 @@ export interface AuthUser {
   gender: string;
   roles: string[];
 }
-
-export interface AuthTokens {
-  token: string;
-  refreshToken: string;
-  refreshTokenExpiresAt?: string;
-}

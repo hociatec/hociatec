@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Contact\Controller;
 
+use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ class ContactController extends AbstractController
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
+        private readonly EmailTemplateRenderer $emailTemplates,
         #[Autowire(service: 'limiter.contact_public')]
         private readonly RateLimiterFactory $contactLimiter,
     ) {
@@ -72,17 +74,22 @@ class ContactController extends AbstractController
 
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
         $to = $_ENV['CONTACT_RECIPIENT'] ?? $from;
-        $contactBody =
-            "Nom : {$payload['name']}\n" .
-            "E-mail : {$payload['email']}\n" .
-            "Sujet : {$payload['subject']}\n\n" .
-            $payload['message'];
+        $contactContent = $this->emailTemplates->renderScenario('contact_admin_notification', [
+            'contact_name' => (string) $payload['name'],
+            'contact_email' => (string) $payload['email'],
+            'contact_subject' => (string) $payload['subject'],
+            'contact_message' => (string) $payload['message'],
+        ], [
+            'subject' => '[Contact] {{contact_subject}}',
+            'html' => '<p><strong>Nom :</strong> {{contact_name}}</p><p><strong>E-mail :</strong> {{contact_email}}</p><p><strong>Sujet :</strong> {{contact_subject}}</p><p><strong>Message :</strong></p><p>{{contact_message}}</p>',
+            'text' => "Nom : {{contact_name}}\nE-mail : {{contact_email}}\nSujet : {{contact_subject}}\n\n{{contact_message}}",
+        ]);
 
         try {
             $this->ovhRoundcubeMailer->send(
                 $to,
-                '[Contact] ' . $payload['subject'],
-                $contactBody,
+                $contactContent['subject'],
+                $contactContent['text'],
                 $payload['email']
             );
         } catch (\Throwable $e) {
@@ -93,13 +100,9 @@ class ContactController extends AbstractController
                     ->from(new Address($from, 'Hociatec'))
                     ->to(new Address($to, 'Hociatec Contact'))
                     ->replyTo(new Address($payload['email'], $payload['name']))
-                    ->subject('[Contact] ' . $payload['subject'])
-                    ->html(
-                        '<p><strong>Nom :</strong> ' . htmlspecialchars($payload['name']) . '</p>' .
-                        '<p><strong>E-mail :</strong> ' . htmlspecialchars($payload['email']) . '</p>' .
-                        '<p><strong>Message :</strong></p>' .
-                        '<p>' . nl2br(htmlspecialchars($payload['message'])) . '</p>'
-                    );
+                    ->subject($contactContent['subject'])
+                    ->html($contactContent['html'])
+                    ->text($contactContent['text']);
 
                 $this->mailer->send($email);
             } catch (\Throwable $fallbackException) {
@@ -113,17 +116,21 @@ class ContactController extends AbstractController
         }
 
         try {
-            $ackBody =
-                "Bonjour {$payload['name']},\n\n" .
-                "Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.\n\n" .
-                "Résumé de votre message :\n" .
-                $payload['message'] . "\n\n" .
-                "Cet e-mail est automatique, merci de ne pas y répondre.";
+            $ackContent = $this->emailTemplates->renderScenario('contact_acknowledgement', [
+                'contact_name' => (string) $payload['name'],
+                'contact_email' => (string) $payload['email'],
+                'contact_subject' => (string) $payload['subject'],
+                'contact_message' => (string) $payload['message'],
+            ], [
+                'subject' => 'Merci de nous avoir contactés',
+                'html' => '<p>Bonjour {{contact_name}},</p><p>Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.</p><p>Résumé de votre message :</p><blockquote style="border-left:4px solid #ddd;padding-left:8px;color:#444">{{contact_message}}</blockquote><p>Cet e-mail est automatique, merci de ne pas y répondre. Nous reviendrons vers vous dès que possible.</p>',
+                'text' => "Bonjour {{contact_name}},\n\nMerci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.\n\nRésumé de votre message :\n{{contact_message}}\n\nCet e-mail est automatique, merci de ne pas y répondre.",
+            ]);
 
             $this->ovhRoundcubeMailer->send(
                 $payload['email'],
-                'Merci de nous avoir contactés',
-                $ackBody
+                $ackContent['subject'],
+                $ackContent['text']
             );
         } catch (\Throwable $e) {
             $this->logger->warning('Contact acknowledgement send failed with OVH Roundcube primary transport', ['exception' => $e]);
@@ -132,16 +139,9 @@ class ContactController extends AbstractController
                 $ack = (new Email())
                     ->from(new Address($from, 'Hociatec'))
                     ->to(new Address($payload['email'], $payload['name']))
-                    ->subject('Merci de nous avoir contactés')
-                    ->html(
-                        '<p>Bonjour ' . htmlspecialchars($payload['name']) . ',</p>' .
-                        '<p>Merci de nous avoir contactés. Nous avons bien reçu votre demande et allons la traiter rapidement.</p>' .
-                        '<p>Résumé de votre message :</p>' .
-                        '<blockquote style="border-left:4px solid #ddd;padding-left:8px;color:#444">' .
-                        nl2br(htmlspecialchars($payload['message'])) .
-                        '</blockquote>' .
-                        '<p>Cet e-mail est automatique, merci de ne pas y répondre. Nous reviendrons vers vous dès que possible.</p>'
-                    );
+                    ->subject($ackContent['subject'])
+                    ->html($ackContent['html'])
+                    ->text($ackContent['text']);
                 $this->mailer->send($ack);
             } catch (\Throwable $fallbackException) {
                 $this->logger->warning('Contact acknowledgement send failed with SMTP fallback', ['exception' => $fallbackException]);

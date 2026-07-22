@@ -9,6 +9,7 @@ use App\Module\User\Entity\User;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Repository\ShippingAddressRepository;
+use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Shared\Http\OvhRoundcubeMailer;
 use DateTimeImmutable;
 use Symfony\Component\Mime\Email;
@@ -24,6 +25,7 @@ class RegisterUserService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly ShippingAddressRepository $addresses,
+        private readonly EmailTemplateRenderer $emailTemplates,
     ) {
     }
 
@@ -58,30 +60,34 @@ class RegisterUserService
         $verifyLink = rtrim($frontendUrl, '/') . '/activation/' . $token;
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
 
-        try {
-            $plainMessage =
-                "Bonjour {$user->getFirstName()},\n\n" .
-                "Merci pour votre inscription. Pour activer votre compte, ouvrez le lien ci-dessous dans les 24 heures :\n" .
-                $verifyLink . "\n\n" .
-                "Si vous n'etes pas a l'origine de cette demande, ignorez cet email.\n";
+        $content = $this->emailTemplates->renderScenario('user_account_activation', [
+            'first_name' => $user->getFirstName(),
+            'last_name' => $user->getLastName(),
+            'full_name' => $user->getFullName(),
+            'email' => $user->getEmail(),
+            'activation_url' => $verifyLink,
+            'activation_expires_in' => '24 heures',
+            'app_frontend_url' => rtrim((string) $frontendUrl, '/'),
+        ], [
+            'subject' => 'Activez votre compte Hociatec',
+            'html' => '<p>Bonjour {{first_name}},</p><p>Merci pour votre inscription. Pour activer votre compte, cliquez sur le lien ci-dessous, valide {{activation_expires_in}}.</p><p><a href="{{activation_url}}">Activer mon compte</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.</p>',
+            'text' => "Bonjour {{first_name}},\n\nMerci pour votre inscription. Pour activer votre compte, ouvrez le lien ci-dessous dans les {{activation_expires_in}} :\n{{activation_url}}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
+        ]);
 
+        try {
             $this->ovhRoundcubeMailer->send(
                 $user->getEmail(),
-                'Activez votre compte Hociatec',
-                $plainMessage
+                $content['subject'],
+                $content['text']
             );
         } catch (\Throwable) {
             try {
                 $email = (new Email())
                     ->from(new Address($from, 'Hociatec'))
                     ->to(new Address($user->getEmail(), $user->getFullName()))
-                    ->subject('Activez votre compte Hociatec')
-                    ->html(
-                        '<p>Bonjour ' . htmlspecialchars($user->getFirstName()) . ',</p>' .
-                        '<p>Merci pour votre inscription. Pour activer votre compte, cliquez sur le lien ci-dessous (valide 24h):</p>' .
-                        '<p><a href="' . htmlspecialchars($verifyLink) . '">Activer mon compte</a></p>' .
-                        '<p>Si vous n\'êtes pas à l\'origine de cette demande, ignorez cet email.</p>'
-                    );
+                    ->subject($content['subject'])
+                    ->html($content['html'])
+                    ->text($content['text']);
 
                 $this->mailer->send($email);
             } catch (\Throwable) {

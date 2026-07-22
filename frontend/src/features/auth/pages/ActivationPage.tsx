@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
+import { LoadingState } from '@/shared/components/ui/page-state';
 import { verifyAccount } from '../api/authApi';
 
 export const ActivationPage = () => {
@@ -37,12 +38,12 @@ export const ActivationPage = () => {
     <SiteLayout headerVariant="light">
       <div className="container mx-auto max-w-xl p-4">
         <h1 className="text-2xl font-semibold mb-3">Activation du compte</h1>
-        {status === 'loading' && <p>Vérification en cours…</p>}
+        {status === 'loading' && <LoadingState>Vérification en cours...</LoadingState>}
         {status !== 'loading' && (
           <>
             <p className={status === 'ok' ? 'text-green-700' : 'text-red-700'}>{message}</p>
             <div className="mt-4">
-              <Link className="text-blue-700 underline" to="/login">
+              <Link className="text-brand-700 underline" to="/login">
                 Aller à la connexion
               </Link>
             </div>
@@ -52,4 +53,3 @@ export const ActivationPage = () => {
     </SiteLayout>
   );
 };
-

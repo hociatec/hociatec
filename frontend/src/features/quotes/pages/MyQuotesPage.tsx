@@ -1,28 +1,20 @@
+import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { deleteMyQuote, fetchMyQuotes, formatQuoteStatus, generateMyQuotePdf } from '@/features/quotes/api';
+import { deleteMyQuote, fetchMyQuotes, formatQuoteStatus, generateMyQuotePdf, type QuoteDto } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
-
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents ?? 0) / 100);
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleDateString('fr-FR');
-};
+import { EmptyState, FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
+import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 export const MyQuotesPage = () => {
   useDocumentTitle('Mes devis');
 
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<QuoteDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -35,7 +27,7 @@ export const MyQuotesPage = () => {
     setError(null);
     void fetchMyQuotes()
       .then((rows) => setItems(rows))
-      .catch((e: any) => setError(e?.message ?? 'Impossible de charger vos devis.'))
+      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger vos devis.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,15 +37,15 @@ export const MyQuotesPage = () => {
       await deleteMyQuote(deletingId);
       setItems((list) => list.filter((q) => q.id !== deletingId));
       toast.show('Devis supprimé.', { variant: 'success' });
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Impossible de supprimer le devis.', { variant: 'error' });
+    } catch (e) {
+      toast.show(getHttpErrorMessage(e, 'Impossible de supprimer le devis.'), { variant: 'error' });
     } finally {
       setDeletingId(null);
       setConfirmOpen(false);
     }
   };
 
-  const handleDownload = async (quote: any) => {
+  const handleDownload = async (quote: QuoteDto) => {
     setDownloadingId(quote.id);
     try {
       const blob = await generateMyQuotePdf(quote.id);
@@ -65,8 +57,8 @@ export const MyQuotesPage = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Impossible de télécharger le devis.', { variant: 'error' });
+    } catch (e) {
+      toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
     } finally {
       setDownloadingId(null);
     }
@@ -74,15 +66,14 @@ export const MyQuotesPage = () => {
 
   return (
     <SiteLayout>
-      <PageContainer title="Mes devis">
-        {loading ? (
-          <p className="muted">Chargement...</p>
-        ) : error ? (
-          <div className="register-form__alert">{error}</div>
+      <PageContainer size="medium" title="Mes devis">
+        <StableContent loading={loading} hasContent={items.length > 0 || !loading} loadingLabel="Chargement...">
+        {error ? (
+          <FeedbackMessage>{error}</FeedbackMessage>
         ) : items.length === 0 ? (
-          <p className="muted">Aucun devis.</p>
+          <EmptyState>Aucun devis.</EmptyState>
         ) : (
-          <div className="overflow-x-auto">
+          <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -101,8 +92,8 @@ export const MyQuotesPage = () => {
                   <tr key={q.id}>
                     <td>{q.number}</td>
                     <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
-                    <td>{formatDate(q.createdAt)}</td>
-                    <td>{formatPrice(q?.totals?.ttc ?? 0)}</td>
+                    <td>{formatOptionalFrenchDate(q.createdAt)}</td>
+                    <td>{formatEuroCents(q?.totals?.ttc ?? 0)}</td>
                     <td>
                       <div className="catalog-admin-actions">
                         <Link to={`/quotes/me/${q.id}`} className="catalog-admin-actions__edit">
@@ -110,8 +101,7 @@ export const MyQuotesPage = () => {
                         </Link>
                         <button
                           type="button"
-                          className="register-form__submit"
-                          style={{ padding: '8px 12px', fontSize: '0.9rem' }}
+                          className="register-form__submit button-compact"
                           onClick={() => void handleDownload(q)}
                           disabled={isDownloading}
                         >
@@ -134,8 +124,9 @@ export const MyQuotesPage = () => {
               })}
             </tbody>
           </table>
-          </div>
+          </AdminTableShell>
         )}
+        </StableContent>
         <ConfirmDialog
           open={confirmOpen}
           title="Supprimer ce devis ?"

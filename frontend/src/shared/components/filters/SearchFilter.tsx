@@ -15,7 +15,7 @@ export const SearchFilter = ({ value, onChange, placeholder = 'Rechercher…', d
   const debounced = useDebounce(raw, debounceMs);
 
   useEffect(() => { setRaw(value); }, [value]);
-  useEffect(() => { if (debounced !== value) onChange(debounced); /* eslint-disable-line */ }, [debounced]);
+  useEffect(() => { if (debounced !== value) onChange(debounced); }, [debounced]);
 
   return (
     <div className={className ?? 'catalog-filter-bar__search'}>
@@ -30,4 +30,3 @@ export const SearchFilter = ({ value, onChange, placeholder = 'Rechercher…', d
     </div>
   );
 };
-

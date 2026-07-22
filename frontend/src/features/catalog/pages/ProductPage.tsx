@@ -10,35 +10,14 @@ import { ProductCartActions } from '@/features/cart/components/ProductCartAction
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { addFavorite, fetchFavorites, removeFavorite } from '@/features/favorites/api';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
+import { buildVariantGroupKey, formatProductDate, formatProductPrice } from '../utils/productPageDisplay';
+import { RatingStars } from '../components/RatingStars';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 import './CatalogPages.css';
-
-const formatPrice = (priceCents: number) =>
-  new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(priceCents / 100);
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-};
-
-const buildVariantGroupKey = (product: CatalogProduct) =>
-  product.variantGroup?.trim() ||
-  product.name.replace(/\s*\([^)]*\)\s*$/u, '').replace(/\s*\([^)]*\)\s*$/u, '').trim() ||
-  product.sku;
 
 export const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -252,8 +231,8 @@ export const ProductPage = () => {
     if (!product) return null;
 
     return {
-      created: formatDate(product.createdAt),
-      updated: formatDate(product.updatedAt),
+      created: formatProductDate(product.createdAt),
+      updated: formatProductDate(product.updatedAt),
     };
   }, [product]);
 
@@ -298,7 +277,7 @@ export const ProductPage = () => {
             subtitle,
             storage,
             color,
-            priceLabel: `${formatPrice(variant.priceCents)}${variant.sellingType === 'rental' ? ' / mois' : ''}`,
+            priceLabel: `${formatProductPrice(variant.priceCents)}${variant.sellingType === 'rental' ? ' / mois' : ''}`,
             stockLabel:
               variant.stock > 0
                 ? `${variant.stock} en stock`
@@ -395,19 +374,6 @@ export const ProductPage = () => {
     loadReviews(reviewsPage + 1, true);
   };
 
-  const RatingStars = ({ value, compact = false }: { value: number; compact?: boolean }) => (
-    <div
-      className={`catalog-review-stars${compact ? ' catalog-review-stars--compact' : ''}`}
-      aria-label={`${value.toFixed(1)} sur 5`}
-    >
-      {[1, 2, 3, 4, 5].map((index) => (
-        <span key={index} className={index <= Math.round(value) ? 'is-active' : ''}>
-          ★
-        </span>
-      ))}
-    </div>
-  );
-
   return (
     <SiteLayout headerVariant="light">
       <div className="catalog-detail-layout">
@@ -418,8 +384,8 @@ export const ProductPage = () => {
           Retour
         </Link>
 
-        {loading && <p>Chargement du produit...</p>}
-        {error && <div className="register-form__alert">{error}</div>}
+        {loading && <LoadingState>Chargement du produit...</LoadingState>}
+        {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
         {!loading && !error && product && (
           <>
@@ -504,7 +470,7 @@ export const ProductPage = () => {
                       className={`inline-flex items-center rounded-full border px-5 py-2 text-sm font-semibold transition ${
                         isFavorite
                           ? 'border-red-300 text-red-600 hover:border-red-400'
-                          : 'border-slate-300 text-slate-700 hover:border-slate-500'
+                          : 'border-brand-200 text-stone-700 hover:border-brand-600'
                       }`}
                       disabled={favoriteButtonDisabled}
                       onClick={isFavorite ? handleRemoveFavorite : handleAddFavorite}
@@ -520,7 +486,7 @@ export const ProductPage = () => {
                 ) : (
                   <Link
                     to="/login"
-                    className="text-sm font-semibold text-slate-600 underline hover:text-slate-800"
+                    className="text-sm font-semibold text-stone-600 underline hover:text-stone-800"
                   >
                     Connectez-vous pour ajouter aux favoris
                   </Link>
@@ -573,7 +539,7 @@ export const ProductPage = () => {
                   <div>
                     <dt>Prix public</dt>
                     <dd>
-                      {formatPrice(product.priceCents)}{product.sellingType === 'rental' ? ' / mois' : ''}
+                      {formatProductPrice(product.priceCents)}{product.sellingType === 'rental' ? ' / mois' : ''}
                     </dd>
                   </div>
                   <div>
@@ -663,8 +629,8 @@ export const ProductPage = () => {
                     </div>
                   </div>
                 </div>
-                {reviewsLoading && <p className="muted">Chargement des avis...</p>}
-                {reviewsError && <div className="register-form__alert">{reviewsError}</div>}
+                {reviewsLoading && <LoadingState>Chargement des avis...</LoadingState>}
+                {reviewsError && <FeedbackMessage>{reviewsError}</FeedbackMessage>}
                 {!reviewsLoading && reviews.length === 0 && (
                   <p className="muted">Pas encore d'avis pour ce produit.</p>
                 )}
@@ -676,7 +642,7 @@ export const ProductPage = () => {
                         <div>
                           <strong>{review.author.displayName}</strong>
                           <span className="muted">
-                            {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                            {formatOptionalFrenchDate(review.createdAt)}
                           </span>
                         </div>
                       </div>

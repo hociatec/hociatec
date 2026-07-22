@@ -7,10 +7,13 @@ const adminLinks = [
   { to: '/admin/orders', label: 'Commandes' },
   { to: '/admin/catalog/products', label: 'Catalogue' },
   { to: '/admin/customers', label: 'Clients' },
+  { to: '/admin/loyalty', label: 'Fidélité' },
   { to: '/admin/appointments/prestations', label: 'Rendez-vous' },
   { to: '/admin/quotes', label: 'Devis' },
+  { to: '/admin/trainings', label: 'Formations' },
   { to: '/admin/marketing', label: 'Marketing' },
   { to: '/admin/operations', label: 'Exploitation' },
+  { to: '/admin/backups', label: 'Sauvegardes' },
 ];
 
 export const AdminLayout = () => {

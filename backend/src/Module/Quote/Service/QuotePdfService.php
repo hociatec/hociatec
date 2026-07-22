@@ -21,10 +21,10 @@ class QuotePdfService
     public function render(Quote $quote, array $totals): string
     {
         $workspaceRoot = dirname(__DIR__, 5);
-        $pythonBinary = $workspaceRoot . '/.venv-weasy/bin/python';
+        $pythonBinary = $this->resolvePythonBinary($workspaceRoot);
         $rendererScript = dirname(__DIR__, 4) . '/bin/render_accessible_pdf.py';
 
-        if (!is_file($pythonBinary) || !is_file($rendererScript)) {
+        if ($pythonBinary === null || !is_file($rendererScript)) {
             throw new \RuntimeException('WeasyPrint n\'est pas installé pour la génération PDF accessible.');
         }
 
@@ -55,6 +55,27 @@ class QuotePdfService
         }
     }
 
+    private function resolvePythonBinary(string $workspaceRoot): ?string
+    {
+        $configured = $_ENV['WEASYPRINT_PYTHON'] ?? $_SERVER['WEASYPRINT_PYTHON'] ?? null;
+        $candidates = array_filter([
+            is_string($configured) && trim($configured) !== '' ? trim($configured) : null,
+            $workspaceRoot . '/.venv-weasy/bin/python',
+            $workspaceRoot . '/backend/.venv-weasy/bin/python',
+            '/usr/bin/python3',
+            '/usr/local/bin/python3',
+            'python3',
+        ]);
+
+        foreach ($candidates as $candidate) {
+            if (!str_contains($candidate, '/') || is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
     private function runRenderer(string $pythonBinary, string $rendererScript, string $htmlPath, string $pdfPath): void
     {
         $command = sprintf(
@@ -72,6 +93,8 @@ class QuotePdfService
                 2 => ['pipe', 'w'],
             ],
             $pipes,
+            null,
+            $this->buildRendererEnvironment(),
         );
 
         if (!is_resource($process)) {
@@ -88,6 +111,51 @@ class QuotePdfService
             $message = trim($stderr ?: $stdout);
             throw new \RuntimeException($message !== '' ? $message : 'La génération PDF accessible a échoué.');
         }
+    }
+
+    /**
+     * PHP-FPM runs with a minimal environment, so Python does not automatically
+     * load packages installed in the deployment user's site-packages directory.
+     *
+     * @return array<string, string>
+     */
+    private function buildRendererEnvironment(): array
+    {
+        $environment = [];
+        foreach ($_ENV as $key => $value) {
+            if (is_string($key) && is_scalar($value)) {
+                $environment[$key] = (string) $value;
+            }
+        }
+
+        foreach ($_SERVER as $key => $value) {
+            if (is_string($key) && is_scalar($value) && !array_key_exists($key, $environment)) {
+                $environment[$key] = (string) $value;
+            }
+        }
+
+        $pythonPaths = [];
+        $configuredPythonPath = $_ENV['WEASYPRINT_PYTHONPATH'] ?? $_SERVER['WEASYPRINT_PYTHONPATH'] ?? null;
+        if (is_string($configuredPythonPath) && trim($configuredPythonPath) !== '') {
+            $pythonPaths[] = trim($configuredPythonPath);
+        }
+
+        $deploymentUserSitePackages = '/home/hocine/.local/lib/python3.10/site-packages';
+        if (is_dir($deploymentUserSitePackages)) {
+            $pythonPaths[] = $deploymentUserSitePackages;
+            $environment['HOME'] = $environment['HOME'] ?? '/home/hocine';
+        }
+
+        $existingPythonPath = $environment['PYTHONPATH'] ?? null;
+        if (is_string($existingPythonPath) && trim($existingPythonPath) !== '') {
+            $pythonPaths[] = trim($existingPythonPath);
+        }
+
+        if ($pythonPaths !== []) {
+            $environment['PYTHONPATH'] = implode(PATH_SEPARATOR, array_values(array_unique($pythonPaths)));
+        }
+
+        return $environment;
     }
 
     private function buildHtml(Quote $quote, array $totals): string

@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 
-export type Voucher = {
+export type VoucherDto = {
   id: number;
   name: string;
   code: string;
@@ -14,6 +14,8 @@ export type Voucher = {
   updatedAt?: string;
 };
 
+export type Voucher = VoucherDto;
+
 export type VoucherPayload = {
   name: string;
   code: string;
@@ -25,23 +27,23 @@ export type VoucherPayload = {
   endsAt?: string | null;
 };
 
-export const fetchVouchers = async (): Promise<Voucher[]> => {
-  const { data } = await httpClient.get<{ data: { items: Voucher[] } }>('/api/admin/vouchers');
+export const fetchVouchers = async (): Promise<VoucherDto[]> => {
+  const { data } = await httpClient.get<{ data: { items: VoucherDto[] } }>('/api/admin/vouchers');
   return data.data.items;
 };
 
-export const fetchVoucher = async (voucherId: number): Promise<Voucher> => {
-  const { data } = await httpClient.get<{ data: { voucher: Voucher } }>(`/api/admin/vouchers/${voucherId}`);
+export const fetchVoucher = async (voucherId: number): Promise<VoucherDto> => {
+  const { data } = await httpClient.get<{ data: { voucher: VoucherDto } }>(`/api/admin/vouchers/${voucherId}`);
   return data.data.voucher;
 };
 
-export const createVoucher = async (payload: VoucherPayload): Promise<Voucher> => {
-  const { data } = await httpClient.post<{ data: { voucher: Voucher } }>('/api/admin/vouchers', payload);
+export const createVoucher = async (payload: VoucherPayload): Promise<VoucherDto> => {
+  const { data } = await httpClient.post<{ data: { voucher: VoucherDto } }>('/api/admin/vouchers', payload);
   return data.data.voucher;
 };
 
-export const updateVoucher = async (voucherId: number, payload: VoucherPayload): Promise<Voucher> => {
-  const { data } = await httpClient.put<{ data: { voucher: Voucher } }>(`/api/admin/vouchers/${voucherId}`, payload);
+export const updateVoucher = async (voucherId: number, payload: VoucherPayload): Promise<VoucherDto> => {
+  const { data } = await httpClient.put<{ data: { voucher: VoucherDto } }>(`/api/admin/vouchers/${voucherId}`, payload);
   return data.data.voucher;
 };
 

@@ -4,8 +4,10 @@ import { Link, useParams } from 'react-router-dom';
 import { fetchPublicQuoteService } from '@/features/quotes/api';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { formatEuroCents } from '@/shared/lib/formatters';
 
 type PublicService = {
   id: number;
@@ -18,9 +20,6 @@ type PublicService = {
   priceCents: number;
   vatRate?: number;
 };
-
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 export const ServiceDetailPage = () => {
   const params = useParams<{ serviceId: string }>();
@@ -59,40 +58,36 @@ export const ServiceDetailPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-12">
-        <Link to="/services" className="inline-flex w-fit items-center text-sm font-semibold text-sky-700 hover:text-sky-800">
+        <Link to="/services" className="inline-flex w-fit items-center text-sm font-semibold text-brand-700 hover:text-brand-900">
           Retour au catalogue
         </Link>
 
         {loading ? (
-          <div className="rounded-[2rem] border border-dashed border-slate-200 bg-white px-6 py-12 text-center text-slate-600">
-            Chargement du service...
-          </div>
+          <LoadingState>Chargement du service...</LoadingState>
         ) : error || !service ? (
-          <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-12 text-center text-red-700">
-            {error || 'Service introuvable.'}
-          </div>
+          <ErrorState>{error || 'Service introuvable.'}</ErrorState>
         ) : (
-          <article className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-            <span className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-sky-800">
+          <article className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
+            <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
               Service Hociatec
             </span>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">{service.title}</h1>
-            <p className="mt-5 text-base leading-7 text-slate-600">
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">{service.title}</h1>
+            <p className="mt-5 text-base leading-7 text-stone-600">
               {service.description?.trim() || 'Les informations détaillées de ce service seront précisées avec votre besoin.'}
             </p>
 
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Base tarifaire</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{formatPrice(service.priceCents)}</p>
+              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Base tarifaire</p>
+                <p className="mt-2 text-2xl font-semibold text-brand-900">{formatEuroCents(service.priceCents)}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Mode de facturation</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{service.unit?.trim() || 'Prix fixe'}</p>
+              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Mode de facturation</p>
+                <p className="mt-2 text-2xl font-semibold text-brand-900">{service.unit?.trim() || 'Prix fixe'}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Durée estimée</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{service.durationLabel || 'Sur étude'}</p>
+              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">Durée estimée</p>
+                <p className="mt-2 text-2xl font-semibold text-brand-900">{service.durationLabel || 'Sur étude'}</p>
               </div>
             </div>
           </article>

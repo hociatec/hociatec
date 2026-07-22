@@ -1,11 +1,12 @@
-import { createPortal } from 'react-dom';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Facebook, Mail } from 'lucide-react';
 
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { CatalogApiError, shareProductByEmail, type CatalogProduct } from '@/features/catalog/api';
 import { useToast } from '@/shared/components/ui/toast';
+import { Dialog, DialogBackdrop, DialogDescription, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import { SITE_URL } from '@/shared/config/seoConfig';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,15 +20,10 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
   const [shareEmail, setShareEmail] = useState('');
   const [shareFeedback, setShareFeedback] = useState<{ type: 'error' | 'info'; message: string } | null>(null);
   const [isShareSubmitting, setIsShareSubmitting] = useState(false);
-  const shareInputRef = useRef<HTMLInputElement | null>(null);
-  const shareTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const shareDialogTitleId = useId();
-  const shareDialogDescriptionId = useId();
   const { show } = useToast();
   const productDisplayName = getCatalogProductDisplayName(product);
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const absoluteUrl = `${origin}/catalogue/produits/${product.slug}`;
+  const absoluteUrl = `${SITE_URL}/catalogue/produits/${product.slug}`;
   const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(absoluteUrl)}`;
   const mailtoSubject = `Découvrir : ${productDisplayName}`;
   const mailtoBody = [
@@ -47,63 +43,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
   const closeShareDialog = () => {
     setIsShareDialogOpen(false);
     setShareFeedback(null);
-    window.requestAnimationFrame(() => {
-      shareTriggerRef.current?.focus();
-    });
   };
-
-  useEffect(() => {
-    if (!isShareDialogOpen) {
-      return;
-    }
-
-    shareInputRef.current?.focus();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeShareDialog();
-        return;
-      }
-
-      if (event.key !== 'Tab') {
-        return;
-      }
-
-      const container = document.getElementById(`product-share-dialog-${product.id}`);
-      if (!container) {
-        return;
-      }
-
-      const focusable = container.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
-      );
-
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isShareDialogOpen, product.id]);
 
   const handleShareSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -171,7 +111,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
         <button
           type="button"
           onClick={() => window.open(facebookShareUrl, '_blank', 'noopener,noreferrer')}
-          className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1 rounded-full border border-brand-100 px-3 py-1.5 text-sm text-stone-700 hover:bg-brand-50"
           title="Partager sur Facebook"
           aria-label="Partager sur Facebook"
         >
@@ -179,59 +119,42 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
           <span>Facebook</span>
         </button>
         <button
-          ref={shareTriggerRef}
           type="button"
           onClick={() => {
             setIsShareDialogOpen(true);
             setShareFeedback(null);
           }}
-          className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1 rounded-full border border-brand-100 px-3 py-1.5 text-sm text-stone-700 hover:bg-brand-50"
           title="Partager par e-mail"
           aria-label="Partager par e-mail"
           aria-haspopup="dialog"
-          aria-expanded={isShareDialogOpen}
         >
           <Mail size={16} />
           <span>Email</span>
         </button>
       </div>
-      {isShareDialogOpen &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) {
-                closeShareDialog();
-              }
-            }}
-          >
-            <section
-              id={`product-share-dialog-${product.id}`}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={shareDialogTitleId}
-              aria-describedby={shareDialogDescriptionId}
-              className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
-            >
+      <Dialog open={isShareDialogOpen} onClose={closeShareDialog} className="relative z-50">
+        <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
+        <div className="fixed inset-0 flex items-center justify-center px-4 py-6">
+          <DialogPanel className="w-full max-w-lg rounded-xl border border-brand-100 bg-white p-6 shadow-2xl">
               <header className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
                   Partage par e-mail
                 </p>
-                <h2 id={shareDialogTitleId} className="text-2xl font-bold text-slate-900">
+                <DialogTitle className="text-2xl font-bold text-brand-900">
                   Partager {productDisplayName}
-                </h2>
-                <p id={shareDialogDescriptionId} className="text-sm text-slate-600">
+                </DialogTitle>
+                <DialogDescription className="text-sm text-stone-600">
                   Renseignez une adresse e-mail. Le bouton envoyer transmettra le produit par e-mail.
-                </p>
+                </DialogDescription>
               </header>
 
               <form onSubmit={handleShareSubmit} className="mt-6 space-y-4" aria-busy={isShareSubmitting}>
                 <div className="space-y-2">
-                  <label htmlFor={`product-share-email-${product.id}`} className="block text-sm font-medium text-slate-800">
+                  <label htmlFor={`product-share-email-${product.id}`} className="block text-sm font-medium text-stone-800">
                     Adresse e-mail du destinataire
                   </label>
                   <input
-                    ref={shareInputRef}
                     id={`product-share-email-${product.id}`}
                     type="email"
                     inputMode="email"
@@ -242,20 +165,21 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
                       setShareFeedback(null);
                     }}
                     aria-invalid={shareFeedback?.type === 'error'}
-                    aria-describedby={`product-share-email-hint-${product.id} product-share-email-feedback-${product.id}`}
+                    aria-describedby={`product-share-hint-${product.id} product-share-feedback-${product.id}`}
                     placeholder="ami@exemple.com"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                     required
                     disabled={isShareSubmitting}
                   />
-                  <p id={`product-share-email-hint-${product.id}`} className="text-sm text-slate-500">
+                  <p id={`product-share-hint-${product.id}`} className="text-sm text-stone-600">
                     Le message sera prérempli avec le nom du produit et son lien direct.
                   </p>
                   <p
-                    id={`product-share-email-feedback-${product.id}`}
-                    role="status"
-                    aria-live="polite"
-                    className={`text-sm ${shareFeedback?.type === 'error' ? 'text-red-600' : 'text-emerald-700'}`}
+                    id={`product-share-feedback-${product.id}`}
+                    role={shareFeedback?.type === 'error' ? 'alert' : 'status'}
+                    aria-live={shareFeedback?.type === 'error' ? 'assertive' : 'polite'}
+                    aria-atomic="true"
+                    className={`text-sm ${shareFeedback?.type === 'error' ? 'text-red-700' : 'text-emerald-800'}`}
                   >
                     {shareFeedback?.message ?? ''}
                   </p>
@@ -266,23 +190,22 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
                     type="button"
                     onClick={closeShareDialog}
                     disabled={isShareSubmitting}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                    className="inline-flex items-center justify-center rounded-lg border border-brand-100 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
                     disabled={isShareSubmitting}
-                    className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100"
                   >
                     {isShareSubmitting ? 'Envoi en cours...' : 'Envoyer par e-mail'}
                   </button>
                 </div>
               </form>
-            </section>
-          </div>,
-          document.body,
-        )}
+          </DialogPanel>
+        </div>
+      </Dialog>
     </>
   );
 };

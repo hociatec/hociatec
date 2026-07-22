@@ -1,7 +1,7 @@
 import { httpClient } from '../../../shared/lib/httpClient';
 import axios from 'axios';
 import type { ApiResponse } from '../../../shared/types/api';
-import type { AuthTokens, AuthUser } from '../../../shared/types/auth';
+import type { AuthUser } from '../../../shared/types/auth';
 
 export interface RegisterPayload {
   email: string;
@@ -21,6 +21,11 @@ export interface LoginPayload {
 
 export interface LoginFormPayload extends LoginPayload {
   rememberMe?: boolean;
+}
+
+export interface AuthSession {
+  authenticated: boolean;
+  refreshTokenExpiresAt?: string;
 }
 
 export interface PasswordResetPayload {
@@ -65,16 +70,25 @@ export const registerUser = async (payload: RegisterPayload) => {
 
 export const loginUser = async (payload: LoginPayload) => {
   try {
-    const { data } = await httpClient.post<ApiResponse<AuthTokens>>('/api/auth/login', payload);
+    const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/login', payload);
     return unwrapResponse(data);
   } catch (error) {
     return rethrowApiError(error);
   }
 };
 
-export const refreshUserSession = async (refreshToken: string) => {
+export const refreshUserSession = async () => {
   try {
-    const { data } = await httpClient.post<ApiResponse<AuthTokens>>('/api/auth/refresh', { refreshToken });
+    const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/refresh');
+    return unwrapResponse(data);
+  } catch (error) {
+    return rethrowApiError(error);
+  }
+};
+
+export const logoutUser = async () => {
+  try {
+    const { data } = await httpClient.post<ApiResponse<{ message: string }>>('/api/auth/logout');
     return unwrapResponse(data);
   } catch (error) {
     return rethrowApiError(error);

@@ -1,13 +1,15 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
 import type { Prestation } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-
-const formatPrice = (priceCents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(priceCents / 100);
+import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Prestations de rendez-vous');
@@ -16,6 +18,7 @@ export const PrestationsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const loadPrestations = async () => {
     setLoading(true);
@@ -24,8 +27,8 @@ export const PrestationsListPage = () => {
     try {
       const items = await fetchAdminPrestations();
       setPrestations(items);
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors du chargement des prestations');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Erreur lors du chargement des prestations'));
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,14 @@ export const PrestationsListPage = () => {
     const prestation = prestations.find((item) => item.id === prestationId);
     const prestationLabel = prestation ? `"${prestation.name}"` : 'cette prestation';
 
-    if (!window.confirm(`Supprimer ${prestationLabel} ?`)) {
+    const confirmed = await confirm({
+      title: 'Supprimer la prestation',
+      description: `Supprimer ${prestationLabel} ?`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -50,31 +60,28 @@ export const PrestationsListPage = () => {
       await deletePrestation(prestationId);
       await loadPrestations();
       setMessage('Prestation supprimée.');
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de supprimer la prestation');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Impossible de supprimer la prestation'));
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Prestations de rendez-vous"
       headerActions={
-        <Link
-          to="/admin/appointments/prestations/new"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <PrimaryLink to="/admin/appointments/prestations/new">
           Ajouter une prestation
-        </Link>
+        </PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {prestations.length} prestation{prestations.length > 1 ? 's' : ''} au catalogue.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Ces prestations sont utilisées uniquement pour la prise de rendez-vous et la planification des interventions.
         </p>
-        <p className="text-sm text-sky-700">
+        <p className="text-sm text-brand-700">
           Pour le catalogue de services global, utilisez{' '}
           <Link to="/admin/services" className="font-semibold underline">
             Services
@@ -83,23 +90,16 @@ export const PrestationsListPage = () => {
         </p>
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des prestations...
-        </div>
-      ) : prestations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune prestation enregistrée.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={prestations.length === 0}
+        loadingLabel="Chargement des prestations..."
+        emptyLabel="Aucune prestation enregistrée."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -114,7 +114,7 @@ export const PrestationsListPage = () => {
                 <tr key={prestation.id}>
                   <th scope="row">{prestation.name}</th>
                   <td>{prestation.durationMinutes} min</td>
-                  <td>{formatPrice(prestation.priceCents)}</td>
+                  <td>{formatEuroCents(prestation.priceCents)}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
@@ -138,8 +138,8 @@ export const PrestationsListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

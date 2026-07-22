@@ -6,6 +6,7 @@ import {
   type CatalogProduct,
   type CatalogSearchFacets,
   type CatalogSearchMeta,
+  type CatalogSort,
 } from '../api';
 import { ProductActionToolbar } from '../components/ProductActionToolbar';
 import { ProductCard } from '../components/ProductCard';
@@ -18,6 +19,7 @@ import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { NumberRangeFilter } from '@/shared/components/filters/NumberRangeFilter';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 
 import './CatalogPages.css';
 
@@ -27,6 +29,19 @@ interface SellingTypePageProps {
 }
 
 const ALL = 'all';
+const catalogSorts: CatalogSort[] = [
+  'relevance',
+  'price_asc',
+  'price_desc',
+  'release_year_desc',
+  'release_year_asc',
+  'name_desc',
+  'stock_desc',
+  'stock_asc',
+  'created_desc',
+];
+const normalizeSort = (value: string | null, fallback: CatalogSort): CatalogSort =>
+  catalogSorts.includes(value as CatalogSort) ? (value as CatalogSort) : fallback;
 
 const toNullableNumber = (value: string | null) => {
   if (!value) return null;
@@ -57,7 +72,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
   const storageCapacity = normalizeParam(searchParams.get('storageCapacity'));
   const memoryRam = normalizeParam(searchParams.get('memoryRam'));
   const color = normalizeParam(searchParams.get('color'));
-  const sort = searchParams.get('sort') ?? (search.trim() ? 'relevance' : 'release_year_desc');
+  const sort = normalizeSort(searchParams.get('sort'), search.trim() ? 'relevance' : 'release_year_desc');
   const minPrice = toNullableNumber(searchParams.get('minPrice'));
   const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
   const inStock = searchParams.get('inStock') === '1';
@@ -68,8 +83,8 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
   const canonicalUrl = `${SITE_URL}/catalogue/${sellingType === 'rental' ? 'location' : 'vente'}`;
   const pageDescription =
     sellingType === 'rental'
-      ? 'Location de matériel informatique flexible et prête à l’emploi.'
-      : 'Vente de matériel informatique sélectionné pour vos besoins.';
+      ? 'Louez du matériel informatique prêt à l’emploi, avec une durée adaptée à votre besoin.'
+      : 'Achetez du matériel informatique sélectionné, vérifié et prêt à être commandé.';
   const resultsSummary = search.trim()
     ? `${meta.total} produit${meta.total > 1 ? 's' : ''} pour « ${search.trim()} »`
     : `${meta.total} produit${meta.total > 1 ? 's' : ''} disponibles`;
@@ -109,14 +124,14 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
       inStock,
       page,
       perPage,
-      sort: sort as any,
+      sort,
     })
       .then((result) => {
         setProducts(result.items);
         setMeta(result.meta);
         setFacets(result.facets);
       })
-      .catch((err: Error) => setError(err.message || 'Impossible de charger les produits.'))
+      .catch((err: Error) => setError(err.message || "Les produits n'ont pas pu être chargés. Modifiez vos filtres ou réessayez."))
       .finally(() => setLoading(false));
   }, [brand, category, color, inStock, maxPrice, memoryRam, minPrice, page, search, sellingType, sort, storageCapacity]);
 
@@ -217,7 +232,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
               onChange={(next) => updateParam('sort', next)}
               options={[
                 { value: search.trim() ? 'relevance' : 'release_year_desc', label: search.trim() ? 'Pertinence' : 'Plus récents' },
-                { value: 'release_year_desc', label: 'Du plus récent au moins récent' },
+                ...(search.trim() ? [{ value: 'release_year_desc' as const, label: 'Du plus récent au moins récent' }] : []),
                 { value: 'release_year_asc', label: 'Du moins récent au plus récent' },
                 { value: 'price_asc', label: 'Prix croissant' },
                 { value: 'price_desc', label: 'Prix décroissant' },
@@ -238,15 +253,15 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
           )}
         </section>
 
-        {loading && <p>Chargement des produits...</p>}
-        {error && <div className="register-form__alert">{error}</div>}
+        {loading && <LoadingState>Chargement des produits disponibles...</LoadingState>}
+        {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
         {!loading && !error && (
           <>
             <section className="catalog-grid catalog-grid--products">
               {products.length === 0 ? (
                 <div className="catalog-empty-state">
-                  Aucun produit ne correspond à vos filtres.
+                  Aucun produit ne correspond à ces filtres. Retirez un critère ou consultez les autres catégories du catalogue.
                 </div>
               ) : (
                 products.map((product) => (

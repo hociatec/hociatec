@@ -1,9 +1,17 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { deleteMarketingTemplate, fetchMarketingSegments, fetchMarketingTemplates, type MarketingSegmentDefinition, type MarketingTemplate } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { FilterBar } from '@/shared/components/filters/FilterBar';
+import { SearchFilter } from '@/shared/components/filters/SearchFilter';
+import { SelectFilter } from '@/shared/components/filters/SelectFilter';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 export const MarketingTemplatesListPage = () => {
   const location = useLocation();
@@ -18,6 +26,7 @@ export const MarketingTemplatesListPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     setLoading(true);
@@ -27,7 +36,7 @@ export const MarketingTemplatesListPage = () => {
         setTemplates(templatesList);
         setSegments(segmentsList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger les modèles.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger les modèles.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -55,112 +64,113 @@ export const MarketingTemplatesListPage = () => {
     });
   }, [query, scenarioFilter, statusFilter, templates, usageFilter, segments]);
 
+  const scenarioOptions = useMemo(
+    () => [
+      { value: 'all', label: 'Tous les scénarios' },
+      ...Object.entries(segments).map(([key, segment]) => ({ value: key, label: segment.label })),
+    ],
+    [segments],
+  );
+
   const handleDelete = async (templateId: number) => {
-    if (!window.confirm('Supprimer ce modèle ?')) return;
+    const confirmed = await confirm({
+      title: 'Supprimer le modèle',
+      description: 'Supprimer ce modèle ?',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) return;
     setError(null);
     setMessage(null);
     try {
       await deleteMarketingTemplate(templateId);
       setTemplates((prev) => prev.filter((item) => item.id !== templateId));
       setMessage('Modèle supprimé.');
-    } catch (err: any) {
-      setError(err?.message ?? 'Suppression impossible.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Suppression impossible.'));
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isTransactionalView ? 'E-mails transactionnels' : 'Modèles d’e-mail'}
       headerActions={
         <div className="flex flex-wrap gap-3">
           {isTransactionalView ? (
             <Link
               to="/admin"
-              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+              className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
             >
               Retour au dashboard
             </Link>
           ) : (
             <Link
               to="/admin/marketing"
-              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+              className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
             >
               Retour aux campagnes
             </Link>
           )}
-          <Link
-            to={isTransactionalView ? '/admin/transactional-emails/new' : '/admin/marketing/templates/new'}
-            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
+          <PrimaryLink to={isTransactionalView ? '/admin/transactional-emails/new' : '/admin/marketing/templates/new'}>
             Nouveau modèle
-          </Link>
+          </PrimaryLink>
         </div>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {templates.length} modèle{templates.length > 1 ? 's' : ''} enregistré{templates.length > 1 ? 's' : ''}.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           {isTransactionalView
-            ? 'Gérez ici les e-mails automatiques envoyés pour les commandes et les factures.'
+            ? 'Gérez ici les e-mails automatiques envoyés par le site: comptes, commandes, devis, contact, bons et partage produit.'
             : 'Filtrez votre bibliothèque par usage métier, statut ou recherche libre pour retrouver rapidement le bon message.'}
         </p>
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      <div className="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-4">
-        <label className="register-form__field">
-          <span className="register-form__label">Recherche</span>
-          <input className="register-form__input" placeholder="Nom, slug ou objet..." value={query} onChange={(event) => setQuery(event.target.value)} />
-        </label>
+      <FilterBar className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
+        <SearchFilter
+          value={query}
+          onChange={setQuery}
+          placeholder="Nom, slug ou objet..."
+          className="catalog-filter-bar__search"
+        />
         {!isTransactionalView ? (
-          <label className="register-form__field">
-            <span className="register-form__label">Usage</span>
-            <select className="register-form__input" value={usageFilter} onChange={(event) => setUsageFilter(event.target.value)}>
-              <option value="all">Tous</option>
-              <option value="transactional">Transactionnels</option>
-              <option value="campaign">Marketing</option>
-            </select>
-          </label>
+          <SelectFilter
+            ariaLabel="Filtrer par usage"
+            value={usageFilter}
+            onChange={setUsageFilter}
+            options={[
+              { value: 'all', label: 'Tous' },
+              { value: 'transactional', label: 'Transactionnels' },
+              { value: 'campaign', label: 'Marketing' },
+            ]}
+          />
         ) : null}
-        <label className="register-form__field">
-          <span className="register-form__label">Scénario</span>
-          <select className="register-form__input" value={scenarioFilter} onChange={(event) => setScenarioFilter(event.target.value)}>
-            <option value="all">Tous les scénarios</option>
-            {Object.entries(segments).map(([key, segment]) => (
-              <option key={key} value={key}>
-                {segment.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="register-form__field">
-          <span className="register-form__label">Statut</span>
-          <select className="register-form__input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="all">Tous</option>
-            <option value="active">Actifs</option>
-            <option value="inactive">Désactivés</option>
-          </select>
-        </label>
-      </div>
+        <SelectFilter ariaLabel="Filtrer par scénario" value={scenarioFilter} onChange={setScenarioFilter} options={scenarioOptions} />
+        <SelectFilter
+          ariaLabel="Filtrer par statut"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: 'Tous' },
+            { value: 'active', label: 'Actifs' },
+            { value: 'inactive', label: 'Désactivés' },
+          ]}
+        />
+      </FilterBar>
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des modèles...
-        </div>
-      ) : filteredTemplates.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucun modèle ne correspond aux filtres actuels.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={filteredTemplates.length === 0}
+        loadingLabel="Chargement des modèles..."
+        emptyLabel="Aucun modèle ne correspond aux filtres actuels."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -185,7 +195,7 @@ export const MarketingTemplatesListPage = () => {
                   </td>
                   <td>{template.slug}</td>
                   <td>{template.isActive ? 'Actif' : 'Désactivé'}</td>
-                  <td>{template.updatedAt ? new Date(template.updatedAt).toLocaleDateString('fr-FR') : '-'}</td>
+                  <td>{formatOptionalFrenchDate(template.updatedAt)}</td>
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
@@ -216,8 +226,8 @@ export const MarketingTemplatesListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

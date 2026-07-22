@@ -1,19 +1,25 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deletePromotion, fetchPromotionAudiences, fetchPromotions, type Promotion } from '@/features/admin/promotions/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 const formatDiscount = (promotion: Promotion) =>
   promotion.discountType === 'percent'
     ? `${promotion.discountValue}%`
-    : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(promotion.discountValue / 100);
+    : formatEuroCents(promotion.discountValue);
 
 export const PromotionsListPage = () => {
   useDocumentTitle('Admin - Promotions');
   const toast = useToast();
+  const confirm = useConfirm();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [audiences, setAudiences] = useState<Record<string, { label: string; description: string }>>({});
   const [query, setQuery] = useState('');
@@ -29,7 +35,7 @@ export const PromotionsListPage = () => {
         setPromotions(promotionsList);
         setAudiences(audienceList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger les promotions.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger les promotions.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,44 +58,48 @@ export const PromotionsListPage = () => {
     const promotion = promotions.find((item) => item.id === promotionId);
     const promotionLabel = promotion ? `"${promotion.name}" (${promotion.slug})` : 'cette promotion';
 
-    if (!window.confirm(`Supprimer ${promotionLabel} ?`)) return;
+    const confirmed = await confirm({
+      title: 'Supprimer la promotion',
+      description: `Supprimer ${promotionLabel} ?`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) return;
     try {
       await deletePromotion(promotionId);
       setPromotions((prev) => prev.filter((item) => item.id !== promotionId));
       toast.show('Promotion supprimée.', { variant: 'success' });
-    } catch (err: any) {
-      const message = err?.message ?? 'Suppression impossible.';
+    } catch (err) {
+      const message = getHttpErrorMessage(err, 'Suppression impossible.');
       setError(message);
       toast.show(message, { variant: 'error' });
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Promotions"
       headerActions={
         <div className="flex gap-3">
-          <Link
-            to="/admin/promotions/new"
-            className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
+          <PrimaryLink to="/admin/promotions/new">
             Nouvelle promotion
-          </Link>
+          </PrimaryLink>
         </div>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           Créez des remises automatiques.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           La meilleure promotion éligible est appliquée automatiquement dans le panier.
         </p>
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
-      <div className="mb-6 grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-2">
+      <div className="mb-6 grid gap-4 rounded-xl border border-brand-100 bg-white p-5 shadow-sm md:grid-cols-2">
         <label className="register-form__field">
           <span className="register-form__label">Recherche</span>
           <input className="register-form__input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom ou slug..." />
@@ -104,16 +114,13 @@ export const PromotionsListPage = () => {
         </label>
       </div>
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement...
-        </div>
-      ) : filteredPromotions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune promotion.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={filteredPromotions.length === 0}
+        loadingLabel="Chargement..."
+        emptyLabel="Aucune promotion."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -136,9 +143,9 @@ export const PromotionsListPage = () => {
                   <td>{audiences[promotion.audienceKey]?.label ?? promotion.audienceKey}</td>
                   <td>{promotion.isActive ? 'Active' : 'Inactive'}</td>
                   <td>
-                    {promotion.startsAt ? new Date(promotion.startsAt).toLocaleDateString('fr-FR') : 'Immédiat'}
+                    {promotion.startsAt ? formatOptionalFrenchDate(promotion.startsAt) : 'Immédiat'}
                     {' - '}
-                    {promotion.endsAt ? new Date(promotion.endsAt).toLocaleDateString('fr-FR') : 'Sans fin'}
+                    {promotion.endsAt ? formatOptionalFrenchDate(promotion.endsAt) : 'Sans fin'}
                   </td>
                   <td>
                     <div className="catalog-admin-actions">
@@ -163,8 +170,8 @@ export const PromotionsListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

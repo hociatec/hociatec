@@ -6,23 +6,23 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0f172a',
+          50: '#fff8ed',
+          100: '#fff1d8',
+          200: '#f7d8a8',
+          300: '#f6bd6a',
+          400: '#f39a20',
+          500: '#ef6b3a',
+          600: '#c9521f',
+          700: '#a94f16',
+          800: '#5a3320',
+          900: '#12110f',
         },
       },
       boxShadow: {
-        elevated: '0 20px 45px rgba(15, 23, 42, 0.22)',
+        elevated: '0 20px 45px rgba(61, 51, 40, 0.18)',
       },
       fontFamily: {
-        sans: ['"Segoe UI"', 'system-ui', 'sans-serif'],
+        sans: ['"Aptos"', '"Segoe UI"', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
         '8xl': '88rem',

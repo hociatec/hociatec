@@ -186,7 +186,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 ? 'flex flex-col items-center gap-3 w-full'
                 : 'fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3'
             }
-            style={target ? undefined : {}}
           >
             {toasts.map((t) => (
               <div
@@ -198,7 +197,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   'min-w-[320px] max-w-[92vw] rounded-xl border shadow-xl px-5 py-4 text-sm flex items-start gap-3 pointer-events-auto',
                   t.variant === 'success' ? 'bg-green-50 border-green-300 text-green-900' : '',
                   t.variant === 'error' ? 'bg-red-50 border-red-300 text-red-900' : '',
-                  t.variant === 'info' ? 'bg-slate-50 border-slate-300 text-slate-900' : '',
+                  t.variant === 'info' ? 'bg-brand-50 border-brand-200 text-brand-900' : '',
                 ]
                   .filter(Boolean)
                   .join(' ')}
@@ -208,7 +207,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     'mt-1 h-2.5 w-2.5 rounded-full',
                     t.variant === 'success' ? 'bg-green-600' : '',
                     t.variant === 'error' ? 'bg-red-600' : '',
-                    t.variant === 'info' ? 'bg-slate-500' : '',
+                    t.variant === 'info' ? 'bg-brand-600' : '',
                   ]
                     .filter(Boolean)
                     .join(' ')}

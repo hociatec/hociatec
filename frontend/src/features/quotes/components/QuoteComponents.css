@@ -1,0 +1,176 @@
+.quote-selection-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 1rem;
+  background: #f8fafc;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.quote-selection-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.quote-selection-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.quote-selection-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.quote-selection-card__title-area {
+  min-width: 0;
+}
+
+.quote-selection-card__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quote-selection-card__title {
+  margin: 0;
+  color: #020617;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.quote-selection-card__badge {
+  border-radius: 999px;
+  background: #f1f5f9;
+  padding: 0.25rem 0.625rem;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.quote-selection-card__meta {
+  margin: 0.25rem 0 0;
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.quote-selection-card__subtotal {
+  text-align: left;
+}
+
+.quote-selection-card__subtotal-label {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quote-selection-card__subtotal-value {
+  margin: 0.25rem 0 0;
+  color: #020617;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.quote-selection-card__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.quote-selection-card__steppers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quote-selection-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quote-selection-stepper__label {
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.quote-selection-stepper__button,
+.quote-selection-stepper__input {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #334155;
+  text-align: center;
+}
+
+.quote-selection-stepper__button {
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.quote-selection-stepper__button:hover {
+  border-color: #64748b;
+  background: #f8fafc;
+}
+
+.quote-selection-stepper__unit {
+  color: #475569;
+  font-size: 0.875rem;
+}
+
+.quote-selection-card__remove {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  padding: 0 1rem;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.quote-selection-card__remove:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+@media (min-width: 640px) {
+  .quote-selection-card__controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 1024px) {
+  .quote-selection-card__header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .quote-selection-card__subtotal {
+    text-align: right;
+  }
+}

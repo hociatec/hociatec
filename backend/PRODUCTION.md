@@ -35,6 +35,7 @@ Production hardening checklist (Hociatec)
 - Activer HSTS côté proxy (ex: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload).
 - Vérifier que `/api/*` renvoie les en-têtes de sécurité: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`.
 - Servir aussi le frontend avec des en-têtes de sécurité. Le fichier `frontend/public/_headers` fournit une base compatible avec les hébergeurs statiques qui le supportent. Si Nginx/Apache sert le frontend, reporter ces mêmes valeurs dans la configuration du virtual host.
+- Pour Nginx, inclure `deploy/nginx/frontend-security-headers.conf` dans le server block HTTPS qui sert `frontend/dist`, puis vérifier avec `curl -I https://hociatec.fr/` que `Content-Security-Policy` et `Strict-Transport-Security` sont présents sur la réponse HTML.
 - Vérifier que la CSP frontend autorise seulement les origines nécessaires: site, API `https://api.hociatec.fr`, images, et Stripe Checkout si le paiement redirigé est actif.
 
 5) Base de données
@@ -43,6 +44,10 @@ Production hardening checklist (Hociatec)
 
 6) CORS
 - Définir CORS_ALLOW_ORIGIN sur votre domaine exact (regex), pas de joker global.
+- Pour Hociatec, la valeur attendue est `^https://(www\.)?hociatec\.fr$`.
+- L'authentification utilise des cookies `HttpOnly`; conserver `allow_credentials: true` et vérifier que le reverse proxy renvoie un `Access-Control-Allow-Origin` explicite, jamais `*`.
+- Après déploiement, vérifier que `Access-Control-Allow-Headers` ne contient plus `authorization` lorsque l'authentification par cookies HttpOnly est active.
+- Vérifier dans le navigateur que les cookies `hociatec_access` et `hociatec_refresh` sont `HttpOnly`, `Secure` en production, `SameSite=Lax`, et limités aux chemins `/api` et `/api/auth`.
 
 7) Emails
 - Configurer MAILER_DSN avec un SMTP professionnel (SPF/DKIM/DMARC configurés dans DNS).

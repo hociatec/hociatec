@@ -1,9 +1,13 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const BrandsListPage = () => {
@@ -14,6 +18,7 @@ export const BrandsListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const confirm = useConfirm();
 
   const loadBrands = async () => {
     setLoading(true);
@@ -22,8 +27,8 @@ export const BrandsListPage = () => {
     try {
       const items = await fetchAdminBrands();
       setBrands(items);
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de charger les marques.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Impossible de charger les marques.'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +39,14 @@ export const BrandsListPage = () => {
   }, []);
 
   const handleDelete = async (brand: CatalogBrand) => {
-    if (!window.confirm(`Supprimer la marque "${brand.name}" ? Les produits liés perdront cette marque.`)) {
+    const confirmed = await confirm({
+      title: 'Supprimer la marque',
+      description: `Supprimer la marque "${brand.name}" ? Les produits liés perdront cette marque.`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -45,8 +57,8 @@ export const BrandsListPage = () => {
       await deleteBrand(brand.id);
       await loadBrands();
       setMessage('Marque supprimée.');
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de supprimer la marque.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Impossible de supprimer la marque.'));
     }
   };
 
@@ -61,23 +73,20 @@ export const BrandsListPage = () => {
   }, [brands, search]);
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Marques"
       headerActions={
-        <Link
-          to="/admin/catalog/brands/new"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <PrimaryLink to="/admin/catalog/brands/new">
           Ajouter une marque
-        </Link>
+        </PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {filteredBrands.length} marque{filteredBrands.length > 1 ? 's' : ''} affichée
           {filteredBrands.length > 1 ? 's' : ''}
         </p>
-        <p className="text-sm text-slate-500">Recherchez une marque existante et gérez son libellé.</p>
+        <p className="text-sm text-stone-500">Recherchez une marque existante et gérez son libellé.</p>
       </div>
 
       <div className="mb-6 max-w-sm">
@@ -88,23 +97,16 @@ export const BrandsListPage = () => {
         />
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des marques...
-        </div>
-      ) : filteredBrands.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune marque ne correspond à votre recherche.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={filteredBrands.length === 0}
+        loadingLabel="Chargement des marques..."
+        emptyLabel="Aucune marque ne correspond à votre recherche."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -143,8 +145,8 @@ export const BrandsListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

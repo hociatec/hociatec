@@ -1,37 +1,19 @@
+import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { acceptMyQuote, fetchMyQuote, formatQuoteStatus, generateMyQuotePdf, refuseMyQuote } from '@/features/quotes/api';
+import { acceptMyQuote, fetchMyQuote, formatQuoteStatus, generateMyQuotePdf, refuseMyQuote, type QuoteDto } from '@/features/quotes/api';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
-
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents ?? 0) / 100);
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleString('fr-FR');
-};
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleDateString('fr-FR');
-};
+import { formatDateInputForDisplay, formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 export const MyQuoteDetailPage = () => {
   const { quoteId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const [quote, setQuote] = useState<any | null>(null);
+  const [quote, setQuote] = useState<QuoteDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -53,7 +35,7 @@ export const MyQuoteDetailPage = () => {
 
     void fetchMyQuote(id)
       .then((result) => setQuote(result))
-      .catch((e: any) => setError(e?.message ?? 'Impossible de charger ce devis.'))
+      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger ce devis.')))
       .finally(() => setLoading(false));
   }, [quoteId]);
 
@@ -71,8 +53,8 @@ export const MyQuoteDetailPage = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Impossible de télécharger le devis.', { variant: 'error' });
+    } catch (e) {
+      toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
     } finally {
       setDownloading(false);
     }
@@ -86,8 +68,8 @@ export const MyQuoteDetailPage = () => {
       const updated = action === 'accept' ? await acceptMyQuote(quote.id) : await refuseMyQuote(quote.id);
       setQuote(updated);
       toast.show(action === 'accept' ? 'Devis accepté.' : 'Devis refusé.', { variant: 'success' });
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Impossible de mettre à jour le devis.', { variant: 'error' });
+    } catch (e) {
+      toast.show(getHttpErrorMessage(e, 'Impossible de mettre à jour le devis.'), { variant: 'error' });
     } finally {
       setUpdatingStatus(null);
     }
@@ -99,23 +81,14 @@ export const MyQuoteDetailPage = () => {
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem',
-            flexWrap: 'wrap',
-            marginBottom: '1.5rem',
-          }}
-        >
+        <div className="quote-detail-header">
           <div>
             <Link to="/quotes/me" className="muted">
               Retour à mes devis
             </Link>
-            <h1 style={{ margin: '0.5rem 0 0', fontSize: '2rem', fontWeight: 800 }}>Consulter le devis</h1>
+            <h1 className="quote-detail-title">Consulter le devis</h1>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <div className="quote-actions-row">
             <button type="button" className="catalog-admin-actions__edit" onClick={() => navigate('/quotes/me')}>
               Retour
             </button>
@@ -150,31 +123,20 @@ export const MyQuoteDetailPage = () => {
           </div>
         </div>
 
-        {loading ? <p>Chargement...</p> : null}
-        {error ? <div className="register-form__alert">{error}</div> : null}
+        {loading ? <LoadingState>Chargement du devis...</LoadingState> : null}
+        {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
 
         {quote ? (
-          <div
-            style={{
-              display: 'grid',
-              gap: '1.5rem',
-            }}
-          >
+          <div className="quote-detail-stack">
             <section className="catalog-form-section">
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '1rem',
-                }}
-              >
+              <div className="quote-summary-grid">
                 <div>
                   <div className="muted">Numéro</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{quote.number}</div>
+                  <div className="quote-kpi-value">{quote.number}</div>
                 </div>
                 <div>
                   <div className="muted">Statut</div>
-                  <div style={{ fontWeight: 700 }}>{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                  <div className="quote-strong">{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
                   {quote.convertedOrder ? (
                     <Link to={`/orders/${quote.convertedOrder.id}`} className="underline text-sm">
                       Voir la commande {quote.convertedOrder.number}
@@ -183,28 +145,22 @@ export const MyQuoteDetailPage = () => {
                 </div>
                 <div>
                   <div className="muted">Date</div>
-                  <div>{formatDateTime(quote.createdAt)}</div>
+                  <div>{formatOptionalFrenchDateTime(quote.createdAt)}</div>
                 </div>
                 <div>
                   <div className="muted">Validité</div>
                   <div>
-                    {formatDate(quote.validFrom)} au {formatDate(quote.validUntil)}
+                    {formatDateInputForDisplay(quote.validFrom)} au {formatDateInputForDisplay(quote.validUntil)}
                   </div>
                 </div>
                 <div>
                   <div className="muted">Total TTC</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{formatPrice(quote?.totals?.ttc ?? 0)}</div>
+                  <div className="quote-kpi-value">{formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
                 </div>
               </div>
             </section>
 
-            <section
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1rem',
-              }}
-            >
+            <section className="quote-two-column-grid">
               <div className="catalog-form-section">
                 <div className="catalog-form-section__header">
                   <h2 className="catalog-form-section__title">Informations client</h2>
@@ -212,18 +168,18 @@ export const MyQuoteDetailPage = () => {
                 <div>{quote?.customer?.name || '-'}</div>
                 <div>{quote?.customer?.email || '-'}</div>
                 {quote?.customer?.company ? <div>{quote.customer.company}</div> : null}
-                <div style={{ whiteSpace: 'pre-line' }}>{quote?.customer?.address || '-'}</div>
+                <div className="quote-preline">{quote?.customer?.address || '-'}</div>
               </div>
 
               <div className="catalog-form-section">
                 <div className="catalog-form-section__header">
                   <h2 className="catalog-form-section__title">Total</h2>
                 </div>
-                <div>Total HT : {formatPrice(quote?.totals?.ht ?? 0)}</div>
-                <div>TVA : {formatPrice(quote?.totals?.vat ?? 0)}</div>
-                <div>Total TTC : {formatPrice(quote?.totals?.ttc ?? 0)}</div>
-                {quote.discountCents ? <div>Remise : {formatPrice(quote.discountCents)}</div> : null}
-                {quote.shippingCents ? <div>Frais : {formatPrice(quote.shippingCents)}</div> : null}
+                <div>Total HT : {formatEuroCents(quote?.totals?.ht ?? 0)}</div>
+                <div>TVA : {formatEuroCents(quote?.totals?.vat ?? 0)}</div>
+                <div>Total TTC : {formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
+                {quote.discountCents ? <div>Remise : {formatEuroCents(quote.discountCents)}</div> : null}
+                {quote.shippingCents ? <div>Frais : {formatEuroCents(quote.shippingCents)}</div> : null}
               </div>
             </section>
 
@@ -231,7 +187,7 @@ export const MyQuoteDetailPage = () => {
               <div className="catalog-form-section__header">
                 <h2 className="catalog-form-section__title">Articles</h2>
               </div>
-              <div style={{ overflowX: 'auto' }}>
+              <div className="quote-table-scroll">
                 <table className="catalog-admin-table">
                   <thead>
                     <tr>
@@ -244,17 +200,17 @@ export const MyQuoteDetailPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(quote.items ?? []).map((item: any) => (
+                    {(quote.items ?? []).map((item) => (
                       <tr key={item.id ?? `${item.name}-${item.quantity}`}>
-                        <td style={{ fontWeight: 700 }}>{item.name}</td>
+                        <td className="quote-strong">{item.name}</td>
                         <td>{item.description || '-'}</td>
                         <td>
                           {item.quantity}
                           {item.unit ? ` ${item.unit}` : ''}
                         </td>
-                        <td>{formatPrice(item.unitPriceCents ?? 0)}</td>
+                        <td>{formatEuroCents(item.unitPriceCents ?? 0)}</td>
                         <td>{item.vatRate ?? 0}%</td>
-                        <td>{formatPrice(item?.lineTotals?.ttc ?? 0)}</td>
+                        <td>{formatEuroCents(item?.lineTotals?.ttc ?? 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -267,7 +223,7 @@ export const MyQuoteDetailPage = () => {
                 <div className="catalog-form-section__header">
                   <h2 className="catalog-form-section__title">Conditions</h2>
                 </div>
-                <div style={{ whiteSpace: 'pre-line' }}>{quote.conditions}</div>
+                <div className="quote-preline">{quote.conditions}</div>
               </section>
             ) : null}
           </div>

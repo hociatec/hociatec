@@ -75,11 +75,11 @@ export const CheckoutSuccessPage = () => {
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-10">
-        <div className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-2xl font-semibold text-slate-900">Confirmation du paiement</h1>
-          <p className="mt-4 text-slate-600">{message}</p>
+        <div className="mx-auto max-w-2xl rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-semibold text-brand-900">Confirmation du paiement</h1>
+          <p className="mt-4 text-stone-600">{message}</p>
           {status === 'pending' ? (
-            <p className="mt-2 text-sm text-slate-500">Ne fermez pas cette page pendant la confirmation.</p>
+            <p className="mt-2 text-sm text-stone-500">Ne fermez pas cette page pendant la confirmation.</p>
           ) : null}
           {status === 'error' ? (
             <div className="mt-6">

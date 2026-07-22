@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Security;
 
+use App\Module\Auth\Http\AuthCookieService;
 use App\Module\Auth\Service\RefreshTokenService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -18,6 +19,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
     public function __construct(
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly RefreshTokenService $refreshTokenService,
+        private readonly AuthCookieService $authCookieService,
     ) {
     }
 
@@ -29,10 +31,18 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         $jwt = $this->jwtManager->create($user);
         $refreshToken = $this->refreshTokenService->issueForUser($user);
 
-        return ApiResponse::success([
-            'token' => $jwt,
-            'refreshToken' => $refreshToken['refreshToken'],
+        $response = ApiResponse::success([
+            'authenticated' => true,
             'refreshTokenExpiresAt' => $refreshToken['expiresAt'],
         ]);
+        $this->authCookieService->attachLoginCookies(
+            $response,
+            $request,
+            $jwt,
+            $refreshToken['refreshToken'],
+            $refreshToken['expiresAt'],
+        );
+
+        return $response;
     }
 }

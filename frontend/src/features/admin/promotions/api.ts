@@ -6,7 +6,7 @@ export type PromotionAudienceDefinition = {
   defaults: Record<string, string | number | boolean>;
 };
 
-export type Promotion = {
+export type PromotionDto = {
   id: number;
   name: string;
   slug: string;
@@ -21,6 +21,8 @@ export type Promotion = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type Promotion = PromotionDto;
 
 export type PromotionPayload = {
   name: string;
@@ -43,34 +45,34 @@ export const fetchPromotionAudiences = async (): Promise<Record<string, Promotio
   return data.data.items;
 };
 
-export const fetchPromotions = async (): Promise<Promotion[]> => {
+export const fetchPromotions = async (): Promise<PromotionDto[]> => {
   const { data } =
-    await httpClient.get<{ data: { items: Promotion[] } }>(
+    await httpClient.get<{ data: { items: PromotionDto[] } }>(
       '/api/admin/promotions',
     );
   return data.data.items;
 };
 
-export const fetchPromotion = async (promotionId: number): Promise<Promotion> => {
+export const fetchPromotion = async (promotionId: number): Promise<PromotionDto> => {
   const { data } =
-    await httpClient.get<{ data: { promotion: Promotion } }>(
+    await httpClient.get<{ data: { promotion: PromotionDto } }>(
       `/api/admin/promotions/${promotionId}`,
     );
   return data.data.promotion;
 };
 
-export const createPromotion = async (payload: PromotionPayload): Promise<Promotion> => {
+export const createPromotion = async (payload: PromotionPayload): Promise<PromotionDto> => {
   const { data } =
-    await httpClient.post<{ data: { promotion: Promotion } }>(
+    await httpClient.post<{ data: { promotion: PromotionDto } }>(
       '/api/admin/promotions',
       payload,
     );
   return data.data.promotion;
 };
 
-export const updatePromotion = async (promotionId: number, payload: PromotionPayload): Promise<Promotion> => {
+export const updatePromotion = async (promotionId: number, payload: PromotionPayload): Promise<PromotionDto> => {
   const { data } =
-    await httpClient.put<{ data: { promotion: Promotion } }>(
+    await httpClient.put<{ data: { promotion: PromotionDto } }>(
       `/api/admin/promotions/${promotionId}`,
       payload,
     );

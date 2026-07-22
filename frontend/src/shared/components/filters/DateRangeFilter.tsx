@@ -1,24 +1,26 @@
 import { useId } from 'react';
 
+import { cn } from '@/shared/lib/cn';
+
 interface DateRangeFilterProps {
   from?: string | null;
   to?: string | null;
   onChange: (next: { from: string | null; to: string | null }) => void;
+  className?: string;
 }
 
-export const DateRangeFilter = ({ from = null, to = null, onChange }: DateRangeFilterProps) => {
+export const DateRangeFilter = ({ from = null, to = null, onChange, className }: DateRangeFilterProps) => {
   const idFrom = useId();
   const idTo = useId();
 
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <div className={cn('date-range-filter', className)}>
       <label htmlFor={idFrom} className="sr-only">Du</label>
       <input
         id={idFrom}
         type="date"
         value={from ?? ''}
         onChange={(e) => onChange({ from: e.target.value || null, to })}
-        style={{ border: '1px solid rgba(148, 163, 184, 0.6)', borderRadius: 10, padding: '10px 12px' }}
       />
       <span className="muted">à</span>
       <label htmlFor={idTo} className="sr-only">Au</label>
@@ -27,9 +29,7 @@ export const DateRangeFilter = ({ from = null, to = null, onChange }: DateRangeF
         type="date"
         value={to ?? ''}
         onChange={(e) => onChange({ from, to: e.target.value || null })}
-        style={{ border: '1px solid rgba(148, 163, 184, 0.6)', borderRadius: 10, padding: '10px 12px' }}
       />
     </div>
   );
 };
-

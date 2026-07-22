@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import {
   type UpsertBrandPayload,
 } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type BrandFormState = {
@@ -44,8 +46,8 @@ export const BrandFormPage = () => {
       try {
         const brand = await fetchAdminBrand(Number(brandId));
         populateForm(brand);
-      } catch (err: any) {
-        setError(err?.message ?? 'Impossible de charger la marque.');
+      } catch (err) {
+        setError(getHttpErrorMessage(err, 'Impossible de charger la marque.'));
       } finally {
         setInitialLoading(false);
       }
@@ -89,38 +91,33 @@ export const BrandFormPage = () => {
       setTimeout(() => {
         navigate('/admin/catalog/brands');
       }, 600);
-    } catch (err: any) {
-      setError(err?.message ?? "Impossible d'enregistrer la marque.");
+    } catch (err) {
+      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la marque."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier une marque' : 'Nouvelle marque'}
       headerActions={
         <button
           type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/catalog/brands')}
         >
           Retour à la liste
         </button>
       }
     >
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {initialLoading ? (
-        <p className="muted">Chargement de la marque...</p>
+        <LoadingState>Chargement de la marque...</LoadingState>
       ) : (
-        <form onSubmit={handleSubmit} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
             <input

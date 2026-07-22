@@ -8,14 +8,12 @@ interface CategoryTileProps {
   category: CatalogCategory;
   onSelect?: (category: CatalogCategory) => void;
   href?: string;
-  descriptionLines?: number;
 }
 
 export const CategoryTile = ({
   category,
   onSelect,
   href,
-  descriptionLines = 2,
 }: CategoryTileProps) => {
   const handleClick = () => {
     if (onSelect) {
@@ -39,12 +37,7 @@ export const CategoryTile = ({
         </div>
       </header>
       {category.description && (
-        <p
-          className="catalog-category-tile__description"
-          style={{
-            WebkitLineClamp: descriptionLines,
-          }}
-        >
+        <p className="catalog-category-tile__description">
           {category.description}
         </p>
       )}

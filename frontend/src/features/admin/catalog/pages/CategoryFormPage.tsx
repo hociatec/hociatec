@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import {
   type UpsertCategoryPayload,
 } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type CategoryFormState = {
@@ -58,8 +60,8 @@ export const CategoryFormPage = () => {
       try {
         const category = await fetchAdminCategory(Number(categoryId));
         populateForm(category);
-      } catch (err: any) {
-        setError(err?.message ?? 'Impossible de charger la catégorie.');
+      } catch (err) {
+        setError(getHttpErrorMessage(err, 'Impossible de charger la catégorie.'));
       } finally {
         setInitialLoading(false);
       }
@@ -142,41 +144,35 @@ export const CategoryFormPage = () => {
       setTimeout(() => {
         navigate('/admin/catalog/categories');
       }, 600);
-    } catch (err: any) {
-      setError(err?.message ?? "Impossible d'enregistrer la catégorie.");
+    } catch (err) {
+      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}
       headerActions={
         <button
           type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/catalog/categories')}
         >
           Retour à la liste
         </button>
       }
     >
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {initialLoading ? (
-        <p className="muted">Chargement de la catégorie...</p>
+        <LoadingState>Chargement de la catégorie...</LoadingState>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="register-form-card"
-          style={{ display: 'grid', gap: 16 }}
+          className="register-form-card form-card-grid"
         >
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
@@ -211,14 +207,14 @@ export const CategoryFormPage = () => {
             />
           </label>
 
-          <label className="register-form__field" style={{ flexDirection: 'row', gap: 12 }}>
+          <label className="booking__checkbox">
             <input
               type="checkbox"
               name="isVisible"
               checked={form.isVisible}
               onChange={handleChange}
             />
-            <span className="register-form__label">Catégorie visible</span>
+            Catégorie visible
           </label>
 
           <button className="register-form__submit" type="submit" disabled={loading}>

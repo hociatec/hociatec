@@ -1,8 +1,10 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { type ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { createAdminQuoteService, fetchAdminQuoteService, updateAdminQuoteService } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type ServiceFormState = {
@@ -77,7 +79,7 @@ export const ServiceFormPage = () => {
           vatRate: svc ? String(svc.vatRate ?? 0) : '0',
         });
       })
-      .catch((e: any) => setError(e?.message ?? 'Chargement impossible.'))
+      .catch((e) => setError(getHttpErrorMessage(e, 'Chargement impossible.')))
       .finally(() => setInitialLoading(false));
   }, [isEdit, serviceId]);
 
@@ -167,45 +169,38 @@ export const ServiceFormPage = () => {
         setMessage('Service créé.');
       }
       navigate('/admin/services');
-    } catch (e: any) {
-      const serverMessage = e?.response?.data?.message ?? e?.message;
-      setError(serverMessage ?? 'Échec de sauvegarde.');
+    } catch (e) {
+      setError(getHttpErrorMessage(e, 'Échec de sauvegarde.'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier un service' : 'Nouveau service'}
       headerActions={
         <button
           type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/services')}
         >
           Retour à la liste
         </button>
       }
     >
-      <p className="mb-4 text-sm text-slate-600">
+      <p className="mb-4 text-sm text-stone-600">
         Renseignez ici les informations complètes du service, y compris sa durée estimée lorsqu’elle est connue.
       </p>
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {initialLoading && isEdit ? (
-        <p className="muted">Chargement du service...</p>
+        <LoadingState>Chargement du service...</LoadingState>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="register-form-card"
-          style={{ display: 'grid', gap: 16 }}
+          className="register-form-card form-card-grid"
         >
           <label className="register-form__field">
             <span className="register-form__label">Titre</span>

@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import {
   type VoucherPayload,
 } from '@/features/admin/vouchers/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -84,8 +86,8 @@ export const VoucherFormPage = () => {
           endsAt: voucher.endsAt ? voucher.endsAt.slice(0, 16) : '',
         });
       })
-      .catch((err: any) => {
-        const message = err?.message ?? 'Impossible de charger le bon.';
+      .catch((err) => {
+        const message = getHttpErrorMessage(err, 'Impossible de charger le bon.');
         setError(message);
         toast.show(message, { variant: 'error' });
       })
@@ -125,8 +127,8 @@ export const VoucherFormPage = () => {
         toast.show('Bon de réduction créé.', { variant: 'success' });
       }
       navigate('/admin/vouchers');
-    } catch (err: any) {
-      const message = err?.message ?? 'Enregistrement impossible.';
+    } catch (err) {
+      const message = getHttpErrorMessage(err, 'Enregistrement impossible.');
       setError(message);
       toast.show(message, { variant: 'error' });
     } finally {
@@ -135,12 +137,12 @@ export const VoucherFormPage = () => {
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier un bon' : 'Créer un bon'}
       headerActions={
         <button
           type="button"
-          className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/vouchers')}
         >
           Retour à la liste
@@ -148,26 +150,25 @@ export const VoucherFormPage = () => {
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           Formulaire dédié à la création et à la modification d’un bon de réduction.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Si le code est vide, il sera généré automatiquement à l’enregistrement.
         </p>
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
       {loading ? (
-        <p className="muted">Chargement...</p>
+        <LoadingState>Chargement...</LoadingState>
       ) : (
         <form
-          className="register-form-card"
+          className="register-form-card form-card-grid"
           onSubmit={(event) => {
             event.preventDefault();
             void handleSave();
           }}
-          style={{ display: 'grid', gap: 16 }}
         >
           <div className="grid gap-4 md:grid-cols-2">
             <label className="register-form__field">
@@ -258,7 +259,7 @@ export const VoucherFormPage = () => {
                 onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
               />
             </label>
-            <label className="mt-8 flex items-center gap-2">
+            <label className="booking__checkbox md:mt-8">
               <input
                 type="checkbox"
                 checked={form.isActive}
@@ -266,7 +267,7 @@ export const VoucherFormPage = () => {
                   setForm((prev) => ({ ...prev, isActive: event.target.checked }))
                 }
               />
-              <span>Bon actif</span>
+              Bon actif
             </label>
           </div>
 

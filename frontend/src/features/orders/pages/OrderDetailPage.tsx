@@ -2,7 +2,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 import {
   buildOrderInvoiceFilename,
@@ -34,14 +36,6 @@ type ReviewFormState = {
   error: string | null;
   success: boolean;
 };
-
-const formatPrice = (valueInCents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-    valueInCents / 100,
-  );
-
-const formatDate = (value?: string | null) =>
-  value ? new Date(value).toLocaleDateString('fr-FR') : '-';
 
 export const OrderDetailPage = () => {
   const { orderId } = useParams();
@@ -185,12 +179,12 @@ export const OrderDetailPage = () => {
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-4 text-2xl font-semibold">Détail de la commande</h1>
-        {isLoading && <p>Chargement...</p>}
-        {error && <div className="text-red-600">{error}</div>}
+        {isLoading && <LoadingState>Chargement de la commande...</LoadingState>}
+        {error && <ErrorState>{error}</ErrorState>}
         {justConfirmed && (
-          <div className="mb-4 rounded bg-green-50 p-3 text-green-800">
+          <FeedbackMessage variant="success" className="mb-4">
             Merci, votre commande a bien été validée et confirmée.
-          </div>
+          </FeedbackMessage>
         )}
         {order && (
           <div className="space-y-6">
@@ -198,7 +192,7 @@ export const OrderDetailPage = () => {
               <div>
                 <div className="font-medium">Commande {order.number}</div>
                 <div className="text-sm text-gray-600">
-                  Passée le {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                  Passée le {formatOptionalFrenchDate(order.createdAt)}
                 </div>
                 {order.appliedPromotion ? (
                   <div className="mt-2 text-sm text-green-700">
@@ -209,20 +203,20 @@ export const OrderDetailPage = () => {
               <div className="space-y-2 text-right">
                 {typeof order.subtotalPriceCents === 'number' && (order.discountAmountCents ?? 0) > 0 ? (
                   <div className="text-sm text-gray-600">
-                    <div>Sous-total: {formatPrice(order.subtotalPriceCents)}</div>
-                    <div style={{ color: '#047857', fontWeight: 600 }}>
-                      Remise: - {formatPrice(order.discountAmountCents ?? 0)}
+                    <div>Sous-total: {formatEuroCents(order.subtotalPriceCents)}</div>
+                    <div className="font-semibold text-emerald-700">
+                      Remise: - {formatEuroCents(order.discountAmountCents ?? 0)}
                     </div>
                   </div>
                 ) : null}
-                <div className="font-semibold">{formatPrice(order.totalPriceCents)}</div>
+                <div className="font-semibold">{formatEuroCents(order.totalPriceCents)}</div>
                 <div className="text-sm capitalize">
                   Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}
                 </div>
                 {order.status === 'pending' && (
                   <button
                     type="button"
-                    className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
                     onClick={() => void handlePayOrder()}
                     disabled={paying}
                   >
@@ -263,26 +257,26 @@ export const OrderDetailPage = () => {
             </div>
 
             {order.invoice && (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
                 <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold">Facture</h2>
                     {order.invoice.number ? (
-                      <div className="text-sm text-slate-600">{order.invoice.number}</div>
+                      <div className="text-sm text-stone-600">{order.invoice.number}</div>
                     ) : null}
                     {order.invoice.issuedAt ? (
-                      <div className="text-sm text-slate-500">
-                        Émise le {new Date(order.invoice.issuedAt).toLocaleDateString('fr-FR')}
+                      <div className="text-sm text-stone-500">
+                        Émise le {formatOptionalFrenchDate(order.invoice.issuedAt)}
                       </div>
                     ) : null}
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-stone-500">
                       Format électronique: {order.invoice.electronicFormat}
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))}
                       disabled={!canDownloadInvoice}
                       title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
@@ -291,7 +285,7 @@ export const OrderDetailPage = () => {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))}
                       disabled={!canDownloadInvoice}
                       title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
@@ -325,20 +319,20 @@ export const OrderDetailPage = () => {
                 </div>
               </div>
               {order.delivery ? (
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  <div className="font-semibold text-slate-900">{order.delivery.statusLabel ?? 'Préparation en cours'}</div>
-                  <div className="mt-2"><span className="font-medium text-slate-900">Transporteur</span> : {order.delivery.carrier || '-'}</div>
-                  <div><span className="font-medium text-slate-900">Numéro de suivi</span> : {order.delivery.trackingNumber || '-'}</div>
-                  <div><span className="font-medium text-slate-900">Date estimée</span> : {formatDate(order.delivery.estimatedAt)}</div>
-                  <div><span className="font-medium text-slate-900">Expédiée le</span> : {formatDate(order.delivery.shippedAt)}</div>
-                  <div><span className="font-medium text-slate-900">Livrée le</span> : {formatDate(order.delivery.deliveredAt)}</div>
+                <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-stone-700">
+                  <div className="font-semibold text-brand-900">{order.delivery.statusLabel ?? 'Préparation en cours'}</div>
+                  <div className="mt-2"><span className="font-medium text-brand-900">Transporteur</span> : {order.delivery.carrier || '-'}</div>
+                  <div><span className="font-medium text-brand-900">Numéro de suivi</span> : {order.delivery.trackingNumber || '-'}</div>
+                  <div><span className="font-medium text-brand-900">Date estimée</span> : {formatOptionalFrenchDate(order.delivery.estimatedAt)}</div>
+                  <div><span className="font-medium text-brand-900">Expédiée le</span> : {formatOptionalFrenchDate(order.delivery.shippedAt)}</div>
+                  <div><span className="font-medium text-brand-900">Livrée le</span> : {formatOptionalFrenchDate(order.delivery.deliveredAt)}</div>
                   {order.delivery.trackingUrl ? (
                     <div className="mt-3">
                       <a
                         href={order.delivery.trackingUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                        className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
                       >
                         Suivre le colis
                       </a>
@@ -368,9 +362,9 @@ export const OrderDetailPage = () => {
                         <tr className="border-b">
                           <td className="py-2">{it.productName}</td>
                           <td className="py-2">{it.productSku}</td>
-                          <td className="py-2">{formatPrice(it.unitPriceCents)}</td>
+                          <td className="py-2">{formatEuroCents(it.unitPriceCents)}</td>
                           <td className="py-2">{it.quantity}</td>
-                          <td className="py-2 text-right">{formatPrice(it.linePriceCents)}</td>
+                          <td className="py-2 text-right">{formatEuroCents(it.linePriceCents)}</td>
                         </tr>
                         {(it.review || it.canReview) && (
                           <tr>
@@ -386,7 +380,7 @@ export const OrderDetailPage = () => {
                                   )}
                                 </div>
                               ) : it.canReview ? (
-                                <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm shadow-sm">
+                                <div className="rounded-lg border border-brand-100 bg-white p-4 text-sm shadow-sm">
                                   <p className="mb-2 font-medium">Évaluer ce produit</p>
                                   <div className="mb-3 flex items-center gap-1">
                                     {[1, 2, 3, 4, 5].map((score) => (
@@ -414,7 +408,7 @@ export const OrderDetailPage = () => {
                                     </span>
                                   </div>
                                   <textarea
-                                    className="w-full rounded-md border border-slate-200 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                    className="w-full rounded-md border border-brand-100 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-100"
                                     placeholder="Partagez votre experience..."
                                     rows={3}
                                     value={form.comment}

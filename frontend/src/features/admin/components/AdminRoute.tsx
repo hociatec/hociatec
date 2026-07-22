@@ -8,7 +8,7 @@ export const AdminRoute = ({ children }: PropsWithChildren) => {
   const location = useLocation();
 
   if (loading) {
-    return <p className="notice">Chargement en cours...</p>;
+    return <div aria-hidden="true" className="min-h-[40vh]" />;
   }
 
   if (!isAdmin) {

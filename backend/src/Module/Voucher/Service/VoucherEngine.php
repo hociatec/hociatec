@@ -63,7 +63,7 @@ final class VoucherEngine
             $status = 'invalid';
             $voucher = $this->vouchers->findOneByCode($enteredVoucherCode);
             if ($voucher !== null) {
-                if ($this->isVoucherEligible($voucher, $subtotalPriceCents, $now)) {
+                if ($this->isVoucherEligible($voucher, $subtotalPriceCents, $now, $user)) {
                     $discountAmount = $this->computeDiscountAmount($voucher, $subtotalPriceCents);
                     if ($discountAmount > 0) {
                         $appliedVoucher = [
@@ -104,7 +104,7 @@ final class VoucherEngine
         return min($subtotalPriceCents, max(0, $voucher->getDiscountValue()));
     }
 
-    private function isVoucherEligible(Voucher $voucher, int $subtotalPriceCents, \DateTimeImmutable $now): bool
+    private function isVoucherEligible(Voucher $voucher, int $subtotalPriceCents, \DateTimeImmutable $now, ?User $user): bool
     {
         if (!$voucher->isActive()) {
             return false;
@@ -118,6 +118,27 @@ final class VoucherEngine
             return false;
         }
 
+        if (!$this->isRecipientEligible($voucher, $user)) {
+            return false;
+        }
+
         return $subtotalPriceCents > 0;
+    }
+
+    private function isRecipientEligible(Voucher $voucher, ?User $user): bool
+    {
+        if ($voucher->getRecipientUserId() === null && $voucher->getRecipientEmail() === null) {
+            return true;
+        }
+
+        if ($user === null) {
+            return false;
+        }
+
+        if ($voucher->getRecipientUserId() !== null && $voucher->getRecipientUserId() === $user->getId()) {
+            return true;
+        }
+
+        return $voucher->getRecipientEmail() !== null && mb_strtolower($voucher->getRecipientEmail()) === mb_strtolower($user->getEmail());
     }
 }

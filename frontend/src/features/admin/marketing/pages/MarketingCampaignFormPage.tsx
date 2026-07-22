@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -11,6 +12,7 @@ import {
   type MarketingTemplate,
 } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { EmptyState, FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type FormState = {
@@ -127,7 +129,7 @@ export const MarketingCampaignFormPage = () => {
         setTemplates(templatesList.filter((item) => item.scenarioKey in segmentsList));
         setSegments(segmentsList);
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le module marketing.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger le module marketing.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -230,8 +232,8 @@ export const MarketingCampaignFormPage = () => {
       const result = await previewMarketingAudience(form.segmentKey, criteria);
       setPreview(result.preview);
       setSegments(result.segments);
-    } catch (err: any) {
-      setError(err?.message ?? 'Prévisualisation impossible.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Prévisualisation impossible.'));
     } finally {
       setPreviewLoading(false);
     }
@@ -258,47 +260,41 @@ export const MarketingCampaignFormPage = () => {
         textBody: form.textBody || null,
       });
       setMessage(`Campagne envoyée à ${sent.recipientsCount} destinataire(s).`);
-    } catch (err: any) {
-      setError(err?.message ?? 'Envoi impossible.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Envoi impossible.'));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Nouvelle campagne email"
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link
             to="/admin/marketing"
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
           >
             Retour aux campagnes
           </Link>
           <Link
             to="/admin/marketing/templates"
-            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+            className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
           >
             Bibliothèque des templates
           </Link>
         </div>
       }
     >
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement...
-        </div>
+        <LoadingState>Chargement...</LoadingState>
       ) : (
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-          <form onSubmit={handleSend} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
+          <form onSubmit={handleSend} className="register-form-card form-card-grid">
             <label className="register-form__field">
               <span className="register-form__label">Nom de campagne</span>
               <input className="register-form__input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
@@ -329,8 +325,8 @@ export const MarketingCampaignFormPage = () => {
               </label>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-              <strong className="block text-slate-900">{segments[form.segmentKey]?.label ?? 'Audience marketing'}</strong>
+            <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-4 text-sm text-stone-700">
+              <strong className="block text-brand-900">{segments[form.segmentKey]?.label ?? 'Audience marketing'}</strong>
               <span>{segments[form.segmentKey]?.description ?? 'Choisissez une audience pour afficher son comportement cible.'}</span>
             </div>
 
@@ -366,7 +362,7 @@ export const MarketingCampaignFormPage = () => {
               <label className="register-form__field">
                 <span className="register-form__label">Montant cumulé minimum en centimes</span>
                 <input className="register-form__input" type="number" min={1000} step={100} value={form.minimumTotalCents} onChange={(event) => setForm((prev) => ({ ...prev, minimumTotalCents: event.target.value }))} />
-                <span className="text-xs text-slate-500">Exemple: 50000 = 500,00 EUR.</span>
+                <span className="text-xs text-stone-500">Exemple: 50000 = 500,00 EUR.</span>
               </label>
             )}
 
@@ -393,7 +389,7 @@ export const MarketingCampaignFormPage = () => {
             </label>
 
             <div className="flex flex-wrap gap-3">
-              <button type="button" className="register-form__submit" style={{ background: '#e5e7eb', color: '#111827' }} onClick={() => void handlePreview()} disabled={previewLoading}>
+              <button type="button" className="catalog-admin-actions__edit" onClick={() => void handlePreview()} disabled={previewLoading}>
                 {previewLoading ? 'Prévisualisation...' : 'Prévisualiser l’audience'}
               </button>
               <button type="submit" className="register-form__submit" disabled={saving}>
@@ -403,72 +399,72 @@ export const MarketingCampaignFormPage = () => {
           </form>
 
           <div className="space-y-6">
-            <div className="register-form-card" style={{ display: 'grid', gap: 12 }}>
-              <h2 className="text-xl font-semibold text-slate-900">Audience</h2>
-              <p className="text-sm text-slate-500">
+            <div className="register-form-card form-card-grid">
+              <h2 className="text-xl font-semibold text-brand-900">Audience</h2>
+              <p className="text-sm text-stone-500">
                 {segments[form.segmentKey]?.description ?? 'Choisissez une audience.'}
               </p>
               {preview ? (
                 <>
-                  <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <div className="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-stone-700">
                     <strong>{preview.count}</strong> destinataire(s). {preview.description}
                   </div>
                   <div className="space-y-2">
                     {preview.recipients.map((recipient) => (
-                      <div key={recipient.id} className="rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                      <div key={recipient.id} className="rounded-xl border border-brand-100 px-3 py-2 text-sm">
                         <strong>{recipient.fullName}</strong>
-                        <div className="text-slate-500">{recipient.email}</div>
+                        <div className="text-stone-500">{recipient.email}</div>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-slate-500">Lancez une prévisualisation pour voir le volume et quelques exemples.</p>
+                <p className="text-sm text-stone-500">Lancez une prévisualisation pour voir le volume et quelques exemples.</p>
               )}
             </div>
 
-            <div className="register-form-card" style={{ display: 'grid', gap: 12 }}>
-              <h2 className="text-xl font-semibold text-slate-900">Leviers conseillés</h2>
-              <div className="space-y-2 text-sm text-slate-600">
+            <div className="register-form-card form-card-grid">
+              <h2 className="text-xl font-semibold text-brand-900">Leviers conseillés</h2>
+              <div className="space-y-2 text-sm text-stone-600">
                 {audienceAdvice.map((item) => (
-                  <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div key={item} className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
                     {item}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="register-form-card" style={{ display: 'grid', gap: 12 }}>
+            <div className="register-form-card form-card-grid">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-slate-900">Templates recommandés</h2>
-                <Link to="/admin/marketing/templates" className="text-sm font-semibold text-slate-700 hover:text-slate-900">
+                <h2 className="text-xl font-semibold text-brand-900">Templates recommandés</h2>
+                <Link to="/admin/marketing/templates" className="text-sm font-semibold text-stone-700 hover:text-brand-900">
                   Voir toute la bibliothèque
                 </Link>
               </div>
               {templatesForSegment.length === 0 ? (
-                <p className="text-sm text-slate-500">Aucun template actif n’est encore associé à cette audience.</p>
+                <EmptyState>Aucun template actif n’est encore associé à cette audience.</EmptyState>
               ) : (
                 <div className="space-y-3">
                   {templatesForSegment.slice(0, 4).map((template) => (
-                    <div key={template.id} className="rounded-2xl border border-slate-200 px-4 py-4">
+                    <div key={template.id} className="rounded-2xl border border-brand-100 px-4 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <strong className="block text-slate-900">{template.name}</strong>
-                          <div className="mt-1 text-sm text-slate-500">{template.subjectTemplate}</div>
+                          <strong className="block text-brand-900">{template.name}</strong>
+                          <div className="mt-1 text-sm text-stone-500">{template.subjectTemplate}</div>
                         </div>
                         <button
                           type="button"
-                          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                          className="catalog-admin-actions__edit"
                           onClick={() => setForm((prev) => ({ ...prev, templateId: String(template.id) }))}
                         >
                           Utiliser
                         </button>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                        <Link to={`/admin/marketing/templates/${template.id}`} className="font-semibold text-slate-700 hover:text-slate-900">
+                        <Link to={`/admin/marketing/templates/${template.id}`} className="font-semibold text-stone-700 hover:text-brand-900">
                           Voir le détail
                         </Link>
-                        <Link to={`/admin/marketing/templates/${template.id}/edit`} className="font-semibold text-slate-500 hover:text-slate-700">
+                        <Link to={`/admin/marketing/templates/${template.id}/edit`} className="font-semibold text-stone-500 hover:text-stone-700">
                           Modifier
                         </Link>
                       </div>

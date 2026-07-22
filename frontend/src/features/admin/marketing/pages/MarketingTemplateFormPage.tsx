@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -10,6 +11,7 @@ import {
   type MarketingTemplatePayload,
 } from '@/features/admin/marketing/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type FormState = MarketingTemplatePayload;
@@ -62,7 +64,7 @@ export const MarketingTemplateFormPage = () => {
           isActive: template.isActive,
         });
       })
-      .catch((err: any) => setError(err?.message ?? 'Impossible de charger le modèle.'))
+      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger le modèle.')))
       .finally(() => setInitialLoading(false));
   }, [isEdit, templateId]);
 
@@ -86,22 +88,21 @@ export const MarketingTemplateFormPage = () => {
         setMessage('Modèle créé.');
       }
       setTimeout(() => navigate(isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates'), 500);
-    } catch (err: any) {
-      setError(err?.message ?? 'Enregistrement impossible.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Enregistrement impossible.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? (isTransactionalView ? 'Modifier un e-mail transactionnel' : 'Modifier un modèle d’e-mail') : (isTransactionalView ? 'Nouvel e-mail transactionnel' : 'Nouveau modèle d’e-mail')}
       headerActions={
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            className="register-form__submit"
-            style={{ background: '#e5e7eb', color: '#111827' }}
+            className="catalog-admin-actions__edit"
             onClick={() => navigate(isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates')}
           >
             Retour à la liste
@@ -109,8 +110,7 @@ export const MarketingTemplateFormPage = () => {
           {isEdit && templateId ? (
             <button
               type="button"
-              className="register-form__submit"
-              style={{ background: '#f8fafc', color: '#111827', border: '1px solid #cbd5e1' }}
+              className="catalog-admin-actions__edit"
               onClick={() => navigate(isTransactionalView ? `/admin/transactional-emails/${templateId}` : `/admin/marketing/templates/${templateId}`)}
             >
               Voir le détail
@@ -119,17 +119,13 @@ export const MarketingTemplateFormPage = () => {
         </div>
       }
     >
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {initialLoading ? (
-        <p className="muted">Chargement du modèle...</p>
+        <LoadingState>Chargement du modèle...</LoadingState>
       ) : (
-        <form onSubmit={handleSubmit} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
             <input className="register-form__input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
@@ -169,8 +165,8 @@ export const MarketingTemplateFormPage = () => {
           </label>
 
           {segments[form.scenarioKey] ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-              <strong className="block text-slate-900">{segments[form.scenarioKey].label}</strong>
+            <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-4 text-sm text-stone-700">
+              <strong className="block text-brand-900">{segments[form.scenarioKey].label}</strong>
               <span>{segments[form.scenarioKey].description}</span>
             </div>
           ) : null}
@@ -190,13 +186,13 @@ export const MarketingTemplateFormPage = () => {
             <textarea className="register-form__input" rows={8} value={form.textBody ?? ''} onChange={(event) => setForm((prev) => ({ ...prev, textBody: event.target.value }))} />
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="booking__checkbox">
             <input type="checkbox" checked={form.isActive} onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))} />
-            <span>Template actif</span>
+            Template actif
           </label>
 
-          <p className="text-sm text-slate-500">
-            Variables disponibles: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{order_number}}'}, {'{{order_status}}'}, {'{{order_status_label}}'}, {'{{order_email_status_title}}'}, {'{{order_payment_instruction}}'}, {'{{order_payment_next_step}}'}, {'{{quote_number}}'}, {'{{order_origin_sentence}}'}, {'{{previous_order_status}}'}, {'{{previous_order_status_label}}'}, {'{{invoice_number}}'}, {'{{invoice_date}}'}, {'{{order_total_eur}}'}, {'{{order_created_at}}'}, {'{{billing_name}}'}, {'{{purchase_order_number}}'}, {'{{order_detail_url}}'}, {'{{orders_list_url}}'}, {'{{app_frontend_url}}'}, {'{{order_count}}'}, {'{{total_spent_eur}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{days_since_last_order}}'}, {'{{pending_reviews_count}}'}, {'{{voucher_name}}'}, {'{{voucher_code}}'}, {'{{voucher_description}}'}, {'{{voucher_discount_type}}'}, {'{{voucher_discount_value}}'}, {'{{voucher_value_label}}'}, {'{{voucher_starts_at}}'}, {'{{voucher_ends_at}}'}, {'{{voucher_is_active}}'}, {'{{shop_url}}'}, {'{{cart_url}}'}.
+          <p className="text-sm text-stone-500">
+            Variables disponibles selon scénario: {'{{first_name}}'}, {'{{last_name}}'}, {'{{full_name}}'}, {'{{email}}'}, {'{{activation_url}}'}, {'{{activation_expires_in}}'}, {'{{password_reset_url}}'}, {'{{password_reset_expires_in}}'}, {'{{order_number}}'}, {'{{order_status}}'}, {'{{order_status_label}}'}, {'{{order_email_status_title}}'}, {'{{order_payment_instruction}}'}, {'{{order_payment_next_step}}'}, {'{{quote_number}}'}, {'{{quote_total_eur}}'}, {'{{quote_valid_until}}'}, {'{{quote_detail_url}}'}, {'{{customer_name}}'}, {'{{order_origin_sentence}}'}, {'{{previous_order_status}}'}, {'{{previous_order_status_label}}'}, {'{{invoice_number}}'}, {'{{invoice_date}}'}, {'{{order_total_eur}}'}, {'{{order_created_at}}'}, {'{{billing_name}}'}, {'{{purchase_order_number}}'}, {'{{order_detail_url}}'}, {'{{orders_list_url}}'}, {'{{app_frontend_url}}'}, {'{{order_count}}'}, {'{{total_spent_eur}}'}, {'{{last_order_number}}'}, {'{{last_order_date}}'}, {'{{days_since_last_order}}'}, {'{{pending_reviews_count}}'}, {'{{voucher_name}}'}, {'{{voucher_code}}'}, {'{{voucher_description}}'}, {'{{voucher_discount_type}}'}, {'{{voucher_discount_value}}'}, {'{{voucher_value_label}}'}, {'{{voucher_starts_at}}'}, {'{{voucher_ends_at}}'}, {'{{voucher_is_active}}'}, {'{{shop_url}}'}, {'{{cart_url}}'}, {'{{product_name}}'}, {'{{product_summary}}'}, {'{{product_price_eur}}'}, {'{{product_url}}'}, {'{{contact_name}}'}, {'{{contact_email}}'}, {'{{contact_subject}}'}, {'{{contact_message}}'}, {'{{mailer_from}}'}.
           </p>
 
           <button className="register-form__submit" type="submit" disabled={loading}>

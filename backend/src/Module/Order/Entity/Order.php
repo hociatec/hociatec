@@ -55,6 +55,9 @@ class Order
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $discountAmountCents = 0;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $loyaltyPointsAwarded = 0;
+
     #[ORM\Column(length: 140, nullable: true)]
     private ?string $appliedPromotionName = null;
 
@@ -195,6 +198,9 @@ class Order
 
     public function getDiscountAmountCents(): int { return $this->discountAmountCents; }
     public function setDiscountAmountCents(int $cents): self { $this->discountAmountCents = max(0, $cents); return $this; }
+
+    public function getLoyaltyPointsAwarded(): int { return $this->loyaltyPointsAwarded; }
+    public function setLoyaltyPointsAwarded(int $points): self { $this->loyaltyPointsAwarded = max(0, $points); return $this; }
 
     public function getAppliedPromotionName(): ?string { return $this->appliedPromotionName; }
     public function setAppliedPromotionName(?string $name): self { $this->appliedPromotionName = $name; return $this; }

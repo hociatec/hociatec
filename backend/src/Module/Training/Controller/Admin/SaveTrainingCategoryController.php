@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Training\Controller\Admin;
+
+use App\Module\Training\Entity\TrainingCategory;
+use App\Module\Training\Repository\TrainingCategoryRepository;
+use App\Module\Training\Service\TrainingCategoryFormatter;
+use App\Module\Training\Service\TrainingWriter;
+use App\Shared\Http\ApiResponse;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/admin/training-categories/{id}', name: 'api_admin_training_categories_update', requirements: ['id' => '\d+'], methods: ['POST'])]
+#[Route('/api/admin/training-categories', name: 'api_admin_training_categories_create', methods: ['POST'])]
+#[IsGranted('ROLE_ADMIN')]
+class SaveTrainingCategoryController extends AbstractController
+{
+    public function __construct(
+        private readonly TrainingCategoryRepository $categories,
+        private readonly TrainingWriter $writer,
+        private readonly TrainingCategoryFormatter $formatter,
+        private readonly EntityManagerInterface $em,
+    ) {
+    }
+
+    public function __invoke(Request $request, ?int $id = null): JsonResponse
+    {
+        $payload = (array) json_decode($request->getContent(), true);
+        $name = trim((string) ($payload['name'] ?? ''));
+        if ($name === '') {
+            return ApiResponse::error('Le nom est requis.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $category = $id !== null ? $this->categories->find($id) : null;
+        if ($id !== null && $category === null) {
+            return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $slug = $this->writer->slugify((string) ($payload['slug'] ?? $name));
+        $existing = $this->categories->findOneBy(['slug' => $slug]);
+        if ($existing !== null && $existing->getId() !== $category?->getId()) {
+            return ApiResponse::error('Ce slug de catégorie existe déjà.', Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($category === null) {
+            $category = new TrainingCategory($name, $slug);
+            $this->em->persist($category);
+        }
+
+        $category
+            ->setName($name)
+            ->setSlug($slug)
+            ->setPosition((int) ($payload['position'] ?? $category->getPosition()))
+            ->setIsActive((bool) ($payload['isActive'] ?? $category->isActive()));
+
+        $this->em->flush();
+
+        return ApiResponse::success($this->formatter->format($category), $id === null ? Response::HTTP_CREATED : Response::HTTP_OK);
+    }
+}

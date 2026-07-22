@@ -15,9 +15,32 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/DataFixtures/'
 
     App\Shared\Http\RequestIdProcessor:
         tags: ['monolog.processor']
+
+    App\Module\Auth\Http\AuthCookieService:
+        arguments:
+            $environment: '%kernel.environment%'
+
+    App\Shared\Http\CsrfTokenService:
+        arguments:
+            $environment: '%kernel.environment%'
+
+    App\Shared\Http\ApiErrorSanitizerSubscriber:
+        arguments:
+            $environment: '%kernel.environment%'
+
+    App\Module\Admin\Backup\Service\MaintenanceModeService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Module\Admin\Backup\Service\BackupManager:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $databaseUrl: '%env(resolve:DATABASE_URL)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

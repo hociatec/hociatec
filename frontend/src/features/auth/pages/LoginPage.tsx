@@ -1,13 +1,14 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { isAxiosError } from 'axios';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../hooks/useAuth';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
 import './LoginPage.css';
 
@@ -19,7 +20,33 @@ interface LoginFormState {
 
 interface LocationState {
   registered?: boolean;
+  redirectTo?: string;
+  from?: {
+    pathname?: string;
+    search?: string;
+    hash?: string;
+  };
+  redirectState?: unknown;
 }
+
+const DEFAULT_AUTHENTICATED_PATH = '/mon-espace';
+const AUTH_PAGE_PATHS = new Set(['/login', '/register', '/forgot-password']);
+
+const isSafeRedirectPath = (path?: string | null) =>
+  Boolean(path?.startsWith('/') && !path.startsWith('//') && !AUTH_PAGE_PATHS.has(path));
+
+const getAuthenticatedRedirect = (state: LocationState | null) => {
+  if (isSafeRedirectPath(state?.redirectTo)) {
+    return state?.redirectTo ?? DEFAULT_AUTHENTICATED_PATH;
+  }
+
+  const fromPath = state?.from?.pathname;
+  if (isSafeRedirectPath(fromPath)) {
+    return `${fromPath}${state?.from?.search ?? ''}${state?.from?.hash ?? ''}`;
+  }
+
+  return DEFAULT_AUTHENTICATED_PATH;
+};
 
 export const LoginPage = () => {
   const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
@@ -38,7 +65,10 @@ export const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const loginErrorId = 'login-form-error';
+  const loginNoticeId = 'login-form-notice';
 
   const parsedErrorDetails = useMemo(
     () => (errorDetails.length > 0 ? [...errorDetails] : []),
@@ -72,6 +102,15 @@ export const LoginPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    setIsSubmitting(true);
     setError(null);
     setErrorDetails([]);
     setNotice(null);
@@ -88,17 +127,23 @@ export const LoginPage = () => {
       }
 
       await login(form);
-      const state: any = location.state as any;
-      const redirectTo = (state?.redirectTo as string | undefined)
-        || (state?.from?.pathname as string | undefined);
-      const redirectState = state?.redirectState as any | undefined;
+      const state = location.state as LocationState | null;
+      const redirectState = state?.redirectState;
+      const redirectTo = getAuthenticatedRedirect(state);
       try { toast.show('Connexion réussie. Bienvenue !', { variant: 'success' }); } catch {}
-      if (redirectTo) {
-        navigate(redirectTo, { replace: true, state: redirectState });
-      } else {
-        navigate('/', { replace: true });
+      try {
+        window.sessionStorage.setItem(
+          'hociatec.a11y.route-announcement',
+          redirectTo === DEFAULT_AUTHENTICATED_PATH
+            ? 'Connexion réussie. Vous êtes dans votre espace.'
+            : 'Connexion réussie. Page demandée chargée.',
+        );
+      } catch {
+        /* noop */
       }
+      navigate(redirectTo, { replace: true, state: redirectState });
     } catch (loginError) {
+      setIsSubmitting(false);
       console.error(loginError);
 
       if (isAxiosError(loginError) && loginError.response?.data?.message) {
@@ -120,6 +165,30 @@ export const LoginPage = () => {
     }
   };
 
+  const locationState = location.state as LocationState | null;
+
+  if (status === 'authenticated') {
+    return (
+      <Navigate
+        to={getAuthenticatedRedirect(locationState)}
+        replace
+        state={locationState?.redirectState}
+      />
+    );
+  }
+
+  if (status === 'idle' || status === 'loading' || isSubmitting) {
+    return (
+      <SiteLayout headerVariant="light">
+        <PageContainer title="Connexion">
+          <p className="notice" role="status" aria-live="polite">
+            Connexion à votre espace...
+          </p>
+        </PageContainer>
+      </SiteLayout>
+    );
+  }
+
   return (
     <SiteLayout headerVariant="light">
       <PageContainer
@@ -134,12 +203,12 @@ export const LoginPage = () => {
         }
       >
         {notice && (
-          <div className="register-form__alert" role="status">
+          <FeedbackMessage id={loginNoticeId} variant="success" aria-live="polite" aria-atomic="true">
             {notice}
-          </div>
+          </FeedbackMessage>
         )}
         {error && (
-          <div className="register-form__alert register-form__alert--error" role="alert">
+          <FeedbackMessage id={loginErrorId} aria-live="assertive" aria-atomic="true">
             <p>{error}</p>
             {parsedErrorDetails.length > 0 && (
               <ul className="mt-2 list-disc pl-5 text-sm">
@@ -148,9 +217,9 @@ export const LoginPage = () => {
                 ))}
               </ul>
             )}
-          </div>
+          </FeedbackMessage>
         )}
-        <form className="card__content" onSubmit={handleSubmit}>
+        <form className="card__content" onSubmit={handleSubmit} aria-describedby={[error ? loginErrorId : null, notice ? loginNoticeId : null].filter(Boolean).join(' ') || undefined}>
           <div className="form-field">
             <label htmlFor="email">Email</label>
             <input
@@ -160,6 +229,7 @@ export const LoginPage = () => {
               autoComplete="email"
               value={form.email}
               onChange={handleChange}
+              aria-invalid={error ? true : undefined}
               required
             />
           </div>
@@ -173,6 +243,7 @@ export const LoginPage = () => {
                 autoComplete="current-password"
                 value={form.password}
                 onChange={handleChange}
+                aria-invalid={error ? true : undefined}
                 required
               />
               <button
@@ -196,10 +267,10 @@ export const LoginPage = () => {
               checked={form.rememberMe}
               onChange={handleChange}
             />
-            <span>Se souvenir de moi</span>
+            <span>Se souvenir de mon email</span>
           </label>
-          <button className="button" type="submit" disabled={status === 'loading'}>
-            {status === 'loading' ? 'Connexion en cours...' : 'Se connecter'}
+          <button className="button" type="submit">
+            Se connecter
           </button>
         </form>
       </PageContainer>

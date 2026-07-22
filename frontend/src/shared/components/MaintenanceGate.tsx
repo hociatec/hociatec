@@ -1,0 +1,39 @@
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+
+import { fetchSystemStatus, type MaintenanceStatusDto } from '@/features/admin/backups/api';
+
+const ADMIN_ALLOWED_PREFIXES = ['/admin', '/login'];
+
+export const MaintenanceGate = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
+  const [maintenance, setMaintenance] = useState<MaintenanceStatusDto | null>(null);
+
+  useEffect(() => {
+    void fetchSystemStatus()
+      .then((status) => setMaintenance(status.maintenance))
+      .catch(() => setMaintenance(null));
+  }, []);
+
+  const adminAllowed = ADMIN_ALLOWED_PREFIXES.some(
+    (prefix) => location.pathname === prefix || location.pathname.startsWith(`${prefix}/`),
+  );
+
+  if (maintenance?.enabled && !adminAllowed) {
+    return (
+      <main className="min-h-screen bg-brand-900 px-6 py-16 text-white">
+        <section className="mx-auto flex max-w-2xl flex-col gap-6 rounded-xl border border-amber-200/30 bg-white/[0.04] p-8 shadow-2xl shadow-black/30">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">Maintenance</p>
+          <h1 className="text-4xl font-bold">Site temporairement indisponible</h1>
+          <p className="text-lg text-stone-200">{maintenance.message}</p>
+          <Link to="/login" className="btn-secondary w-fit">
+            Accès administrateur
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  return <>{children}</>;
+};

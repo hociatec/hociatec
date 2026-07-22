@@ -6,6 +6,7 @@ import { registerUser, type RegisterPayload } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
 import './RegisterPage.css';
 
@@ -33,6 +34,8 @@ export const RegisterPage = () => {
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const errorId = 'register-form-error';
+  const passwordHelpId = 'register-password-help';
 
   const hasErrorDetails = (value: unknown): value is Error & { details: string[] } =>
     typeof value === 'object' &&
@@ -74,6 +77,7 @@ export const RegisterPage = () => {
     try {
       if (!form.gender) {
         setError('Veuillez sélectionner une option pour le champ sexe.');
+        try { toast.show('Veuillez sélectionner une option pour le champ sexe.', { variant: 'error' }); } catch {}
         return;
       }
 
@@ -91,8 +95,10 @@ export const RegisterPage = () => {
         if (hasErrorDetails(submissionError)) {
           setErrorDetails(submissionError.details);
         }
+        try { toast.show(submissionError.message || "Impossible de finaliser l'inscription pour le moment.", { variant: 'error' }); } catch {}
       } else {
         setError("Impossible de finaliser l'inscription pour le moment.");
+        try { toast.show("Impossible de finaliser l'inscription pour le moment.", { variant: 'error' }); } catch {}
       }
     } finally {
       setLoading(false);
@@ -129,16 +135,16 @@ export const RegisterPage = () => {
             <h2 id="register-form-title">Informations de compte</h2>
             <p>Complétez ce formulaire pour créer votre espace sécurisé.</p>
           </header>
-          <form className="register-form" onSubmit={handleSubmit} noValidate>
+          <form className="register-form" onSubmit={handleSubmit} noValidate aria-describedby={error ? errorId : undefined}>
             {error ? (
-              <div className="register-form__alert">
+              <FeedbackMessage id={errorId} aria-live="assertive" aria-atomic="true">
                 <p>{error}</p>
                 {parsedErrorDetails.map((detail) => (
                   <p key={detail} className="register-form__alert-detail">
                     {detail}
                   </p>
                 ))}
-              </div>
+              </FeedbackMessage>
             ) : null}
             <div className="register-form__grid">
               <label className="register-form__field">
@@ -172,10 +178,11 @@ export const RegisterPage = () => {
                 name="email"
                 type="email"
                 autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
+                  value={form.email}
+                  onChange={handleChange}
+                  aria-invalid={error ? true : undefined}
+                  required
+                />
             </label>
             
             
@@ -187,6 +194,7 @@ export const RegisterPage = () => {
                   type="date"
                   value={form.birthDate}
                   onChange={handleChange}
+                  aria-invalid={error ? true : undefined}
                   required
                 />
               </label>
@@ -198,6 +206,7 @@ export const RegisterPage = () => {
                   autoComplete="tel"
                   value={form.phoneNumber}
                   onChange={handleChange}
+                  aria-invalid={error ? true : undefined}
                   maxLength={20}
                   required
                 />
@@ -208,6 +217,7 @@ export const RegisterPage = () => {
                   name="gender"
                   value={form.gender}
                   onChange={handleChange}
+                  aria-invalid={error && !form.gender ? true : undefined}
                   required
                   className="register-form__select"
                 >
@@ -230,6 +240,8 @@ export const RegisterPage = () => {
                     autoComplete="new-password"
                     value={form.password}
                     onChange={handleChange}
+                    aria-describedby={passwordHelpId}
+                    aria-invalid={error ? true : undefined}
                     minLength={8}
                     required
                   />
@@ -252,6 +264,8 @@ export const RegisterPage = () => {
                     autoComplete="new-password"
                     value={form.confirmPassword}
                     onChange={handleChange}
+                    aria-describedby={passwordHelpId}
+                    aria-invalid={error ? true : undefined}
                     minLength={8}
                     required
                   />
@@ -270,7 +284,7 @@ export const RegisterPage = () => {
                 </div>
               </label>
             </div>
-            <div className="register-form__guidelines">
+            <div id={passwordHelpId} className="register-form__guidelines">
               <p>Le mot de passe doit respecter les critères suivants :</p>
               <ul>
                 <li>Au moins 8 caractères</li>

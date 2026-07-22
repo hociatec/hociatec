@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,9 +17,8 @@ import { fetchAdminOrders, updateAdminOrderStatus, type OrderDto, formatInvoiceS
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
-
-const formatPrice = (valueInCents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(valueInCents / 100);
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { formatEuroCents, formatOptionalFrenchDate, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
 type SortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'customer_asc';
@@ -155,12 +155,12 @@ export const OrdersListPage = () => {
   };
 
   return (
-    <PageContainer title="Commandes">
+    <PageContainer size="admin" title="Commandes">
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} affichée{filteredOrders.length > 1 ? 's' : ''} sur {orders.length}.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Recherchez une commande par numéro, client, email, société ou facture, puis triez la liste selon votre besoin.
         </p>
       </div>
@@ -206,21 +206,15 @@ export const OrdersListPage = () => {
         />
       </FilterBar>
 
-      {status === 'loading' && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement...
-        </div>
-      )}
-      {error && <div className="register-form__alert">{error}</div>}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
-      {status === 'success' && filteredOrders.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune commande ne correspond aux filtres actuels.
-        </div>
-      ) : null}
-
-      {filteredOrders.length > 0 && (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={status === 'loading'}
+        isEmpty={status === 'success' && filteredOrders.length === 0}
+        loadingLabel="Chargement..."
+        emptyLabel="Aucune commande ne correspond aux filtres actuels."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -238,13 +232,13 @@ export const OrdersListPage = () => {
               {filteredOrders.map((order) => (
                 <tr key={order.id}>
                   <th scope="row">
-                    <div className="font-semibold text-slate-900">{order.number}</div>
+                    <div className="font-semibold text-brand-900">{order.number}</div>
                     {order.invoice?.purchaseOrderNumber ? (
                       <div className="muted">BC: {order.invoice.purchaseOrderNumber}</div>
                     ) : null}
                   </th>
                   <td>
-                    <div className="font-medium text-slate-900">{getOrderCustomerLabel(order)}</div>
+                    <div className="font-medium text-brand-900">{getOrderCustomerLabel(order)}</div>
                     {order.invoice?.billingCompany ? (
                       <div className="muted">{order.invoice.billingCompany}</div>
                     ) : null}
@@ -253,10 +247,8 @@ export const OrdersListPage = () => {
                     ) : null}
                   </td>
                   <td>
-                    <div>{new Date(order.createdAt).toLocaleDateString('fr-FR')}</div>
-                    <div className="muted">
-                      {new Date(order.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
+                    <div>{formatOptionalFrenchDate(order.createdAt)}</div>
+                    <div className="muted">{formatOptionalFrenchDateTime(order.createdAt)}</div>
                   </td>
                   <td>
                     {order.invoice?.number ? (
@@ -265,11 +257,11 @@ export const OrdersListPage = () => {
                         <div className="muted">{formatInvoiceStatusFr(order.invoice.status)}</div>
                       </>
                     ) : (
-                      <span className="text-xs text-slate-500">Aucune</span>
+                      <span className="text-xs text-stone-500">Aucune</span>
                     )}
                   </td>
                   <td>
-                    <div className="font-medium text-slate-900">{getPaymentLabel(order)}</div>
+                    <div className="font-medium text-brand-900">{getPaymentLabel(order)}</div>
                     {order.payment?.stripePaymentStatus ? (
                       <div className="muted">
                         Stripe: {order.payment.stripePaymentStatusLabel ?? formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
@@ -281,7 +273,7 @@ export const OrdersListPage = () => {
                       </div>
                     ) : null}
                   </td>
-                  <td>{formatPrice(order.totalPriceCents)}</td>
+                  <td>{formatEuroCents(order.totalPriceCents)}</td>
                   <td>
                     <div className="capitalize">{order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
                     {order.hasIssues && (order.issueReasons?.length ?? 0) > 0 ? (
@@ -298,11 +290,11 @@ export const OrdersListPage = () => {
                   <td>
                     <div className="flex flex-wrap gap-3">
                       {getNextStatuses(order.status).length === 0 ? (
-                        <span className="inline-flex items-center text-xs text-slate-500">Statut final</span>
+                        <span className="inline-flex items-center text-xs text-stone-500">Statut final</span>
                       ) : (
                         <button
                           type="button"
-                          className="inline-flex items-center rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-500"
+                          className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
                           onClick={() => {
                             const options = getNextStatuses(order.status);
                             if (!options.length) return;
@@ -327,8 +319,8 @@ export const OrdersListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
 
       <AlertDialog
         open={editing !== null}
@@ -362,7 +354,7 @@ export const OrdersListPage = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Aucun changement possible depuis ce statut.</p>
+            <p className="text-sm text-stone-500">Aucun changement possible depuis ce statut.</p>
           )}
           {updateError && <div className="text-sm text-red-600">{updateError}</div>}
           <AlertDialogFooter>

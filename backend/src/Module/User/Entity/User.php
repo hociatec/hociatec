@@ -55,6 +55,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private array $adminTags = [];
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $loyaltyPointsBalance = 0;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $accountNotificationsSeenSignature = null;
+
     #[ORM\Column(length: 100, nullable: true, unique: true)]
     private ?string $verificationToken = null;
 
@@ -259,6 +265,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->adminTags = array_values(array_unique($normalized));
+
+        return $this;
+    }
+
+    public function getLoyaltyPointsBalance(): int
+    {
+        return $this->loyaltyPointsBalance;
+    }
+
+    public function setLoyaltyPointsBalance(int $loyaltyPointsBalance): self
+    {
+        $this->loyaltyPointsBalance = max(0, $loyaltyPointsBalance);
+
+        return $this;
+    }
+
+    public function addLoyaltyPoints(int $points): self
+    {
+        $this->loyaltyPointsBalance = max(0, $this->loyaltyPointsBalance + $points);
+
+        return $this;
+    }
+
+    public function getAccountNotificationsSeenSignature(): ?string
+    {
+        return $this->accountNotificationsSeenSignature;
+    }
+
+    public function setAccountNotificationsSeenSignature(?string $signature): self
+    {
+        $signature = $signature !== null ? trim($signature) : null;
+        $this->accountNotificationsSeenSignature = $signature !== '' ? $signature : null;
 
         return $this;
     }

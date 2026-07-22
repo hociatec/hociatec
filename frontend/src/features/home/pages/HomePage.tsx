@@ -6,25 +6,44 @@ import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api
 import { ProductActionToolbar } from "@/features/catalog/components/ProductActionToolbar";
 import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
 import { getCatalogProductDisplayName } from "@/features/catalog/utils/productDisplay";
+import { formatEuroCents } from "@/shared/lib/formatters";
 import { Link } from "react-router-dom";
 import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
 
 const serviceHighlights = [
   {
-    title: 'Matériel informatique',
-    text: 'Vente, location, reprise et reconditionnement avec une sélection pensée pour durer.',
-    to: '/catalogue/vente',
+    title: 'Matériel',
+    text: 'Vente, location et reconditionné avec une sélection fiable.',
   },
   {
-    title: 'Interventions et rendez-vous',
-    text: 'Un accompagnement clair pour vos installations, besoins techniques et formations.',
-    to: '/appointments/book',
+    title: 'Interventions',
+    text: 'Installation, configuration, assistance et formation selon le besoin.',
   },
   {
-    title: 'Projets sur mesure',
-    text: 'Devis, audits, sites, logiciels et conseils adaptés à votre contexte réel.',
-    to: '/devis/nouveau',
+    title: 'Projets',
+    text: 'Audits, devis, sites et logiciels cadrés avec une méthode claire.',
   },
+];
+
+const homeIntroPoints = [
+  {
+    label: 'Conseil avant achat',
+    text: 'Un besoin cadré avant de choisir du matériel ou une prestation.',
+  },
+  {
+    label: 'Solutions durables',
+    text: 'Neuf, location, reprise ou reconditionné selon l usage réel.',
+  },
+  {
+    label: 'Suivi clair',
+    text: 'Commandes, devis, audits et rendez-vous restent faciles à retrouver.',
+  },
+];
+
+const operatingModes = [
+  'Matériel neuf, reconditionné ou en location',
+  'Installation, reprise et valorisation des équipements',
+  'Audits, devis, formations et projets web ou logiciels',
 ];
 
 const HomeProductMedia = ({ product }: { product: CatalogProduct }) => {
@@ -80,16 +99,18 @@ export const HomePage = () => {
             <p className="home-hero__eyebrow">Informatique, services et accompagnement</p>
             <h1>Hociatec simplifie vos besoins numériques</h1>
             <p>
-              Vente, location, reconditionnement, audit et projets sur mesure avec une approche claire,
-              durable et humaine.
+              Matériel, interventions, audits et projets sur mesure avec une approche claire,
+              durable et adaptée à votre usage.
             </p>
-            <div className="home-hero__actions">
-              <Link to="/catalogue/vente" className="home-button home-button--primary">Voir le catalogue</Link>
-              <Link to="/appointments/book" className="home-button home-button--secondary">Prendre rendez-vous</Link>
+            <div className="home-hero__summary" aria-label="Domaines couverts">
+              <span>Matériel</span>
+              <span>Services</span>
+              <span>Audit</span>
+              <span>Sur mesure</span>
             </div>
           </div>
           <div className="home-hero__visual" aria-hidden="true">
-            <img src="/hociatec-hero-workbench.png" alt="" />
+            <img src="/hociatec-hero-workbench.webp" alt="" />
             <div className="home-hero__metric">
               <strong>Vente · Location · Audit</strong>
               <span>Un interlocuteur pour avancer plus vite.</span>
@@ -97,34 +118,47 @@ export const HomePage = () => {
           </div>
         </section>
 
+        <section className="home-intro" aria-label="Présentation Hociatec">
+          <div className="home-intro__copy">
+            <p className="home-intro__eyebrow">Présentation</p>
+            <h2>Une réponse informatique complète, sans complexité inutile</h2>
+            <p>
+              Hociatec accompagne les particuliers, indépendants et petites structures pour choisir,
+              installer, maintenir ou faire évoluer leurs outils numériques.
+            </p>
+          </div>
+          <div className="home-intro__panel">
+            <h3>Prise en charge</h3>
+            <ul>
+              {operatingModes.map((mode) => (
+                <li key={mode}>{mode}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section className="home-services" aria-label="Services Hociatec">
           <div className="home-section-heading">
             <p>Solutions Hociatec</p>
-            <h2>Des services lisibles, du besoin jusqu'au suivi</h2>
+            <h2>Trois portes d’entrée selon votre besoin</h2>
           </div>
           <div className="home-services__grid">
             {serviceHighlights.map((service) => (
-              <Link key={service.title} to={service.to} className="home-service-card">
+              <article key={service.title} className="home-service-card">
                 <span>{service.title}</span>
                 <p>{service.text}</p>
-              </Link>
+              </article>
             ))}
           </div>
         </section>
 
         <section className="home-feature-strip" aria-label="Engagements">
-          <div>
-            <strong>Conseil direct</strong>
-            <span>Une réponse claire avant de choisir.</span>
-          </div>
-          <div>
-            <strong>Matériel valorisé</strong>
-            <span>Neuf, reconditionné ou repris selon le besoin.</span>
-          </div>
-          <div>
-            <strong>Suivi centralisé</strong>
-            <span>Commandes, devis, audits et rendez-vous au même endroit.</span>
-          </div>
+          {homeIntroPoints.map((point) => (
+            <div key={point.label}>
+              <strong>{point.label}</strong>
+              <span>{point.text}</span>
+            </div>
+          ))}
         </section>
 
         <section className="home-products">
@@ -136,7 +170,7 @@ export const HomePage = () => {
             <Link to="/catalogue/vente" className="home-button home-button--secondary">Tous les produits</Link>
           </div>
           {loadingProducts && (
-            <p className="home-loading">Chargement des produits...</p>
+            <p className="home-loading" aria-hidden="true">Chargement des produits...</p>
           )}
           {errorProducts && (
             <div className="home-alert">{errorProducts}</div>
@@ -183,7 +217,7 @@ export const HomePage = () => {
 
                     <div className="home-product-card__footer">
                       <span>
-                        {(product.priceCents / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                        {formatEuroCents(product.priceCents)}
                       </span>
                       <ProductActionToolbar product={product} />
                     </div>

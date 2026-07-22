@@ -4,14 +4,14 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export const ProtectedRoute = ({ children }: PropsWithChildren) => {
-  const { token, status } = useAuth();
+  const { status } = useAuth();
   const location = useLocation();
 
   if (status === 'loading' || status === 'idle') {
-    return <p className="notice">Chargement en cours...</p>;
+    return <div aria-hidden="true" className="min-h-[40vh]" />;
   }
 
-  if (!token) {
+  if (status !== 'authenticated') {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

@@ -1,0 +1,332 @@
+import { useEffect, useState } from 'react';
+import type { FormEvent, ReactNode } from 'react';
+import { AlertTriangle, DatabaseBackup, HardDrive, ShieldCheck } from 'lucide-react';
+
+import {
+  fetchBackupStatus,
+  runBackupNow,
+  updateBackupSettings,
+  updateMaintenanceMode,
+  type BackupStatusDto,
+} from '@/features/admin/backups/api';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+
+const formatDate = (value?: string | null) => {
+  if (!value) return 'Jamais';
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(value));
+};
+
+const formatBytes = (bytes?: number | null) => {
+  if (!bytes) return '0 o';
+  const units = ['o', 'Ko', 'Mo', 'Go'];
+  let value = bytes;
+  let index = 0;
+  while (value >= 1024 && index < units.length - 1) {
+    value /= 1024;
+    index += 1;
+  }
+
+  return `${value.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+};
+
+export const AdminBackupsPage = () => {
+  useDocumentTitle('Admin - Sauvegardes');
+  const [status, setStatus] = useState<BackupStatusDto | null>(null);
+  const [intervalHours, setIntervalHours] = useState(24);
+  const [retentionCount, setRetentionCount] = useState(7);
+  const [enabled, setEnabled] = useState(false);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const hydrate = (data: BackupStatusDto) => {
+    setStatus(data);
+    setIntervalHours(data.settings.intervalHours);
+    setRetentionCount(data.settings.retentionCount);
+    setEnabled(data.settings.enabled);
+    setMaintenanceEnabled(data.maintenance.enabled);
+    setMaintenanceMessage(data.maintenance.message);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    void fetchBackupStatus()
+      .then(hydrate)
+      .catch((e: unknown) => setError(getHttpErrorMessage(e, 'Impossible de charger les sauvegardes.')))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const submitSettings = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      hydrate(await updateBackupSettings({ enabled, intervalHours, retentionCount }));
+      setMessage('Configuration des sauvegardes enregistrée.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Impossible de sauvegarder la configuration.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const launchBackup = async () => {
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      hydrate(await runBackupNow());
+      setMessage('Sauvegarde terminée et rétention appliquée.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Impossible de lancer la sauvegarde.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitMaintenance = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const maintenance = await updateMaintenanceMode({
+        enabled: maintenanceEnabled,
+        message: maintenanceMessage,
+      });
+      setStatus((current) => (current ? { ...current, maintenance } : current));
+      setMaintenanceEnabled(maintenance.enabled);
+      setMaintenanceMessage(maintenance.message);
+      setMessage(maintenance.enabled ? 'Mode maintenance activé.' : 'Mode maintenance désactivé.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Impossible de modifier le mode maintenance.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="px-6 py-12 text-stone-200" aria-hidden="true">Chargement des sauvegardes...</div>;
+  }
+
+  return (
+    <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
+      <header className="rounded-xl border border-amber-200/20 bg-brand-900/80 p-8 shadow-2xl shadow-black/20">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">Exploitation</p>
+        <h1 className="mt-3 text-4xl font-bold text-white">Sauvegardes et maintenance</h1>
+        <p className="mt-4 max-w-3xl text-stone-500">
+          Pilotez les sauvegardes MySQL, la fréquence d’exécution, la rétention locale et le mode maintenance public.
+        </p>
+      </header>
+
+      <div aria-live="polite" className="space-y-3">
+        {message ? (
+          <div className="rounded-2xl border border-emerald-300/40 bg-emerald-950/60 p-4 text-emerald-100">
+            {message}
+          </div>
+        ) : null}
+        {error ? (
+          <div className="rounded-2xl border border-red-300/40 bg-red-950/70 p-4 text-red-100" role="alert">
+            {error}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatusCard
+          icon={<DatabaseBackup className="h-5 w-5" />}
+          label="Dernière sauvegarde"
+          value={formatDate(status?.settings.lastSuccessfulRunAt)}
+        />
+        <StatusCard
+          icon={<ShieldCheck className="h-5 w-5" />}
+          label="Planification"
+          value={status?.settings.enabled ? `Toutes les ${status.settings.intervalHours} h` : 'Désactivée'}
+        />
+        <StatusCard
+          icon={<HardDrive className="h-5 w-5" />}
+          label="Sauvegardes conservées"
+          value={`${status?.backups.length ?? 0} / ${status?.settings.retentionCount ?? 0}`}
+        />
+        <StatusCard
+          icon={<AlertTriangle className="h-5 w-5" />}
+          label="Maintenance"
+          value={status?.maintenance.enabled ? 'Active' : 'Inactive'}
+          danger={status?.maintenance.enabled}
+        />
+      </div>
+
+      {status && (!status.tools.mysqldumpAvailable || !status.tools.gzipAvailable) ? (
+        <div className="rounded-2xl border border-red-300/40 bg-red-950/60 p-5 text-red-100" role="alert">
+          Outils serveur incomplets: `mysqldump` ou l’extension PHP `zlib` est indisponible. Les sauvegardes ne
+          pourront pas être fiables tant que le serveur n’est pas corrigé.
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+        <form onSubmit={submitSettings} className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+          <h2 className="text-xl font-semibold text-white">Configuration automatique</h2>
+          <p className="mt-2 text-sm text-stone-500">
+            La configuration est appliquée par la commande cron indiquée plus bas. Le bouton manuel utilise la même
+            procédure, avec verrou anti-concurrence et rétention automatique.
+          </p>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-brand-900/70 p-4 text-stone-100">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(event) => setEnabled(event.target.checked)}
+                className="h-5 w-5 rounded border-brand-600 text-amber-500"
+              />
+              Activer les sauvegardes planifiées
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-medium text-stone-200">
+              Fréquence
+              <select
+                value={intervalHours}
+                onChange={(event) => setIntervalHours(Number(event.target.value))}
+                className="rounded-xl border border-brand-700 bg-brand-900 px-4 py-3 text-white"
+              >
+                <option value={6}>Toutes les 6 heures</option>
+                <option value={12}>Toutes les 12 heures</option>
+                <option value={24}>Tous les jours</option>
+                <option value={48}>Tous les 2 jours</option>
+                <option value={168}>Toutes les semaines</option>
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-medium text-stone-200">
+              Nombre de sauvegardes à garder
+              <input
+                type="number"
+                min={1}
+                max={90}
+                value={retentionCount}
+                onChange={(event) => setRetentionCount(Number(event.target.value))}
+                className="rounded-xl border border-brand-700 bg-brand-900 px-4 py-3 text-white"
+              />
+            </label>
+
+            <div className="rounded-2xl border border-white/10 bg-brand-900/70 p-4 text-sm text-stone-500">
+              Prochaine exécution prévue:
+              <strong className="mt-1 block text-white">{formatDate(status?.settings.nextRunAt)}</strong>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button type="submit" disabled={busy} className="btn-primary">
+              Enregistrer la configuration
+            </button>
+            <button type="button" disabled={busy} onClick={launchBackup} className="btn-secondary">
+              Sauvegarder maintenant
+            </button>
+          </div>
+        </form>
+
+        <form onSubmit={submitMaintenance} className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+          <h2 className="text-xl font-semibold text-white">Mode maintenance</h2>
+          <p className="mt-2 text-sm text-stone-500">
+            Le site public affiche un écran de maintenance et les APIs publiques renvoient un `503`. L’admin et la
+            connexion restent accessibles.
+          </p>
+
+          <label className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-brand-900/70 p-4 text-stone-100">
+            <input
+              type="checkbox"
+              checked={maintenanceEnabled}
+              onChange={(event) => setMaintenanceEnabled(event.target.checked)}
+              className="h-5 w-5 rounded border-brand-600 text-amber-500"
+            />
+            Activer le mode maintenance
+          </label>
+
+          <label className="mt-5 flex flex-col gap-2 text-sm font-medium text-stone-200">
+            Message public
+            <textarea
+              value={maintenanceMessage}
+              onChange={(event) => setMaintenanceMessage(event.target.value)}
+              rows={4}
+              className="rounded-xl border border-brand-700 bg-brand-900 px-4 py-3 text-white"
+            />
+          </label>
+
+          <button type="submit" disabled={busy} className="btn-primary mt-6">
+            Appliquer le mode maintenance
+          </button>
+        </form>
+      </div>
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+        <h2 className="text-xl font-semibold text-white">Sauvegardes effectuées</h2>
+        <div className="mt-5 overflow-x-auto">
+          <table className="min-w-full divide-y divide-white/10 text-left text-sm">
+            <thead className="text-xs uppercase tracking-[0.18em] text-stone-400">
+              <tr>
+                <th className="py-3 pr-4">Fichier</th>
+                <th className="py-3 pr-4">Date</th>
+                <th className="py-3 pr-4">Taille</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/10 text-stone-200">
+              {status?.backups.length ? status.backups.map((backup) => (
+                <tr key={backup.filename}>
+                  <td className="py-4 pr-4 font-medium text-white">{backup.filename}</td>
+                  <td className="py-4 pr-4">{formatDate(backup.createdAt)}</td>
+                  <td className="py-4 pr-4">{formatBytes(backup.sizeBytes)}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={3} className="py-8 text-center text-stone-400">
+                    Aucune sauvegarde disponible pour le moment.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+        <h2 className="text-xl font-semibold text-white">Planification serveur</h2>
+        <p className="mt-2 text-sm text-stone-500">
+          À installer sur le serveur pour que la fréquence configurée dans l’admin soit réellement exécutée.
+        </p>
+        <pre className="mt-4 overflow-x-auto rounded-2xl bg-brand-900 p-4 text-sm text-amber-100">
+          {status?.scheduler.cronExample}
+        </pre>
+      </section>
+    </section>
+  );
+};
+
+const StatusCard = ({
+  icon,
+  label,
+  value,
+  danger = false,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  danger?: boolean;
+}) => (
+  <div className={`rounded-2xl border p-5 ${danger ? 'border-red-300/40 bg-red-950/50' : 'border-white/10 bg-white/[0.04]'}`}>
+    <div className={danger ? 'text-red-200' : 'text-amber-200'}>{icon}</div>
+    <p className="mt-4 text-xs uppercase tracking-[0.18em] text-stone-400">{label}</p>
+    <strong className="mt-1 block text-lg text-white">{value}</strong>
+  </div>
+);

@@ -102,35 +102,26 @@ export const ProfilePage = () => {
   }, [user]);
 
   const initials = useMemo(() => {
-    if (!user) {
-      return '';
-    }
+    if (!user) return '';
 
-    const segments = [user.firstName, user.lastName].filter(Boolean);
-    return segments
+    return [user.firstName, user.lastName]
+      .filter(Boolean)
       .map((segment) => segment.trim().charAt(0).toUpperCase())
       .slice(0, 2)
       .join('');
   }, [user]);
 
   const formattedRoles = useMemo(() => {
-    if (!user?.roles?.length) {
-      return 'Utilisateur';
-    }
+    if (!user?.roles?.length) return 'Utilisateur';
 
-    const uniqueRoles = Array.from(new Set(user.roles)).map(formatRole);
-    return uniqueRoles.join(', ');
+    return Array.from(new Set(user.roles)).map(formatRole).join(', ');
   }, [user]);
 
   const formattedBirthDate = useMemo(() => {
-    if (!user?.birthDate) {
-      return 'Non renseignée';
-    }
+    if (!user?.birthDate) return 'Non renseignée';
 
     const date = new Date(user.birthDate);
-    if (Number.isNaN(date.getTime())) {
-      return user.birthDate;
-    }
+    if (Number.isNaN(date.getTime())) return user.birthDate;
 
     return new Intl.DateTimeFormat('fr-FR', {
       year: 'numeric',
@@ -138,6 +129,20 @@ export const ProfilePage = () => {
       day: '2-digit',
     }).format(date);
   }, [user]);
+
+  const resetForm = () => {
+    if (!user) return;
+
+    setForm({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      birthDate: user.birthDate,
+      phoneNumber: user.phoneNumber,
+      gender: user.gender,
+      password: '',
+    });
+  };
 
   const handleFieldChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -155,22 +160,6 @@ export const ProfilePage = () => {
     setIsEditing(true);
   };
 
-  const resetForm = () => {
-    if (!user) {
-      return;
-    }
-
-    setForm({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      birthDate: user.birthDate,
-      phoneNumber: user.phoneNumber,
-      gender: user.gender,
-      password: '',
-    });
-  };
-
   const handleCancelEditing = () => {
     resetForm();
     setFeedback(null);
@@ -180,9 +169,7 @@ export const ProfilePage = () => {
   const handleSubmitProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     if (!form.gender) {
       setFeedback({
@@ -195,8 +182,7 @@ export const ProfilePage = () => {
     if (form.password && !PASSWORD_RULE.test(form.password)) {
       setFeedback({
         type: 'error',
-        message:
-          'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
+        message: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
       });
       return;
     }
@@ -258,77 +244,15 @@ export const ProfilePage = () => {
     }
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <SiteLayout headerVariant="light">
       <div className="profile-page">
-        <header className="profile-hero">
-          <div className="profile-hero__identity">
-            <span className="profile-avatar" aria-hidden="true">
-              {initials}
-            </span>
-            <div>
-              <p className="profile-hero__eyebrow">Mon espace</p>
-              <h1 className="profile-hero__title">
-                Bonjour {user.firstName} {user.lastName}
-              </h1>
-              <p className="profile-hero__subtitle">
-                Retrouvez vos informations personnelles et pilotez vos services Hociatec.
-              </p>
-            </div>
-          </div>
-          <div className="profile-hero__actions">
-            <button
-              type="button"
-              className="profile-action-button profile-action-button--primary"
-              onClick={handleStartEditing}
-              disabled={isEditing}
-            >
-              Modifier mon profil
-            </button>
-            <button
-              type="button"
-              className="profile-action-button profile-action-button--ghost"
-              onClick={() => navigate('/profile/addresses')}
-            >
-              Gérer mes adresses
-            </button>
-            <button
-              type="button"
-              className="profile-action-button profile-action-button--ghost"
-              onClick={() => navigate('/orders/me')}
-            >
-              Mes commandes
-            </button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  type="button"
-                  className="profile-action-button profile-action-button--danger"
-                  disabled={isDeleting}
-                >
-                  Supprimer mon compte
-                </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Cette action entra�ne la suppression de votre compte et de vos acc�s aux services
-                    Hociatec. Un membre de notre �quipe vous recontactera pour finaliser la proc�dure.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
-                    {isDeleting ? 'Suppression...' : 'Confirmer'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+        <header className="profile-header">
+          <div>
+            <h1>Profil</h1>
+            <p>Informations utilisées pour votre compte client Hociatec.</p>
           </div>
         </header>
 
@@ -347,11 +271,33 @@ export const ProfilePage = () => {
         ) : null}
 
         <div className="profile-grid">
+          <aside className="profile-summary-card" aria-label="Résumé du profil">
+            <span className="profile-avatar" aria-hidden="true">
+              {initials}
+            </span>
+            <div>
+              <strong>{user.firstName} {user.lastName}</strong>
+              <span>{user.email}</span>
+            </div>
+          </aside>
+
           <section
-            className="profile-card profile-card--highlight"
+            className="profile-card profile-card--highlight profile-card--main"
             aria-labelledby="profile-info-heading"
           >
-            <h2 id="profile-info-heading">Informations personnelles</h2>
+            <div className="profile-card__header">
+              <h2 id="profile-info-heading">Informations personnelles</h2>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  className="profile-card__edit"
+                  onClick={handleStartEditing}
+                >
+                  Modifier
+                </button>
+              ) : null}
+            </div>
+
             {isEditing ? (
               <form className="profile-form" onSubmit={handleSubmitProfile}>
                 <div className="profile-form__fields">
@@ -387,7 +333,6 @@ export const ProfilePage = () => {
                       required
                     />
                   </label>
-                  {/* Adresse gérée via page dédiée */}
                   <label className="profile-form__field">
                     <span>Date de naissance</span>
                     <input
@@ -434,7 +379,7 @@ export const ProfilePage = () => {
                       value={form.password}
                       onChange={handleFieldChange}
                       minLength={8}
-                      placeholder="Laisser vide pour conserver l’actuel"
+                      placeholder="Laisser vide pour conserver l'actuel"
                     />
                   </label>
                 </div>
@@ -457,78 +402,72 @@ export const ProfilePage = () => {
                 </div>
               </form>
             ) : (
-              <dl className="profile-details">
-                <div>
-                  <dt>Nom complet</dt>
-                  <dd>
-                    {user.firstName} {user.lastName}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Adresse e-mail</dt>
-                  <dd>{user.email}</dd>
-                </div>
-                <div>
-                  <dt>Adresse postale</dt>
-                  <dd>{user.address}</dd>
-                </div>
-                <div>
-                  <dt>Code postal / Ville</dt>
-                  <dd>
-                    {user.postalCode} {user.city}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Date de naissance</dt>
-                  <dd>{formattedBirthDate}</dd>
-                </div>
-                <div>
-                  <dt>Téléphone</dt>
-                  <dd>{user.phoneNumber}</dd>
-                </div>
-                <div>
-                  <dt>Sexe</dt>
-                  <dd>{formatGender(user.gender)}</dd>
-                </div>
-                <div>
-                  <dt>Rôles</dt>
-                  <dd>{formattedRoles}</dd>
-                </div>
-              </dl>
+              <div className="profile-detail-groups">
+                <dl className="profile-details">
+                  <div>
+                    <dt>Nom complet</dt>
+                    <dd>{user.firstName} {user.lastName}</dd>
+                  </div>
+                  <div>
+                    <dt>Date de naissance</dt>
+                    <dd>{formattedBirthDate}</dd>
+                  </div>
+                  <div>
+                    <dt>Sexe</dt>
+                    <dd>{formatGender(user.gender)}</dd>
+                  </div>
+                </dl>
+                <dl className="profile-details">
+                  <div>
+                    <dt>Adresse e-mail</dt>
+                    <dd>{user.email}</dd>
+                  </div>
+                  <div>
+                    <dt>Téléphone</dt>
+                    <dd>{user.phoneNumber}</dd>
+                  </div>
+                  <div>
+                    <dt>Rôle</dt>
+                    <dd>{formattedRoles}</dd>
+                  </div>
+                </dl>
+              </div>
             )}
           </section>
-          <section className="profile-card" aria-labelledby="profile-security-heading">
-            <h2 id="profile-security-heading">Sécurité et accès</h2>
-            <ul className="profile-list">
-              <li>
-                Authentification sécurisée avec jeton personnel. Pensez à mettre à jour votre mot de
-                passe régulièrement.
-              </li>
-              <li>
-                Pour activer l&apos;authentification multi-facteurs, contactez votre interlocuteur
-                Hociatec.
-              </li>
-              <li>
-                Sur demande, nous pouvons fournir le journal des connexions associées à votre compte.
-              </li>
-            </ul>
-          </section>
-          <section className="profile-card" aria-labelledby="profile-support-heading">
-            <h2 id="profile-support-heading">Support dédié</h2>
-            <ul className="profile-list">
-              <li>Support utilisateur disponible 24/7 : contact@hociatec.fr</li>
-              <li>Escalade prioritaire pour les incidents critiques et bloqueurs</li>
-              <li>Revues trimestrielles pour ajuster vos niveaux de service</li>
-            </ul>
-            <button
-              type="button"
-              className="profile-action-button profile-action-button--ghost"
-              onClick={() => navigate('/')}
-            >
-              Retourner à l’accueil
-            </button>
-          </section>
         </div>
+
+        <section className="profile-danger-zone" aria-labelledby="profile-danger-heading">
+          <div>
+            <h2 id="profile-danger-heading">Zone sensible</h2>
+            <p>La suppression du compte est définitive et nécessite une confirmation.</p>
+          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                type="button"
+                className="profile-action-button profile-action-button--danger"
+                disabled={isDeleting}
+              >
+                Supprimer mon compte
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action entraîne la suppression de votre compte et de vos accès aux services
+                  Hociatec. Un membre de notre équipe vous recontactera pour finaliser la procédure.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+                  {isDeleting ? 'Suppression...' : 'Confirmer'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </section>
       </div>
     </SiteLayout>
   );

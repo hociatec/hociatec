@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Controller;
 
+use App\Module\Auth\Http\AuthCookieService;
 use App\Module\Auth\Service\RefreshTokenService;
 use App\Shared\Http\ApiResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -19,13 +20,17 @@ class RefreshTokenController extends AbstractController
     public function __construct(
         private readonly RefreshTokenService $refreshTokenService,
         private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly AuthCookieService $authCookieService,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         $payload = json_decode($request->getContent(), true);
-        $refreshToken = is_array($payload) ? (string) ($payload['refreshToken'] ?? '') : '';
+        $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
+        if (!is_string($refreshToken) || $refreshToken === '') {
+            $refreshToken = is_array($payload) ? (string) ($payload['refreshToken'] ?? '') : '';
+        }
 
         if ($refreshToken === '') {
             return ApiResponse::error('Refresh token manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -38,10 +43,18 @@ class RefreshTokenController extends AbstractController
 
         $jwt = $this->jwtManager->create($rotated['user']);
 
-        return ApiResponse::success([
-            'token' => $jwt,
-            'refreshToken' => $rotated['refreshToken'],
+        $response = ApiResponse::success([
+            'authenticated' => true,
             'refreshTokenExpiresAt' => $rotated['expiresAt'],
         ]);
+        $this->authCookieService->attachLoginCookies(
+            $response,
+            $request,
+            $jwt,
+            $rotated['refreshToken'],
+            $rotated['expiresAt'],
+        );
+
+        return $response;
     }
 }

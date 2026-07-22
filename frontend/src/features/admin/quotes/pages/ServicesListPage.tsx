@@ -1,16 +1,18 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/api';
+import { deleteAdminQuoteService, fetchAdminQuoteServices, type QuoteServiceDto } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { formatEuroCents } from '@/shared/lib/formatters';
 
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
-
-const formatDuration = (service: any) => {
+const formatDuration = (service: QuoteServiceDto) => {
   if (!service?.durationValue || !service?.durationUnit) return '—';
 
   if (service.durationUnit === 'day') {
@@ -22,17 +24,18 @@ const formatDuration = (service: any) => {
 
 export const ServicesListPage = () => {
   useDocumentTitle('Admin - Services');
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<QuoteServiceDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const confirm = useConfirm();
   useEffect(() => {
     setLoading(true);
     setError(null);
     void fetchAdminQuoteServices()
       .then((items) => setServices(items))
-      .catch((e: any) => setError(e?.message ?? 'Chargement impossible.'))
+      .catch((e) => setError(getHttpErrorMessage(e, 'Chargement impossible.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,14 +48,21 @@ export const ServicesListPage = () => {
     const service = services.find((item) => item.id === id);
     const serviceLabel = service ? `"${service.title}"` : 'ce service';
 
-    if (!window.confirm(`Supprimer ${serviceLabel} ?`)) return;
+    const confirmed = await confirm({
+      title: 'Supprimer le service',
+      description: `Supprimer ${serviceLabel} ?`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) return;
     await deleteAdminQuoteService(id);
     setServices((prev) => prev.filter((s) => s.id !== id));
     setMessage('Service supprime.');
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Services"
       headerActions={
         <Link to="/admin/services/new" className="register-form__submit">
@@ -61,7 +71,7 @@ export const ServicesListPage = () => {
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           Gérez ici votre catalogue de services, leurs tarifs, leur mode de facturation et leur durée estimée.
         </p>
       </div>
@@ -69,19 +79,16 @@ export const ServicesListPage = () => {
         <SearchFilter value={search} onChange={setSearch} placeholder="Rechercher..." />
       </FilterBar>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {loading ? (
-        <p className="muted">Chargement...</p>
-      ) : filtered.length === 0 ? (
-        <p className="muted">Aucun service.</p>
-      ) : (
-        <div className="overflow-x-auto">
+      <AdminListState
+        loading={loading}
+        isEmpty={filtered.length === 0}
+        loadingLabel="Chargement..."
+        emptyLabel="Aucun service."
+      >
+        <AdminTableShell>
         <table className="catalog-admin-table">
           <thead>
             <tr>
@@ -104,7 +111,7 @@ export const ServicesListPage = () => {
                 </th>
                 <td>{s.unit?.trim() || 'Prix fixe'}</td>
                 <td>{formatDuration(s)}</td>
-                <td>{formatPrice(s.priceCents)}</td>
+                <td>{formatEuroCents(s.priceCents)}</td>
                 <td>{s.vatRate?.toFixed(2) ?? '0'}%</td>
                 <td>
                   <div className="catalog-admin-actions">
@@ -129,8 +136,8 @@ export const ServicesListPage = () => {
             ))}
           </tbody>
         </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

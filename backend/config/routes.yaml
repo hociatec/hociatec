@@ -9,3 +9,9 @@ modules:
         path: ../src/Module/
         namespace: App\Module
     type: attribute
+
+shared:
+    resource:
+        path: ../src/Shared/
+        namespace: App\Shared
+    type: attribute

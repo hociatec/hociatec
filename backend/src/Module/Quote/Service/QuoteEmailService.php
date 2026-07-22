@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
+use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +22,7 @@ final class QuoteEmailService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly LoggerInterface $logger,
+        private readonly EmailTemplateRenderer $emailTemplates,
     ) {
     }
 
@@ -78,49 +80,19 @@ final class QuoteEmailService
         $totalTtc = number_format($totals['totalTtc'] / 100, 2, ',', ' ');
         $frontendUrl = rtrim((string) ($_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173'), '/');
         $quoteUrl = $frontendUrl . '/quotes/me/' . $quote->getId();
-        $subject = sprintf('Votre devis %s a bien été créé', $quote->getNumber());
-
-        $lines = [
-            sprintf('Bonjour %s,', $customerName),
-            '',
-            'Votre devis a bien été créé par Hociatec.',
-            sprintf('Référence du devis : %s.', $quote->getNumber()),
-            sprintf('Montant total TTC : %s EUR.', $totalTtc),
-        ];
-
-        if ($validUntil !== null) {
-            $lines[] = sprintf('Date de validité : %s.', $validUntil);
-        }
-
-        $lines[] = sprintf('Vous pouvez le consulter depuis votre espace client : %s', $quoteUrl);
-        $lines[] = '';
-        $lines[] = 'Pensez à vérifier les éléments du devis et à revenir vers nous si vous souhaitez un ajustement.';
-        $lines[] = 'Nous restons à votre disposition pour toute question.';
-        $lines[] = '';
-        $lines[] = 'Cordialement,';
-        $lines[] = 'L’équipe Hociatec';
-        $lines[] = (string) ($_ENV['MAILER_FROM'] ?? 'contact@hociatec.fr');
-
-        $text = implode("\n", $lines);
-        $html = implode('', [
-            '<p>Bonjour ' . htmlspecialchars($customerName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . ',</p>',
-            '<p>Votre devis a bien été créé par <strong>Hociatec</strong>.</p>',
-            '<p>Référence du devis : <strong>' . htmlspecialchars($quote->getNumber(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong>.</p>',
-            '<p>Montant total TTC : <strong>' . htmlspecialchars($totalTtc, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . ' EUR</strong>.</p>',
-            $validUntil !== null
-                ? '<p>Date de validité : <strong>' . htmlspecialchars($validUntil, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong>.</p>'
-                : '',
-            '<p>Vous pouvez le consulter depuis votre espace client : <a href="' . htmlspecialchars($quoteUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">' . htmlspecialchars($quoteUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</a></p>',
-            '<p>Pensez à vérifier les éléments du devis et à revenir vers nous si vous souhaitez un ajustement.</p>',
-            '<p>Nous restons à votre disposition pour toute question.</p>',
-            '<p>Cordialement,<br>L’équipe Hociatec<br>' . htmlspecialchars((string) ($_ENV['MAILER_FROM'] ?? 'contact@hociatec.fr'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>',
+        return $this->emailTemplates->renderScenario('quote_created', [
+            'customer_name' => $customerName,
+            'quote_number' => $quote->getNumber(),
+            'quote_total_eur' => $totalTtc,
+            'quote_valid_until' => $validUntil ?? '',
+            'quote_detail_url' => $quoteUrl,
+            'app_frontend_url' => $frontendUrl,
+            'mailer_from' => (string) ($_ENV['MAILER_FROM'] ?? 'contact@hociatec.fr'),
+        ], [
+            'subject' => 'Votre devis {{quote_number}} a bien été créé',
+            'html' => '<p>Bonjour {{customer_name}},</p><p>Votre devis a bien été créé par <strong>Hociatec</strong>.</p><p>Référence du devis : <strong>{{quote_number}}</strong>.</p><p>Montant total TTC : <strong>{{quote_total_eur}} EUR</strong>.</p><p>Date de validité : <strong>{{quote_valid_until}}</strong>.</p><p>Vous pouvez le consulter depuis votre espace client : <a href="{{quote_detail_url}}">{{quote_detail_url}}</a></p><p>Pensez à vérifier les éléments du devis et à revenir vers nous si vous souhaitez un ajustement.</p><p>Cordialement,<br>L’équipe Hociatec<br>{{mailer_from}}</p>',
+            'text' => "Bonjour {{customer_name}},\n\nVotre devis a bien été créé par Hociatec.\nRéférence du devis : {{quote_number}}.\nMontant total TTC : {{quote_total_eur}} EUR.\nDate de validité : {{quote_valid_until}}.\n\nVous pouvez le consulter depuis votre espace client : {{quote_detail_url}}\n\nPensez à vérifier les éléments du devis et à revenir vers nous si vous souhaitez un ajustement.\n\nCordialement,\nL’équipe Hociatec\n{{mailer_from}}",
         ]);
-
-        return [
-            'subject' => $subject,
-            'text' => $text,
-            'html' => $html,
-        ];
     }
 
     private function createEmail(

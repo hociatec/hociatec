@@ -78,6 +78,26 @@ final class RefreshTokenService
         ];
     }
 
+    public function revokePlainToken(string $plainToken): void
+    {
+        [$selector, $secret] = $this->splitToken($plainToken);
+        if ($selector === null || $secret === null) {
+            return;
+        }
+
+        $storedToken = $this->refreshTokenRepository->findOneBySelector($selector);
+        if ($storedToken === null || $storedToken->isRevoked()) {
+            return;
+        }
+
+        if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
+            return;
+        }
+
+        $storedToken->revoke();
+        $this->em->flush();
+    }
+
     private function splitToken(string $plainToken): array
     {
         $parts = explode('.', $plainToken, 2);

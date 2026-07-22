@@ -19,6 +19,13 @@ import { fr } from 'date-fns/locale';
 
 const ymd = (d: Date) => format(startOfDay(d), 'yyyy-MM-dd');
 
+type AppointmentLocationState = {
+  bookingConfirm?: {
+    prestationId: number;
+    slot: AvailabilitySlot;
+  };
+};
+
 export const AppointmentBookingPage = () => {
   useDocumentTitle('Prendre un rendez-vous');
   const { status } = useAuth();
@@ -149,12 +156,13 @@ export const AppointmentBookingPage = () => {
 
   // If redirected after login with a pending confirmation, restore UI state
   useEffect(() => {
-    const state: any = location.state;
-    if (state?.bookingConfirm && prestations.length > 0) {
-      const p = prestations.find((pr) => pr.id === state.bookingConfirm.prestationId) ?? null;
+    const state = location.state as AppointmentLocationState | null;
+    const bookingConfirm = state?.bookingConfirm;
+    if (bookingConfirm && prestations.length > 0) {
+      const p = prestations.find((pr) => pr.id === bookingConfirm.prestationId) ?? null;
       setSelectedPrestation(p);
-      setSelectedSlot(state.bookingConfirm.slot ?? null);
-      if (p && state.bookingConfirm.slot) {
+      setSelectedSlot(bookingConfirm.slot ?? null);
+      if (p && bookingConfirm.slot) {
         setStep(3);
         setModalMode('recap');
         setModalOpen(true);
@@ -183,7 +191,7 @@ export const AppointmentBookingPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <PageContainer title="Prendre un rendez-vous">
+      <PageContainer size="medium" title="Prendre un rendez-vous">
       <div className="progress-bar">Étape {step} sur 3</div>
 
       {/* Étape 1 — Choix de la prestation */}

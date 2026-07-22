@@ -1,10 +1,14 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
+import { useConfirm } from '@/shared/components/ui/confirm';
+import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
@@ -14,6 +18,7 @@ export const CategoriesListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const confirm = useConfirm();
 
   const loadCategories = async () => {
     setLoading(true);
@@ -22,8 +27,8 @@ export const CategoriesListPage = () => {
     try {
       const items = await fetchAdminCategories();
       setCategories(items);
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de charger les catégories.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Impossible de charger les catégories.'));
     } finally {
       setLoading(false);
     }
@@ -37,7 +42,14 @@ export const CategoriesListPage = () => {
     const category = categories.find((item) => item.id === categoryId);
     const categoryLabel = category ? `"${category.name}"` : 'cette categorie';
 
-    if (!window.confirm(`Supprimer ${categoryLabel} ?`)) {
+    const confirmed = await confirm({
+      title: 'Supprimer la catégorie',
+      description: `Supprimer ${categoryLabel} ?`,
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -48,8 +60,8 @@ export const CategoriesListPage = () => {
       await deleteCategory(categoryId);
       await loadCategories();
       setMessage('Catégorie supprimée.');
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de supprimer la catégorie.');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, 'Impossible de supprimer la catégorie.'));
     }
   };
 
@@ -65,23 +77,20 @@ export const CategoriesListPage = () => {
   }, [categories, search]);
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title="Catégories"
       headerActions={
-        <Link
-          to="/admin/catalog/categories/new"
-          className="inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
+        <PrimaryLink to="/admin/catalog/categories/new">
           Ajouter une catégorie
-        </Link>
+        </PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} affichée
           {filteredCategories.length > 1 ? 's' : ''}
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Filtrez par nom ou slug.
         </p>
       </div>
@@ -94,23 +103,16 @@ export const CategoriesListPage = () => {
         />
       </div>
 
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des catégories...
-        </div>
-      ) : filteredCategories.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucune catégorie ne correspond à votre recherche.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={loading}
+        isEmpty={filteredCategories.length === 0}
+        loadingLabel="Chargement des catégories..."
+        emptyLabel="Aucune catégorie ne correspond à votre recherche."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -126,7 +128,7 @@ export const CategoriesListPage = () => {
                   <th scope="row">
                     <strong>{category.name}</strong>
                     {category.description && (
-                      <p className="muted" style={{ marginTop: 4 }}>
+                      <p className="muted mt-1">
                         {category.description}
                       </p>
                     )}
@@ -156,8 +158,8 @@ export const CategoriesListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

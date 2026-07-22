@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -10,6 +11,7 @@ import {
   type PromotionPayload,
 } from '@/features/admin/promotions/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -89,8 +91,8 @@ export const PromotionFormPage = () => {
           endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '',
         });
       })
-      .catch((err: any) => {
-        const message = err?.message ?? 'Impossible de charger la promotion.';
+      .catch((err) => {
+        const message = getHttpErrorMessage(err, 'Impossible de charger la promotion.');
         setError(message);
         toast.show(message, { variant: 'error' });
       })
@@ -142,8 +144,8 @@ export const PromotionFormPage = () => {
         toast.show('Promotion créée.', { variant: 'success' });
       }
       navigate('/admin/promotions');
-    } catch (err: any) {
-      const message = err?.message ?? 'Enregistrement impossible.';
+    } catch (err) {
+      const message = getHttpErrorMessage(err, 'Enregistrement impossible.');
       setError(message);
       toast.show(message, { variant: 'error' });
     } finally {
@@ -152,25 +154,24 @@ export const PromotionFormPage = () => {
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier une promotion' : 'Nouvelle promotion'}
       headerActions={
         <button
           type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/promotions')}
         >
           Retour à la liste
         </button>
       }
     >
-      {error && <div className="register-form__alert">{error}</div>}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
       {initialLoading ? (
-        <p className="muted">Chargement...</p>
+        <LoadingState>Chargement...</LoadingState>
       ) : (
-        <form onSubmit={handleSubmit} className="register-form-card" style={{ display: 'grid', gap: 16 }}>
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
             <input className="register-form__input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
@@ -212,8 +213,8 @@ export const PromotionFormPage = () => {
           </label>
 
           {audiences[form.audienceKey] ? (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-              <strong className="block text-slate-900">{audiences[form.audienceKey].label}</strong>
+            <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-4 text-sm text-stone-700">
+              <strong className="block text-brand-900">{audiences[form.audienceKey].label}</strong>
               <span>{audiences[form.audienceKey].description}</span>
             </div>
           ) : null}
@@ -255,9 +256,9 @@ export const PromotionFormPage = () => {
             </label>
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <label className="booking__checkbox">
             <input type="checkbox" checked={form.isActive} onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))} />
-            <span>Promotion active</span>
+            Promotion active
           </label>
 
           <button className="register-form__submit" type="submit" disabled={loading}>

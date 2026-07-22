@@ -10,6 +10,8 @@ use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Entity\RefundRequest;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\RefundRequestRepository;
+use App\Module\Training\Entity\TrainingEnrollment;
+use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class StripeWebhookService
@@ -18,6 +20,7 @@ final class StripeWebhookService
         private readonly OrderCheckoutSessionRepository $checkoutSessions,
         private readonly RefundRequestRepository $refunds,
         private readonly OrderRepository $orderRepository,
+        private readonly TrainingEnrollmentRepository $trainingEnrollments,
         private readonly OrderService $orders,
         private readonly EntityManagerInterface $em,
         private readonly StripeApiClient $stripe,
@@ -58,6 +61,11 @@ final class StripeWebhookService
 
         $checkout = $this->checkoutSessions->findOneByStripeSessionId($sessionId);
         if ($checkout === null) {
+            $trainingEnrollment = $this->trainingEnrollments->findOneByStripeSessionId($sessionId);
+            if ($trainingEnrollment !== null) {
+                return $this->handleTrainingCheckoutSession($trainingEnrollment, $object, $type);
+            }
+
             return ['type' => $type, 'sessionId' => $sessionId];
         }
 
@@ -66,6 +74,28 @@ final class StripeWebhookService
             'checkout.session.expired', 'checkout.session.async_payment_failed' => $this->handleExpiredOrFailedSession($checkout, $object, $type),
             default => ['type' => $type, 'sessionId' => $sessionId],
         };
+    }
+
+    /**
+     * @param array<string, mixed> $object
+     * @return array{type:string, sessionId:string|null}
+     */
+    private function handleTrainingCheckoutSession(TrainingEnrollment $enrollment, array $object, string $type): array
+    {
+        if (in_array($type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
+            if (($object['payment_status'] ?? null) === 'paid') {
+                $enrollment
+                    ->setStatus(TrainingEnrollment::STATUS_PAID)
+                    ->setPaidAt(new \DateTimeImmutable())
+                    ->setStripePaymentIntentId(is_string($object['payment_intent'] ?? null) ? $object['payment_intent'] : null);
+            }
+        } elseif (in_array($type, ['checkout.session.expired', 'checkout.session.async_payment_failed'], true)) {
+            $enrollment->setStatus(TrainingEnrollment::STATUS_CANCELLED);
+        }
+
+        $this->em->flush();
+
+        return ['type' => $type, 'sessionId' => $enrollment->getStripeSessionId()];
     }
 
     /**

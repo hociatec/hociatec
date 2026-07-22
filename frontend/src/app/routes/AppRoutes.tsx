@@ -32,6 +32,41 @@ const AdminOperationsPage = lazy(() =>
     default: module.AdminOperationsPage,
   })),
 );
+const AdminBackupsPage = lazy(() =>
+  import('@/features/admin/backups/pages/AdminBackupsPage').then((module) => ({
+    default: module.AdminBackupsPage,
+  })),
+);
+const AdminTrainingsPage = lazy(() =>
+  import('@/features/admin/trainings/pages/AdminTrainingsPage').then((module) => ({
+    default: module.AdminTrainingsPage,
+  })),
+);
+const TrainingFormPage = lazy(() =>
+  import('@/features/admin/trainings/pages/TrainingFormPage').then((module) => ({
+    default: module.TrainingFormPage,
+  })),
+);
+const TrainingSessionsPage = lazy(() =>
+  import('@/features/admin/trainings/pages/TrainingSessionsPage').then((module) => ({
+    default: module.TrainingSessionsPage,
+  })),
+);
+const TrainingSessionFormPage = lazy(() =>
+  import('@/features/admin/trainings/pages/TrainingSessionFormPage').then((module) => ({
+    default: module.TrainingSessionFormPage,
+  })),
+);
+const TrainingEnrollmentsPage = lazy(() =>
+  import('@/features/admin/trainings/pages/TrainingEnrollmentsPage').then((module) => ({
+    default: module.TrainingEnrollmentsPage,
+  })),
+);
+const TrainingCategoriesPage = lazy(() =>
+  import('@/features/admin/trainings/pages/TrainingCategoriesPage').then((module) => ({
+    default: module.TrainingCategoriesPage,
+  })),
+);
 const LoginPage = lazy(() =>
   import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })),
 );
@@ -104,6 +139,11 @@ const CatalogSearchPage = lazy(() =>
     default: module.CatalogSearchPage,
   })),
 );
+const GlobalSearchPage = lazy(() =>
+  import('@/features/search/pages/GlobalSearchPage').then((module) => ({
+    default: module.GlobalSearchPage,
+  })),
+);
 const CartPage = lazy(() =>
   import('@/features/cart/pages/CartPage').then((module) => ({ default: module.CartPage })),
 );
@@ -114,7 +154,7 @@ const ProfilePage = lazy(() =>
   import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })),
 );
 const ClientDashboardPage = lazy(() =>
-  import('@/features/account/pages/ClientDashboardPage').then((module) => ({
+  import('@/features/trainings/pages/ClientDashboardPage').then((module) => ({
     default: module.ClientDashboardPage,
   })),
 );
@@ -155,6 +195,18 @@ const ServicesCatalogPage = lazy(() =>
 const ServiceDetailPage = lazy(() =>
   import('@/features/quotes/pages/ServiceDetailPage').then((module) => ({ default: module.ServiceDetailPage })),
 );
+const TrainingsCatalogPage = lazy(() =>
+  import('@/features/trainings/pages/TrainingsCatalogPage').then((module) => ({ default: module.TrainingsCatalogPage })),
+);
+const TrainingDetailPage = lazy(() =>
+  import('@/features/trainings/pages/TrainingDetailPage').then((module) => ({ default: module.TrainingDetailPage })),
+);
+const MyTrainingsPage = lazy(() =>
+  import('@/features/trainings/pages/MyTrainingsPage').then((module) => ({ default: module.MyTrainingsPage })),
+);
+const MyTrainingDetailPage = lazy(() =>
+  import('@/features/trainings/pages/MyTrainingDetailPage').then((module) => ({ default: module.MyTrainingDetailPage })),
+);
 const MyQuotesPage = lazy(() =>
   import('@/features/quotes/pages/MyQuotesPage').then((module) => ({ default: module.MyQuotesPage })),
 );
@@ -184,6 +236,11 @@ const PaymentDetailPage = lazy(() =>
 const AdminCustomersListPage = lazy(() =>
   import('@/features/admin/customers/pages/AdminCustomersListPage').then((module) => ({
     default: module.AdminCustomersListPage,
+  })),
+);
+const AdminLoyaltyPage = lazy(() =>
+  import('@/features/admin/loyalty/pages/AdminLoyaltyPage').then((module) => ({
+    default: module.AdminLoyaltyPage,
   })),
 );
 const AdminCustomerDetailPage = lazy(() =>
@@ -301,7 +358,7 @@ const MyFavoritesPage = lazy(() =>
 );
 const RouteFallback = () => (
   <div className="site-layout">
-    <div className="site-layout__content px-6 py-16 text-center text-slate-600">Chargement...</div>
+    <div className="site-layout__content min-h-[40vh]" aria-hidden="true" />
   </div>
 );
 
@@ -321,10 +378,13 @@ export const AppRoutes = () => (
       <Route path="/activation/:token" element={<ActivationPage />} />
       <Route path="/catalogue/produits/:slug" element={<ProductPage />} />
       <Route path="/catalogue/recherche" element={<CatalogSearchPage />} />
+      <Route path="/recherche" element={<GlobalSearchPage />} />
       <Route path="/catalogue/vente" element={<SellingTypePage sellingType="sale" title="Vente" />} />
       <Route path="/catalogue/location" element={<SellingTypePage sellingType="rental" title="Location" />} />
       <Route path="/services" element={<ServicesCatalogPage />} />
       <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
+      <Route path="/formations" element={<TrainingsCatalogPage />} />
+      <Route path="/formations/:slug" element={<TrainingDetailPage />} />
       <Route path="/panier" element={<CartPage />} />
       <Route path="/catalogue/:slug" element={<CategoryPage />} />
       <Route path="/devis/nouveau" element={<CreateQuotePage />} />
@@ -358,6 +418,22 @@ export const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <MyVouchersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trainings/me"
+        element={
+          <ProtectedRoute>
+            <MyTrainingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trainings/me/:enrollmentId"
+        element={
+          <ProtectedRoute>
+            <MyTrainingDetailPage />
           </ProtectedRoute>
         }
       />
@@ -458,6 +534,17 @@ export const AppRoutes = () => (
       >
         <Route index element={<AdminDashboardPage />} />
         <Route path="operations" element={<AdminOperationsPage />} />
+        <Route path="backups" element={<AdminBackupsPage />} />
+        <Route path="trainings">
+          <Route index element={<AdminTrainingsPage />} />
+          <Route path="new" element={<TrainingFormPage />} />
+          <Route path=":trainingId/edit" element={<TrainingFormPage />} />
+          <Route path="sessions" element={<TrainingSessionsPage />} />
+          <Route path="sessions/new" element={<TrainingSessionFormPage />} />
+          <Route path="sessions/:sessionId/edit" element={<TrainingSessionFormPage />} />
+          <Route path="enrollments" element={<TrainingEnrollmentsPage />} />
+          <Route path="categories" element={<TrainingCategoriesPage />} />
+        </Route>
         <Route path="appointments">
           <Route index element={<Navigate to="prestations" replace />} />
           <Route path="prestations" element={<PrestationsListPage />} />
@@ -485,6 +572,7 @@ export const AppRoutes = () => (
         </Route>
         <Route path="quotes">
           <Route index element={<QuotesListPage />} />
+          <Route path="new" element={<QuoteFormPage />} />
           <Route path=":quoteId" element={<AdminQuoteDetailPage />} />
           <Route path=":quoteId/edit" element={<QuoteFormPage />} />
         </Route>
@@ -506,6 +594,7 @@ export const AppRoutes = () => (
           <Route path=":customerId" element={<AdminCustomerDetailPage />} />
           <Route path=":customerId/vouchers/new" element={<AdminCustomerVoucherPage />} />
         </Route>
+        <Route path="loyalty" element={<AdminLoyaltyPage />} />
         <Route path="marketing">
           <Route index element={<MarketingCampaignsPage />} />
           <Route path="new" element={<MarketingCampaignFormPage />} />

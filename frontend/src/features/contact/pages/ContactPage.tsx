@@ -74,7 +74,7 @@ export const ContactPage = () => {
           <p className="text-sm text-gray-700">
             Une question sur un devis, un audit ou une intervention&nbsp;? Écrivez-nous via ce
             formulaire ou directement à{' '}
-            <a className="text-blue-700 underline" href={`mailto:${CONTACT_EMAIL}`}>
+            <a className="text-brand-700 underline" href={`mailto:${CONTACT_EMAIL}`}>
               {CONTACT_EMAIL}
             </a>
             .
@@ -138,7 +138,7 @@ export const ContactPage = () => {
           </div>
           <button
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-60"
+            className="bg-brand-600 text-white px-4 py-2 rounded disabled:opacity-60"
           >
             {loading ? 'Envoi…' : 'Envoyer'}
           </button>

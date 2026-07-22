@@ -22,7 +22,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #38bdf8;
+  color: var(--hocia-orange);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
@@ -31,13 +31,13 @@
 }
 
 .login-form__password-toggle:hover {
-  color: #0ea5e9;
+  color: var(--hocia-orange);
 }
 
 .login-form__help-link {
   align-self: flex-end;
   margin-top: 0.2rem;
-  color: #38bdf8;
+  color: var(--hocia-orange);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -58,11 +58,11 @@
 .login-form__remember input {
   width: 1rem;
   height: 1rem;
-  accent-color: #38bdf8;
+  accent-color: var(--hocia-orange);
 }
 
 .login-form__guidelines {
-  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border: 1px dashed rgba(243, 154, 32, 0.28);
   border-radius: 16px;
   padding: 1rem 1.1rem;
   background: rgba(15, 23, 42, 0.5);
@@ -84,7 +84,7 @@
 .register-form__alert {
   padding: 1rem 1.2rem;
   border-radius: 16px;
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(243, 154, 32, 0.12);
   border: 1px solid rgba(56, 189, 248, 0.28);
   color: #e0f2fe;
   font-size: 0.95rem;
@@ -100,12 +100,12 @@
 .login-form__intro,
 .login-form__remember,
 .login-form__guidelines {
-  color: #64748b;
+  color: var(--hocia-muted);
 }
 
 .login-form__password-toggle,
 .login-form__help-link {
-  color: #0b64d8;
+  color: var(--hocia-blue);
 }
 
 .login-form__password-toggle:hover,

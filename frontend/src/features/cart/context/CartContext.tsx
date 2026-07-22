@@ -97,7 +97,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     const message =
       err instanceof Error
         ? err.message
-        : 'Une erreur est survenue lors de la mise à jour du panier.';
+        : "Le panier n'a pas pu être mis à jour. Réessayez dans quelques secondes.";
 
     if (
       err instanceof CartApiError &&
@@ -227,10 +227,10 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
       setPendingProductIds([]);
       setCart(updatedCart);
       setError(null);
-      toast.show('Panier vidé avec succès.', { variant: 'success' });
+      toast.show('Panier vidé. Vous pouvez repartir sur une nouvelle sélection.', { variant: 'success' });
     } catch (err) {
       const message = handleCartError(err);
-      toast.show(message || 'Impossible de vider le panier.', { variant: 'error' });
+      toast.show(message || "Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", { variant: 'error' });
       throw err;
     } finally {
       setIsClearing(false);

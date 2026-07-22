@@ -1,3 +1,4 @@
+import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -8,38 +9,22 @@ import {
   generateAdminQuotePdf,
   sendAdminQuoteEmail,
   updateAdminQuoteStatus,
+  type QuoteDto,
   type QuoteStatus,
 } from '@/features/quotes/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
+import { usePrompt } from '@/shared/components/ui/prompt';
 import { useToast } from '@/shared/components/ui/toast';
-
-const formatPrice = (cents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents ?? 0) / 100);
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleString('fr-FR');
-};
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '-';
-
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return '-';
-
-  return date.toLocaleDateString('fr-FR');
-};
+import { formatDateInputForDisplay, formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 export const AdminQuoteDetailPage = () => {
   const { quoteId } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const [quote, setQuote] = useState<any | null>(null);
+  const prompt = usePrompt();
+  const [quote, setQuote] = useState<QuoteDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -61,7 +46,7 @@ export const AdminQuoteDetailPage = () => {
 
     void fetchAdminQuote(id)
       .then((result) => setQuote(result))
-      .catch((e: any) => setError(e?.message ?? 'Impossible de charger ce devis.'))
+      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger ce devis.')))
       .finally(() => setLoading(false));
   }, [quoteId]);
 
@@ -79,8 +64,8 @@ export const AdminQuoteDetailPage = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Impossible de télécharger le devis.', { variant: 'error' });
+    } catch (e) {
+      toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
     } finally {
       setDownloading(false);
     }
@@ -96,16 +81,25 @@ export const AdminQuoteDetailPage = () => {
   const handleSendEmail = async () => {
     if (!quote) return;
 
-    const to = window.prompt('Destinataire (e-mail)', quote?.customer?.email ?? '') ?? undefined;
-    if (to === undefined) return;
+    const to = await prompt({
+      title: 'Envoyer le devis',
+      description: `Choisissez le destinataire du devis ${quote.number}.`,
+      label: 'Destinataire (e-mail)',
+      defaultValue: quote?.customer?.email ?? '',
+      inputType: 'email',
+      inputMode: 'email',
+      confirmLabel: 'Envoyer',
+      cancelLabel: 'Annuler',
+    });
+    if (to === null) return;
 
     setActionLoading('send');
     try {
       const response = await sendAdminQuoteEmail(quote.id, to);
       await refreshQuote();
-      toast.show(response?.message ?? 'Devis envoyé.', { variant: 'success' });
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Envoi impossible.', { variant: 'error' });
+      toast.show(getHttpErrorMessage(response, 'Devis envoyé.'), { variant: 'success' });
+    } catch (e) {
+      toast.show(getHttpErrorMessage(e, 'Envoi impossible.'), { variant: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -119,8 +113,8 @@ export const AdminQuoteDetailPage = () => {
       const updated = await updateAdminQuoteStatus(quote.id, status);
       setQuote(updated);
       toast.show('Statut mis à jour.', { variant: 'success' });
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Mise à jour impossible.', { variant: 'error' });
+    } catch (e) {
+      toast.show(getHttpErrorMessage(e, 'Mise à jour impossible.'), { variant: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -139,8 +133,8 @@ export const AdminQuoteDetailPage = () => {
       } else {
         await refreshQuote();
       }
-    } catch (e: any) {
-      toast.show(e?.message ?? 'Conversion impossible.', { variant: 'error' });
+    } catch (e) {
+      toast.show(getHttpErrorMessage(e, 'Conversion impossible.'), { variant: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -149,7 +143,7 @@ export const AdminQuoteDetailPage = () => {
   const quoteStatus = quote?.statusCode ?? quote?.status;
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={quote ? `Devis ${quote.number}` : 'Consulter le devis'}
       headerActions={
         quote ? (
@@ -210,29 +204,23 @@ export const AdminQuoteDetailPage = () => {
         ) : undefined
       }
     >
-      {loading ? <p className="muted">Chargement...</p> : null}
-      {error ? <div className="register-form__alert">{error}</div> : null}
+      {loading ? <LoadingState>Chargement...</LoadingState> : null}
+      {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
 
       {quote ? (
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
+        <div className="quote-detail-stack">
           <section className="catalog-form-section">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '1rem',
-              }}
-            >
+            <div className="quote-summary-grid">
               <div>
                 <div className="muted">Numéro</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{quote.number}</div>
+                <div className="quote-kpi-value">{quote.number}</div>
               </div>
               <div>
                 <div className="muted">Statut</div>
-                <div style={{ fontWeight: 700 }}>{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                <div className="quote-strong">{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
                 {quote.sentAt ? (
-                  <div className="muted" style={{ fontSize: '0.85rem' }}>
-                    Envoyé le {formatDateTime(quote.sentAt)}
+                  <div className="muted quote-small-muted">
+                    Envoyé le {formatOptionalFrenchDateTime(quote.sentAt)}
                   </div>
                 ) : null}
                 {quote.convertedOrder ? (
@@ -243,26 +231,20 @@ export const AdminQuoteDetailPage = () => {
               </div>
               <div>
                 <div className="muted">Créé le</div>
-                <div>{formatDateTime(quote.createdAt)}</div>
+                <div>{formatOptionalFrenchDateTime(quote.createdAt)}</div>
               </div>
               <div>
                 <div className="muted">Fin de validité</div>
-                <div>{formatDate(quote.validUntil)}</div>
+                <div>{formatDateInputForDisplay(quote.validUntil)}</div>
               </div>
               <div>
                 <div className="muted">Total TTC</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{formatPrice(quote?.totals?.ttc ?? 0)}</div>
+                <div className="quote-kpi-value">{formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
               </div>
             </div>
           </section>
 
-          <section
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1rem',
-            }}
-          >
+          <section className="quote-two-column-grid">
             <div className="catalog-form-section">
               <div className="catalog-form-section__header">
                 <h2 className="catalog-form-section__title">Client</h2>
@@ -270,18 +252,18 @@ export const AdminQuoteDetailPage = () => {
               <div>{quote?.customer?.name || '-'}</div>
               <div>{quote?.customer?.email || '-'}</div>
               {quote?.customer?.company ? <div>{quote.customer.company}</div> : null}
-              <div style={{ whiteSpace: 'pre-line' }}>{quote?.customer?.address || '-'}</div>
+              <div className="quote-preline">{quote?.customer?.address || '-'}</div>
             </div>
 
             <div className="catalog-form-section">
               <div className="catalog-form-section__header">
                 <h2 className="catalog-form-section__title">Total</h2>
               </div>
-              <div>Total HT : {formatPrice(quote?.totals?.ht ?? 0)}</div>
-              <div>TVA : {formatPrice(quote?.totals?.vat ?? 0)}</div>
-              <div>Total TTC : {formatPrice(quote?.totals?.ttc ?? 0)}</div>
-              {quote.discountCents ? <div>Remise : {formatPrice(quote.discountCents)}</div> : null}
-              {quote.shippingCents ? <div>Frais de port : {formatPrice(quote.shippingCents)}</div> : null}
+              <div>Total HT : {formatEuroCents(quote?.totals?.ht ?? 0)}</div>
+              <div>TVA : {formatEuroCents(quote?.totals?.vat ?? 0)}</div>
+              <div>Total TTC : {formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
+              {quote.discountCents ? <div>Remise : {formatEuroCents(quote.discountCents)}</div> : null}
+              {quote.shippingCents ? <div>Frais de port : {formatEuroCents(quote.shippingCents)}</div> : null}
             </div>
           </section>
 
@@ -289,7 +271,7 @@ export const AdminQuoteDetailPage = () => {
             <div className="catalog-form-section__header">
               <h2 className="catalog-form-section__title">Articles</h2>
             </div>
-            <div style={{ overflowX: 'auto' }}>
+            <div className="quote-table-scroll">
               <table className="catalog-admin-table">
                 <thead>
                   <tr>
@@ -302,17 +284,17 @@ export const AdminQuoteDetailPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(quote.items ?? []).map((item: any) => (
+                  {(quote.items ?? []).map((item) => (
                     <tr key={item.id ?? `${item.name}-${item.quantity}`}>
-                      <td style={{ fontWeight: 700 }}>{item.name}</td>
+                      <td className="quote-strong">{item.name}</td>
                       <td>{item.description || '-'}</td>
                       <td>
                         {item.quantity}
                         {item.unit ? ` ${item.unit}` : ''}
                       </td>
-                      <td>{formatPrice(item.unitPriceCents ?? 0)}</td>
+                      <td>{formatEuroCents(item.unitPriceCents ?? 0)}</td>
                       <td>{item.vatRate ?? 0}%</td>
-                      <td>{formatPrice(item?.lineTotals?.ttc ?? 0)}</td>
+                      <td>{formatEuroCents(item?.lineTotals?.ttc ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -325,7 +307,7 @@ export const AdminQuoteDetailPage = () => {
               <div className="catalog-form-section__header">
                 <h2 className="catalog-form-section__title">Conditions</h2>
               </div>
-              <div style={{ whiteSpace: 'pre-line' }}>{quote.conditions}</div>
+              <div className="quote-preline">{quote.conditions}</div>
             </section>
           ) : null}
         </div>

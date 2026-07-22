@@ -4,3 +4,27 @@
 # Local Git object recovery/backup artifacts.
 .git-alt-objects/
 .git-objects-rebuilt*/
+
+# Local environment overrides and compiled secrets.
+.env.local
+.env.*.local
+.env.local.php
+backend/.env.local
+backend/.env.*.local
+backend/.env.local.php
+backend/.env.dev
+
+# JWT keys must be generated per environment.
+backend/config/jwt/*.pem
+backend/config/jwt/*.key
+!backend/config/jwt/.gitkeep
+
+# Runtime logs, archives, dumps and backups.
+*.log
+*.zip
+*.sql
+*.dump
+*.bak
+*.backup
+backend/var/
+frontend/frontend.log

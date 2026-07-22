@@ -87,7 +87,7 @@
 
 .modal-container p,
 .recap-list {
-  color: #334155;
+  color: var(--hocia-ink-soft);
 }
 
 .calendar-nav button,
@@ -120,7 +120,7 @@
   height: 18px;
   flex: 0 0 auto;
   margin-top: 0.1rem;
-  accent-color: #0b64d8;
+  accent-color: var(--hocia-blue);
 }
 
 .calendar-nav button:hover,
@@ -151,7 +151,7 @@
 
 .register-form__submit {
   border: 0;
-  background: linear-gradient(135deg, #0b64d8, #5b2df5);
+  background: linear-gradient(135deg, var(--hocia-blue), var(--hocia-violet));
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
 }
@@ -179,6 +179,6 @@
 .booking__empty {
   border: 1px dashed #d8e1ec;
   background: #f6f9fc;
-  color: #64748b;
+  color: var(--hocia-muted);
 }
   

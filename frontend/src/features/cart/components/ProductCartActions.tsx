@@ -87,13 +87,13 @@ export const ProductCartActions = ({
           : undefined,
       )
         .then(() => show(`Produit retiré du panier`, { variant: 'info', persistent: true }))
-        .catch(() => show(`Impossible de retirer le produit.`, { variant: 'error' }));
+        .catch(() => show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }));
       return;
     }
 
     void addItem(product.id, 1, isRentalProduct ? { rentalMonths: effectiveRentalMonths } : undefined)
       .then(() => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }))
-      .catch(() => show(`Impossible d'ajouter le produit.`, { variant: 'error' }));
+      .catch(() => show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }));
   };
 
   return (

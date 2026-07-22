@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Controller\PublicApi;
 
 use App\Module\Catalog\Service\ProductService;
+use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,7 @@ class ShareProductEmailController extends AbstractController
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly ValidatorInterface $validator,
         private readonly LoggerInterface $logger,
+        private readonly EmailTemplateRenderer $emailTemplates,
     ) {
     }
 
@@ -71,19 +73,23 @@ class ShareProductEmailController extends AbstractController
 
         $recipientEmail = (string) ($payload['email'] ?? '');
         $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
-        $productUrl = rtrim($request->getSchemeAndHttpHost(), '/') . '/catalogue/produits/' . rawurlencode($product->getSlug());
-        $subject = sprintf('Découvrir : %s', $product->getName());
+        $frontendUrl = rtrim((string) ($_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173'), '/');
+        $productUrl = $frontendUrl . '/catalogue/produits/' . rawurlencode($product->getSlug());
         $summary = $product->getShortDescription() ?: 'Consultez la fiche produit pour obtenir tous les détails.';
-        $plainMessage =
-            "Bonjour,\n\n" .
-            "Voici un produit qui pourrait vous intéresser :\n\n" .
-            $product->getName() . "\n" .
-            $summary . "\n" .
-            'Prix : ' . number_format($product->getEffectivePriceCents() / 100, 2, ',', ' ') . " EUR\n" .
-            'Voir la fiche produit : ' . $productUrl . "\n";
+        $content = $this->emailTemplates->renderScenario('product_share', [
+            'product_name' => $product->getName(),
+            'product_summary' => $summary,
+            'product_price_eur' => number_format($product->getEffectivePriceCents() / 100, 2, ',', ' '),
+            'product_url' => $productUrl,
+            'app_frontend_url' => $frontendUrl,
+        ], [
+            'subject' => 'Découvrir : {{product_name}}',
+            'html' => '<p>Bonjour,</p><p>Voici un produit qui pourrait vous intéresser :</p><p><strong>{{product_name}}</strong></p><p>{{product_summary}}</p><p><strong>Prix :</strong> {{product_price_eur}} EUR</p><p><a href="{{product_url}}">Voir la fiche produit</a></p>',
+            'text' => "Bonjour,\n\nVoici un produit qui pourrait vous intéresser :\n\n{{product_name}}\n{{product_summary}}\nPrix : {{product_price_eur}} EUR\nVoir la fiche produit : {{product_url}}",
+        ]);
 
         try {
-            $this->ovhRoundcubeMailer->send($recipientEmail, $subject, $plainMessage);
+            $this->ovhRoundcubeMailer->send($recipientEmail, $content['subject'], $content['text']);
         } catch (\Throwable $exception) {
             $this->logger->warning('Product share email send failed with OVH Roundcube primary transport', [
                 'exception' => $exception,
@@ -95,15 +101,9 @@ class ShareProductEmailController extends AbstractController
                 $email = (new Email())
                     ->from(new Address($from, 'Hociatec'))
                     ->to(new Address($recipientEmail))
-                    ->subject($subject)
-                    ->html(
-                        '<p>Bonjour,</p>' .
-                        '<p>Voici un produit qui pourrait vous intéresser :</p>' .
-                        '<p><strong>' . htmlspecialchars($product->getName()) . '</strong></p>' .
-                        '<p>' . htmlspecialchars($summary) . '</p>' .
-                        '<p><strong>Prix :</strong> ' . number_format($product->getEffectivePriceCents() / 100, 2, ',', ' ') . ' EUR</p>' .
-                        '<p><a href="' . htmlspecialchars($productUrl) . '">Voir la fiche produit</a></p>'
-                    );
+                    ->subject($content['subject'])
+                    ->html($content['html'])
+                    ->text($content['text']);
 
                 $this->mailer->send($email);
             } catch (\Throwable $fallbackException) {

@@ -1,12 +1,28 @@
-import axios, { AxiosHeaders, isAxiosError } from 'axios';
+import axios, { AxiosHeaders, isAxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { API_BASE_URL } from '../config/appConfig';
 
-const AUTH_TOKEN_KEY = 'hociatec.auth.token';
-const AUTH_SESSION_TOKEN_KEY = 'hociatec.auth.session.token';
-const AUTH_REFRESH_TOKEN_KEY = 'hociatec.auth.refresh.token';
-const AUTH_SESSION_REFRESH_TOKEN_KEY = 'hociatec.auth.session.refresh.token';
 const CART_TOKEN_KEY = 'hociatec.cart.token';
+const LEGACY_AUTH_TOKEN_KEY = 'hociatec.auth.token';
+const LEGACY_AUTH_REFRESH_TOKEN_KEY = 'hociatec.auth.refresh.token';
+const LEGACY_AUTH_SESSION_TOKEN_KEY = 'hociatec.auth.session.token';
+const LEGACY_AUTH_SESSION_REFRESH_TOKEN_KEY = 'hociatec.auth.session.refresh.token';
+const CSRF_HEADER_NAME = 'X-CSRF-Token';
+const CSRF_TOKEN_PATH = '/api/csrf-token';
+const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
+const CSRF_EXCLUDED_PREFIXES = [
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/refresh',
+  '/api/auth/register',
+  '/api/auth/verify',
+  '/api/auth/password-reset',
+  '/api/stripe/webhook',
+];
+
+type RetriableRequestConfig = InternalAxiosRequestConfig & {
+  _retryAfterAuthRefresh?: boolean;
+};
 
 const hasLocalStorage = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 const hasSessionStorage = typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
@@ -38,24 +54,6 @@ const removeLocalStorage = (key: string) => {
   }
 };
 
-const readSessionStorage = (key: string) => {
-  if (!hasSessionStorage) return null;
-  try {
-    return window.sessionStorage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-
-const writeSessionStorage = (key: string, value: string) => {
-  if (!hasSessionStorage) return;
-  try {
-    window.sessionStorage.setItem(key, value);
-  } catch {
-    /* noop */
-  }
-};
-
 const removeSessionStorage = (key: string) => {
   if (!hasSessionStorage) return;
   try {
@@ -67,23 +65,86 @@ const removeSessionStorage = (key: string) => {
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-httpClient.interceptors.request.use((config) => {
+let csrfToken: string | null = null;
+let csrfTokenRequest: Promise<string> | null = null;
+
+const isUnsafeMethod = (method?: string) => UNSAFE_METHODS.has((method ?? 'get').toLowerCase());
+
+const isCsrfTokenRequest = (url?: string) => {
+  if (!url) return false;
+  return url === CSRF_TOKEN_PATH || url.endsWith(CSRF_TOKEN_PATH);
+};
+
+const getRequestPath = (url?: string) => {
+  if (!url) return '';
+  const baseUrl = API_BASE_URL && !API_BASE_URL.startsWith('/')
+    ? API_BASE_URL
+    : `http://localhost${API_BASE_URL || ''}`;
+
+  return new URL(url, baseUrl).pathname;
+};
+
+const isAuthRefreshRequest = (url?: string) => getRequestPath(url) === '/api/auth/refresh';
+
+const isCsrfExcludedRequest = (url?: string) => {
+  if (!url) return false;
+  const path = getRequestPath(url);
+
+  return CSRF_EXCLUDED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+};
+
+const fetchCsrfToken = async () => {
+  if (csrfToken) return csrfToken;
+
+  csrfTokenRequest ??= axios
+    .get<{ data?: { token?: unknown } }>(CSRF_TOKEN_PATH, {
+      baseURL: API_BASE_URL,
+      withCredentials: true,
+      headers: { Accept: 'application/json' },
+    })
+    .then((response) => {
+      const token = response.data?.data?.token;
+      if (typeof token !== 'string' || token.trim() === '') {
+        throw new Error('Jeton CSRF manquant.');
+      }
+
+      csrfToken = token;
+      return token;
+    })
+    .finally(() => {
+      csrfTokenRequest = null;
+    });
+
+  return csrfTokenRequest;
+};
+
+export const shouldAttachCsrfToken = (
+  method?: string,
+  url?: string,
+  headers = new AxiosHeaders(),
+) =>
+  isUnsafeMethod(method)
+  && !isCsrfTokenRequest(url)
+  && !isCsrfExcludedRequest(url)
+  && !headers.has(CSRF_HEADER_NAME);
+
+httpClient.interceptors.request.use(async (config) => {
   const headers =
     config.headers instanceof AxiosHeaders ? config.headers : new AxiosHeaders(config.headers);
-
-  const authToken = readLocalStorage(AUTH_TOKEN_KEY) ?? readSessionStorage(AUTH_SESSION_TOKEN_KEY);
-  if (authToken && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${authToken}`);
-  }
 
   const cartToken = readLocalStorage(CART_TOKEN_KEY);
   if (cartToken && !headers.has('X-Cart-Token')) {
     headers.set('X-Cart-Token', cartToken);
+  }
+
+  if (shouldAttachCsrfToken(config.method, config.url, headers)) {
+    headers.set(CSRF_HEADER_NAME, await fetchCsrfToken());
   }
 
   config.headers = headers;
@@ -91,39 +152,55 @@ httpClient.interceptors.request.use((config) => {
   return config;
 });
 
-export const persistAuthToken = (token: string, remember = false) => {
-  if (remember) {
-    writeLocalStorage(AUTH_TOKEN_KEY, token);
-    removeSessionStorage(AUTH_SESSION_TOKEN_KEY);
-    return;
-  }
+let authRefreshRequest: Promise<void> | null = null;
 
-  writeSessionStorage(AUTH_SESSION_TOKEN_KEY, token);
-  removeLocalStorage(AUTH_TOKEN_KEY);
+const refreshAuthSession = async () => {
+  authRefreshRequest ??= httpClient
+    .post('/api/auth/refresh', undefined, {
+      headers: { Accept: 'application/json' },
+    })
+    .then(() => undefined)
+    .finally(() => {
+      authRefreshRequest = null;
+    });
+
+  return authRefreshRequest;
 };
 
-export const persistRefreshToken = (token: string, remember = false) => {
-  if (remember) {
-    writeLocalStorage(AUTH_REFRESH_TOKEN_KEY, token);
-    removeSessionStorage(AUTH_SESSION_REFRESH_TOKEN_KEY);
-    return;
-  }
+httpClient.interceptors.response.use(
+  (response) => response,
+  async (error: unknown) => {
+    if (!isAxiosError(error) || error.response?.status !== 401 || !error.config) {
+      throw error;
+    }
 
-  writeSessionStorage(AUTH_SESSION_REFRESH_TOKEN_KEY, token);
-  removeLocalStorage(AUTH_REFRESH_TOKEN_KEY);
+    const originalRequest = error.config as RetriableRequestConfig;
+    if (originalRequest._retryAfterAuthRefresh || isAuthRefreshRequest(originalRequest.url)) {
+      throw error;
+    }
+
+    originalRequest._retryAfterAuthRefresh = true;
+
+    try {
+      await refreshAuthSession();
+    } catch {
+      throw error;
+    }
+
+    return httpClient(originalRequest);
+  },
+);
+
+export const purgeLegacyAuthLocalStorage = () => {
+  removeLocalStorage(LEGACY_AUTH_TOKEN_KEY);
+  removeLocalStorage(LEGACY_AUTH_REFRESH_TOKEN_KEY);
+  removeSessionStorage(LEGACY_AUTH_SESSION_TOKEN_KEY);
+  removeSessionStorage(LEGACY_AUTH_SESSION_REFRESH_TOKEN_KEY);
 };
 
 export const clearAuthToken = () => {
-  removeLocalStorage(AUTH_TOKEN_KEY);
-  removeSessionStorage(AUTH_SESSION_TOKEN_KEY);
-  removeLocalStorage(AUTH_REFRESH_TOKEN_KEY);
-  removeSessionStorage(AUTH_SESSION_REFRESH_TOKEN_KEY);
+  purgeLegacyAuthLocalStorage();
 };
-
-export const getPersistedToken = () => readLocalStorage(AUTH_TOKEN_KEY) ?? readSessionStorage(AUTH_SESSION_TOKEN_KEY);
-
-export const getPersistedRefreshToken = () =>
-  readLocalStorage(AUTH_REFRESH_TOKEN_KEY) ?? readSessionStorage(AUTH_SESSION_REFRESH_TOKEN_KEY);
 
 export const persistCartToken = (token: string) => writeLocalStorage(CART_TOKEN_KEY, token);
 
@@ -163,4 +240,27 @@ export const getHttpErrorMessage = (
   }
 
   return fallback;
+};
+
+export const getHttpErrorMessageAsync = async (
+  error: unknown,
+  fallback = 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
+) => {
+  if (!isAxiosError(error) || !(error.response?.data instanceof Blob)) {
+    return getHttpErrorMessage(error, fallback);
+  }
+
+  try {
+    const text = await error.response.data.text();
+    const payload = JSON.parse(text) as { message?: unknown; error?: unknown; data?: { message?: unknown } };
+    const apiMessage = payload.message ?? payload.error ?? payload.data?.message;
+
+    if (typeof apiMessage === 'string' && apiMessage.trim() !== '') {
+      return apiMessage.trim();
+    }
+  } catch {
+    /* keep the standard fallback */
+  }
+
+  return getHttpErrorMessage(error, fallback);
 };

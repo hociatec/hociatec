@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 
 import { fetchAdminCustomers, type AdminCustomerSummaryDto } from '@/features/admin/customers/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
-
-const formatPrice = (valueInCents: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(valueInCents / 100);
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';
 
@@ -42,12 +42,12 @@ export const AdminCustomersListPage = () => {
   );
 
   return (
-    <PageContainer title="Clients">
+    <PageContainer size="admin" title="Clients">
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-stone-600">
           {customers.length} client{customers.length > 1 ? 's' : ''} affiché{customers.length > 1 ? 's' : ''}.
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-stone-500">
           Recherche par prénom, nom, email, téléphone ou numéro de commande. {verifiedCount} compte{verifiedCount > 1 ? 's' : ''} vérifié{verifiedCount > 1 ? 's' : ''}.
         </p>
       </div>
@@ -72,21 +72,15 @@ export const AdminCustomersListPage = () => {
         />
       </FilterBar>
 
-      {status === 'loading' && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement...
-        </div>
-      )}
-      {error && <div className="register-form__alert">{error}</div>}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
-      {status === 'success' && customers.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucun client trouvé.
-        </div>
-      )}
-
-      {customers.length > 0 && (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <AdminListState
+        loading={status === 'loading'}
+        isEmpty={status === 'success' && customers.length === 0}
+        loadingLabel="Chargement..."
+        emptyLabel="Aucun client trouvé."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -102,14 +96,14 @@ export const AdminCustomersListPage = () => {
               {customers.map((customer) => (
                 <tr key={customer.id}>
                   <th scope="row">
-                    <div className="font-semibold text-slate-900">{customer.firstName} {customer.lastName}</div>
+                    <div className="font-semibold text-brand-900">{customer.firstName} {customer.lastName}</div>
                     <div className="muted">
                       {customer.isVerified ? 'Compte vérifié' : 'Compte non vérifié'}
                     </div>
                     {customer.adminTags.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {customer.adminTags.slice(0, 3).map((tag) => (
-                          <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          <span key={tag} className="rounded-full bg-brand-50 px-2 py-1 text-xs text-stone-700">
                             {tag}
                           </span>
                         ))}
@@ -121,10 +115,10 @@ export const AdminCustomersListPage = () => {
                     <div className="muted">{customer.phoneNumber}</div>
                   </td>
                   <td>{customer.ordersCount}</td>
-                  <td>{formatPrice(customer.totalSpentCents)}</td>
+                  <td>{formatEuroCents(customer.totalSpentCents)}</td>
                   <td>
-                    {customer.lastOrderAt ? new Date(customer.lastOrderAt).toLocaleString('fr-FR') : (
-                      <span className="text-xs text-slate-500">Aucune commande</span>
+                    {customer.lastOrderAt ? formatOptionalFrenchDateTime(customer.lastOrderAt) : (
+                      <span className="text-xs text-stone-500">Aucune commande</span>
                     )}
                   </td>
                   <td>
@@ -154,8 +148,8 @@ export const AdminCustomersListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

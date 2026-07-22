@@ -1,26 +1,20 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useCart } from '@/features/cart/hooks/useCart';
-import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/features/orders/api';
 import { fetchMyAddresses, type AddressDto } from '@/features/addresses/api';
+import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import type { CartItem as CartLine } from '@/features/cart/types';
+import { formatCartPrice, formatPromotionValue } from '@/features/cart/utils/cartDisplay';
+import { formatFrenchDate } from '@/shared/lib/formatters';
 
 import './CartPage.css';
-
-const formatPrice = (valueInCents: number) =>
-  new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(valueInCents / 100);
-
-const formatPromotionValue = (discountType: 'percent' | 'fixed_cents', discountValue: number) =>
-  discountType === 'percent' ? `${discountValue}%` : formatPrice(discountValue);
 
 export const CartPage = () => {
   useDocumentTitle('Mon panier');
@@ -38,10 +32,10 @@ export const CartPage = () => {
     isProductPending,
     isClearing,
   } = useCart();
-  const { categories: catalogCategories } = useCatalogMenu();
   const navigate = useNavigate();
   const { status: authStatus } = useAuth();
   const { show } = useToast();
+  const confirm = useConfirm();
 
   const [isCheckout, setIsCheckout] = useState(false);
   const [addresses, setAddresses] = useState<AddressDto[]>([]);
@@ -58,15 +52,9 @@ export const CartPage = () => {
     setPromotionCode(cart?.enteredVoucherCode ?? '');
   }, [cart?.enteredVoucherCode]);
 
-  const shoppingLink = useMemo(
-    () =>
-      catalogCategories[0]?.slug
-        ? `/catalogue/${catalogCategories[0].slug}`
-        : '/',
-    [catalogCategories]
-  );
+  const shoppingLink = '/catalogue/recherche';
 
-  // --- Handlers ---
+
   const handleDecrease = useCallback(
     (item: CartLine) => {
       const isRental = item.product.sellingType === 'rental';
@@ -77,7 +65,7 @@ export const CartPage = () => {
           item.product.id,
           rentalReference ? { currentRentalMonths: rentalReference } : undefined,
         ).catch(() =>
-          show('Erreur lors de la suppression du produit.', { variant: 'error' }),
+          show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", { variant: 'error' }),
         );
         return;
       }
@@ -87,7 +75,7 @@ export const CartPage = () => {
         item.quantity - 1,
         rentalReference ? { currentRentalMonths: rentalReference } : undefined,
       ).catch(() =>
-        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' }),
+        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", { variant: 'error' }),
       );
     },
     [removeItem, setItemQuantity, show],
@@ -103,7 +91,7 @@ export const CartPage = () => {
         item.quantity + 1,
         rentalReference ? { currentRentalMonths: rentalReference } : undefined,
       ).catch(() =>
-        show('Erreur lors de la mise à jour de la quantité.', { variant: 'error' }),
+        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", { variant: 'error' }),
       );
     },
     [setItemQuantity, show],
@@ -125,43 +113,49 @@ export const CartPage = () => {
         currentRentalMonths: currentMonths,
         rentalMonths: normalized,
       }).catch(() =>
-        show('Erreur lors de la mise à jour de la durée.', { variant: 'error' }),
+        show("La durée de location n'a pas pu être mise à jour. Réessayez avant de valider.", { variant: 'error' }),
       );
     },
     [setItemQuantity, show],
   );
 
   const handleClear = useCallback(() => {
-    if (window.confirm('Voulez-vous vraiment vider votre panier ?')) {
+    void confirm({
+      title: 'Vider le panier',
+      description: 'Tous les articles et codes promo associés seront retirés.',
+      confirmLabel: 'Vider',
+      cancelLabel: 'Conserver',
+    }).then((confirmed) => {
+      if (!confirmed) return;
+
       void clear().catch(() =>
-        show('Erreur lors du vidage du panier.', { variant: 'error' })
+        show("Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", { variant: 'error' })
       );
-    }
-  }, [clear, show]);
+    });
+  }, [clear, confirm, show]);
 
   const handleApplyPromotionCode = useCallback(() => {
     const trimmed = promotionCode.trim();
     if (trimmed === '') {
-      show('Saisissez un code promo.', { variant: 'info' });
+      show('Saisissez votre code promo avant de l’appliquer.', { variant: 'info' });
       return;
     }
 
     setIsApplyingPromotionCode(true);
     void applyVoucherCode(trimmed)
-      .then(() => show('Bon de réduction appliqué.', { variant: 'success' }))
-      .catch((err: any) => show(err?.message ?? 'Impossible d\'appliquer le bon de réduction.', { variant: 'error' }))
+      .then(() => show('Code promo appliqué au panier.', { variant: 'success' }))
+      .catch((err) => show(getHttpErrorMessage(err, "Impossible d'appliquer le bon de réduction."), { variant: 'error' }))
       .finally(() => setIsApplyingPromotionCode(false));
   }, [applyVoucherCode, promotionCode, show]);
 
   const handleClearPromotionCode = useCallback(() => {
     setIsApplyingPromotionCode(true);
     void clearVoucherCode(cart?.token)
-      .then(() => show('Bon de réduction supprimé.', { variant: 'success' }))
-      .catch((err: any) => show(err?.message ?? 'Impossible de supprimer le bon de réduction.', { variant: 'error' }))
+      .then(() => show('Code promo retiré du panier.', { variant: 'success' }))
+      .catch((err) => show(getHttpErrorMessage(err, 'Impossible de supprimer le bon de réduction.'), { variant: 'error' }))
       .finally(() => setIsApplyingPromotionCode(false));
   }, [cart?.token, clearVoucherCode, show]);
 
-  // --- Adresses ---
   useEffect(() => {
     if (authStatus !== 'authenticated') {
       setAddresses([]);
@@ -180,11 +174,10 @@ export const CartPage = () => {
       .finally(() => setAddressesLoading(false));
   }, [authStatus]);
 
-  // --- Checkout ---
   const handleCheckout = useCallback(() => {
     if (!hasItems) return;
     if (authStatus !== 'authenticated') {
-      show('Vous devez être connecté pour valider une commande.', { variant: 'info' });
+      show('Connectez-vous pour finaliser votre commande et retrouver vos informations de livraison.', { variant: 'info' });
       navigate('/login', {
         state: { redirectTo: '/panier' },
       });
@@ -193,7 +186,7 @@ export const CartPage = () => {
 
     const addressId = selectedAddressId ?? addresses.find((i) => i.isDefault)?.id;
     if (!addressId) {
-      show('Veuillez sélectionner une adresse de livraison.', { variant: 'error' });
+      show('Choisissez une adresse de livraison avant de passer au paiement.', { variant: 'error' });
       return;
     }
 
@@ -212,12 +205,11 @@ export const CartPage = () => {
         });
       })
       .catch((err: unknown) =>
-        show(err instanceof Error ? err.message : 'Erreur lors de la validation de la commande.', { variant: 'error' })
+        show(err instanceof Error ? err.message : "La commande n'a pas pu être validée. Vérifiez votre panier puis réessayez.", { variant: 'error' })
       )
       .finally(() => setIsCheckout(false));
   }, [authStatus, hasItems, selectedAddressId, addresses, navigate, resetAfterCheckout, show]);
 
-  // --- Render ---
   return (
     <SiteLayout headerVariant="light">
       <div className="cart-page">
@@ -229,7 +221,7 @@ export const CartPage = () => {
                 ? `${cart?.totalQuantity ?? 0} article${
                     (cart?.totalQuantity ?? 0) > 1 ? 's' : ''
                   }`
-                : 'Aucun article pour le moment.'}
+                : 'Votre panier est prêt à accueillir vos prochains produits.'}
             </p>
           </div>
           {hasItems && (
@@ -244,7 +236,7 @@ export const CartPage = () => {
           )}
         </header>
 
-        {isLoading && <p>Chargement du panier...</p>}
+        {isLoading && <p aria-hidden="true">Chargement de votre panier...</p>}
         {error && <div className="cart-page__alert">{error}</div>}
 
         {hasItems ? (
@@ -279,10 +271,10 @@ export const CartPage = () => {
                       </Link>
                       <span className="cart-page__meta">SKU {item.product.sku}</span>
                       <span className="cart-page__price">
-                        {formatPrice(item.product.priceCents)} / unité
+                        {formatCartPrice(item.product.priceCents)} / unité
                       </span>
                       <span className="cart-page__line-total">
-                        Sous-total : {formatPrice(item.linePriceCents)}
+                        Sous-total : {formatCartPrice(item.linePriceCents)}
                       </span>
                     </div>
 
@@ -357,7 +349,7 @@ export const CartPage = () => {
                             item.product.id,
                             isRental ? { currentRentalMonths: rentalMonths } : undefined,
                           ).catch(() =>
-                            show('Erreur lors du retrait du produit.', { variant: 'error' })
+                            show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", { variant: 'error' })
                           )
                         }
                         disabled={pending}
@@ -379,17 +371,13 @@ export const CartPage = () => {
                 </div>
                 <div className="cart-summary-row">
                   <span className="cart-summary-label">Sous-total</span>
-                  <span className="cart-summary-value">{formatPrice(cart?.subtotalPriceCents ?? 0)}</span>
+                  <span className="cart-summary-value">{formatCartPrice(cart?.subtotalPriceCents ?? 0)}</span>
                 </div>
                 <div className="cart-summary-row">
                   <span className="cart-summary-label">Mis à jour le&nbsp;</span>
                   <span className="cart-summary-value">
                     {cart
-                      ? new Date(cart.updatedAt).toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric',
-                        })
+                      ? formatFrenchDate(cart.updatedAt)
                       : '-'}
                   </span>
                 </div>
@@ -397,27 +385,27 @@ export const CartPage = () => {
                   <div className="cart-summary-row">
                     <span className="cart-summary-label">Remise</span>
                     <span className="cart-summary-value cart-summary-value--discount">
-                      - {formatPrice(cart?.discountAmountCents ?? 0)}
+                      - {formatCartPrice(cart?.discountAmountCents ?? 0)}
                     </span>
                   </div>
                 )}
                 <div className="cart-summary-row cart-summary-total">
                   <span className="cart-summary-label">Total TTC&nbsp;</span>
                   <span className="cart-summary-value cart-summary-total-value">
-                    {formatPrice(cart?.totalPriceCents ?? 0)}
+                    {formatCartPrice(cart?.totalPriceCents ?? 0)}
                   </span>
                 </div>
               </div>
 
               <div className="cart-promotion">
-                <div className="cart-promotion__label">Bon de réduction</div>
+                <div className="cart-promotion__label">Code promo</div>
                 <div className="cart-promotion__form">
                   <input
                     type="text"
                     className="cart-promotion__input"
                     value={promotionCode}
                     onChange={(event) => setPromotionCode(event.target.value.toUpperCase())}
-                    placeholder="Entrez votre bon de réduction"
+                    placeholder="Ex. BIENVENUE10"
                     disabled={isApplyingPromotionCode}
                   />
                   <button type="button" className="cart-promotion__button" onClick={handleApplyPromotionCode} disabled={isApplyingPromotionCode || isPromotionCodeEmpty}>
@@ -439,7 +427,7 @@ export const CartPage = () => {
 
               {cart?.appliedVoucher ? (
                 <div className="cart-promotion-card cart-promotion-card--success">
-                  <div className="cart-promotion-card__label">Bon de réduction appliqué</div>
+                  <div className="cart-promotion-card__label">Code promo appliqué</div>
                   <div className="cart-promotion-card__title">{cart.appliedVoucher.name}</div>
                   <div className="cart-promotion-card__text">
                     Remise {formatPromotionValue(cart.appliedVoucher.discountType, cart.appliedVoucher.discountValue)}.
@@ -462,7 +450,7 @@ export const CartPage = () => {
                         <div key={promotion.id} className="cart-promotion-card__item">
                           <div className="cart-promotion-card__item-title">{promotion.name}</div>
                           <div className="cart-promotion-card__text">
-                            {formatPromotionValue(promotion.discountType, promotion.discountValue)} potentiels, soit {formatPrice(promotion.discountAmountCents)}.
+                            {formatPromotionValue(promotion.discountType, promotion.discountValue)} potentiels, soit {formatCartPrice(promotion.discountAmountCents)}.
                           </div>
                         </div>
                       ))}
@@ -475,7 +463,7 @@ export const CartPage = () => {
                   <h2>Lieu de livraison</h2>
                   <div className="cart-summary-address">
                     {addressesLoading ? (
-                      <p>Chargement...</p>
+                      <p aria-hidden="true">Chargement de vos adresses...</p>
                     ) : addresses.length > 0 ? (
                       <div role="radiogroup" aria-label="Choisir une adresse de livraison">
                         {addresses.map((a) => (
@@ -494,7 +482,7 @@ export const CartPage = () => {
                       </div>
                     ) : (
                       <span>
-                        Aucune adresse.{' '}
+                        Aucune adresse de livraison enregistrée.{' '}
                         <button
                           className="link"
                           onClick={() => navigate('/profile/addresses')}
@@ -534,10 +522,11 @@ export const CartPage = () => {
         ) : (
           !isLoading && (
             <div className="cart-page__empty">
-              <p>Votre panier est vide.</p>
+              <p>Votre panier est vide pour le moment.</p>
+              <span>Explorez le catalogue pour ajouter un produit, une location ou préparer votre prochaine commande.</span>
               <button
                 type="button"
-                className="hero__button hero__button--primary"
+                className="cart-page__empty-button"
                 onClick={() => navigate(shoppingLink)}
               >
                 Explorer nos solutions

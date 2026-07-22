@@ -127,6 +127,17 @@ export interface ShareProductEmailPayload {
   email: string;
 }
 
+export type CatalogSort =
+  | 'relevance'
+  | 'price_asc'
+  | 'price_desc'
+  | 'release_year_desc'
+  | 'release_year_asc'
+  | 'name_desc'
+  | 'stock_desc'
+  | 'stock_asc'
+  | 'created_desc';
+
 export class CatalogApiError extends Error {
   public readonly statusCode?: number;
 
@@ -184,11 +195,10 @@ export interface UpsertProductPayload {
     storageCapacity?: string | null;
     stock: number;
   }>;
-  // discounts
   discountEnabled?: boolean;
   discountType?: 'percent' | 'fixed';
-  discountValue?: number; // percent or euros depending on type
-  discountStartsAt?: string | null; // ISO or yyyy-mm-dd
+  discountValue?: number;
+  discountStartsAt?: string | null;
   discountEndsAt?: string | null;
 }
 
@@ -310,7 +320,7 @@ export const fetchPublicProducts = async (params: {
   inStock?: boolean;
   page?: number;
   perPage?: number;
-  sort?: 'relevance' | 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc' | 'name_desc' | 'stock_desc' | 'stock_asc' | 'created_desc';
+  sort?: CatalogSort;
 } = {}) => {
   const queryParams: Record<string, string> = {};
 
@@ -400,7 +410,7 @@ export const searchPublicProducts = async (params: {
   inStock?: boolean;
   page?: number;
   perPage?: number;
-  sort?: 'relevance' | 'price_asc' | 'price_desc' | 'release_year_desc' | 'release_year_asc' | 'name_desc' | 'stock_desc' | 'stock_asc' | 'created_desc';
+  sort?: CatalogSort;
 } = {}) => {
   const queryParams: Record<string, string> = {};
 
@@ -639,7 +649,6 @@ const buildProductFormData = (payload: UpsertProductPayload) => {
       .forEach((index) => formData.append('removeGallery[]', index.toString()));
   }
 
-  // discounts
   if (payload.discountEnabled !== undefined) {
     formData.set('discountEnabled', payload.discountEnabled ? '1' : '0');
   }

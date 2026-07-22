@@ -10,13 +10,13 @@ import {
   type AdminPaymentDto,
 } from '@/features/orders/api';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
-
-const formatPrice = (cents: number, currency = 'EUR') =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency }).format((cents ?? 0) / 100);
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { formatCurrencyCents, formatOptionalFrenchDate, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 export const PaymentsListPage = () => {
   useDocumentTitle('Admin - Paiements');
@@ -37,10 +37,10 @@ export const PaymentsListPage = () => {
   }, [status, search]);
 
   return (
-    <PageContainer title="Paiements">
+    <PageContainer size="admin" title="Paiements">
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-slate-600">{items.length} paiement{items.length > 1 ? 's' : ''} affiché{items.length > 1 ? 's' : ''}.</p>
-        <p className="text-sm text-slate-500">Suivi Stripe, statuts, échecs et lien vers la commande quand elle existe.</p>
+        <p className="text-sm text-stone-600">{items.length} paiement{items.length > 1 ? 's' : ''} affiché{items.length > 1 ? 's' : ''}.</p>
+        <p className="text-sm text-stone-500">Suivi Stripe, statuts, échecs et lien vers la commande quand elle existe.</p>
       </div>
 
       <FilterBar>
@@ -59,18 +59,15 @@ export const PaymentsListPage = () => {
         />
       </FilterBar>
 
-      {loading ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Chargement des paiements...
-        </div>
-      ) : error ? (
-        <div className="register-form__alert">{error}</div>
-      ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-slate-600">
-          Aucun paiement.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
+
+      <AdminListState
+        loading={loading}
+        isEmpty={!error && items.length === 0}
+        loadingLabel="Chargement des paiements..."
+        emptyLabel="Aucun paiement."
+      >
+        <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>
               <tr>
@@ -87,14 +84,14 @@ export const PaymentsListPage = () => {
               {items.map((payment) => (
                 <tr key={payment.id}>
                   <td>
-                    <div>{new Date(payment.createdAt).toLocaleDateString('fr-FR')}</div>
-                    <div className="muted">{new Date(payment.createdAt).toLocaleTimeString('fr-FR')}</div>
+                    <div>{formatOptionalFrenchDate(payment.createdAt)}</div>
+                    <div className="muted">{formatOptionalFrenchDateTime(payment.createdAt)}</div>
                   </td>
                   <td>
                     <div><strong>{payment.customerFullName || '-'}</strong></div>
                     <div className="muted">{payment.customerEmail}</div>
                   </td>
-                  <td>{formatPrice(payment.totalPriceCents, payment.currencyCode)}</td>
+                  <td>{formatCurrencyCents(payment.totalPriceCents, payment.currencyCode)}</td>
                   <td>
                     <div>{payment.statusLabel ?? formatPaymentStatusFr(payment.status)}</div>
                     <div className="muted">
@@ -134,8 +131,8 @@ export const PaymentsListPage = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </AdminTableShell>
+      </AdminListState>
     </PageContainer>
   );
 };

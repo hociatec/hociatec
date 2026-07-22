@@ -20,6 +20,7 @@ import { fetchMyQuotes, formatQuoteStatus } from '@/features/quotes/api';
 import { fetchMyVouchers, type MyVoucherDto } from '@/features/vouchers/api';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatOptionalEuroCents, formatOptionalFrenchDate, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 import './ClientDashboardPage.css';
 
@@ -35,34 +36,6 @@ interface QuoteSummary {
   createdAt?: string | null;
   validUntil?: string | null;
 }
-
-const formatPrice = (valueInCents?: number | null) =>
-  typeof valueInCents === 'number'
-    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(valueInCents / 100)
-    : '-';
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) return '-';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleString('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
 
 const isVoucherUsable = (voucher: MyVoucherDto) => {
   if (!voucher.isActive) return false;
@@ -135,7 +108,11 @@ export const ClientDashboardPage = () => {
           </div>
         </header>
 
-        {state === 'loading' && <div className="client-dashboard__notice">Chargement de votre espace...</div>}
+        {state === 'loading' && (
+          <div className="client-dashboard__notice" aria-hidden="true">
+            Chargement de votre espace...
+          </div>
+        )}
         {state === 'error' && (
           <div className="client-dashboard__notice client-dashboard__notice--warning">
             Certaines informations n’ont pas pu être chargées. Les accès rapides restent disponibles.
@@ -197,10 +174,10 @@ export const ClientDashboardPage = () => {
               <Link to={`/orders/${latestOrder.id}`} className="client-dashboard__record">
                 <div>
                   <strong>{latestOrder.number}</strong>
-                  <span>{formatDate(latestOrder.createdAt)}</span>
+                  <span>{formatOptionalFrenchDate(latestOrder.createdAt)}</span>
                 </div>
                 <div>
-                  <strong>{formatPrice(latestOrder.totalPriceCents)}</strong>
+                  <strong>{formatOptionalEuroCents(latestOrder.totalPriceCents)}</strong>
                   <span>{latestOrder.statusLabel ?? formatOrderStatusFr(latestOrder.status)}</span>
                 </div>
                 {pendingReviews.length > 0 ? (
@@ -226,7 +203,7 @@ export const ClientDashboardPage = () => {
               <Link to="/appointments/me" className="client-dashboard__compact-record" aria-label="Ouvrir mes rendez-vous">
                 <CalendarDays aria-hidden="true" />
                 <strong>{nextAppointment.prestation.name}</strong>
-                <span>{formatDateTime(nextAppointment.startAt)}</span>
+                <span>{formatOptionalFrenchDateTime(nextAppointment.startAt)}</span>
               </Link>
             ) : (
               <EmptyState text="Aucun rendez-vous planifié." actionLabel="Réserver" to="/appointments/book" />
@@ -244,7 +221,7 @@ export const ClientDashboardPage = () => {
               <Link to={`/quotes/me/${latestQuote.id}`} className="client-dashboard__compact-record">
                 <FileText aria-hidden="true" />
                 <strong>{latestQuote.number ?? `Devis #${latestQuote.id}`}</strong>
-                <span>{formatQuoteStatus(latestQuote.status)} · {formatPrice(latestQuote.totals?.ttc)}</span>
+                <span>{formatQuoteStatus(latestQuote.status)} · {formatOptionalEuroCents(latestQuote.totals?.ttc)}</span>
               </Link>
             ) : (
               <EmptyState text="Aucun devis enregistré." actionLabel="Créer" to="/devis/nouveau" />

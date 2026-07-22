@@ -1,3 +1,4 @@
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ import {
 } from '@/features/admin/appointments/api';
 import type { Prestation } from '@/features/appointments/types';
 import { PageContainer } from '@/shared/components/PageContainer';
+import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 type PrestationFormState = {
@@ -48,8 +50,8 @@ export const PrestationFormPage = () => {
       try {
         const prestation = await fetchAdminPrestation(Number(prestationId));
         populateForm(prestation);
-      } catch (err: any) {
-        setError(err?.message ?? 'Impossible de charger la prestation');
+      } catch (err) {
+        setError(getHttpErrorMessage(err, 'Impossible de charger la prestation'));
       } finally {
         setInitialLoading(false);
       }
@@ -104,48 +106,42 @@ export const PrestationFormPage = () => {
       setTimeout(() => {
         navigate('/admin/appointments/prestations');
       }, 600);
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible d\'enregistrer la prestation');
+    } catch (err) {
+      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la prestation"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageContainer
+    <PageContainer size="admin"
       title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}
       headerActions={
         <button
           type="button"
-          className="register-form__submit"
-          style={{ background: '#e5e7eb', color: '#111827' }}
+          className="catalog-admin-actions__edit"
           onClick={() => navigate('/admin/appointments/prestations')}
         >
           Retour à la liste
         </button>
       }
     >
-      <p className="mb-4 text-sm text-slate-600">
+      <p className="mb-4 text-sm text-stone-600">
         Cette fiche sert à la réservation de rendez-vous. Pour gérer le catalogue de services autonome de l’entreprise, utilisez{' '}
         <Link to="/admin/services" className="font-semibold underline">
           Services
         </Link>
         .
       </p>
-      {error && <div className="register-form__alert">{error}</div>}
-      {message && (
-        <div className="register-form__alert" style={{ background: '#ecfdf5', color: '#047857' }}>
-          {message}
-        </div>
-      )}
+      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       {initialLoading ? (
-        <p className="muted">Chargement de la prestation...</p>
+        <LoadingState>Chargement de la prestation...</LoadingState>
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="register-form-card"
-          style={{ display: 'grid', gap: 16 }}
+          className="register-form-card form-card-grid"
         >
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
