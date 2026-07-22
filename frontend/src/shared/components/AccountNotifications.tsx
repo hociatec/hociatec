@@ -16,7 +16,7 @@ import {
   markAccountNotificationsSeen,
   type AccountNotificationsReadStateDto,
 } from '@/shared/api/accountNotifications';
-import { Popover, PopoverButton, PopoverPanel } from '@/shared/components/ui/popover';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 const AUDIT_STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
