@@ -1,7 +1,22 @@
 ﻿import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useId, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
-import { CalendarDays, ClipboardCheck, FileText, Search, ShoppingCart } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  CalendarDays,
+  ClipboardCheck,
+  FileText,
+  GraduationCap,
+  KeyRound,
+  LogIn,
+  Mail,
+  MonitorCog,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingCart,
+  UserPlus,
+} from 'lucide-react';
 
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -96,6 +111,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
               .filter(Boolean)
               .join(' ')}
           >
+            <ShoppingBag aria-hidden="true" />
             Vente
           </Link>
           <Link
@@ -107,6 +123,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
               .filter(Boolean)
               .join(' ')}
           >
+            <KeyRound aria-hidden="true" />
             Location
           </Link>
           <Link
@@ -118,6 +135,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
               .filter(Boolean)
               .join(' ')}
           >
+            <MonitorCog aria-hidden="true" />
             Services
           </Link>
           <Link
@@ -131,6 +149,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
               .filter(Boolean)
               .join(' ')}
           >
+            <GraduationCap aria-hidden="true" />
             Formations
           </Link>
           <details
@@ -139,7 +158,10 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
             onToggle={(event) => setServicesOpen(event.currentTarget.open)}
             onKeyDown={handleServicesKeyDown}
           >
-            <summary ref={servicesSummaryRef} className="site-header__service-trigger">Prestations</summary>
+            <summary ref={servicesSummaryRef} className="site-header__service-trigger">
+              <BriefcaseBusiness aria-hidden="true" />
+              <span>Prestations</span>
+            </summary>
             <div className="site-header__service-panel">
               <button type="button" onClick={() => navigateFromServices('/appointments/book')}>
                 <CalendarDays aria-hidden="true" />
@@ -157,6 +179,10 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           </details>
         </nav>
         <div className="site-header__actions">
+          <Link to="/contact" className={linkClass('/contact')}>
+            <Mail aria-hidden="true" />
+            Contact
+          </Link>
           {showCatalogSearch && (
             <form onSubmit={handleGlobalSearch} className="site-header__search" role="search" aria-label="Recherche globale">
               <label htmlFor={searchId} className="sr-only">
@@ -195,6 +221,7 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
                     adminActive ? ' site-header__admin-button--active' : ''
                   }`}
                 >
+                  <ShieldCheck aria-hidden="true" />
                   Admin
                 </Link>
               ) : null}
@@ -204,12 +231,14 @@ export const SiteHeader = ({ variant = 'transparent', showCatalogSearch = true }
           ) : (
             <>
               <Link to="/login" className={linkClass('/login')}>
+                <LogIn aria-hidden="true" />
                 Se connecter
               </Link>
               <Link
                 to="/register"
                 className={`site-header__cta${location.pathname === '/register' ? ' site-header__cta--active' : ''}`}
               >
+                <UserPlus aria-hidden="true" />
                 S&apos;inscrire
               </Link>
             </>

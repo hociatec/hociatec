@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { fetchMyAppointments } from '@/features/appointments/api';
@@ -320,6 +320,7 @@ const AccountNotificationsPopoverContent = ({
                   onDismissNotification(notification.key);
                 }}
               >
+                <Trash2 aria-hidden="true" />
                 Supprimer
               </button>
             </div>

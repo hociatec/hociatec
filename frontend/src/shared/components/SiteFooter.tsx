@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Mail } from 'lucide-react';
 
 export const SiteFooter = () => (
   <footer className="site-footer">
@@ -23,7 +24,10 @@ export const SiteFooter = () => (
           <Link to="/legal/cgv" className="site-footer__link">CGV</Link>
           <Link to="/legal/confidentialite" className="site-footer__link">Confidentialité</Link>
           <Link to="/legal/mentions-legales" className="site-footer__link">Mentions légales</Link>
-          <Link to="/contact" className="site-footer__link">Contact</Link>
+          <Link to="/contact" className="site-footer__link">
+            <Mail aria-hidden="true" />
+            Contact
+          </Link>
         </nav>
       </div>
     </div>
