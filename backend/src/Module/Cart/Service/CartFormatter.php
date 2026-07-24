@@ -8,16 +8,15 @@ use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Promotion\Service\PromotionEngine;
-use App\Module\Voucher\Service\VoucherEngine;
 use App\Module\User\Entity\User;
+use App\Module\Voucher\Service\VoucherEngine;
 
 final class CartFormatter
 {
     public function __construct(
         private readonly PromotionEngine $promotionEngine,
         private readonly VoucherEngine $voucherEngine,
-    )
-    {
+    ) {
     }
 
     /**
@@ -35,7 +34,7 @@ final class CartFormatter
             $linePrice = $product->getPriceCents() * $quantity;
             $rentalMonths = $item->getRentalMonths();
 
-            if ($product->getSellingType() === 'rental') {
+            if ('rental' === $product->getSellingType()) {
                 $months = $rentalMonths ?? 1;
                 $linePrice *= $months;
             }
@@ -53,7 +52,7 @@ final class CartFormatter
 
         $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
         $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user);
-        $summary = ($cart->getVoucherCode() !== null && ($voucherSummary['voucherCodeStatus'] ?? 'none') === 'applied')
+        $summary = (null !== $cart->getVoucherCode() && 'applied' === $voucherSummary['voucherCodeStatus'])
             ? $voucherSummary
             : [
                 'subtotalPriceCents' => $promotionSummary['subtotalPriceCents'],
@@ -74,7 +73,7 @@ final class CartFormatter
             'eligiblePromotions' => $promotionSummary['eligiblePromotions'],
             'appliedVoucher' => $voucherSummary['appliedVoucher'] ?? null,
             'enteredVoucherCode' => $voucherSummary['enteredVoucherCode'] ?? null,
-            'voucherCodeStatus' => $voucherSummary['voucherCodeStatus'] ?? 'none',
+            'voucherCodeStatus' => $voucherSummary['voucherCodeStatus'],
             'updatedAt' => $cart->getUpdatedAt()->format(DATE_ATOM),
         ];
     }

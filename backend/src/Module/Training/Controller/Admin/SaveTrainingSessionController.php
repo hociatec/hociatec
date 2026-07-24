@@ -9,7 +9,6 @@ use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Repository\TrainingSessionRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Shared\Http\ApiResponse;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,18 +32,18 @@ class SaveTrainingSessionController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = (array) json_decode($request->getContent(), true);
+        $payload = $request->toArray();
         $training = $this->trainings->find((int) ($payload['trainingId'] ?? 0));
-        if ($training === null) {
+        if (null === $training) {
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $startsAt = new DateTimeImmutable((string) ($payload['startsAt'] ?? 'now'));
-        $endsAt = new DateTimeImmutable((string) ($payload['endsAt'] ?? $startsAt->modify('+1 day')->format(DateTimeImmutable::ATOM)));
-        $dailyStartTime = new DateTimeImmutable((string) ($payload['dailyStartTime'] ?? '08:00'));
-        $dailyEndTime = new DateTimeImmutable((string) ($payload['dailyEndTime'] ?? '20:00'));
+        $startsAt = new \DateTimeImmutable((string) ($payload['startsAt'] ?? 'now'));
+        $endsAt = new \DateTimeImmutable((string) ($payload['endsAt'] ?? $startsAt->modify('+1 day')->format(\DateTimeImmutable::ATOM)));
+        $dailyStartTime = new \DateTimeImmutable((string) ($payload['dailyStartTime'] ?? '08:00'));
+        $dailyEndTime = new \DateTimeImmutable((string) ($payload['dailyEndTime'] ?? '20:00'));
         $includeWeekends = (bool) ($payload['includeWeekends'] ?? true);
-        $format = in_array(($payload['format'] ?? ''), ['onsite', 'remote'], true) ? (string) $payload['format'] : 'onsite';
+        $format = in_array($payload['format'] ?? '', ['onsite', 'remote'], true) ? (string) $payload['format'] : 'onsite';
         $capacity = max(1, (int) ($payload['capacity'] ?? 1));
 
         if ($endsAt <= $startsAt) {
@@ -55,12 +54,12 @@ class SaveTrainingSessionController extends AbstractController
             return ApiResponse::error("L'heure de fin journalière doit être après l'heure de début.", Response::HTTP_BAD_REQUEST);
         }
 
-        $session = $id !== null ? $this->sessions->find($id) : null;
-        if ($id !== null && $session === null) {
+        $session = null !== $id ? $this->sessions->find($id) : null;
+        if (null !== $id && null === $session) {
             return ApiResponse::error('Session introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($session === null) {
+        if (null === $session) {
             $session = new TrainingSession($training, $format, $startsAt, $endsAt, $capacity);
             $this->em->persist($session);
         }
@@ -80,12 +79,13 @@ class SaveTrainingSessionController extends AbstractController
 
         $this->em->flush();
 
-        return ApiResponse::success($this->formatter->formatSession($session), $id === null ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success($this->formatter->formatSession($session), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }
 
     private function nullableString(mixed $value): ?string
     {
         $text = trim((string) $value);
-        return $text !== '' ? $text : null;
+
+        return '' !== $text ? $text : null;
     }
 }

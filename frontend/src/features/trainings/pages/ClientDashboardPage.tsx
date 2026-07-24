@@ -166,7 +166,7 @@ export const ClientDashboardPage = () => {
         </header>
 
         {state === 'loading' && (
-          <div className="client-dashboard__notice" aria-hidden="true">
+          <div className="client-dashboard__notice" role="status" aria-live="polite">
             Chargement de votre espace...
           </div>
         )}

@@ -8,14 +8,14 @@ use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Repository\TrainingSessionRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/trainings/{slug}', name: 'api_public_trainings_show', methods: ['GET'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class ShowTrainingController extends AbstractController
 {
     public function __construct(
@@ -28,7 +28,7 @@ class ShowTrainingController extends AbstractController
     public function __invoke(string $slug): JsonResponse
     {
         $training = $this->trainings->findOneBy(['slug' => $slug, 'isActive' => true]);
-        if ($training === null) {
+        if (null === $training) {
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
         }
 

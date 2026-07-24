@@ -145,7 +145,7 @@ class OrderRepository extends ServiceEntityRepository
 
         foreach ($rows as $row) {
             $status = (string) ($row['status'] ?? '');
-            if ($status === '') {
+            if ('' === $status) {
                 continue;
             }
 

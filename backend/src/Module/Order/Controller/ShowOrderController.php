@@ -22,14 +22,13 @@ class ShowOrderController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly ProductRatingRepository $ratings,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $orderId): JsonResponse
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -41,7 +40,7 @@ class ShowOrderController extends AbstractController
 
         $orderItemIds = [];
         foreach ($order->getItems() as $item) {
-            if ($item->getId() !== null) {
+            if (null !== $item->getId()) {
                 $orderItemIds[] = $item->getId();
             }
         }

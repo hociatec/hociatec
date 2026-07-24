@@ -94,7 +94,7 @@ final class VoucherManager
 
     private function assertValidData(string $name, string $code, string $discountType, int $discountValue, ?Voucher $current): void
     {
-        if ($name === '' || $code === '' || $discountType === '') {
+        if ('' === $name || '' === $code || '' === $discountType) {
             throw new \InvalidArgumentException('Champs obligatoires manquants.');
         }
 
@@ -107,7 +107,7 @@ final class VoucherManager
         }
 
         $existing = $this->vouchers->findOneByCode($code);
-        if ($existing !== null && ($current === null || $existing->getId() !== $current->getId())) {
+        if (null !== $existing && (null === $current || $existing->getId() !== $current->getId())) {
             throw new \InvalidArgumentException('Ce code existe déjà.');
         }
     }

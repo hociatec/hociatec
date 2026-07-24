@@ -6,7 +6,6 @@ namespace App\Module\Appointment\Repository;
 
 use App\Module\Appointment\Entity\Appointment;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,7 +22,7 @@ class AppointmentRepository extends ServiceEntityRepository
     /**
      * @return list<Appointment>
      */
-    public function findBetween(DateTimeImmutable $start, DateTimeImmutable $end): array
+    public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.startAt < :end')
@@ -47,7 +46,7 @@ class AppointmentRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->orderBy('a.startAt', 'DESC');
 
-        if ($status !== null) {
+        if (null !== $status) {
             $qb->andWhere('a.status = :status')
                 ->setParameter('status', $status);
         }

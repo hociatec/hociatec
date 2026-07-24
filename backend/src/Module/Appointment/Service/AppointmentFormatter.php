@@ -12,6 +12,7 @@ final class AppointmentFormatter
     {
     }
 
+    /** @return array<string, mixed> */
     public function format(Appointment $appointment): array
     {
         $statusCode = $appointment->getStatus();

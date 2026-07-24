@@ -1,0 +1,268 @@
+.app-background {
+  align-items: flex-start;
+  padding: 3.5rem 1rem 5rem;
+  background: transparent;
+}
+
+.card,
+.register-form-card,
+.register-intro {
+  border-radius: var(--hocia-radius);
+  border: 1px solid var(--hocia-line);
+  background: #ffffff;
+  color: var(--hocia-ink);
+  box-shadow: var(--hocia-shadow-md);
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  padding: 2rem;
+}
+
+.card--medium,
+.card:has(.progress-bar) {
+  max-width: 820px;
+}
+
+.card--wide {
+  max-width: 1180px;
+}
+
+.card--admin {
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-background--admin {
+  display: block;
+  min-height: auto;
+  padding: 0;
+}
+
+.card--admin .card__header {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.card--admin .card__title {
+  font-size: clamp(1.8rem, 2.6vw, 2.6rem);
+  line-height: 1.05;
+}
+
+.card--admin .card__content {
+  gap: 1.5rem;
+}
+
+.card__title,
+.register-form-card__header h2,
+.register-intro__title {
+  color: var(--hocia-ink);
+  letter-spacing: 0;
+}
+
+.notice,
+.login-form__intro,
+.register-form-card__header p,
+.register-intro__subtitle,
+.register-intro__switch,
+.register-highlights li,
+.login-form__remember {
+  color: var(--hocia-muted);
+}
+
+.form-field label,
+.register-form__field,
+.register-form__field span {
+  color: var(--hocia-ink-soft);
+}
+
+.form-field input,
+.register-form__field input,
+.register-form__select,
+.catalog-cart-rental input {
+  border-radius: var(--hocia-radius-sm);
+  border: 1px solid var(--hocia-line);
+  background: #ffffff;
+  color: var(--hocia-ink);
+  box-shadow: none;
+}
+
+.form-field input:focus,
+.register-form__field input:focus,
+.register-form__select:focus,
+.catalog-cart-rental input:focus {
+  border-color: var(--hocia-orange);
+  box-shadow: var(--hocia-focus);
+}
+
+.button,
+.register-form__submit,
+.catalog-cart-button,
+.alert-dialog__button--action {
+  border-radius: var(--hocia-radius);
+  background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet));
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(169, 79, 22, 0.24);
+  font-weight: 800;
+}
+
+.button:hover,
+.register-form__submit:hover,
+.catalog-cart-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(169, 79, 22, 0.28);
+}
+
+.link-button,
+.login-form__help-link,
+.login-form__password-toggle,
+.register-form__password-toggle,
+.register-intro__switch-link {
+  color: var(--hocia-blue);
+}
+
+.register-form__alert,
+.alert {
+  border-radius: 8px;
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #7c2d12;
+}
+
+.register-form__alert--error,
+.alert--error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.register-form__alert--success,
+.alert--success {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #065f46;
+}
+
+.button-muted {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.button-compact {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.form-card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.quote-detail-stack {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.quote-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.quote-detail-title {
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: 800;
+  color: var(--hocia-ink);
+}
+
+.quote-actions-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quote-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.quote-two-column-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.quote-kpi-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.quote-strong {
+  font-weight: 700;
+}
+
+.quote-small-muted {
+  font-size: 0.85rem;
+}
+
+.quote-preline {
+  white-space: pre-line;
+}
+
+.quote-table-scroll {
+  overflow-x: auto;
+}
+
+.quote-badge-offset {
+  margin-left: 0.375rem;
+}
+
+.quote-stepper-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+.quote-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.quote-stepper-input {
+  width: 4rem;
+}
+
+.quote-line-input,
+.quote-line-textarea {
+  width: 100%;
+  min-width: 7rem;
+}
+
+.quote-line-input--name {
+  min-width: 12rem;
+}
+
+.quote-line-input--unit {
+  width: 5.5rem;
+  min-width: 5.5rem;
+}
+
+.quote-line-input--money {
+  width: 7rem;
+}
+
+.quote-line-input--rate {
+  width: 5rem;
+  min-width: 5rem;
+}

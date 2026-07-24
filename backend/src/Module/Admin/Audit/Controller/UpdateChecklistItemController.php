@@ -25,44 +25,45 @@ class UpdateChecklistItemController extends AbstractController
         private readonly AuditChecklistItemRepository $items,
         private readonly EntityManagerInterface $em,
         private readonly AuditEventLogger $events,
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $auditId, int $itemId, Request $request): JsonResponse
     {
         $audit = $this->audits->find($auditId);
-        if ($audit === null) {
+        if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
         $item = $this->items->find($itemId);
-        if ($item === null) {
+        if (null === $item) {
             return ApiResponse::error('Critère introuvable.', Response::HTTP_NOT_FOUND);
         }
         if ($item->getAudit()?->getId() !== $audit->getId()) {
             return ApiResponse::error('Association invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = json_decode((string) $request->getContent(), true) ?? [];
+        $payload = $request->toArray();
         $isCompliant = $payload['isCompliant'] ?? null;
         $comment = $payload['comment'] ?? null;
 
-        if ($isCompliant !== null && !is_bool($isCompliant)) {
+        if (null !== $isCompliant && !is_bool($isCompliant)) {
             return ApiResponse::error('Valeur de conformité invalide.');
         }
         $changes = [];
-        if ($isCompliant !== null && $item->getIsCompliant() !== $isCompliant) {
+        if (null !== $isCompliant && $item->getIsCompliant() !== $isCompliant) {
             $changes[] = sprintf('Conformité: %s → %s',
-                $item->getIsCompliant() === null ? 'n/a' : ($item->getIsCompliant() ? 'oui' : 'non'),
+                null === $item->getIsCompliant() ? 'n/a' : ($item->getIsCompliant() ? 'oui' : 'non'),
                 $isCompliant ? 'oui' : 'non'
             );
             $item->setIsCompliant($isCompliant);
         }
-        if ($comment !== null && $item->getComment() !== (string) $comment) {
+        if (null !== $comment && $item->getComment() !== (string) $comment) {
             $changes[] = 'Commentaire mis à jour';
             $item->setComment((string) $comment);
         }
         $this->em->flush();
 
-        if ($changes !== []) {
+        if ([] !== $changes) {
             /** @var \App\Module\User\Entity\User|null $actor */
             $actor = $this->getUser();
             $this->events->log(

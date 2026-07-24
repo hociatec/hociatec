@@ -33,18 +33,19 @@ final class OrderEventRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('e')
             ->andWhere('e.order = :order')
             ->setParameter('order', $order)
-            ->orderBy('e.createdAt', $direction === 'ASC' ? 'ASC' : 'DESC')
+            ->orderBy('e.createdAt', 'ASC' === $direction ? 'ASC' : 'DESC')
             ->getQuery()
             ->getResult();
     }
 
     /**
      * @param list<Order> $orders
+     *
      * @return array<int, list<OrderEvent>>
      */
     public function findIssueEventsGroupedByOrders(array $orders): array
     {
-        if ($orders === []) {
+        if ([] === $orders) {
             return [];
         }
 
@@ -61,7 +62,7 @@ final class OrderEventRepository extends ServiceEntityRepository
 
         foreach ($events as $event) {
             $orderId = $event->getOrder()->getId();
-            if ($orderId === null) {
+            if (null === $orderId) {
                 continue;
             }
 

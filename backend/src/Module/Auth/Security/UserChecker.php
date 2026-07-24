@@ -27,4 +27,3 @@ class UserChecker implements UserCheckerInterface
         // no-op
     }
 }
-

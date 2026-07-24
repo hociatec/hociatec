@@ -24,7 +24,7 @@ final class LogoutController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
-        if (is_string($refreshToken) && $refreshToken !== '') {
+        if (is_string($refreshToken) && '' !== $refreshToken) {
             $this->refreshTokenService->revokePlainToken($refreshToken);
         }
 

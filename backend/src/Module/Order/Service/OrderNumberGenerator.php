@@ -16,7 +16,7 @@ class OrderNumberGenerator
     {
         $year = (int) (new \DateTimeImmutable())->format('Y');
         $count = $this->orders->countForYear($year) + 1;
+
         return sprintf('CMD-%d-%04d', $year, $count);
     }
 }
-

@@ -29,7 +29,7 @@ class AddFavoriteController extends AbstractController
     {
         $product = $this->products->find($productId);
 
-        if ($product === null || $product->isPublished() === false) {
+        if (null === $product || false === $product->isPublished()) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -43,7 +43,7 @@ class AddFavoriteController extends AbstractController
                 'product' => CatalogFormatter::formatProduct($favorite->getProduct()),
                 'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
             ],
-            'alreadyFavorite' => $created === false,
+            'alreadyFavorite' => false === $created,
         ];
 
         $status = $created ? Response::HTTP_CREATED : Response::HTTP_OK;

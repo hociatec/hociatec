@@ -15,7 +15,7 @@ final class OrderInvoiceCalculator
     public function snapshot(Order $order): void
     {
         $items = $order->getItems()->toArray();
-        if ($items === []) {
+        if ([] === $items) {
             return;
         }
 
@@ -43,7 +43,7 @@ final class OrderInvoiceCalculator
             $discountRemaining = max(0, $discountRemaining - $lineDiscount);
             $lineTotalTtc = max(0, $grossLineTotal - $lineDiscount);
             $vatRate = max(0, $item->getVatRateBps());
-            $lineSubtotalHt = $vatRate === 0
+            $lineSubtotalHt = 0 === $vatRate
                 ? $lineTotalTtc
                 : (int) round($lineTotalTtc / (1 + ($vatRate / 10000)));
             $lineVat = max(0, $lineTotalTtc - $lineSubtotalHt);

@@ -8,10 +8,10 @@ use App\Module\Catalog\Entity\Product;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require dirname(__DIR__).'/vendor/autoload.php';
 
 $projectDir = dirname(__DIR__);
-$envFile = $projectDir . '/.env';
+$envFile = $projectDir.'/.env';
 if (is_file($envFile)) {
     (new Dotenv())->loadEnv($envFile);
 }
@@ -19,7 +19,7 @@ if (is_file($envFile)) {
 $kernel = new Kernel('dev', true);
 $kernel->boot();
 
-/** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
+/** @var Doctrine\ORM\EntityManagerInterface $entityManager */
 $entityManager = $kernel->getContainer()->get('doctrine.orm.entity_manager');
 $connection = $entityManager->getConnection();
 $schemaManager = method_exists($connection, 'createSchemaManager')
@@ -27,19 +27,19 @@ $schemaManager = method_exists($connection, 'createSchemaManager')
     : $connection->getSchemaManager();
 
 if (!$schemaManager->tablesExist(['cart_sessions', 'cart_items'])) {
-    throw new \RuntimeException('Les tables du module panier sont absentes. Lancez `php bin/console doctrine:migrations:migrate`.');
+    throw new RuntimeException('Les tables du module panier sont absentes. Lancez `php bin/console doctrine:migrations:migrate`.');
 }
 
 $connection->beginTransaction();
 try {
     $uniqueSuffix = bin2hex(random_bytes(4));
-    $category = new Category('Panier Test ' . $uniqueSuffix, 'panier-test-' . $uniqueSuffix);
+    $category = new Category('Panier Test '.$uniqueSuffix, 'panier-test-'.$uniqueSuffix);
     $entityManager->persist($category);
 
     $product = new Product(
-        'Produit Panier ' . $uniqueSuffix,
-        'produit-panier-' . $uniqueSuffix,
-        strtoupper('PANIER-' . $uniqueSuffix),
+        'Produit Panier '.$uniqueSuffix,
+        'produit-panier-'.$uniqueSuffix,
+        strtoupper('PANIER-'.$uniqueSuffix),
         'Description du produit de test pour le panier.',
         1990,
         5,
@@ -76,15 +76,15 @@ try {
     $addResponse = $kernel->handle($addRequest);
     $kernel->terminate($addRequest, $addResponse);
 
-    if ($addResponse->getStatusCode() !== 200) {
-        throw new \RuntimeException('Echec lors de l\'ajout au panier: ' . $addResponse->getContent());
+    if (200 !== $addResponse->getStatusCode()) {
+        throw new RuntimeException('Echec lors de l\'ajout au panier: '.$addResponse->getContent());
     }
 
     $addPayload = json_decode((string) $addResponse->getContent(), true, 512, JSON_THROW_ON_ERROR);
     $cartToken = $addPayload['data']['cart']['token'] ?? null;
 
-    if (!is_string($cartToken) || $cartToken === '') {
-        throw new \RuntimeException('Token de panier introuvable dans la reponse.');
+    if (!is_string($cartToken) || '' === $cartToken) {
+        throw new RuntimeException('Token de panier introuvable dans la reponse.');
     }
 
     $getRequest = Request::create(
@@ -103,12 +103,12 @@ try {
     $getResponse = $kernel->handle($getRequest);
     $kernel->terminate($getRequest, $getResponse);
 
-    if ($getResponse->getStatusCode() !== 200) {
-        throw new \RuntimeException('Echec lors de la recuperation du panier.');
+    if (200 !== $getResponse->getStatusCode()) {
+        throw new RuntimeException('Echec lors de la recuperation du panier.');
     }
 
     $removeRequest = Request::create(
-        '/api/public/cart/items/' . $product->getId(),
+        '/api/public/cart/items/'.$product->getId(),
         'DELETE',
         [],
         [],
@@ -123,18 +123,18 @@ try {
     $removeResponse = $kernel->handle($removeRequest);
     $kernel->terminate($removeRequest, $removeResponse);
 
-    if ($removeResponse->getStatusCode() !== 200) {
-        throw new \RuntimeException('Echec lors du retrait du produit du panier.');
+    if (200 !== $removeResponse->getStatusCode()) {
+        throw new RuntimeException('Echec lors du retrait du produit du panier.');
     }
 
-    echo "Smoke test panier OK (token: {$cartToken})." . PHP_EOL;
+    echo "Smoke test panier OK (token: {$cartToken}).".PHP_EOL;
 
     $connection->rollBack();
 } catch (Throwable $exception) {
     $connection->rollBack();
     $kernel->shutdown();
 
-    fwrite(STDERR, 'Smoke test panier en echec: ' . $exception->getMessage() . PHP_EOL);
+    fwrite(STDERR, 'Smoke test panier en echec: '.$exception->getMessage().PHP_EOL);
     exit(1);
 }
 

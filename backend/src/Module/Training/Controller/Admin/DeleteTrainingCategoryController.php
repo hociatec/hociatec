@@ -28,7 +28,7 @@ class DeleteTrainingCategoryController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $category = $this->categories->find($id);
-        if ($category === null) {
+        if (null === $category) {
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 

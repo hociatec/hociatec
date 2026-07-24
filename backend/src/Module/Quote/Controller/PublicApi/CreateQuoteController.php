@@ -9,15 +9,15 @@ use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteService as QuoteDomainService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/quotes', name: 'api_public_quotes_create', methods: ['POST'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class CreateQuoteController extends AbstractController
 {
     public function __construct(

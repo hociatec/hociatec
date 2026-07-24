@@ -1,364 +1,99 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { LoadingState } from '@/shared/components/ui/page-state';
 
-const AdminLayout = lazy(() =>
-  import('@/features/admin/layout/AdminLayout').then((module) => ({ default: module.AdminLayout })),
-);
-const PrestationFormPage = lazy(() =>
-  import('@/features/admin/appointments/pages/PrestationFormPage').then((module) => ({
-    default: module.PrestationFormPage,
-  })),
-);
-const PrestationsListPage = lazy(() =>
-  import('@/features/admin/appointments/pages/PrestationsListPage').then((module) => ({
-    default: module.PrestationsListPage,
-  })),
-);
-const SchedulePage = lazy(() =>
-  import('@/features/admin/appointments/pages/SchedulePage').then((module) => ({
-    default: module.SchedulePage,
-  })),
-);
-const AdminDashboardPage = lazy(() =>
-  import('@/features/admin/pages/AdminDashboardPage').then((module) => ({
-    default: module.AdminDashboardPage,
-  })),
-);
-const AdminOperationsPage = lazy(() =>
-  import('@/features/admin/operations/pages/AdminOperationsPage').then((module) => ({
-    default: module.AdminOperationsPage,
-  })),
-);
-const AdminBackupsPage = lazy(() =>
-  import('@/features/admin/backups/pages/AdminBackupsPage').then((module) => ({
-    default: module.AdminBackupsPage,
-  })),
-);
-const AdminTrainingsPage = lazy(() =>
-  import('@/features/admin/trainings/pages/AdminTrainingsPage').then((module) => ({
-    default: module.AdminTrainingsPage,
-  })),
-);
-const TrainingFormPage = lazy(() =>
-  import('@/features/admin/trainings/pages/TrainingFormPage').then((module) => ({
-    default: module.TrainingFormPage,
-  })),
-);
-const TrainingSessionsPage = lazy(() =>
-  import('@/features/admin/trainings/pages/TrainingSessionsPage').then((module) => ({
-    default: module.TrainingSessionsPage,
-  })),
-);
-const TrainingSessionFormPage = lazy(() =>
-  import('@/features/admin/trainings/pages/TrainingSessionFormPage').then((module) => ({
-    default: module.TrainingSessionFormPage,
-  })),
-);
-const TrainingEnrollmentsPage = lazy(() =>
-  import('@/features/admin/trainings/pages/TrainingEnrollmentsPage').then((module) => ({
-    default: module.TrainingEnrollmentsPage,
-  })),
-);
-const TrainingCategoriesPage = lazy(() =>
-  import('@/features/admin/trainings/pages/TrainingCategoriesPage').then((module) => ({
-    default: module.TrainingCategoriesPage,
-  })),
-);
-const LoginPage = lazy(() =>
-  import('@/features/auth/pages/LoginPage').then((module) => ({ default: module.LoginPage })),
-);
-const RegisterPage = lazy(() =>
-  import('@/features/auth/pages/RegisterPage').then((module) => ({ default: module.RegisterPage })),
-);
-const ForgotPasswordPage = lazy(() =>
-  import('@/features/auth/pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })),
-);
-const ResetPasswordPage = lazy(() =>
-  import('@/features/auth/pages/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })),
-);
-const AppointmentBookingPage = lazy(() =>
-  import('@/features/appointments/pages/AppointmentBookingPage').then((module) => ({
-    default: module.AppointmentBookingPage,
-  })),
-);
-const MyAppointmentsPage = lazy(() =>
-  import('@/features/appointments/pages/MyAppointmentsPage').then((module) => ({
-    default: module.MyAppointmentsPage,
-  })),
-);
-const CategoriesListPage = lazy(() =>
-  import('@/features/admin/catalog/pages/CategoriesListPage').then((module) => ({
-    default: module.CategoriesListPage,
-  })),
-);
-const BrandsListPage = lazy(() =>
-  import('@/features/admin/catalog/pages/BrandsListPage').then((module) => ({
-    default: module.BrandsListPage,
-  })),
-);
-const BrandFormPage = lazy(() =>
-  import('@/features/admin/catalog/pages/BrandFormPage').then((module) => ({
-    default: module.BrandFormPage,
-  })),
-);
-const CategoryFormPage = lazy(() =>
-  import('@/features/admin/catalog/pages/CategoryFormPage').then((module) => ({
-    default: module.CategoryFormPage,
-  })),
-);
-const ProductsListPage = lazy(() =>
-  import('@/features/admin/catalog/pages/ProductsListPage').then((module) => ({
-    default: module.ProductsListPage,
-  })),
-);
-const ProductFormPage = lazy(() =>
-  import('@/features/admin/catalog/pages/ProductFormPage').then((module) => ({
-    default: module.ProductFormPage,
-  })),
-);
-const CategoryPage = lazy(() =>
-  import('@/features/catalog/pages/CategoryPage').then((module) => ({
-    default: module.CategoryPage,
-  })),
-);
-const ProductPage = lazy(() =>
-  import('@/features/catalog/pages/ProductPage').then((module) => ({
-    default: module.ProductPage,
-  })),
-);
-const SellingTypePage = lazy(() =>
-  import('@/features/catalog/pages/SellingTypePage').then((module) => ({
-    default: module.SellingTypePage,
-  })),
-);
-const CatalogSearchPage = lazy(() =>
-  import('@/features/catalog/pages/CatalogSearchPage').then((module) => ({
-    default: module.CatalogSearchPage,
-  })),
-);
-const GlobalSearchPage = lazy(() =>
-  import('@/features/search/pages/GlobalSearchPage').then((module) => ({
-    default: module.GlobalSearchPage,
-  })),
-);
-const CartPage = lazy(() =>
-  import('@/features/cart/pages/CartPage').then((module) => ({ default: module.CartPage })),
-);
-const HomePage = lazy(() =>
-  import('@/features/home/pages/HomePage').then((module) => ({ default: module.HomePage })),
-);
-const ProfilePage = lazy(() =>
-  import('@/features/profile/pages/ProfilePage').then((module) => ({ default: module.ProfilePage })),
-);
-const ClientDashboardPage = lazy(() =>
-  import('@/features/trainings/pages/ClientDashboardPage').then((module) => ({
-    default: module.ClientDashboardPage,
-  })),
-);
-const QuotesListPage = lazy(() =>
-  import('@/features/admin/quotes/pages/QuotesListPage').then((module) => ({
-    default: module.QuotesListPage,
-  })),
-);
-const AddressesPage = lazy(() =>
-  import('@/features/addresses/pages/AddressesPage').then((module) => ({ default: module.AddressesPage })),
-);
-const QuoteFormPage = lazy(() =>
-  import('@/features/admin/quotes/pages/QuoteFormPage').then((module) => ({
-    default: module.QuoteFormPage,
-  })),
-);
-const AdminQuoteDetailPage = lazy(() =>
-  import('@/features/admin/quotes/pages/AdminQuoteDetailPage').then((module) => ({
-    default: module.AdminQuoteDetailPage,
-  })),
-);
-const ServicesListPage = lazy(() =>
-  import('@/features/admin/quotes/pages/ServicesListPage').then((module) => ({
-    default: module.ServicesListPage,
-  })),
-);
-const ServiceFormPage = lazy(() =>
-  import('@/features/admin/quotes/pages/ServiceFormPage').then((module) => ({
-    default: module.ServiceFormPage,
-  })),
-);
-const CreateQuotePage = lazy(() =>
-  import('@/features/quotes/pages/CreateQuotePage').then((module) => ({ default: module.CreateQuotePage })),
-);
-const ServicesCatalogPage = lazy(() =>
-  import('@/features/quotes/pages/ServicesCatalogPage').then((module) => ({ default: module.ServicesCatalogPage })),
-);
-const ServiceDetailPage = lazy(() =>
-  import('@/features/quotes/pages/ServiceDetailPage').then((module) => ({ default: module.ServiceDetailPage })),
-);
-const TrainingsCatalogPage = lazy(() =>
-  import('@/features/trainings/pages/TrainingsCatalogPage').then((module) => ({ default: module.TrainingsCatalogPage })),
-);
-const TrainingDetailPage = lazy(() =>
-  import('@/features/trainings/pages/TrainingDetailPage').then((module) => ({ default: module.TrainingDetailPage })),
-);
-const MyTrainingsPage = lazy(() =>
-  import('@/features/trainings/pages/MyTrainingsPage').then((module) => ({ default: module.MyTrainingsPage })),
-);
-const MyTrainingDetailPage = lazy(() =>
-  import('@/features/trainings/pages/MyTrainingDetailPage').then((module) => ({ default: module.MyTrainingDetailPage })),
-);
-const MyQuotesPage = lazy(() =>
-  import('@/features/quotes/pages/MyQuotesPage').then((module) => ({ default: module.MyQuotesPage })),
-);
-const MyQuoteDetailPage = lazy(() =>
-  import('@/features/quotes/pages/MyQuoteDetailPage').then((module) => ({ default: module.MyQuoteDetailPage })),
-);
-const OrdersListPage = lazy(() =>
-  import('@/features/admin/orders/pages/OrdersListPage').then((module) => ({
-    default: module.OrdersListPage,
-  })),
-);
-const AdminOrderDetailPage = lazy(() =>
-  import('@/features/admin/orders/pages/AdminOrderDetailPage').then((module) => ({
-    default: module.AdminOrderDetailPage,
-  })),
-);
-const PaymentsListPage = lazy(() =>
-  import('@/features/admin/payments/pages/PaymentsListPage').then((module) => ({
-    default: module.PaymentsListPage,
-  })),
-);
-const PaymentDetailPage = lazy(() =>
-  import('@/features/admin/payments/pages/PaymentDetailPage').then((module) => ({
-    default: module.PaymentDetailPage,
-  })),
-);
-const AdminCustomersListPage = lazy(() =>
-  import('@/features/admin/customers/pages/AdminCustomersListPage').then((module) => ({
-    default: module.AdminCustomersListPage,
-  })),
-);
-const AdminLoyaltyPage = lazy(() =>
-  import('@/features/admin/loyalty/pages/AdminLoyaltyPage').then((module) => ({
-    default: module.AdminLoyaltyPage,
-  })),
-);
-const AdminCustomerDetailPage = lazy(() =>
-  import('@/features/admin/customers/pages/AdminCustomerDetailPage').then((module) => ({
-    default: module.AdminCustomerDetailPage,
-  })),
-);
-const AdminCustomerVoucherPage = lazy(() =>
-  import('@/features/admin/customers/pages/AdminCustomerVoucherPage').then((module) => ({
-    default: module.AdminCustomerVoucherPage,
-  })),
-);
-const MyVouchersPage = lazy(() =>
-  import('@/features/vouchers/pages/MyVouchersPage').then((module) => ({ default: module.MyVouchersPage })),
-);
-const MyOrdersPage = lazy(() =>
-  import('@/features/orders/pages/MyOrdersPage').then((module) => ({ default: module.MyOrdersPage })),
-);
-const OrderDetailPage = lazy(() =>
-  import('@/features/orders/pages/OrderDetailPage').then((module) => ({ default: module.OrderDetailPage })),
-);
-const CheckoutSuccessPage = lazy(() =>
-  import('@/features/orders/pages/CheckoutSuccessPage').then((module) => ({ default: module.CheckoutSuccessPage })),
-);
-const ContactPage = lazy(() =>
-  import('@/features/contact/pages/ContactPage').then((module) => ({ default: module.ContactPage })),
-);
-const ActivationPage = lazy(() =>
-  import('@/features/auth/pages/ActivationPage').then((module) => ({ default: module.ActivationPage })),
-);
-const RequestAuditPage = lazy(() =>
-  import('@/features/audits/pages/RequestAuditPage').then((module) => ({
-    default: module.RequestAuditPage,
-  })),
-);
-const MyAuditsPage = lazy(() =>
-  import('@/features/audits/pages/MyAuditsPage').then((module) => ({ default: module.MyAuditsPage })),
-);
-const MyAuditDetailPage = lazy(() =>
-  import('@/features/audits/pages/MyAuditDetailPage').then((module) => ({
-    default: module.MyAuditDetailPage,
-  })),
-);
-const AdminAuditsListPage = lazy(() =>
-  import('@/features/admin/audits/pages/AdminAuditsListPage').then((module) => ({
-    default: module.AdminAuditsListPage,
-  })),
-);
-const MarketingCampaignsPage = lazy(() =>
-  import('@/features/admin/marketing/pages/MarketingCampaignsPage').then((module) => ({
-    default: module.MarketingCampaignsPage,
-  })),
-);
-const MarketingCampaignFormPage = lazy(() =>
-  import('@/features/admin/marketing/pages/MarketingCampaignFormPage').then((module) => ({
-    default: module.MarketingCampaignFormPage,
-  })),
-);
-const MarketingTemplatesListPage = lazy(() =>
-  import('@/features/admin/marketing/pages/MarketingTemplatesListPage').then((module) => ({
-    default: module.MarketingTemplatesListPage,
-  })),
-);
-const MarketingTemplateDetailPage = lazy(() =>
-  import('@/features/admin/marketing/pages/MarketingTemplateDetailPage').then((module) => ({
-    default: module.MarketingTemplateDetailPage,
-  })),
-);
-const MarketingTemplateFormPage = lazy(() =>
-  import('@/features/admin/marketing/pages/MarketingTemplateFormPage').then((module) => ({
-    default: module.MarketingTemplateFormPage,
-  })),
-);
-const PromotionsListPage = lazy(() =>
-  import('@/features/admin/promotions/pages/PromotionsListPage').then((module) => ({
-    default: module.PromotionsListPage,
-  })),
-);
-const PromotionFormPage = lazy(() =>
-  import('@/features/admin/promotions/pages/PromotionFormPage').then((module) => ({
-    default: module.PromotionFormPage,
-  })),
-);
-const VouchersPage = lazy(() =>
-  import('@/features/admin/vouchers/pages/VouchersPage').then((module) => ({
-    default: module.VouchersPage,
-  })),
-);
-const VoucherFormPage = lazy(() =>
-  import('@/features/admin/vouchers/pages/VoucherFormPage').then((module) => ({
-    default: module.VoucherFormPage,
-  })),
-);
-const AdminAuditDetailPage = lazy(() =>
-  import('@/features/admin/audits/pages/AdminAuditDetailPage').then((module) => ({
-    default: module.AdminAuditDetailPage,
-  })),
-);
-const CguPage = lazy(() =>
-  import('@/features/legal/pages/CguPage').then((module) => ({ default: module.CguPage })),
-);
-const CgvPage = lazy(() =>
-  import('@/features/legal/pages/CgvPage').then((module) => ({ default: module.CgvPage })),
-);
-const PrivacyPage = lazy(() =>
-  import('@/features/legal/pages/PrivacyPage').then((module) => ({ default: module.PrivacyPage })),
-);
-const MentionsPage = lazy(() =>
-  import('@/features/legal/pages/MentionsPage').then((module) => ({ default: module.MentionsPage })),
-);
-const MyFavoritesPage = lazy(() =>
-  import('@/features/favorites/pages/MyFavoritesPage').then((module) => ({
-    default: module.MyFavoritesPage,
-  })),
-);
+import {
+  AdminLayout,
+  PrestationFormPage,
+  PrestationsListPage,
+  SchedulePage,
+  AdminDashboardPage,
+  AdminOperationsPage,
+  AdminBackupsPage,
+  AdminTrainingsPage,
+  TrainingFormPage,
+  TrainingSessionsPage,
+  TrainingSessionFormPage,
+  TrainingEnrollmentsPage,
+  TrainingCategoriesPage,
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
+  AppointmentBookingPage,
+  MyAppointmentsPage,
+  CategoriesListPage,
+  BrandsListPage,
+  BrandFormPage,
+  CategoryFormPage,
+  ProductsListPage,
+  ProductFormPage,
+  CategoryPage,
+  ProductPage,
+  SellingTypePage,
+  CatalogSearchPage,
+  GlobalSearchPage,
+  CartPage,
+  HomePage,
+  ProfilePage,
+  ClientDashboardPage,
+  QuotesListPage,
+  AddressesPage,
+  QuoteFormPage,
+  AdminQuoteDetailPage,
+  ServicesListPage,
+  ServiceFormPage,
+  CreateQuotePage,
+  ServicesCatalogPage,
+  ServiceDetailPage,
+  TrainingsCatalogPage,
+  TrainingDetailPage,
+  MyTrainingsPage,
+  MyTrainingDetailPage,
+  MyQuotesPage,
+  MyQuoteDetailPage,
+  OrdersListPage,
+  AdminOrderDetailPage,
+  PaymentsListPage,
+  PaymentDetailPage,
+  AdminCustomersListPage,
+  AdminLoyaltyPage,
+  AdminCustomerDetailPage,
+  AdminCustomerVoucherPage,
+  MyVouchersPage,
+  MyOrdersPage,
+  OrderDetailPage,
+  CheckoutSuccessPage,
+  ContactPage,
+  ActivationPage,
+  RequestAuditPage,
+  MyAuditsPage,
+  MyAuditDetailPage,
+  AdminAuditsListPage,
+  MarketingCampaignsPage,
+  MarketingCampaignFormPage,
+  MarketingTemplatesListPage,
+  MarketingTemplateDetailPage,
+  MarketingTemplateFormPage,
+  PromotionsListPage,
+  PromotionFormPage,
+  VouchersPage,
+  VoucherFormPage,
+  AdminAuditDetailPage,
+  CguPage,
+  CgvPage,
+  PrivacyPage,
+  MentionsPage,
+  MyFavoritesPage,
+} from './AppRoutePages';
 const RouteFallback = () => (
   <div className="site-layout">
-    <div className="site-layout__content min-h-[40vh]" aria-hidden="true" />
+    <div className="site-layout__content">
+      <LoadingState className="min-h-[40vh]">Chargement de la page...</LoadingState>
+    </div>
   </div>
 );
 

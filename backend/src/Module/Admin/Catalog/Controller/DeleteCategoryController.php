@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/catalog/categories/{id}', name: 'api_admin_catalog_categories_delete', methods: ['DELETE'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -28,13 +27,13 @@ class DeleteCategoryController extends AbstractController
     {
         $category = $this->categoryRepository->find($id);
 
-        if ($category === null) {
+        if (null === $category) {
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
             $this->categoryService->delete($category);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de supprimer la catégorie.',
                 Response::HTTP_BAD_REQUEST,
@@ -45,6 +44,3 @@ class DeleteCategoryController extends AbstractController
         return ApiResponse::success(['id' => $id]);
     }
 }
-
-
-

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Voucher\Controller;
 
-use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
@@ -29,7 +28,7 @@ final class UpdateVoucherController extends AbstractController
     public function __invoke(int $voucherId, Request $request): JsonResponse
     {
         $voucher = $this->vouchers->find($voucherId);
-        if ($voucher === null) {
+        if (null === $voucher) {
             return ApiResponse::error('Bon de réduction introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -66,7 +65,7 @@ final class UpdateVoucherController extends AbstractController
 
     private function parseDate(mixed $value): ?\DateTimeImmutable
     {
-        if (!\is_string($value) || trim($value) === '') {
+        if (!\is_string($value) || '' === trim($value)) {
             return null;
         }
 

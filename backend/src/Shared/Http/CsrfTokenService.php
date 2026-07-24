@@ -34,8 +34,8 @@ final class CsrfTokenService
         $cookieToken = (string) $request->cookies->get(self::COOKIE_NAME, '');
         $headerToken = (string) $request->headers->get(self::HEADER_NAME, '');
 
-        return $cookieToken !== ''
-            && $headerToken !== ''
+        return '' !== $cookieToken
+            && '' !== $headerToken
             && hash_equals($cookieToken, $headerToken);
     }
 
@@ -47,7 +47,7 @@ final class CsrfTokenService
             time() + self::TOKEN_TTL_SECONDS,
             '/api',
             null,
-            $request->isSecure() || $this->environment === 'prod',
+            $request->isSecure() || 'prod' === $this->environment,
             false,
             false,
             Cookie::SAMESITE_LAX,

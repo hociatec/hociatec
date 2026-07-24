@@ -10,6 +10,6 @@ final class OrderCreatedMessage
         public readonly int $orderId,
         public readonly string $orderNumber,
         public readonly int $userId,
-    ) {}
+    ) {
+    }
 }
-

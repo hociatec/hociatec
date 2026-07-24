@@ -32,7 +32,7 @@ class FavoriteService
     public function addProduct(User $user, Product $product): array
     {
         $existing = $this->favorites->findOneByUserAndProduct($user, $product);
-        if ($existing !== null) {
+        if (null !== $existing) {
             return [
                 'favorite' => $existing,
                 'created' => false,
@@ -52,7 +52,7 @@ class FavoriteService
     public function removeProduct(User $user, Product $product): void
     {
         $favorite = $this->favorites->findOneByUserAndProduct($user, $product);
-        if ($favorite === null) {
+        if (null === $favorite) {
             return;
         }
 

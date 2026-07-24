@@ -33,22 +33,18 @@ class AddProductItemController extends AbstractController
     public function __invoke(Request $request, int $id): JsonResponse
     {
         $quote = $this->quoteRepository->find($id);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = json_decode($request->getContent() ?: '[]', true);
-        if (!is_array($payload)) {
-            return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
-        }
-
+        $payload = '' !== $request->getContent() ? $request->toArray() : [];
         if (!isset($payload['productId'])) {
             return ApiResponse::error('Produit manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $productId = (int) $payload['productId'];
         $product = $this->productRepository->find($productId);
-        if ($product === null || !$product->isPublished()) {
+        if (null === $product || !$product->isPublished()) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -59,7 +55,7 @@ class AddProductItemController extends AbstractController
         $item->setItemType(QuoteItem::TYPE_PRODUCT)
             ->setProductId($product->getId())
             ->setDescription(self::strOrNull($payload['description'] ?? null))
-            ->setUnit(self::strOrNull($payload['unit'] ?? (strtolower($product->getSellingType()) === 'rental' ? 'jour' : null)))
+            ->setUnit(self::strOrNull($payload['unit'] ?? ('rental' === strtolower($product->getSellingType()) ? 'jour' : null)))
             ->setQuantity((int) ($payload['quantity'] ?? 1));
 
         if (isset($payload['vatRate'])) {
@@ -81,9 +77,11 @@ class AddProductItemController extends AbstractController
 
     private static function strOrNull(mixed $v): ?string
     {
-        if ($v === null) { return null; }
+        if (null === $v) {
+            return null;
+        }
         $s = trim((string) $v);
-        return $s === '' ? null : $s;
+
+        return '' === $s ? null : $s;
     }
 }
-

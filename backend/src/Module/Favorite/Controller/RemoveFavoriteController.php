@@ -29,7 +29,7 @@ class RemoveFavoriteController extends AbstractController
         $user = $this->getUser();
         $product = $this->products->find($productId);
 
-        if ($product !== null) {
+        if (null !== $product) {
             $this->favorites->removeProduct($user, $product);
         }
 

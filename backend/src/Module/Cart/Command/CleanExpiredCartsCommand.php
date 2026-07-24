@@ -49,4 +49,3 @@ final class CleanExpiredCartsCommand extends Command
         return Command::SUCCESS;
     }
 }
-

@@ -9,15 +9,14 @@ use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use InvalidArgumentException;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/cart/items/{productId}', name: 'api_public_cart_update_item', methods: ['PATCH'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 final class UpdateCartItemController extends AbstractController
 {
     public function __construct(
@@ -29,9 +28,9 @@ final class UpdateCartItemController extends AbstractController
 
     public function __invoke(int $productId, Request $request): JsonResponse
     {
-        $payload = json_decode($request->getContent() ?: '[]', true);
+        $payload = '' !== $request->getContent() ? $request->toArray() : [];
 
-        if (!is_array($payload) || !array_key_exists('quantity', $payload)) {
+        if (!array_key_exists('quantity', $payload)) {
             return ApiResponse::error('Champ "quantity" requis.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
@@ -43,7 +42,7 @@ final class UpdateCartItemController extends AbstractController
         $token = $this->extractToken($request, $payload);
 
         $product = $this->productRepository->find($productId);
-        if ($product === null) {
+        if (null === $product) {
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -57,12 +56,12 @@ final class UpdateCartItemController extends AbstractController
             $currentRentalMonths = (int) $payload['currentRentalMonths'];
         }
 
-        if ($product->getSellingType() === 'rental') {
-            if ($rentalMonths !== null && $rentalMonths < 1) {
+        if ('rental' === $product->getSellingType()) {
+            if (null !== $rentalMonths && $rentalMonths < 1) {
                 return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            if ($currentRentalMonths !== null && $currentRentalMonths < 1) {
+            if (null !== $currentRentalMonths && $currentRentalMonths < 1) {
                 return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
             }
         } else {
@@ -72,7 +71,7 @@ final class UpdateCartItemController extends AbstractController
 
         try {
             $cart = $this->cartService->updateProductQuantity($token, $product, $quantity, $rentalMonths, $currentRentalMonths);
-        } catch (InvalidArgumentException $exception) {
+        } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
 
@@ -92,12 +91,12 @@ final class UpdateCartItemController extends AbstractController
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
-        if (is_string($headerToken) && $headerToken !== '') {
+        if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
         }
 
         $payloadToken = $payload['cartToken'] ?? null;
 
-        return is_string($payloadToken) && $payloadToken !== '' ? $payloadToken : null;
+        return is_string($payloadToken) && '' !== $payloadToken ? $payloadToken : null;
     }
 }

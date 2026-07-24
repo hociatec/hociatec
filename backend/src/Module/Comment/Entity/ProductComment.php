@@ -6,7 +6,6 @@ namespace App\Module\Comment\Entity;
 
 use App\Module\Comment\Repository\ProductCommentRepository;
 use App\Module\Rating\Entity\ProductRating;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductCommentRepository::class)]
@@ -30,16 +29,16 @@ class ProductComment
     private bool $isVisible = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(ProductRating $rating, string $body)
     {
         $this->rating = $rating;
         $this->body = $body;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -62,6 +61,7 @@ class ProductComment
     public function setBody(string $body): self
     {
         $this->body = $body;
+
         return $this;
     }
 
@@ -73,15 +73,16 @@ class ProductComment
     public function setIsVisible(bool $visible): self
     {
         $this->isVisible = $visible;
+
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -89,6 +90,6 @@ class ProductComment
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

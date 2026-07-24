@@ -1,0 +1,45 @@
+/* === CART PAGE - VERSION AMÉLIORÉE === */
+
+.cart-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 16px 64px;
+  display: grid;
+  gap: 32px;
+  color: var(--hocia-ink);
+}
+
+/* --- Header --- */
+
+.cart-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cart-page__header-info {
+  display: grid;
+  gap: 6px;
+}
+
+.cart-page__header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  color: var(--hocia-ink);
+}
+
+.cart-page__header p {
+  margin: 8px 0 0;
+  color: var(--hocia-muted);
+}
+
+/* --- Alert --- */
+
+.cart-page__alert {
+  background: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+  border-radius: 16px;
+  font-weight: 500;
+}

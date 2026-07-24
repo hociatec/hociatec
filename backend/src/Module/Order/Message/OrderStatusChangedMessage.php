@@ -11,6 +11,6 @@ final class OrderStatusChangedMessage
         public readonly string $orderNumber,
         public readonly string $oldStatus,
         public readonly string $newStatus,
-    ) {}
+    ) {
+    }
 }
-

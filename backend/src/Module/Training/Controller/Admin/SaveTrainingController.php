@@ -32,18 +32,18 @@ class SaveTrainingController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = (array) json_decode($request->getContent(), true);
+        $payload = $request->toArray();
         $title = trim((string) ($payload['title'] ?? ''));
-        if ($title === '') {
+        if ('' === $title) {
             return ApiResponse::error('Le titre est requis.', Response::HTTP_BAD_REQUEST);
         }
 
-        $training = $id !== null ? $this->trainings->find($id) : null;
-        if ($id !== null && $training === null) {
+        $training = null !== $id ? $this->trainings->find($id) : null;
+        if (null !== $id && null === $training) {
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($training === null) {
+        if (null === $training) {
             $training = new Training($title, $this->writer->slugify((string) ($payload['slug'] ?? $title)), 60, 0);
             $this->em->persist($training);
         }
@@ -51,6 +51,6 @@ class SaveTrainingController extends AbstractController
         $this->writer->apply($training, $payload);
         $this->em->flush();
 
-        return ApiResponse::success($this->formatter->formatTraining($training), $id === null ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success($this->formatter->formatTraining($training), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }
 }

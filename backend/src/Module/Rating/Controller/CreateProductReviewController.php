@@ -33,7 +33,7 @@ class CreateProductReviewController extends AbstractController
         $user = $this->getUser();
 
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -49,15 +49,11 @@ class CreateProductReviewController extends AbstractController
             }
         }
 
-        if ($targetItem === null) {
+        if (null === $targetItem) {
             return ApiResponse::error('Article introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = json_decode($request->getContent() ?: '[]', true);
-        if (!is_array($payload)) {
-            $payload = [];
-        }
-
+        $payload = '' !== $request->getContent() ? $request->toArray() : [];
         $score = isset($payload['score']) ? (int) $payload['score'] : 0;
         $comment = isset($payload['comment']) ? (string) $payload['comment'] : null;
 

@@ -34,11 +34,11 @@ final class ListOrdersController extends AbstractController
         $qb = $this->orders->createQueryBuilder('o')
             ->orderBy('o.createdAt', 'DESC');
 
-        if (is_string($status) && $status !== '' && $status !== 'all') {
+        if (is_string($status) && '' !== $status && 'all' !== $status) {
             $qb->andWhere('o.status = :status')->setParameter('status', $status);
         }
 
-        if ($health === 'issues') {
+        if ('issues' === $health) {
             $qb
                 ->leftJoin('App\Module\Order\Entity\OrderEvent', 'e', 'WITH', 'e.order = o')
                 ->andWhere(
@@ -69,7 +69,7 @@ final class ListOrdersController extends AbstractController
                 );
 
                 return OrderFormatter::formatOrder($order, [], [
-                    'hasIssues' => $issueReasons !== [],
+                    'hasIssues' => [] !== $issueReasons,
                     'issueReasons' => $issueReasons,
                 ]);
             },

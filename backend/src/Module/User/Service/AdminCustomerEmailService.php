@@ -17,6 +17,7 @@ final class AdminCustomerEmailService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly LoggerInterface $logger,
+        private readonly string $mailerFrom,
     ) {
     }
 
@@ -25,11 +26,9 @@ final class AdminCustomerEmailService
         $subject = trim($subject);
         $message = trim($message);
 
-        if ($subject === '' || $message === '') {
+        if ('' === $subject || '' === $message) {
             throw new \InvalidArgumentException('Sujet et message sont obligatoires.');
         }
-
-        $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
 
         try {
             $this->ovhRoundcubeMailer->send($user->getEmail(), $subject, $message);
@@ -45,7 +44,7 @@ final class AdminCustomerEmailService
 
         try {
             $email = (new Email())
-                ->from(new Address($from, 'Hociatec'))
+                ->from(new Address($this->mailerFrom, 'Hociatec'))
                 ->to(new Address($user->getEmail(), $user->getFullName()))
                 ->subject($subject)
                 ->text($message)

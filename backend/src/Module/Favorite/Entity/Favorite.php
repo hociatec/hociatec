@@ -7,7 +7,6 @@ namespace App\Module\Favorite\Entity;
 use App\Module\Catalog\Entity\Product;
 use App\Module\Favorite\Repository\FavoriteRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FavoriteRepository::class)]
@@ -29,13 +28,13 @@ class Favorite
     private Product $product;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     public function __construct(User $user, Product $product)
     {
         $this->user = $user;
         $this->product = $product;
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -53,7 +52,7 @@ class Favorite
         return $this->product;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

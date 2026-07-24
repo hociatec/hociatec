@@ -32,24 +32,24 @@ class SaveTrainingCategoryController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = (array) json_decode($request->getContent(), true);
+        $payload = $request->toArray();
         $name = trim((string) ($payload['name'] ?? ''));
-        if ($name === '') {
+        if ('' === $name) {
             return ApiResponse::error('Le nom est requis.', Response::HTTP_BAD_REQUEST);
         }
 
-        $category = $id !== null ? $this->categories->find($id) : null;
-        if ($id !== null && $category === null) {
+        $category = null !== $id ? $this->categories->find($id) : null;
+        if (null !== $id && null === $category) {
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         $slug = $this->writer->slugify((string) ($payload['slug'] ?? $name));
         $existing = $this->categories->findOneBy(['slug' => $slug]);
-        if ($existing !== null && $existing->getId() !== $category?->getId()) {
+        if (null !== $existing && $existing->getId() !== $category?->getId()) {
             return ApiResponse::error('Ce slug de catégorie existe déjà.', Response::HTTP_BAD_REQUEST);
         }
 
-        if ($category === null) {
+        if (null === $category) {
             $category = new TrainingCategory($name, $slug);
             $this->em->persist($category);
         }
@@ -62,6 +62,6 @@ class SaveTrainingCategoryController extends AbstractController
 
         $this->em->flush();
 
-        return ApiResponse::success($this->formatter->format($category), $id === null ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success($this->formatter->format($category), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }
 }

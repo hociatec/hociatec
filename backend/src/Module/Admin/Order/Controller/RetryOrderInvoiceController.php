@@ -29,7 +29,7 @@ final class RetryOrderInvoiceController extends AbstractController
     public function __invoke(int $orderId): JsonResponse
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

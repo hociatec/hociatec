@@ -29,12 +29,12 @@ class DuplicateQuoteController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $quote = $this->quoteRepository->find($id);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         $copy = $this->quoteService->duplicate($quote);
+
         return ApiResponse::success(QuoteFormatter::formatQuote($copy, $this->calculator));
     }
 }
-

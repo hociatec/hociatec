@@ -25,7 +25,7 @@ final class SendOrderStatusEmailHandler
     public function __invoke(OrderStatusChangedMessage $message): void
     {
         $order = $this->orders->find($message->orderId);
-        if ($order === null) {
+        if (null === $order) {
             $this->logger->warning('Order status email skipped: order not found.', [
                 'order_id' => $message->orderId,
                 'order_number' => $message->orderNumber,
@@ -38,7 +38,7 @@ final class SendOrderStatusEmailHandler
         try {
             $sent = $this->notifications->sendStatusChangedIfNeeded($order, $message->oldStatus, $message->newStatus);
         } catch (\Throwable $exception) {
-            $this->events->log($order, null, 'email_failed', 'Échec email statut ' . $message->newStatus . ': ' . $exception->getMessage());
+            $this->events->log($order, null, 'email_failed', 'Échec email statut '.$message->newStatus.': '.$exception->getMessage());
             throw $exception;
         }
 

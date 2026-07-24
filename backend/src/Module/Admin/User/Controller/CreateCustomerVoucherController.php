@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\User\Controller;
 
 use App\Module\User\Repository\UserRepository;
-use App\Module\Voucher\Repository\VoucherRepository;
 use App\Module\Voucher\Entity\Voucher;
+use App\Module\Voucher\Repository\VoucherRepository;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
 use App\Module\Voucher\Service\VoucherNotificationEmailService;
@@ -33,7 +33,7 @@ final class CreateCustomerVoucherController extends AbstractController
     public function __invoke(int $userId, Request $request): JsonResponse
     {
         $user = $this->users->find($userId);
-        if ($user === null) {
+        if (null === $user) {
             return ApiResponse::error('Client introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -69,8 +69,7 @@ final class CreateCustomerVoucherController extends AbstractController
             $emailSent = true;
         }
 
-        $this->vouchers->getEntityManager()->persist($voucher);
-        $this->vouchers->getEntityManager()->flush();
+        $this->vouchers->save($voucher, true);
 
         return ApiResponse::created([
             'voucher' => VoucherFormatter::formatVoucher($voucher),
@@ -85,16 +84,16 @@ final class CreateCustomerVoucherController extends AbstractController
 
     private function generateCode(string $seed): string
     {
-        $base = (trim($seed) !== '' ? $seed : 'CLIENT');
+        $base = ('' !== trim($seed) ? $seed : 'CLIENT');
         $base = preg_replace('/[^A-Za-z0-9]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $base) ?: $base) ?: 'CLIENT';
         $base = trim(strtoupper($base), '-');
 
-        return substr($base, 0, 12) . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        return substr($base, 0, 12).'-'.strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
     }
 
     private function parseDate(mixed $value): ?\DateTimeImmutable
     {
-        if (!\is_string($value) || trim($value) === '') {
+        if (!\is_string($value) || '' === trim($value)) {
             return null;
         }
 

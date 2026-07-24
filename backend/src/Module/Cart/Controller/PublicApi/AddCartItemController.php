@@ -9,15 +9,14 @@ use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use InvalidArgumentException;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/cart/items', name: 'api_public_cart_add_item', methods: ['POST'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class AddCartItemController extends AbstractController
 {
     public function __construct(
@@ -29,21 +28,21 @@ class AddCartItemController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = json_decode($request->getContent() ?: '[]', true);
+        $payload = '' !== $request->getContent() ? $request->toArray() : [];
 
-        if (!is_array($payload) || !isset($payload['productId'])) {
+        if (!isset($payload['productId'])) {
             return ApiResponse::error('Produit manquant.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $productId = (int) $payload['productId'];
 
         $product = $this->productRepository->find($productId);
-        if ($product === null || !$product->isPublished()) {
+        if (null === $product || !$product->isPublished()) {
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
         $rentalMonths = null;
-        if ($product->getSellingType() === 'rental') {
+        if ('rental' === $product->getSellingType()) {
             if (!array_key_exists('rentalMonths', $payload)) {
                 return ApiResponse::error('Champ "rentalMonths" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
             }
@@ -62,7 +61,7 @@ class AddCartItemController extends AbstractController
         $token = $this->extractToken($request, $payload);
         try {
             $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
-        } catch (InvalidArgumentException $exception) {
+        } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
 
@@ -83,11 +82,11 @@ class AddCartItemController extends AbstractController
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
-        if (is_string($headerToken) && $headerToken !== '') {
+        if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
         }
 
-        if (isset($payload['cartToken']) && is_string($payload['cartToken']) && $payload['cartToken'] !== '') {
+        if (isset($payload['cartToken']) && is_string($payload['cartToken']) && '' !== $payload['cartToken']) {
             return $payload['cartToken'];
         }
 

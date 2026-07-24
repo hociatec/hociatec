@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Controller\Client;
 
-use App\Module\Auth\Security\UserProvider; // not used, rely on AbstractController
+// not used, rely on AbstractController
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
@@ -37,11 +37,10 @@ class ListMyQuotesController extends AbstractController
             ->orderBy('q.createdAt', 'DESC');
 
         $items = array_map(
-            fn($q) => QuoteFormatter::formatQuote($q, $this->calculator),
+            fn ($q) => QuoteFormatter::formatQuote($q, $this->calculator),
             $qb->getQuery()->getResult(),
         );
 
         return ApiResponse::success(['items' => $items]);
     }
 }
-

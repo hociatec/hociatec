@@ -22,7 +22,7 @@ final class RequestIdProcessor
     public function __invoke(LogRecord $record): LogRecord
     {
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
+        if (null === $request) {
             return $record;
         }
 
@@ -33,7 +33,7 @@ final class RequestIdProcessor
         $ctx['ip'] = $request->getClientIp();
         $ctx['route'] = (string) ($request->attributes->get('_route') ?? '');
 
-        if ($this->tokenStorage !== null && ($token = $this->tokenStorage->getToken())) {
+        if (null !== $this->tokenStorage && ($token = $this->tokenStorage->getToken())) {
             $user = $token->getUser();
             if (\is_object($user) && \method_exists($user, 'getId')) {
                 $ctx['user_id'] = $user->getId();

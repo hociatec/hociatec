@@ -7,7 +7,6 @@ namespace App\Module\Support\Entity;
 use App\Module\Order\Entity\Order;
 use App\Module\Support\Repository\SupportRequestRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SupportRequestRepository::class)]
@@ -49,57 +48,145 @@ class SupportRequest
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $internalNotes = null;
 
+    /** @var list<array<string, mixed>> */
     #[ORM\Column(type: 'json')]
     private array $attachments = [];
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $resolvedAt = null;
+    private ?\DateTimeImmutable $resolvedAt = null;
 
     public function __construct(User $customer, string $subject)
     {
         $this->customer = $customer;
-        $this->subject = trim($subject) !== '' ? trim($subject) : 'Demande SAV';
-        $now = new DateTimeImmutable();
+        $this->subject = '' !== trim($subject) ? trim($subject) : 'Demande SAV';
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getCustomer(): User { return $this->customer; }
-    public function getOrder(): ?Order { return $this->order; }
-    public function setOrder(?Order $order): self { $this->order = $order; return $this; }
-    public function getStatus(): string { return $this->status; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getCustomer(): User
+    {
+        return $this->customer;
+    }
+
+    public function getOrder(): ?Order
+    {
+        return $this->order;
+    }
+
+    public function setOrder(?Order $order): self
+    {
+        $this->order = $order;
+
+        return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
     public function setStatus(string $status): self
     {
         $this->status = $status;
-        if (in_array($status, [self::STATUS_RESOLVED, self::STATUS_REFUSED], true) && $this->resolvedAt === null) {
-            $this->resolvedAt = new DateTimeImmutable();
+        if (in_array($status, [self::STATUS_RESOLVED, self::STATUS_REFUSED], true) && null === $this->resolvedAt) {
+            $this->resolvedAt = new \DateTimeImmutable();
         }
+
         return $this;
     }
-    public function getReason(): string { return $this->reason; }
-    public function setReason(string $reason): self { $this->reason = trim($reason) !== '' ? trim($reason) : 'other'; return $this; }
-    public function getSubject(): string { return $this->subject; }
-    public function setSubject(string $subject): self { $this->subject = trim($subject) !== '' ? trim($subject) : $this->subject; return $this; }
-    public function getMessage(): ?string { return $this->message; }
-    public function setMessage(?string $message): self { $this->message = $message !== null ? trim($message) : null; return $this; }
-    public function getInternalNotes(): ?string { return $this->internalNotes; }
-    public function setInternalNotes(?string $internalNotes): self { $this->internalNotes = $internalNotes !== null ? trim($internalNotes) : null; return $this; }
-    public function getAttachments(): array { return $this->attachments; }
-    public function setAttachments(array $attachments): self { $this->attachments = array_values($attachments); return $this; }
-    public function getCreatedAt(): DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): DateTimeImmutable { return $this->updatedAt; }
-    public function getResolvedAt(): ?DateTimeImmutable { return $this->resolvedAt; }
+
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+
+    public function setReason(string $reason): self
+    {
+        $this->reason = '' !== trim($reason) ? trim($reason) : 'other';
+
+        return $this;
+    }
+
+    public function getSubject(): string
+    {
+        return $this->subject;
+    }
+
+    public function setSubject(string $subject): self
+    {
+        $this->subject = '' !== trim($subject) ? trim($subject) : $this->subject;
+
+        return $this;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?string $message): self
+    {
+        $this->message = null !== $message ? trim($message) : null;
+
+        return $this;
+    }
+
+    public function getInternalNotes(): ?string
+    {
+        return $this->internalNotes;
+    }
+
+    public function setInternalNotes(?string $internalNotes): self
+    {
+        $this->internalNotes = null !== $internalNotes ? trim($internalNotes) : null;
+
+        return $this;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function getAttachments(): array
+    {
+        return $this->attachments;
+    }
+
+    /** @param list<array<string, mixed>> $attachments */
+    public function setAttachments(array $attachments): self
+    {
+        $this->attachments = $attachments;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function getResolvedAt(): ?\DateTimeImmutable
+    {
+        return $this->resolvedAt;
+    }
 
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

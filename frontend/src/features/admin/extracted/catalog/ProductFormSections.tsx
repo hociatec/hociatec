@@ -54,14 +54,8 @@ export const VariantSwitcherSection = ({
         const isActive = variant.id === currentProductId;
 
         return (
-          <div key={variant.id} className="catalog-variant-switcher__card">
-            <button
-              type="button"
-              className={`catalog-variant-switcher__item${isActive ? ' is-active' : ''}`}
-              onClick={() => {
-                if (!isActive) onNavigateVariant(variant.id);
-              }}
-            >
+          <div key={variant.id} className={`catalog-variant-switcher__card${isActive ? ' is-active' : ''}`}>
+            <div className="catalog-variant-switcher__item">
               <span className="catalog-variant-switcher__eyebrow">
                 Variante {variant.variantPosition ?? index + 1}
               </span>
@@ -69,6 +63,14 @@ export const VariantSwitcherSection = ({
               <span className="catalog-variant-switcher__meta">
                 SKU : {variant.sku} · Stock : {variant.stock}
               </span>
+            </div>
+            <button
+              type="button"
+              className="catalog-variant-switcher__select"
+              disabled={isActive}
+              onClick={() => onNavigateVariant(variant.id)}
+            >
+              {isActive ? 'Variante active' : 'Modifier cette variante'}
             </button>
             <button
               type="button"

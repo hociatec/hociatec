@@ -30,7 +30,7 @@ class GetServiceController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $service = $this->serviceRepository->find($id);
-        if ($service === null) {
+        if (null === $service) {
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 

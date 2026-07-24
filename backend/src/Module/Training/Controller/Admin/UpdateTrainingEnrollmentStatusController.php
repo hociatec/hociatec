@@ -8,7 +8,6 @@ use App\Module\Training\Entity\TrainingEnrollment;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Shared\Http\ApiResponse;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,19 +38,19 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
     public function __invoke(int $id, Request $request): JsonResponse
     {
         $enrollment = $this->enrollments->find($id);
-        if ($enrollment === null) {
+        if (null === $enrollment) {
             return ApiResponse::error('Inscription introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = (array) json_decode($request->getContent(), true);
+        $payload = $request->toArray();
         $status = (string) ($payload['status'] ?? '');
         if (!in_array($status, self::ALLOWED, true)) {
             return ApiResponse::error('Statut invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         $enrollment->setStatus($status);
-        if ($status === TrainingEnrollment::STATUS_PAID && $enrollment->getPaidAt() === null) {
-            $enrollment->setPaidAt(new DateTimeImmutable());
+        if (TrainingEnrollment::STATUS_PAID === $status && null === $enrollment->getPaidAt()) {
+            $enrollment->setPaidAt(new \DateTimeImmutable());
         }
         $this->em->flush();
 

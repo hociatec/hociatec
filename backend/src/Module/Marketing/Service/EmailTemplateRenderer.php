@@ -13,8 +13,9 @@ final class EmailTemplateRenderer
     }
 
     /**
-     * @param array<string, string> $context
+     * @param array<string, string>                              $context
      * @param array{subject: string, html: string, text: string} $fallback
+     *
      * @return array{subject: string, html: string, text: string}
      */
     public function renderScenario(string $scenarioKey, array $context, array $fallback): array
@@ -36,7 +37,7 @@ final class EmailTemplateRenderer
         $replacements = [];
 
         foreach ($context as $key => $value) {
-            $replacements['{{' . $key . '}}'] = $allowHtml
+            $replacements['{{'.$key.'}}'] = $allowHtml
                 ? htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
                 : $value;
         }

@@ -28,12 +28,12 @@ class ProductRatingService
             throw new ProductReviewException('Commande introuvable.');
         }
 
-        if ($order->getStatus() !== Order::STATUS_DELIVERED) {
+        if (Order::STATUS_DELIVERED !== $order->getStatus()) {
             throw new ProductReviewException('Vous pourrez laisser un avis une fois la commande livrée.');
         }
 
         $product = $item->getProduct();
-        if ($product === null) {
+        if (null === $product) {
             throw new ProductReviewException('Produit introuvable.');
         }
 
@@ -49,7 +49,7 @@ class ProductRatingService
         $rating->publish();
 
         $body = trim((string) $comment);
-        if ($body !== '') {
+        if ('' !== $body) {
             $productComment = new ProductComment($rating, $body);
             $rating->setComment($productComment);
             $this->em->persist($productComment);

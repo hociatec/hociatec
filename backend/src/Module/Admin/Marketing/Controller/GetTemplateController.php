@@ -23,7 +23,7 @@ final class GetTemplateController extends AbstractController
     public function __invoke(int $templateId): JsonResponse
     {
         $template = $this->templates->find($templateId);
-        if ($template === null) {
+        if (null === $template) {
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 

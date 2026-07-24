@@ -90,7 +90,7 @@ final class PromotionEngine
         /** @var CartItem $item */
         foreach ($cart->getItems() as $item) {
             $linePrice = $item->getProduct()->getPriceCents() * $item->getQuantity();
-            if ($item->getProduct()->getSellingType() === 'rental') {
+            if ('rental' === $item->getProduct()->getSellingType()) {
                 $linePrice *= max(1, $item->getRentalMonths() ?? 1);
             }
 
@@ -115,8 +115,6 @@ final class PromotionEngine
         $eligiblePromotions = [];
         $bestAutomaticPromotion = null;
         $bestAutomaticDiscount = 0;
-        $appliedPromotion = null;
-        $appliedDiscount = 0;
         $userStats = $user ? $this->loadUserStats($user) : null;
 
         foreach ($this->promotions->findActiveForDate($now) as $promotion) {
@@ -142,16 +140,11 @@ final class PromotionEngine
             }
         }
 
-        if ($appliedPromotion === null) {
-            $appliedPromotion = $bestAutomaticPromotion;
-            $appliedDiscount = $bestAutomaticDiscount;
-        }
-
         return [
             'subtotalPriceCents' => $subtotalPriceCents,
-            'discountAmountCents' => $appliedDiscount,
-            'totalPriceCents' => max(0, $subtotalPriceCents - $appliedDiscount),
-            'appliedPromotion' => $appliedPromotion,
+            'discountAmountCents' => $bestAutomaticDiscount,
+            'totalPriceCents' => max(0, $subtotalPriceCents - $bestAutomaticDiscount),
+            'appliedPromotion' => $bestAutomaticPromotion,
             'eligiblePromotions' => $eligiblePromotions,
         ];
     }
@@ -162,7 +155,7 @@ final class PromotionEngine
             return 0;
         }
 
-        if ($promotion->getDiscountType() === Promotion::TYPE_PERCENT) {
+        if (Promotion::TYPE_PERCENT === $promotion->getDiscountType()) {
             $percent = max(0, min(100, $promotion->getDiscountValue()));
 
             return min($subtotalPriceCents, (int) round($subtotalPriceCents * ($percent / 100)));
@@ -185,11 +178,11 @@ final class PromotionEngine
             return false;
         }
 
-        if ($promotion->getStartsAt() !== null && $promotion->getStartsAt() > $now) {
+        if (null !== $promotion->getStartsAt() && $promotion->getStartsAt() > $now) {
             return false;
         }
 
-        if ($promotion->getEndsAt() !== null && $promotion->getEndsAt() < $now) {
+        if (null !== $promotion->getEndsAt() && $promotion->getEndsAt() < $now) {
             return false;
         }
 
@@ -201,11 +194,11 @@ final class PromotionEngine
 
         return match ($promotion->getAudienceKey()) {
             'all_users' => true,
-            'new_users' => $user !== null && $user->getCreatedAt() >= new \DateTimeImmutable(sprintf('-%d days', max(1, (int) ($criteria['registeredDays'] ?? 30)))),
-            'first_order_users' => $user !== null && ($userStats['ordersCount'] ?? 0) === 0,
-            'returning_customers' => $user !== null && ($userStats['ordersCount'] ?? 0) >= 1,
-            'loyal_customers' => $user !== null && ($userStats['ordersCount'] ?? 0) >= max(2, (int) ($criteria['minimumOrders'] ?? 3)),
-            'inactive_customers' => $user !== null
+            'new_users' => null !== $user && $user->getCreatedAt() >= new \DateTimeImmutable(sprintf('-%d days', max(1, (int) ($criteria['registeredDays'] ?? 30)))),
+            'first_order_users' => null !== $user && ($userStats['ordersCount'] ?? 0) === 0,
+            'returning_customers' => null !== $user && ($userStats['ordersCount'] ?? 0) >= 1,
+            'loyal_customers' => null !== $user && ($userStats['ordersCount'] ?? 0) >= max(2, (int) ($criteria['minimumOrders'] ?? 3)),
+            'inactive_customers' => null !== $user
                 && ($userStats['ordersCount'] ?? 0) >= 1
                 && ($userStats['lastOrderAt'] instanceof \DateTimeImmutable)
                 && $userStats['lastOrderAt'] < new \DateTimeImmutable(sprintf('-%d days', max(30, (int) ($criteria['inactiveDays'] ?? 90)))),

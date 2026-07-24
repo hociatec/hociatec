@@ -109,6 +109,7 @@ export interface UpdateProfilePayload {
   phoneNumber: string;
   gender: string;
   password?: string;
+  currentPassword?: string;
 }
 
 export const updateProfile = async (payload: UpdateProfilePayload) => {

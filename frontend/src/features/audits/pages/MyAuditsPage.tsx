@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { fetchMyAudits, type AuditListItemDto } from '../api';
 
@@ -57,9 +58,9 @@ export const MyAuditsPage = () => {
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-semibold mb-4">Mes audits</h1>
-        {loading && <p aria-hidden="true">Chargement…</p>}
-        {error && <div className="text-red-600">{error}</div>}
-        {!loading && items.length === 0 && <p>Aucun audit trouvé.</p>}
+        {loading && <LoadingState>Chargement des audits...</LoadingState>}
+        {error && <ErrorState>{error}</ErrorState>}
+        {!loading && !error && items.length === 0 && <p>Aucun audit trouvé.</p>}
         <ul className="divide-y">
           {items.map((a) => (
             <li key={a.id} className="py-3 flex items-center justify-between">

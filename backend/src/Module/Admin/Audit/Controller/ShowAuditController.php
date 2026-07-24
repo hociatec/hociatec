@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Audit\Controller;
 
-use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Repository\AuditEventRepository;
+use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,12 +20,13 @@ class ShowAuditController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $repository,
         private readonly AuditEventRepository $events,
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         $audit = $this->repository->find($id);
-        if ($audit === null) {
+        if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -43,7 +44,7 @@ class ShowAuditController extends AbstractController
                 'name' => $audit->getClient()->getFullName(),
                 'email' => $audit->getClient()->getEmail(),
             ],
-            'items' => array_map(static function($it) {
+            'items' => array_map(static function ($it) {
                 return [
                     'id' => $it->getId(),
                     'category' => $it->getCategory(),
@@ -55,7 +56,7 @@ class ShowAuditController extends AbstractController
                     'comment' => $it->getComment(),
                 ];
             }, $audit->getItems()->toArray()),
-            'events' => array_map(static function($e) {
+            'events' => array_map(static function ($e) {
                 return [
                     'id' => $e->getId(),
                     'type' => $e->getType(),

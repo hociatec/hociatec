@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Promotion\Entity;
 
 use App\Module\Promotion\Repository\PromotionRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PromotionRepository::class)]
@@ -47,16 +46,16 @@ class Promotion
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $startsAt = null;
+    private ?\DateTimeImmutable $startsAt = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $endsAt = null;
+    private ?\DateTimeImmutable $endsAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @param array<string, mixed> $criteria
@@ -75,7 +74,7 @@ class Promotion
         $this->discountValue = max(0, $discountValue);
         $this->audienceKey = $audienceKey;
         $this->criteria = $criteria;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -187,36 +186,36 @@ class Promotion
         return $this;
     }
 
-    public function getStartsAt(): ?DateTimeImmutable
+    public function getStartsAt(): ?\DateTimeImmutable
     {
         return $this->startsAt;
     }
 
-    public function setStartsAt(?DateTimeImmutable $startsAt): self
+    public function setStartsAt(?\DateTimeImmutable $startsAt): self
     {
         $this->startsAt = $startsAt;
 
         return $this;
     }
 
-    public function getEndsAt(): ?DateTimeImmutable
+    public function getEndsAt(): ?\DateTimeImmutable
     {
         return $this->endsAt;
     }
 
-    public function setEndsAt(?DateTimeImmutable $endsAt): self
+    public function setEndsAt(?\DateTimeImmutable $endsAt): self
     {
         $this->endsAt = $endsAt;
 
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -224,6 +223,6 @@ class Promotion
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

@@ -9,7 +9,6 @@ use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class AppointmentService
@@ -22,7 +21,7 @@ final class AppointmentService
     ) {
     }
 
-    public function book(User $user, Prestation $prestation, DateTimeImmutable $startAt): Appointment
+    public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
     {
         $endAt = $startAt->add($prestation->getDurationInterval());
 
@@ -44,7 +43,7 @@ final class AppointmentService
     public function getAppointmentsForUser(User $user): array
     {
         $appointments = $this->appointmentRepository->findForUser($user);
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
 
         $future = [];
         $past = [];
@@ -78,4 +77,3 @@ final class AppointmentService
         $this->appointmentStatusManager->changeStatus($appointment, $targetStatus);
     }
 }
-

@@ -8,62 +8,82 @@ final class StripeApiClient
 {
     private const BASE_URL = 'https://api.stripe.com/v1';
 
+    public function __construct(private readonly string $secretKey)
+    {
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
     public function createCheckoutSession(array $payload): array
     {
         return $this->request('POST', '/checkout/sessions', $payload);
     }
 
+    /** @return array<string, mixed> */
     public function retrieveCheckoutSession(string $sessionId): array
     {
-        return $this->request('GET', '/checkout/sessions/' . rawurlencode($sessionId));
+        return $this->request('GET', '/checkout/sessions/'.rawurlencode($sessionId));
     }
 
+    /** @return array<string, mixed> */
     public function expireCheckoutSession(string $sessionId): array
     {
-        return $this->request('POST', '/checkout/sessions/' . rawurlencode($sessionId) . '/expire');
+        return $this->request('POST', '/checkout/sessions/'.rawurlencode($sessionId).'/expire');
     }
 
+    /** @return array<string, mixed> */
     public function retrievePaymentIntent(string $paymentIntentId): array
     {
-        return $this->request('GET', '/payment_intents/' . rawurlencode($paymentIntentId));
+        return $this->request('GET', '/payment_intents/'.rawurlencode($paymentIntentId));
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
     public function createRefund(array $payload): array
     {
         return $this->request('POST', '/refunds', $payload);
     }
 
+    /**
+     * @param 'GET'|'POST'         $method
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
     private function request(string $method, string $path, array $payload = []): array
     {
-        $secretKey = (string) ($_ENV['STRIPE_SECRET_KEY'] ?? '');
-        if ($secretKey === '') {
+        if ('' === $this->secretKey) {
             throw new \RuntimeException('STRIPE_SECRET_KEY manquante.');
         }
 
         $curl = curl_init();
-        if ($curl === false) {
+        if (false === $curl) {
             throw new \RuntimeException('Impossible d’initialiser la requête Stripe.');
         }
 
         $body = http_build_query($payload);
-        $url = self::BASE_URL . $path;
-        if ($method === 'GET' && $body !== '') {
-            $url .= '?' . $body;
+        $url = self::BASE_URL.$path;
+        if ('GET' === $method && '' !== $body) {
+            $url .= '?'.$body;
         }
 
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_USERPWD => $secretKey . ':',
-            CURLOPT_HTTPHEADER => [
-                'Accept: application/json',
-                'Content-Type: application/x-www-form-urlencoded',
-            ],
-            CURLOPT_TIMEOUT => 30,
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_USERPWD, $this->secretKey.':');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            'Accept: application/json',
+            'Content-Type: application/x-www-form-urlencoded',
         ]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
 
-        if ($method !== 'GET') {
+        if ('GET' !== $method) {
             curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
         }
 
@@ -72,8 +92,8 @@ final class StripeApiClient
         $error = curl_error($curl);
         curl_close($curl);
 
-        if ($response === false) {
-            throw new \RuntimeException($error !== '' ? $error : 'Appel Stripe échoué.');
+        if (!is_string($response)) {
+            throw new \RuntimeException('' !== $error ? $error : 'Appel Stripe échoué.');
         }
 
         /** @var array<string, mixed> $decoded */

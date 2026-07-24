@@ -19,7 +19,7 @@ final class StripeCheckoutSessionSyncService
 
     public function syncPayment(OrderCheckoutSession $checkout): void
     {
-        if ($checkout->getStatus() === OrderCheckoutSession::STATUS_PAID) {
+        if (OrderCheckoutSession::STATUS_PAID === $checkout->getStatus()) {
             return;
         }
 
@@ -30,14 +30,14 @@ final class StripeCheckoutSessionSyncService
         }
 
         $sessionStatus = is_string($session['status'] ?? null) ? $session['status'] : null;
-        if ($checkout->getStatus() === OrderCheckoutSession::STATUS_FAILED) {
+        if (OrderCheckoutSession::STATUS_FAILED === $checkout->getStatus()) {
             $this->expireCheckoutSession($checkout, $sessionStatus);
 
             return;
         }
 
-        if ($sessionStatus === 'expired') {
-            if ($checkout->getFailureCode() !== null || $checkout->getFailureMessage() !== null) {
+        if ('expired' === $sessionStatus) {
+            if (null !== $checkout->getFailureCode() || null !== $checkout->getFailureMessage()) {
                 return;
             }
 
@@ -52,7 +52,7 @@ final class StripeCheckoutSessionSyncService
             ? $session['payment_intent']
             : $checkout->getStripePaymentIntentId();
 
-        if ($paymentIntentId === null || $paymentIntentId === '') {
+        if (null === $paymentIntentId || '' === $paymentIntentId) {
             return;
         }
 
@@ -74,7 +74,7 @@ final class StripeCheckoutSessionSyncService
             ? $paymentIntent['last_payment_error']['message']
             : null;
 
-        if ($failureCode !== null || $failureMessage !== null) {
+        if (null !== $failureCode || null !== $failureMessage) {
             $checkout->markFailed(
                 $paymentIntentId,
                 $paymentStatus,
@@ -127,7 +127,7 @@ final class StripeCheckoutSessionSyncService
 
     private function expireCheckoutSession(OrderCheckoutSession $checkout, ?string $sessionStatus): void
     {
-        if ($sessionStatus !== 'open') {
+        if ('open' !== $sessionStatus) {
             return;
         }
 

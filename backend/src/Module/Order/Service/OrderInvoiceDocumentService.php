@@ -26,7 +26,7 @@ final class OrderInvoiceDocumentService
         $totals = $this->calculator->computeTotals($order);
         $baseName = $order->getInvoiceNumber() ?: $order->getNumber();
         $relativeDirectory = 'public/uploads/invoices';
-        $absoluteDirectory = $this->projectDir . '/' . $relativeDirectory;
+        $absoluteDirectory = $this->projectDir.'/'.$relativeDirectory;
 
         if (!is_dir($absoluteDirectory) && !mkdir($absoluteDirectory, 0775, true) && !is_dir($absoluteDirectory)) {
             throw new \RuntimeException('Impossible de créer le répertoire des factures.');
@@ -34,11 +34,11 @@ final class OrderInvoiceDocumentService
 
         $pdf = $this->pdfService->render($order, $totals);
         $xml = $this->xmlService->render($order, $totals);
-        $pdfRelativePath = 'uploads/invoices/' . $baseName . '.pdf';
-        $xmlRelativePath = 'uploads/invoices/' . $baseName . '.xml';
+        $pdfRelativePath = 'uploads/invoices/'.$baseName.'.pdf';
+        $xmlRelativePath = 'uploads/invoices/'.$baseName.'.xml';
 
-        file_put_contents($this->projectDir . '/public/' . $pdfRelativePath, $pdf);
-        file_put_contents($this->projectDir . '/public/' . $xmlRelativePath, $xml);
+        file_put_contents($this->projectDir.'/public/'.$pdfRelativePath, $pdf);
+        file_put_contents($this->projectDir.'/public/'.$xmlRelativePath, $xml);
 
         $order
             ->setInvoicePdfPath($pdfRelativePath)
@@ -50,11 +50,11 @@ final class OrderInvoiceDocumentService
 
     public function getPdf(Order $order): string
     {
-        if ($order->getInvoicePdfPath() !== null) {
-            $absolutePath = $this->projectDir . '/public/' . ltrim($order->getInvoicePdfPath(), '/');
+        if (null !== $order->getInvoicePdfPath()) {
+            $absolutePath = $this->projectDir.'/public/'.ltrim($order->getInvoicePdfPath(), '/');
             if (is_file($absolutePath)) {
                 $pdf = file_get_contents($absolutePath);
-                if ($pdf !== false) {
+                if (false !== $pdf) {
                     return $pdf;
                 }
             }
@@ -62,9 +62,9 @@ final class OrderInvoiceDocumentService
 
         $this->ensureGenerated($order);
 
-        $absolutePath = $this->projectDir . '/public/' . ltrim((string) $order->getInvoicePdfPath(), '/');
+        $absolutePath = $this->projectDir.'/public/'.ltrim((string) $order->getInvoicePdfPath(), '/');
         $pdf = file_get_contents($absolutePath);
-        if ($pdf === false) {
+        if (false === $pdf) {
             throw new \RuntimeException('Impossible de lire la facture PDF générée.');
         }
 
@@ -73,11 +73,11 @@ final class OrderInvoiceDocumentService
 
     public function getXml(Order $order): string
     {
-        if ($order->getInvoiceXmlPath() !== null) {
-            $absolutePath = $this->projectDir . '/public/' . ltrim($order->getInvoiceXmlPath(), '/');
+        if (null !== $order->getInvoiceXmlPath()) {
+            $absolutePath = $this->projectDir.'/public/'.ltrim($order->getInvoiceXmlPath(), '/');
             if (is_file($absolutePath)) {
                 $xml = file_get_contents($absolutePath);
-                if ($xml !== false) {
+                if (false !== $xml) {
                     return $xml;
                 }
             }
@@ -85,9 +85,9 @@ final class OrderInvoiceDocumentService
 
         $this->ensureGenerated($order);
 
-        $absolutePath = $this->projectDir . '/public/' . ltrim((string) $order->getInvoiceXmlPath(), '/');
+        $absolutePath = $this->projectDir.'/public/'.ltrim((string) $order->getInvoiceXmlPath(), '/');
         $xml = file_get_contents($absolutePath);
-        if ($xml === false) {
+        if (false === $xml) {
             throw new \RuntimeException('Impossible de lire la facture XML générée.');
         }
 

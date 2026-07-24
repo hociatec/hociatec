@@ -4,6 +4,13 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    env(STRIPE_WEBHOOK_SECRET): ''
+    env(STRIPE_REFUND_WEBHOOK_SECRET): ''
+    env(OVH_WEBMAIL_EMAIL): ''
+    env(OVH_WEBMAIL_PASSWORD): ''
+    env(WEASYPRINT_PYTHON): ''
+    env(WEASYPRINT_PYTHONPATH): ''
+    env(STRIPE_SECRET_KEY): ''
 
 services:
     # default configuration for services in *this* file
@@ -25,6 +32,15 @@ services:
         arguments:
             $environment: '%kernel.environment%'
 
+    App\Module\Auth\Controller\ActivationRedirectController:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Auth\Service\PasswordResetService:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
     App\Shared\Http\CsrfTokenService:
         arguments:
             $environment: '%kernel.environment%'
@@ -33,6 +49,14 @@ services:
         arguments:
             $environment: '%kernel.environment%'
 
+    App\Shared\Http\RateLimitSubscriber:
+        arguments:
+            $limiters: !service_locator
+                public_api: '@limiter.public_api'
+                checkout: '@limiter.checkout'
+                contact_public: '@limiter.contact_public'
+                product_share_public: '@limiter.product_share_public'
+
     App\Module\Admin\Backup\Service\MaintenanceModeService:
         arguments:
             $projectDir: '%kernel.project_dir%'
@@ -40,7 +64,105 @@ services:
     App\Module\Admin\Backup\Service\BackupManager:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Module\Admin\Backup\Service\BackupStateStore:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Module\Admin\Backup\Service\BackupFileStorage:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Module\Admin\Backup\Service\DatabaseBackupDumper:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
+
+    App\Module\User\Service\AccountActivationEmailService:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Contact\Service\ContactNotificationSender:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+            $contactRecipient: '%env(CONTACT_RECIPIENT)%'
+
+    App\Module\Contact\Service\ContactAcknowledgementSender:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Catalog\Service\ProductShareEmailService:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Training\Service\TrainingEnrollmentCheckoutService:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Voucher\Service\VoucherNotificationEmailService:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\User\Service\AdminCustomerEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Order\Service\StripeApiClient:
+        arguments:
+            $secretKey: '%env(STRIPE_SECRET_KEY)%'
+
+    App\Module\Order\Service\CartHostedCheckoutCreator:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Order\Service\OrderHostedCheckoutCreator:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Order\Service\OrderNotificationEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Order\Service\OrderNotificationContentProvider:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Quote\Service\QuoteCreatedEmailContentProvider:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Quote\Service\QuoteEmailDeliveryService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Order\Service\StripeWebhookVerifier:
+        arguments:
+            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+            $refundWebhookSecret: '%env(STRIPE_REFUND_WEBHOOK_SECRET)%'
+
+    App\Module\Marketing\Service\MarketingRecipientContextProvider:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
+    App\Module\Marketing\Service\MarketingCampaignSender:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Shared\Http\RoundcubeCredentialsProvider:
+        arguments:
+            $ovhEmail: '%env(OVH_WEBMAIL_EMAIL)%'
+            $ovhPassword: '%env(OVH_WEBMAIL_PASSWORD)%'
+            $mailerDsn: '%env(MAILER_DSN)%'
+
+    App\Shared\Pdf\AccessiblePdfRenderer:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+            $configuredPython: '%env(WEASYPRINT_PYTHON)%'
+            $configuredPythonPath: '%env(WEASYPRINT_PYTHONPATH)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

@@ -16,7 +16,7 @@ class QuoteNumberGenerator
     {
         $year = (int) (new \DateTimeImmutable())->format('Y');
         $count = $this->quoteRepository->countForYear($year) + 1;
+
         return sprintf('DEV-%d-%04d', $year, $count);
     }
 }
-

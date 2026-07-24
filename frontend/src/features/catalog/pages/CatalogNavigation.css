@@ -1,0 +1,42 @@
+.catalog-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-page__breadcrumbs {
+  font-size: 0.9rem;
+  color: var(--hocia-muted);
+}
+
+.catalog-category-nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0 32px;
+}
+
+.catalog-category-nav__item {
+  border: 1px solid rgba(100, 116, 139, 0.3);
+  background: #fff;
+  color: var(--hocia-ink);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.catalog-category-nav__item:hover {
+  border-color: var(--hocia-orange);
+  color: var(--hocia-orange);
+}
+
+.catalog-category-nav__item.is-active {
+  background: var(--hocia-orange);
+  color: #fff;
+  border-color: var(--hocia-orange);
+  cursor: default;
+}
+

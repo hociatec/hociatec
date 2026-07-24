@@ -1,0 +1,42 @@
+name: Backend quality
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: ctype, curl, dom, iconv, intl, mbstring, pdo_mysql
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: backend-composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: backend-composer-${{ runner.os }}-
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php bin/console cache:warmup --env=dev
+      - run: composer quality

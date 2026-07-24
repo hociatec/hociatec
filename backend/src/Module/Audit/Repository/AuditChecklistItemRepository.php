@@ -18,4 +18,3 @@ class AuditChecklistItemRepository extends ServiceEntityRepository
         parent::__construct($registry, AuditChecklistItem::class);
     }
 }
-

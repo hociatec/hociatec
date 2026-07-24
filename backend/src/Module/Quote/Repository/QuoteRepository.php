@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Quote\Repository;
 
 use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Service\QuoteStatusTranslator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,21 +32,24 @@ class QuoteRepository extends ServiceEntityRepository
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function findBySearch(?string $search, ?string $status): array
+    /**
+     * @return list<Quote>
+     */
+    public function findBySearch(?string $search, ?string $statusCode): array
     {
         $qb = $this->createQueryBuilder('q')
             ->orderBy('q.createdAt', 'DESC');
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $qb->andWhere('q.number LIKE :term OR q.customerName LIKE :term OR q.customerEmail LIKE :term')
                 ->setParameter('term', '%'.$search.'%');
         }
 
-        if ($status !== null) {
-            $status = trim((string) $status);
-            if ($status !== '' && strtolower($status) !== 'all') {
+        if (null !== $statusCode) {
+            $statusCode = trim($statusCode);
+            if ('' !== $statusCode && 'all' !== strtolower($statusCode)) {
                 $qb->andWhere('q.status = :status')
-                    ->setParameter('status', QuoteStatusTranslator::toCode($status));
+                    ->setParameter('status', $statusCode);
             }
         }
 
@@ -70,13 +72,15 @@ class QuoteRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param list<string> $statusCodes
+     *
      * @return list<Quote>
      */
-    public function findRecentByStatuses(array $statuses, int $limit = 10): array
+    public function findRecentByStatuses(array $statusCodes, int $limit = 10): array
     {
         return $this->createQueryBuilder('q')
             ->andWhere('q.status IN (:statuses)')
-            ->setParameter('statuses', array_map(static fn (string $status): string => QuoteStatusTranslator::toCode($status), $statuses))
+            ->setParameter('statuses', $statusCodes)
             ->orderBy('q.updatedAt', 'DESC')
             ->setMaxResults(max(1, $limit))
             ->getQuery()

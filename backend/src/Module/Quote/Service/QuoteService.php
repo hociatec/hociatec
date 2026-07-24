@@ -7,9 +7,6 @@ namespace App\Module\Quote\Service;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Repository\ServiceRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 class QuoteService
@@ -23,8 +20,6 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly QuoteRepository $quoteRepository,
-        private readonly ServiceRepository $serviceRepository,
         private readonly ProductRepository $productRepository,
         private readonly QuoteNumberGenerator $numberGenerator,
         private readonly QuoteCalculator $calculator,
@@ -36,6 +31,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $quote = new Quote($this->numberGenerator->generate());
         $this->em->persist($quote);
         $this->em->flush();
+
         return $quote;
     }
 
@@ -48,6 +44,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $this->hydrateQuote($quote, $payload);
         $this->em->persist($quote);
         $this->em->flush();
+
         return $quote;
     }
 
@@ -58,6 +55,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         $this->hydrateQuote($quote, $payload, true);
         $this->em->flush();
+
         return $quote;
     }
 
@@ -106,7 +104,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
         $statusInput = isset($payload['status']) ? (string) $payload['status'] : Quote::STATUS_DRAFT;
         $status = QuoteStatusTranslator::toCode($statusInput);
-        if ($status === '') {
+        if ('' === $status) {
             $status = Quote::STATUS_DRAFT;
         }
         $quote->setStatus($status);
@@ -120,14 +118,14 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
         if (array_key_exists('validFrom', $payload)) {
             $quote->setValidFrom(self::dateOrNull($payload['validFrom'] ?? null));
-        } elseif (!$clearItems && $quote->getValidFrom() === null) {
-            $quote->setValidFrom(new DateTimeImmutable('today'));
+        } elseif (!$clearItems && null === $quote->getValidFrom()) {
+            $quote->setValidFrom(new \DateTimeImmutable('today'));
         }
 
         if (array_key_exists('validUntil', $payload)) {
             $quote->setValidUntil(self::dateOrNull($payload['validUntil'] ?? null));
-        } elseif (!$clearItems && $quote->getValidUntil() === null) {
-            $baseDate = $quote->getValidFrom() ?? new DateTimeImmutable('today');
+        } elseif (!$clearItems && null === $quote->getValidUntil()) {
+            $baseDate = $quote->getValidFrom() ?? new \DateTimeImmutable('today');
             $quote->setValidUntil($baseDate->modify('+30 days'));
         }
 
@@ -158,18 +156,28 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
         if (isset($raw['productId'])) {
             $product = $this->productRepository->find((int) $raw['productId']);
-            if ($product !== null) {
-                if ($name === '') { $name = $product->getName(); }
-                if ($unitPriceCents === null) { $unitPriceCents = $product->getPriceCents(); }
-                if (!isset($raw['unit']) && strtolower($product->getSellingType()) === 'rental') {
+            if (null !== $product) {
+                if ('' === $name) {
+                    $name = $product->getName();
+                }
+                if (null === $unitPriceCents) {
+                    $unitPriceCents = $product->getPriceCents();
+                }
+                if (!isset($raw['unit']) && 'rental' === strtolower($product->getSellingType())) {
                     $raw['unit'] = 'jour';
                 }
-                if (!isset($raw['type'])) { $raw['type'] = QuoteItem::TYPE_PRODUCT; }
+                if (!isset($raw['type'])) {
+                    $raw['type'] = QuoteItem::TYPE_PRODUCT;
+                }
             }
         }
 
-        if ($name === '') { $name = 'Ligne'; }
-        if ($unitPriceCents === null) { $unitPriceCents = 0; }
+        if ('' === $name) {
+            $name = 'Ligne';
+        }
+        if (null === $unitPriceCents) {
+            $unitPriceCents = 0;
+        }
 
         $item = new QuoteItem($name, $unitPriceCents);
         $item->setItemType((string) ($raw['type'] ?? QuoteItem::TYPE_CUSTOM));
@@ -201,6 +209,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $this->em->flush();
     }
 
+    /** @return array{totalHt: int, totalVat: int, totalTtc: int} */
     public function computeTotals(Quote $quote): array
     {
         return $this->calculator->computeTotals($quote);
@@ -208,20 +217,23 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
     public static function strOrNull(mixed $v): ?string
     {
-        if ($v === null) { return null; }
+        if (null === $v) {
+            return null;
+        }
         $s = trim((string) $v);
-        return $s === '' ? null : $s;
+
+        return '' === $s ? null : $s;
     }
 
-    public static function dateOrNull(mixed $value): ?DateTimeImmutable
+    public static function dateOrNull(mixed $value): ?\DateTimeImmutable
     {
         $normalized = self::strOrNull($value);
-        if ($normalized === null) {
+        if (null === $normalized) {
             return null;
         }
 
-        $date = DateTimeImmutable::createFromFormat('Y-m-d', $normalized);
-        if ($date === false) {
+        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $normalized);
+        if (false === $date) {
             throw new \InvalidArgumentException('Format de date invalide. Utilisez YYYY-MM-DD.');
         }
 

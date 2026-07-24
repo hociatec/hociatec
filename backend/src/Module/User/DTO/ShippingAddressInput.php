@@ -35,7 +35,9 @@ class ShippingAddressInput
     #[Assert\Length(max: 80)]
     public ?string $purchaseOrderNumber = null;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * @param array<string, mixed> $payload
@@ -59,6 +61,6 @@ class ShippingAddressInput
     {
         $normalized = trim((string) ($value ?? ''));
 
-        return $normalized !== '' ? $normalized : null;
+        return '' !== $normalized ? $normalized : null;
     }
 }

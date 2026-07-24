@@ -49,17 +49,76 @@ class AuditChecklistItem
         $this->position = $position;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getAudit(): ?AuditRequest { return $this->audit; }
-    public function setAudit(?AuditRequest $audit): self { $this->audit = $audit; return $this; }
-    public function getCategory(): string { return $this->category; }
-    public function getCriterionKey(): string { return $this->criterionKey; }
-    public function getLabel(): string { return $this->label; }
-    public function getPosition(): int { return $this->position; }
-    public function getIsCompliant(): ?bool { return $this->isCompliant; }
-    public function setIsCompliant(?bool $value): self { $this->isCompliant = $value; return $this; }
-    public function getComment(): ?string { return $this->comment; }
-    public function setComment(?string $comment): self { $this->comment = $comment; return $this; }
-    public function getLevel(): ?string { return $this->level; }
-    public function setLevel(?string $level): self { $this->level = $level; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getAudit(): ?AuditRequest
+    {
+        return $this->audit;
+    }
+
+    public function setAudit(?AuditRequest $audit): self
+    {
+        $this->audit = $audit;
+
+        return $this;
+    }
+
+    public function getCategory(): string
+    {
+        return $this->category;
+    }
+
+    public function getCriterionKey(): string
+    {
+        return $this->criterionKey;
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label;
+    }
+
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    public function getIsCompliant(): ?bool
+    {
+        return $this->isCompliant;
+    }
+
+    public function setIsCompliant(?bool $value): self
+    {
+        $this->isCompliant = $value;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): self
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
+    public function getLevel(): ?string
+    {
+        return $this->level;
+    }
+
+    public function setLevel(?string $level): self
+    {
+        $this->level = $level;
+
+        return $this;
+    }
 }

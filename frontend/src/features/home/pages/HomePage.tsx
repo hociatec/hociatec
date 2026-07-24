@@ -170,10 +170,10 @@ export const HomePage = () => {
             <Link to="/catalogue/vente" className="home-button home-button--secondary">Tous les produits</Link>
           </div>
           {loadingProducts && (
-            <p className="home-loading" aria-hidden="true">Chargement des produits...</p>
+            <p className="home-loading" role="status" aria-live="polite">Chargement des produits...</p>
           )}
           {errorProducts && (
-            <div className="home-alert">{errorProducts}</div>
+            <div className="home-alert" role="alert">{errorProducts}</div>
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <div className="home-products__grid">

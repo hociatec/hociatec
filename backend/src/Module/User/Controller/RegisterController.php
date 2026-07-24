@@ -5,90 +5,57 @@ declare(strict_types=1);
 namespace App\Module\User\Controller;
 
 use App\Module\User\DTO\RegisterUserInput;
+use App\Module\User\Exception\ActivationEmailDeliveryException;
+use App\Module\User\Exception\InvalidBirthDateException;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Service\RegisterUserService;
+use App\Module\User\Service\UserProfileFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\ConstraintViolationListInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Psr\Log\LoggerInterface;
-use Throwable;
 
 #[Route('/api/auth/register', name: 'api_auth_register', methods: ['POST'])]
 class RegisterController extends AbstractController
 {
     public function __construct(
         private readonly RegisterUserService $registerUser,
-        private readonly ValidatorInterface $validator,
+        private readonly DtoValidator $dtoValidator,
         private readonly LoggerInterface $logger,
+        private readonly UserProfileFormatter $profiles,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
-            return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
+        $payload = $request->toArray();
         $input = RegisterUserInput::fromArray($payload);
-        $violations = $this->validator->validate($input);
-
-        if ($violations->count() > 0) {
-            return ApiResponse::error('Validation des donnees echouee.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $this->formatViolations($violations));
-        }
-
-        if ($input->password !== $input->confirmPassword) {
-            return ApiResponse::error(
-                'Validation des donnees echouee.',
-                JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                ['confirmPassword: Les mots de passe ne correspondent pas.']
-            );
-        }
+        $this->dtoValidator->validate($input);
 
         try {
             $user = $this->registerUser->register($input);
         } catch (UserAlreadyExistsException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
-        } catch (Throwable $exception) {
-            $this->logger->error('Unable to register user.', [
+        } catch (InvalidBirthDateException $exception) {
+            return ApiResponse::error(
+                'Validation des donnees echouee.',
+                JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
+                ['birthDate: '.$exception->getMessage()]
+            );
+        } catch (ActivationEmailDeliveryException $exception) {
+            $this->logger->warning('Registration rolled back after activation email failure.', [
                 'exception' => $exception,
             ]);
 
             return ApiResponse::error(
-                'Une erreur est survenue pendant la creation du compte.',
-                JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
-                [$exception->getMessage()]
+                "Le compte n'a pas ete cree car l'e-mail d'activation n'a pas pu etre envoye. Reessayez dans quelques instants.",
+                JsonResponse::HTTP_SERVICE_UNAVAILABLE
             );
         }
 
-        return ApiResponse::created([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
-            'address' => null,
-            'postalCode' => null,
-            'city' => null,
-            'birthDate' => $user->getBirthDate()->format('Y-m-d'),
-            'phoneNumber' => $user->getPhoneNumber(),
-            'gender' => $user->getGender(),
-        ]);
-    }
-
-    private function formatViolations(ConstraintViolationListInterface $violations): array
-    {
-        $errors = [];
-
-        foreach ($violations as $violation) {
-            $errors[] = sprintf('%s: %s', $violation->getPropertyPath(), $violation->getMessage());
-        }
-
-        return $errors;
+        return ApiResponse::created($this->profiles->format($user));
     }
 }

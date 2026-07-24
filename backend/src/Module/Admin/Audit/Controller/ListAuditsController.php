@@ -15,13 +15,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListAuditsController extends AbstractController
 {
-    public function __construct(private readonly AuditRequestRepository $repository) {}
+    public function __construct(private readonly AuditRequestRepository $repository)
+    {
+    }
 
     public function __invoke(): JsonResponse
     {
         $items = $this->repository->findBy([], ['createdAt' => 'DESC']);
+
         return ApiResponse::success([
-            'items' => array_map(static function($a) {
+            'items' => array_map(static function ($a) {
                 return [
                     'id' => $a->getId(),
                     'number' => $a->getNumber(),
@@ -39,4 +42,3 @@ class ListAuditsController extends AbstractController
         ]);
     }
 }
-

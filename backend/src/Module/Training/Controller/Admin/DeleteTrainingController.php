@@ -24,7 +24,7 @@ class DeleteTrainingController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $training = $this->trainings->find($id);
-        if ($training === null) {
+        if (null === $training) {
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
         }
 

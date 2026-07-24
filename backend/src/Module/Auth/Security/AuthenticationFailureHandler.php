@@ -35,7 +35,7 @@ class AuthenticationFailureHandler implements AuthenticationFailureHandlerInterf
         $event = new AuthenticationFailureEvent($exception, $response, $request);
         $this->dispatcher->dispatch($event, Events::AUTHENTICATION_FAILURE);
 
-        return $event->getResponse();
+        return $event->getResponse() ?? $response;
     }
 
     /**
@@ -60,15 +60,12 @@ class AuthenticationFailureHandler implements AuthenticationFailureHandlerInterf
                 $data['%minutes%'] ?? 'quelques',
             ),
             default => strtr($messageKey, array_map(
-                static fn (scalar|null $value): string => (string) ($value ?? ''),
+                static fn (mixed $value): string => is_scalar($value) ? (string) $value : '',
                 $data,
             )),
         };
     }
 
-    /**
-     * @param string|int $exceptionCode
-     */
     private static function mapExceptionCodeToStatusCode(string|int $exceptionCode): int
     {
         return is_int($exceptionCode) && $exceptionCode >= 400 && $exceptionCode < 500

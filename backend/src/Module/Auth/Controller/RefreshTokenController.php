@@ -26,18 +26,18 @@ class RefreshTokenController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = json_decode($request->getContent(), true);
+        $payload = $request->toArray();
         $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
-        if (!is_string($refreshToken) || $refreshToken === '') {
-            $refreshToken = is_array($payload) ? (string) ($payload['refreshToken'] ?? '') : '';
+        if (!is_string($refreshToken) || '' === $refreshToken) {
+            $refreshToken = (string) ($payload['refreshToken'] ?? '');
         }
 
-        if ($refreshToken === '') {
+        if ('' === $refreshToken) {
             return ApiResponse::error('Refresh token manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $rotated = $this->refreshTokenService->rotate($refreshToken);
-        if ($rotated === null) {
+        if (null === $rotated) {
             return ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
         }
 

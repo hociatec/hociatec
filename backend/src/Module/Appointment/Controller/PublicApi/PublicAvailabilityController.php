@@ -7,16 +7,15 @@ namespace App\Module\Appointment\Controller\PublicApi;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\AvailabilityService;
 use App\Shared\Http\ApiResponse;
-use DateTimeImmutable;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/appointments/availability', name: 'api_public_appointments_availability', methods: ['GET'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class PublicAvailabilityController extends AbstractController
 {
     public function __construct(
@@ -31,12 +30,12 @@ class PublicAvailabilityController extends AbstractController
         $end = $request->query->get('end');
         $prestationId = $request->query->getInt('prestationId');
 
-        if ($start === null || $end === null || $prestationId === 0) {
+        if (null === $start || null === $end || 0 === $prestationId) {
             return ApiResponse::error('Parametres requis: start, end, prestationId.', Response::HTTP_BAD_REQUEST);
         }
 
-        $startAt = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $start) ?: new DateTimeImmutable($start);
-        $endAt = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $end) ?: new DateTimeImmutable($end);
+        $startAt = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $start) ?: new \DateTimeImmutable($start);
+        $endAt = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $end) ?: new \DateTimeImmutable($end);
 
         if ($endAt <= $startAt) {
             return ApiResponse::error('La periode fournie est invalide.', Response::HTTP_BAD_REQUEST);
@@ -44,7 +43,7 @@ class PublicAvailabilityController extends AbstractController
 
         $prestation = $this->prestationRepository->find($prestationId);
 
-        if ($prestation === null) {
+        if (null === $prestation) {
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -55,8 +54,3 @@ class PublicAvailabilityController extends AbstractController
         ]);
     }
 }
-
-
-
-
-

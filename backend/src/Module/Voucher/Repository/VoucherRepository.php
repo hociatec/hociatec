@@ -37,7 +37,7 @@ final class VoucherRepository extends ServiceEntityRepository
     public function findOneByCode(?string $code): ?Voucher
     {
         $normalized = is_string($code) ? mb_strtoupper(trim($code)) : '';
-        if ($normalized === '') {
+        if ('' === $normalized) {
             return null;
         }
 
@@ -47,6 +47,16 @@ final class VoucherRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function save(Voucher $voucher, bool $flush = false): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($voucher);
+
+        if ($flush) {
+            $entityManager->flush();
+        }
     }
 
     /**

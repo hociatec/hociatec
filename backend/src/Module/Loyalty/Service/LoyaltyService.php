@@ -43,7 +43,7 @@ final class LoyaltyService
             : 0;
         $delta = $expected - $order->getLoyaltyPointsAwarded();
 
-        if ($delta === 0) {
+        if (0 === $delta) {
             return;
         }
 

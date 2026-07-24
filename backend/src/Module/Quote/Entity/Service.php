@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Quote\Entity;
 
 use App\Module\Quote\Repository\ServiceRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
@@ -41,10 +40,10 @@ class Service
     private int $vatRateBps;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(string $title, int $priceCents, int $vatRateBps)
     {
@@ -52,7 +51,7 @@ class Service
         $this->priceCents = $priceCents;
         $this->vatRateBps = $vatRateBps;
 
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -70,6 +69,7 @@ class Service
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -81,6 +81,7 @@ class Service
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -92,6 +93,7 @@ class Service
     public function setUnit(?string $unit): self
     {
         $this->unit = $unit;
+
         return $this;
     }
 
@@ -103,6 +105,7 @@ class Service
     public function setDurationValue(?int $durationValue): self
     {
         $this->durationValue = $durationValue;
+
         return $this;
     }
 
@@ -114,6 +117,7 @@ class Service
     public function setDurationUnit(?string $durationUnit): self
     {
         $this->durationUnit = $durationUnit;
+
         return $this;
     }
 
@@ -125,6 +129,7 @@ class Service
     public function setPriceCents(int $priceCents): self
     {
         $this->priceCents = $priceCents;
+
         return $this;
     }
 
@@ -136,15 +141,16 @@ class Service
     public function setVatRateBps(int $vatRateBps): self
     {
         $this->vatRateBps = $vatRateBps;
+
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -152,6 +158,6 @@ class Service
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

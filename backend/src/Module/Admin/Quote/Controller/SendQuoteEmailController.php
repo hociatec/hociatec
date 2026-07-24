@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Quote\Controller;
 
-use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Entity\Quote;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Shared\Http\ApiResponse;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,7 +42,7 @@ class SendQuoteEmailController extends AbstractController
         }
 
         $quote = $this->quoteRepository->find($quoteId);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 

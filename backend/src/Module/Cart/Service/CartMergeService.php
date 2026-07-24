@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Service;
 
-use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\User\Entity\User;
@@ -15,17 +14,18 @@ final class CartMergeService
     public function __construct(
         private readonly CartSessionRepository $carts,
         private readonly EntityManagerInterface $em,
-    ) {}
+    ) {
+    }
 
     public function mergeForUser(?string $token, User $user): CartSession
     {
         $userCart = $this->carts->findOneByUser($user);
-        $tokenCart = ($token && $token !== '') ? $this->carts->findOneByToken($token) : null;
+        $tokenCart = null !== $token && '' !== $token ? $this->carts->findOneByToken($token) : null;
 
         if ($userCart && $tokenCart && $userCart->getId() !== $tokenCart->getId()) {
             // Merge token cart into user's cart
             foreach ($tokenCart->getItems() as $item) {
-                $rentalMonths = $item->getProduct()->getSellingType() === 'rental' ? $item->getRentalMonths() : null;
+                $rentalMonths = 'rental' === $item->getProduct()->getSellingType() ? $item->getRentalMonths() : null;
                 $existing = $userCart->getItemForProduct($item->getProduct(), $rentalMonths);
                 if ($existing) {
                     $existing->increaseQuantity($item->getQuantity());
@@ -39,6 +39,7 @@ final class CartMergeService
             // Remove the old cart shell
             $this->em->remove($tokenCart);
             $this->em->flush();
+
             return $userCart;
         }
 
@@ -51,6 +52,7 @@ final class CartMergeService
             $tokenCart->touch();
             $this->em->persist($tokenCart);
             $this->em->flush();
+
             return $tokenCart;
         }
 
@@ -66,7 +68,7 @@ final class CartMergeService
     {
         do {
             $token = bin2hex(random_bytes(16));
-        } while ($this->carts->findOneByToken($token) !== null);
+        } while (null !== $this->carts->findOneByToken($token));
 
         $cart = new CartSession($token);
         $cart->setUser($user);

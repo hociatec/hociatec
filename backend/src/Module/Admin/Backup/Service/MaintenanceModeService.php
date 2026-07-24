@@ -10,7 +10,7 @@ final class MaintenanceModeService
 
     public function __construct(string $projectDir)
     {
-        $this->file = $projectDir . '/var/maintenance.json';
+        $this->file = $projectDir.'/var/maintenance.json';
     }
 
     /**
@@ -32,6 +32,7 @@ final class MaintenanceModeService
         return $this->getStatus()['enabled'];
     }
 
+    /** @return array{enabled: bool, message: string, updatedAt: string} */
     public function set(bool $enabled, ?string $message = null): array
     {
         $status = [
@@ -55,7 +56,7 @@ final class MaintenanceModeService
         }
 
         $content = file_get_contents($this->file);
-        if ($content === false || trim($content) === '') {
+        if (false === $content || '' === trim($content)) {
             return [];
         }
 
@@ -75,7 +76,7 @@ final class MaintenanceModeService
         }
 
         $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if ($json === false || file_put_contents($this->file, $json . "\n", LOCK_EX) === false) {
+        if (false === $json || false === file_put_contents($this->file, $json."\n", LOCK_EX)) {
             throw new \RuntimeException('Impossible de sauvegarder le mode maintenance.');
         }
     }
@@ -84,6 +85,6 @@ final class MaintenanceModeService
     {
         $value = is_string($message) ? trim($message) : '';
 
-        return $value !== '' ? $value : 'Le site est temporairement en maintenance. Merci de revenir dans quelques minutes.';
+        return '' !== $value ? $value : 'Le site est temporairement en maintenance. Merci de revenir dans quelques minutes.';
     }
 }

@@ -7,7 +7,6 @@ namespace App\Module\Cart\Entity;
 use App\Module\Cart\Repository\CartItemRepository;
 use App\Module\Catalog\Entity\Product;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: CartItemRepository::class)]
 #[ORM\Table(name: 'cart_items')]
@@ -71,7 +70,7 @@ class CartItem
     public function setQuantity(int $quantity): self
     {
         if ($quantity < 1) {
-            throw new InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
+            throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
         }
 
         $this->quantity = $quantity;
@@ -82,7 +81,7 @@ class CartItem
     public function increaseQuantity(int $amount = 1): self
     {
         if ($amount < 1) {
-            throw new InvalidArgumentException('L\'augmentation doit etre superieure ou egale a 1.');
+            throw new \InvalidArgumentException('L\'augmentation doit etre superieure ou egale a 1.');
         }
 
         $this->quantity += $amount;
@@ -104,14 +103,14 @@ class CartItem
 
     public function setRentalMonths(?int $rentalMonths): self
     {
-        if ($rentalMonths === null) {
+        if (null === $rentalMonths) {
             $this->rentalMonths = -1;
 
             return $this;
         }
 
         if ($rentalMonths < 1) {
-            throw new InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
+            throw new \InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
         }
 
         $this->rentalMonths = $rentalMonths;

@@ -34,6 +34,7 @@ class ListMyAppointmentsController extends AbstractController
         ]);
     }
 
+    /** @return array<string, mixed> */
     private function mapAppointment(Appointment $appointment): array
     {
         return [
@@ -50,5 +51,3 @@ class ListMyAppointmentsController extends AbstractController
         ];
     }
 }
-
-

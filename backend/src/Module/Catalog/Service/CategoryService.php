@@ -7,8 +7,6 @@ namespace App\Module\Catalog\Service;
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
-use RuntimeException;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -29,9 +27,6 @@ final class CategoryService
         return $this->categoryRepository->findAllVisibleOrdered();
     }
 
-    /**
-     * @return Category|null
-     */
     public function findVisibleBySlug(string $slug): ?Category
     {
         return $this->categoryRepository->findOneVisibleBySlug($slug);
@@ -89,7 +84,7 @@ final class CategoryService
     public function delete(Category $category): void
     {
         if (!$category->getProducts()->isEmpty()) {
-            throw new RuntimeException('Impossible de supprimer la categorie car elle contient encore des produits.');
+            throw new \RuntimeException('Impossible de supprimer la categorie car elle contient encore des produits.');
         }
 
         $this->entityManager->remove($category);
@@ -113,21 +108,21 @@ final class CategoryService
     private function assertUniqueName(string $name, ?int $excludeId): void
     {
         if ($this->categoryRepository->existsWithName($name, $excludeId)) {
-            throw new InvalidArgumentException('Une categorie avec ce nom existe déjà.');
+            throw new \InvalidArgumentException('Une categorie avec ce nom existe déjà.');
         }
     }
 
     private function resolveSlug(?string $requestedSlug, string $name, ?int $excludeId): string
     {
-        if ($requestedSlug !== null && trim($requestedSlug) !== '') {
+        if (null !== $requestedSlug && '' !== trim($requestedSlug)) {
             $normalized = $this->slugify($requestedSlug);
 
-            if ($normalized === '') {
-                throw new InvalidArgumentException('Le slug fourni est invalide.');
+            if ('' === $normalized) {
+                throw new \InvalidArgumentException('Le slug fourni est invalide.');
             }
 
             if ($this->categoryRepository->existsWithSlug($normalized, $excludeId)) {
-                throw new InvalidArgumentException('Ce slug est déjà utilisé. Veuillez en choisir un autre.');
+                throw new \InvalidArgumentException('Ce slug est déjà utilisé. Veuillez en choisir un autre.');
             }
 
             return $normalized;
@@ -163,7 +158,7 @@ final class CategoryService
         );
 
         if ($violations->count() > 0) {
-            throw new InvalidArgumentException((string) $violations);
+            throw new \InvalidArgumentException((string) $violations);
         }
     }
 
@@ -175,6 +170,6 @@ final class CategoryService
         $value = preg_replace('/[^a-z0-9]+/i', '-', $value) ?? $value;
         $value = trim($value, '-');
 
-        return $value !== '' ? $value : 'categorie';
+        return '' !== $value ? $value : 'categorie';
     }
 }

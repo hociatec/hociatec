@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Catalog\Controller;
 
 use App\Module\Catalog\Service\CatalogFormatter;
-use App\Module\Catalog\Service\ProductService;
+use App\Module\Catalog\Service\ProductQueryService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListProductsController extends AbstractController
 {
-    public function __construct(private readonly ProductService $productService)
+    public function __construct(private readonly ProductQueryService $productService)
     {
     }
 
@@ -32,5 +32,3 @@ class ListProductsController extends AbstractController
         ]);
     }
 }
-
-

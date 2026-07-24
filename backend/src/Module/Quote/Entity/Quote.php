@@ -6,7 +6,6 @@ namespace App\Module\Quote\Entity;
 
 use App\Module\Order\Entity\Order;
 use App\Module\Quote\Repository\QuoteRepository;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -55,23 +54,23 @@ class Quote
     private ?string $conditions = null;
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?DateTimeImmutable $validFrom = null;
+    private ?\DateTimeImmutable $validFrom = null;
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?DateTimeImmutable $validUntil = null;
+    private ?\DateTimeImmutable $validUntil = null;
 
     /** @var Collection<int, QuoteItem> */
     #[ORM\OneToMany(mappedBy: 'quote', targetEntity: QuoteItem::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $createdEmailSentAt = null;
+    private ?\DateTimeImmutable $createdEmailSentAt = null;
 
     #[ORM\OneToOne(targetEntity: Order::class)]
     #[ORM\JoinColumn(name: 'converted_order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -80,48 +79,154 @@ class Quote
     public function __construct(string $number)
     {
         $this->number = $number;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
         $this->items = new ArrayCollection();
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getNumber(): string { return $this->number; }
-    public function setNumber(string $number): self { $this->number = $number; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getStatus(): string { return $this->status; }
-    public function setStatus(string $status): self { $this->status = $status; return $this; }
+    public function getNumber(): string
+    {
+        return $this->number;
+    }
 
-    public function getCustomerName(): ?string { return $this->customerName; }
-    public function setCustomerName(?string $name): self { $this->customerName = $name; return $this; }
+    public function setNumber(string $number): self
+    {
+        $this->number = $number;
 
-    public function getCustomerEmail(): ?string { return $this->customerEmail; }
-    public function setCustomerEmail(?string $email): self { $this->customerEmail = $email; return $this; }
+        return $this;
+    }
 
-    public function getCustomerCompany(): ?string { return $this->customerCompany; }
-    public function setCustomerCompany(?string $company): self { $this->customerCompany = $company; return $this; }
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
 
-    public function getCustomerAddress(): ?string { return $this->customerAddress; }
-    public function setCustomerAddress(?string $address): self { $this->customerAddress = $address; return $this; }
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
 
-    public function getGlobalDiscountCents(): int { return $this->globalDiscountCents; }
-    public function setGlobalDiscountCents(int $cents): self { $this->globalDiscountCents = max(0, $cents); return $this; }
+        return $this;
+    }
 
-    public function getShippingCents(): int { return $this->shippingCents; }
-    public function setShippingCents(int $cents): self { $this->shippingCents = max(0, $cents); return $this; }
+    public function getCustomerName(): ?string
+    {
+        return $this->customerName;
+    }
 
-    public function getConditions(): ?string { return $this->conditions; }
-    public function setConditions(?string $conditions): self { $this->conditions = $conditions; return $this; }
+    public function setCustomerName(?string $name): self
+    {
+        $this->customerName = $name;
 
-    public function getValidFrom(): ?DateTimeImmutable { return $this->validFrom; }
-    public function setValidFrom(?DateTimeImmutable $validFrom): self { $this->validFrom = $validFrom; return $this; }
+        return $this;
+    }
 
-    public function getValidUntil(): ?DateTimeImmutable { return $this->validUntil; }
-    public function setValidUntil(?DateTimeImmutable $validUntil): self { $this->validUntil = $validUntil; return $this; }
+    public function getCustomerEmail(): ?string
+    {
+        return $this->customerEmail;
+    }
+
+    public function setCustomerEmail(?string $email): self
+    {
+        $this->customerEmail = $email;
+
+        return $this;
+    }
+
+    public function getCustomerCompany(): ?string
+    {
+        return $this->customerCompany;
+    }
+
+    public function setCustomerCompany(?string $company): self
+    {
+        $this->customerCompany = $company;
+
+        return $this;
+    }
+
+    public function getCustomerAddress(): ?string
+    {
+        return $this->customerAddress;
+    }
+
+    public function setCustomerAddress(?string $address): self
+    {
+        $this->customerAddress = $address;
+
+        return $this;
+    }
+
+    public function getGlobalDiscountCents(): int
+    {
+        return $this->globalDiscountCents;
+    }
+
+    public function setGlobalDiscountCents(int $cents): self
+    {
+        $this->globalDiscountCents = max(0, $cents);
+
+        return $this;
+    }
+
+    public function getShippingCents(): int
+    {
+        return $this->shippingCents;
+    }
+
+    public function setShippingCents(int $cents): self
+    {
+        $this->shippingCents = max(0, $cents);
+
+        return $this;
+    }
+
+    public function getConditions(): ?string
+    {
+        return $this->conditions;
+    }
+
+    public function setConditions(?string $conditions): self
+    {
+        $this->conditions = $conditions;
+
+        return $this;
+    }
+
+    public function getValidFrom(): ?\DateTimeImmutable
+    {
+        return $this->validFrom;
+    }
+
+    public function setValidFrom(?\DateTimeImmutable $validFrom): self
+    {
+        $this->validFrom = $validFrom;
+
+        return $this;
+    }
+
+    public function getValidUntil(): ?\DateTimeImmutable
+    {
+        return $this->validUntil;
+    }
+
+    public function setValidUntil(?\DateTimeImmutable $validUntil): self
+    {
+        $this->validUntil = $validUntil;
+
+        return $this;
+    }
 
     /** @return Collection<int, QuoteItem> */
-    public function getItems(): Collection { return $this->items; }
+    public function getItems(): Collection
+    {
+        return $this->items;
+    }
 
     public function addItem(QuoteItem $item): self
     {
@@ -129,6 +234,7 @@ class Quote
             $this->items->add($item);
             $item->setQuote($this);
         }
+
         return $this;
     }
 
@@ -139,19 +245,47 @@ class Quote
                 $item->setQuote(null);
             }
         }
+
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): DateTimeImmutable { return $this->updatedAt; }
-    public function getCreatedEmailSentAt(): ?DateTimeImmutable { return $this->createdEmailSentAt; }
-    public function setCreatedEmailSentAt(?DateTimeImmutable $createdEmailSentAt): self { $this->createdEmailSentAt = $createdEmailSentAt; return $this; }
-    public function getConvertedOrder(): ?Order { return $this->convertedOrder; }
-    public function setConvertedOrder(?Order $convertedOrder): self { $this->convertedOrder = $convertedOrder; return $this; }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function getCreatedEmailSentAt(): ?\DateTimeImmutable
+    {
+        return $this->createdEmailSentAt;
+    }
+
+    public function setCreatedEmailSentAt(?\DateTimeImmutable $createdEmailSentAt): self
+    {
+        $this->createdEmailSentAt = $createdEmailSentAt;
+
+        return $this;
+    }
+
+    public function getConvertedOrder(): ?Order
+    {
+        return $this->convertedOrder;
+    }
+
+    public function setConvertedOrder(?Order $convertedOrder): self
+    {
+        $this->convertedOrder = $convertedOrder;
+
+        return $this;
+    }
 
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

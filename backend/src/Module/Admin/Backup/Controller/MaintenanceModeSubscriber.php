@@ -48,7 +48,7 @@ final class MaintenanceModeSubscriber implements EventSubscriberInterface
         }
 
         foreach (self::ALLOWED_PREFIXES as $prefix) {
-            if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+            if ($path === $prefix || str_starts_with($path, $prefix.'/')) {
                 return;
             }
         }

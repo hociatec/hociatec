@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\Entity\Appointment;
-use DateTimeImmutable;
-use DomainException;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -73,14 +71,14 @@ final class AppointmentStatusManager
             return false;
         }
 
-        $allowedTransitions = self::STATUS_DEFINITIONS[$currentStatus]['transitions'] ?? [];
+        $allowedTransitions = self::STATUS_DEFINITIONS[$currentStatus]['transitions'];
 
         if (!in_array($targetStatus, $allowedTransitions, true)) {
             return false;
         }
 
-        if ($targetStatus === Appointment::STATUS_CANCELLED) {
-            return $appointment->getStartAt() > new DateTimeImmutable();
+        if (Appointment::STATUS_CANCELLED === $targetStatus) {
+            return $appointment->getStartAt() > new \DateTimeImmutable();
         }
 
         return true;
@@ -91,7 +89,7 @@ final class AppointmentStatusManager
         $targetStatus = strtolower($targetStatus);
 
         if (!isset(self::STATUS_DEFINITIONS[$targetStatus])) {
-            throw new DomainException('Statut de rendez-vous inconnu.');
+            throw new \DomainException('Statut de rendez-vous inconnu.');
         }
 
         if ($appointment->getStatus() === $targetStatus) {
@@ -99,7 +97,7 @@ final class AppointmentStatusManager
         }
 
         if (!$this->canTransition($appointment, $targetStatus)) {
-            throw new DomainException('Transition de statut impossible pour ce rendez-vous.');
+            throw new \DomainException('Transition de statut impossible pour ce rendez-vous.');
         }
 
         $appointment->setStatus($targetStatus);

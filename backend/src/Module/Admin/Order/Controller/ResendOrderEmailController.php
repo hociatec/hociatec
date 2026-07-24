@@ -31,13 +31,13 @@ final class ResendOrderEmailController extends AbstractController
     public function __invoke(int $orderId, Request $request): JsonResponse
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         $payload = $request->toArray();
         $scenario = $payload['scenario'] ?? null;
-        if (!\is_string($scenario) || $scenario === '') {
+        if (!\is_string($scenario) || '' === $scenario) {
             return ApiResponse::error('Scénario email invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -61,7 +61,7 @@ final class ResendOrderEmailController extends AbstractController
             $order,
             $actor instanceof \App\Module\User\Entity\User ? $actor : null,
             'email_manual_resend',
-            'Renvoi manuel d’email depuis l’admin: ' . $scenario . '.',
+            'Renvoi manuel d’email depuis l’admin: '.$scenario.'.',
         );
 
         return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);

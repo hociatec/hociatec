@@ -7,7 +7,6 @@ namespace App\Module\Audit\Service;
 use App\Module\Audit\Entity\AuditChecklistItem;
 use App\Module\Audit\Entity\AuditRequest;
 use App\Module\Audit\Entity\AuditType;
-use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -15,7 +14,6 @@ class CreateAuditRequestService
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly AuditRequestRepository $repository,
         private readonly AuditTemplateProvider $templates,
     ) {
     }
@@ -24,6 +22,7 @@ class CreateAuditRequestService
     {
         $date = (new \DateTimeImmutable())->format('Ymd');
         $rand = strtoupper(bin2hex(random_bytes(2)));
+
         return sprintf('AUD-%s-%s', $date, $rand);
     }
 

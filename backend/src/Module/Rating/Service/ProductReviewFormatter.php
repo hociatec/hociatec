@@ -19,14 +19,14 @@ final class ProductReviewFormatter
     {
         $comment = $rating->getComment();
         $user = $rating->getUser();
-        $firstName = $user->getFirstName() ?? 'Client';
-        $lastName = $user->getLastName() ?? '';
-        if ($lastName !== '') {
+        $firstName = $user->getFirstName();
+        $lastName = $user->getLastName();
+        if ('' !== $lastName) {
             $lastName = function_exists('mb_substr')
                 ? mb_substr($lastName, 0, 1)
                 : substr($lastName, 0, 1);
         }
-        $displayName = $lastName !== ''
+        $displayName = '' !== $lastName
             ? trim(sprintf('%s %s.', $firstName, $lastName))
             : $firstName;
 
@@ -39,7 +39,7 @@ final class ProductReviewFormatter
             'publishedAt' => $rating->getPublishedAt()?->format(DATE_ATOM),
             'author' => [
                 'id' => $user->getId(),
-                'displayName' => $displayName !== '' ? $displayName : 'Client',
+                'displayName' => '' !== $displayName ? $displayName : 'Client',
             ],
         ];
 

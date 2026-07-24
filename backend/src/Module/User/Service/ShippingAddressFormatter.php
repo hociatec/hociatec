@@ -8,7 +8,9 @@ use App\Module\User\Entity\ShippingAddress;
 
 final class ShippingAddressFormatter
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * @return array<string, mixed>

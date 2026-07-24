@@ -61,7 +61,7 @@ class CategoryRepository extends ServiceEntityRepository
             ->setParameter('slug', $slug)
             ->setMaxResults(1);
 
-        if ($excludeId !== null) {
+        if (null !== $excludeId) {
             $qb
                 ->andWhere('c.id != :excludeId')
                 ->setParameter('excludeId', $excludeId);
@@ -78,7 +78,7 @@ class CategoryRepository extends ServiceEntityRepository
             ->setParameter('name', $name)
             ->setMaxResults(1);
 
-        if ($excludeId !== null) {
+        if (null !== $excludeId) {
             $qb
                 ->andWhere('c.id != :excludeId')
                 ->setParameter('excludeId', $excludeId);
@@ -87,4 +87,3 @@ class CategoryRepository extends ServiceEntityRepository
         return (bool) $qb->getQuery()->getOneOrNullResult();
     }
 }
-

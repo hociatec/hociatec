@@ -27,9 +27,8 @@ class AuditEventRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('e')
             ->andWhere('e.audit = :a')
             ->setParameter('a', $audit)
-            ->orderBy('e.createdAt', $order === 'ASC' ? 'ASC' : 'DESC')
+            ->orderBy('e.createdAt', 'ASC' === $order ? 'ASC' : 'DESC')
             ->getQuery()
             ->getResult();
     }
 }
-

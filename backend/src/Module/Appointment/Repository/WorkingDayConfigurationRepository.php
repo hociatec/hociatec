@@ -34,4 +34,3 @@ class WorkingDayConfigurationRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

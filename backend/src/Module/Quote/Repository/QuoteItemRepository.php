@@ -18,4 +18,3 @@ class QuoteItemRepository extends ServiceEntityRepository
         parent::__construct($registry, QuoteItem::class);
     }
 }
-

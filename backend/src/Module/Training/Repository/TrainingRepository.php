@@ -20,7 +20,7 @@ class TrainingRepository extends ServiceEntityRepository
     public function findActive(?string $category = null): array
     {
         $criteria = ['isActive' => true];
-        if ($category !== null && $category !== '') {
+        if (null !== $category && '' !== $category) {
             $criteria['category'] = $category;
         }
 

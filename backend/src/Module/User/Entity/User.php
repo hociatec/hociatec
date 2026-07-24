@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Module\User\Entity;
 
 use App\Module\User\Repository\UserRepository;
-use DateTimeImmutable;
+use App\Shared\Normalization\EmailNormalizer;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
+#[ORM\UniqueConstraint(name: 'UNIQ_USERS_EMAIL', columns: ['email'])]
 #[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -20,9 +21,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180)]
     private string $email;
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
@@ -38,7 +40,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // Address fields removed; managed via ShippingAddress entity
 
     #[ORM\Column(type: 'date_immutable')]
-    private DateTimeImmutable $birthDate;
+    private \DateTimeImmutable $birthDate;
 
     #[ORM\Column(length: 20)]
     private string $phoneNumber;
@@ -52,6 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $adminNotes = null;
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $adminTags = [];
 
@@ -65,36 +68,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $verificationToken = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $verificationTokenExpiresAt = null;
+    private ?\DateTimeImmutable $verificationTokenExpiresAt = null;
 
     #[ORM\Column(length: 100, nullable: true, unique: true)]
     private ?string $passwordResetToken = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $passwordResetTokenExpiresAt = null;
+    private ?\DateTimeImmutable $passwordResetTokenExpiresAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(
         string $email,
         string $firstName,
         string $lastName,
-        DateTimeImmutable $birthDate,
+        \DateTimeImmutable $birthDate,
         string $phoneNumber,
         string $gender,
     ) {
-        $this->email = $email;
+        $this->email = EmailNormalizer::normalize($email);
         $this->firstName = $firstName;
         $this->lastName = $lastName;
         $this->birthDate = $birthDate;
         $this->phoneNumber = $phoneNumber;
         $this->gender = $gender;
         $this->roles = ['ROLE_USER'];
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -111,6 +114,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
+        if ('' === $this->email) {
+            throw new \LogicException('A persisted user must have an email address.');
+        }
+
         return $this->email;
     }
 
@@ -122,6 +129,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_values(array_unique($roles));
     }
 
+    /** @param list<string> $roles */
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
@@ -171,19 +179,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): self
     {
-        $this->email = $email;
+        $this->email = EmailNormalizer::normalize($email);
 
         return $this;
     }
 
     // address/postalCode/city accessors removed
 
-    public function getBirthDate(): DateTimeImmutable
+    public function getBirthDate(): \DateTimeImmutable
     {
         return $this->birthDate;
     }
 
-    public function setBirthDate(DateTimeImmutable $birthDate): self
+    public function setBirthDate(\DateTimeImmutable $birthDate): self
     {
         $this->birthDate = $birthDate;
 
@@ -233,7 +241,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setAdminNotes(?string $adminNotes): self
     {
-        $this->adminNotes = $adminNotes !== null ? trim($adminNotes) : null;
+        $this->adminNotes = null !== $adminNotes ? trim($adminNotes) : null;
 
         return $this;
     }
@@ -245,7 +253,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return array_values(array_filter(
             array_map(static fn (mixed $tag): string => trim((string) $tag), $this->adminTags),
-            static fn (string $tag): bool => $tag !== '',
+            static fn (string $tag): bool => '' !== $tag,
         ));
     }
 
@@ -257,7 +265,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $normalized = [];
         foreach ($adminTags as $tag) {
             $value = trim((string) $tag);
-            if ($value === '') {
+            if ('' === $value) {
                 continue;
             }
 
@@ -295,8 +303,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setAccountNotificationsSeenSignature(?string $signature): self
     {
-        $signature = $signature !== null ? trim($signature) : null;
-        $this->accountNotificationsSeenSignature = $signature !== '' ? $signature : null;
+        $signature = null !== $signature ? trim($signature) : null;
+        $this->accountNotificationsSeenSignature = '' !== $signature ? $signature : null;
 
         return $this;
     }
@@ -313,12 +321,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getVerificationTokenExpiresAt(): ?DateTimeImmutable
+    public function getVerificationTokenExpiresAt(): ?\DateTimeImmutable
     {
         return $this->verificationTokenExpiresAt;
     }
 
-    public function setVerificationTokenExpiresAt(?DateTimeImmutable $expiresAt): self
+    public function setVerificationTokenExpiresAt(?\DateTimeImmutable $expiresAt): self
     {
         $this->verificationTokenExpiresAt = $expiresAt;
 
@@ -342,24 +350,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getPasswordResetTokenExpiresAt(): ?DateTimeImmutable
+    public function getPasswordResetTokenExpiresAt(): ?\DateTimeImmutable
     {
         return $this->passwordResetTokenExpiresAt;
     }
 
-    public function setPasswordResetTokenExpiresAt(?DateTimeImmutable $passwordResetTokenExpiresAt): self
+    public function setPasswordResetTokenExpiresAt(?\DateTimeImmutable $passwordResetTokenExpiresAt): self
     {
         $this->passwordResetTokenExpiresAt = $passwordResetTokenExpiresAt;
 
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -367,7 +375,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -375,6 +383,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

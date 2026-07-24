@@ -18,6 +18,7 @@ class AuditPdfService
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
+
         return $dompdf->output();
     }
 
@@ -31,6 +32,7 @@ class AuditPdfService
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
+
         return $dompdf->output();
     }
 
@@ -44,26 +46,26 @@ class AuditPdfService
 
         $sections = '';
         foreach ($grouped as $cat => $items) {
-            usort($items, fn($a, $b) => $a->getPosition() <=> $b->getPosition());
+            usort($items, fn ($a, $b) => $a->getPosition() <=> $b->getPosition());
             $rows = '';
             foreach ($items as $it) {
                 $status = $it->getIsCompliant();
-                $statusLabel = $status === null ? 'À évaluer' : ($status ? 'Conforme' : 'Non conforme');
+                $statusLabel = null === $status ? 'À évaluer' : ($status ? 'Conforme' : 'Non conforme');
                 $level = $it->getLevel() ? ' ('.$it->getLevel().')' : '';
-                $comment = $it->getComment() ? '<div class="comment">'.nl2br(htmlspecialchars((string)$it->getComment())).'</div>' : '';
+                $comment = $it->getComment() ? '<div class="comment">'.nl2br(htmlspecialchars((string) $it->getComment())).'</div>' : '';
                 $rows .= sprintf(
                     '<tr><td>%s%s</td><td>%s</td><td class="status %s">%s</td></tr><tr><td colspan="3">%s</td></tr>',
                     htmlspecialchars($it->getLabel()),
                     $level,
                     htmlspecialchars($it->getCriterionKey()),
-                    $status === true ? 'ok' : ($status === false ? 'ko' : 'na'),
+                    true === $status ? 'ok' : (false === $status ? 'ko' : 'na'),
                     $statusLabel,
                     $comment
                 );
             }
             $sections .= sprintf(
                 '<h2 class="section">%s</h2><table class="table">%s</table>',
-                htmlspecialchars((string)$cat),
+                htmlspecialchars((string) $cat),
                 $rows
             );
         }
@@ -76,7 +78,7 @@ class AuditPdfService
             $audit->getCreatedAt()->format('d/m/Y')
         );
 
-        $objectives = $audit->getObjectives() ? '<div class="box"><strong>Objectifs</strong><br/>'.nl2br(htmlspecialchars((string)$audit->getObjectives())).'</div>' : '';
+        $objectives = $audit->getObjectives() ? '<div class="box"><strong>Objectifs</strong><br/>'.nl2br(htmlspecialchars((string) $audit->getObjectives())).'</div>' : '';
 
         return <<<HTML
 <!DOCTYPE html>
@@ -117,19 +119,26 @@ HTML;
         foreach ($audit->getItems() as $it) {
             $cat = $it->getCategory();
             $statsByCat[$cat] = $statsByCat[$cat] ?? ['ok' => 0, 'ko' => 0, 'na' => 0, 'total' => 0];
-            $statsByCat[$cat]['total']++;
+            ++$statsByCat[$cat]['total'];
             $status = $it->getIsCompliant();
-            if ($status === true) { $statsByCat[$cat]['ok']++; $total['ok']++; }
-            elseif ($status === false) { $statsByCat[$cat]['ko']++; $total['ko']++; }
-            else { $statsByCat[$cat]['na']++; $total['na']++; }
+            if (true === $status) {
+                ++$statsByCat[$cat]['ok'];
+                ++$total['ok'];
+            } elseif (false === $status) {
+                ++$statsByCat[$cat]['ko'];
+                ++$total['ko'];
+            } else {
+                ++$statsByCat[$cat]['na'];
+                ++$total['na'];
+            }
         }
         ksort($statsByCat);
 
         $rows = '';
         foreach ($statsByCat as $cat => $st) {
-            $rate = $st['total'] > 0 ? round(($st['ok'] / $st['total']) * 100) : 0;
+            $rate = round(($st['ok'] / $st['total']) * 100);
             $rows .= sprintf('<tr><td>%s</td><td class="num">%d</td><td class="num">%d</td><td class="num">%d</td><td class="num">%d%%</td></tr>',
-                htmlspecialchars((string)$cat), $st['ok'], $st['ko'], $st['na'], $rate);
+                htmlspecialchars((string) $cat), $st['ok'], $st['ko'], $st['na'], $rate);
         }
         $grandTotal = $total['ok'] + $total['ko'] + $total['na'];
         $globalRate = $grandTotal > 0 ? round(($total['ok'] / $grandTotal) * 100) : 0;
@@ -175,4 +184,3 @@ HTML;
 HTML;
     }
 }
-

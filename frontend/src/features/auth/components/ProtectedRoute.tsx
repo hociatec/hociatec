@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
+import { LoadingState } from '@/shared/components/ui/page-state';
 import { useAuth } from '../hooks/useAuth';
 
 export const ProtectedRoute = ({ children }: PropsWithChildren) => {
@@ -8,7 +9,7 @@ export const ProtectedRoute = ({ children }: PropsWithChildren) => {
   const location = useLocation();
 
   if (status === 'loading' || status === 'idle') {
-    return <div aria-hidden="true" className="min-h-[40vh]" />;
+    return <LoadingState className="min-h-[40vh]">Vérification de la session...</LoadingState>;
   }
 
   if (status !== 'authenticated') {

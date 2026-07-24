@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Auth\Controller;
 
 use App\Module\User\Entity\User;
-use App\Shared\Http\ApiResponse;
 use App\Module\User\Repository\ShippingAddressRepository;
+use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,7 +16,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ProfileController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses) {}
+    public function __construct(private readonly ShippingAddressRepository $addresses)
+    {
+    }
 
     public function __invoke(): JsonResponse
     {

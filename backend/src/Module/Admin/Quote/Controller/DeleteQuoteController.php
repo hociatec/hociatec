@@ -26,7 +26,7 @@ class DeleteQuoteController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $quote = $this->quoteRepository->find($id);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -35,4 +35,3 @@ class DeleteQuoteController extends AbstractController
         return ApiResponse::success(['deleted' => true]);
     }
 }
-

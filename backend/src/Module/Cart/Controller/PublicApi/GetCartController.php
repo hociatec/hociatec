@@ -8,14 +8,14 @@ use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/cart', name: 'api_public_cart_get', methods: ['GET'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class GetCartController extends AbstractController
 {
     public function __construct(
@@ -43,12 +43,12 @@ class GetCartController extends AbstractController
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
-        if (is_string($headerToken) && $headerToken !== '') {
+        if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
         }
 
         $queryToken = $request->query->get('cartToken');
 
-        return is_string($queryToken) && $queryToken !== '' ? $queryToken : null;
+        return is_string($queryToken) && '' !== $queryToken ? $queryToken : null;
     }
 }

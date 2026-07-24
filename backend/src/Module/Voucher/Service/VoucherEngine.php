@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Voucher\Service;
 
 use App\Module\Cart\Entity\CartSession;
+use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
-use App\Module\User\Entity\User;
 
 final class VoucherEngine
 {
@@ -31,7 +31,7 @@ final class VoucherEngine
 
         foreach ($cart->getItems() as $item) {
             $linePrice = $item->getProduct()->getPriceCents() * $item->getQuantity();
-            if ($item->getProduct()->getSellingType() === 'rental') {
+            if ('rental' === $item->getProduct()->getSellingType()) {
                 $linePrice *= max(1, $item->getRentalMonths() ?? 1);
             }
 
@@ -59,10 +59,10 @@ final class VoucherEngine
         $appliedVoucher = null;
         $discountAmount = 0;
 
-        if ($enteredVoucherCode !== '') {
+        if ('' !== $enteredVoucherCode) {
             $status = 'invalid';
             $voucher = $this->vouchers->findOneByCode($enteredVoucherCode);
-            if ($voucher !== null) {
+            if (null !== $voucher) {
                 if ($this->isVoucherEligible($voucher, $subtotalPriceCents, $now, $user)) {
                     $discountAmount = $this->computeDiscountAmount($voucher, $subtotalPriceCents);
                     if ($discountAmount > 0) {
@@ -86,7 +86,7 @@ final class VoucherEngine
             'totalPriceCents' => max(0, $subtotalPriceCents - $discountAmount),
             'appliedVoucher' => $appliedVoucher,
             'voucherCodeStatus' => $status,
-            'enteredVoucherCode' => $enteredVoucherCode !== '' ? mb_strtoupper($enteredVoucherCode) : null,
+            'enteredVoucherCode' => '' !== $enteredVoucherCode ? mb_strtoupper($enteredVoucherCode) : null,
         ];
     }
 
@@ -96,8 +96,9 @@ final class VoucherEngine
             return 0;
         }
 
-        if ($voucher->getDiscountType() === Voucher::TYPE_PERCENT) {
+        if (Voucher::TYPE_PERCENT === $voucher->getDiscountType()) {
             $percent = max(0, min(100, $voucher->getDiscountValue()));
+
             return min($subtotalPriceCents, (int) round($subtotalPriceCents * ($percent / 100)));
         }
 
@@ -110,11 +111,11 @@ final class VoucherEngine
             return false;
         }
 
-        if ($voucher->getStartsAt() !== null && $voucher->getStartsAt() > $now) {
+        if (null !== $voucher->getStartsAt() && $voucher->getStartsAt() > $now) {
             return false;
         }
 
-        if ($voucher->getEndsAt() !== null && $voucher->getEndsAt() < $now) {
+        if (null !== $voucher->getEndsAt() && $voucher->getEndsAt() < $now) {
             return false;
         }
 
@@ -127,18 +128,18 @@ final class VoucherEngine
 
     private function isRecipientEligible(Voucher $voucher, ?User $user): bool
     {
-        if ($voucher->getRecipientUserId() === null && $voucher->getRecipientEmail() === null) {
+        if (null === $voucher->getRecipientUserId() && null === $voucher->getRecipientEmail()) {
             return true;
         }
 
-        if ($user === null) {
+        if (null === $user) {
             return false;
         }
 
-        if ($voucher->getRecipientUserId() !== null && $voucher->getRecipientUserId() === $user->getId()) {
+        if (null !== $voucher->getRecipientUserId() && $voucher->getRecipientUserId() === $user->getId()) {
             return true;
         }
 
-        return $voucher->getRecipientEmail() !== null && mb_strtolower($voucher->getRecipientEmail()) === mb_strtolower($user->getEmail());
+        return null !== $voucher->getRecipientEmail() && mb_strtolower($voucher->getRecipientEmail()) === mb_strtolower($user->getEmail());
     }
 }

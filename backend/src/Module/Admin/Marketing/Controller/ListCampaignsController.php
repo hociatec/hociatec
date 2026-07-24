@@ -33,8 +33,8 @@ final class ListCampaignsController extends AbstractController
                     'createdByEmail' => $campaign->getCreatedByEmail(),
                     'sentAt' => $campaign->getSentAt()->format(DATE_ATOM),
                     'template' => $campaign->getTemplate() ? [
-                        'id' => $campaign->getTemplate()?->getId(),
-                        'name' => $campaign->getTemplate()?->getName(),
+                        'id' => $campaign->getTemplate()->getId(),
+                        'name' => $campaign->getTemplate()->getName(),
                     ] : null,
                 ],
                 $this->campaigns->findBy([], ['sentAt' => 'DESC']),

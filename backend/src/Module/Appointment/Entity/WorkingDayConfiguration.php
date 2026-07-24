@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Entity;
 
 use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: WorkingDayConfigurationRepository::class)]
 #[ORM\Table(name: 'appointment_working_days')]
@@ -30,10 +27,10 @@ class WorkingDayConfiguration
     private bool $isWorkingDay;
 
     #[ORM\Column(type: 'time_immutable', nullable: true)]
-    private ?DateTimeImmutable $startTime;
+    private ?\DateTimeImmutable $startTime;
 
     #[ORM\Column(type: 'time_immutable', nullable: true)]
-    private ?DateTimeImmutable $endTime;
+    private ?\DateTimeImmutable $endTime;
 
     /**
      * @var list<array{start: string, end: string}>
@@ -42,16 +39,19 @@ class WorkingDayConfiguration
     private array $breaks = [];
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
+    /**
+     * @param list<array{start: string, end: string}> $breaks
+     */
     public function __construct(
         int $dayOfWeek,
         bool $isWorkingDay,
-        ?DateTimeImmutable $startTime = null,
-        ?DateTimeImmutable $endTime = null,
+        ?\DateTimeImmutable $startTime = null,
+        ?\DateTimeImmutable $endTime = null,
         array $breaks = [],
     ) {
         $this->assertValidDayOfWeek($dayOfWeek);
@@ -60,7 +60,7 @@ class WorkingDayConfiguration
         $this->startTime = $startTime;
         $this->endTime = $endTime;
         $this->setBreaks($breaks);
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -93,24 +93,24 @@ class WorkingDayConfiguration
         return $this;
     }
 
-    public function getStartTime(): ?DateTimeImmutable
+    public function getStartTime(): ?\DateTimeImmutable
     {
         return $this->startTime;
     }
 
-    public function setStartTime(?DateTimeImmutable $startTime): self
+    public function setStartTime(?\DateTimeImmutable $startTime): self
     {
         $this->startTime = $startTime;
 
         return $this;
     }
 
-    public function getEndTime(): ?DateTimeImmutable
+    public function getEndTime(): ?\DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(?DateTimeImmutable $endTime): self
+    public function setEndTime(?\DateTimeImmutable $endTime): self
     {
         $this->endTime = $endTime;
 
@@ -131,15 +131,11 @@ class WorkingDayConfiguration
     public function setBreaks(array $breaks): self
     {
         foreach ($breaks as $break) {
-            if (!isset($break['start'], $break['end'])) {
-                throw new InvalidArgumentException('Each break must contain a start and end time.');
-            }
-
             $startMinutes = $this->timeToMinutes($break['start']);
             $endMinutes = $this->timeToMinutes($break['end']);
 
             if ($endMinutes <= $startMinutes) {
-                throw new InvalidArgumentException('Break end time must be greater than start time.');
+                throw new \InvalidArgumentException('Break end time must be greater than start time.');
             }
         }
 
@@ -150,13 +146,13 @@ class WorkingDayConfiguration
 
     public function hasWorkingHours(): bool
     {
-        return $this->isWorkingDay && $this->startTime !== null && $this->endTime !== null;
+        return $this->isWorkingDay && null !== $this->startTime && null !== $this->endTime;
     }
 
     /**
-     * @return list<array{start: DateTimeImmutable, end: DateTimeImmutable}>
+     * @return list<array{start: \DateTimeImmutable, end: \DateTimeImmutable}>
      */
-    public function getBreakIntervalsForDate(DateTimeImmutable $date): array
+    public function getBreakIntervalsForDate(\DateTimeImmutable $date): array
     {
         if (!$this->hasWorkingHours()) {
             return [];
@@ -165,8 +161,8 @@ class WorkingDayConfiguration
         $intervals = [];
 
         foreach ($this->breaks as $break) {
-            $start = DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['start']));
-            $end = DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['end']));
+            $start = \DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['start']));
+            $end = \DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['end']));
 
             if (!$start || !$end) {
                 continue;
@@ -178,12 +174,12 @@ class WorkingDayConfiguration
         return $intervals;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -191,7 +187,7 @@ class WorkingDayConfiguration
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -199,13 +195,13 @@ class WorkingDayConfiguration
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     private function assertValidDayOfWeek(int $dayOfWeek): void
     {
         if ($dayOfWeek < 0 || $dayOfWeek > 6) {
-            throw new InvalidArgumentException('Day of week must be between 0 (Monday) and 6 (Sunday).');
+            throw new \InvalidArgumentException('Day of week must be between 0 (Monday) and 6 (Sunday).');
         }
     }
 
@@ -215,10 +211,9 @@ class WorkingDayConfiguration
         $total = $hours * 60 + $minutes;
 
         if ($total < 0 || $total > self::MINUTES_IN_DAY) {
-            throw new InvalidArgumentException('Time must be within 00:00 and 24:00.');
+            throw new \InvalidArgumentException('Time must be within 00:00 and 24:00.');
         }
 
         return $total;
     }
 }
-

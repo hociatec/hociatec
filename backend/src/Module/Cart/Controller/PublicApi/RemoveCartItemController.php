@@ -9,15 +9,14 @@ use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use InvalidArgumentException;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/cart/items/{productId}', name: 'api_public_cart_remove_item', methods: ['DELETE'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class RemoveCartItemController extends AbstractController
 {
     public function __construct(
@@ -31,12 +30,12 @@ class RemoveCartItemController extends AbstractController
     {
         $token = $this->extractToken($request);
 
-        if ($token === null) {
+        if (null === $token) {
             return ApiResponse::error('Token du panier manquant.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $product = $this->productRepository->find($productId);
-        if ($product === null) {
+        if (null === $product) {
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -48,8 +47,8 @@ class RemoveCartItemController extends AbstractController
 
         try {
             $cart = $this->cartService->removeProduct($token, $product, $rentalMonths);
-        } catch (InvalidArgumentException $exception) {
-            $status = $exception->getMessage() === 'Panier introuvable.'
+        } catch (\InvalidArgumentException $exception) {
+            $status = 'Panier introuvable.' === $exception->getMessage()
                 ? JsonResponse::HTTP_NOT_FOUND
                 : JsonResponse::HTTP_BAD_REQUEST;
 
@@ -70,7 +69,7 @@ class RemoveCartItemController extends AbstractController
     {
         $monthsParam = $request->query->get('currentRentalMonths', $request->query->get('rentalMonths'));
 
-        if ($monthsParam === null || $monthsParam === '') {
+        if (null === $monthsParam || '' === $monthsParam) {
             return null;
         }
 
@@ -91,12 +90,12 @@ class RemoveCartItemController extends AbstractController
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
-        if (is_string($headerToken) && $headerToken !== '') {
+        if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
         }
 
         $queryToken = $request->query->get('cartToken');
 
-        return is_string($queryToken) && $queryToken !== '' ? $queryToken : null;
+        return is_string($queryToken) && '' !== $queryToken ? $queryToken : null;
     }
 }

@@ -12,7 +12,7 @@ use App\Module\Audit\Entity\AuditType;
 class AuditTemplateProvider
 {
     /**
-     * @return array<string, list<array{key: string, label: string}>> category => items
+     * @return array<string, list<array{key: string, label: string, level?: string}>> category => items
      */
     public function getTemplate(AuditType $type): array
     {
@@ -26,7 +26,7 @@ class AuditTemplateProvider
         };
     }
 
-    /** @return array<string, list<array{key: string, label: string}>> */
+    /** @return array<string, list<array{key: string, label: string, level?: string}>> */
     private function accessibilityTemplate(): array
     {
         // Expanded with WCAG levels (A/AA/AAA) commonly aligned to RGAA topics
@@ -54,11 +54,11 @@ class AuditTemplateProvider
                 ['key' => 'labels',      'label' => 'Labels associés et instructions claires',    'level' => 'A'],
                 ['key' => 'errors',      'label' => 'Messages d’erreur accessibles',              'level' => 'A'],
                 ['key' => 'name-role',   'label' => 'Name/Role/Value pour composants',            'level' => 'A'],
-                ['key' => 'autocomplete','label' => 'Attributs autocomplete pertinents',          'level' => 'AA'],
+                ['key' => 'autocomplete', 'label' => 'Attributs autocomplete pertinents',          'level' => 'AA'],
             ],
             'Interactions' => [
                 ['key' => 'pointer-gestures', 'label' => 'Gestes alternatifs pour interactions',  'level' => 'A'],
-                ['key' => 'motion-actuation','label' => 'Pas d’obligation d’inclinaison/mouvement','level' => 'A'],
+                ['key' => 'motion-actuation', 'label' => 'Pas d’obligation d’inclinaison/mouvement', 'level' => 'A'],
                 ['key' => 'target-size',     'label' => 'Cibles tactiles de taille suffisante',   'level' => 'AAA'],
             ],
         ];

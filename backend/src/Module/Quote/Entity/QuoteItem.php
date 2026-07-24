@@ -64,28 +64,140 @@ class QuoteItem
         $this->unitPriceCents = $unitPriceCents;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getQuote(): ?Quote { return $this->quote; }
-    public function setQuote(?Quote $quote): self { $this->quote = $quote; return $this; }
-    public function getItemType(): string { return $this->itemType; }
-    public function setItemType(string $type): self { $this->itemType = $type; return $this; }
-    public function getProductId(): ?int { return $this->productId; }
-    public function setProductId(?int $id): self { $this->productId = $id; return $this; }
-    public function getServiceId(): ?int { return $this->serviceId; }
-    public function setServiceId(?int $id): self { $this->serviceId = $id; return $this; }
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): self { $this->name = $name; return $this; }
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $description): self { $this->description = $description; return $this; }
-    public function getUnit(): ?string { return $this->unit; }
-    public function setUnit(?string $unit): self { $this->unit = $unit; return $this; }
-    public function getQuantity(): int { return $this->quantity; }
-    public function setQuantity(int $qty): self { $this->quantity = max(1, $qty); return $this; }
-    public function getUnitPriceCents(): int { return $this->unitPriceCents; }
-    public function setUnitPriceCents(int $cents): self { $this->unitPriceCents = max(0, $cents); return $this; }
-    public function getVatRateBps(): int { return $this->vatRateBps; }
-    public function setVatRateBps(int $bps): self { $this->vatRateBps = max(0, $bps); return $this; }
-    public function getDiscountCents(): int { return $this->discountCents; }
-    public function setDiscountCents(int $cents): self { $this->discountCents = max(0, $cents); return $this; }
-}
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
+    public function getQuote(): ?Quote
+    {
+        return $this->quote;
+    }
+
+    public function setQuote(?Quote $quote): self
+    {
+        $this->quote = $quote;
+
+        return $this;
+    }
+
+    public function getItemType(): string
+    {
+        return $this->itemType;
+    }
+
+    public function setItemType(string $type): self
+    {
+        $this->itemType = $type;
+
+        return $this;
+    }
+
+    public function getProductId(): ?int
+    {
+        return $this->productId;
+    }
+
+    public function setProductId(?int $id): self
+    {
+        $this->productId = $id;
+
+        return $this;
+    }
+
+    public function getServiceId(): ?int
+    {
+        return $this->serviceId;
+    }
+
+    public function setServiceId(?int $id): self
+    {
+        $this->serviceId = $id;
+
+        return $this;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getUnit(): ?string
+    {
+        return $this->unit;
+    }
+
+    public function setUnit(?string $unit): self
+    {
+        $this->unit = $unit;
+
+        return $this;
+    }
+
+    public function getQuantity(): int
+    {
+        return $this->quantity;
+    }
+
+    public function setQuantity(int $qty): self
+    {
+        $this->quantity = max(1, $qty);
+
+        return $this;
+    }
+
+    public function getUnitPriceCents(): int
+    {
+        return $this->unitPriceCents;
+    }
+
+    public function setUnitPriceCents(int $cents): self
+    {
+        $this->unitPriceCents = max(0, $cents);
+
+        return $this;
+    }
+
+    public function getVatRateBps(): int
+    {
+        return $this->vatRateBps;
+    }
+
+    public function setVatRateBps(int $bps): self
+    {
+        $this->vatRateBps = max(0, $bps);
+
+        return $this;
+    }
+
+    public function getDiscountCents(): int
+    {
+        return $this->discountCents;
+    }
+
+    public function setDiscountCents(int $cents): self
+    {
+        $this->discountCents = max(0, $cents);
+
+        return $this;
+    }
+}

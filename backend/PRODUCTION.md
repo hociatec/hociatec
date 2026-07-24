@@ -27,6 +27,9 @@ Production hardening checklist (Hociatec)
 - Depuis la racine du projet:
   tools/production_check.sh
 - Le script vérifie les variables critiques, les clés JWT, Composer, les audits de sécurité, le container Symfony, Doctrine, Messenger et le build frontend.
+- Pour une recette technique sans exécuter la suite de tests:
+  tools/production_check.sh --skip-tests
+- Le contrôle échoue volontairement si une variable de production contient encore une valeur de test ou placeholder (`root`, `sk_test`, `change-me`, etc.). Une base locale au serveur est acceptée si elle utilise un utilisateur applicatif dédié.
 - Le endpoint `GET /api/health` doit répondre `200` avec `{"status":"ok"}` après déploiement.
 
 4) HTTPS / reverse proxy

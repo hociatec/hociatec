@@ -29,7 +29,7 @@ final class UpdateTemplateController extends AbstractController
     public function __invoke(int $templateId, Request $request): JsonResponse
     {
         $template = $this->templates->find($templateId);
-        if ($template === null) {
+        if (null === $template) {
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -42,7 +42,7 @@ final class UpdateTemplateController extends AbstractController
         $textBody = isset($payload['textBody']) ? trim((string) $payload['textBody']) : null;
         $isActive = (bool) ($payload['isActive'] ?? true);
 
-        if ($name === '' || $slug === '' || $scenarioKey === '' || $subjectTemplate === '' || $htmlBody === '') {
+        if ('' === $name || '' === $slug || '' === $scenarioKey || '' === $subjectTemplate || '' === $htmlBody) {
             return ApiResponse::error('Veuillez renseigner tous les champs obligatoires.');
         }
 
@@ -51,7 +51,7 @@ final class UpdateTemplateController extends AbstractController
         }
 
         $existing = $this->templates->findOneBySlug($slug);
-        if ($existing !== null && $existing->getId() !== $template->getId()) {
+        if (null !== $existing && $existing->getId() !== $template->getId()) {
             return ApiResponse::error('Ce slug de template est déjà utilisé.');
         }
 

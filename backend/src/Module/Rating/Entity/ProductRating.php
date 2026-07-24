@@ -9,7 +9,6 @@ use App\Module\Comment\Entity\ProductComment;
 use App\Module\Order\Entity\OrderItem;
 use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductRatingRepository::class)]
@@ -44,13 +43,13 @@ class ProductRating
     private string $status = self::STATUS_PUBLISHED;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $publishedAt = null;
+    private ?\DateTimeImmutable $publishedAt = null;
 
     #[ORM\OneToOne(mappedBy: 'rating', targetEntity: ProductComment::class, cascade: ['persist', 'remove'])]
     private ?ProductComment $comment = null;
@@ -61,7 +60,7 @@ class ProductRating
         $this->orderItem = $orderItem;
         $this->user = $user;
         $this->score = $score;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -94,6 +93,7 @@ class ProductRating
     public function setScore(int $score): self
     {
         $this->score = $score;
+
         return $this;
     }
 
@@ -105,20 +105,20 @@ class ProductRating
     public function publish(): void
     {
         $this->status = self::STATUS_PUBLISHED;
-        $this->publishedAt = new DateTimeImmutable();
+        $this->publishedAt = new \DateTimeImmutable();
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function getPublishedAt(): ?DateTimeImmutable
+    public function getPublishedAt(): ?\DateTimeImmutable
     {
         return $this->publishedAt;
     }
@@ -136,6 +136,6 @@ class ProductRating
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

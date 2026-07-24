@@ -27,7 +27,7 @@ final class ApiErrorSanitizerSubscriber implements EventSubscriberInterface
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        if ($this->environment !== 'prod') {
+        if ('prod' !== $this->environment) {
             return;
         }
 
@@ -78,9 +78,9 @@ final class ApiErrorSanitizerSubscriber implements EventSubscriberInterface
             return false;
         }
 
-        return preg_match(
+        return 1 === preg_match(
             '/(SQLSTATE|PDOException|Doctrine\\\\|Symfony\\\\|SELECT\\s|INSERT\\s|UPDATE\\s|DELETE\\s|\\/home\\/|\\/var\\/|APP_SECRET|DATABASE_URL|JWT_|STRIPE_|MAILER_DSN|stack trace|Trace:)/i',
             (string) $value,
-        ) === 1;
+        );
     }
 }

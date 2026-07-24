@@ -16,7 +16,8 @@ final class CartMergeSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
         private readonly CartMergeService $mergeService,
-    ) {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -25,20 +26,25 @@ final class CartMergeSubscriber implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest()) { return; }
+        if (!$event->isMainRequest()) {
+            return;
+        }
 
         $token = $this->tokenStorage->getToken();
-        if ($token === null) { return; }
+        if (null === $token) {
+            return;
+        }
         $user = $token->getUser();
-        if (!$user instanceof User) { return; }
+        if (!$user instanceof User) {
+            return;
+        }
 
         $request = $event->getRequest();
         $headerToken = $request->headers->get('X-Cart-Token');
         $queryToken = $request->query->get('cartToken');
-        $cartToken = is_string($headerToken) && $headerToken !== '' ? $headerToken : (is_string($queryToken) ? $queryToken : null);
+        $cartToken = is_string($headerToken) && '' !== $headerToken ? $headerToken : (is_string($queryToken) ? $queryToken : null);
 
         // Merge or attach if applicable
         $this->mergeService->mergeForUser($cartToken, $user);
     }
 }
-

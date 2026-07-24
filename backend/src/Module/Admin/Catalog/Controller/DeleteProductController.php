@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/catalog/products/{id}', name: 'api_admin_catalog_products_delete', methods: ['DELETE'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -28,13 +27,13 @@ class DeleteProductController extends AbstractController
     {
         $product = $this->productRepository->find($id);
 
-        if ($product === null) {
+        if (null === $product) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
             $this->productService->delete($product);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de supprimer le produit.',
                 Response::HTTP_BAD_REQUEST,
@@ -45,4 +44,3 @@ class DeleteProductController extends AbstractController
         return ApiResponse::success(['id' => $id]);
     }
 }
-

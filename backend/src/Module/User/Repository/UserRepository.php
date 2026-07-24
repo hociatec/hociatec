@@ -31,12 +31,12 @@ class UserRepository extends ServiceEntityRepository
 
     public function existsByEmail(string $email): bool
     {
-        return $this->createQueryBuilder('u')
+        return null !== $this->createQueryBuilder('u')
             ->select('1')
             ->andWhere('LOWER(u.email) = LOWER(:email)')
             ->setParameter('email', $email)
             ->getQuery()
-            ->getOneOrNullResult() !== null;
+            ->getOneOrNullResult();
     }
 
     public function findOneByEmailInsensitive(string $email): ?User
@@ -50,14 +50,14 @@ class UserRepository extends ServiceEntityRepository
 
     public function existsByEmailExcludingUser(string $email, int $userId): bool
     {
-        return $this->createQueryBuilder('u')
+        return null !== $this->createQueryBuilder('u')
             ->select('1')
             ->andWhere('LOWER(u.email) = LOWER(:email)')
             ->andWhere('u.id != :userId')
             ->setParameter('email', $email)
             ->setParameter('userId', $userId)
             ->getQuery()
-            ->getOneOrNullResult() !== null;
+            ->getOneOrNullResult();
     }
 
     public function remove(User $user, bool $flush = false): void
@@ -70,11 +70,13 @@ class UserRepository extends ServiceEntityRepository
         }
     }
 
-    public function findOneByVerificationToken(string $token): ?User
+    public function findOneByVerificationTokens(string $hashedToken, string $legacyToken): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.verificationToken = :token')
-            ->setParameter('token', $token)
+            ->andWhere('u.verificationToken = :hashedToken OR u.verificationToken = :legacyToken')
+            ->setParameter('hashedToken', $hashedToken)
+            ->setParameter('legacyToken', $legacyToken)
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -123,7 +125,7 @@ class UserRepository extends ServiceEntityRepository
             ->groupBy('u.id');
 
         $normalizedSearch = trim((string) $search);
-        if ($normalizedSearch !== '') {
+        if ('' !== $normalizedSearch) {
             $qb
                 ->andWhere(
                     $qb->expr()->orX(
@@ -135,7 +137,7 @@ class UserRepository extends ServiceEntityRepository
                         'LOWER(o.number) LIKE LOWER(:search)'
                     )
                 )
-                ->setParameter('search', '%' . $normalizedSearch . '%');
+                ->setParameter('search', '%'.$normalizedSearch.'%');
         }
 
         match ($sort) {
@@ -151,7 +153,7 @@ class UserRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(
+        return array_values(array_map(
             static fn (array $row): array => [
                 'id' => (int) ($row['id'] ?? 0),
                 'email' => (string) ($row['email'] ?? ''),
@@ -161,14 +163,14 @@ class UserRepository extends ServiceEntityRepository
                 'isVerified' => (bool) ($row['isVerified'] ?? false),
                 'adminTags' => array_values(array_filter(
                     array_map(static fn (mixed $tag): string => trim((string) $tag), is_array($row['adminTags'] ?? null) ? $row['adminTags'] : []),
-                    static fn (string $tag): bool => $tag !== '',
+                    static fn (string $tag): bool => '' !== $tag,
                 )),
                 'createdAt' => $row['createdAt'] instanceof \DateTimeInterface ? $row['createdAt']->format(DATE_ATOM) : (string) ($row['createdAt'] ?? ''),
                 'ordersCount' => (int) ($row['ordersCount'] ?? 0),
                 'totalSpentCents' => (int) ($row['totalSpentCents'] ?? 0),
-                'lastOrderAt' => $row['lastOrderAt'] instanceof \DateTimeInterface ? $row['lastOrderAt']->format(DATE_ATOM) : ($row['lastOrderAt'] !== null ? (string) $row['lastOrderAt'] : null),
+                'lastOrderAt' => $row['lastOrderAt'] instanceof \DateTimeInterface ? $row['lastOrderAt']->format(DATE_ATOM) : (null !== $row['lastOrderAt'] ? (string) $row['lastOrderAt'] : null),
             ],
             $rows,
-        );
+        ));
     }
 }

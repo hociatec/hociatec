@@ -7,13 +7,13 @@ namespace App\Module\Appointment\Controller\PublicApi;
 use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Service\PrestationService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/appointments/prestations', name: 'api_public_appointments_prestations', methods: ['GET'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class PublicPrestationController extends AbstractController
 {
     public function __construct(private readonly PrestationService $prestationService)
@@ -34,6 +34,3 @@ class PublicPrestationController extends AbstractController
         ]);
     }
 }
-
-
-

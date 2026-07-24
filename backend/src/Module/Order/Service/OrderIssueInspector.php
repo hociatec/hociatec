@@ -11,21 +11,22 @@ final class OrderIssueInspector
 {
     /**
      * @param list<OrderEvent> $events
+     *
      * @return list<string>
      */
     public static function getOperationalIssues(Order $order, array $events = []): array
     {
         $issues = [];
 
-        if ($order->getInvoicePdfPath() === null) {
+        if (null === $order->getInvoicePdfPath()) {
             $issues[] = 'Facture PDF non générée';
         }
 
-        if ($order->getInvoiceXmlPath() === null) {
+        if (null === $order->getInvoiceXmlPath()) {
             $issues[] = 'Facture XML non générée';
         }
 
-        if ($order->getOrderCreatedEmailSentAt() === null) {
+        if (null === $order->getOrderCreatedEmailSentAt()) {
             $issues[] = 'Email de confirmation de commande non envoyé';
         }
 
@@ -41,16 +42,16 @@ final class OrderIssueInspector
         $message = trim((string) ($event->getMessage() ?? ''));
 
         return match ($event->getType()) {
-            'email_failed' => $message !== ''
-                ? 'Échec d’envoi email : ' . $message
+            'email_failed' => '' !== $message
+                ? 'Échec d’envoi email : '.$message
                 : 'Échec d’envoi email',
-            'invoice_generation_failed' => $message !== ''
-                ? 'Échec de génération de facture : ' . $message
+            'invoice_generation_failed' => '' !== $message
+                ? 'Échec de génération de facture : '.$message
                 : 'Échec de génération de facture',
-            'post_processing_failed' => $message !== ''
-                ? 'Échec de post-traitement : ' . $message
+            'post_processing_failed' => '' !== $message
+                ? 'Échec de post-traitement : '.$message
                 : 'Échec de post-traitement',
-            default => $message !== '' ? $message : 'Incident technique détecté',
+            default => '' !== $message ? $message : 'Incident technique détecté',
         };
     }
 }

@@ -54,6 +54,7 @@ final class MyLoyaltyController extends AbstractController
         ]);
     }
 
+    /** @return array<string, mixed> */
     private function formatLoyalty(User $user): array
     {
         $points = $user->getLoyaltyPointsBalance();

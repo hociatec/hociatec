@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Entity;
 
 use App\Module\Catalog\Repository\ProductRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Attribute as Vich;
@@ -16,6 +15,9 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 #[Vich\Uploadable]
 class Product
 {
+    use ProductDiscountTrait;
+    use ProductGalleryTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -89,33 +91,6 @@ class Product
     #[ORM\Column(length: 60, nullable: true)]
     private ?string $color = null;
 
-    #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage2Name', size: 'galleryImage2Size')]
-    private ?File $galleryImage2File = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $galleryImage2Name = null;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $galleryImage2Size = null;
-
-    #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage3Name', size: 'galleryImage3Size')]
-    private ?File $galleryImage3File = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $galleryImage3Name = null;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $galleryImage3Size = null;
-
-    #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage4Name', size: 'galleryImage4Size')]
-    private ?File $galleryImage4File = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $galleryImage4Name = null;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $galleryImage4Size = null;
-
     #[ORM\Column(length: 10, options: ['default' => 'sale'])]
     private string $sellingType = 'sale'; // 'sale' or 'rental'
 
@@ -126,26 +101,10 @@ class Product
     private float $reviewsAverage = 0.0;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
-
-    // Discount fields
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $discountType = null; // 'percent' or 'fixed_cents'
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $discountValue = null; // percent value or cents depending on type
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $discountStartsAt = null;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $discountEndsAt = null;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $discountEnabled = false;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(
         string $name,
@@ -164,7 +123,7 @@ class Product
         $this->stock = $stock;
         $this->category = $category;
 
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -258,6 +217,7 @@ class Product
             throw new \InvalidArgumentException('Type de vente/location invalide.');
         }
         $this->sellingType = $type;
+
         return $this;
     }
 
@@ -290,8 +250,8 @@ class Product
 
     public function setVariantGroup(?string $variantGroup): self
     {
-        $normalized = $variantGroup !== null ? trim($variantGroup) : null;
-        $this->variantGroup = $normalized !== '' ? $normalized : null;
+        $normalized = null !== $variantGroup ? trim($variantGroup) : null;
+        $this->variantGroup = '' !== $normalized ? $normalized : null;
 
         return $this;
     }
@@ -319,7 +279,7 @@ class Product
 
     public function setReleaseYear(?int $releaseYear): self
     {
-        if ($releaseYear !== null && ($releaseYear < 2000 || $releaseYear > 2100)) {
+        if (null !== $releaseYear && ($releaseYear < 2000 || $releaseYear > 2100)) {
             throw new \InvalidArgumentException('Année de modèle invalide.');
         }
 
@@ -335,8 +295,8 @@ class Product
 
     public function setStorageCapacity(?string $storageCapacity): self
     {
-        $normalized = $storageCapacity !== null ? trim($storageCapacity) : null;
-        $this->storageCapacity = $normalized !== '' ? $normalized : null;
+        $normalized = null !== $storageCapacity ? trim($storageCapacity) : null;
+        $this->storageCapacity = '' !== $normalized ? $normalized : null;
 
         return $this;
     }
@@ -348,8 +308,8 @@ class Product
 
     public function setMemoryRam(?string $memoryRam): self
     {
-        $normalized = $memoryRam !== null ? trim($memoryRam) : null;
-        $this->memoryRam = $normalized !== '' ? $normalized : null;
+        $normalized = null !== $memoryRam ? trim($memoryRam) : null;
+        $this->memoryRam = '' !== $normalized ? $normalized : null;
 
         return $this;
     }
@@ -361,8 +321,8 @@ class Product
 
     public function setColor(?string $color): self
     {
-        $normalized = $color !== null ? trim($color) : null;
-        $this->color = $normalized !== '' ? $normalized : null;
+        $normalized = null !== $color ? trim($color) : null;
+        $this->color = '' !== $normalized ? $normalized : null;
 
         return $this;
     }
@@ -422,7 +382,7 @@ class Product
 
     public function setCategory(?Category $category): self
     {
-        if ($category === null) {
+        if (null === $category) {
             throw new \InvalidArgumentException('Le produit doit etre rattache a une categorie.');
         }
 
@@ -435,8 +395,8 @@ class Product
     {
         $this->imageFile = $imageFile;
 
-        if ($imageFile !== null || $this->imageName !== null) {
-            $this->updatedAt = new DateTimeImmutable();
+        if (null !== $imageFile || null !== $this->imageName) {
+            $this->updatedAt = new \DateTimeImmutable();
         }
 
         return $this;
@@ -483,67 +443,6 @@ class Product
         return $this;
     }
 
-    public function isDiscountEnabled(): bool
-    {
-        return $this->discountEnabled;
-    }
-
-    public function setDiscountEnabled(bool $enabled): self
-    {
-        $this->discountEnabled = $enabled;
-        return $this;
-    }
-
-    public function getDiscountType(): ?string
-    {
-        return $this->discountType;
-    }
-
-    public function setDiscountType(?string $type): self
-    {
-        if ($type !== null && !in_array($type, ['percent', 'fixed_cents'], true)) {
-            throw new \InvalidArgumentException('Type de remise invalide.');
-        }
-        $this->discountType = $type;
-        return $this;
-    }
-
-    public function getDiscountValue(): ?int
-    {
-        return $this->discountValue;
-    }
-
-    public function setDiscountValue(?int $value): self
-    {
-        if ($value !== null && $value < 0) {
-            throw new \InvalidArgumentException('Valeur de remise invalide.');
-        }
-        $this->discountValue = $value;
-        return $this;
-    }
-
-    public function getDiscountStartsAt(): ?DateTimeImmutable
-    {
-        return $this->discountStartsAt;
-    }
-
-    public function setDiscountStartsAt(?DateTimeImmutable $date): self
-    {
-        $this->discountStartsAt = $date;
-        return $this;
-    }
-
-    public function getDiscountEndsAt(): ?DateTimeImmutable
-    {
-        return $this->discountEndsAt;
-    }
-
-    public function setDiscountEndsAt(?DateTimeImmutable $date): self
-    {
-        $this->discountEndsAt = $date;
-        return $this;
-    }
-
     public function getReviewsCount(): int
     {
         return $this->reviewsCount;
@@ -552,6 +451,7 @@ class Product
     public function setReviewsCount(int $count): self
     {
         $this->reviewsCount = max(0, $count);
+
         return $this;
     }
 
@@ -563,233 +463,16 @@ class Product
     public function setReviewsAverage(float $average): self
     {
         $this->reviewsAverage = max(0, $average);
-        return $this;
-    }
-
-    public function getEffectivePriceCents(?DateTimeImmutable $now = null): int
-    {
-        $now = $now ?? new DateTimeImmutable();
-        $base = $this->getPriceCents();
-        if ($this->discountEnabled !== true) {
-            return $base;
-        }
-        if ($this->discountStartsAt !== null && $now < $this->discountStartsAt) {
-            return $base;
-        }
-        if ($this->discountEndsAt !== null && $now > $this->discountEndsAt) {
-            return $base;
-        }
-        if ($this->discountType === 'percent' && $this->discountValue !== null) {
-            $percent = max(0, min(100, $this->discountValue));
-            $disc = (int) round($base * ($percent / 100));
-            return max(0, $base - $disc);
-        }
-        if ($this->discountType === 'fixed_cents' && $this->discountValue !== null) {
-            return max(0, $base - $this->discountValue);
-        }
-        return $base;
-    }
-
-    public function getGalleryImage2File(): ?File
-    {
-        return $this->galleryImage2File;
-    }
-
-    public function getGalleryImage2Name(): ?string
-    {
-        return $this->galleryImage2Name;
-    }
-
-    public function setGalleryImage2Name(?string $galleryImage2Name): self
-    {
-        $this->galleryImage2Name = $galleryImage2Name;
 
         return $this;
     }
 
-    public function getGalleryImage2Size(): ?int
-    {
-        return $this->galleryImage2Size;
-    }
-
-    public function setGalleryImage2Size(?int $galleryImage2Size): self
-    {
-        $this->galleryImage2Size = $galleryImage2Size;
-
-        return $this;
-    }
-
-    public function getGalleryImage3File(): ?File
-    {
-        return $this->galleryImage3File;
-    }
-
-    public function getGalleryImage3Name(): ?string
-    {
-        return $this->galleryImage3Name;
-    }
-
-    public function setGalleryImage3Name(?string $galleryImage3Name): self
-    {
-        $this->galleryImage3Name = $galleryImage3Name;
-
-        return $this;
-    }
-
-    public function getGalleryImage3Size(): ?int
-    {
-        return $this->galleryImage3Size;
-    }
-
-    public function setGalleryImage3Size(?int $galleryImage3Size): self
-    {
-        $this->galleryImage3Size = $galleryImage3Size;
-
-        return $this;
-    }
-
-    public function getGalleryImage4File(): ?File
-    {
-        return $this->galleryImage4File;
-    }
-
-    public function getGalleryImage4Name(): ?string
-    {
-        return $this->galleryImage4Name;
-    }
-
-    public function setGalleryImage4Name(?string $galleryImage4Name): self
-    {
-        $this->galleryImage4Name = $galleryImage4Name;
-
-        return $this;
-    }
-
-    public function getGalleryImage4Size(): ?int
-    {
-        return $this->galleryImage4Size;
-    }
-
-    public function setGalleryImage4Size(?int $galleryImage4Size): self
-    {
-        $this->galleryImage4Size = $galleryImage4Size;
-
-        return $this;
-    }
-
-    /**
-     * @param 0|1|2|3 $position
-     */
-    public function setGalleryImageFile(int $position, ?File $file): self
-    {
-        if ($position === 0) {
-            return $this->setImageFile($file);
-        }
-
-        switch ($position) {
-            case 1:
-                $this->galleryImage2File = $file;
-                if ($file !== null || $this->galleryImage2Name !== null) {
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                break;
-            case 2:
-                $this->galleryImage3File = $file;
-                if ($file !== null || $this->galleryImage3Name !== null) {
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                break;
-            case 3:
-                $this->galleryImage4File = $file;
-                if ($file !== null || $this->galleryImage4Name !== null) {
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                break;
-            default:
-                throw new \InvalidArgumentException('Indice d\'image de galerie invalide.');
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param 0|1|2|3 $position
-     */
-    public function removeGalleryImage(int $position): self
-    {
-        switch ($position) {
-            case 0:
-                $this
-                    ->setImageFile(null)
-                    ->setImageName(null)
-                    ->setImageSize(null)
-                    ->setImageAlt(null);
-                break;
-            case 1:
-                if ($this->galleryImage2Name !== null) {
-                    $this->galleryImage2Name = null;
-                    $this->galleryImage2Size = null;
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                $this->galleryImage2File = null;
-                break;
-            case 2:
-                if ($this->galleryImage3Name !== null) {
-                    $this->galleryImage3Name = null;
-                    $this->galleryImage3Size = null;
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                $this->galleryImage3File = null;
-                break;
-            case 3:
-                if ($this->galleryImage4Name !== null) {
-                    $this->galleryImage4Name = null;
-                    $this->galleryImage4Size = null;
-                    $this->updatedAt = new DateTimeImmutable();
-                }
-                $this->galleryImage4File = null;
-                break;
-            default:
-                throw new \InvalidArgumentException('Indice d\'image de galerie invalide.');
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getGalleryImageNames(): array
-    {
-        $names = [];
-
-        foreach ([0, 1, 2, 3] as $position) {
-            $name = $this->getGalleryImageNameByPosition($position);
-            if ($name !== null) {
-                $names[] = $name;
-            }
-        }
-
-        return $names;
-    }
-
-    public function getGalleryImageNameByPosition(int $position): ?string
-    {
-        return match ($position) {
-            0 => $this->imageName,
-            1 => $this->galleryImage2Name,
-            2 => $this->galleryImage3Name,
-            3 => $this->galleryImage4Name,
-            default => null,
-        };
-    }
-
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -797,7 +480,7 @@ class Product
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -805,6 +488,6 @@ class Product
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

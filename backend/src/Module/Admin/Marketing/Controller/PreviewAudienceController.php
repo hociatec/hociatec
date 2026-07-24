@@ -26,7 +26,7 @@ final class PreviewAudienceController extends AbstractController
         $segmentKey = (string) ($payload['segmentKey'] ?? '');
         $criteria = is_array($payload['criteria'] ?? null) ? $payload['criteria'] : [];
 
-        if ($segmentKey === '') {
+        if ('' === $segmentKey) {
             return ApiResponse::error('Veuillez choisir une audience.');
         }
 

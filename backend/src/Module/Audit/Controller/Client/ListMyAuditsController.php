@@ -16,7 +16,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAuditsController extends AbstractController
 {
-    public function __construct(private readonly AuditRequestRepository $repository) {}
+    public function __construct(private readonly AuditRequestRepository $repository)
+    {
+    }
 
     public function __invoke(): JsonResponse
     {
@@ -25,7 +27,7 @@ class ListMyAuditsController extends AbstractController
         $items = $this->repository->findByUser($user);
 
         return ApiResponse::success([
-            'items' => array_map(static function($a) {
+            'items' => array_map(static function ($a) {
                 return [
                     'id' => $a->getId(),
                     'number' => $a->getNumber(),
@@ -38,4 +40,3 @@ class ListMyAuditsController extends AbstractController
         ]);
     }
 }
-

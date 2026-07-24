@@ -29,6 +29,8 @@ type FeedbackState =
 
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
 const formatRole = (role: string) => {
   switch (role) {
     case 'ROLE_ADMIN':
@@ -85,6 +87,7 @@ export const ProfilePage = () => {
     phoneNumber: '',
     gender: '',
     password: '',
+    currentPassword: '',
   });
 
   useEffect(() => {
@@ -97,6 +100,7 @@ export const ProfilePage = () => {
         phoneNumber: user.phoneNumber,
         gender: user.gender,
         password: '',
+        currentPassword: '',
       });
     }
   }, [user]);
@@ -141,6 +145,7 @@ export const ProfilePage = () => {
       phoneNumber: user.phoneNumber,
       gender: user.gender,
       password: '',
+      currentPassword: '',
     });
   };
 
@@ -179,10 +184,22 @@ export const ProfilePage = () => {
       return;
     }
 
-    if (form.password && !PASSWORD_RULE.test(form.password)) {
+    const hasEmailChanged = normalizeEmail(form.email) !== normalizeEmail(user.email);
+    const hasNewPassword = form.password.trim() !== '';
+    const requiresCurrentPassword = hasEmailChanged || hasNewPassword;
+
+    if (hasNewPassword && !PASSWORD_RULE.test(form.password)) {
       setFeedback({
         type: 'error',
         message: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
+      });
+      return;
+    }
+
+    if (requiresCurrentPassword && form.currentPassword.trim() === '') {
+      setFeedback({
+        type: 'error',
+        message: 'Veuillez saisir votre mot de passe actuel.',
       });
       return;
     }
@@ -198,7 +215,8 @@ export const ProfilePage = () => {
         birthDate: form.birthDate,
         phoneNumber: form.phoneNumber,
         gender: form.gender,
-        password: form.password ? form.password : undefined,
+        password: hasNewPassword ? form.password : undefined,
+        currentPassword: requiresCurrentPassword ? form.currentPassword : undefined,
       });
 
       setFeedback({
@@ -209,6 +227,7 @@ export const ProfilePage = () => {
       setForm((prev) => ({
         ...prev,
         password: '',
+        currentPassword: '',
       }));
     } catch (error) {
       setFeedback({
@@ -382,6 +401,19 @@ export const ProfilePage = () => {
                       placeholder="Laisser vide pour conserver l'actuel"
                     />
                   </label>
+                  {(normalizeEmail(form.email) !== normalizeEmail(user.email) || form.password.trim() !== '') ? (
+                    <label className="profile-form__field">
+                      <span>Mot de passe actuel</span>
+                      <input
+                        type="password"
+                        name="currentPassword"
+                        value={form.currentPassword}
+                        onChange={handleFieldChange}
+                        autoComplete="current-password"
+                        required
+                      />
+                    </label>
+                  ) : null}
                 </div>
                 <div className="profile-form__actions">
                   <button

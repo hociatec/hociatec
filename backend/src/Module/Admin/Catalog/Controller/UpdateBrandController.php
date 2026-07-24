@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/catalog/brands/{id}', name: 'api_admin_catalog_brands_update', methods: ['PUT'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -30,13 +29,13 @@ class UpdateBrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
 
-        if ($brand === null) {
+        if (null === $brand) {
             return ApiResponse::error('Marque introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -44,7 +43,7 @@ class UpdateBrandController extends AbstractController
 
         try {
             $brand = $this->brandService->update($brand, $name);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de mettre à jour la marque.',
                 Response::HTTP_BAD_REQUEST,

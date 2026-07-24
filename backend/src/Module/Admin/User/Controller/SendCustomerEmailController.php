@@ -27,7 +27,7 @@ final class SendCustomerEmailController extends AbstractController
     public function __invoke(int $userId, Request $request): JsonResponse
     {
         $user = $this->users->find($userId);
-        if ($user === null) {
+        if (null === $user) {
             return ApiResponse::error('Client introuvable.', Response::HTTP_NOT_FOUND);
         }
 

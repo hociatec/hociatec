@@ -38,21 +38,27 @@ class PendingReviewResolver
         /** @var list<OrderItem> $items */
         $items = $qb->getQuery()->getResult();
 
-        return array_map(static function (OrderItem $item) {
+        $pending = [];
+        foreach ($items as $item) {
             $order = $item->getOrder();
             $product = $item->getProduct();
+            if (null === $order || null === $product) {
+                continue;
+            }
 
-            return [
+            $pending[] = [
                 'orderId' => $order->getId(),
                 'orderNumber' => $order->getNumber(),
                 'orderCreatedAt' => $order->getCreatedAt()->format(DATE_ATOM),
                 'orderItemId' => $item->getId(),
-                'product' => $product ? [
+                'product' => [
                     'id' => $product->getId(),
                     'name' => $product->getName(),
                     'sku' => $product->getSku(),
-                ] : null,
+                ],
             ];
-        }, $items);
+        }
+
+        return $pending;
     }
 }

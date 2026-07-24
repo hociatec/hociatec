@@ -24,15 +24,16 @@ class UpdateAuditStatusController extends AbstractController
         private readonly AuditRequestRepository $repository,
         private readonly EntityManagerInterface $em,
         private readonly AuditEventLogger $events,
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
         $audit = $this->repository->find($id);
-        if ($audit === null) {
+        if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $payload = json_decode((string) $request->getContent(), true) ?? [];
+        $payload = $request->toArray();
         $status = (string) ($payload['status'] ?? '');
 
         $allowed = [

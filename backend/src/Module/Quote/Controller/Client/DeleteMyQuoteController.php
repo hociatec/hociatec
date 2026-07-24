@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Quote\Controller\Client;
 
 use App\Module\Quote\Repository\QuoteRepository;
-use App\Shared\Http\ApiResponse;
 use App\Module\User\Entity\User;
+use App\Shared\Http\ApiResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,7 +31,7 @@ class DeleteMyQuoteController extends AbstractController
         $email = $user->getEmail();
 
         $quote = $this->quotes->find($id);
-        if ($quote === null || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
+        if (null === $quote || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -41,4 +41,3 @@ class DeleteMyQuoteController extends AbstractController
         return ApiResponse::success(['deleted' => true]);
     }
 }
-

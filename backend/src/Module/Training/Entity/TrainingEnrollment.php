@@ -6,12 +6,15 @@ namespace App\Module\Training\Entity;
 
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrainingEnrollmentRepository::class)]
 #[ORM\Table(name: 'training_enrollments')]
 #[ORM\UniqueConstraint(name: 'uniq_training_session_user', columns: ['session_id', 'user_id'])]
+#[ORM\Index(name: 'IDX_TRAINING_ENROLLMENT_SESSION', columns: ['session_id'])]
+#[ORM\Index(name: 'IDX_TRAINING_ENROLLMENT_USER', columns: ['user_id'])]
+#[ORM\Index(name: 'IDX_TRAINING_ENROLLMENT_STRIPE_SESSION', fields: ['stripeSessionId'])]
+#[ORM\Index(name: 'IDX_TRAINING_ENROLLMENT_SLOT', columns: ['session_id', 'scheduled_starts_at', 'scheduled_ends_at', 'status'])]
 class TrainingEnrollment
 {
     public const STATUS_PENDING_PAYMENT = 'pending_payment';
@@ -40,13 +43,13 @@ class TrainingEnrollment
     private int $priceCents;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $scheduledStartsAt;
+    private \DateTimeImmutable $scheduledStartsAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $scheduledEndsAt;
+    private \DateTimeImmutable $scheduledEndsAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $paidAt = null;
+    private ?\DateTimeImmutable $paidAt = null;
 
     #[ORM\Column(length: 190, nullable: true)]
     private ?string $stripeSessionId = null;
@@ -55,7 +58,7 @@ class TrainingEnrollment
     private ?string $stripePaymentIntentId = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     public function __construct(TrainingSession $session, User $user, int $priceCents)
     {
@@ -64,25 +67,110 @@ class TrainingEnrollment
         $this->priceCents = $priceCents;
         $this->scheduledStartsAt = $session->getStartsAt();
         $this->scheduledEndsAt = $session->getEndsAt();
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getSession(): TrainingSession { return $this->session; }
-    public function getUser(): User { return $this->user; }
-    public function getStatus(): string { return $this->status; }
-    public function setStatus(string $status): self { $this->status = $status; return $this; }
-    public function getPriceCents(): int { return $this->priceCents; }
-    public function setPriceCents(int $priceCents): self { $this->priceCents = $priceCents; return $this; }
-    public function getScheduledStartsAt(): DateTimeImmutable { return $this->scheduledStartsAt; }
-    public function setScheduledStartsAt(DateTimeImmutable $scheduledStartsAt): self { $this->scheduledStartsAt = $scheduledStartsAt; return $this; }
-    public function getScheduledEndsAt(): DateTimeImmutable { return $this->scheduledEndsAt; }
-    public function setScheduledEndsAt(DateTimeImmutable $scheduledEndsAt): self { $this->scheduledEndsAt = $scheduledEndsAt; return $this; }
-    public function getPaidAt(): ?DateTimeImmutable { return $this->paidAt; }
-    public function setPaidAt(?DateTimeImmutable $paidAt): self { $this->paidAt = $paidAt; return $this; }
-    public function getStripeSessionId(): ?string { return $this->stripeSessionId; }
-    public function setStripeSessionId(?string $stripeSessionId): self { $this->stripeSessionId = $stripeSessionId; return $this; }
-    public function getStripePaymentIntentId(): ?string { return $this->stripePaymentIntentId; }
-    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self { $this->stripePaymentIntentId = $stripePaymentIntentId; return $this; }
-    public function getCreatedAt(): DateTimeImmutable { return $this->createdAt; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getSession(): TrainingSession
+    {
+        return $this->session;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getPriceCents(): int
+    {
+        return $this->priceCents;
+    }
+
+    public function setPriceCents(int $priceCents): self
+    {
+        $this->priceCents = $priceCents;
+
+        return $this;
+    }
+
+    public function getScheduledStartsAt(): \DateTimeImmutable
+    {
+        return $this->scheduledStartsAt;
+    }
+
+    public function setScheduledStartsAt(\DateTimeImmutable $scheduledStartsAt): self
+    {
+        $this->scheduledStartsAt = $scheduledStartsAt;
+
+        return $this;
+    }
+
+    public function getScheduledEndsAt(): \DateTimeImmutable
+    {
+        return $this->scheduledEndsAt;
+    }
+
+    public function setScheduledEndsAt(\DateTimeImmutable $scheduledEndsAt): self
+    {
+        $this->scheduledEndsAt = $scheduledEndsAt;
+
+        return $this;
+    }
+
+    public function getPaidAt(): ?\DateTimeImmutable
+    {
+        return $this->paidAt;
+    }
+
+    public function setPaidAt(?\DateTimeImmutable $paidAt): self
+    {
+        $this->paidAt = $paidAt;
+
+        return $this;
+    }
+
+    public function getStripeSessionId(): ?string
+    {
+        return $this->stripeSessionId;
+    }
+
+    public function setStripeSessionId(?string $stripeSessionId): self
+    {
+        $this->stripeSessionId = $stripeSessionId;
+
+        return $this;
+    }
+
+    public function getStripePaymentIntentId(): ?string
+    {
+        return $this->stripePaymentIntentId;
+    }
+
+    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
+    {
+        $this->stripePaymentIntentId = $stripePaymentIntentId;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 }

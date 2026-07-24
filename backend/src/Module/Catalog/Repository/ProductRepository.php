@@ -69,11 +69,11 @@ class ProductRepository extends ServiceEntityRepository
             true,
         );
 
-        if ($offset !== null) {
+        if (null !== $offset) {
             $qb->setFirstResult(max(0, $offset));
         }
 
-        if ($limit !== null) {
+        if (null !== $limit) {
             $qb->setMaxResults(max(1, $limit));
         }
 
@@ -250,7 +250,7 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('sku', $sku)
             ->setMaxResults(1);
 
-        if ($excludeId !== null) {
+        if (null !== $excludeId) {
             $qb
                 ->andWhere('p.id != :excludeId')
                 ->setParameter('excludeId', $excludeId);
@@ -267,7 +267,7 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('slug', $slug)
             ->setMaxResults(1);
 
-        if ($excludeId !== null) {
+        if (null !== $excludeId) {
             $qb
                 ->andWhere('p.id != :excludeId')
                 ->setParameter('excludeId', $excludeId);
@@ -300,19 +300,19 @@ class ProductRepository extends ServiceEntityRepository
             ->setParameter('published', true)
             ->setParameter('visible', true);
 
-        if ($onlyFeatured === true) {
+        if (true === $onlyFeatured) {
             $qb
                 ->andWhere('p.isFeaturedHome = :featured')
                 ->setParameter('featured', true);
         }
 
-        if ($categorySlug !== null && $categorySlug !== '') {
+        if (null !== $categorySlug && '' !== $categorySlug) {
             $qb
                 ->andWhere('c.slug = :slug')
                 ->setParameter('slug', $categorySlug);
         }
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $normalizedSearch = mb_strtolower(trim($search));
             $qb
                 ->andWhere(
@@ -327,70 +327,70 @@ class ProductRepository extends ServiceEntityRepository
                 )
                 ->setParameter('search', sprintf('%%%s%%', $normalizedSearch));
 
-            if ($withSort && $sort === 'relevance') {
+            if ($withSort && 'relevance' === $sort) {
                 $qb
                     ->addSelect(
-                        "(CASE WHEN LOWER(p.name) LIKE LOWER(:searchPrefix) THEN 120 ELSE 0 END
+                        '(CASE WHEN LOWER(p.name) LIKE LOWER(:searchPrefix) THEN 120 ELSE 0 END
                         + CASE WHEN LOWER(p.sku) LIKE LOWER(:searchPrefix) THEN 100 ELSE 0 END
                         + CASE WHEN LOWER(b.name) LIKE LOWER(:searchPrefix) THEN 80 ELSE 0 END
                         + CASE WHEN LOWER(c.name) LIKE LOWER(:searchPrefix) THEN 60 ELSE 0 END
                         + CASE WHEN p.shortDescription IS NOT NULL AND LOWER(p.shortDescription) LIKE LOWER(:search) THEN 20 ELSE 0 END
-                        + CASE WHEN LOWER(p.description) LIKE LOWER(:search) THEN 10 ELSE 0 END) AS HIDDEN relevanceScore"
+                        + CASE WHEN LOWER(p.description) LIKE LOWER(:search) THEN 10 ELSE 0 END) AS HIDDEN relevanceScore'
                     )
                     ->setParameter('searchPrefix', sprintf('%s%%', $normalizedSearch));
             }
         }
 
-        if ($sellingType !== null && in_array($sellingType, ['sale', 'rental'], true)) {
+        if (null !== $sellingType && in_array($sellingType, ['sale', 'rental'], true)) {
             $qb
                 ->andWhere('p.sellingType = :stype')
                 ->setParameter('stype', $sellingType);
         }
 
-        if ($brand !== null && $brand !== '') {
+        if (null !== $brand && '' !== $brand) {
             $qb
                 ->andWhere('LOWER(b.name) = LOWER(:brand)')
                 ->setParameter('brand', trim($brand));
         }
 
-        if ($storageCapacity !== null && $storageCapacity !== '') {
+        if (null !== $storageCapacity && '' !== $storageCapacity) {
             $qb
                 ->andWhere('LOWER(p.storageCapacity) = LOWER(:storageCapacity)')
                 ->setParameter('storageCapacity', trim($storageCapacity));
         }
 
-        if ($memoryRam !== null && $memoryRam !== '') {
+        if (null !== $memoryRam && '' !== $memoryRam) {
             $qb
                 ->andWhere('LOWER(p.memoryRam) = LOWER(:memoryRam)')
                 ->setParameter('memoryRam', trim($memoryRam));
         }
 
-        if ($color !== null && $color !== '') {
+        if (null !== $color && '' !== $color) {
             $qb
                 ->andWhere('LOWER(p.color) = LOWER(:color)')
                 ->setParameter('color', trim($color));
         }
 
-        if ($minPriceCents !== null && $minPriceCents >= 0) {
+        if (null !== $minPriceCents && $minPriceCents >= 0) {
             $qb
                 ->andWhere('p.priceCents >= :minPriceCents')
                 ->setParameter('minPriceCents', $minPriceCents);
         }
 
-        if ($maxPriceCents !== null && $maxPriceCents >= 0) {
+        if (null !== $maxPriceCents && $maxPriceCents >= 0) {
             $qb
                 ->andWhere('p.priceCents <= :maxPriceCents')
                 ->setParameter('maxPriceCents', $maxPriceCents);
         }
 
-        if ($inStockOnly === true) {
+        if (true === $inStockOnly) {
             $qb
                 ->andWhere('p.stock > 0');
         }
 
         if ($withSort) {
             match ($sort) {
-                'relevance' => $search !== null && trim($search) !== ''
+                'relevance' => null !== $search && '' !== trim($search)
                     ? $qb->orderBy('relevanceScore', 'DESC')->addOrderBy('p.name', 'ASC')
                     : $qb->orderBy('p.name', 'ASC'),
                 'price_asc' => $qb->orderBy('p.priceCents', 'ASC')->addOrderBy('p.name', 'ASC'),
@@ -409,7 +409,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<array<string, int|string|null>>
+     * @return list<array{value: string, count: int, extra?: string|null}>
      */
     private function collectFacetCounts(QueryBuilder $qb, string $valueExpression, string $valueAlias, ?string $secondaryExpression = null): array
     {
@@ -418,7 +418,7 @@ class ProductRepository extends ServiceEntityRepository
             'COUNT(p.id) AS count',
         ];
 
-        if ($secondaryExpression !== null) {
+        if (null !== $secondaryExpression) {
             $select[] = sprintf('%s AS extra', $secondaryExpression);
         }
 
@@ -432,21 +432,21 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
 
-        return array_map(
+        return array_values(array_map(
             static function (array $row) use ($secondaryExpression): array {
                 $item = [
                     'value' => (string) ($row['value'] ?? ''),
                     'count' => isset($row['count']) ? (int) $row['count'] : 0,
                 ];
 
-                if ($secondaryExpression !== null) {
+                if (null !== $secondaryExpression) {
                     $item['extra'] = isset($row['extra']) ? (string) $row['extra'] : null;
                 }
 
                 return $item;
             },
             $rows,
-        );
+        ));
     }
 
     /**

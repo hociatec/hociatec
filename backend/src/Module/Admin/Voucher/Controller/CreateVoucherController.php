@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Voucher\Controller;
 
-use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
 use App\Shared\Http\ApiResponse;
@@ -59,7 +58,7 @@ final class CreateVoucherController extends AbstractController
 
     private function parseDate(mixed $value): ?\DateTimeImmutable
     {
-        if (!\is_string($value) || trim($value) === '') {
+        if (!\is_string($value) || '' === trim($value)) {
             return null;
         }
 

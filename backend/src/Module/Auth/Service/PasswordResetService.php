@@ -8,7 +8,6 @@ use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\OvhRoundcubeMailer;
-use DateTimeImmutable;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -22,6 +21,8 @@ class PasswordResetService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly EmailTemplateRenderer $emailTemplates,
+        private readonly string $frontendUrl,
+        private readonly string $mailerFrom,
     ) {
     }
 
@@ -33,7 +34,7 @@ class PasswordResetService
         }
 
         $token = bin2hex(random_bytes(32));
-        $expiresAt = new DateTimeImmutable('+1 hour');
+        $expiresAt = new \DateTimeImmutable('+1 hour');
 
         $user
             ->setPasswordResetToken($token)
@@ -41,9 +42,7 @@ class PasswordResetService
 
         $this->users->save($user, true);
 
-        $frontendUrl = $_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173';
-        $resetLink = rtrim($frontendUrl, '/') . '/reset-password/' . $token;
-        $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
+        $resetLink = rtrim($this->frontendUrl, '/').'/reset-password/'.$token;
 
         $content = $this->emailTemplates->renderScenario('password_reset', [
             'first_name' => $user->getFirstName(),
@@ -52,7 +51,7 @@ class PasswordResetService
             'email' => $user->getEmail(),
             'password_reset_url' => $resetLink,
             'password_reset_expires_in' => '1 heure',
-            'app_frontend_url' => rtrim((string) $frontendUrl, '/'),
+            'app_frontend_url' => rtrim($this->frontendUrl, '/'),
         ], [
             'subject' => 'Réinitialisez votre mot de passe Hociatec',
             'html' => '<p>Bonjour {{first_name}},</p><p>Une demande de réinitialisation de mot de passe a été reçue pour votre compte Hociatec.</p><p>Le lien ci-dessous vous permet de définir un nouveau mot de passe. Il reste valide pendant {{password_reset_expires_in}}.</p><p><a href="{{password_reset_url}}">Réinitialiser mon mot de passe</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement cet e-mail.</p>',
@@ -68,7 +67,7 @@ class PasswordResetService
         } catch (\Throwable) {
             try {
                 $emailMessage = (new Email())
-                    ->from(new Address($from, 'Hociatec'))
+                    ->from(new Address($this->mailerFrom, 'Hociatec'))
                     ->to(new Address($user->getEmail(), $user->getFullName()))
                     ->subject($content['subject'])
                     ->html($content['html'])
@@ -89,7 +88,7 @@ class PasswordResetService
         }
 
         $expiresAt = $user->getPasswordResetTokenExpiresAt();
-        if ($expiresAt === null || $expiresAt < new DateTimeImmutable()) {
+        if (null === $expiresAt || $expiresAt < new \DateTimeImmutable()) {
             $user
                 ->setPasswordResetToken(null)
                 ->setPasswordResetTokenExpiresAt(null);

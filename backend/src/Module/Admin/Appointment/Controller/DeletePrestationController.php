@@ -24,19 +24,14 @@ class DeletePrestationController extends AbstractController
     {
         $prestation = $this->prestationRepository->find($id);
 
-        if ($prestation === null) {
+        if (null === $prestation) {
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $entityManager = $this->prestationRepository->getEntityManager();
-        $entityManager->remove($prestation);
-        $entityManager->flush();
+        $this->prestationRepository->remove($prestation, true);
 
         return ApiResponse::success([
             'id' => $id,
         ]);
     }
 }
-
-
-

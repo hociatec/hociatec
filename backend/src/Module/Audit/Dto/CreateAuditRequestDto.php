@@ -18,4 +18,3 @@ final class CreateAuditRequestDto
     #[Assert\Length(max: 5000, maxMessage: 'Objectifs trop longs.')]
     public ?string $objectives = null;
 }
-

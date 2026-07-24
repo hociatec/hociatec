@@ -12,7 +12,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -38,7 +37,7 @@ final class CreateTemplateController extends AbstractController
         $textBody = isset($payload['textBody']) ? trim((string) $payload['textBody']) : null;
         $isActive = (bool) ($payload['isActive'] ?? true);
 
-        if ($name === '' || $slug === '' || $scenarioKey === '' || $subjectTemplate === '' || $htmlBody === '') {
+        if ('' === $name || '' === $slug || '' === $scenarioKey || '' === $subjectTemplate || '' === $htmlBody) {
             return ApiResponse::error('Veuillez renseigner tous les champs obligatoires.');
         }
 
@@ -46,7 +45,7 @@ final class CreateTemplateController extends AbstractController
             return ApiResponse::error('Scénario de template invalide.');
         }
 
-        if ($this->templates->findOneBySlug($slug) !== null) {
+        if (null !== $this->templates->findOneBySlug($slug)) {
             return ApiResponse::error('Ce slug de template est déjà utilisé.');
         }
 

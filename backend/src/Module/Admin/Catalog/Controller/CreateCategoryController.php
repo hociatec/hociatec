@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/catalog/categories', name: 'api_admin_catalog_categories_create', methods: ['POST'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -26,8 +25,8 @@ class CreateCategoryController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -35,14 +34,14 @@ class CreateCategoryController extends AbstractController
         $description = $payload['description'] ?? null;
         $slugInput = $payload['slug'] ?? null;
         $slug = is_string($slugInput) ? trim($slugInput) : null;
-        if ($slug === '') {
+        if ('' === $slug) {
             $slug = null;
         }
         $isVisible = $this->normalizeBoolean($payload['isVisible'] ?? true);
 
         try {
             $category = $this->categoryService->create($name, $slug, $description, $isVisible);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de créer la catégorie.',
                 Response::HTTP_BAD_REQUEST,
@@ -66,10 +65,9 @@ class CreateCategoryController extends AbstractController
         }
 
         if (is_int($value)) {
-            return $value === 1;
+            return 1 === $value;
         }
 
         return (bool) $value;
     }
 }
-

@@ -25,13 +25,14 @@ class ShowPrestationController extends AbstractController
     {
         $prestation = $this->prestationRepository->find($id);
 
-        if ($prestation === null) {
+        if (null === $prestation) {
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         return ApiResponse::success($this->mapPrestation($prestation));
     }
 
+    /** @return array<string, mixed> */
     private function mapPrestation(Prestation $prestation): array
     {
         return [

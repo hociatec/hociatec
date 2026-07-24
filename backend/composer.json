@@ -13,7 +13,7 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.5",
         "doctrine/orm": "^3.5.3",
-        "dompdf/dompdf": "^2.0.8",
+        "dompdf/dompdf": "^3.1.6",
         "lexik/jwt-authentication-bundle": "^3.2.0",
         "nelmio/cors-bundle": "^2.6.1",
         "phpdocumentor/reflection-docblock": "^5.6.3",
@@ -75,11 +75,20 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "app:audit": "composer audit --locked",
+        "app:architecture": "php tools/check_architecture.php",
+        "app:cs": "php-cs-fixer fix --dry-run --diff --using-cache=no --allow-unsupported-php-version=yes",
+        "app:cs-fix": "php-cs-fixer fix --using-cache=no --allow-unsupported-php-version=yes",
+        "app:deptrac": "deptrac analyse --no-progress --no-cache",
         "app:lint-container": "APP_ENV=prod php bin/console lint:container",
+        "app:phpstan": "APP_ENV=dev APP_DEBUG=1 phpstan analyse --no-progress --memory-limit=1G",
         "app:validate": "composer validate --strict --no-check-publish",
         "quality": [
             "@app:validate",
             "@app:audit",
+            "@app:architecture",
+            "@app:cs",
+            "@app:deptrac",
+            "@app:phpstan",
             "@app:lint-container"
         ],
         "post-install-cmd": [
@@ -99,7 +108,12 @@
         }
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
         "symfony/maker-bundle": "^1.67"
     }
 }

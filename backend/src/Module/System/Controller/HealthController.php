@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\System\Controller;
 
+use App\Shared\Http\ApiResponse;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,11 +26,14 @@ final class HealthController extends AbstractController
         ];
 
         $healthy = !in_array(false, $checks, true);
-        $response = new JsonResponse([
-            'status' => $healthy ? 'ok' : 'error',
+        $data = [
+            'health' => $healthy ? 'ok' : 'error',
             'checks' => $checks,
             'time' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
-        ], $healthy ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE);
+        ];
+        $response = $healthy
+            ? ApiResponse::success($data)
+            : ApiResponse::error('Service indisponible.', Response::HTTP_SERVICE_UNAVAILABLE, $data);
 
         $response->headers->set('Cache-Control', 'no-store, max-age=0');
 

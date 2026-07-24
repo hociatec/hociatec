@@ -24,7 +24,7 @@ class DeleteTrainingSessionController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $session = $this->sessions->find($id);
-        if ($session === null) {
+        if (null === $session) {
             return ApiResponse::error('Session introuvable.', Response::HTTP_NOT_FOUND);
         }
         $this->em->remove($session);

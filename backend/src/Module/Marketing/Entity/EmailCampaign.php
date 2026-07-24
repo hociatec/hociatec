@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Marketing\Entity;
 
 use App\Module\Marketing\Repository\EmailCampaignRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EmailCampaignRepository::class)]
@@ -48,13 +47,13 @@ class EmailCampaign
     private ?string $createdByEmail = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $sentAt;
+    private \DateTimeImmutable $sentAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @param array<string, mixed> $criteria
@@ -79,7 +78,7 @@ class EmailCampaign
         $this->recipientsCount = max(0, $recipientsCount);
         $this->createdByEmail = $createdByEmail;
         $this->template = $template;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->sentAt = $now;
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -138,17 +137,17 @@ class EmailCampaign
         return $this->createdByEmail;
     }
 
-    public function getSentAt(): DateTimeImmutable
+    public function getSentAt(): \DateTimeImmutable
     {
         return $this->sentAt;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -156,6 +155,6 @@ class EmailCampaign
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

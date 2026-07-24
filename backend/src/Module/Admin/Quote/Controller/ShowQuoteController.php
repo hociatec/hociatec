@@ -27,11 +27,10 @@ class ShowQuoteController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         $quote = $this->quoteRepository->find($id);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
     }
 }
-

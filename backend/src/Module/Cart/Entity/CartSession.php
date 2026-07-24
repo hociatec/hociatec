@@ -7,7 +7,6 @@ namespace App\Module\Cart\Entity;
 use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\Catalog\Entity\Product;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -32,10 +31,10 @@ class CartSession
     private Collection $items;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -45,7 +44,7 @@ class CartSession
     private ?string $voucherCode = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?DateTimeImmutable $convertedAt = null;
+    private ?\DateTimeImmutable $convertedAt = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $convertedOrderId = null;
@@ -55,7 +54,7 @@ class CartSession
         $this->token = $token;
         $this->items = new ArrayCollection();
 
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -100,7 +99,7 @@ class CartSession
 
     public function hasProduct(Product $product): bool
     {
-        return $this->getItemForProduct($product) !== null;
+        return null !== $this->getItemForProduct($product);
     }
 
     public function getItemForProduct(Product $product, ?int $rentalMonths = null): ?CartItem
@@ -112,11 +111,11 @@ class CartSession
                 continue;
             }
 
-            if ($product->getSellingType() !== 'rental') {
+            if ('rental' !== $product->getSellingType()) {
                 return $item;
             }
 
-            if ($rentalMonths === null) {
+            if (null === $rentalMonths) {
                 $firstMatch ??= $item;
                 continue;
             }
@@ -145,19 +144,19 @@ class CartSession
         return $matches;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getUser(): ?User
@@ -179,7 +178,7 @@ class CartSession
 
     public function setVoucherCode(?string $voucherCode): self
     {
-        if ($voucherCode === null) {
+        if (null === $voucherCode) {
             $this->voucherCode = null;
             $this->touch();
 
@@ -187,13 +186,13 @@ class CartSession
         }
 
         $normalized = trim($voucherCode);
-        $this->voucherCode = $normalized !== '' ? mb_strtoupper($normalized) : null;
+        $this->voucherCode = '' !== $normalized ? mb_strtoupper($normalized) : null;
         $this->touch();
 
         return $this;
     }
 
-    public function getConvertedAt(): ?DateTimeImmutable
+    public function getConvertedAt(): ?\DateTimeImmutable
     {
         return $this->convertedAt;
     }
@@ -205,12 +204,12 @@ class CartSession
 
     public function isConverted(): bool
     {
-        return $this->convertedAt !== null;
+        return null !== $this->convertedAt;
     }
 
     public function markConverted(int $orderId): self
     {
-        $this->convertedAt = new DateTimeImmutable();
+        $this->convertedAt = new \DateTimeImmutable();
         $this->convertedOrderId = $orderId;
         $this->touch();
 
@@ -220,7 +219,7 @@ class CartSession
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -228,6 +227,6 @@ class CartSession
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

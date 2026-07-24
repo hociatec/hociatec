@@ -25,7 +25,7 @@ final class GenerateOrderPdfHandler
     public function __invoke(OrderCreatedMessage $message): void
     {
         $order = $this->orders->find($message->orderId);
-        if ($order === null) {
+        if (null === $order) {
             $this->logger->warning('Invoice generation skipped: order not found.', [
                 'order_id' => $message->orderId,
                 'order_number' => $message->orderNumber,
@@ -38,7 +38,7 @@ final class GenerateOrderPdfHandler
             $this->documents->ensureGenerated($order);
             $this->events->log($order, null, 'invoice_generated', 'Facture PDF/XML générée par traitement différé.');
         } catch (\Throwable $exception) {
-            $this->events->log($order, null, 'invoice_generation_failed', 'Échec génération facture: ' . $exception->getMessage());
+            $this->events->log($order, null, 'invoice_generation_failed', 'Échec génération facture: '.$exception->getMessage());
             throw $exception;
         }
 

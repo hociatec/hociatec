@@ -36,7 +36,7 @@ namespace App\Module\Voucher\Repository {
 }
 
 namespace {
-    require dirname(__DIR__) . '/vendor/autoload.php';
+    require dirname(__DIR__).'/vendor/autoload.php';
 
     use App\Module\Cart\Entity\CartSession;
     use App\Module\Cart\Repository\CartSessionRepository;
@@ -58,24 +58,24 @@ final class FakeEntityManager implements \Doctrine\ORM\EntityManagerInterface
 PHP;
 
     $renderType = static function (ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType|null $type): string {
-        if ($type === null) {
+        if (null === $type) {
             return '';
         }
 
         if ($type instanceof ReflectionNamedType) {
             $name = $type->getName();
-            if ($type->allowsNull() && $name !== 'mixed' && $name !== 'null') {
-                return '?' . ($type->isBuiltin() ? $name : '\\' . ltrim($name, '\\'));
+            if ($type->allowsNull() && 'mixed' !== $name && 'null' !== $name) {
+                return '?'.($type->isBuiltin() ? $name : '\\'.ltrim($name, '\\'));
             }
 
-            return $type->isBuiltin() ? $name : '\\' . ltrim($name, '\\');
+            return $type->isBuiltin() ? $name : '\\'.ltrim($name, '\\');
         }
 
         $parts = [];
         foreach ($type->getTypes() as $innerType) {
             $parts[] = $innerType->isBuiltin()
                 ? $innerType->getName()
-                : '\\' . ltrim($innerType->getName(), '\\');
+                : '\\'.ltrim($innerType->getName(), '\\');
         }
 
         return implode('|', $parts);
@@ -85,7 +85,7 @@ PHP;
         $code = '';
 
         if ($parameter->hasType()) {
-            $code .= $renderType($parameter->getType()) . ' ';
+            $code .= $renderType($parameter->getType()).' ';
         }
 
         if ($parameter->isPassedByReference()) {
@@ -96,14 +96,14 @@ PHP;
             $code .= '...';
         }
 
-        $code .= '$' . $parameter->getName();
+        $code .= '$'.$parameter->getName();
 
         if ($parameter->isOptional() && !$parameter->isVariadic()) {
             if ($parameter->isDefaultValueAvailable()) {
                 if ($parameter->isDefaultValueConstant()) {
-                    $code .= ' = ' . $parameter->getDefaultValueConstantName();
+                    $code .= ' = '.$parameter->getDefaultValueConstantName();
                 } else {
-                    $code .= ' = ' . var_export($parameter->getDefaultValue(), true);
+                    $code .= ' = '.var_export($parameter->getDefaultValue(), true);
                 }
             } else {
                 $code .= ' = null';
@@ -120,7 +120,7 @@ PHP;
             $signature[] = $renderParam($parameter);
         }
 
-        $returnType = $method->hasReturnType() ? ': ' . $renderType($method->getReturnType()) : '';
+        $returnType = $method->hasReturnType() ? ': '.$renderType($method->getReturnType()) : '';
         $methodName = $method->getName();
         $body = match ($methodName) {
             'persist' => '$this->persisted[] = $object;',
@@ -128,7 +128,7 @@ PHP;
             'clear' => '$this->cleared = true;',
             'flush' => '$this->flushed = true;',
             'contains' => 'return in_array($object, $this->persisted, true);',
-            default => 'throw new \\BadMethodCallException(' . var_export($methodName . ' not implemented in smoke test', true) . ');',
+            default => 'throw new \\BadMethodCallException('.var_export($methodName.' not implemented in smoke test', true).');',
         };
 
         $fakeEntityManagerClass .= sprintf(
@@ -148,7 +148,7 @@ PHP;
     $cart->setVoucherCode('BON-TEST');
     $repo->seed($cart);
 
-    $entityManager = new \App\Tests\Support\FakeEntityManager();
+    $entityManager = new App\Tests\Support\FakeEntityManager();
     $voucherEngine = new VoucherEngine(new VoucherRepository());
     $service = new CartService($repo, $entityManager, $voucherEngine);
 
@@ -159,7 +159,7 @@ PHP;
         exit(1);
     }
 
-    if ($result->getVoucherCode() !== null) {
+    if (null !== $result->getVoucherCode()) {
         fwrite(STDERR, "Smoke test failed: voucher code was not cleared\n");
         exit(1);
     }
@@ -169,7 +169,7 @@ PHP;
         exit(1);
     }
 
-    if ($repo->findOneByToken('test-cart-token')?->getVoucherCode() !== null) {
+    if (null !== $repo->findOneByToken('test-cart-token')?->getVoucherCode()) {
         fwrite(STDERR, "Smoke test failed: repository still exposes a voucher code\n");
         exit(1);
     }

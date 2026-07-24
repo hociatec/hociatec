@@ -26,7 +26,7 @@ final class RequestIdSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
         $incoming = $request->headers->get(self::HEADER);
-        $requestId = is_string($incoming) && $incoming !== '' ? $incoming : $this->generateId();
+        $requestId = is_string($incoming) && '' !== $incoming ? $incoming : $this->generateId();
         $request->attributes->set(self::ATTRIBUTE, $requestId);
     }
 
@@ -35,7 +35,7 @@ final class RequestIdSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $requestId = (string) ($request->attributes->get(self::ATTRIBUTE) ?? '');
-        if ($requestId !== '') {
+        if ('' !== $requestId) {
             $response->headers->set(self::HEADER, $requestId);
         }
     }
@@ -49,4 +49,3 @@ final class RequestIdSubscriber implements EventSubscriberInterface
         }
     }
 }
-

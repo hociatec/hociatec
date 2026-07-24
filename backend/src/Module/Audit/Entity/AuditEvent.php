@@ -45,12 +45,38 @@ class AuditEvent
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getAudit(): AuditRequest { return $this->audit; }
-    public function getType(): string { return $this->type; }
-    public function getMessage(): ?string { return $this->message; }
-    public function getActorUserId(): ?int { return $this->actorUserId; }
-    public function getActorName(): ?string { return $this->actorName; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-}
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
+    public function getAudit(): AuditRequest
+    {
+        return $this->audit;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+    public function getActorUserId(): ?int
+    {
+        return $this->actorUserId;
+    }
+
+    public function getActorName(): ?string
+    {
+        return $this->actorName;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+}

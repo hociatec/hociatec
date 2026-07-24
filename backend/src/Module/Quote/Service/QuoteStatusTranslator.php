@@ -22,11 +22,14 @@ final class QuoteStatusTranslator
         Quote::STATUS_EXPIRED => 'expiré',
     ];
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function toLabel(string $status): string
     {
         $normalized = self::normalize($status);
+
         return self::LABELS[$normalized] ?? $status;
     }
 
@@ -46,7 +49,7 @@ final class QuoteStatusTranslator
     private static function normalize(string $value): string
     {
         $value = trim($value);
-        if ($value === '') {
+        if ('' === $value) {
             return $value;
         }
 

@@ -32,7 +32,7 @@ final class ShowCustomerController extends AbstractController
     public function __invoke(int $userId): JsonResponse
     {
         $user = $this->users->find($userId);
-        if ($user === null) {
+        if (null === $user) {
             return ApiResponse::error('Client introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -48,7 +48,7 @@ final class ShowCustomerController extends AbstractController
 
         foreach ($orders as $index => $order) {
             $totalSpentCents += $order->getTotalPriceCents();
-            if ($index === 0) {
+            if (0 === $index) {
                 $lastOrderAt = $order->getCreatedAt()->format(DATE_ATOM);
                 $lastOrderNumber = $order->getNumber();
             }

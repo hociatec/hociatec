@@ -11,7 +11,9 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class SyncOrderExternalHandler
 {
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
     public function __invoke(OrderStatusChangedMessage $message): void
     {
@@ -24,4 +26,3 @@ final class SyncOrderExternalHandler
         ]);
     }
 }
-

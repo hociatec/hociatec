@@ -23,12 +23,12 @@ final class UpdateCustomerAdminProfileController extends AbstractController
     public function __invoke(int $userId, Request $request): JsonResponse
     {
         $user = $this->users->find($userId);
-        if ($user === null) {
+        if (null === $user) {
             return ApiResponse::error('Client introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
         try {
-            $payload = (array) json_decode($request->getContent() ?: '[]', true, 512, JSON_THROW_ON_ERROR);
+            $payload = '' !== $request->getContent() ? $request->toArray() : [];
         } catch (\JsonException) {
             return ApiResponse::error('Payload JSON invalide.');
         }
@@ -44,7 +44,7 @@ final class UpdateCustomerAdminProfileController extends AbstractController
         }
 
         $user
-            ->setAdminNotes($notes !== '' ? $notes : null)
+            ->setAdminNotes('' !== $notes ? $notes : null)
             ->setAdminTags($tags);
 
         $this->users->save($user, true);

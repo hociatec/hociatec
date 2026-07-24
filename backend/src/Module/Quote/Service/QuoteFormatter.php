@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Service;
 
+use App\Module\Order\Service\OrderFormatter;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
 use App\Module\Quote\Entity\Service as QuoteServiceEntity;
-use App\Module\Order\Service\OrderFormatter;
 
 final class QuoteFormatter
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * @return array<string, mixed>
@@ -73,7 +75,7 @@ final class QuoteFormatter
             'createdAt' => $quote->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
             'sentAt' => $quote->getCreatedEmailSentAt()?->format(DATE_ATOM),
-            'convertedOrder' => $quote->getConvertedOrder() !== null
+            'convertedOrder' => null !== $quote->getConvertedOrder()
                 ? OrderFormatter::formatOrder($quote->getConvertedOrder())
                 : null,
         ];
@@ -110,14 +112,14 @@ final class QuoteFormatter
 
     private static function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string
     {
-        if ($durationValue === null || $durationValue <= 0 || $durationUnit === null || $durationUnit === '') {
+        if (null === $durationValue || $durationValue <= 0 || null === $durationUnit || '' === $durationUnit) {
             return null;
         }
 
-        if ($durationUnit === 'day') {
-            return $durationValue . ' ' . ($durationValue > 1 ? 'jours' : 'jour');
+        if ('day' === $durationUnit) {
+            return $durationValue.' '.($durationValue > 1 ? 'jours' : 'jour');
         }
 
-        return $durationValue . ' ' . ($durationValue > 1 ? 'heures' : 'heure');
+        return $durationValue.' '.($durationValue > 1 ? 'heures' : 'heure');
     }
 }

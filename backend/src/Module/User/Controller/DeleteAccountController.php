@@ -12,7 +12,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/auth/profile', name: 'api_auth_profile_delete', methods: ['DELETE'])]
 #[IsGranted('ROLE_USER')]
@@ -31,7 +30,7 @@ class DeleteAccountController extends AbstractController
 
         try {
             $this->userRepository->remove($user, true);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->logger->error('Unable to delete user account.', [
                 'userId' => $user->getId(),
                 'exception' => $exception,

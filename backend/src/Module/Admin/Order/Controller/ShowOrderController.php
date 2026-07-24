@@ -31,7 +31,7 @@ final class ShowOrderController extends AbstractController
     public function __invoke(int $orderId): JsonResponse
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -40,7 +40,7 @@ final class ShowOrderController extends AbstractController
 
         return ApiResponse::success([
             'order' => OrderFormatter::formatOrder($order, [], [
-                'hasIssues' => $issueReasons !== [],
+                'hasIssues' => [] !== $issueReasons,
                 'issueReasons' => $issueReasons,
             ]),
             'payment' => $this->formatPayment($orderId),
@@ -55,8 +55,8 @@ final class ShowOrderController extends AbstractController
                 ],
             ], $events),
             'processing' => [
-                'invoicePdfGenerated' => $order->getInvoicePdfPath() !== null,
-                'invoiceXmlGenerated' => $order->getInvoiceXmlPath() !== null,
+                'invoicePdfGenerated' => null !== $order->getInvoicePdfPath(),
+                'invoiceXmlGenerated' => null !== $order->getInvoiceXmlPath(),
                 'orderCreatedEmailSentAt' => $order->getOrderCreatedEmailSentAt()?->format(DATE_ATOM),
                 'invoiceEmailSentAt' => $order->getInvoiceEmailSentAt()?->format(DATE_ATOM),
                 'statusConfirmedEmailSentAt' => $order->getStatusConfirmedEmailSentAt()?->format(DATE_ATOM),

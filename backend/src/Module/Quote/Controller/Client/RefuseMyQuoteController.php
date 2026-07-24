@@ -34,11 +34,11 @@ final class RefuseMyQuoteController extends AbstractController
         $user = $this->getUser();
         $quote = $this->quotes->find($id);
 
-        if ($quote === null || strtolower((string) $quote->getCustomerEmail()) !== strtolower($user->getEmail())) {
+        if (null === $quote || strtolower((string) $quote->getCustomerEmail()) !== strtolower($user->getEmail())) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($quote->getConvertedOrder() !== null) {
+        if (null !== $quote->getConvertedOrder()) {
             return ApiResponse::error('Ce devis est déjà converti en commande.', Response::HTTP_CONFLICT);
         }
 

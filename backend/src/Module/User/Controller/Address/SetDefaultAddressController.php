@@ -16,19 +16,21 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class SetDefaultAddressController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses) {}
+    public function __construct(private readonly ShippingAddressRepository $addresses)
+    {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
         $address = $this->addresses->findOneForUser($id, $user);
-        if ($address === null) {
+        if (null === $address) {
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
         $this->addresses->setDefault($user, $address);
+
         return ApiResponse::success(['message' => 'Adresse définie par défaut']);
     }
 }
-

@@ -29,7 +29,7 @@ final class UpdatePromotionController extends AbstractController
     public function __invoke(int $promotionId, Request $request): JsonResponse
     {
         $promotion = $this->promotions->find($promotionId);
-        if ($promotion === null) {
+        if (null === $promotion) {
             return ApiResponse::error('Promotion introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -46,7 +46,7 @@ final class UpdatePromotionController extends AbstractController
         $audienceKey = trim((string) ($payload['audienceKey'] ?? ''));
         $criteria = isset($payload['criteria']) && \is_array($payload['criteria']) ? $payload['criteria'] : [];
 
-        if ($name === '' || $slug === '' || $discountType === '' || $audienceKey === '') {
+        if ('' === $name || '' === $slug || '' === $discountType || '' === $audienceKey) {
             return ApiResponse::error('Champs obligatoires manquants.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -80,7 +80,7 @@ final class UpdatePromotionController extends AbstractController
 
     private function parseDate(mixed $value): ?\DateTimeImmutable
     {
-        if (!\is_string($value) || trim($value) === '') {
+        if (!\is_string($value) || '' === trim($value)) {
             return null;
         }
 

@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/appointments/prestations/{id}', name: 'api_admin_appointments_prestations_update', methods: ['PUT'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -29,13 +28,13 @@ class UpdatePrestationController extends AbstractController
     {
         $prestation = $this->prestationRepository->find($id);
 
-        if ($prestation === null) {
+        if (null === $prestation) {
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -50,7 +49,7 @@ class UpdatePrestationController extends AbstractController
 
         try {
             $prestation = $this->prestationService->update($prestation, $name, $durationMinutes, $priceCents);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de mettre a jour la prestation.',
                 Response::HTTP_BAD_REQUEST,
@@ -87,7 +86,3 @@ class UpdatePrestationController extends AbstractController
         return -1;
     }
 }
-
-
-
-

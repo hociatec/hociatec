@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Controller;
 
-use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Entity\Order;
-use App\Module\Order\Service\OrderInvoiceDocumentService;
+use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\InvoiceDownloadNameBuilder;
+use App\Module\Order\Service\OrderInvoiceDocumentService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +29,7 @@ final class DownloadMyOrderInvoicePdfController extends AbstractController
     public function __invoke(int $orderId): Response
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -52,7 +52,7 @@ final class DownloadMyOrderInvoicePdfController extends AbstractController
         $filename = sprintf('%s.pdf', $this->nameBuilder->build($order));
         $response = new Response($pdf);
         $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         return $response;
     }

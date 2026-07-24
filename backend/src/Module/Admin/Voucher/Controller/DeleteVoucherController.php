@@ -26,7 +26,7 @@ final class DeleteVoucherController extends AbstractController
     public function __invoke(int $voucherId): JsonResponse
     {
         $voucher = $this->vouchers->find($voucherId);
-        if ($voucher === null) {
+        if (null === $voucher) {
             return ApiResponse::error('Bon de réduction introuvable.', Response::HTTP_NOT_FOUND);
         }
 

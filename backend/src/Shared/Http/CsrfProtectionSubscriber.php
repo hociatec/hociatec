@@ -57,14 +57,14 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
 
     private function requiresCsrf(Request $request): bool
     {
-        if (!$request->isMethodSafe(false)) {
+        if (!$request->isMethodSafe()) {
             $path = $request->getPathInfo();
             if (!str_starts_with($path, '/api/')) {
                 return false;
             }
 
             foreach (self::EXCLUDED_PREFIXES as $prefix) {
-                if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+                if ($path === $prefix || str_starts_with($path, $prefix.'/')) {
                     return false;
                 }
             }

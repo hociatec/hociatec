@@ -30,7 +30,7 @@ final class RunDueBackupsCommand extends Command
             $result = $input->getOption('force')
                 ? $this->backupManager->runBackup('manual')
                 : $this->backupManager->runDue();
-            if ($result === null) {
+            if (null === $result) {
                 $output->writeln('No backup due.');
 
                 return Command::SUCCESS;
@@ -40,7 +40,7 @@ final class RunDueBackupsCommand extends Command
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
+            $output->writeln('<error>'.$e->getMessage().'</error>');
 
             return Command::FAILURE;
         }

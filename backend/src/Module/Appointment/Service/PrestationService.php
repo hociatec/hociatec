@@ -9,7 +9,6 @@ use App\Module\Appointment\Repository\PrestationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use InvalidArgumentException;
 
 final class PrestationService
 {
@@ -85,8 +84,7 @@ final class PrestationService
         );
 
         if ($violations->count() > 0) {
-            throw new InvalidArgumentException((string) $violations);
+            throw new \InvalidArgumentException((string) $violations);
         }
     }
 }
-

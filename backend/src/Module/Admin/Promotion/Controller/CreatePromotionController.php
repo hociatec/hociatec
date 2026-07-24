@@ -38,7 +38,7 @@ final class CreatePromotionController extends AbstractController
         $audienceKey = trim((string) ($payload['audienceKey'] ?? ''));
         $criteria = isset($payload['criteria']) && \is_array($payload['criteria']) ? $payload['criteria'] : [];
 
-        if ($name === '' || $slug === '' || $discountType === '' || $audienceKey === '') {
+        if ('' === $name || '' === $slug || '' === $discountType || '' === $audienceKey) {
             return ApiResponse::error('Champs obligatoires manquants.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -67,7 +67,7 @@ final class CreatePromotionController extends AbstractController
 
     private function parseDate(mixed $value): ?\DateTimeImmutable
     {
-        if (!\is_string($value) || trim($value) === '') {
+        if (!\is_string($value) || '' === trim($value)) {
             return null;
         }
 

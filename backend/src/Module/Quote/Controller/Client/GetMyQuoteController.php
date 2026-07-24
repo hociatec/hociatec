@@ -32,7 +32,7 @@ class GetMyQuoteController extends AbstractController
         $email = $user->getEmail();
 
         $quote = $this->quotes->find($id);
-        if ($quote === null || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
+        if (null === $quote || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Entity;
 
 use App\Module\Appointment\Repository\PrestationRepository;
-use DateInterval;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PrestationRepository::class)]
@@ -29,17 +27,17 @@ class Prestation
     private int $priceCents;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(string $name, int $durationMinutes, int $priceCents)
     {
         $this->name = $name;
         $this->durationMinutes = $durationMinutes;
         $this->priceCents = $priceCents;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -73,9 +71,9 @@ class Prestation
         return $this;
     }
 
-    public function getDurationInterval(): DateInterval
+    public function getDurationInterval(): \DateInterval
     {
-        return new DateInterval(sprintf('PT%dM', $this->durationMinutes));
+        return new \DateInterval(sprintf('PT%dM', $this->durationMinutes));
     }
 
     public function getPriceCents(): int
@@ -90,12 +88,12 @@ class Prestation
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -103,7 +101,7 @@ class Prestation
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -111,7 +109,6 @@ class Prestation
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }
-

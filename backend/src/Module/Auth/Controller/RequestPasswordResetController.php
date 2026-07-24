@@ -26,13 +26,13 @@ class RequestPasswordResetController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            $payload = $request->toArray();
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $email = trim((string) ($payload['email'] ?? ''));
-        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        if ('' === $email || false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ApiResponse::error(
                 'Veuillez saisir une adresse e-mail valide.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,

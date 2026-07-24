@@ -7,6 +7,7 @@ namespace App\Module\Admin\Quote\Controller;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
+use App\Module\Quote\Service\QuoteStatusTranslator;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,8 +31,8 @@ class ListQuotesController extends AbstractController
         $status = $request->query->get('status');
 
         $quotes = $this->quoteRepository->findBySearch(
-            $search !== null ? (string) $search : null,
-            $status !== null ? (string) $status : null,
+            null !== $search ? (string) $search : null,
+            null !== $status ? QuoteStatusTranslator::toCode((string) $status) : null,
         );
 
         return ApiResponse::success([
@@ -42,4 +43,3 @@ class ListQuotesController extends AbstractController
         ]);
     }
 }
-

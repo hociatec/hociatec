@@ -1,56 +1,22 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CircleAlert, CircleCheckBig, House } from 'lucide-react';
+import { ArrowRight, CircleAlert, CircleCheckBig } from 'lucide-react';
 
 import { type AdminDashboardDto } from '@/features/admin/customers/api';
 import { formatOrderStatusFr, formatPaymentStatusFr, formatStripeFailureCodeFr, formatStripePaymentStatusFr } from '@/features/orders/api';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
-import { type AdminDashboardSection } from '@/features/admin/extracted/dashboard/adminDashboardSections';
 
 type AdminDashboardHomeProps = {
   dashboard: AdminDashboardDto | null;
   dashboardError: string | null;
   dashboardStatus: 'loading' | 'error' | 'success';
-  defaultSection: string;
-  savedMessage: string | null;
-  sectionTitleMap: Record<string, string>;
-  sections: AdminDashboardSection[];
-  onDefaultSectionChange: (sectionId: string) => void;
 };
 
 export const AdminDashboardHome = ({
   dashboard,
   dashboardError,
   dashboardStatus,
-  defaultSection,
-  savedMessage,
-  sectionTitleMap,
-  sections,
-  onDefaultSectionChange,
 }: AdminDashboardHomeProps) => (
-  <div className="space-y-6">
-    <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <House className="h-6 w-6 text-brand-400" />
-        <h3 className="text-lg font-semibold text-white">Onglet par défaut</h3>
-      </div>
-      <p className="mb-4 text-sm text-stone-400">
-        Choisissez l’onglet affiché automatiquement à l’ouverture du dashboard admin sur ce navigateur.
-      </p>
-      <select
-        className="register-form__input"
-        value={defaultSection}
-        onChange={(event) => onDefaultSectionChange(event.target.value)}
-      >
-        {sections.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.title}
-          </option>
-        ))}
-      </select>
-      {savedMessage && <p className="mt-3 text-sm text-emerald-300">{savedMessage}</p>}
-      <span className="sr-only">{sectionTitleMap[defaultSection] ?? defaultSection}</span>
-    </div>
-
+  <div className="admin-dashboard__live">
     {dashboardStatus === 'loading' && (
       <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6 text-sm text-stone-500" aria-hidden="true">
         Chargement des indicateurs...
@@ -65,29 +31,17 @@ export const AdminDashboardHome = ({
 
     {dashboard && (
       <>
-        <section className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Vue d’ensemble</h3>
-            <p className="text-sm text-stone-400">Volumes, chiffre d’affaires et base clients.</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Aujourd’hui" value={dashboard.metrics.today.count} helper={formatEuroCents(dashboard.metrics.today.totalCents)} />
-            <MetricCard label="Cette semaine" value={dashboard.metrics.week.count} helper={formatEuroCents(dashboard.metrics.week.totalCents)} />
-            <MetricCard label="Ce mois" value={dashboard.metrics.month.count} helper={formatEuroCents(dashboard.metrics.month.totalCents)} />
-            <MetricCard label="Base clients" value={dashboard.metrics.customersCount} helper={`${dashboard.topCustomers.length} clients mis en avant`} />
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-white">Actions prioritaires</h3>
-            <p className="text-sm text-stone-400">Les points qui demandent une action immédiate.</p>
+        <section className="space-y-4 admin-dashboard__priority-section">
+          <div className="admin-dashboard__section-heading">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Actions prioritaires</h3>
+              <p className="text-sm text-stone-400">Les points qui demandent une action immédiate.</p>
+            </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             <PriorityLink to="/admin/orders?status=pending" label="Commandes à traiter" value={dashboard.metrics.statusCounts.pending ?? 0} helper="Ouvrir la liste" />
-            <PriorityLink to="/admin/orders?status=confirmed" label="Commandes confirmées" value={dashboard.metrics.statusCounts.confirmed ?? 0} helper="Ouvrir la liste" />
-            <PriorityLink to="/admin/orders?status=delivered" label="Commandes livrées" value={dashboard.metrics.statusCounts.delivered ?? 0} helper="Ouvrir la liste" />
             <PriorityLink to="/admin/orders?health=issues" label="Incidents de traitement" value={dashboard.metrics.issuesCount} helper="Traiter maintenant" />
+            <PriorityLink to="/admin/payments?status=failed" label="Paiements échoués" value={dashboard.payments.statusCounts.failed ?? 0} helper="Analyser les refus" />
             <PriorityLink to="/admin/catalog/products?stock=low" label="Stocks faibles" value={dashboard.metrics.lowStockCount} helper="Voir les produits" />
             <PriorityLink
               to="/admin/operations"
@@ -95,6 +49,21 @@ export const AdminDashboardHome = ({
               value={(dashboard.metrics.supportOpenCount ?? 0) + (dashboard.metrics.refundsPendingCount ?? 0)}
               helper="Ouvrir exploitation"
             />
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="admin-dashboard__section-heading">
+            <div>
+              <h3 className="text-lg font-semibold text-white">Vue d’ensemble</h3>
+              <p className="text-sm text-stone-400">Volumes, chiffre d’affaires et base clients.</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <MetricCard label="Aujourd’hui" value={dashboard.metrics.today.count} helper={formatEuroCents(dashboard.metrics.today.totalCents)} />
+            <MetricCard label="Cette semaine" value={dashboard.metrics.week.count} helper={formatEuroCents(dashboard.metrics.week.totalCents)} />
+            <MetricCard label="Ce mois" value={dashboard.metrics.month.count} helper={formatEuroCents(dashboard.metrics.month.totalCents)} />
+            <MetricCard label="Base clients" value={dashboard.metrics.customersCount} helper={`${dashboard.topCustomers.length} clients mis en avant`} />
           </div>
         </section>
 
@@ -119,11 +88,16 @@ const MetricCard = ({ label, value, helper }: { label: string; value: number; he
 );
 
 const PriorityLink = ({ to, label, value, helper }: { to: string; label: string; value: number; helper: string }) => (
-  <Link to={to} className="rounded-2xl border border-brand-700 bg-brand-800/50 p-5 transition hover:border-brand-500 hover:bg-brand-800/80">
+  <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-5">
     <div className="text-sm text-stone-400">{label}</div>
     <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
-    <div className="mt-2 text-xs text-brand-300">{helper}</div>
-  </Link>
+    <Link
+      to={to}
+      className="mt-3 inline-flex items-center rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-brand-300 transition hover:border-brand-500 hover:bg-brand-50"
+    >
+      {helper}
+    </Link>
+  </div>
 );
 
 const NotificationsSection = ({ dashboard }: { dashboard: AdminDashboardDto }) => (
@@ -143,10 +117,9 @@ const NotificationsSection = ({ dashboard }: { dashboard: AdminDashboardDto }) =
           const isAction = item.severity === 'action';
           const isDanger = item.severity === 'danger';
           return (
-            <Link
+            <article
               key={item.id}
-              to={item.to}
-              className={`flex gap-3 rounded-2xl border p-4 transition hover:bg-brand-800/80 ${isDanger ? 'border-red-500/40 bg-red-500/10' : isAction ? 'border-amber-400/40 bg-amber-400/10' : 'border-brand-700 bg-brand-800/50'}`}
+              className={`flex gap-3 rounded-2xl border p-4 ${isDanger ? 'border-red-500/40 bg-red-500/10' : isAction ? 'border-amber-400/40 bg-amber-400/10' : 'border-brand-700 bg-brand-800/50'}`}
             >
               <div className="mt-0.5">
                 {isDanger || isAction ? (
@@ -160,8 +133,14 @@ const NotificationsSection = ({ dashboard }: { dashboard: AdminDashboardDto }) =
                 <div className="mt-1 truncate text-sm text-stone-500">{item.message || item.type}</div>
                 <div className="mt-2 text-xs text-stone-400">{formatFrenchDateTime(item.createdAt)}</div>
               </div>
-              <ArrowRight className="mt-1 h-4 w-4 flex-none text-stone-500" />
-            </Link>
+              <Link
+                to={item.to}
+                className="mt-0.5 inline-flex h-8 flex-none items-center gap-1 rounded-lg border border-brand-200 px-3 text-xs font-semibold text-brand-300 transition hover:border-brand-500 hover:bg-brand-50"
+              >
+                Ouvrir
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </article>
           );
         })
       )}
@@ -191,16 +170,17 @@ const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboardDto })
       <PanelTitle title="Suivi commandes" helper="Dernières commandes enregistrées." to="/admin/orders" linkLabel="Toutes les commandes" />
       <div className="space-y-3">
         {dashboard.recentOrders.map((order) => (
-          <Link key={order.id} to={`/admin/orders/${order.id}`} className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 transition hover:bg-brand-900/70 md:flex-row md:items-center md:justify-between">
+          <article key={order.id} className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="font-semibold text-white">{order.number}</div>
               <div className="text-sm text-stone-500">{order.customerDisplayName} · {formatFrenchDateTime(order.createdAt)}</div>
             </div>
-            <div className="text-right">
+            <div className="flex flex-col items-start gap-2 md:items-end">
               <div className="text-sm font-semibold text-white">{formatEuroCents(order.totalPriceCents)}</div>
               <div className="text-xs uppercase tracking-wide text-stone-400">{order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
+              <DashboardCardAction to={`/admin/orders/${order.id}`} label="Voir" />
             </div>
-          </Link>
+          </article>
         ))}
       </div>
     </div>
@@ -208,11 +188,12 @@ const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboardDto })
       <PanelTitle title="Clients à suivre" helper="Top clients par valeur." to="/admin/customers" linkLabel="Tous les clients" />
       <div className="space-y-3">
         {dashboard.topCustomers.map((customer) => (
-          <Link key={customer.id} to={`/admin/customers/${customer.id}`} className="block rounded-2xl bg-brand-900/40 p-4 transition hover:bg-brand-900/70">
+          <article key={customer.id} className="rounded-2xl bg-brand-900/40 p-4">
             <div className="font-semibold text-white">{customer.firstName} {customer.lastName}</div>
             <div className="text-sm text-stone-500">{customer.email}</div>
             <div className="mt-2 text-sm text-stone-200">{customer.ordersCount} commande{customer.ordersCount > 1 ? 's' : ''} · {formatEuroCents(customer.totalSpentCents)}</div>
-          </Link>
+            <DashboardCardAction to={`/admin/customers/${customer.id}`} label="Ouvrir" className="mt-3" />
+          </article>
         ))}
       </div>
     </div>
@@ -243,7 +224,7 @@ const PaymentsPanel = ({
       {payments.length === 0 ? (
         <div className="rounded-2xl bg-brand-900/40 p-4 text-sm text-stone-500">Aucun paiement critique à traiter.</div>
       ) : payments.map((payment) => (
-        <Link key={payment.id} to={`/admin/payments/${payment.id}`} className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 transition hover:bg-brand-900/70 md:flex-row md:items-center md:justify-between">
+        <article key={payment.id} className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2 font-semibold text-white">
               {attention ? <CircleAlert className="h-4 w-4 text-amber-300" /> : <CircleCheckBig className="h-4 w-4 text-emerald-300" />}
@@ -260,11 +241,12 @@ const PaymentsPanel = ({
               </div>
             )}
           </div>
-          <div className="text-right">
+          <div className="flex flex-col items-start gap-2 md:items-end">
             <div className="text-sm font-semibold text-white">{formatEuroCents(payment.totalPriceCents)}</div>
             <div className="text-xs text-stone-400">{formatFrenchDateTime(payment.createdAt)}</div>
+            <DashboardCardAction to={`/admin/payments/${payment.id}`} label="Ouvrir" />
           </div>
-        </Link>
+        </article>
       ))}
     </div>
   </div>
@@ -278,14 +260,15 @@ const RecentEventsSection = ({ dashboard }: { dashboard: AdminDashboardDto }) =>
     </div>
     <div className="space-y-3">
       {dashboard.recentEvents.map((event) => (
-        <Link key={event.id} to={`/admin/orders/${event.order.id}`} className="block rounded-2xl bg-brand-900/40 p-4 transition hover:bg-brand-900/70">
+        <article key={event.id} className="rounded-2xl bg-brand-900/40 p-4">
           <div className="text-sm font-semibold text-white">{event.order.number}</div>
           <div className="mt-1 text-sm text-stone-500">{event.message || event.type}</div>
           <div className="mt-1 text-xs text-stone-400">
             {formatFrenchDateTime(event.createdAt)}
             {event.actor?.name ? ` · ${event.actor.name}` : ''}
           </div>
-        </Link>
+          <DashboardCardAction to={`/admin/orders/${event.order.id}`} label="Voir la commande" className="mt-3" />
+        </article>
       ))}
     </div>
   </section>
@@ -299,4 +282,22 @@ const PanelTitle = ({ helper, linkLabel, title, to }: { helper: string; linkLabe
     </div>
     <Link to={to} className="text-sm font-medium text-brand-300 underline">{linkLabel}</Link>
   </div>
+);
+
+const DashboardCardAction = ({
+  className = '',
+  label,
+  to,
+}: {
+  className?: string;
+  label: string;
+  to: string;
+}) => (
+  <Link
+    to={to}
+    className={`inline-flex items-center gap-1 rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-brand-300 transition hover:border-brand-500 hover:bg-brand-50 ${className}`}
+  >
+    {label}
+    <ArrowRight className="h-3.5 w-3.5" />
+  </Link>
 );

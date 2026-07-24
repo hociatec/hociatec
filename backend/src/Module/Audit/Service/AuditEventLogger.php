@@ -11,7 +11,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class AuditEventLogger
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
+    }
 
     public function log(AuditRequest $audit, ?User $actor, string $type, ?string $message = null): void
     {
@@ -26,4 +28,3 @@ class AuditEventLogger
         $this->em->flush();
     }
 }
-

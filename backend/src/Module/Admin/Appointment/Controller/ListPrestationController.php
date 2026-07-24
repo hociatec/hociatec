@@ -34,6 +34,3 @@ class ListPrestationController extends AbstractController
         ]);
     }
 }
-
-
-

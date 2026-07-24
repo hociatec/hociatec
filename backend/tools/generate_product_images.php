@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 use App\DataFixtures\Catalog\ProductFixtures;
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
 if (!extension_loaded('gd')) {
-    fwrite(STDERR, "The GD extension is required to generate product images." . PHP_EOL);
+    fwrite(STDERR, 'The GD extension is required to generate product images.'.PHP_EOL);
     exit(1);
 }
 
 $reflection = new ReflectionClass(ProductFixtures::class);
 $blueprintsConstant = $reflection->getReflectionConstant('PRODUCT_BLUEPRINTS');
 
-if ($blueprintsConstant === false) {
-    fwrite(STDERR, 'Unable to read product blueprints from ProductFixtures.' . PHP_EOL);
+if (false === $blueprintsConstant) {
+    fwrite(STDERR, 'Unable to read product blueprints from ProductFixtures.'.PHP_EOL);
     exit(1);
 }
 
 /** @var array<string, array<int, array{name: string, price: int, image: string}>> $blueprints */
 $blueprints = $blueprintsConstant->getValue();
 
-$targetDir = realpath(__DIR__ . '/../public/uploads/products');
+$targetDir = realpath(__DIR__.'/../public/uploads/products');
 
-if ($targetDir === false) {
-    $targetDir = __DIR__ . '/../public/uploads/products';
+if (false === $targetDir) {
+    $targetDir = __DIR__.'/../public/uploads/products';
     if (!is_dir($targetDir) && !mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {
-        fwrite(STDERR, sprintf('Unable to create directory %s', $targetDir) . PHP_EOL);
+        fwrite(STDERR, sprintf('Unable to create directory %s', $targetDir).PHP_EOL);
         exit(1);
     }
 }
@@ -35,7 +35,7 @@ if ($targetDir === false) {
 foreach ($blueprints as $products) {
     foreach ($products as $product) {
         $filename = $product['image'];
-        $path = $targetDir . DIRECTORY_SEPARATOR . $filename;
+        $path = $targetDir.DIRECTORY_SEPARATOR.$filename;
 
         if (is_file($path)) {
             continue;
@@ -73,4 +73,4 @@ foreach ($blueprints as $products) {
     }
 }
 
-fwrite(STDOUT, "Generated placeholder product images in {$targetDir}" . PHP_EOL);
+fwrite(STDOUT, "Generated placeholder product images in {$targetDir}".PHP_EOL);

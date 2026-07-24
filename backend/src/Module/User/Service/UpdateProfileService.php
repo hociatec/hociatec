@@ -6,59 +6,50 @@ namespace App\Module\User\Service;
 
 use App\Module\User\DTO\UpdateProfileInput;
 use App\Module\User\Entity\User;
+use App\Module\User\Exception\InvalidBirthDateException;
+use App\Module\User\Exception\InvalidCurrentPasswordException;
+use App\Module\User\Exception\InvalidProfilePasswordException;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Repository\UserRepository;
-use DateTimeImmutable;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class UpdateProfileService
 {
     public function __construct(
         private readonly UserRepository $userRepository,
-        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UpdatePersonalInformationService $personalInformation,
+        private readonly ChangeProfileEmailService $emailChanger,
+        private readonly ChangeProfilePasswordService $passwordChanger,
     ) {
     }
 
     /**
+     * @throws InvalidBirthDateException
+     * @throws InvalidCurrentPasswordException
+     * @throws InvalidProfilePasswordException
      * @throws UserAlreadyExistsException
      */
-    public function update(User $user, UpdateProfileInput $input, ?string $newPassword = null): User
+    public function update(User $user, UpdateProfileInput $input): User
     {
-        if ($user->getId() !== null && $this->hasEmailChanged($user, $input->email)) {
-            if ($this->userRepository->existsByEmailExcludingUser($input->email, $user->getId())) {
-                throw new UserAlreadyExistsException('Cet email est deja utilise par un autre compte.');
+        $userId = $user->getId();
+        if (null === $userId) {
+            throw new \LogicException('Cannot update the profile of a non-persisted user.');
+        }
+
+        $this->personalInformation->update($user, $input);
+        $this->emailChanger->change($user, $userId, $input->email, $input->currentPassword);
+        $this->passwordChanger->change($user, $input->newPassword, $input->currentPassword);
+
+        try {
+            $this->userRepository->save($user, true);
+        } catch (UniqueConstraintViolationException $exception) {
+            if (!UserUniqueConstraintViolationDetector::isEmail($exception)) {
+                throw $exception;
             }
+
+            throw new UserAlreadyExistsException('Cet email est deja utilise par un autre compte.');
         }
-
-        $user
-            ->setFirstName($input->firstName)
-            ->setLastName($input->lastName)
-            ->setEmail($input->email)
-            ->setBirthDate(new DateTimeImmutable($input->birthDate))
-            ->setPhoneNumber($input->phoneNumber)
-            ->setGender($input->gender);
-
-        if ($newPassword !== null && $newPassword !== '') {
-            $this->assertPasswordInterface($user);
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $newPassword);
-            $user->setPassword($hashedPassword);
-        }
-
-        $this->userRepository->save($user, true);
 
         return $user;
-    }
-
-    private function hasEmailChanged(User $user, string $newEmail): bool
-    {
-        return strcasecmp($user->getEmail(), $newEmail) !== 0;
-    }
-
-    private function assertPasswordInterface(User $user): void
-    {
-        if (!$user instanceof PasswordAuthenticatedUserInterface) {
-            throw new \RuntimeException('User does not support password updates.');
-        }
     }
 }

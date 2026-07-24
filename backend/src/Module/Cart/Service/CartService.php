@@ -6,44 +6,27 @@ namespace App\Module\Cart\Service;
 
 use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
-use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\Catalog\Entity\Product;
-use App\Module\Voucher\Service\VoucherEngine;
-use App\Module\User\Entity\User;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 
 final class CartService
 {
     public function __construct(
-        private readonly CartSessionRepository $cartSessions,
+        private readonly CartSessionProvider $cartSessions,
         private readonly EntityManagerInterface $entityManager,
-        private readonly VoucherEngine $voucherEngine,
     ) {
     }
 
     public function viewCart(?string $token): CartSession
     {
-        $cart = $this->findCartByToken($token);
-
-        if ($cart !== null) {
-            if ($cart->isConverted()) {
-                return $cart->getUser() instanceof User
-                    ? $this->createCartForUser($cart->getUser())
-                    : $this->createCart();
-            }
-
-            return $cart;
-        }
-
-        return $this->createCart();
+        return $this->cartSessions->view($token);
     }
 
     public function addProduct(?string $token, Product $product, int $quantity = 1, ?int $rentalMonths = null, bool $retryOnDuplicate = true): CartSession
     {
         if ($quantity < 1) {
-            throw new InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
+            throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
         }
 
         $cart = $this->viewCart($token);
@@ -53,7 +36,7 @@ final class CartService
         $currentQuantity = $this->getTotalQuantityForProduct($cart, $product);
         $this->assertStockAvailability($product, $currentQuantity + $quantity);
 
-        if ($existing === null) {
+        if (null === $existing) {
             $item = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
             $cart->addItem($item);
             $this->entityManager->persist($item);
@@ -76,14 +59,14 @@ final class CartService
             $productId = $product->getId();
 
             $this->entityManager->clear();
-            if ($productId === null) {
+            if (null === $productId) {
                 throw $exception;
             }
 
             $freshCart = $this->findCartByToken($cartToken);
             $freshProduct = $this->entityManager->find(Product::class, $productId);
 
-            if ($freshCart === null || $freshProduct === null) {
+            if (null === $freshCart || null === $freshProduct) {
                 throw $exception;
             }
 
@@ -95,13 +78,13 @@ final class CartService
     {
         $cart = $this->findCartByToken($token);
 
-        if ($cart === null) {
-            throw new InvalidArgumentException('Panier introuvable.');
+        if (null === $cart) {
+            throw new \InvalidArgumentException('Panier introuvable.');
         }
 
         $existing = $this->resolveExistingItem($cart, $product, $rentalMonths);
 
-        if ($existing !== null) {
+        if (null !== $existing) {
             $cart->removeItem($existing);
             $this->entityManager->remove($existing);
             $cart->touch();
@@ -115,14 +98,14 @@ final class CartService
     public function updateProductQuantity(?string $token, Product $product, int $quantity, ?int $rentalMonths = null, ?int $currentRentalMonths = null): CartSession
     {
         if ($quantity < 0) {
-            throw new InvalidArgumentException('La quantite doit etre superieure ou egale a 0.');
+            throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 0.');
         }
 
         $cart = $this->viewCart($token);
-        $lookupMonths = $product->getSellingType() === 'rental' ? ($currentRentalMonths ?? $rentalMonths) : null;
+        $lookupMonths = 'rental' === $product->getSellingType() ? ($currentRentalMonths ?? $rentalMonths) : null;
         $existing = $this->resolveExistingItem($cart, $product, $lookupMonths);
         $resolvedRentalMonths = null;
-        if ($product->getSellingType() === 'rental' && $quantity > 0) {
+        if ('rental' === $product->getSellingType() && $quantity > 0) {
             $resolvedRentalMonths = $this->determineRentalMonths($product, $rentalMonths, $existing);
         }
 
@@ -131,15 +114,15 @@ final class CartService
             $this->assertStockAvailability($product, $currentQuantity + $quantity);
         }
 
-        if ($quantity === 0) {
-            if ($existing !== null) {
+        if (0 === $quantity) {
+            if (null !== $existing) {
                 $cart->removeItem($existing);
                 $this->entityManager->remove($existing);
             }
         } else {
-            if ($existing === null) {
-                if ($product->getSellingType() === 'rental' && $resolvedRentalMonths === null) {
-                    throw new InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
+            if (null === $existing) {
+                if ('rental' === $product->getSellingType() && null === $resolvedRentalMonths) {
+                    throw new \InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
                 }
 
                 $existing = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
@@ -148,9 +131,9 @@ final class CartService
             } else {
                 $skipQuantityUpdate = false;
 
-                if ($product->getSellingType() === 'rental' && $resolvedRentalMonths !== null && $existing->getRentalMonths() !== $resolvedRentalMonths) {
+                if ('rental' === $product->getSellingType() && null !== $resolvedRentalMonths && $existing->getRentalMonths() !== $resolvedRentalMonths) {
                     $duplicate = $cart->getItemForProduct($product, $resolvedRentalMonths);
-                    if ($duplicate !== null && $duplicate !== $existing) {
+                    if (null !== $duplicate && $duplicate !== $existing) {
                         $duplicate->increaseQuantity($quantity);
                         $cart->removeItem($existing);
                         $this->entityManager->remove($existing);
@@ -190,112 +173,29 @@ final class CartService
         return $cart;
     }
 
-    public function applyVoucherCode(?string $token, string $voucherCode, ?User $user = null): CartSession
-    {
-        $cart = $this->resolveCartForMutation($token, $user);
-
-        $summary = $this->voucherEngine->calculateCartSummary($cart, $user, $voucherCode);
-        $status = (string) ($summary['voucherCodeStatus'] ?? 'none');
-        if ($status !== 'applied') {
-            if ($status === 'ineligible') {
-                throw new InvalidArgumentException('Ce bon de réduction n\'est pas éligible pour ce panier.');
-            }
-
-            throw new InvalidArgumentException('Bon de réduction invalide.');
-        }
-
-        $cart->setVoucherCode($voucherCode);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
-
-        return $cart;
-    }
-
-    public function clearVoucherCode(?string $token, ?User $user = null): CartSession
-    {
-        $cart = $this->resolveCartForMutation($token, $user);
-        $cart->setVoucherCode(null);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
-
-        return $cart;
-    }
-
     public function findCartByToken(?string $token): ?CartSession
     {
-        if ($token === null || trim($token) === '') {
-            return null;
-        }
-
-        return $this->cartSessions->findOneByToken(trim($token));
-    }
-
-    private function createCart(): CartSession
-    {
-        do {
-            $token = bin2hex(random_bytes(16));
-        } while ($this->cartSessions->findOneByToken($token) !== null);
-
-        $cart = new CartSession($token);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
-
-        return $cart;
-    }
-
-    private function createCartForUser(User $user): CartSession
-    {
-        $cart = $this->createCart();
-        $cart->setUser($user);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
-
-        return $cart;
-    }
-
-    private function resolveCartForMutation(?string $token, ?User $user): CartSession
-    {
-        if ($user !== null) {
-            $userCart = $this->cartSessions->findOneByUser($user);
-            if ($userCart !== null) {
-                return $userCart;
-            }
-        }
-
-        $cart = $this->findCartByToken($token);
-        if ($cart !== null) {
-            if ($cart->isConverted()) {
-                return $user !== null ? $this->createCartForUser($user) : $this->createCart();
-            }
-
-            return $cart;
-        }
-
-        if ($user !== null) {
-            return $this->createCartForUser($user);
-        }
-
-        return $this->createCart();
+        return $this->cartSessions->findByToken($token);
     }
 
     private function determineRentalMonths(Product $product, ?int $requestedMonths, ?CartItem $existingItem = null): ?int
     {
-        if ($product->getSellingType() !== 'rental') {
+        if ('rental' !== $product->getSellingType()) {
             return null;
         }
 
-        if ($requestedMonths === null) {
+        if (null === $requestedMonths) {
             $existingMonths = $existingItem?->getRentalMonths();
 
-            if ($existingMonths === null) {
-                throw new InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
+            if (null === $existingMonths) {
+                throw new \InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
             }
 
             return $existingMonths;
         }
 
         if ($requestedMonths < 1) {
-            throw new InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
+            throw new \InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
         }
 
         return $requestedMonths;
@@ -303,18 +203,18 @@ final class CartService
 
     private function resolveExistingItem(CartSession $cart, Product $product, ?int $rentalMonths = null): ?CartItem
     {
-        if ($product->getSellingType() !== 'rental') {
+        if ('rental' !== $product->getSellingType()) {
             return $cart->getItemForProduct($product);
         }
 
-        if ($rentalMonths !== null) {
+        if (null !== $rentalMonths) {
             return $cart->getItemForProduct($product, $rentalMonths);
         }
 
         $items = $cart->getItemsForProduct($product);
 
         if (\count($items) > 1) {
-            throw new InvalidArgumentException('Plusieurs durées de location existent pour ce produit. Précisez "currentRentalMonths".');
+            throw new \InvalidArgumentException('Plusieurs durées de location existent pour ce produit. Précisez "currentRentalMonths".');
         }
 
         return $items[0] ?? null;
@@ -323,7 +223,7 @@ final class CartService
     private function assertStockAvailability(Product $product, int $requestedQuantity): void
     {
         if ($requestedQuantity > $product->getStock()) {
-            throw new InvalidArgumentException('Stock insuffisant pour ce produit.');
+            throw new \InvalidArgumentException('Stock insuffisant pour ce produit.');
         }
     }
 
@@ -332,7 +232,7 @@ final class CartService
         $total = 0;
 
         foreach ($cart->getItemsForProduct($product) as $item) {
-            if ($exclude !== null && $item === $exclude) {
+            if (null !== $exclude && $item === $exclude) {
                 continue;
             }
 

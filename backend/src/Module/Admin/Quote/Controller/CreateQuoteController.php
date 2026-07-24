@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/quotes', name: 'api_admin_quotes_create', methods: ['POST'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -34,7 +33,7 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload($payload);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             return ApiResponse::error('Impossible de creer le devis.', Response::HTTP_BAD_REQUEST, [$e->getMessage()]);
         }
 
@@ -42,7 +41,7 @@ class CreateQuoteController extends AbstractController
 
         try {
             $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             $data['emailNotificationSent'] = false;
             $data['emailNotificationError'] = $exception->getMessage();
         }

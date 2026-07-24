@@ -25,11 +25,10 @@ class ShowProductController extends AbstractController
     {
         $product = $this->productRepository->find($id);
 
-        if ($product === null) {
+        if (null === $product) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         return ApiResponse::success(CatalogFormatter::formatProduct($product, true));
     }
 }
-

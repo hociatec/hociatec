@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
+use App\Shared\Pdf\AccessiblePdfRenderer;
 
 class QuotePdfService
 {
-    private const ISSUER_NAME = 'Hociatec';
     private const ISSUER_EMAIL = 'contact@hociatec.fr';
     private const ISSUER_ADDRESS_LINES = [
         '2 allée Anatoli Vaisser',
@@ -18,146 +18,21 @@ class QuotePdfService
     private const ISSUER_SIREN = '934 814 559';
     private const ISSUER_SIRET = '934 814 559 00019';
 
+    public function __construct(private readonly AccessiblePdfRenderer $renderer)
+    {
+    }
+
+    /** @param array{totalHt: int, totalVat: int, totalTtc: int} $totals */
     public function render(Quote $quote, array $totals): string
     {
-        $workspaceRoot = dirname(__DIR__, 5);
-        $pythonBinary = $this->resolvePythonBinary($workspaceRoot);
-        $rendererScript = dirname(__DIR__, 4) . '/bin/render_accessible_pdf.py';
-
-        if ($pythonBinary === null || !is_file($rendererScript)) {
-            throw new \RuntimeException('WeasyPrint n\'est pas installé pour la génération PDF accessible.');
-        }
-
-        $htmlFile = tempnam(sys_get_temp_dir(), 'quote-html-');
-        $pdfFile = tempnam(sys_get_temp_dir(), 'quote-pdf-');
-        if ($htmlFile === false || $pdfFile === false) {
-            throw new \RuntimeException('Impossible de préparer les fichiers temporaires du devis PDF.');
-        }
-
-        $htmlPath = $htmlFile . '.html';
-        $pdfPath = $pdfFile . '.pdf';
-        @unlink($htmlFile);
-        @unlink($pdfFile);
-
-        try {
-            file_put_contents($htmlPath, $this->buildHtml($quote, $totals));
-            $this->runRenderer($pythonBinary, $rendererScript, $htmlPath, $pdfPath);
-
-            $pdf = file_get_contents($pdfPath);
-            if ($pdf === false) {
-                throw new \RuntimeException('Le PDF accessible du devis n\'a pas pu être lu.');
-            }
-
-            return $pdf;
-        } finally {
-            @unlink($htmlPath);
-            @unlink($pdfPath);
-        }
-    }
-
-    private function resolvePythonBinary(string $workspaceRoot): ?string
-    {
-        $configured = $_ENV['WEASYPRINT_PYTHON'] ?? $_SERVER['WEASYPRINT_PYTHON'] ?? null;
-        $candidates = array_filter([
-            is_string($configured) && trim($configured) !== '' ? trim($configured) : null,
-            $workspaceRoot . '/.venv-weasy/bin/python',
-            $workspaceRoot . '/backend/.venv-weasy/bin/python',
-            '/usr/bin/python3',
-            '/usr/local/bin/python3',
-            'python3',
-        ]);
-
-        foreach ($candidates as $candidate) {
-            if (!str_contains($candidate, '/') || is_file($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    private function runRenderer(string $pythonBinary, string $rendererScript, string $htmlPath, string $pdfPath): void
-    {
-        $command = sprintf(
-            '%s %s %s %s',
-            escapeshellarg($pythonBinary),
-            escapeshellarg($rendererScript),
-            escapeshellarg($htmlPath),
-            escapeshellarg($pdfPath),
+        return $this->renderer->render(
+            $this->buildHtml($quote, $totals),
+            'quote',
+            'Le PDF accessible du devis n\'a pas pu être lu.',
         );
-
-        $process = proc_open(
-            $command,
-            [
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-            null,
-            $this->buildRendererEnvironment(),
-        );
-
-        if (!is_resource($process)) {
-            throw new \RuntimeException('Impossible de démarrer WeasyPrint.');
-        }
-
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0 || !is_file($pdfPath)) {
-            $message = trim($stderr ?: $stdout);
-            throw new \RuntimeException($message !== '' ? $message : 'La génération PDF accessible a échoué.');
-        }
     }
 
-    /**
-     * PHP-FPM runs with a minimal environment, so Python does not automatically
-     * load packages installed in the deployment user's site-packages directory.
-     *
-     * @return array<string, string>
-     */
-    private function buildRendererEnvironment(): array
-    {
-        $environment = [];
-        foreach ($_ENV as $key => $value) {
-            if (is_string($key) && is_scalar($value)) {
-                $environment[$key] = (string) $value;
-            }
-        }
-
-        foreach ($_SERVER as $key => $value) {
-            if (is_string($key) && is_scalar($value) && !array_key_exists($key, $environment)) {
-                $environment[$key] = (string) $value;
-            }
-        }
-
-        $pythonPaths = [];
-        $configuredPythonPath = $_ENV['WEASYPRINT_PYTHONPATH'] ?? $_SERVER['WEASYPRINT_PYTHONPATH'] ?? null;
-        if (is_string($configuredPythonPath) && trim($configuredPythonPath) !== '') {
-            $pythonPaths[] = trim($configuredPythonPath);
-        }
-
-        $deploymentUserSitePackages = '/home/hocine/.local/lib/python3.10/site-packages';
-        if (is_dir($deploymentUserSitePackages)) {
-            $pythonPaths[] = $deploymentUserSitePackages;
-            $environment['HOME'] = $environment['HOME'] ?? '/home/hocine';
-        }
-
-        $existingPythonPath = $environment['PYTHONPATH'] ?? null;
-        if (is_string($existingPythonPath) && trim($existingPythonPath) !== '') {
-            $pythonPaths[] = trim($existingPythonPath);
-        }
-
-        if ($pythonPaths !== []) {
-            $environment['PYTHONPATH'] = implode(PATH_SEPARATOR, array_values(array_unique($pythonPaths)));
-        }
-
-        return $environment;
-    }
-
+    /** @param array{totalHt: int, totalVat: int, totalTtc: int} $totals */
     private function buildHtml(Quote $quote, array $totals): string
     {
         $quoteNumber = $this->escape($quote->getNumber());
@@ -168,20 +43,20 @@ class QuotePdfService
         $conditions = $this->formatConditions($quote->getConditions() ?: QuoteService::DEFAULT_CONDITIONS);
 
         $issuerLines = implode('', array_map(
-            static fn (string $line): string => '<p>' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>',
+            static fn (string $line): string => '<p>'.htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</p>',
             self::ISSUER_ADDRESS_LINES,
         ));
         $customerName = $quote->getCustomerName() ? $this->escape($quote->getCustomerName()) : '-';
-        $customerCompany = $quote->getCustomerCompany() ? '<p>' . $this->escape($quote->getCustomerCompany()) . '</p>' : '';
+        $customerCompany = $quote->getCustomerCompany() ? '<p>'.$this->escape($quote->getCustomerCompany()).'</p>' : '';
         $customerAddress = $quote->getCustomerAddress() ? $this->formatMultilineAddress($quote->getCustomerAddress()) : '';
-        $customerEmail = $quote->getCustomerEmail() ? '<p>Email : ' . $this->escape($quote->getCustomerEmail()) . '</p>' : '';
+        $customerEmail = $quote->getCustomerEmail() ? '<p>Email : '.$this->escape($quote->getCustomerEmail()).'</p>' : '';
 
         $rows = '';
         foreach ($quote->getItems() as $item) {
             $calculated = (new QuoteCalculator())->computeItemTotals($item);
             $quantity = $item->getQuantity();
             $unit = trim((string) $item->getUnit());
-            $quantityLabel = $quantity . ($unit !== '' ? ' ' . $unit : '');
+            $quantityLabel = $quantity.('' !== $unit ? ' '.$unit : '');
             $description = $item->getDescription() ? nl2br($this->escape($item->getDescription())) : '—';
 
             $rows .= sprintf(
@@ -191,7 +66,7 @@ class QuotePdfService
                 $this->escape($quantityLabel),
                 $this->formatMoney($item->getUnitPriceCents()),
                 number_format($item->getVatRateBps() / 100, 2, ',', ' '),
-                $this->formatMoney($item->getDiscountCents() ?? 0),
+                $this->formatMoney($item->getDiscountCents()),
                 $this->formatMoney($calculated['ht']),
             );
         }
@@ -425,17 +300,17 @@ HTML;
 
     private function formatMoney(int $amountCents): string
     {
-        return number_format($amountCents / 100, 2, ',', ' ') . ' EUR';
+        return number_format($amountCents / 100, 2, ',', ' ').' EUR';
     }
 
     private function formatDate(?string $value): string
     {
-        if ($value === null || $value === '') {
+        if (null === $value || '' === $value) {
             return '-';
         }
 
         $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
-        if ($date === false) {
+        if (false === $date) {
             return '-';
         }
 
@@ -450,24 +325,24 @@ HTML;
     private function formatConditions(string $value): string
     {
         $parts = preg_split('/\R+/', trim($value)) ?: [];
-        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => $part !== ''));
+        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => '' !== $part));
 
-        if ($parts === []) {
+        if ([] === $parts) {
             return '<p>-</p>';
         }
 
-        return implode('', array_map(fn (string $part): string => '<p>' . $this->escape($part) . '</p>', $parts));
+        return implode('', array_map(fn (string $part): string => '<p>'.$this->escape($part).'</p>', $parts));
     }
 
     private function formatMultilineAddress(string $value): string
     {
         $parts = preg_split('/\R+/', trim($value)) ?: [];
-        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => $part !== ''));
+        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => '' !== $part));
 
-        if ($parts === []) {
+        if ([] === $parts) {
             return '';
         }
 
-        return implode('', array_map(fn (string $part): string => '<p>' . $this->escape($part) . '</p>', $parts));
+        return implode('', array_map(fn (string $part): string => '<p>'.$this->escape($part).'</p>', $parts));
     }
 }

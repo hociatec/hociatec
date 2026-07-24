@@ -25,7 +25,7 @@ class ShowBrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
 
-        if ($brand === null) {
+        if (null === $brand) {
             return ApiResponse::error('Marque introuvable.', Response::HTTP_NOT_FOUND);
         }
 

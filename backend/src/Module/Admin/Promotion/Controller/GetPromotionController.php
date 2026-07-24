@@ -24,7 +24,7 @@ final class GetPromotionController extends AbstractController
     public function __invoke(int $promotionId): JsonResponse
     {
         $promotion = $this->promotions->find($promotionId);
-        if ($promotion === null) {
+        if (null === $promotion) {
             return ApiResponse::error('Promotion introuvable.', Response::HTTP_NOT_FOUND);
         }
 

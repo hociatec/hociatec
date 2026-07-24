@@ -32,7 +32,7 @@ final class UpdateQuoteStatusController extends AbstractController
     public function __invoke(Request $request, int $id): JsonResponse
     {
         $quote = $this->quotes->find($id);
-        if ($quote === null) {
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -42,12 +42,12 @@ final class UpdateQuoteStatusController extends AbstractController
             return ApiResponse::error('Statut invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        if ($quote->getConvertedOrder() !== null && $status !== Quote::STATUS_ACCEPTED) {
+        if (null !== $quote->getConvertedOrder() && Quote::STATUS_ACCEPTED !== $status) {
             return ApiResponse::error('Un devis converti doit rester accepté.', Response::HTTP_BAD_REQUEST);
         }
 
         $quote->setStatus($status);
-        if ($status === Quote::STATUS_SENT && $quote->getCreatedEmailSentAt() === null) {
+        if (Quote::STATUS_SENT === $status && null === $quote->getCreatedEmailSentAt()) {
             $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
         }
         $this->em->flush();

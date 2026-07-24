@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Repository\AuditRequestRepository;
-use App\Module\Audit\Service\AuditPdfService;
 use App\Module\Audit\Service\AuditEventLogger;
+use App\Module\Audit\Service\AuditPdfService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,13 +20,14 @@ class GeneratePdfController extends AbstractController
         private readonly AuditRequestRepository $audits,
         private readonly AuditPdfService $pdf,
         private readonly AuditEventLogger $events,
-    ) {}
+    ) {
+    }
 
     #[Route('/api/admin/audits/{id}/pdf', name: 'api_admin_audits_generate_pdf', methods: ['POST'])]
     public function detailed(int $id): Response
     {
         $audit = $this->audits->find($id);
-        if ($audit === null) {
+        if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
         try {
@@ -43,6 +44,7 @@ class GeneratePdfController extends AbstractController
         $response = new Response($bin);
         $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+
         return $response;
     }
 
@@ -50,7 +52,7 @@ class GeneratePdfController extends AbstractController
     public function summary(int $id): Response
     {
         $audit = $this->audits->find($id);
-        if ($audit === null) {
+        if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
         try {
@@ -67,6 +69,7 @@ class GeneratePdfController extends AbstractController
         $response = new Response($bin);
         $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+
         return $response;
     }
 }

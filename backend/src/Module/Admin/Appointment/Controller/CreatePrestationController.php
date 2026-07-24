@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/appointments/prestations', name: 'api_admin_appointments_prestations_create', methods: ['POST'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -25,8 +24,8 @@ class CreatePrestationController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -42,7 +41,7 @@ class CreatePrestationController extends AbstractController
 
         try {
             $prestation = $this->prestationService->create($name, $durationMinutes, $priceCents);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible d\'enregistrer la prestation.',
                 Response::HTTP_BAD_REQUEST,
@@ -79,6 +78,3 @@ class CreatePrestationController extends AbstractController
         return -1;
     }
 }
-
-
-

@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Controller;
 
-use App\Module\Catalog\Service\ProductService;
+use App\Module\Catalog\Service\ProductQueryService;
 use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\Rating\Service\ProductReviewFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\RateLimiter\Annotation\RateLimiter;
 
 #[Route('/api/public/catalog/products/{slug}/reviews', name: 'api_public_catalog_product_reviews', methods: ['GET'])]
-#[RateLimiter('public_api')]
+#[RateLimited('public_api')]
 class ListProductReviewsController extends AbstractController
 {
     public function __construct(
-        private readonly ProductService $products,
+        private readonly ProductQueryService $products,
         private readonly ProductRatingRepository $ratings,
     ) {
     }
@@ -28,7 +28,7 @@ class ListProductReviewsController extends AbstractController
     public function __invoke(string $slug, Request $request): JsonResponse
     {
         $product = $this->products->findPublishedBySlug($slug);
-        if ($product === null) {
+        if (null === $product) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -38,7 +38,7 @@ class ListProductReviewsController extends AbstractController
 
         $items = $this->ratings->findPublishedByProduct($product, $perPage, $offset);
         $formatted = array_map(
-            static fn($rating) => ProductReviewFormatter::formatRating($rating),
+            static fn ($rating) => ProductReviewFormatter::formatRating($rating),
             $items,
         );
 

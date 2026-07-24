@@ -11,8 +11,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/backups')]
+#[IsGranted('ROLE_ADMIN')]
 final class AdminBackupController
 {
     public function __construct(
@@ -31,10 +33,7 @@ final class AdminBackupController
     public function settings(Request $request): JsonResponse
     {
         try {
-            $payload = json_decode($request->getContent(), true);
-            if (!is_array($payload)) {
-                return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
-            }
+            $payload = $request->toArray();
 
             return ApiResponse::success($this->backupManager->updateSettings($payload));
         } catch (\InvalidArgumentException $e) {
@@ -60,11 +59,7 @@ final class AdminBackupController
     public function maintenance(Request $request): JsonResponse
     {
         try {
-            $payload = json_decode($request->getContent(), true);
-            if (!is_array($payload)) {
-                return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
-            }
-
+            $payload = $request->toArray();
             $enabled = (bool) ($payload['enabled'] ?? false);
             $message = is_string($payload['message'] ?? null) ? $payload['message'] : null;
 

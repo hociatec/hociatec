@@ -13,4 +13,3 @@ enum AuditType: string
     case TECHNICAL = 'technical';
     case ACCESSIBILITY = 'accessibility'; // accessibilite numerique
 }
-

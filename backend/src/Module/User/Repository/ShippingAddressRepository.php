@@ -87,7 +87,7 @@ class ShippingAddressRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         // unset others
-        $em->createQuery('UPDATE ' . ShippingAddress::class . ' a SET a.isDefault = false WHERE a.user = :user')
+        $em->createQuery('UPDATE '.ShippingAddress::class.' a SET a.isDefault = false WHERE a.user = :user')
             ->setParameter('user', $user)
             ->execute();
         // set the one

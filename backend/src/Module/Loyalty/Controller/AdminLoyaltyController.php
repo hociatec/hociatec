@@ -38,10 +38,10 @@ final class AdminLoyaltyController extends AbstractController
             ->addOrderBy('u.createdAt', 'DESC')
             ->setMaxResults(200);
 
-        if ($search !== '') {
+        if ('' !== $search) {
             $qb
                 ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
-                ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%'.$search.'%');
         }
 
         return ApiResponse::success([
@@ -69,6 +69,7 @@ final class AdminLoyaltyController extends AbstractController
         return ApiResponse::success(['customer' => $this->formatCustomer($user)]);
     }
 
+    /** @return array<string, mixed> */
     private function formatCustomer(User $user): array
     {
         $points = $user->getLoyaltyPointsBalance();

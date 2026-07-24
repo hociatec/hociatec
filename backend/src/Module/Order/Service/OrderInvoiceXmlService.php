@@ -15,6 +15,17 @@ final class OrderInvoiceXmlService
     private const OPERATION_NATURE = 'Livraison de biens';
     private const PAYMENT_NOTE = 'Paiement a 30 jours fin de mois. Aucun escompte pour paiement anticipe. Penalites de retard : taux BCE + 10 points. Indemnite forfaitaire de recouvrement : 40 EUR.';
 
+    /**
+     * @param array{
+     *   subtotalTtcBeforeDiscount:int,
+     *   totalDiscountTtc:int,
+     *   totalHt:int,
+     *   totalVat:int,
+     *   totalTtc:int,
+     *   taxBreakdown:list<array{rateBps:int, taxableCents:int, taxCents:int}>,
+     *   items:list<array<string,mixed>>
+     * } $totals
+     */
     public function render(Order $order, array $totals): string
     {
         $issueDate = $order->getInvoicedAt()?->format('Y-m-d') ?? (new \DateTimeImmutable())->format('Y-m-d');
@@ -23,7 +34,7 @@ final class OrderInvoiceXmlService
         $invoiceNumber = $this->xml((string) $order->getInvoiceNumber());
         $currency = $this->xml($order->getCurrencyCode());
         $customerName = $this->resolveCustomerName($order);
-        $customerLegalName = $this->xml((string) ($order->getBillingCompany() ?: ($customerName !== '' ? $customerName : '-')));
+        $customerLegalName = $this->xml((string) ($order->getBillingCompany() ?: ('' !== $customerName ? $customerName : '-')));
         $customerEmail = $this->xml((string) ($order->getBillingEmail() ?? ''));
         $customerVat = $this->xml((string) ($order->getBillingCompanyVatNumber() ?? ''));
         $purchaseOrderNumber = $this->xml((string) ($order->getPurchaseOrderNumber() ?? $order->getNumber()));
@@ -35,7 +46,7 @@ final class OrderInvoiceXmlService
         $customerTaxSchemeXml = '';
 
         if (
-            $order->getShippingAddress() !== null
+            null !== $order->getShippingAddress()
             && trim((string) $order->getShippingAddress()) !== trim((string) $order->getBillingAddress())
         ) {
             $deliveryAddressXml = sprintf(
@@ -46,7 +57,7 @@ final class OrderInvoiceXmlService
             );
         }
 
-        if ($order->getBillingCompanyVatNumber() !== null && trim($order->getBillingCompanyVatNumber()) !== '') {
+        if (null !== $order->getBillingCompanyVatNumber() && '' !== trim($order->getBillingCompanyVatNumber())) {
             $customerTaxSchemeXml = sprintf(
                 '<cac:PartyTaxScheme><cbc:CompanyID>%s</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>',
                 $customerVat,
@@ -117,7 +128,7 @@ final class OrderInvoiceXmlService
   </cac:AccountingSupplierParty>
   <cac:AccountingCustomerParty>
     <cac:Party>
-      <cac:PartyName><cbc:Name>{$this->xml($customerName !== '' ? $customerName : '-')}</cbc:Name></cac:PartyName>
+      <cac:PartyName><cbc:Name>{$this->xml('' !== $customerName ? $customerName : '-')}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>{$this->xml((string) ($order->getBillingAddress() ?? '-'))}</cbc:StreetName>
         <cbc:CityName>{$this->xml((string) ($order->getBillingCity() ?? '-'))}</cbc:CityName>
@@ -163,10 +174,10 @@ XML;
     private function resolveCustomerName(Order $order): string
     {
         $billingName = trim((string) $order->getBillingName());
-        if ($billingName !== '') {
+        if ('' !== $billingName) {
             return $billingName;
         }
 
-        return trim($order->getUser()->getFirstName() . ' ' . $order->getUser()->getLastName());
+        return trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName());
     }
 }

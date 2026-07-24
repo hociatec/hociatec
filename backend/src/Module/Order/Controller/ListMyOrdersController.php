@@ -21,8 +21,7 @@ class ListMyOrdersController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly ProductRatingRepository $ratings,
-    )
-    {
+    ) {
     }
 
     public function __invoke(): JsonResponse
@@ -33,7 +32,7 @@ class ListMyOrdersController extends AbstractController
         $orderItemIds = [];
         foreach ($orders as $order) {
             foreach ($order->getItems() as $item) {
-                if ($item->getId() !== null) {
+                if (null !== $item->getId()) {
                     $orderItemIds[] = $item->getId();
                 }
             }
@@ -42,7 +41,7 @@ class ListMyOrdersController extends AbstractController
         $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
 
         $items = array_map(
-            fn($o) => OrderFormatter::formatOrder($o, $ratings),
+            fn ($o) => OrderFormatter::formatOrder($o, $ratings),
             $orders,
         );
 

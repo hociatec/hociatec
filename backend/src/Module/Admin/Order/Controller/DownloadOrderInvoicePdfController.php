@@ -28,7 +28,7 @@ final class DownloadOrderInvoicePdfController extends AbstractController
     public function __invoke(int $orderId): Response
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -45,7 +45,7 @@ final class DownloadOrderInvoicePdfController extends AbstractController
         $filename = sprintf('%s.pdf', $this->nameBuilder->build($order));
         $response = new Response($pdf);
         $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         return $response;
     }

@@ -22,11 +22,12 @@ class ProductRatingRepository extends ServiceEntityRepository
 
     /**
      * @param list<int> $orderItemIds
+     *
      * @return array<int, ProductRating>
      */
     public function findByOrderItemIds(array $orderItemIds): array
     {
-        if ($orderItemIds === []) {
+        if ([] === $orderItemIds) {
             return [];
         }
 
@@ -39,7 +40,7 @@ class ProductRatingRepository extends ServiceEntityRepository
         $results = $qb->getQuery()->getResult();
         $map = [];
         foreach ($results as $rating) {
-            if ($rating instanceof ProductRating) {
+            if ($rating instanceof ProductRating && null !== $rating->getOrderItem()->getId()) {
                 $map[$rating->getOrderItem()->getId()] = $rating;
             }
         }
@@ -96,6 +97,6 @@ class ProductRatingRepository extends ServiceEntityRepository
             ->setParameter('item', $orderItem)
             ->setMaxResults(1);
 
-        return $qb->getQuery()->getOneOrNullResult() !== null;
+        return null !== $qb->getQuery()->getOneOrNullResult();
     }
 }

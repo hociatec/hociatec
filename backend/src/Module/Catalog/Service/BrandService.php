@@ -8,7 +8,6 @@ use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -62,18 +61,12 @@ final class BrandService
         $this->entityManager->flush();
     }
 
-    private function normalizeName(?string $name): ?string
+    private function normalizeName(string $name): string
     {
-        if (!is_string($name)) {
-            return null;
-        }
-
-        $normalized = trim($name);
-
-        return $normalized !== '' ? $normalized : null;
+        return trim($name);
     }
 
-    private function assertValidName(?string $name): void
+    private function assertValidName(string $name): void
     {
         $violations = $this->validator->validate(
             ['name' => $name],
@@ -89,14 +82,14 @@ final class BrandService
         );
 
         if ($violations->count() > 0) {
-            throw new InvalidArgumentException((string) $violations);
+            throw new \InvalidArgumentException((string) $violations);
         }
     }
 
     private function assertUniqueName(string $name, ?int $excludeId): void
     {
         if ($this->brandRepository->existsWithName($name, $excludeId)) {
-            throw new InvalidArgumentException('Une marque avec ce nom existe déjà.');
+            throw new \InvalidArgumentException('Une marque avec ce nom existe déjà.');
         }
     }
 }

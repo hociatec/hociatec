@@ -11,7 +11,9 @@ use App\Module\Rating\Service\ProductReviewFormatter;
 
 final class OrderFormatter
 {
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public static function formatStatusLabel(string $status): string
     {
@@ -48,7 +50,8 @@ final class OrderFormatter
 
     /**
      * @param array<int, ProductRating> $ratingsByOrderItemId
-     * @param array<string, mixed> $extra
+     * @param array<string, mixed>      $extra
+     *
      * @return array<string, mixed>
      */
     public static function formatOrder(Order $order, array $ratingsByOrderItemId = [], array $extra = []): array
@@ -62,10 +65,10 @@ final class OrderFormatter
             $product = $item->getProduct();
             $rating = $ratingsByOrderItemId[$item->getId()] ?? null;
             $hasReview = $rating instanceof ProductRating;
-            $canReview = $product !== null && $order->getStatus() === Order::STATUS_DELIVERED && !$hasReview;
+            $canReview = null !== $product && Order::STATUS_DELIVERED === $order->getStatus() && !$hasReview;
 
             if ($canReview) {
-                $pendingReviews++;
+                ++$pendingReviews;
             }
 
             $items[] = [
@@ -90,7 +93,7 @@ final class OrderFormatter
         $deliveryStatus = $order->getDeliveryStatus();
         $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
         $appliedPromotionName = $order->getAppliedPromotionName();
-        $appliedPromotion = $appliedPromotionName !== null && !str_starts_with($appliedPromotionName, 'Conversion devis ')
+        $appliedPromotion = null !== $appliedPromotionName && !str_starts_with($appliedPromotionName, 'Conversion devis ')
             ? [
                 'name' => $appliedPromotionName,
                 'slug' => $order->getAppliedPromotionSlug(),
@@ -101,7 +104,7 @@ final class OrderFormatter
             'id' => $order->getId(),
             'number' => $order->getNumber(),
             'userId' => $order->getUser()->getId(),
-            'customerDisplayName' => trim($order->getUser()->getFirstName() . ' ' . $order->getUser()->getLastName()),
+            'customerDisplayName' => trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName()),
             'status' => $status,
             'statusLabel' => $statusLabel,
             'subtotalPriceCents' => $order->getSubtotalPriceCents(),

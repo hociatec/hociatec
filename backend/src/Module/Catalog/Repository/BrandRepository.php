@@ -37,7 +37,7 @@ class BrandRepository extends ServiceEntityRepository
             ->setParameter('name', $name)
             ->setMaxResults(1);
 
-        if ($excludeId !== null) {
+        if (null !== $excludeId) {
             $qb
                 ->andWhere('b.id != :excludeId')
                 ->setParameter('excludeId', $excludeId);

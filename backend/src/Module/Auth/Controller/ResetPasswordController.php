@@ -25,12 +25,12 @@ class ResetPasswordController extends AbstractController
 
     public function __invoke(string $token, Request $request): JsonResponse
     {
-        if (strlen($token) !== 64 || !ctype_xdigit($token)) {
+        if (64 !== strlen($token) || !ctype_xdigit($token)) {
             return ApiResponse::error('Lien de réinitialisation invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            $payload = $request->toArray();
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -53,7 +53,7 @@ class ResetPasswordController extends AbstractController
         }
 
         $limit = $this->limiter
-            ->create(($request->getClientIp() ?? 'unknown') . ':' . $token)
+            ->create(($request->getClientIp() ?? 'unknown').':'.$token)
             ->consume(1);
 
         if (!$limit->isAccepted()) {

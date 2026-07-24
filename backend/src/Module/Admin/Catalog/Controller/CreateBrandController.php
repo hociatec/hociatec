@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Throwable;
 
 #[Route('/api/admin/catalog/brands', name: 'api_admin_catalog_brands_create', methods: ['POST'])]
 #[IsGranted('ROLE_ADMIN')]
@@ -26,8 +25,8 @@ class CreateBrandController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = (array) json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -35,7 +34,7 @@ class CreateBrandController extends AbstractController
 
         try {
             $brand = $this->brandService->create($name);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             return ApiResponse::error(
                 'Impossible de créer la marque.',
                 Response::HTTP_BAD_REQUEST,

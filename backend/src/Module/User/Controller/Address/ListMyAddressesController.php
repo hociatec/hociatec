@@ -17,18 +17,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAddressesController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses) {}
+    public function __construct(private readonly ShippingAddressRepository $addresses)
+    {
+    }
 
     public function __invoke(): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
         $items = array_map(
-            fn($a) => ShippingAddressFormatter::toArray($a),
+            fn ($a) => ShippingAddressFormatter::toArray($a),
             $this->addresses->findAllForUser($user)
         );
 
         return ApiResponse::success(['items' => $items]);
     }
 }
-

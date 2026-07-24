@@ -25,7 +25,7 @@ final class SendOrderEmailHandler
     public function __invoke(OrderCreatedMessage $message): void
     {
         $order = $this->orders->find($message->orderId);
-        if ($order === null) {
+        if (null === $order) {
             $this->logger->warning('Order creation email skipped: order not found.', [
                 'order_id' => $message->orderId,
                 'order_number' => $message->orderNumber,
@@ -37,7 +37,7 @@ final class SendOrderEmailHandler
         try {
             $sent = $this->notifications->sendOrderCreatedIfNeeded($order);
         } catch (\Throwable $exception) {
-            $this->events->log($order, null, 'email_failed', 'Échec email commande enregistrée: ' . $exception->getMessage());
+            $this->events->log($order, null, 'email_failed', 'Échec email commande enregistrée: '.$exception->getMessage());
             throw $exception;
         }
 

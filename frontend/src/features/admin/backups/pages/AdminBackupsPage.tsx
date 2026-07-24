@@ -9,6 +9,7 @@ import {
   updateMaintenanceMode,
   type BackupStatusDto,
 } from '@/features/admin/backups/api';
+import { LoadingState } from '@/shared/components/ui/page-state';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -118,7 +119,7 @@ export const AdminBackupsPage = () => {
   };
 
   if (loading) {
-    return <div className="px-6 py-12 text-stone-200" aria-hidden="true">Chargement des sauvegardes...</div>;
+    return <LoadingState className="mx-auto my-12 w-full max-w-6xl">Chargement des sauvegardes...</LoadingState>;
   }
 
   return (

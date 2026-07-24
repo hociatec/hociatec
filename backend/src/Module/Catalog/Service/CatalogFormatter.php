@@ -48,7 +48,7 @@ final class CatalogFormatter
             'updatedAt' => $brand->getUpdatedAt()->format(DATE_ATOM),
         ];
 
-        if ($productsCount !== null) {
+        if (null !== $productsCount) {
             $data['productsCount'] = $productsCount;
         }
 
@@ -111,7 +111,7 @@ final class CatalogFormatter
             );
         }
 
-        if ($product->isDiscountEnabled() && $product->getDiscountType() !== null && $product->getDiscountValue() !== null) {
+        if ($product->isDiscountEnabled() && null !== $product->getDiscountType() && null !== $product->getDiscountValue()) {
             $data['discount'] = [
                 'type' => $product->getDiscountType(),
                 'value' => $product->getDiscountValue(),
@@ -134,13 +134,13 @@ final class CatalogFormatter
         foreach ([0, 1, 2, 3] as $position) {
             $fileName = $product->getGalleryImageNameByPosition($position);
 
-            if ($fileName === null) {
+            if (null === $fileName) {
                 continue;
             }
 
             $url = self::resolveImageUrlFromName($fileName);
 
-            if ($url === null) {
+            if (null === $url) {
                 continue;
             }
 
@@ -148,7 +148,7 @@ final class CatalogFormatter
                 'position' => $position,
                 'url' => $url,
                 'alt' => $product->getImageAlt() ?? $product->getName(),
-                'isPrimary' => $position === 0,
+                'isPrimary' => 0 === $position,
             ];
         }
 
@@ -157,7 +157,7 @@ final class CatalogFormatter
 
     private static function resolveImageUrlFromName(?string $fileName): ?string
     {
-        if ($fileName === null || $fileName === '') {
+        if (null === $fileName || '' === $fileName) {
             return null;
         }
 

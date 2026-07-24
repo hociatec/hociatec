@@ -28,7 +28,7 @@ final class CheckoutSessionStatusController extends AbstractController
     public function __invoke(string $stripeSessionId): JsonResponse
     {
         $checkout = $this->checkoutSessions->findOneByStripeSessionId($stripeSessionId);
-        if ($checkout === null) {
+        if (null === $checkout) {
             return ApiResponse::error('Session de paiement introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -38,13 +38,13 @@ final class CheckoutSessionStatusController extends AbstractController
             return ApiResponse::error('Session de paiement introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $order = $checkout->getOrderId() !== null ? $this->orders->find($checkout->getOrderId()) : null;
+        $order = null !== $checkout->getOrderId() ? $this->orders->find($checkout->getOrderId()) : null;
 
         return ApiResponse::success([
             'status' => $checkout->getStatus(),
             'checkoutSessionId' => $checkout->getStripeSessionId(),
             'orderId' => $order?->getId(),
-            'order' => $order !== null ? OrderFormatter::formatOrder($order) : null,
+            'order' => null !== $order ? OrderFormatter::formatOrder($order) : null,
         ]);
     }
 }

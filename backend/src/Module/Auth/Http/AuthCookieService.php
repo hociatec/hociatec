@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Http;
 
-use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,7 +58,7 @@ final class AuthCookieService
         return Cookie::create(
             self::REFRESH_COOKIE,
             $refreshToken,
-            new DateTimeImmutable($expiresAt),
+            new \DateTimeImmutable($expiresAt),
             '/api/auth',
             null,
             $this->isSecureCookie($request),
@@ -71,6 +70,6 @@ final class AuthCookieService
 
     private function isSecureCookie(Request $request): bool
     {
-        return $request->isSecure() || $this->environment === 'prod';
+        return $request->isSecure() || 'prod' === $this->environment;
     }
 }

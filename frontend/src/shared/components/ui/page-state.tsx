@@ -33,7 +33,7 @@ export const PageState = ({ children, className, variant = 'neutral', ...props }
 );
 
 export const LoadingState = ({ children = 'Chargement...', ...props }: LoadingStateProps) => (
-  <PageState aria-hidden="true" {...props}>
+  <PageState role="status" aria-live="polite" {...props}>
     {children}
   </PageState>
 );

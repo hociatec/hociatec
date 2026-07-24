@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Marketing\Entity;
 
 use App\Module\Marketing\Repository\EmailTemplateRepository;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EmailTemplateRepository::class)]
@@ -40,10 +39,10 @@ class EmailTemplate
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $updatedAt;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct(
         string $name,
@@ -59,7 +58,7 @@ class EmailTemplate
         $this->subjectTemplate = $subjectTemplate;
         $this->htmlBody = $htmlBody;
         $this->textBody = $textBody;
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
@@ -153,12 +152,12 @@ class EmailTemplate
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -166,6 +165,6 @@ class EmailTemplate
     #[ORM\PreUpdate]
     public function touch(): void
     {
-        $this->updatedAt = new DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

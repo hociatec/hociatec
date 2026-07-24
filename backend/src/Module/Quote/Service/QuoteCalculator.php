@@ -9,6 +9,7 @@ use App\Module\Quote\Entity\QuoteItem;
 
 class QuoteCalculator
 {
+    /** @return array{totalHt: int, totalVat: int, totalTtc: int} */
     public function computeTotals(Quote $quote): array
     {
         $totalHt = 0;
@@ -38,6 +39,7 @@ class QuoteCalculator
         $qty = max(1, $item->getQuantity());
         $line = max(0, ($item->getUnitPriceCents() * $qty) - $item->getDiscountCents());
         $vat = (int) round($line * ($item->getVatRateBps() / 10000));
+
         return [
             'ht' => $line,
             'vat' => $vat,
@@ -45,4 +47,3 @@ class QuoteCalculator
         ];
     }
 }
-

@@ -32,4 +32,3 @@ class AuditRequestRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

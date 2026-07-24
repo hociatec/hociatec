@@ -21,14 +21,14 @@ final class TrainingWriter
             ->setCategory($this->category($payload['category'] ?? $training->getCategory()))
             ->setDurationMinutes(max(15, (int) ($payload['durationMinutes'] ?? $training->getDurationMinutes())))
             ->setPriceCents(max(0, (int) ($payload['priceCents'] ?? $training->getPriceCents())))
-            ->setAvailableFormats($this->formats((array) ($payload['availableFormats'] ?? $training->getAvailableFormats())))
+            ->setAvailableFormats($this->formats($payload['availableFormats'] ?? $training->getAvailableFormats()))
             ->setIsActive((bool) ($payload['isActive'] ?? $training->isActive()));
 
         $training->clearRoadmapItems();
         $position = 1;
         foreach ((array) ($payload['roadmap'] ?? []) as $item) {
             $title = trim((string) $item);
-            if ($title === '') {
+            if ('' === $title) {
                 continue;
             }
             $training->addRoadmapItem(new TrainingRoadmapItem($position++, $title));
@@ -44,13 +44,14 @@ final class TrainingWriter
         $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?: '';
         $value = trim($value, '-');
 
-        return $value !== '' ? $value : 'formation';
+        return '' !== $value ? $value : 'formation';
     }
 
     private function nullableString(mixed $value): ?string
     {
         $text = trim((string) $value);
-        return $text !== '' ? $text : null;
+
+        return '' !== $text ? $text : null;
     }
 
     private function category(mixed $value): string
@@ -59,15 +60,19 @@ final class TrainingWriter
         $category = preg_replace('/[^a-z0-9_-]+/', '-', mb_strtolower($category)) ?: '';
         $category = trim($category, '-_');
 
-        return $category !== '' ? $category : 'general';
+        return '' !== $category ? $category : 'general';
     }
 
-    /** @param list<mixed> $formats @return list<string> */
-    private function formats(array $formats): array
+    /** @return list<string> */
+    private function formats(mixed $formats): array
     {
+        if (!is_array($formats)) {
+            return ['onsite'];
+        }
+
         $allowed = ['onsite', 'remote'];
         $result = array_values(array_intersect($allowed, array_map('strval', $formats)));
 
-        return $result !== [] ? $result : ['onsite'];
+        return [] !== $result ? $result : ['onsite'];
     }
 }

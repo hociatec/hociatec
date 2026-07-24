@@ -6,7 +6,6 @@ namespace App\Module\Appointment\Entity;
 
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
@@ -32,25 +31,25 @@ class Appointment
     private Prestation $prestation;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $startAt;
+    private \DateTimeImmutable $startAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $endAt;
+    private \DateTimeImmutable $endAt;
 
     #[ORM\Column(length: 20)]
     private string $status;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private DateTimeImmutable $createdAt;
+    private \DateTimeImmutable $createdAt;
 
-    public function __construct(User $user, Prestation $prestation, DateTimeImmutable $startAt)
+    public function __construct(User $user, Prestation $prestation, \DateTimeImmutable $startAt)
     {
         $this->user = $user;
         $this->prestation = $prestation;
         $this->startAt = $startAt;
         $this->endAt = $startAt->add($prestation->getDurationInterval());
         $this->status = self::STATUS_CONFIRMED;
-        $this->createdAt = new DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -68,12 +67,12 @@ class Appointment
         return $this->prestation;
     }
 
-    public function getStartAt(): DateTimeImmutable
+    public function getStartAt(): \DateTimeImmutable
     {
         return $this->startAt;
     }
 
-    public function getEndAt(): DateTimeImmutable
+    public function getEndAt(): \DateTimeImmutable
     {
         return $this->endAt;
     }
@@ -101,10 +100,10 @@ class Appointment
 
     public function isCancelled(): bool
     {
-        return $this->status === self::STATUS_CANCELLED;
+        return self::STATUS_CANCELLED === $this->status;
     }
 
-    public function getCreatedAt(): DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -116,12 +115,12 @@ class Appointment
         return $this;
     }
 
-    public function overlaps(DateTimeImmutable $startAt, DateTimeImmutable $endAt): bool
+    public function overlaps(\DateTimeImmutable $startAt, \DateTimeImmutable $endAt): bool
     {
         return $this->startAt < $endAt && $this->endAt > $startAt;
     }
 
-    public function setStartAt(DateTimeImmutable $startAt): self
+    public function setStartAt(\DateTimeImmutable $startAt): self
     {
         $this->startAt = $startAt;
         $this->endAt = $startAt->add($this->prestation->getDurationInterval());
@@ -129,7 +128,7 @@ class Appointment
         return $this;
     }
 
-    public function setEndAt(DateTimeImmutable $endAt): self
+    public function setEndAt(\DateTimeImmutable $endAt): self
     {
         $this->endAt = $endAt;
 

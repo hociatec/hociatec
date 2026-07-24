@@ -35,7 +35,7 @@ final class SendCampaignController extends AbstractController
         $textBody = isset($payload['textBody']) ? trim((string) $payload['textBody']) : null;
         $templateId = isset($payload['templateId']) ? (int) $payload['templateId'] : null;
 
-        if ($name === '' || $segmentKey === '' || $subject === '' || $htmlBody === '') {
+        if ('' === $name || '' === $segmentKey || '' === $subject || '' === $htmlBody) {
             return ApiResponse::error('Veuillez renseigner le nom, l’audience, l’objet et le contenu HTML.');
         }
 

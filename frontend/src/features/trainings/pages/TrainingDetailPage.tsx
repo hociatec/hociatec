@@ -10,6 +10,7 @@ import {
 } from '@/features/trainings/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatFrenchDate, formatFrenchTime } from '@/shared/lib/formatters';
 
@@ -110,9 +111,9 @@ export const TrainingDetailPage = () => {
     <SiteLayout headerVariant="light">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         {loading ? (
-          <div className="rounded-xl border border-brand-100 bg-white p-8 text-center text-stone-600" aria-hidden="true">Chargement...</div>
+          <LoadingState>Chargement de la formation...</LoadingState>
         ) : error || !training ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-700">{error}</div>
+          <ErrorState>{error ?? 'Formation introuvable.'}</ErrorState>
         ) : (
           <>
             <header className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">

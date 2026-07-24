@@ -13,8 +13,6 @@ use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PostRemoveEventArgs;
 use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\Events;
-use function spl_object_id;
-use function sprintf;
 
 /**
  * Ensures cached review statistics on Product stay in sync when ratings change.
@@ -76,7 +74,7 @@ final class ProductRatingStatsSubscriber implements EventSubscriber
 
     public function postFlush(PostFlushEventArgs $args): void
     {
-        if ($this->productsToRefresh === []) {
+        if ([] === $this->productsToRefresh) {
             return;
         }
 
@@ -90,11 +88,13 @@ final class ProductRatingStatsSubscriber implements EventSubscriber
 
     private function scheduleProduct(Product $product): void
     {
-        $key = $product->getId();
-        if ($key === null) {
-            $key = sprintf('tmp_%s', spl_object_id($product));
+        $id = $product->getId();
+        if (null === $id) {
+            $this->productsToRefresh[\sprintf('tmp_%s', \spl_object_id($product))] = $product;
+
+            return;
         }
 
-        $this->productsToRefresh[(string) $key] = $product;
+        $this->productsToRefresh['id_'.$id] = $product;
     }
 }

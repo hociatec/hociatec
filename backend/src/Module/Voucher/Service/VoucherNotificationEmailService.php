@@ -18,6 +18,8 @@ final class VoucherNotificationEmailService
         private readonly EmailTemplateRepository $templates,
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
+        private readonly string $frontendUrl,
+        private readonly string $mailerFrom,
     ) {
     }
 
@@ -35,8 +37,6 @@ final class VoucherNotificationEmailService
         $renderedHtml = $this->renderTemplate($htmlBody, $context, true);
         $renderedText = $this->renderTemplate($textBody, $context, false);
 
-        $from = $_ENV['MAILER_FROM'] ?? 'no-reply@localhost';
-
         try {
             $this->ovhRoundcubeMailer->send(
                 $user->getEmail(),
@@ -45,7 +45,7 @@ final class VoucherNotificationEmailService
             );
         } catch (\Throwable) {
             $email = (new Email())
-                ->from(new Address($from, 'Hociatec'))
+                ->from(new Address($this->mailerFrom, 'Hociatec'))
                 ->to(new Address($user->getEmail(), $user->getFullName()))
                 ->subject($renderedSubject)
                 ->html($renderedHtml)
@@ -60,10 +60,10 @@ final class VoucherNotificationEmailService
      */
     private function buildContext(User $user, Voucher $voucher): array
     {
-        $frontendUrl = rtrim((string) ($_ENV['APP_FRONTEND_URL'] ?? 'http://localhost:5173'), '/');
-        $valueLabel = $voucher->getDiscountType() === Voucher::TYPE_PERCENT
-            ? $voucher->getDiscountValue() . '%'
-            : number_format($voucher->getDiscountValue() / 100, 2, ',', ' ') . ' EUR';
+        $frontendUrl = rtrim($this->frontendUrl, '/');
+        $valueLabel = Voucher::TYPE_PERCENT === $voucher->getDiscountType()
+            ? $voucher->getDiscountValue().'%'
+            : number_format($voucher->getDiscountValue() / 100, 2, ',', ' ').' EUR';
 
         return [
             'first_name' => $user->getFirstName(),
@@ -80,8 +80,8 @@ final class VoucherNotificationEmailService
             'voucher_starts_at' => $voucher->getStartsAt()?->format('d/m/Y H:i') ?? '',
             'voucher_ends_at' => $voucher->getEndsAt()?->format('d/m/Y H:i') ?? '',
             'voucher_is_active' => $voucher->isActive() ? '1' : '0',
-            'shop_url' => $frontendUrl . '/boutique',
-            'cart_url' => $frontendUrl . '/panier',
+            'shop_url' => $frontendUrl.'/boutique',
+            'cart_url' => $frontendUrl.'/panier',
         ];
     }
 
@@ -106,7 +106,7 @@ final class VoucherNotificationEmailService
         $replacements = [];
 
         foreach ($context as $key => $value) {
-            $replacements['{{' . $key . '}}'] = $allowHtml
+            $replacements['{{'.$key.'}}'] = $allowHtml
                 ? htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
                 : $value;
         }

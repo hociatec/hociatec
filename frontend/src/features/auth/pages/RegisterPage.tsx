@@ -178,6 +178,7 @@ export const RegisterPage = () => {
                 name="email"
                 type="email"
                 autoComplete="email"
+                  maxLength={180}
                   value={form.email}
                   onChange={handleChange}
                   aria-invalid={error ? true : undefined}
@@ -243,6 +244,7 @@ export const RegisterPage = () => {
                     aria-describedby={passwordHelpId}
                     aria-invalid={error ? true : undefined}
                     minLength={8}
+                    maxLength={4096}
                     required
                   />
                   <button
@@ -267,6 +269,7 @@ export const RegisterPage = () => {
                     aria-describedby={passwordHelpId}
                     aria-invalid={error ? true : undefined}
                     minLength={8}
+                    maxLength={4096}
                     required
                   />
                   <button

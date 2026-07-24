@@ -29,7 +29,7 @@ class CancelMyOrderController extends AbstractController
     public function __invoke(int $orderId): JsonResponse
     {
         $order = $this->orders->find($orderId);
-        if ($order === null) {
+        if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -39,7 +39,7 @@ class CancelMyOrderController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($order->getStatus() !== Order::STATUS_PENDING) {
+        if (Order::STATUS_PENDING !== $order->getStatus()) {
             return ApiResponse::error('Seules les commandes en attente peuvent etre annulees.', Response::HTTP_BAD_REQUEST);
         }
 

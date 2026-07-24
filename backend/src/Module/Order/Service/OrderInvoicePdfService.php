@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
+use App\Shared\Pdf\AccessiblePdfRenderer;
 
 final class OrderInvoicePdfService
 {
@@ -26,172 +27,41 @@ final class OrderInvoicePdfService
     private const RECOVERY_FEE = 'Indemnité forfaitaire pour frais de recouvrement : 40 EUR.';
     private const OPERATION_NATURE = 'Livraison de biens';
 
-    public function render(Order $order, array $totals): string
+    public function __construct(private readonly AccessiblePdfRenderer $renderer)
     {
-        $workspaceRoot = dirname(__DIR__, 5);
-        $pythonBinary = $this->resolvePythonBinary($workspaceRoot);
-        $rendererScript = dirname(__DIR__, 4) . '/bin/render_accessible_pdf.py';
-
-        if ($pythonBinary === null || !is_file($rendererScript)) {
-            throw new \RuntimeException('WeasyPrint n\'est pas installé pour la génération PDF accessible.');
-        }
-
-        $htmlFile = tempnam(sys_get_temp_dir(), 'invoice-html-');
-        $pdfFile = tempnam(sys_get_temp_dir(), 'invoice-pdf-');
-        if ($htmlFile === false || $pdfFile === false) {
-            throw new \RuntimeException('Impossible de préparer les fichiers temporaires de la facture PDF.');
-        }
-
-        $htmlPath = $htmlFile . '.html';
-        $pdfPath = $pdfFile . '.pdf';
-        @unlink($htmlFile);
-        @unlink($pdfFile);
-
-        try {
-            file_put_contents($htmlPath, $this->buildHtml($order, $totals));
-            $this->runRenderer($pythonBinary, $rendererScript, $htmlPath, $pdfPath);
-
-            $pdf = file_get_contents($pdfPath);
-            if ($pdf === false) {
-                throw new \RuntimeException('Le PDF de facture n\'a pas pu être lu.');
-            }
-
-            return $pdf;
-        } finally {
-            @unlink($htmlPath);
-            @unlink($pdfPath);
-        }
-    }
-
-    private function resolvePythonBinary(string $workspaceRoot): ?string
-    {
-        $configured = $_ENV['WEASYPRINT_PYTHON'] ?? $_SERVER['WEASYPRINT_PYTHON'] ?? null;
-        $candidates = array_filter([
-            is_string($configured) && trim($configured) !== '' ? trim($configured) : null,
-            $workspaceRoot . '/.venv-weasy/bin/python',
-            $workspaceRoot . '/backend/.venv-weasy/bin/python',
-            '/usr/bin/python3',
-            '/usr/local/bin/python3',
-            'python3',
-        ]);
-
-        foreach ($candidates as $candidate) {
-            if ($this->canImportWeasyPrint($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    private function canImportWeasyPrint(string $pythonBinary): bool
-    {
-        if (str_contains($pythonBinary, '/') && !is_file($pythonBinary)) {
-            return false;
-        }
-
-        $command = sprintf('%s -c %s', escapeshellarg($pythonBinary), escapeshellarg('import weasyprint'));
-        $process = proc_open(
-            $command,
-            [
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-            null,
-            $this->buildRendererEnvironment(),
-        );
-
-        if (!is_resource($process)) {
-            return false;
-        }
-
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        return proc_close($process) === 0;
-    }
-
-    private function runRenderer(string $pythonBinary, string $rendererScript, string $htmlPath, string $pdfPath): void
-    {
-        $command = sprintf(
-            '%s %s %s %s',
-            escapeshellarg($pythonBinary),
-            escapeshellarg($rendererScript),
-            escapeshellarg($htmlPath),
-            escapeshellarg($pdfPath),
-        );
-
-        $process = proc_open(
-            $command,
-            [
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-        );
-
-        if (!is_resource($process)) {
-            throw new \RuntimeException('Impossible de démarrer WeasyPrint.');
-        }
-
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
-
-        if ($exitCode !== 0 || !is_file($pdfPath)) {
-            $message = trim($stderr ?: $stdout);
-            throw new \RuntimeException($message !== '' ? $message : 'La génération PDF accessible a échoué.');
-        }
     }
 
     /**
-     * PHP-FPM runs with a minimal environment, so Python does not automatically
-     * load packages installed in the deployment user's site-packages directory.
-     *
-     * @return array<string, string>
+     * @param array{
+     *   subtotalTtcBeforeDiscount:int,
+     *   totalDiscountTtc:int,
+     *   totalHt:int,
+     *   totalVat:int,
+     *   totalTtc:int,
+     *   taxBreakdown:list<array{rateBps:int, taxableCents:int, taxCents:int}>,
+     *   items:list<array<string,mixed>>
+     * } $totals
      */
-    private function buildRendererEnvironment(): array
+    public function render(Order $order, array $totals): string
     {
-        $environment = [];
-        foreach ($_ENV as $key => $value) {
-            if (is_string($key) && is_scalar($value)) {
-                $environment[$key] = (string) $value;
-            }
-        }
-
-        foreach ($_SERVER as $key => $value) {
-            if (is_string($key) && is_scalar($value) && !array_key_exists($key, $environment)) {
-                $environment[$key] = (string) $value;
-            }
-        }
-
-        $pythonPaths = [];
-        $configuredPythonPath = $_ENV['WEASYPRINT_PYTHONPATH'] ?? $_SERVER['WEASYPRINT_PYTHONPATH'] ?? null;
-        if (is_string($configuredPythonPath) && trim($configuredPythonPath) !== '') {
-            $pythonPaths[] = trim($configuredPythonPath);
-        }
-
-        $deploymentUserSitePackages = '/home/hocine/.local/lib/python3.10/site-packages';
-        if (is_dir($deploymentUserSitePackages)) {
-            $pythonPaths[] = $deploymentUserSitePackages;
-            $environment['HOME'] = $environment['HOME'] ?? '/home/hocine';
-        }
-
-        $existingPythonPath = $environment['PYTHONPATH'] ?? null;
-        if (is_string($existingPythonPath) && trim($existingPythonPath) !== '') {
-            $pythonPaths[] = trim($existingPythonPath);
-        }
-
-        if ($pythonPaths !== []) {
-            $environment['PYTHONPATH'] = implode(PATH_SEPARATOR, array_values(array_unique($pythonPaths)));
-        }
-
-        return $environment;
+        return $this->renderer->render(
+            $this->buildHtml($order, $totals),
+            'invoice',
+            'Le PDF de facture n\'a pas pu être lu.',
+        );
     }
 
+    /**
+     * @param array{
+     *   subtotalTtcBeforeDiscount:int,
+     *   totalDiscountTtc:int,
+     *   totalHt:int,
+     *   totalVat:int,
+     *   totalTtc:int,
+     *   taxBreakdown:list<array{rateBps:int, taxableCents:int, taxCents:int}>,
+     *   items:list<array<string,mixed>>
+     * } $totals
+     */
     private function buildHtml(Order $order, array $totals): string
     {
         $invoiceNumber = $this->escape((string) $order->getInvoiceNumber());
@@ -201,32 +71,32 @@ final class OrderInvoicePdfService
         $dueAt = $this->formatDate($order->getInvoicedAt()?->modify('+30 days')->format('Y-m-d'));
         $orderNumber = $this->escape($order->getNumber());
         $issuerLines = implode('', array_map(
-            static fn (string $line): string => '<p>' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>',
+            static fn (string $line): string => '<p>'.htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</p>',
             self::ISSUER_ADDRESS_LINES,
         ));
 
         $customerDisplayName = $this->resolveCustomerName($order);
-        $customerName = $customerDisplayName !== '' ? $this->escape($customerDisplayName) : '-';
-        $customerCompany = $order->getBillingCompany() ? '<p>Société : ' . $this->escape($order->getBillingCompany()) . '</p>' : '<p>Client : particulier</p>';
-        $customerSiren = $order->getBillingCompanySiren() ? '<p>SIREN client : ' . $this->escape($order->getBillingCompanySiren()) . '</p>' : '';
-        $customerVatNumber = $order->getBillingCompanyVatNumber() ? '<p>TVA client : ' . $this->escape($order->getBillingCompanyVatNumber()) . '</p>' : '';
+        $customerName = '' !== $customerDisplayName ? $this->escape($customerDisplayName) : '-';
+        $customerCompany = $order->getBillingCompany() ? '<p>Société : '.$this->escape($order->getBillingCompany()).'</p>' : '<p>Client : particulier</p>';
+        $customerSiren = $order->getBillingCompanySiren() ? '<p>SIREN client : '.$this->escape($order->getBillingCompanySiren()).'</p>' : '';
+        $customerVatNumber = $order->getBillingCompanyVatNumber() ? '<p>TVA client : '.$this->escape($order->getBillingCompanyVatNumber()).'</p>' : '';
         $customerAddress = $order->getBillingAddress() ? $this->formatMultilineAddress($order->getBillingAddress()) : '';
         $customerCity = trim(sprintf('%s %s', (string) $order->getBillingPostalCode(), (string) $order->getBillingCity()));
-        $customerCityHtml = $customerCity !== '' ? '<p>' . $this->escape($customerCity) . '</p>' : '';
-        $customerEmail = $order->getBillingEmail() ? '<p>Email : ' . $this->escape($order->getBillingEmail()) . '</p>' : '';
-        $customerPhone = trim($order->getUser()->getPhoneNumber()) !== '' ? '<p>Téléphone : ' . $this->escape($order->getUser()->getPhoneNumber()) . '</p>' : '';
+        $customerCityHtml = '' !== $customerCity ? '<p>'.$this->escape($customerCity).'</p>' : '';
+        $customerEmail = $order->getBillingEmail() ? '<p>Email : '.$this->escape($order->getBillingEmail()).'</p>' : '';
+        $customerPhone = '' !== trim($order->getUser()->getPhoneNumber()) ? '<p>Téléphone : '.$this->escape($order->getUser()->getPhoneNumber()).'</p>' : '';
 
         $deliveryHtml = '';
         if (
-            $order->getShippingAddress() !== null
+            null !== $order->getShippingAddress()
             && trim((string) $order->getShippingAddress()) !== trim((string) $order->getBillingAddress())
         ) {
             $deliveryCity = trim(sprintf('%s %s', (string) $order->getShippingPostalCode(), (string) $order->getShippingCity()));
             $deliveryHtml = sprintf(
                 '<dt>Adresse de livraison</dt><dd>%s%s%s</dd>',
-                $order->getShippingName() ? $this->escape($order->getShippingName()) . '<br>' : '',
+                $order->getShippingName() ? $this->escape($order->getShippingName()).'<br>' : '',
                 $this->escape($order->getShippingAddress()),
-                $deliveryCity !== '' ? '<br>' . $this->escape($deliveryCity) : '',
+                '' !== $deliveryCity ? '<br>'.$this->escape($deliveryCity) : '',
             );
         }
 
@@ -410,12 +280,12 @@ HTML;
 
     private function formatMoney(int $cents): string
     {
-        return number_format($cents / 100, 2, ',', ' ') . ' EUR';
+        return number_format($cents / 100, 2, ',', ' ').' EUR';
     }
 
     private function formatDate(?string $date): string
     {
-        if ($date === null || $date === '') {
+        if (null === $date || '' === $date) {
             return '-';
         }
 
@@ -432,17 +302,17 @@ HTML;
     private function resolveCustomerName(Order $order): string
     {
         $billingName = trim((string) $order->getBillingName());
-        if ($billingName !== '') {
+        if ('' !== $billingName) {
             return $billingName;
         }
 
-        return trim($order->getUser()->getFirstName() . ' ' . $order->getUser()->getLastName());
+        return trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName());
     }
 
     private function formatMultilineAddress(string $value): string
     {
         return implode('', array_map(
-            fn (string $line): string => '<p>' . $this->escape($line) . '</p>',
+            fn (string $line): string => '<p>'.$this->escape($line).'</p>',
             preg_split('/\R/u', $value) ?: [$value],
         ));
     }
