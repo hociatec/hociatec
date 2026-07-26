@@ -30,6 +30,7 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
         </p>
         <ProductMetaBadges
           sellingType={product.sellingType}
+          sellingTypeLabel={product.sellingTypeLabel}
           categoryName={product.category.name}
         />
         {compactSpecs.length > 0 && (

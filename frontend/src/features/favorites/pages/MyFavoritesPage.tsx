@@ -7,10 +7,10 @@ import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/pag
 import { formatEuroCents, formatFrenchDate } from '@/shared/lib/formatters';
 import { useFavorites } from '../hooks/useFavorites';
 
-const formatPrice = (cents: number, sellingType: 'sale' | 'rental') => {
+const formatPrice = (cents: number, priceUnitLabel: string | null) => {
   const value = formatEuroCents(cents);
 
-  return sellingType === 'rental' ? `${value} / mois` : value;
+  return `${value}${priceUnitLabel ? ` ${priceUnitLabel}` : ''}`;
 };
 
 export const MyFavoritesPage = () => {
@@ -133,7 +133,7 @@ export const MyFavoritesPage = () => {
                     </Link>
                     <div className="flex flex-col items-start gap-3 lg:items-end">
                       <p className="text-lg font-semibold text-brand-900">
-                        {formatPrice(unitPriceCents, product.sellingType)}
+                        {formatPrice(unitPriceCents, product.priceUnitLabel)}
                       </p>
                       <div className="flex flex-wrap items-center gap-3">
                         <Link

@@ -57,7 +57,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
             </Link>
           </h3>
         </header>
-        <ProductMetaBadges sellingType={product.sellingType} categoryName={product.category.name} />
+        <ProductMetaBadges sellingType={product.sellingType} sellingTypeLabel={product.sellingTypeLabel} categoryName={product.category.name} />
         {compactSpecs.length > 0 && (
           <p
             className="catalog-product-card__spec-summary"
@@ -87,7 +87,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           <div className="catalog-product-card__footer-main">
             <span className="catalog-product-card__price">
               {formatPrice(product.priceCents)} EUR
-              {product.sellingType === 'rental' ? ' / mois' : ''}
+              {product.priceUnitLabel ?? ''}
             </span>
           </div>
           {actionSlot ? <div className="catalog-product-card__actions">{actionSlot}</div> : null}

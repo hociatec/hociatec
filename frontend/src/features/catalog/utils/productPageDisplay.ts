@@ -50,7 +50,7 @@ export const buildProductVariantOptions = (variants: CatalogProduct[]) =>
               : 'Version disponible',
         storage,
         color,
-        priceLabel: `${formatProductPrice(variant.priceCents)}${variant.sellingType === 'rental' ? ' / mois' : ''}`,
+        priceLabel: `${formatProductPrice(variant.priceCents)}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
         stockLabel: variant.stock > 0 ? `${variant.stock} en stock` : 'Indisponible',
         isAvailable: variant.stock > 0,
       };

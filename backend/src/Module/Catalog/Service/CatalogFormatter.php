@@ -71,6 +71,8 @@ final class CatalogFormatter
             'description' => $product->getDescription(),
             'priceCents' => $product->getPriceCents(),
             'sellingType' => $product->getSellingType(),
+            'sellingTypeLabel' => 'rental' === $product->getSellingType() ? 'Location' : 'Vente',
+            'priceUnitLabel' => 'rental' === $product->getSellingType() ? '/ mois' : null,
             'brand' => $product->getBrand(),
             'brandId' => $product->getBrandId(),
             'variantGroup' => $product->getVariantGroup(),

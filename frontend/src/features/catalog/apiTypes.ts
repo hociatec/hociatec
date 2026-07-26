@@ -38,6 +38,8 @@ export interface CatalogProduct {
   description: string;
   priceCents: number;
   sellingType: 'sale' | 'rental';
+  sellingTypeLabel: string;
+  priceUnitLabel: string | null;
   brand?: string | null;
   brandId?: number | null;
   variantGroup?: string | null;

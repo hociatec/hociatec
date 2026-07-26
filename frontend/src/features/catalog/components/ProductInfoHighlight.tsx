@@ -16,7 +16,7 @@ export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighl
           <dt>Prix public</dt>
           <dd>
             {formatProductPrice(product.priceCents)}
-            {product.sellingType === 'rental' ? ' / mois' : ''}
+            {product.priceUnitLabel ?? ''}
           </dd>
         </div>
         <div>
@@ -25,6 +25,7 @@ export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighl
             {product.sku}
             <ProductMetaBadges
               sellingType={product.sellingType}
+              sellingTypeLabel={product.sellingTypeLabel}
               categoryName={product.category.name}
               variant="detail"
             />
