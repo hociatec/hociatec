@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 
 import {
-  formatTrainingEnrollmentStatus,
   formatTrainingCategory,
   formatTrainingFormat,
 } from '@/features/trainings/api/trainingsApi';
@@ -10,9 +9,9 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { AdminTrainingEnrollmentsTable } from '@/features/admin/trainings/components/AdminTrainingEnrollmentsTable';
 import {
   formatEuroCents,
-  formatFrenchDateTime,
   formatOptionalFrenchDate,
 } from '@/shared/lib/formatters';
 
@@ -230,35 +229,7 @@ export const AdminTrainingsPage = () => {
                 Gérer les inscriptions
               </Link>
             </div>
-            <AdminListState
-              loading={false}
-              isEmpty={enrollments.length === 0}
-              loadingLabel=""
-              emptyLabel="Aucune inscription."
-            >
-              <AdminTableShell>
-                <table className="catalog-admin-table">
-                  <thead>
-                    <tr>
-                      <th>Formation</th>
-                      <th>Créneau</th>
-                      <th>Prix</th>
-                      <th>Statut</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {enrollments.map((enrollment) => (
-                      <tr key={enrollment.id}>
-                        <td>{enrollment.session.training.title}</td>
-                        <td>{formatFrenchDateTime(enrollment.scheduledStartsAt)}</td>
-                        <td>{formatEuroCents(enrollment.priceCents)}</td>
-                        <td>{formatTrainingEnrollmentStatus(enrollment.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </AdminTableShell>
-            </AdminListState>
+            <AdminTrainingEnrollmentsTable enrollments={enrollments} />
           </section>
         </div>
       </AdminListState>
