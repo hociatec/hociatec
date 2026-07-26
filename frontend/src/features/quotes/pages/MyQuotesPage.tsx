@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -55,7 +54,7 @@ export const MyQuotesPage = () => {
                     return (
                       <tr key={q.id}>
                         <td>{q.number}</td>
-                        <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
+                        <td>{q.statusLabel}</td>
                         <td>{formatOptionalFrenchDate(q.createdAt)}</td>
                         <td>{formatEuroCents(q?.totals?.ttc ?? 0)}</td>
                         <td>

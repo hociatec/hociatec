@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
 import { useAdminQuoteDetail } from '../hooks/useAdminQuoteDetail';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -122,7 +121,7 @@ export const AdminQuoteDetailPage = () => {
               <div>
                 <div className="muted">Statut</div>
                 <div className="quote-strong">
-                  {quote.statusLabel ?? formatQuoteStatus(quoteStatus)}
+                  {quote.statusLabel}
                 </div>
                 {quote.sentAt ? (
                   <div className="muted quote-small-muted">

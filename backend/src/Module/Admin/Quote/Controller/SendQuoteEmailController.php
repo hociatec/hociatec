@@ -8,6 +8,7 @@ use App\Module\Admin\Quote\DTO\QuoteEmailInput;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteEmailService;
+use App\Module\Quote\Service\QuoteStatusTranslator;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Validation\DtoValidator;
@@ -80,6 +81,8 @@ class SendQuoteEmailController extends AbstractController
 
         return ApiResponse::success([
             'sent' => true,
+            'statusCode' => Quote::STATUS_SENT,
+            'statusLabel' => QuoteStatusTranslator::toLabel(Quote::STATUS_SENT),
             'to' => $result['to'],
             'attachmentIncluded' => $result['attachmentIncluded'],
             'transport' => $result['transport'],

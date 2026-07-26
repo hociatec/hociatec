@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
 import { useAdminQuotesList } from '../hooks/useAdminQuotesList';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -111,7 +110,7 @@ export const QuotesListPage = () => {
                     <strong>{q.customer?.name ?? '-'}</strong>
                   </td>
                   <td>{q.customer?.email ?? '-'}</td>
-                  <td>{q.statusLabel ?? formatQuoteStatus(q.statusCode ?? q.status)}</td>
+                  <td>{q.statusLabel}</td>
                   <td>{formatDateInputForDisplay(q.validUntil)}</td>
                   <td>{formatEuroCents(q?.totals?.ttc ?? 0)}</td>
                   <td>

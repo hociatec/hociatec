@@ -1,6 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 
-import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -84,7 +83,7 @@ export const MyQuoteDetailPage = () => {
                 <div>
                   <div className="muted">Statut</div>
                   <div className="quote-strong">
-                    {quote.statusLabel ?? formatQuoteStatus(quoteStatus)}
+                  {quote.statusLabel}
                   </div>
                   {quote.convertedOrder ? (
                     <Link to={`/orders/${quote.convertedOrder.id}`} className="underline text-sm">

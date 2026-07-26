@@ -99,9 +99,9 @@ export const useAdminQuotesList = () => {
           item.id === id
             ? {
                 ...item,
-                statusCode: 'sent',
-                statusLabel: 'Envoyé',
-                status: 'Envoyé',
+                statusCode: response.statusCode ?? 'sent',
+                statusLabel: response.statusLabel ?? item.statusLabel,
+                status: response.statusCode ?? 'sent',
                 sentAt: new Date().toISOString(),
               }
             : item,

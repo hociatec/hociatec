@@ -136,7 +136,7 @@ export const AdminTradeInDetailsModal = ({
                 <div className="grid gap-2 sm:grid-cols-2">
                   {selected.allowedNextStatusDetails.map(({ value, label }) => (
                     <label key={value} className="flex cursor-pointer items-center gap-3 rounded border border-brand-100 p-3 hover:bg-brand-50">
-                      <input type="radio" name="trade-in-status" value={value} checked={pendingStatus === value} onChange={() => onStatusChange(value)} />
+                      <input type="radio" name="trade-in-status" value={value} checked={pendingStatus === value} onChange={() => onStatusChange(value as TradeInStatus)} />
                       <span>{label}</span>
                     </label>
                   ))}

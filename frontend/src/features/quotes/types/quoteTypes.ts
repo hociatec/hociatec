@@ -62,6 +62,8 @@ export interface AdminQuoteMutationDto {
 }
 export interface AdminQuoteEmailDto {
   sent: boolean;
+  statusCode?: QuoteStatus;
+  statusLabel?: string;
   to?: string;
   attachmentIncluded?: boolean;
   transport?: string;
