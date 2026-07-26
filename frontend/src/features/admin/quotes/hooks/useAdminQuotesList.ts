@@ -10,6 +10,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
+import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/api/adminQuotesApi';
 export const useAdminQuotesList = () => {
   const toast = useToast();
   const confirm = useConfirm();
@@ -22,6 +23,10 @@ export const useAdminQuotesList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+  const [statusOptions, setStatusOptions] = useState<QuoteMetadataOption[]>([]);
+  useEffect(() => {
+    void fetchAdminQuoteMetadata().then((metadata) => setStatusOptions(metadata.statuses)).catch(() => undefined);
+  }, []);
   useEffect(() => {
     setLoading(true);
     void fetchAdminQuotes({
@@ -124,6 +129,7 @@ export const useAdminQuotesList = () => {
     setSearch,
     filterStatus,
     setFilterStatus,
+    statusOptions,
     fromDate,
     setFromDate,
     toDate,

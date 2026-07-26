@@ -21,6 +21,7 @@ export const QuotesListPage = () => {
     setSearch,
     filterStatus,
     setFilterStatus,
+    statusOptions,
     fromDate,
     setFromDate,
     toDate,
@@ -55,11 +56,7 @@ export const QuotesListPage = () => {
           onChange={setFilterStatus}
           options={[
             { value: 'all', label: 'Tous les statuts' },
-            { value: 'draft', label: 'Brouillon' },
-            { value: 'sent', label: 'Envoyé' },
-            { value: 'accepted', label: 'Accepté' },
-            { value: 'refused', label: 'Refusé' },
-            { value: 'expired', label: 'Expiré' },
+            ...statusOptions,
           ]}
           ariaLabel="Statut"
         />

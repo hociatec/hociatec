@@ -46,6 +46,17 @@ final class QuoteStatusTranslator
         return $normalized;
     }
 
+    /** @return list<array{value: string, label: string}> */
+    public static function options(): array
+    {
+        $options = [];
+        foreach (self::LABELS as $value => $label) {
+            $options[] = ['value' => $value, 'label' => ucfirst($label)];
+        }
+
+        return $options;
+    }
+
     private static function normalize(string $value): string
     {
         $value = trim($value);

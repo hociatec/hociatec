@@ -12,6 +12,14 @@ import type {
 } from '../types/quoteTypes';
 import { extractQuoteApiError, unwrapQuoteApiData } from './quoteApiShared';
 
+export interface QuoteMetadataOption { value: string; label: string }
+export interface AdminQuoteMetadataDto { statuses: QuoteMetadataOption[] }
+
+export const fetchAdminQuoteMetadata = async (): Promise<AdminQuoteMetadataDto> =>
+  unwrapQuoteApiData(
+    (await httpClient.get<ApiResponse<AdminQuoteMetadataDto>>('/api/admin/quotes/metadata')).data,
+  );
+
 export const fetchAdminQuotes = async (params?: {
   q?: string;
   status?: string;
