@@ -1,5 +1,5 @@
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
-import { formatOrderStatusFr, type OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +36,7 @@ export const OrderDetailSummary = ({ order, onPay, onCancel, paying }: OrderDeta
         </div>
       ) : null}
       <div className="font-semibold">{formatEuroCents(order.totalPriceCents)}</div>
-      <div className="text-sm capitalize">Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
+      <div className="text-sm capitalize">Statut: {order.statusLabel}</div>
       {order.status === 'pending' ? (
         <>
           <button

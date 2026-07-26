@@ -1,11 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import {
-  formatInvoiceStatusFr,
-  formatOrderStatusFr,
-  formatStripePaymentStatusFr,
-  type OrderDto,
-} from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/api';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import {
   formatEuroCents,
@@ -65,7 +60,7 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
               {order.invoice?.number ? (
                 <>
                   <div>{order.invoice.number}</div>
-                  <div className="muted">{formatInvoiceStatusFr(order.invoice.status)}</div>
+                  <div className="muted">{order.invoice.statusLabel}</div>
                 </>
               ) : (
                 <span className="text-xs text-stone-500">Aucune</span>
@@ -76,8 +71,7 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
               {order.payment?.stripePaymentStatus ? (
                 <div className="muted">
                   Stripe:{' '}
-                  {order.payment.stripePaymentStatusLabel ??
-                    formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
+                  {order.payment.stripePaymentStatusLabel}
                 </div>
               ) : null}
               {order.payment?.lastStripeEventType ? (
@@ -89,7 +83,7 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
             <td>{formatEuroCents(order.totalPriceCents)}</td>
             <td>
               <div className="capitalize">
-                {order.statusLabel ?? formatOrderStatusFr(order.status)}
+                {order.statusLabel}
               </div>
               {order.hasIssues && (order.issueReasons?.length ?? 0) > 0 ? (
                 <div className="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">

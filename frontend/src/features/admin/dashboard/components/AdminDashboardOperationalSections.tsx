@@ -2,12 +2,6 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, CircleAlert, CircleCheckBig } from 'lucide-react';
 
 import { type AdminDashboardDto } from '@/features/admin/customers/api';
-import {
-  formatOrderStatusFr,
-  formatPaymentStatusFr,
-  formatStripeFailureCodeFr,
-  formatStripePaymentStatusFr,
-} from '@/features/orders/api';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 
 export const AdminDashboardOperationalSections = ({
@@ -48,7 +42,7 @@ const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboardDto })
                 {formatEuroCents(order.totalPriceCents)}
               </div>
               <div className="text-xs uppercase tracking-wide text-stone-400">
-                {order.statusLabel ?? formatOrderStatusFr(order.status)}
+                {order.statusLabel}
               </div>
               <DashboardCardAction to={`/admin/orders/${order.id}`} label="Voir" />
             </div>
@@ -141,11 +135,11 @@ const PaymentsPanel = ({
                 <span>{payment.customerFullName || payment.customerEmail}</span>
               </div>
               <div className="text-sm text-stone-500">
-                {payment.statusLabel ?? formatPaymentStatusFr(payment.status)}
+                {payment.statusLabel}
                 {' · '}
                 {attention
                   ? (payment.stripePaymentStatusLabel ??
-                    formatStripePaymentStatusFr(payment.stripePaymentStatus))
+                    payment.stripePaymentStatusLabel)
                   : payment.orderId
                     ? `Commande #${payment.orderId}`
                     : 'Aucune commande liée'}
@@ -154,7 +148,7 @@ const PaymentsPanel = ({
                 <div className="text-xs text-stone-400">
                   {payment.failureMessage ||
                     (payment.failureCode
-                      ? formatStripeFailureCodeFr(payment.failureCode)
+                      ? payment.failureCodeLabel
                       : payment.orderId === null && payment.status === 'paid'
                         ? 'Paiement confirmé sans commande liée.'
                         : 'À contrôler')}

@@ -15,7 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/shared/components/ui/alert-dialog';
-import { formatOrderStatusFr } from '../api';
 import { useMyOrders } from '../hooks/useMyOrders';
 
 export const MyOrdersPage = () => {
@@ -85,7 +84,7 @@ export const MyOrdersPage = () => {
                     </th>
                     <td className="px-4 py-3">{formatOptionalFrenchDate(o.createdAt)}</td>
                     <td className="px-4 py-3">{formatEuroCents(o.totalPriceCents)}</td>
-                    <td className="px-4 py-3">{o.statusLabel ?? formatOrderStatusFr(o.status)}</td>
+                    <td className="px-4 py-3">{o.statusLabel}</td>
                     <td className="px-4 py-3">
                       {(o.pendingReviewsCount ?? 0) > 0
                         ? `${o.pendingReviewsCount} produit${(o.pendingReviewsCount ?? 0) > 1 ? 's' : ''}`

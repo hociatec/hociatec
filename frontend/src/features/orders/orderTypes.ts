@@ -86,6 +86,7 @@ export interface AdminPaymentDto {
   stripePaymentStatus?: string | null;
   stripePaymentStatusLabel?: string | null;
   failureCode?: string | null;
+  failureCodeLabel?: string | null;
   failureMessage?: string | null;
   lastStripeEventType?: string | null;
   lastStripeEventLabel?: string | null;
@@ -142,7 +143,7 @@ export interface OrderDto {
   number: string;
   userId?: number;
   customerDisplayName?: string;
-  status: 'pending' | 'confirmed' | 'delivered' | string;
+  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
   statusLabel?: string;
   subtotalPriceCents?: number;
   discountAmountCents?: number;

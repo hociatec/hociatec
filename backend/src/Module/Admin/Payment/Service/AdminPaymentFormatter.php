@@ -22,6 +22,7 @@ final class AdminPaymentFormatter
             'stripePaymentStatus' => $payment->getStripePaymentStatus(),
             'stripePaymentStatusLabel' => $this->stripePaymentStatusLabel($payment->getStripePaymentStatus()),
             'failureCode' => $payment->getFailureCode(),
+            'failureCodeLabel' => $this->failureCodeLabel($payment->getFailureCode()),
             'failureMessage' => $payment->getFailureMessage(),
             'lastStripeEventType' => $payment->getLastStripeEventType(),
             'lastStripeEventLabel' => $this->stripeEventLabel($payment->getLastStripeEventType()),
@@ -103,6 +104,27 @@ final class AdminPaymentFormatter
             'checkout.session.expired' => 'Session de paiement expirée',
             'payment_intent.payment_failed' => 'Paiement refusé',
             default => $eventType,
+        };
+    }
+
+    public function failureCodeLabel(?string $code): ?string
+    {
+        return match ($code) {
+            null, '' => null,
+            'insufficient_funds' => 'Fonds insuffisants',
+            'card_declined' => 'Carte refusée',
+            'expired_card' => 'Carte expirée',
+            'incorrect_cvc' => 'Code CVC incorrect',
+            'incorrect_number' => 'Numéro de carte incorrect',
+            'incorrect_zip' => 'Code postal incorrect',
+            'invalid_cvc' => 'Code CVC invalide',
+            'invalid_expiry_month' => 'Mois d’expiration invalide',
+            'invalid_expiry_year' => 'Année d’expiration invalide',
+            'lost_card' => 'Carte déclarée perdue',
+            'stolen_card' => 'Carte déclarée volée',
+            'processing_error' => 'Erreur de traitement bancaire',
+            'authentication_required' => 'Authentification bancaire requise',
+            default => $code,
         };
     }
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-import { formatOrderStatusFr, type OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/api';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { type OrderFilter } from './customerDetailShared';
 
@@ -69,7 +69,7 @@ export const CustomerOrdersSection = ({
                 <div className="font-semibold text-brand-900">{order.number}</div>
                 <div className="text-sm text-stone-600">
                   {formatFrenchDateTime(order.createdAt)} ·{' '}
-                  {order.statusLabel ?? formatOrderStatusFr(order.status)}
+                  {order.statusLabel}
                 </div>
                 {order.invoice?.number ? (
                   <div className="text-sm text-stone-500">Facture {order.invoice.number}</div>

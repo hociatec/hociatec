@@ -1,11 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import {
-  formatPaymentStatusFr,
-  formatStripeFailureCodeFr,
-  formatStripeEventTypeFr,
-  formatStripePaymentStatusFr,
-} from '@/features/orders/api';
 import { useAdminPaymentsList } from '../hooks/useAdminPaymentsList';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -92,19 +86,16 @@ export const PaymentsListPage = () => {
                   </td>
                   <td>{formatCurrencyCents(payment.totalPriceCents, payment.currencyCode)}</td>
                   <td>
-                    <div>{payment.statusLabel ?? formatPaymentStatusFr(payment.status)}</div>
+                    <div>{payment.statusLabel}</div>
                     <div className="muted">
-                      {payment.stripePaymentStatusLabel ??
-                        (payment.stripePaymentStatus
-                          ? formatStripePaymentStatusFr(payment.stripePaymentStatus)
-                          : formatStripeEventTypeFr(payment.lastStripeEventType))}
+                      {payment.stripePaymentStatusLabel ?? payment.lastStripeEventLabel}
                     </div>
                   </td>
                   <td>
                     {payment.failureMessage || payment.failureCode ? (
                       <div>
                         <div>
-                          {payment.failureMessage || formatStripeFailureCodeFr(payment.failureCode)}
+                          {payment.failureMessage || payment.failureCodeLabel}
                         </div>
                         {payment.failureCode ? (
                           <div className="muted">{payment.failureCode}</div>

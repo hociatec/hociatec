@@ -1,5 +1,4 @@
 import type { OrderDto, OrderProcessingDto } from '@/features/orders/api';
-import { formatOrderStatusFr, formatPaymentStatusFr } from '@/features/orders/api';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type AdminOrderSummarySectionProps = {
@@ -39,7 +38,7 @@ export const AdminOrderSummarySection = ({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
-            {order.statusLabel ?? formatOrderStatusFr(order.status)}
+            {order.statusLabel}
           </span>
           <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-900">
             {formatEuroCents(order.totalPriceCents)}
@@ -63,7 +62,7 @@ export const AdminOrderSummarySection = ({
         <div className="mt-4 grid gap-3 text-sm text-stone-600">
           <div>
             <span className="font-medium text-brand-900">Statut</span> :{' '}
-            {order.statusLabel ?? formatOrderStatusFr(order.status)}
+            {order.statusLabel}
           </div>
           <div>
             <span className="font-medium text-brand-900">Date</span> :{' '}
@@ -77,7 +76,7 @@ export const AdminOrderSummarySection = ({
           {order.payment ? (
             <div>
               <span className="font-medium text-brand-900">Paiement</span> :{' '}
-              {order.payment.statusLabel ?? formatPaymentStatusFr(order.payment.status)}
+            {order.payment.statusLabel}
             </div>
           ) : null}
         </div>
