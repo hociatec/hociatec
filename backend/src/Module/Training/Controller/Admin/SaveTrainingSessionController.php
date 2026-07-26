@@ -74,6 +74,10 @@ class SaveTrainingSessionController extends AbstractController
 
         $this->writer->save($session);
 
-        return ApiResponse::success($this->formatter->formatSession($session), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success(
+            $this->formatter->formatSession($session),
+            null === $id ? Response::HTTP_CREATED : Response::HTTP_OK,
+            null === $id ? 'La session a bien été créée.' : 'La session a bien été mise à jour.',
+        );
     }
 }

@@ -125,7 +125,7 @@ export const TrainingFormPage = () => {
     setMessage(null);
 
     try {
-      await saveAdminTraining(
+      const response = await saveAdminTraining(
         {
           title: form.title,
           shortDescription: form.shortDescription.trim() || null,
@@ -143,7 +143,7 @@ export const TrainingFormPage = () => {
         },
         trainingId ? Number(trainingId) : undefined,
       );
-      setMessage(isEdit ? 'Formation mise à jour.' : 'Formation créée.');
+      setMessage(response.message ?? (isEdit ? 'La formation a bien été mise à jour.' : 'La formation a bien été créée.'));
       setTimeout(() => navigate('/admin/trainings'), 600);
     } catch (err) {
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la formation."));

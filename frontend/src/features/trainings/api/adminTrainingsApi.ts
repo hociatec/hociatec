@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 import type {
   TrainingCategoryDto,
   TrainingCategoryInput,
@@ -10,7 +10,7 @@ import type {
   TrainingSessionDto,
   TrainingSessionInput,
 } from './trainingTypes';
-import { TRAINING_API_ROUTES, unwrapTrainingData } from './trainingApiShared';
+import { TRAINING_API_ROUTES, unwrapTrainingData, unwrapTrainingResult } from './trainingApiShared';
 
 export const fetchAdminTrainings = async (): Promise<TrainingDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingDto[] }>>(TRAINING_API_ROUTES.adminTrainings);
@@ -26,35 +26,36 @@ export const fetchAdminTrainingCategories = async (): Promise<TrainingCategoryDt
 
 export const createAdminTrainingCategory = async (
   payload: TrainingCategoryInput,
-): Promise<TrainingCategoryDto> => {
+): Promise<ApiMutationResult<TrainingCategoryDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingCategoryDto>>(
     TRAINING_API_ROUTES.adminCategories,
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const updateAdminTrainingCategory = async (
   id: number,
   payload: TrainingCategoryInput,
-): Promise<TrainingCategoryDto> => {
+): Promise<ApiMutationResult<TrainingCategoryDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingCategoryDto>>(
     TRAINING_API_ROUTES.adminCategory(id),
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const saveAdminTrainingCategory = async (
   payload: TrainingCategoryInput,
   id?: number,
-): Promise<TrainingCategoryDto> =>
+): Promise<ApiMutationResult<TrainingCategoryDto>> =>
   id === undefined
     ? createAdminTrainingCategory(payload)
     : updateAdminTrainingCategory(id, payload);
 
-export const deleteAdminTrainingCategory = async (id: number): Promise<void> => {
-  await httpClient.delete(TRAINING_API_ROUTES.adminCategory(id));
+export const deleteAdminTrainingCategory = async (id: number) => {
+  const res = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(TRAINING_API_ROUTES.adminCategory(id));
+  return unwrapTrainingResult(res.data);
 };
 
 export const fetchAdminTraining = async (id: number): Promise<TrainingDto> => {
@@ -62,33 +63,34 @@ export const fetchAdminTraining = async (id: number): Promise<TrainingDto> => {
   return unwrapTrainingData(res.data);
 };
 
-export const createAdminTraining = async (payload: TrainingInput): Promise<TrainingDto> => {
+export const createAdminTraining = async (payload: TrainingInput): Promise<ApiMutationResult<TrainingDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingDto>>(
     TRAINING_API_ROUTES.adminTrainings,
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const updateAdminTraining = async (
   id: number,
   payload: TrainingInput,
-): Promise<TrainingDto> => {
+): Promise<ApiMutationResult<TrainingDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingDto>>(
     TRAINING_API_ROUTES.adminTraining(id),
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const saveAdminTraining = async (
   payload: TrainingInput,
   id?: number,
-): Promise<TrainingDto> =>
+): Promise<ApiMutationResult<TrainingDto>> =>
   id === undefined ? createAdminTraining(payload) : updateAdminTraining(id, payload);
 
-export const deleteAdminTraining = async (id: number): Promise<void> => {
-  await httpClient.delete(TRAINING_API_ROUTES.adminTraining(id));
+export const deleteAdminTraining = async (id: number) => {
+  const res = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(TRAINING_API_ROUTES.adminTraining(id));
+  return unwrapTrainingResult(res.data);
 };
 
 export const fetchAdminTrainingSessions = async (): Promise<TrainingSessionDto[]> => {
@@ -100,35 +102,36 @@ export const fetchAdminTrainingSessions = async (): Promise<TrainingSessionDto[]
 
 export const createAdminTrainingSession = async (
   payload: TrainingSessionInput,
-): Promise<TrainingSessionDto> => {
+): Promise<ApiMutationResult<TrainingSessionDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingSessionDto>>(
     TRAINING_API_ROUTES.adminSessions,
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const updateAdminTrainingSession = async (
   id: number,
   payload: TrainingSessionInput,
-): Promise<TrainingSessionDto> => {
+): Promise<ApiMutationResult<TrainingSessionDto>> => {
   const res = await httpClient.post<ApiResponse<TrainingSessionDto>>(
     TRAINING_API_ROUTES.adminSession(id),
     payload,
   );
-  return unwrapTrainingData(res.data);
+  return unwrapTrainingResult(res.data);
 };
 
 export const saveAdminTrainingSession = async (
   payload: TrainingSessionInput,
   id?: number,
-): Promise<TrainingSessionDto> =>
+): Promise<ApiMutationResult<TrainingSessionDto>> =>
   id === undefined
     ? createAdminTrainingSession(payload)
     : updateAdminTrainingSession(id, payload);
 
-export const deleteAdminTrainingSession = async (id: number): Promise<void> => {
-  await httpClient.delete(TRAINING_API_ROUTES.adminSession(id));
+export const deleteAdminTrainingSession = async (id: number) => {
+  const res = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(TRAINING_API_ROUTES.adminSession(id));
+  return unwrapTrainingResult(res.data);
 };
 
 export const fetchAdminTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {

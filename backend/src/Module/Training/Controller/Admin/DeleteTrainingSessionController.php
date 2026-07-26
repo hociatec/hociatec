@@ -29,6 +29,6 @@ class DeleteTrainingSessionController extends AbstractController
         }
         $this->writer->delete($session);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'La session a bien été supprimée.');
     }
 }

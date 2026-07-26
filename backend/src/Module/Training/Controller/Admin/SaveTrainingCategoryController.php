@@ -59,6 +59,10 @@ class SaveTrainingCategoryController extends AbstractController
 
         $this->writer->save($category);
 
-        return ApiResponse::success($this->formatter->format($category), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success(
+            $this->formatter->format($category),
+            null === $id ? Response::HTTP_CREATED : Response::HTTP_OK,
+            null === $id ? 'La catégorie a bien été créée.' : 'La catégorie a bien été mise à jour.',
+        );
     }
 }

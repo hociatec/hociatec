@@ -53,9 +53,9 @@ export const TrainingSessionsPage = () => {
     }
 
     try {
-      await deleteAdminTrainingSession(session.id);
+      const response = await deleteAdminTrainingSession(session.id);
       await load();
-      setMessage('Session supprimée.');
+      setMessage(response.message ?? 'La session a bien été supprimée.');
     } catch (err) {
       setError(getHttpErrorMessage(err, 'Impossible de supprimer la session.'));
     }

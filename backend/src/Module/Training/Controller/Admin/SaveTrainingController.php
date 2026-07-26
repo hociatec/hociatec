@@ -49,6 +49,10 @@ class SaveTrainingController extends AbstractController
         $this->writer->apply($training, $input);
         $this->writer->save($training);
 
-        return ApiResponse::success($this->formatter->formatTraining($training), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success(
+            $this->formatter->formatTraining($training),
+            null === $id ? Response::HTTP_CREATED : Response::HTTP_OK,
+            null === $id ? 'La formation a bien été créée.' : 'La formation a bien été mise à jour.',
+        );
     }
 }

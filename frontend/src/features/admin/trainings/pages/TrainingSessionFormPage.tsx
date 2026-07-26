@@ -110,7 +110,7 @@ export const TrainingSessionFormPage = () => {
     setMessage(null);
 
     try {
-      await saveAdminTrainingSession(
+      const response = await saveAdminTrainingSession(
         {
           ...form,
           startsAt: `${form.startsAt}T00:00:00`,
@@ -120,7 +120,7 @@ export const TrainingSessionFormPage = () => {
         },
         sessionId ? Number(sessionId) : undefined,
       );
-      setMessage(isEdit ? 'Session mise à jour.' : 'Session créée.');
+      setMessage(response.message ?? (isEdit ? 'La session a bien été mise à jour.' : 'La session a bien été créée.'));
       setTimeout(() => navigate('/admin/trainings/sessions'), 600);
     } catch (err) {
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la session."));

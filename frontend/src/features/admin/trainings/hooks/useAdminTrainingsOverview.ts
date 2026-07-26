@@ -58,9 +58,9 @@ export const useAdminTrainingsOverview = () => {
       return;
     setMessage(null);
     try {
-      await deleteAdminTraining(training.id);
+      const response = await deleteAdminTraining(training.id);
       await load();
-      setMessage('Formation supprimée.');
+      setMessage(response.message ?? 'La formation a bien été supprimée.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de supprimer la formation.'));
     }
@@ -77,9 +77,9 @@ export const useAdminTrainingsOverview = () => {
       return;
     setMessage(null);
     try {
-      await deleteAdminTrainingSession(session.id);
+      const response = await deleteAdminTrainingSession(session.id);
       await load();
-      setMessage('Session supprimée.');
+      setMessage(response.message ?? 'La session a bien été supprimée.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de supprimer la session.'));
     }

@@ -38,6 +38,6 @@ class DeleteTrainingCategoryController extends AbstractController
 
         $this->writer->delete($category);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'La catégorie a bien été supprimée.');
     }
 }

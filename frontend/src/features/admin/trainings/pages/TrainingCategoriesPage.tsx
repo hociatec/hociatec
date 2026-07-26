@@ -77,7 +77,7 @@ export const TrainingCategoriesPage = () => {
     setMessage(null);
 
     try {
-      await saveAdminTrainingCategory(
+      const response = await saveAdminTrainingCategory(
         {
           name: form.name,
           slug: form.slug.trim() || undefined,
@@ -87,7 +87,7 @@ export const TrainingCategoriesPage = () => {
         form.id ?? undefined,
       );
       await load();
-      setMessage(form.id ? 'Catégorie mise à jour.' : 'Catégorie créée.');
+      setMessage(response.message ?? (form.id ? 'La catégorie a bien été mise à jour.' : 'La catégorie a bien été créée.'));
       reset();
     } catch (err) {
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie."));
@@ -112,9 +112,9 @@ export const TrainingCategoriesPage = () => {
     setMessage(null);
 
     try {
-      await deleteAdminTrainingCategory(category.id);
+      const response = await deleteAdminTrainingCategory(category.id);
       await load();
-      setMessage('Catégorie supprimée.');
+      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
       if (form.id === category.id) reset();
     } catch (err) {
       setError(getHttpErrorMessage(err, 'Impossible de supprimer la catégorie.'));
