@@ -5,31 +5,20 @@ import { useNavigate } from 'react-router-dom';
 import { registerUser, type RegisterPayload } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
-import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { RegisterIntro } from '@/features/auth/components/RegisterIntro';
-
+import { RegisterFormFields } from '@/features/auth/components/RegisterFormFields';
+import { useToast } from '@/shared/components/ui/toast';
 import './RegisterPage.css';
 
 type FormState = RegisterPayload;
-
 const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export const RegisterPage = () => {
   useDocumentTitle('Inscription');
-
   const navigate = useNavigate();
   const toast = useToast();
-  const [form, setForm] = useState<FormState>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    birthDate: '',
-    phoneNumber: '',
-    gender: '',
-  });
+  const [form, setForm] = useState<FormState>({ email: '', password: '', confirmPassword: '', firstName: '', lastName: '', birthDate: '', phoneNumber: '', gender: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
@@ -37,271 +26,16 @@ export const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const errorId = 'register-form-error';
   const passwordHelpId = 'register-password-help';
-
-  const hasErrorDetails = (value: unknown): value is Error & { details: string[] } =>
-    typeof value === 'object' &&
-    value !== null &&
-    'details' in value &&
-    Array.isArray((value as { details?: unknown }).details);
-
-  const parsedErrorDetails = errorDetails;
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
+  const hasErrorDetails = (value: unknown): value is Error & { details: string[] } => typeof value === 'object' && value !== null && 'details' in value && Array.isArray((value as { details?: unknown }).details);
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value })); };
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    setErrorDetails([]);
-
-    if (form.password !== form.confirmPassword) {
-      setError('Les mots de passe doivent être identiques.');
-      try {
-        toast.show('Les mots de passe doivent être identiques.', { variant: 'error' });
-      } catch {}
-      return;
-    }
-
-    if (!PASSWORD_RULE.test(form.password)) {
-      setError('Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
-      try {
-        toast.show(
-          'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
-          { variant: 'error' },
-        );
-      } catch {}
-      return;
-    }
-
+    event.preventDefault(); setError(null); setErrorDetails([]);
+    const validationError = form.password !== form.confirmPassword ? 'Les mots de passe doivent être identiques.' : !PASSWORD_RULE.test(form.password) ? 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.' : !form.gender ? 'Veuillez sélectionner une option pour le champ sexe.' : null;
+    if (validationError) { setError(validationError); try { toast.show(validationError, { variant: 'error' }); } catch {} return; }
     setLoading(true);
-
-    try {
-      if (!form.gender) {
-        setError('Veuillez sélectionner une option pour le champ sexe.');
-        try {
-          toast.show('Veuillez sélectionner une option pour le champ sexe.', { variant: 'error' });
-        } catch {}
-        return;
-      }
-
-      await registerUser(form);
-      try {
-        toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', {
-          variant: 'success',
-        });
-      } catch {}
-      navigate('/login', { state: { registered: true } });
-    } catch (submissionError) {
-      console.error(submissionError);
-      if (submissionError instanceof Error) {
-        setError(
-          submissionError.message || "Impossible de finaliser l'inscription pour le moment.",
-        );
-
-        if (hasErrorDetails(submissionError)) {
-          setErrorDetails(submissionError.details);
-        }
-        try {
-          toast.show(
-            submissionError.message || "Impossible de finaliser l'inscription pour le moment.",
-            { variant: 'error' },
-          );
-        } catch {}
-      } else {
-        setError("Impossible de finaliser l'inscription pour le moment.");
-        try {
-          toast.show("Impossible de finaliser l'inscription pour le moment.", { variant: 'error' });
-        } catch {}
-      }
-    } finally {
-      setLoading(false);
-    }
+    try { await registerUser(form); try { toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', { variant: 'success' }); } catch {} navigate('/login', { state: { registered: true } }); }
+    catch (submissionError) { console.error(submissionError); const message = submissionError instanceof Error ? submissionError.message || "Impossible de finaliser l'inscription pour le moment." : "Impossible de finaliser l'inscription pour le moment."; setError(message); if (submissionError instanceof Error && hasErrorDetails(submissionError)) setErrorDetails(submissionError.details); try { toast.show(message, { variant: 'error' }); } catch {} }
+    finally { setLoading(false); }
   };
-
-  return (
-    <SiteLayout headerVariant="light">
-      <div className="register-page">
-        <RegisterIntro />
-
-        <section className="register-form-card" aria-labelledby="register-form-title">
-          <header className="register-form-card__header">
-            <h2 id="register-form-title">Informations de compte</h2>
-            <p>Complétez ce formulaire pour créer votre espace sécurisé.</p>
-          </header>
-          <form
-            className="register-form"
-            onSubmit={handleSubmit}
-            noValidate
-            aria-describedby={error ? errorId : undefined}
-          >
-            {error ? (
-              <FeedbackMessage id={errorId} aria-live="assertive" aria-atomic="true">
-                <p>{error}</p>
-                {parsedErrorDetails.map((detail) => (
-                  <p key={detail} className="register-form__alert-detail">
-                    {detail}
-                  </p>
-                ))}
-              </FeedbackMessage>
-            ) : null}
-            <div className="register-form__grid">
-              <label className="register-form__field">
-                <span>Prénom</span>
-                <input
-                  name="firstName"
-                  type="text"
-                  autoComplete="given-name"
-                  value={form.firstName}
-                  onChange={handleChange}
-                  maxLength={50}
-                  required
-                />
-              </label>
-              <label className="register-form__field">
-                <span>Nom</span>
-                <input
-                  name="lastName"
-                  type="text"
-                  autoComplete="family-name"
-                  value={form.lastName}
-                  onChange={handleChange}
-                  maxLength={50}
-                  required
-                />
-              </label>
-            </div>
-            <label className="register-form__field">
-              <span>Adresse e-mail</span>
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                maxLength={180}
-                value={form.email}
-                onChange={handleChange}
-                aria-invalid={error ? true : undefined}
-                required
-              />
-            </label>
-
-            <div className="register-form__grid">
-              <label className="register-form__field">
-                <span>Date de naissance</span>
-                <input
-                  name="birthDate"
-                  type="date"
-                  value={form.birthDate}
-                  onChange={handleChange}
-                  aria-invalid={error ? true : undefined}
-                  required
-                />
-              </label>
-              <label className="register-form__field">
-                <span>Numéro de téléphone</span>
-                <input
-                  name="phoneNumber"
-                  type="tel"
-                  autoComplete="tel"
-                  value={form.phoneNumber}
-                  onChange={handleChange}
-                  aria-invalid={error ? true : undefined}
-                  maxLength={20}
-                  required
-                />
-              </label>
-              <label className="register-form__field">
-                <span>Sexe</span>
-                <select
-                  name="gender"
-                  value={form.gender}
-                  onChange={handleChange}
-                  aria-invalid={error && !form.gender ? true : undefined}
-                  required
-                  className="register-form__select"
-                >
-                  <option value="" disabled>
-                    Sélectionnez une option
-                  </option>
-                  <option value="homme">Homme</option>
-                  <option value="femme">Femme</option>
-                  <option value="autre">Autre</option>
-                </select>
-              </label>
-            </div>
-            <div className="register-form__grid">
-              <label className="register-form__field">
-                <span>Mot de passe</span>
-                <div className="register-form__password-wrapper">
-                  <input
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    value={form.password}
-                    onChange={handleChange}
-                    aria-describedby={passwordHelpId}
-                    aria-invalid={error ? true : undefined}
-                    minLength={8}
-                    maxLength={4096}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="register-form__password-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={
-                      showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
-                    }
-                  >
-                    {showPassword ? 'Masquer' : 'Afficher'}
-                  </button>
-                </div>
-              </label>
-              <label className="register-form__field">
-                <span>Confirmation</span>
-                <div className="register-form__password-wrapper">
-                  <input
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    aria-describedby={passwordHelpId}
-                    aria-invalid={error ? true : undefined}
-                    minLength={8}
-                    maxLength={4096}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="register-form__password-toggle"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    aria-label={
-                      showConfirmPassword
-                        ? 'Masquer la confirmation du mot de passe'
-                        : 'Afficher la confirmation du mot de passe'
-                    }
-                  >
-                    {showConfirmPassword ? 'Masquer' : 'Afficher'}
-                  </button>
-                </div>
-              </label>
-            </div>
-            <div id={passwordHelpId} className="register-form__guidelines">
-              <p>Le mot de passe doit respecter les critères suivants :</p>
-              <ul>
-                <li>Au moins 8 caractères</li>
-                <li>Au moins une lettre majuscule</li>
-                <li>Au moins un chiffre</li>
-              </ul>
-            </div>
-            <button className="register-form__submit" type="submit" disabled={loading}>
-              {loading ? 'Création en cours...' : 'Créer mon espace'}
-            </button>
-          </form>
-        </section>
-      </div>
-    </SiteLayout>
-  );
+  return <SiteLayout headerVariant="light"><div className="register-page"><RegisterIntro /><section className="register-form-card" aria-labelledby="register-form-title"><header className="register-form-card__header"><h2 id="register-form-title">Informations de compte</h2><p>Complétez ce formulaire pour créer votre espace sécurisé.</p></header><form className="register-form" onSubmit={handleSubmit} noValidate aria-describedby={error ? errorId : undefined}>{error ? <FeedbackMessage id={errorId} aria-live="assertive" aria-atomic="true"><p>{error}</p>{errorDetails.map((detail) => <p key={detail} className="register-form__alert-detail">{detail}</p>)}</FeedbackMessage> : null}<RegisterFormFields form={form} handleChange={handleChange} error={error} passwordHelpId={passwordHelpId} showPassword={showPassword} showConfirmPassword={showConfirmPassword} setShowPassword={setShowPassword} setShowConfirmPassword={setShowConfirmPassword} /><button className="register-form__submit" type="submit" disabled={loading}>{loading ? 'Création en cours...' : 'Créer mon espace'}</button></form></section></div></SiteLayout>;
 };
