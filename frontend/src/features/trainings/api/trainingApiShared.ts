@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/shared/types/api';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const TRAINING_API_ROUTES = {
   publicList: '/api/public/trainings',
@@ -19,4 +20,15 @@ export const TRAINING_API_ROUTES = {
 export const unwrapTrainingData = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') throw new Error(response.message);
   return response.data;
+};
+
+export const trainingRequest = async <T>(
+  request: () => Promise<T>,
+  fallback: string,
+): Promise<T> => {
+  try {
+    return await request();
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, fallback));
+  }
 };
