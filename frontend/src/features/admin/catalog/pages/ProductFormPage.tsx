@@ -1,11 +1,11 @@
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
-  ProductContentMediaSection,
   ProductGeneralSection,
 } from '@/features/admin/catalog/components/ProductFormContentSections';
 import { VariantSwitcherSection } from '@/features/admin/catalog/components/VariantSwitcherSection';
 import { ProductDiscountSection } from '@/features/admin/catalog/components/ProductDiscountSection';
+import { ProductContentMediaSection } from '@/features/admin/catalog/components/ProductContentMediaSection';
 import {
   ProductCurrentVariantSection,
   ProductExtraVariantsSection,
