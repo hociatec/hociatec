@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
 import type {
   CatalogBrand,
@@ -39,7 +39,7 @@ export const createCategory = async (payload: UpsertCategoryPayload) => {
   );
 
   if (isApiOk(data)) {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogCategory>;
   }
 
   throw new Error(extractErrorMessage(data, 'Création de catégorie impossible.'));
@@ -52,7 +52,7 @@ export const updateCategory = async (id: number, payload: UpsertCategoryPayload)
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogCategory>;
   }
 
   throw new Error(extractErrorMessage(data, 'Mise à jour de la catégorie impossible.'));
@@ -64,7 +64,7 @@ export const deleteCategory = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
   }
 
   throw new Error(extractErrorMessage(data, 'Suppression de la catégorie impossible.'));
@@ -101,7 +101,7 @@ export const createBrand = async (payload: UpsertBrandPayload) => {
   );
 
   if (isApiOk(data)) {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogBrand>;
   }
 
   throw new Error(extractErrorMessage(data, 'Création de la marque impossible.'));
@@ -114,7 +114,7 @@ export const updateBrand = async (id: number, payload: UpsertBrandPayload) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogBrand>;
   }
 
   throw new Error(extractErrorMessage(data, 'Mise à jour de la marque impossible.'));
@@ -126,7 +126,7 @@ export const deleteBrand = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
   }
 
   throw new Error(extractErrorMessage(data, 'Suppression de la marque impossible.'));

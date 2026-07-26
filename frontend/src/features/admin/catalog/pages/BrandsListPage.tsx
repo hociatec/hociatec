@@ -54,9 +54,9 @@ export const BrandsListPage = () => {
     setMessage(null);
 
     try {
-      await deleteBrand(brand.id);
+      const response = await deleteBrand(brand.id);
       await loadBrands();
-      setMessage('Marque supprimée.');
+      setMessage(response.message ?? 'La marque a bien été supprimée.');
     } catch (err) {
       setError(getHttpErrorMessage(err, 'Impossible de supprimer la marque.'));
     }

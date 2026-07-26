@@ -43,6 +43,6 @@ class CreateBrandController extends AbstractController
             return ApiResponse::internalError('Impossible de créer la marque.');
         }
 
-        return ApiResponse::created(CatalogFormatter::formatBrand($brand));
+        return ApiResponse::created(CatalogFormatter::formatBrand($brand), 'La marque a bien été créée.');
     }
 }

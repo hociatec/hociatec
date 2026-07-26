@@ -37,6 +37,6 @@ class DeleteCategoryController extends AbstractController
             return ApiResponse::internalError('Impossible de supprimer la catégorie.');
         }
 
-        return ApiResponse::success(['id' => $id]);
+        return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La catégorie a bien été supprimée.');
     }
 }

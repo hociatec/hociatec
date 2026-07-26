@@ -53,6 +53,6 @@ class UpdateCategoryController extends AbstractController
             return ApiResponse::internalError('Impossible de mettre à jour la catégorie.');
         }
 
-        return ApiResponse::success(CatalogFormatter::formatCategory($category, true));
+        return ApiResponse::success(CatalogFormatter::formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');
     }
 }

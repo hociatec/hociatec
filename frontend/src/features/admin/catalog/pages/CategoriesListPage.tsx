@@ -57,9 +57,9 @@ export const CategoriesListPage = () => {
     setMessage(null);
 
     try {
-      await deleteCategory(categoryId);
+      const response = await deleteCategory(categoryId);
       await loadCategories();
-      setMessage('Catégorie supprimée.');
+      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
     } catch (err) {
       setError(getHttpErrorMessage(err, 'Impossible de supprimer la catégorie.'));
     }

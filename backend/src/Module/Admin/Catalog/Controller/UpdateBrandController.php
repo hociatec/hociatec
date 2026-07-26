@@ -53,6 +53,6 @@ class UpdateBrandController extends AbstractController
             return ApiResponse::internalError('Impossible de mettre à jour la marque.');
         }
 
-        return ApiResponse::success(CatalogFormatter::formatBrand($brand));
+        return ApiResponse::success(CatalogFormatter::formatBrand($brand), JsonResponse::HTTP_OK, 'La marque a bien été mise à jour.');
     }
 }

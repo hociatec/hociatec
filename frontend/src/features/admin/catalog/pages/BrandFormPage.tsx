@@ -80,11 +80,11 @@ export const BrandFormPage = () => {
 
     try {
       if (isEdit) {
-        await updateBrand(Number(brandId), payload);
-        setMessage('Marque mise à jour.');
+        const response = await updateBrand(Number(brandId), payload);
+        setMessage(response.message ?? 'La marque a bien été mise à jour.');
       } else {
-        await createBrand(payload);
-        setMessage('Marque créée.');
+        const response = await createBrand(payload);
+        setMessage(response.message ?? 'La marque a bien été créée.');
         setForm(emptyForm);
       }
 

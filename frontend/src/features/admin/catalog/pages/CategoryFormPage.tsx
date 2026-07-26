@@ -132,11 +132,11 @@ export const CategoryFormPage = () => {
 
     try {
       if (isEdit) {
-        await updateCategory(Number(categoryId), payload);
-        setMessage('Catégorie mise à jour.');
+        const response = await updateCategory(Number(categoryId), payload);
+        setMessage(response.message ?? 'La catégorie a bien été mise à jour.');
       } else {
-        await createCategory(payload);
-        setMessage('Catégorie créée.');
+        const response = await createCategory(payload);
+        setMessage(response.message ?? 'La catégorie a bien été créée.');
         setForm(emptyForm);
       }
 

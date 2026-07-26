@@ -37,6 +37,6 @@ class DeleteBrandController extends AbstractController
             return ApiResponse::internalError('Impossible de supprimer la marque.');
         }
 
-        return ApiResponse::success(['id' => $id]);
+        return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La marque a bien été supprimée.');
     }
 }

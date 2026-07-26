@@ -43,6 +43,6 @@ class CreateCategoryController extends AbstractController
             return ApiResponse::internalError('Impossible de créer la catégorie.');
         }
 
-        return ApiResponse::created(CatalogFormatter::formatCategory($category, true));
+        return ApiResponse::created(CatalogFormatter::formatCategory($category, true), 'La catégorie a bien été créée.');
     }
 }
