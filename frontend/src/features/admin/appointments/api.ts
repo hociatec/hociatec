@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
-import type { Prestation, WorkingDay } from '@/features/appointments/types';
+import type { Prestation, WorkingDay } from '@/features/appointments/types/appointments';
 
 const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
   response.status === 'error' ? response.message : fallback;

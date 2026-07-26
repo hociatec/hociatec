@@ -9,19 +9,21 @@ export interface CheckoutRedirectDto {
   checkoutSessionId: string;
 }
 
+type CheckoutResponseDto = CheckoutRedirectDto | { order: OrderDto } | OrderDto;
+
 export const checkoutOrder = async (addressId: number): Promise<OrderDto | CheckoutRedirectDto> => {
-  const { data } = await httpClient.post<ApiResponse<Record<string, unknown>>>(
+  const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>(
     '/api/orders/checkout',
     { addressId },
   );
 
   if (isApiOk(data)) {
-    const payload = data.data as unknown as Record<string, unknown>;
-    if (payload.mode === 'redirect') {
-      return payload as unknown as CheckoutRedirectDto;
+    const payload = data.data;
+    if ('mode' in payload && payload.mode === 'redirect') {
+      return payload;
     }
 
-    return (payload.order ?? payload) as OrderDto;
+    return 'order' in payload ? payload.order : payload;
   }
 
   const message = data.status === 'error' ? data.message : 'Échec de validation de la commande';
@@ -29,18 +31,18 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
 };
 
 export const checkoutExistingOrder = async (orderId: number, addressId?: number): Promise<OrderDto | CheckoutRedirectDto> => {
-  const { data } = await httpClient.post<ApiResponse<Record<string, unknown>>>(
+  const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>(
     `/api/orders/${orderId}/checkout`,
     addressId ? { addressId } : {},
   );
 
   if (isApiOk(data)) {
-    const payload = data.data as unknown as Record<string, unknown>;
-    if (payload.mode === 'redirect') {
-      return payload as unknown as CheckoutRedirectDto;
+    const payload = data.data;
+    if ('mode' in payload && payload.mode === 'redirect') {
+      return payload;
     }
 
-    return (payload.order ?? payload) as OrderDto;
+    return 'order' in payload ? payload.order : payload;
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible de lancer le règlement';
@@ -71,7 +73,7 @@ export const fetchCheckoutSessionStatus = async (
 export const fetchMyOrders = async (): Promise<OrderDto[]> => {
   const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[] }>>('/api/orders/me');
   if (isApiOk(data)) {
-    return (data.data?.items ?? []) as OrderDto[];
+    return data.data.items;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);
@@ -82,7 +84,7 @@ export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
     `/api/orders/${orderId}`,
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Commande introuvable';
   throw new Error(message);
@@ -93,7 +95,7 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
     `/api/orders/${orderId}/cancel`,
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Impossible d\'annuler la commande';
   throw new Error(message);
@@ -124,7 +126,7 @@ export const submitOrderItemReview = async (
   );
 
   if (isApiOk(data)) {
-    return (data.data?.review as ProductReviewDto) ?? ({} as ProductReviewDto);
+    return data.data.review;
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible d\'enregistrer l\'avis';
@@ -137,7 +139,7 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
   );
 
   if (isApiOk(data)) {
-    return (data.data?.items ?? []) as PendingReviewDto[];
+    return data.data.items;
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible de charger les avis en attente';

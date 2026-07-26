@@ -26,4 +26,35 @@ class TrainingRepository extends ServiceEntityRepository
 
         return $this->findBy($criteria, ['title' => 'ASC']);
     }
+
+    /** @return list<Training> */
+    public function findActivePaginated(?string $category, int $limit, int $offset): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->andWhere('t.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('t.title', 'ASC')
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->setFirstResult(max(0, $offset));
+
+        if (null !== $category && '' !== $category) {
+            $qb->andWhere('t.category = :category')->setParameter('category', $category);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countActive(?string $category = null): int
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('t.isActive = :active')
+            ->setParameter('active', true);
+
+        if (null !== $category && '' !== $category) {
+            $qb->andWhere('t.category = :category')->setParameter('category', $category);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

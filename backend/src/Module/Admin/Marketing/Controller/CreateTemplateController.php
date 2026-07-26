@@ -7,8 +7,8 @@ namespace App\Module\Admin\Marketing\Controller;
 use App\Module\Marketing\Entity\EmailTemplate;
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
+use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly EmailTemplateAdminManager $manager,
         private readonly EmailTemplateRepository $templates,
         private readonly EmailTemplateScenarioProvider $scenarioProvider,
     ) {
@@ -52,8 +52,7 @@ final class CreateTemplateController extends AbstractController
         $template = new EmailTemplate($name, $slug, $scenarioKey, $subjectTemplate, $htmlBody, $textBody);
         $template->setIsActive($isActive);
 
-        $this->entityManager->persist($template);
-        $this->entityManager->flush();
+        $this->manager->create($template);
 
         return ApiResponse::created([
             'template' => [

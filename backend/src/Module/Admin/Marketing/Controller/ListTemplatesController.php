@@ -6,8 +6,10 @@ namespace App\Module\Admin\Marketing\Controller;
 
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -19,10 +21,11 @@ final class ListTemplatesController extends AbstractController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        return ApiResponse::success([
-            'items' => array_map(
+        $pagination = Pagination::fromRequest($request);
+        return ApiResponse::paginated(
+            array_map(
                 static fn ($template) => [
                     'id' => $template->getId(),
                     'name' => $template->getName(),
@@ -35,8 +38,9 @@ final class ListTemplatesController extends AbstractController
                     'createdAt' => $template->getCreatedAt()->format(DATE_ATOM),
                     'updatedAt' => $template->getUpdatedAt()->format(DATE_ATOM),
                 ],
-                $this->templates->findBy([], ['updatedAt' => 'DESC']),
+                $this->templates->findBy([], ['updatedAt' => 'DESC'], $pagination->perPage, $pagination->offset()),
             ),
-        ]);
+            $pagination->metadata($this->templates->count([])),
+        );
     }
 }

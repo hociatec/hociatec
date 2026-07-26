@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Controller;
 
+use App\Module\Auth\DTO\ResetPasswordInput;
 use App\Module\Auth\Service\PasswordResetService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +20,7 @@ class ResetPasswordController extends AbstractController
 {
     public function __construct(
         private readonly PasswordResetService $passwordResetService,
+        private readonly DtoValidator $validator,
         #[Autowire(service: 'limiter.password_reset_confirm')]
         private readonly RateLimiterFactory $limiter,
     ) {
@@ -35,22 +38,8 @@ class ResetPasswordController extends AbstractController
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $password = (string) ($payload['password'] ?? '');
-        $confirmPassword = (string) ($payload['confirmPassword'] ?? '');
-
-        if ($password !== $confirmPassword) {
-            return ApiResponse::error(
-                'Les mots de passe doivent être identiques.',
-                JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-            );
-        }
-
-        if (!preg_match('/^(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
-            return ApiResponse::error(
-                'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
-                JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-            );
-        }
+        $input = ResetPasswordInput::fromArray($payload);
+        $this->validator->validate($input);
 
         $limit = $this->limiter
             ->create(($request->getClientIp() ?? 'unknown').':'.$token)
@@ -64,7 +53,7 @@ class ResetPasswordController extends AbstractController
         }
 
         try {
-            $this->passwordResetService->reset($token, $password);
+            $this->passwordResetService->reset($token, $input->password);
         } catch (\RuntimeException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }

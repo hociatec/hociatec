@@ -1,48 +1,36 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { fetchProductReviews, fetchPublicProduct, fetchPublicProducts, type CatalogProduct, type ProductPublicReview } from '../api';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
-import { addFavorite, fetchFavorites, removeFavorite } from '@/features/favorites/api';
+import { useProductFavorite } from '@/features/catalog/hooks/useProductFavorite';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
-import { buildVariantGroupKey, formatProductDate, formatProductPrice } from '../utils/productPageDisplay';
+import { formatProductDate, formatProductPrice } from '../utils/productPageDisplay';
 import {
   ProductDetailHeader,
   ProductGallery,
   ProductInfoHighlight,
   ProductReviewsSection,
-} from './ProductPageSections';
+} from '@/features/catalog/components/ProductPageSections';
+import { ProductDescriptionSection } from '@/features/catalog/components/ProductDescriptionSection';
+import { useProductPageData } from '@/features/catalog/hooks/useProductPageData';
+import { useProductReviews } from '@/features/catalog/hooks/useProductReviews';
 
 import './CatalogPages.css';
 
 export const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [product, setProduct] = useState<CatalogProduct | null>(null);
-  const [colorVariants, setColorVariants] = useState<CatalogProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { product, colorVariants, loading, error } = useProductPageData(slug);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [reviews, setReviews] = useState<ProductPublicReview[]>([]);
-  const [reviewsMeta, setReviewsMeta] = useState<{ total: number; average: number }>({ total: 0, average: 0 });
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-  const [reviewsError, setReviewsError] = useState<string | null>(null);
-  const [reviewsPage, setReviewsPage] = useState(1);
-  const [hasMoreReviews, setHasMoreReviews] = useState(false);
+  const { hasMoreReviews, loadMoreReviews, reviews, reviewsError, reviewsLoading, reviewsMeta } = useProductReviews(product);
   const [failedSlideUrls, setFailedSlideUrls] = useState<Set<string>>(() => new Set());
-  const reviewsPerPage = 5;
-  const { status: authStatus } = useAuth();
   const { show: showToast } = useToast();
-  const [favoriteStatus, setFavoriteStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [favoriteAction, setFavoriteAction] = useState<'idle' | 'saving'>('idle');
-  const isAuthenticated = authStatus === 'authenticated';
+  const { isAuthenticated, isFavorite, favoriteStatus, favoriteAction, toggle: toggleFavorite } = useProductFavorite(product?.id);
   const previousSlidesSignatureRef = useRef<string>('');
   const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
   const productDisplayName = product ? getCatalogProductDisplayName(product) : null;
@@ -76,120 +64,6 @@ export const ProductPage = () => {
     structuredData: productStructuredData,
   });
 
-  const loadReviews = useCallback(
-    (page = 1, append = false) => {
-      if (!product) return;
-      setReviewsLoading(true);
-      setReviewsError(null);
-
-      void fetchProductReviews(product.slug, { page, perPage: reviewsPerPage })
-        .then((response) => {
-          const meta = response?.meta ?? { total: 0, average: 0 };
-          setReviewsMeta({ total: meta.total, average: meta.average });
-          let nextLength = 0;
-          setReviews((prev) => {
-            const incoming = response?.items ?? [];
-            const next = append ? [...prev, ...incoming] : incoming;
-            nextLength = next.length;
-            return next;
-          });
-          setHasMoreReviews(meta.total > nextLength);
-          setReviewsPage(page);
-        })
-        .catch((err: Error) => setReviewsError(err.message || 'Impossible de charger les avis.'))
-        .finally(() => setReviewsLoading(false));
-    },
-    [product, reviewsPerPage],
-  );
-
-  useEffect(() => {
-    if (!slug) return;
-
-    if (product?.slug === slug) {
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void fetchPublicProduct(slug)
-      .then((result) => {
-        setProduct(result);
-      })
-      .catch((err: Error) => setError(err.message || 'Produit introuvable.'))
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [slug, product?.slug]);
-
-  useEffect(() => {
-    if (!product) return;
-    setReviews([]);
-    setReviewsMeta({
-      total: product.reviews?.count ?? 0,
-      average: product.reviews?.average ?? 0,
-    });
-    setHasMoreReviews(false);
-    setReviewsPage(1);
-    setReviewsError(null);
-    loadReviews(1, false);
-  }, [product?.slug, loadReviews]);
-
-  useEffect(() => {
-    if (!product) {
-      setColorVariants([]);
-      return;
-    }
-
-    const variantGroup = buildVariantGroupKey(product);
-
-    void fetchPublicProducts({
-      category: product.category.slug,
-      sellingType: product.sellingType,
-      sort: 'release_year_desc',
-      perPage: 100,
-    })
-      .then((items) => {
-        const variants = items.filter(
-          (item) => buildVariantGroupKey(item) === variantGroup,
-        );
-        setColorVariants(variants.length > 0 ? variants : [product]);
-      })
-      .catch(() => setColorVariants([product]));
-  }, [product]);
-
-
-  useEffect(() => {
-    if (!product?.id || !isAuthenticated) {
-      setIsFavorite(false);
-      setFavoriteStatus('idle');
-      return;
-    }
-
-    let cancelled = false;
-    setFavoriteStatus('loading');
-
-    void fetchFavorites()
-      .then((items) => {
-        if (cancelled) {
-          return;
-        }
-        setIsFavorite(items.some((item) => item.product.id === product.id));
-        setFavoriteStatus('ready');
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-        setFavoriteStatus('error');
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated, product?.id]);
 
   const slides = useMemo(
     () =>
@@ -312,9 +186,6 @@ export const ProductPage = () => {
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
     void navigate(`/catalogue/produits/${target.slug}`);
   };
 
@@ -322,16 +193,8 @@ export const ProductPage = () => {
     if (!product) {
       return;
     }
-    setFavoriteAction('saving');
-    void addFavorite(product.id)
-      .then(({ alreadyFavorite }) => {
-        setIsFavorite(true);
-        showToast(
-          alreadyFavorite
-            ? 'Ce produit est déjà présent dans vos favoris.'
-            : 'Produit ajouté à vos favoris.',
-        );
-      })
+    void toggleFavorite()
+      .then(({ alreadyFavorite }) => showToast(alreadyFavorite ? 'Ce produit est déjà présent dans vos favoris.' : 'Produit ajouté à vos favoris.'))
       .catch((error: unknown) => {
         const message =
           error instanceof Error
@@ -339,19 +202,15 @@ export const ProductPage = () => {
             : "Impossible d'ajouter ce produit aux favoris.";
         showToast(message, { variant: 'error' });
       })
-      .finally(() => setFavoriteAction('idle'));
+      ;
   };
 
   const handleRemoveFavorite = () => {
     if (!product) {
       return;
     }
-    setFavoriteAction('saving');
-    void removeFavorite(product.id)
-      .then(() => {
-        setIsFavorite(false);
-        showToast('Produit retiré de vos favoris.');
-      })
+    void toggleFavorite()
+      .then(() => showToast('Produit retiré de vos favoris.'))
       .catch((error: unknown) => {
         const message =
           error instanceof Error
@@ -359,7 +218,7 @@ export const ProductPage = () => {
             : 'Impossible de retirer ce produit des favoris.';
         showToast(message, { variant: 'error' });
       })
-      .finally(() => setFavoriteAction('idle'));
+      ;
   };
 
   const handleNextSlide = () => {
@@ -370,10 +229,6 @@ export const ProductPage = () => {
   const handlePrevSlide = () => {
     if (!product || visibleSlides.length <= 1) return;
     setActiveSlide((previous) => (previous - 1 + visibleSlides.length) % visibleSlides.length);
-  };
-
-  const handleLoadMoreReviews = () => {
-    loadReviews(reviewsPage + 1, true);
   };
 
   return (
@@ -419,14 +274,11 @@ export const ProductPage = () => {
 
             <ProductInfoHighlight product={product} productDates={productDates} />
 
-            <section className="catalog-detail-content">
-              <h2>Description du produit</h2>
-              <p>{product.description}</p>
-            </section>
+            <ProductDescriptionSection description={product.description} />
 
             <ProductReviewsSection
               hasMoreReviews={hasMoreReviews}
-              onLoadMoreReviews={handleLoadMoreReviews}
+              onLoadMoreReviews={loadMoreReviews}
               reviews={reviews}
               reviewsError={reviewsError}
               reviewsLoading={reviewsLoading}

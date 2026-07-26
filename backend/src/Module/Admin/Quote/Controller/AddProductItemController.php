@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Quote\Entity\QuoteItem;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
+use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AddProductItemController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly QuoteWorkflowService $workflow,
         private readonly QuoteRepository $quoteRepository,
         private readonly ProductRepository $productRepository,
         private readonly QuoteCalculator $calculator,
@@ -48,40 +47,9 @@ class AddProductItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $name = (string) ($payload['name'] ?? $product->getName());
-        $unitPriceCents = isset($payload['unitPriceCents']) ? (int) $payload['unitPriceCents'] : $product->getPriceCents();
-
-        $item = new QuoteItem($name, max(0, $unitPriceCents));
-        $item->setItemType(QuoteItem::TYPE_PRODUCT)
-            ->setProductId($product->getId())
-            ->setDescription(self::strOrNull($payload['description'] ?? null))
-            ->setUnit(self::strOrNull($payload['unit'] ?? ('rental' === strtolower($product->getSellingType()) ? 'jour' : null)))
-            ->setQuantity((int) ($payload['quantity'] ?? 1));
-
-        if (isset($payload['vatRate'])) {
-            $item->setVatRateBps((int) round(((float) $payload['vatRate']) * 100));
-        } elseif (isset($payload['vatRateBps'])) {
-            $item->setVatRateBps((int) $payload['vatRateBps']);
-        }
-
-        if (isset($payload['discountCents'])) {
-            $item->setDiscountCents((int) $payload['discountCents']);
-        }
-
-        $quote->addItem($item);
-        $this->em->persist($item);
-        $this->em->flush();
+        $this->workflow->addProductItem($quote, $product, $payload);
 
         return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
     }
 
-    private static function strOrNull(mixed $v): ?string
-    {
-        if (null === $v) {
-            return null;
-        }
-        $s = trim((string) $v);
-
-        return '' === $s ? null : $s;
-    }
 }

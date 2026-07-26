@@ -1,0 +1,47 @@
+.client-dashboard__hero,
+.client-dashboard__panel,
+.client-dashboard__account-links a,
+.client-dashboard__record,
+.client-dashboard__compact-record,
+.client-dashboard__empty {
+  border-color: var(--hocia-line) !important;
+  border-radius: var(--hocia-radius) !important;
+  box-shadow: var(--hocia-shadow-sm) !important;
+}
+
+.client-dashboard__hero,
+.client-dashboard__record,
+.client-dashboard__compact-record,
+.client-dashboard__empty {
+  background: var(--hocia-surface-soft) !important;
+}
+
+.client-dashboard__hero h1,
+.client-dashboard__record strong,
+.client-dashboard__compact-record strong,
+.client-dashboard__account-links a,
+.client-dashboard__panel-header h2 {
+  color: var(--hocia-ink) !important;
+}
+
+.client-dashboard__hero p:not(.client-dashboard__eyebrow),
+.client-dashboard__panel-header p,
+.client-dashboard__record span,
+.client-dashboard__compact-record span,
+.client-dashboard__empty {
+  color: var(--hocia-muted) !important;
+}
+
+.client-dashboard__eyebrow,
+.client-dashboard__panel-header a,
+.client-dashboard__compact-record svg,
+.client-dashboard__account-links svg {
+  color: var(--hocia-blue-dark) !important;
+}
+
+.client-dashboard__compact-record svg,
+.client-dashboard__account-links svg,
+.client-dashboard__record:hover,
+.client-dashboard__compact-record:hover {
+  background: var(--hocia-surface-blue) !important;
+}

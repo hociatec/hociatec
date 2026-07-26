@@ -8,7 +8,7 @@ import {
   updateAdminTrainingEnrollmentStatus,
   type TrainingEnrollmentDto,
   type TrainingEnrollmentStatus,
-} from '@/features/trainings/api';
+} from '@/features/trainings/api/trainingsApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';

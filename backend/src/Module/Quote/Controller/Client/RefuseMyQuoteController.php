@@ -10,7 +10,7 @@ use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Module\Quote\Service\QuoteWorkflowService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +24,7 @@ final class RefuseMyQuoteController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quotes,
         private readonly QuoteCalculator $calculator,
-        private readonly EntityManagerInterface $em,
+        private readonly QuoteWorkflowService $workflow,
     ) {
     }
 
@@ -46,8 +46,7 @@ final class RefuseMyQuoteController extends AbstractController
             return ApiResponse::error('Ce devis ne peut pas être refusé.', Response::HTTP_BAD_REQUEST);
         }
 
-        $quote->setStatus(Quote::STATUS_REFUSED);
-        $this->em->flush();
+        $this->workflow->setStatus($quote, Quote::STATUS_REFUSED);
 
         return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
     }

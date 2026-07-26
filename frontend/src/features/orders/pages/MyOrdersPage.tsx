@@ -1,5 +1,3 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
@@ -18,59 +16,14 @@ import {
   AlertDialogTrigger,
 } from '@/shared/components/ui/alert-dialog';
 import {
-  buildOrderInvoiceFilename,
-  cancelMyOrder,
-  checkoutExistingOrder,
-  downloadOrderInvoicePdf,
-  fetchMyOrders,
   formatOrderStatusFr,
-  type OrderDto,
 } from '../api';
+import { useMyOrders } from '../hooks/useMyOrders';
 
 export const MyOrdersPage = () => {
   useDocumentTitle('Mes commandes');
 
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
-
-  useEffect(() => {
-    setStatus('loading');
-    setError(null);
-    void fetchMyOrders()
-      .then((items) => {
-        setOrders(items);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Erreur lors du chargement');
-        setStatus('error');
-      });
-  }, []);
-
-  const isLoading = status === 'loading';
-  const canDownloadInvoice = (order: OrderDto) => !['pending', 'cancelled'].includes(order.status);
-
-  const handlePayOrder = async (orderId: number) => {
-    setPayingOrderId(orderId);
-    setError(null);
-
-    try {
-      const result = await checkoutExistingOrder(orderId);
-      if ('mode' in result && result.mode === 'redirect') {
-        window.location.assign(result.checkoutUrl);
-        return;
-      }
-
-      const updatedOrder = result as OrderDto;
-      setOrders((prev) => prev.map((order) => (order.id === orderId ? updatedOrder : order)));
-    } catch (e) {
-      setError(getHttpErrorMessage(e, 'Impossible de lancer le règlement.'));
-    } finally {
-      setPayingOrderId(null);
-    }
-  };
+  const { orders, isLoading, error, payingOrderId, handlePayOrder, handleCancelOrder, handleDownloadInvoice, canDownloadInvoice } = useMyOrders();
 
   return (
     <SiteLayout>
@@ -139,7 +92,7 @@ export const MyOrdersPage = () => {
                         <button
                           type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          onClick={() => void downloadOrderInvoicePdf(o.id, buildOrderInvoiceFilename(o))}
+                          onClick={() => void handleDownloadInvoice(o)}
                           disabled={!canDownloadInvoice(o)}
                           title={!canDownloadInvoice(o) ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                         >
@@ -167,22 +120,7 @@ export const MyOrdersPage = () => {
                                 <AlertDialogCancel>Non</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => {
-                                    void cancelMyOrder(o.id)
-                                      .then(() => {
-                                        setOrders((prev) =>
-                                          prev.map((x) =>
-                                            x.id === o.id
-                                              ? {
-                                                  ...x,
-                                                  status: 'cancelled',
-                                                  statusLabel: 'Annulée',
-                                                  invoice: x.invoice ? { ...x.invoice, status: 'cancelled' } : x.invoice,
-                                                }
-                                              : x,
-                                          ),
-                                        );
-                                      })
-                                      .catch(() => undefined);
+                                    void handleCancelOrder(o.id);
                                   }}
                                 >
                                   Oui, annuler

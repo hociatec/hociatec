@@ -1,180 +1,18 @@
-import { Fragment, useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Fragment } from 'react';
 
+import { useOrderDetail } from '@/features/orders/hooks/useOrderDetail';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { formatOrderStatusFr } from '@/features/orders/api';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/components/ui/alert-dialog';
 
-import {
-  buildOrderInvoiceFilename,
-  cancelMyOrder,
-  checkoutExistingOrder,
-  downloadOrderInvoicePdf,
-  downloadOrderInvoiceXml,
-  fetchOrderById,
-  formatOrderStatusFr,
-  submitOrderItemReview,
-  type OrderDto,
-} from '../api';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/shared/components/ui/alert-dialog';
-
-type ReviewFormState = {
-  score: number;
-  comment: string;
-  submitting: boolean;
-  error: string | null;
-  success: boolean;
-};
+const ReviewStarsDisplay = ({ value }: { value: number }) => <span className="text-yellow-500 text-base">{[1, 2, 3, 4, 5].map((star) => <span key={star}>{star <= Math.round(value) ? '★' : '☆'}</span>)}</span>;
 
 export const OrderDetailPage = () => {
-  const { orderId } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
   useDocumentTitle('Détail de la commande');
-
-  const [order, setOrder] = useState<OrderDto | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>(
-    'idle',
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
-  const [justConfirmed, setJustConfirmed] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const emptyReviewForm: ReviewFormState = {
-    score: 0,
-    comment: '',
-    submitting: false,
-    error: null,
-    success: false,
-  };
-
-  useEffect(() => {
-    if (!orderId) return;
-    setStatus('loading');
-    setError(null);
-    void fetchOrderById(Number(orderId))
-      .then((o) => {
-        setOrder(o);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Erreur');
-        setStatus('error');
-      });
-  }, [orderId]);
-
-  useEffect(() => {
-    setReviewForms({});
-  }, [order?.id]);
-
-  useEffect(() => {
-    const state = location.state as { justConfirmed?: boolean } | null;
-
-    if (!state?.justConfirmed) {
-      return;
-    }
-
-    setJustConfirmed(true);
-    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
-  }, [location.pathname, location.search, location.state, navigate]);
-
-  const isLoading = status === 'loading';
-  const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
-
-  const getReviewForm = (orderItemId: number): ReviewFormState =>
-    reviewForms[orderItemId] ?? emptyReviewForm;
-
-  const updateReviewForm = (orderItemId: number, patch: Partial<ReviewFormState>) => {
-    setReviewForms((prev) => {
-      const current = prev[orderItemId] ?? emptyReviewForm;
-      return {
-        ...prev,
-        [orderItemId]: {
-          ...current,
-          ...patch,
-        },
-      };
-    });
-  };
-
-  const handleSubmitReview = async (orderItemId: number) => {
-    if (!order) return;
-    const form = getReviewForm(orderItemId);
-    if (form.score < 1) {
-      updateReviewForm(orderItemId, { error: 'Veuillez attribuer une note.', success: false });
-      return;
-    }
-
-    updateReviewForm(orderItemId, { submitting: true, error: null, success: false });
-
-    try {
-      const review = await submitOrderItemReview(order.id, orderItemId, {
-        score: form.score,
-        comment: form.comment || undefined,
-      });
-
-      setOrder((prev) => {
-        if (!prev) return prev;
-        const updatedItems = prev.items.map((it) =>
-          it.orderItemId === orderItemId ? { ...it, canReview: false, review } : it,
-        );
-        const nextPending = Math.max(0, (prev.pendingReviewsCount ?? 0) - 1);
-        return {
-          ...prev,
-          items: updatedItems,
-          pendingReviewsCount: nextPending,
-          hasPendingReviews: nextPending > 0,
-        };
-      });
-
-      updateReviewForm(orderItemId, { submitting: false, success: true });
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Impossible d\'enregistrer votre avis';
-      updateReviewForm(orderItemId, { submitting: false, error: message, success: false });
-    }
-  };
-
-  const handlePayOrder = async () => {
-    if (!order) return;
-
-    setPaying(true);
-    setError(null);
-
-    try {
-      const result = await checkoutExistingOrder(order.id);
-      if ('mode' in result && result.mode === 'redirect') {
-        window.location.assign(result.checkoutUrl);
-        return;
-      }
-
-      setOrder(result as OrderDto);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Impossible de lancer le règlement.');
-    } finally {
-      setPaying(false);
-    }
-  };
-
-  const ReviewStarsDisplay = ({ value }: { value: number }) => (
-    <span className="text-yellow-500 text-base">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <span key={star}>{star <= Math.round(value) ? '★' : '☆'}</span>
-      ))}
-    </span>
-  );
-
+  const { canDownloadInvoice, error, getReviewForm, handlePayOrder, handleSubmitReview, handleCancelOrder, handleDownloadInvoicePdf, handleDownloadInvoiceXml, isLoading, justConfirmed, order, paying, updateReviewForm } = useOrderDetail();
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
@@ -241,10 +79,7 @@ export const OrderDetailPage = () => {
                         <AlertDialogCancel>Non</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() => {
-                            if (!order) return;
-                            void cancelMyOrder(order.id)
-                              .then((updated) => setOrder(updated))
-                              .catch(() => undefined);
+                            void handleCancelOrder();
                           }}
                         >
                           Oui, annuler
@@ -277,7 +112,7 @@ export const OrderDetailPage = () => {
                     <button
                       type="button"
                       className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))}
+                      onClick={() => void handleDownloadInvoicePdf()}
                       disabled={!canDownloadInvoice}
                       title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                     >
@@ -286,7 +121,7 @@ export const OrderDetailPage = () => {
                     <button
                       type="button"
                       className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))}
+                      onClick={() => void handleDownloadInvoiceXml()}
                       disabled={!canDownloadInvoice}
                       title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
                     >

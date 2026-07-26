@@ -1,18 +1,18 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 import { useCart } from '@/features/cart/hooks/useCart';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/features/orders/api';
-import { fetchMyAddresses, type AddressDto } from '@/features/addresses/api';
+import { useCartCheckout } from '@/features/cart/hooks/useCartCheckout';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
-import type { CartItem as CartLine } from '@/features/cart/types';
-import { CartItemsList, CartPageHeader, CartSummarySidebar, EmptyCartState } from './CartPageSections';
+import type { CartItem as CartLine } from '@/features/cart/types/cart';
+import { CartItemsList, CartPageHeader, EmptyCartState } from '@/features/cart/components/CartPageBaseSections';
+import { CartSummarySidebar } from '@/features/cart/components/CartSummarySidebar';
 import './CartPage.css';
 
 export const CartPage = () => {
@@ -36,17 +36,13 @@ export const CartPage = () => {
   const { show } = useToast();
   const confirm = useConfirm();
 
-  const [isCheckout, setIsCheckout] = useState(false);
-  const [addresses, setAddresses] = useState<AddressDto[]>([]);
-  const [addressesLoading, setAddressesLoading] = useState(false);
-  const [addressesError, setAddressesError] = useState<string | null>(null);
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [promotionCode, setPromotionCode] = useState('');
   const [isApplyingPromotionCode, setIsApplyingPromotionCode] = useState(false);
 
   const isLoading = status === 'loading';
   const hasItems = !!(cart && cart.items.length > 0);
   const isPromotionCodeEmpty = promotionCode.trim() === '';
+  const { addresses, addressesLoading, addressesError, selectedAddressId, setSelectedAddressId, isCheckout, checkout } = useCartCheckout(authStatus === 'authenticated');
 
   useEffect(() => {
     setPromotionCode(cart?.enteredVoucherCode ?? '');
@@ -170,30 +166,6 @@ export const CartPage = () => {
     [removeItem, show],
   );
 
-  useEffect(() => {
-    if (authStatus !== 'authenticated') {
-      setAddresses([]);
-      setAddressesError(null);
-      setSelectedAddressId(null);
-      return;
-    }
-
-    setAddressesLoading(true);
-    setAddressesError(null);
-    void fetchMyAddresses()
-      .then((items) => {
-        setAddresses(items);
-        const d = items.find((i) => i.isDefault) ?? items[0];
-        if (d) setSelectedAddressId(d.id);
-      })
-      .catch((err: unknown) => {
-        setAddresses([]);
-        setSelectedAddressId(null);
-        setAddressesError(getHttpErrorMessage(err, 'Impossible de charger vos adresses de livraison.'));
-      })
-      .finally(() => setAddressesLoading(false));
-  }, [authStatus]);
-
   const handleCheckout = useCallback(() => {
     if (!hasItems) return;
     if (authStatus !== 'authenticated') {
@@ -204,31 +176,10 @@ export const CartPage = () => {
       return;
     }
 
-    const addressId = selectedAddressId ?? addresses.find((i) => i.isDefault)?.id;
-    if (!addressId) {
-      show('Choisissez une adresse de livraison avant de passer au paiement.', { variant: 'error' });
-      return;
-    }
-
-    setIsCheckout(true);
-    void checkoutOrder(addressId)
-      .then((result) => {
-        if ((result as CheckoutRedirectDto).mode === 'redirect') {
-          window.location.assign((result as CheckoutRedirectDto).checkoutUrl);
-          return;
-        }
-
-        const order = result as OrderDto;
-        resetAfterCheckout();
-        navigate(`/orders/${order.id}`, {
-          state: { justConfirmed: true },
-        });
-      })
-      .catch((err: unknown) =>
-        show(err instanceof Error ? err.message : "La commande n'a pas pu être validée. Vérifiez votre panier puis réessayez.", { variant: 'error' })
-      )
-      .finally(() => setIsCheckout(false));
-  }, [authStatus, hasItems, selectedAddressId, addresses, navigate, resetAfterCheckout, show]);
+    void checkout((url) => window.location.assign(url))
+      .then((order) => { if (order) { resetAfterCheckout(); navigate(`/orders/${order.id}`, { state: { justConfirmed: true } }); } })
+      .catch((err: unknown) => show(err instanceof Error ? err.message : "La commande n'a pas pu être validée. Vérifiez votre panier puis réessayez.", { variant: 'error' }));
+  }, [authStatus, checkout, hasItems, navigate, resetAfterCheckout, show]);
 
   return (
     <SiteLayout headerVariant="light">

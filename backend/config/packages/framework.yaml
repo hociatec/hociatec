@@ -9,7 +9,7 @@ framework:
 
     # Note that the session will be started ONLY if you read or write from it.
     session:
-        enabled: true
+        enabled: false
         cookie_secure: auto
         cookie_samesite: lax
 

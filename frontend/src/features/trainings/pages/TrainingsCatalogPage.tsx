@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import {
-  fetchPublicTrainings,
-  fetchPublicTrainingCategories,
   formatTrainingCategory,
   formatTrainingFormat,
-  type TrainingCategoryDto,
-  type TrainingDto,
-} from '@/features/trainings/api';
+} from '@/features/trainings/api/trainingsApi';
+import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
@@ -101,10 +98,7 @@ export const TrainingsCatalogPage = () => {
     canonicalUrl: `${SITE_URL}/formations`,
   });
 
-  const [trainings, setTrainings] = useState<TrainingDto[]>([]);
-  const [categories, setCategories] = useState<TrainingCategoryDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { trainings, categories, loading, error } = usePublicTrainingsCatalogData();
 
   const category = normalizeParam(searchParams.get('category'));
   const query = searchParams.get('q')?.trim() ?? '';
@@ -115,18 +109,6 @@ export const TrainingsCatalogPage = () => {
   const minDuration = toNullableNumber(searchParams.get('minDuration'));
   const maxDuration = toNullableNumber(searchParams.get('maxDuration'));
   const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void Promise.all([fetchPublicTrainings(), fetchPublicTrainingCategories()])
-      .then(([trainingItems, categoryItems]) => {
-        setTrainings(trainingItems);
-        setCategories(categoryItems);
-      })
-      .catch((err: Error) => setError(err.message || 'Impossible de charger les formations.'))
-      .finally(() => setLoading(false));
-  }, []);
 
   const availableCategories = useMemo(() => categories.filter((item) =>
     item.isActive && trainings.some((training) => training.category === item.slug),

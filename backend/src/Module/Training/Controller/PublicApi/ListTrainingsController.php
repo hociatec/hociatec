@@ -7,6 +7,7 @@ namespace App\Module\Training\Controller\PublicApi;
 use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,9 +27,16 @@ class ListTrainingsController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $category = trim((string) $request->query->get('category', ''));
+        $pagination = Pagination::fromRequest($request, 20, 50);
+        $category = '' !== $category ? $category : null;
+        $total = $this->trainings->countActive($category);
 
-        return ApiResponse::success([
-            'items' => array_map(fn ($training) => $this->formatter->formatTraining($training), $this->trainings->findActive('' !== $category ? $category : null)),
-        ]);
+        return ApiResponse::paginated(
+            array_map(
+                fn ($training) => $this->formatter->formatTraining($training),
+                $this->trainings->findActivePaginated($category, $pagination->perPage, $pagination->offset()),
+            ),
+            $pagination->metadata($total),
+        );
     }
 }

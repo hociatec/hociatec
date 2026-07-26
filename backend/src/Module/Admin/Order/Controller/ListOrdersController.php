@@ -10,6 +10,7 @@ use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderIssueInspector;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,7 @@ final class ListOrdersController extends AbstractController
     {
         $status = $request->query->get('status');
         $health = $request->query->get('health');
+        $pagination = Pagination::fromRequest($request, 25, 100);
 
         $qb = $this->orders->createQueryBuilder('o')
             ->orderBy('o.createdAt', 'DESC');
@@ -57,6 +59,18 @@ final class ListOrdersController extends AbstractController
                 ->groupBy('o.id');
         }
 
+        $countQb = clone $qb;
+        $countQb->resetDQLPart('select')
+            ->resetDQLPart('orderBy')
+            ->resetDQLPart('groupBy')
+            ->select('COUNT(DISTINCT o.id)')
+            ->setFirstResult(null)
+            ->setMaxResults(null);
+        $total = (int) $countQb->getQuery()->getSingleScalarResult();
+
+        $qb
+            ->setFirstResult($pagination->offset())
+            ->setMaxResults($pagination->perPage);
         /** @var list<Order> $orders */
         $orders = $qb->getQuery()->getResult();
         $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);
@@ -76,6 +90,6 @@ final class ListOrdersController extends AbstractController
             $orders,
         );
 
-        return ApiResponse::success(['items' => $items]);
+        return ApiResponse::paginated($items, $pagination->metadata($total));
     }
 }

@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useToast } from '@/shared/components/ui/toast';
-import { createAuditRequest, type AuditType } from '../api';
+import { useRequestAudit } from '../hooks/useRequestAudit';
+import type { AuditType } from '../api/auditsApi';
 
 const AUDIT_TYPES: { value: AuditType; label: string }[] = [
   { value: 'performance', label: 'Performance' },
@@ -16,35 +15,15 @@ const AUDIT_TYPES: { value: AuditType; label: string }[] = [
 
 export const RequestAuditPage = () => {
   useDocumentTitle('Demander un audit');
-  const toast = useToast();
-  const [type, setType] = useState<AuditType>('accessibility');
-  const [url, setUrl] = useState('');
-  const [objectives, setObjectives] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [createdNumber, setCreatedNumber] = useState<string | null>(null);
+  const { type, setType, url, setUrl, objectives, setObjectives, loading, createdNumber, onSubmit } = useRequestAudit();
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const out = await createAuditRequest({ type, url, objectives });
-      setCreatedNumber(out.number);
-      try { toast.show('Votre demande a été enregistrée.', { variant: 'success' }); } catch {}
-      setUrl('');
-      setObjectives('');
-    } catch (err) {
-      const msg = (err as Error)?.message ?? 'Impossible de créer la demande.';
-      try { toast.show(msg, { variant: 'error' }); } catch {}
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSubmit = (event: FormEvent) => { event.preventDefault(); void onSubmit(); };
 
   return (
     <SiteLayout>
       <div className="container mx-auto max-w-2xl p-4">
         <h1 className="text-2xl font-semibold mb-4">Demander un audit</h1>
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm mb-1">Type d'audit</label>
             <select className="w-full border rounded p-2" value={type} onChange={(e) => setType(e.target.value as AuditType)}>
@@ -85,4 +64,3 @@ export const RequestAuditPage = () => {
     </SiteLayout>
   );
 };
-

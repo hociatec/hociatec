@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Training\Controller\Admin;
 
 use App\Module\Training\Repository\TrainingSessionRepository;
+use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class DeleteTrainingSessionController extends AbstractController
 {
-    public function __construct(private readonly TrainingSessionRepository $sessions, private readonly EntityManagerInterface $em)
+    public function __construct(private readonly TrainingSessionRepository $sessions, private readonly TrainingWriter $writer)
     {
     }
 
@@ -27,8 +27,7 @@ class DeleteTrainingSessionController extends AbstractController
         if (null === $session) {
             return ApiResponse::error('Session introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $this->em->remove($session);
-        $this->em->flush();
+        $this->writer->delete($session);
 
         return ApiResponse::success(['deleted' => true]);
     }

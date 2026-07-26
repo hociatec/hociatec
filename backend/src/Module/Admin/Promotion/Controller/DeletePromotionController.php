@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Promotion\Controller;
 
 use App\Module\Promotion\Repository\PromotionRepository;
+use App\Module\Promotion\Service\PromotionManager;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ final class DeletePromotionController extends AbstractController
 {
     public function __construct(
         private readonly PromotionRepository $promotions,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly PromotionManager $manager,
     ) {
     }
 
@@ -30,8 +30,7 @@ final class DeletePromotionController extends AbstractController
             return ApiResponse::error('Promotion introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->entityManager->remove($promotion);
-        $this->entityManager->flush();
+        $this->manager->delete($promotion);
 
         return ApiResponse::success(['deleted' => true]);
     }

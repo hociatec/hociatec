@@ -18,7 +18,7 @@ export const fetchAdminPayments = async (
     `/api/admin/payments${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return (data.data?.items ?? []) as AdminPaymentDto[];
+    return data.data.items;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les paiements';
   throw new Error(message);
@@ -33,11 +33,10 @@ export const fetchAdminPaymentById = async (
   }>>(`/api/admin/payments/${paymentId}`);
   if (isApiOk(data)) {
     return {
-      payment: data.data?.payment as AdminPaymentDetailDto,
-      liveStripe: (data.data?.liveStripe ?? null) as AdminPaymentLiveStripeDto | null,
+      payment: data.data.payment,
+      liveStripe: data.data.liveStripe,
     };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger le paiement';
   throw new Error(message);
 };
-

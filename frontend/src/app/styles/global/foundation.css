@@ -1,0 +1,32 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.16), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.12), transparent 45%),
+    linear-gradient(160deg, var(--hocia-ink) 0%, var(--hocia-ink-soft) 55%, var(--hocia-ink) 100%);
+}
+
+.site-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+}
+
+.site-layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-background {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

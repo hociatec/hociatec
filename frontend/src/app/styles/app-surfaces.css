@@ -1,2 +1,2 @@
-@import './app-surface-primitives.css';
-@import './app-catalog-surfaces.css';
+@import './surfaces/primitives.css';
+@import './surfaces/catalog.css';

@@ -1,52 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
-  fetchMyTrainingEnrollments,
   formatTrainingEnrollmentStatus,
   formatTrainingFormat,
-  type TrainingEnrollmentDto,
-} from '@/features/trainings/api';
+} from '@/features/trainings/api/trainingsApi';
+import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
+import { trainingEnrollmentStatusClassName } from '../lib/trainingEnrollment';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatFrenchDateTimeFull, formatFrenchTime } from '@/shared/lib/formatters';
 
-const statusClassName = (status: string) => {
-  if (status === 'confirmed' || status === 'paid' || status === 'completed') {
-    return 'bg-emerald-100 text-emerald-800';
-  }
-
-  if (status === 'cancelled') {
-    return 'bg-brand-50 text-stone-700';
-  }
-
-  return 'bg-orange-100 text-orange-800';
-};
-
 export const MyTrainingDetailPage = () => {
-  const { enrollmentId } = useParams();
   const navigate = useNavigate();
-  const [items, setItems] = useState<TrainingEnrollmentDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const enrollment = useMemo(
-    () => items.find((item) => item.id === Number(enrollmentId)) ?? null,
-    [items, enrollmentId],
-  );
+  const { enrollment, loading, error } = useMyTrainingEnrollments();
 
   useDocumentTitle(enrollment ? enrollment.session.training.title : 'Détail formation');
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    void fetchMyTrainingEnrollments()
-      .then(setItems)
-      .catch((err: Error) => setError(err.message || 'Chargement impossible.'))
-      .finally(() => setLoading(false));
-  }, []);
 
   return (
     <SiteLayout headerVariant="light">
@@ -66,7 +35,7 @@ export const MyTrainingDetailPage = () => {
               ) : null}
             </div>
             {enrollment ? (
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClassName(enrollment.status)}`}>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${trainingEnrollmentStatusClassName(enrollment.status)}`}>
                 {formatTrainingEnrollmentStatus(enrollment.status)}
               </span>
             ) : null}

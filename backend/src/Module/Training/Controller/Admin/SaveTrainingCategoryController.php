@@ -9,7 +9,6 @@ use App\Module\Training\Repository\TrainingCategoryRepository;
 use App\Module\Training\Service\TrainingCategoryFormatter;
 use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +25,6 @@ class SaveTrainingCategoryController extends AbstractController
         private readonly TrainingCategoryRepository $categories,
         private readonly TrainingWriter $writer,
         private readonly TrainingCategoryFormatter $formatter,
-        private readonly EntityManagerInterface $em,
     ) {
     }
 
@@ -51,7 +49,6 @@ class SaveTrainingCategoryController extends AbstractController
 
         if (null === $category) {
             $category = new TrainingCategory($name, $slug);
-            $this->em->persist($category);
         }
 
         $category
@@ -60,7 +57,7 @@ class SaveTrainingCategoryController extends AbstractController
             ->setPosition((int) ($payload['position'] ?? $category->getPosition()))
             ->setIsActive((bool) ($payload['isActive'] ?? $category->isActive()));
 
-        $this->em->flush();
+        $this->writer->save($category);
 
         return ApiResponse::success($this->formatter->format($category), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }

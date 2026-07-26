@@ -1,193 +1,19 @@
 import './appointment-booking.css';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useToast } from '@/shared/components/ui/toast';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { bookAppointment, fetchAvailability, fetchPrestations } from '../api';
-import type { AvailabilitySlot, Prestation } from '../types';
 import FullCalendar from '@fullcalendar/react';
-import type { DatesSetArg, CalendarApi } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
+import { format } from 'date-fns';
 
-import { startOfDay, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-const ymd = (d: Date) => format(startOfDay(d), 'yyyy-MM-dd');
-
-type AppointmentLocationState = {
-  bookingConfirm?: {
-    prestationId: number;
-    slot: AvailabilitySlot;
-  };
-};
+import { useAppointmentBooking } from '../hooks/useAppointmentBooking';
 
 export const AppointmentBookingPage = () => {
   useDocumentTitle('Prendre un rendez-vous');
-  const { status } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const toast = useToast();
-
-  const [step, setStep] = useState(1);
-  const [prestations, setPrestations] = useState<Prestation[]>([]);
-  const [prestationsError, setPrestationsError] = useState<string | null>(null);
-  const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
-  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
-  const [booking, setBooking] = useState(false);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'recap' | 'success'>('recap');
-
-  const calendarRef = useRef<FullCalendar | null>(null);
-
-  // --- Charger les prestations
-  useEffect(() => {
-    (async () => {
-      try {
-        setPrestationsError(null);
-        const data = await fetchPrestations();
-        setPrestations(data);
-      } catch (error) {
-        setPrestationsError(
-          error instanceof Error
-            ? error.message
-            : 'Impossible de charger les prestations pour le moment.',
-        );
-      }
-    })();
-  }, []);
-
-  // --- Charger la disponibilité dynamiquement (vue visible)
-  const loadAvailabilityForView = async (start: Date, end: Date) => {
-    if (!selectedPrestation) return;
-    try {
-      const data = await fetchAvailability({
-        start: start.toISOString(),
-        end: end.toISOString(),
-        prestationId: selectedPrestation.id,
-      });
-      setSlots(data);
-    } catch (error) {
-      toast.show(
-        error instanceof Error
-          ? error.message
-          : 'Impossible de charger les créneaux disponibles.',
-        { variant: 'error' },
-      );
-      setSlots([]);
-    }
-  };
-
-  // --- Quand on change de mois / année
-  const handleDatesSet = async (arg: DatesSetArg) => {
-    if (selectedPrestation) {
-      await loadAvailabilityForView(arg.start, arg.end);
-    }
-  };
-
-  // --- Grouper les créneaux par jour
-  const slotsByDay = useMemo(() => {
-    const map = new Map<string, AvailabilitySlot[]>();
-    for (const s of slots) {
-      const key = ymd(new Date(s.start));
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(s);
-    }
-    return map;
-  }, [slots]);
-
-  // --- Colorer les jours disponibles
-  const events = useMemo(() => {
-    return Array.from(slotsByDay.keys()).map((day) => ({
-      start: day,
-      display: 'background',
-      backgroundColor: '#c2f0c2',
-    }));
-  }, [slotsByDay]);
-
-  // --- Clic sur un jour
-  const handleDateClick = (info: { date: Date }) => {
-    const key = ymd(info.date);
-    const available = slotsByDay.get(key);
-    if (!available || available.length === 0) return;
-    setSelectedDate(info.date);
-    setStep(3);
-  };
-
-  // --- Créneaux du jour sélectionné
-  const daySlots = selectedDate ? slotsByDay.get(ymd(selectedDate)) ?? [] : [];
-
-  // --- Réservation
-  const handleBooking = async () => {
-    if (!selectedSlot || !selectedPrestation) return;
-    if (status !== 'authenticated') {
-      toast.show('Connectez-vous pour confirmer votre rendez-vous.', { variant: 'info' });
-      navigate('/login', {
-        state: {
-          redirectTo: '/appointments/book',
-          redirectState: {
-            bookingConfirm: {
-              prestationId: selectedPrestation.id,
-              slot: selectedSlot,
-            },
-          },
-        },
-      });
-      return;
-    }
-    setBooking(true);
-    try {
-      await bookAppointment({
-        prestationId: selectedPrestation.id,
-        startAt: selectedSlot.start,
-      });
-      setModalMode('success');
-    } finally {
-      setBooking(false);
-    }
-  };
-
-  // If redirected after login with a pending confirmation, restore UI state
-  useEffect(() => {
-    const state = location.state as AppointmentLocationState | null;
-    const bookingConfirm = state?.bookingConfirm;
-    if (bookingConfirm && prestations.length > 0) {
-      const p = prestations.find((pr) => pr.id === bookingConfirm.prestationId) ?? null;
-      setSelectedPrestation(p);
-      setSelectedSlot(bookingConfirm.slot ?? null);
-      if (p && bookingConfirm.slot) {
-        setStep(3);
-        setModalMode('recap');
-        setModalOpen(true);
-      }
-      // Clear history state so back button doesn't re-open
-      navigate(location.pathname, { replace: true });
-    }
-  }, [location.state, prestations]);
-
-  // --- Navigation personnalisée
-  const getApi = (): CalendarApi | null => calendarRef.current?.getApi() ?? null;
-
-  const goPrevMonth = () => getApi()?.incrementDate({ months: -1 });
-  const goNextMonth = () => getApi()?.incrementDate({ months: 1 });
-  const goPrevYear = () => getApi()?.incrementDate({ years: -1 });
-  const goNextYear = () => getApi()?.incrementDate({ years: 1 });
-  const goToday = () => getApi()?.today();
-
-  // --- Ouvrir la modale automatiquement quand un créneau est choisi
-  useEffect(() => {
-    if (selectedSlot && step === 3) {
-      setModalMode('recap');
-      setModalOpen(true);
-    }
-  }, [selectedSlot, step]);
+  const { step, setStep, prestations, prestationsError, selectedPrestation, setSelectedPrestation, setSlots, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, booking, modalOpen, setModalOpen, modalMode, calendarRef, events, daySlots, handleDatesSet, handleDateClick, handleBooking, goPrevMonth, goNextMonth, goPrevYear, goNextYear, goToday } = useAppointmentBooking();
 
   return (
     <SiteLayout headerVariant="light">

@@ -18,7 +18,7 @@ export const fetchAdminOrders = async (
     `/api/admin/orders${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return (data.data?.items ?? []) as OrderDto[];
+    return data.data.items;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);
@@ -34,9 +34,9 @@ export const fetchAdminOrderById = async (
   }>>(`/api/admin/orders/${orderId}`);
   if (isApiOk(data)) {
     return {
-      order: data.data?.order as OrderDto,
-      events: (data.data?.events ?? []) as OrderEventDto[],
-      processing: (data.data?.processing ?? {}) as OrderProcessingDto,
+      order: data.data.order,
+      events: data.data.events,
+      processing: data.data.processing,
     };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger la commande';
@@ -52,7 +52,7 @@ export const updateAdminOrderStatus = async (
     { status },
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le statut';
   throw new Error(message);
@@ -73,7 +73,7 @@ export const updateAdminOrderDelivery = async (
     payload,
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour la livraison';
   throw new Error(message);
@@ -84,7 +84,7 @@ export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto>
     `/api/admin/orders/${orderId}/retry-invoice`,
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de regénérer la facture';
   throw new Error(message);
@@ -99,9 +99,8 @@ export const resendAdminOrderEmail = async (
     { scenario },
   );
   if (isApiOk(data)) {
-    return (data.data?.order as OrderDto) ?? ({} as OrderDto);
+    return data.data.order;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de renvoyer l’email';
   throw new Error(message);
 };
-

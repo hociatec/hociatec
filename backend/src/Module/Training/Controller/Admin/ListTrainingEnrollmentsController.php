@@ -7,8 +7,10 @@ namespace App\Module\Training\Controller\Admin;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -20,10 +22,14 @@ class ListTrainingEnrollmentsController extends AbstractController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        return ApiResponse::success([
-            'items' => array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $this->enrollments->findBy([], ['createdAt' => 'DESC'])),
-        ]);
+        $pagination = Pagination::fromRequest($request);
+        $items = $this->enrollments->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
+
+        return ApiResponse::paginated(
+            array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $items),
+            $pagination->metadata($this->enrollments->count([])),
+        );
     }
 }

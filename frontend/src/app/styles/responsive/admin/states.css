@@ -1,0 +1,33 @@
+.admin-shell__content .data-\[state\=active\]\:bg-brand-600[data-state="active"] {
+  background-color: var(--hocia-orange) !important;
+  color: #ffffff !important;
+}
+
+.admin-shell__content .bg-red-500\/10 {
+  background-color: #fff1f2 !important;
+}
+
+.admin-shell__content .border-red-500\/40 {
+  border-color: #fecdd3 !important;
+}
+
+.admin-shell__content .text-red-100,
+.admin-shell__content .text-red-300 {
+  color: #be123c !important;
+}
+
+.admin-shell__content .bg-amber-400\/10 {
+  background-color: #fffbeb !important;
+}
+
+.admin-shell__content .border-amber-400\/40 {
+  border-color: #fde68a !important;
+}
+
+.admin-shell__content .text-amber-300 {
+  color: #b7791f !important;
+}
+
+.admin-shell__content .text-emerald-300 {
+  color: var(--hocia-success) !important;
+}

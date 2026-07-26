@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { downloadBlob } from '@/shared/lib/downloadFile';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
-import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditEventDto, type AuditListItemDto } from '@/features/audits/api';
+import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditListItemDto } from '@/features/audits/api/auditsApi';
 
 type AdminAuditDetail = Awaited<ReturnType<typeof adminFetchAudit>>;
 
@@ -56,7 +57,7 @@ export const AdminAuditDetailPage = () => {
   const grouped = useMemo(() => {
     if (!audit) return {} as Record<string, AuditItemDto[]>;
     const map: Record<string, AuditItemDto[]> = {};
-    for (const it of (audit.items as AuditItemDto[]).sort((a, b) => a.position - b.position)) {
+    for (const it of [...audit.items].sort((a, b) => a.position - b.position)) {
       map[it.category] = map[it.category] ?? [];
       map[it.category].push(it);
     }
@@ -138,19 +139,13 @@ export const AdminAuditDetailPage = () => {
               <button className="underline" onClick={async () => {
                 try {
                   const blob = await adminDownloadAuditPdf(audit.id);
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url; a.download = `${audit.number}-rapport.pdf`; a.click();
-                  URL.revokeObjectURL(url);
+                  downloadBlob(blob, `${audit.number}-rapport.pdf`);
                 } catch {}
               }}>Télécharger le PDF</button>
               <button className="underline" onClick={async () => {
                 try {
                   const blob = await adminDownloadAuditSummaryPdf(audit.id);
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url; a.download = `${audit.number}-synthese.pdf`; a.click();
-                  URL.revokeObjectURL(url);
+                  downloadBlob(blob, `${audit.number}-synthese.pdf`);
                 } catch {}
               }}>Télécharger la synthèse PDF</button>
               <button className="underline" onClick={() => navigate('/admin/audits')}>Retour</button>
@@ -203,7 +198,7 @@ export const AdminAuditDetailPage = () => {
             <div>
               <div className="font-medium mb-2">Historique</div>
               <ul className="space-y-1 text-sm text-gray-700">
-                {(audit.events as AuditEventDto[]).map((e) => (
+                {audit.events.map((e) => (
                   <li key={e.id}>
                     <span className="text-gray-500">{formatFrenchDateTime(e.createdAt)} :</span>
                     {' '}{e.message || e.type}

@@ -6,8 +6,8 @@ namespace App\Module\Training\Controller\Admin;
 
 use App\Module\Training\Repository\TrainingCategoryRepository;
 use App\Module\Training\Repository\TrainingRepository;
+use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +21,7 @@ class DeleteTrainingCategoryController extends AbstractController
     public function __construct(
         private readonly TrainingCategoryRepository $categories,
         private readonly TrainingRepository $trainings,
-        private readonly EntityManagerInterface $em,
+        private readonly TrainingWriter $writer,
     ) {
     }
 
@@ -36,8 +36,7 @@ class DeleteTrainingCategoryController extends AbstractController
             return ApiResponse::error('Cette catégorie est utilisée par des formations.', Response::HTTP_BAD_REQUEST);
         }
 
-        $this->em->remove($category);
-        $this->em->flush();
+        $this->writer->delete($category);
 
         return ApiResponse::success(['deleted' => true]);
     }

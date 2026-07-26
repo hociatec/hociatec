@@ -37,20 +37,22 @@ final class RefundStripeWebhookHandler
             return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => null];
         }
 
-        if (null !== $stripeRefundId) {
-            $refund->setStripeRefundId($stripeRefundId);
-        }
+        $this->entityManager->wrapInTransaction(function () use ($refund, $stripeRefundId, $type, $object): void {
+            if (null !== $stripeRefundId) {
+                $refund->setStripeRefundId($stripeRefundId);
+            }
 
-        $stripeStatus = is_string($object['status'] ?? null) ? $object['status'] : null;
-        if ('refund.failed' === $type || in_array($stripeStatus, ['failed', 'canceled'], true)) {
-            $refund->setStatus(RefundRequest::STATUS_REJECTED);
-        } elseif ('succeeded' === $stripeStatus) {
-            $refund->setStatus(RefundRequest::STATUS_PROCESSED);
-        } elseif (in_array($stripeStatus, ['pending', 'requires_action'], true)) {
-            $refund->setStatus(RefundRequest::STATUS_APPROVED);
-        }
+            $stripeStatus = is_string($object['status'] ?? null) ? $object['status'] : null;
+            if ('refund.failed' === $type || in_array($stripeStatus, ['failed', 'canceled'], true)) {
+                $refund->setStatus(RefundRequest::STATUS_REJECTED);
+            } elseif ('succeeded' === $stripeStatus) {
+                $refund->setStatus(RefundRequest::STATUS_PROCESSED);
+            } elseif (in_array($stripeStatus, ['pending', 'requires_action'], true)) {
+                $refund->setStatus(RefundRequest::STATUS_APPROVED);
+            }
 
-        $this->entityManager->flush();
+            $this->entityManager->flush();
+        });
 
         return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => $refund->getId()];
     }

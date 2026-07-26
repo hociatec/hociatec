@@ -32,6 +32,18 @@ final class ApiResponse
     }
 
     /**
+     * @param list<mixed> $items
+     * @param array{page:int,perPage:int,total:int,totalPages:int} $meta
+     */
+    public static function paginated(array $items, array $meta): JsonResponse
+    {
+        return self::success([
+            'items' => $items,
+            'meta' => $meta,
+        ]);
+    }
+
+    /**
      * @param array<string, mixed>|list<string> $details
      */
     public static function error(string $message, int $status = JsonResponse::HTTP_BAD_REQUEST, array $details = []): JsonResponse

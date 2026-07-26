@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-  fetchMyTrainingEnrollments,
   formatTrainingEnrollmentStatus,
   formatTrainingFormat,
-  type TrainingEnrollmentDto,
-} from '@/features/trainings/api';
+} from '@/features/trainings/api/trainingsApi';
+import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { EmptyState, ErrorState, LoadingState, PrimaryLink } from '@/shared/components/ui/page-state';
@@ -15,18 +13,7 @@ import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 
 export const MyTrainingsPage = () => {
   useDocumentTitle('Mes formations');
-  const [items, setItems] = useState<TrainingEnrollmentDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchMyTrainingEnrollments()
-      .then(setItems)
-      .catch((err: Error) => setError(err.message || 'Chargement impossible.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const { items, loading, error } = useMyTrainingEnrollments();
 
   return (
     <SiteLayout headerVariant="light">

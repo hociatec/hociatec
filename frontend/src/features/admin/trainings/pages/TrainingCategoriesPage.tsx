@@ -7,7 +7,7 @@ import {
   fetchAdminTrainingCategories,
   saveAdminTrainingCategory,
   type TrainingCategoryDto,
-} from '@/features/trainings/api';
+} from '@/features/trainings/api/trainingsApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';

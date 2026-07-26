@@ -27,4 +27,10 @@ class AuditEventLogger
         $this->em->persist($event);
         $this->em->flush();
     }
+
+    public function save(object $entity): void
+    {
+        $this->em->persist($entity);
+        $this->em->flush();
+    }
 }

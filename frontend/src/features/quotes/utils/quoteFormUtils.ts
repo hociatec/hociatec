@@ -45,7 +45,7 @@ export const createDefaultQuoteValidity = () => {
 
 export const adaptQuoteForSave = <T extends QuoteDraftForSave | null | undefined>(source: T) => {
   if (!source) return source;
-  const items = (source.items as QuoteItem[] | undefined) ?? [];
+  const items = source.items ?? [];
 
   return {
     ...source,

@@ -4,7 +4,7 @@ import {
   fetchAdminLoyaltyCustomers,
   updateAdminLoyaltyCustomer,
   type AdminLoyaltyCustomerDto,
-} from '@/features/loyalty/api';
+} from '@/features/loyalty/api/loyaltyApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminMetricCard, AdminMetricGrid, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';

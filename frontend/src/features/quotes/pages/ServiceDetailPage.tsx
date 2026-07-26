@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import { fetchPublicQuoteService } from '@/features/quotes/api';
+import { usePublicServiceDetail } from '../hooks/usePublicServiceDetail';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
@@ -9,25 +8,8 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
-type PublicService = {
-  id: number;
-  title: string;
-  description?: string | null;
-  unit?: string | null;
-  durationValue?: number | null;
-  durationUnit?: 'hour' | 'day' | null;
-  durationLabel?: string | null;
-  priceCents: number;
-  vatRate?: number;
-};
-
 export const ServiceDetailPage = () => {
-  const params = useParams<{ serviceId: string }>();
-  const serviceId = Number.parseInt(params.serviceId ?? '', 10);
-
-  const [service, setService] = useState<PublicService | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { serviceId, service, loading, error } = usePublicServiceDetail();
 
   useDocumentTitle(service ? service.title : 'Service');
 
@@ -38,22 +20,6 @@ export const ServiceDetailPage = () => {
       'Découvrez le détail du service, sa durée estimée et sa base tarifaire.',
     canonicalUrl: Number.isFinite(serviceId) ? `${SITE_URL}/services/${serviceId}` : `${SITE_URL}/services`,
   });
-
-  useEffect(() => {
-    if (!Number.isFinite(serviceId)) {
-      setError('Service introuvable.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void fetchPublicQuoteService(serviceId)
-      .then((item) => setService(item))
-      .catch((err: Error) => setError(err.message || 'Impossible de charger ce service.'))
-      .finally(() => setLoading(false));
-  }, [serviceId]);
 
   return (
     <SiteLayout headerVariant="light">

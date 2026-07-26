@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Marketing\Controller;
 
 use App\Module\Marketing\Repository\EmailTemplateRepository;
+use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeleteTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly EmailTemplateAdminManager $manager,
         private readonly EmailTemplateRepository $templates,
     ) {
     }
@@ -30,8 +30,7 @@ final class DeleteTemplateController extends AbstractController
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->entityManager->remove($template);
-        $this->entityManager->flush();
+        $this->manager->delete($template);
 
         return ApiResponse::success(['deleted' => true]);
     }

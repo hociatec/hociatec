@@ -1,79 +1,18 @@
-import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-import { acceptMyQuote, fetchMyQuote, formatQuoteStatus, generateMyQuotePdf, refuseMyQuote, type QuoteDto } from '@/features/quotes/api';
+import { formatQuoteStatus } from '@/features/quotes/api/quotesApi';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useToast } from '@/shared/components/ui/toast';
 import { formatDateInputForDisplay, formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { useMyQuoteDetail } from '../hooks/useMyQuoteDetail';
 
 export const MyQuoteDetailPage = () => {
-  const { quoteId } = useParams();
   const navigate = useNavigate();
-  const toast = useToast();
-  const [quote, setQuote] = useState<QuoteDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState<'accept' | 'refuse' | null>(null);
+  const { quote, loading, error, downloading, updatingStatus, handleDownload, handleStatusAction } = useMyQuoteDetail();
 
   useDocumentTitle(quote ? `Devis ${quote.number}` : 'Consulter le devis');
 
-  useEffect(() => {
-    const id = Number(quoteId);
-
-    if (!id) {
-      setError('Devis introuvable.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void fetchMyQuote(id)
-      .then((result) => setQuote(result))
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger ce devis.')))
-      .finally(() => setLoading(false));
-  }, [quoteId]);
-
-  const handleDownload = async () => {
-    if (!quote) return;
-
-    setDownloading(true);
-    try {
-      const blob = await generateMyQuotePdf(quote.id);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${quote.number}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (e) {
-      toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const handleStatusAction = async (action: 'accept' | 'refuse') => {
-    if (!quote) return;
-
-    setUpdatingStatus(action);
-    try {
-      const updated = action === 'accept' ? await acceptMyQuote(quote.id) : await refuseMyQuote(quote.id);
-      setQuote(updated);
-      toast.show(action === 'accept' ? 'Devis accepté.' : 'Devis refusé.', { variant: 'success' });
-    } catch (e) {
-      toast.show(getHttpErrorMessage(e, 'Impossible de mettre à jour le devis.'), { variant: 'error' });
-    } finally {
-      setUpdatingStatus(null);
-    }
-  };
 
   const quoteStatus = quote?.statusCode ?? quote?.status;
   const canAnswerQuote = quoteStatus === 'sent' && !quote?.convertedOrder;

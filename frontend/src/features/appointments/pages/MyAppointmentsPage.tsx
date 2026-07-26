@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { cancelAppointment, fetchMyAppointments } from '../api';
-import type { AppointmentItem } from '../types';
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import type { AppointmentItem } from '../types/appointments';
+import { useMyAppointments } from '../hooks/useMyAppointments';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
@@ -14,30 +13,9 @@ const PAST_APPOINTMENTS_PER_PAGE = 5;
 export const MyAppointmentsPage = () => {
   useDocumentTitle('Mes rendez-vous');
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [upcoming, setUpcoming] = useState<AppointmentItem[]>([]);
-  const [past, setPast] = useState<AppointmentItem[]>([]);
-  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const [pastPage, setPastPage] = useState(1);
+  const { loading, error, upcoming, past, cancellingId, cancel } = useMyAppointments();
   const confirm = useConfirm();
-
-  const loadAppointments = async () => {
-    try {
-      const data = await fetchMyAppointments();
-      setUpcoming(data.upcoming);
-      setPast(data.past);
-      setPastPage(1);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Erreur lors du chargement de mes rendez-vous'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadAppointments();
-  }, []);
 
   const handleCancel = async (id: number) => {
     const confirmed = await confirm({
@@ -51,15 +29,7 @@ export const MyAppointmentsPage = () => {
       return;
     }
 
-    setCancellingId(id);
-    try {
-      await cancelAppointment(id);
-      await loadAppointments();
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Erreur lors de l'annulation du rendez-vous"));
-    } finally {
-      setCancellingId(null);
-    }
+    await cancel(id);
   };
 
   const renderList = (items: AppointmentItem[], showCancelButton = false) => (

@@ -8,7 +8,6 @@ use App\Module\Audit\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +22,6 @@ class UpdateChecklistItemController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $audits,
         private readonly AuditChecklistItemRepository $items,
-        private readonly EntityManagerInterface $em,
         private readonly AuditEventLogger $events,
     ) {
     }
@@ -61,7 +59,7 @@ class UpdateChecklistItemController extends AbstractController
             $changes[] = 'Commentaire mis à jour';
             $item->setComment((string) $comment);
         }
-        $this->em->flush();
+        $this->events->save($item);
 
         if ([] !== $changes) {
             /** @var \App\Module\User\Entity\User|null $actor */

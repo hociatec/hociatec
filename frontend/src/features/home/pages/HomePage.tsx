@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SiteLayout } from "../../../shared/components/SiteLayout";
 import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
 import { useMetaTags } from "@/shared/hooks/useMetaTags";
-import { fetchPublicProducts, type CatalogProduct } from "@/features/catalog/api";
+import type { CatalogProduct } from "@/features/catalog/api";
+import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
 import { ProductActionToolbar } from "@/features/catalog/components/ProductActionToolbar";
 import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
 import { getCatalogProductDisplayName } from "@/features/catalog/utils/productDisplay";
@@ -78,18 +79,7 @@ export const HomePage = () => {
     structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
   });
 
-  // Produits mis en avant (accueil)
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [errorProducts, setErrorProducts] = useState<string | null>(null);
-  useEffect(() => {
-    setLoadingProducts(true);
-    setErrorProducts(null);
-    void fetchPublicProducts({ homepage: true })
-      .then((items) => setProducts(items))
-      .catch((err: Error) => setErrorProducts(err.message || "Impossible de charger les produits."))
-      .finally(() => setLoadingProducts(false));
-  }, []);
+  const { products, loading: loadingProducts, error: errorProducts } = useHomeFeaturedProducts();
 
   return (
     <SiteLayout>

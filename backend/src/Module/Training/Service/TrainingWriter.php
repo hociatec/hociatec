@@ -6,9 +6,26 @@ namespace App\Module\Training\Service;
 
 use App\Module\Training\Entity\Training;
 use App\Module\Training\Entity\TrainingRoadmapItem;
+use Doctrine\ORM\EntityManagerInterface;
 
 final class TrainingWriter
 {
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function save(object $entity): void
+    {
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
+    }
+
+    public function delete(object $entity): void
+    {
+        $this->entityManager->remove($entity);
+        $this->entityManager->flush();
+    }
+
     /** @param array<string, mixed> $payload */
     public function apply(Training $training, array $payload): Training
     {

@@ -1,15 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import {
-  fetchPublicCategory,
-  searchPublicProducts,
-  type CatalogProduct,
-  type CatalogSearchFacets,
-  type CatalogSearchMeta,
-  type CatalogSort,
-  type CategoryWithProducts,
-} from '../api';
+import type { CatalogSort } from '../api';
 import { ProductActionToolbar } from '../components/ProductActionToolbar';
 import { ProductCard } from '../components/ProductCard';
 import { SiteFooter } from '../../../shared/components/SiteFooter';
@@ -17,6 +9,7 @@ import { SiteHeader } from '../../../shared/components/SiteHeader';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
+import { useCategoryData } from '@/features/catalog/hooks/useCategoryData';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
@@ -51,19 +44,6 @@ const toNullableNumber = (value: string | null) => {
 export const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [data, setData] = useState<CategoryWithProducts | null>(null);
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [meta, setMeta] = useState<CatalogSearchMeta>({ page: 1, perPage: 12, total: 0, totalPages: 1 });
-  const [facets, setFacets] = useState<CatalogSearchFacets>({
-    brands: [],
-    categories: [],
-    storageCapacities: [],
-    memoryRams: [],
-    colors: [],
-    price: { min: null, max: null },
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { categories: catalogCategories } = useCatalogMenu();
   const navigate = useNavigate();
 
@@ -78,6 +58,9 @@ export const CategoryPage = () => {
   const inStock = searchParams.get('inStock') === '1';
   const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
   const perPage = 12;
+  const { data, products, meta, facets, loading, error } = useCategoryData({
+    slug, search, brand, storageCapacity, memoryRam, color, minPrice, maxPrice, inStock, page, perPage, sort,
+  });
   const resultsSummary = search.trim()
     ? `${meta.total} solution${meta.total > 1 ? 's' : ''} pour « ${search.trim()} »`
     : `${meta.total} solution${meta.total > 1 ? 's' : ''} disponible${meta.total > 1 ? 's' : ''}`;
@@ -129,41 +112,6 @@ export const CategoryPage = () => {
     next.delete('page');
     setSearchParams(next, { replace: true });
   };
-
-  useEffect(() => {
-    if (!slug) return;
-    void fetchPublicCategory(slug)
-      .then((result) => setData(result))
-      .catch((err: Error) => setError(err.message || "Cette catégorie n'est pas disponible pour le moment."))
-  }, [slug]);
-
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    setError(null);
-
-    void searchPublicProducts({
-      category: slug,
-      q: search.trim() || undefined,
-      brand: brand !== ALL ? brand : undefined,
-      storageCapacity: storageCapacity !== ALL ? storageCapacity : undefined,
-      memoryRam: memoryRam !== ALL ? memoryRam : undefined,
-      color: color !== ALL ? color : undefined,
-      minPrice: minPrice ?? undefined,
-      maxPrice: maxPrice ?? undefined,
-      inStock,
-      page,
-      perPage,
-      sort,
-    })
-      .then((result) => {
-        setProducts(result.items);
-        setMeta(result.meta);
-        setFacets(result.facets);
-      })
-      .catch((err: Error) => setError(err.message || "Les produits de cette catégorie n'ont pas pu être chargés."))
-      .finally(() => setLoading(false));
-  }, [brand, color, inStock, maxPrice, memoryRam, minPrice, page, search, slug, sort, storageCapacity]);
 
   const brandOptions = useMemo(
     () => [{ value: ALL, label: 'Toutes les marques' }, ...facets.brands.map((item) => ({ value: item.value, label: `${item.value} (${item.count})` }))],

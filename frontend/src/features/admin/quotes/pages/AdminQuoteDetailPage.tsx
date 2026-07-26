@@ -1,4 +1,5 @@
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
+import { downloadBlob } from '@/shared/lib/downloadFile';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -11,7 +12,7 @@ import {
   updateAdminQuoteStatus,
   type QuoteDto,
   type QuoteStatus,
-} from '@/features/quotes/api';
+} from '@/features/quotes/api/quotesApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
@@ -56,14 +57,7 @@ export const AdminQuoteDetailPage = () => {
     setDownloading(true);
     try {
       const blob = await generateAdminQuotePdf(quote.id);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${quote.number}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${quote.number}.pdf`);
     } catch (e) {
       toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
     } finally {

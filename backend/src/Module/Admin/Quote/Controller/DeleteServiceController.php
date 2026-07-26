@@ -6,7 +6,7 @@ namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Repository\ServiceRepository;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Module\Quote\Service\QuoteCatalogManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteServiceController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly QuoteCatalogManager $catalog,
         private readonly ServiceRepository $serviceRepository,
     ) {
     }
@@ -30,8 +30,7 @@ class DeleteServiceController extends AbstractController
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->em->remove($service);
-        $this->em->flush();
+        $this->catalog->delete($service);
 
         return ApiResponse::success(['deleted' => true]);
     }

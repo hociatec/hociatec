@@ -2,7 +2,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { deleteAdminQuoteService, fetchAdminQuoteServices, type QuoteServiceDto } from '@/features/quotes/api';
+import { deleteAdminQuoteService, fetchAdminQuoteServices, type QuoteServiceDto } from '@/features/quotes/api/quotesApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

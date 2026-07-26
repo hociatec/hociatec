@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Controller;
 
+use App\Module\Auth\DTO\RequestPasswordResetInput;
 use App\Module\Auth\Service\PasswordResetService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +20,7 @@ class RequestPasswordResetController extends AbstractController
 {
     public function __construct(
         private readonly PasswordResetService $passwordResetService,
+        private readonly DtoValidator $validator,
         #[Autowire(service: 'limiter.password_reset_request')]
         private readonly RateLimiterFactory $limiter,
     ) {
@@ -31,13 +34,8 @@ class RequestPasswordResetController extends AbstractController
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $email = trim((string) ($payload['email'] ?? ''));
-        if ('' === $email || false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return ApiResponse::error(
-                'Veuillez saisir une adresse e-mail valide.',
-                JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-            );
-        }
+        $input = RequestPasswordResetInput::fromArray($payload);
+        $this->validator->validate($input);
 
         $limit = $this->limiter
             ->create($request->getClientIp() ?? 'unknown')
@@ -50,7 +48,7 @@ class RequestPasswordResetController extends AbstractController
             );
         }
 
-        $this->passwordResetService->request($email);
+        $this->passwordResetService->request($input->email);
 
         return ApiResponse::success([
             'message' => 'Si un compte correspond à cette adresse e-mail, un lien de réinitialisation vient d’être envoyé.',

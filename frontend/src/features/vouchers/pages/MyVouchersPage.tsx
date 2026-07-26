@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { fetchMyVouchers, type MyVoucherDto } from '@/features/vouchers/api';
+import { useVouchers } from '@/features/vouchers/hooks/useVouchers';
+import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { StableContent } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
@@ -25,20 +26,8 @@ export const MyVouchersPage = () => {
 
   const navigate = useNavigate();
   const toast = useToast();
-  const [vouchers, setVouchers] = useState<MyVoucherDto[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    void fetchMyVouchers()
-      .then((items) => setVouchers(items))
-      .catch((error: unknown) => {
-        toast.show(error instanceof Error ? error.message : 'Impossible de charger vos bons de réduction.', {
-          variant: 'error',
-        });
-      })
-      .finally(() => setLoading(false));
-  }, [toast]);
+  const { vouchers, loading, error } = useVouchers();
+  useEffect(() => { if (error) toast.show(error, { variant: 'error' }); }, [error, toast]);
 
   const activeVouchers = useMemo(
     () => vouchers.filter((voucher) => !isVoucherPast(voucher)),

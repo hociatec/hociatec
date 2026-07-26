@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
-import type { Prestation } from '@/features/appointments/types';
+import type { Prestation } from '@/features/appointments/types/appointments';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';

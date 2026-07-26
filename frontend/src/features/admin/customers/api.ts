@@ -161,7 +161,7 @@ export const fetchAdminCustomers = async (
     `/api/admin/customers?${query.toString()}`,
   );
   if (isApiOk(data)) {
-    return (data.data?.items ?? []) as AdminCustomerSummaryDto[];
+    return data.data.items;
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible de charger les clients';
@@ -185,10 +185,10 @@ export const fetchAdminCustomerById = async (
 
   if (isApiOk(data)) {
     return {
-      customer: data.data?.customer as AdminCustomerDetailDto,
-      addresses: (data.data?.addresses ?? []) as AdminCustomerAddressDto[],
-      orders: (data.data?.orders ?? []) as OrderDto[],
-      vouchers: (data.data?.vouchers ?? []) as AdminCustomerVoucherDto[],
+      customer: data.data.customer,
+      addresses: data.data.addresses,
+      orders: data.data.orders,
+      vouchers: data.data.vouchers,
     };
   }
 
@@ -210,7 +210,7 @@ export const updateAdminCustomerAdminProfile = async (
   if (isApiOk(data)) {
     return {
       adminNotes: data.data?.customer?.adminNotes ?? null,
-      adminTags: (data.data?.customer?.adminTags ?? []) as string[],
+      adminTags: data.data.customer.adminTags,
     };
   }
 

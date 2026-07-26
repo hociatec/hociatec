@@ -9,8 +9,8 @@ use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteStatusTranslator;
+use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ final class UpdateQuoteStatusController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quotes,
         private readonly QuoteCalculator $calculator,
-        private readonly EntityManagerInterface $em,
+        private readonly QuoteWorkflowService $workflow,
     ) {
     }
 
@@ -46,11 +46,7 @@ final class UpdateQuoteStatusController extends AbstractController
             return ApiResponse::error('Un devis converti doit rester accepté.', Response::HTTP_BAD_REQUEST);
         }
 
-        $quote->setStatus($status);
-        if (Quote::STATUS_SENT === $status && null === $quote->getCreatedEmailSentAt()) {
-            $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
-        }
-        $this->em->flush();
+        $this->workflow->setStatus($quote, $status);
 
         return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
     }

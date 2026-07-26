@@ -7,9 +7,9 @@ namespace App\Module\Order\Controller;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
+use App\Module\Order\Service\OrderWorkflowService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +22,7 @@ class CancelMyOrderController extends AbstractController
 {
     public function __construct(
         private readonly OrderRepository $orders,
-        private readonly EntityManagerInterface $em,
+        private readonly OrderWorkflowService $workflow,
     ) {
     }
 
@@ -43,12 +43,7 @@ class CancelMyOrderController extends AbstractController
             return ApiResponse::error('Seules les commandes en attente peuvent etre annulees.', Response::HTTP_BAD_REQUEST);
         }
 
-        $order
-            ->setStatus(Order::STATUS_CANCELLED)
-            ->setInvoiceStatus(Order::INVOICE_STATUS_CANCELLED);
-
-        $this->em->persist($order);
-        $this->em->flush();
+        $this->workflow->cancel($order);
 
         return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
     }

@@ -105,7 +105,7 @@ class UserRepository extends ServiceEntityRepository
      *   lastOrderAt:?string
      * }>
      */
-    public function findAdminCustomerRows(?string $search = null, string $sort = 'recent_order', int $limit = 100): array
+    public function findAdminCustomerRows(?string $search = null, string $sort = 'recent_order', int $limit = 100, int $offset = 0): array
     {
         $qb = $this->createQueryBuilder('u')
             ->select(
@@ -150,6 +150,7 @@ class UserRepository extends ServiceEntityRepository
 
         $rows = $qb
             ->setMaxResults(max(1, min(200, $limit)))
+            ->setFirstResult(max(0, $offset))
             ->getQuery()
             ->getArrayResult();
 
@@ -172,5 +173,30 @@ class UserRepository extends ServiceEntityRepository
             ],
             $rows,
         ));
+    }
+
+    public function countAdminCustomerRows(?string $search = null): int
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->select('COUNT(DISTINCT u.id)')
+            ->leftJoin(Order::class, 'o', 'WITH', 'o.user = u');
+
+        $normalizedSearch = trim((string) $search);
+        if ('' !== $normalizedSearch) {
+            $qb
+                ->andWhere(
+                    $qb->expr()->orX(
+                        'LOWER(u.email) LIKE LOWER(:search)',
+                        'LOWER(u.firstName) LIKE LOWER(:search)',
+                        'LOWER(u.lastName) LIKE LOWER(:search)',
+                        'LOWER(CONCAT(u.firstName, \' \', u.lastName)) LIKE LOWER(:search)',
+                        'LOWER(u.phoneNumber) LIKE LOWER(:search)',
+                        'LOWER(o.number) LIKE LOWER(:search)',
+                    )
+                )
+                ->setParameter('search', '%'.$normalizedSearch.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

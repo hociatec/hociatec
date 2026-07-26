@@ -17,4 +17,23 @@ class ServiceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Service::class);
     }
+
+    /** @return list<Service> */
+    public function findPaginated(int $limit, int $offset): array
+    {
+        return $this->createQueryBuilder('s')
+            ->orderBy('s.title', 'ASC')
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->setFirstResult(max(0, $offset))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

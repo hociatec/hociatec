@@ -7,8 +7,8 @@ namespace App\Module\Admin\Quote\Controller;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteEmailService;
+use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,7 +29,7 @@ class SendQuoteEmailController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteEmailService $quoteEmailService,
-        private readonly EntityManagerInterface $em,
+        private readonly QuoteWorkflowService $workflow,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -71,9 +71,7 @@ class SendQuoteEmailController extends AbstractController
             );
         }
 
-        $quote->setStatus(Quote::STATUS_SENT);
-        $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->em->flush();
+        $this->workflow->setStatus($quote, Quote::STATUS_SENT);
 
         return ApiResponse::success([
             'sent' => true,

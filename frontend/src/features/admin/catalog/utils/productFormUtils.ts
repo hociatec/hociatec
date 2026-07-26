@@ -24,3 +24,16 @@ export const formatVariantConflictLabel = (color: string | null | undefined, sto
 
   return parts.length > 0 ? parts.join(' / ') : 'cette variante';
 };
+
+export const formatVariantDetails = (product: { color?: string | null; storageCapacity?: string | null }) => {
+  const details = [product.color, product.storageCapacity].filter(
+    (value): value is string => Boolean(value && value.trim() !== ''),
+  );
+
+  return details.length > 0 ? details.join(' • ') : 'Aucune précision';
+};
+
+export const parseProductPrice = (value: string) => {
+  const parsed = Number(value.replace(',', '.'));
+  return Number.isNaN(parsed) ? -1 : parsed;
+};

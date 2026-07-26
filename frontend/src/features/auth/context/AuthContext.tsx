@@ -23,7 +23,7 @@ import {
   deleteAccount as deleteAccountRequest,
   type UpdateProfilePayload,
 } from '../api/authApi';
-import { fetchCart } from '@/features/cart/api';
+import { fetchCart } from '@/features/cart/api/cartApi';
 
 interface AuthContextValue {
   user: AuthUser | null;

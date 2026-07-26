@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
-import { fetchMyAudit, clientDownloadAuditPdf, clientDownloadAuditSummaryPdf, type AuditDetailDto, type AuditEventDto, type AuditItemDto, type AuditListItemDto } from '../api';
+import type { AuditListItemDto } from '../api/auditsApi';
+import { useMyAuditDetail } from '../hooks/useMyAuditDetail';
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
   new: 'Non commencé',
@@ -17,46 +16,7 @@ const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']
 
 export const MyAuditDetailPage = () => {
   useDocumentTitle('Détail de mon audit');
-  const params = useParams();
-  const id = Number(params.auditId);
-  const [data, setData] = useState<(AuditDetailDto & { events: AuditEventDto[] }) | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const pollTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    void fetchMyAudit(id)
-      .then(setData)
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  const grouped = useMemo(() => {
-    if (!data) return {} as Record<string, AuditItemDto[]>;
-    const map: Record<string, AuditItemDto[]> = {};
-    for (const it of (data.items as AuditItemDto[]).sort((a, b) => a.position - b.position)) {
-      map[it.category] = map[it.category] ?? [];
-      map[it.category].push(it);
-    }
-    return map;
-  }, [data]);
-
-  // Lightweight polling to refresh audit detail
-  useEffect(() => {
-    if (!id) return;
-    pollTimer.current = window.setInterval(() => {
-      if (document.hidden) return;
-      void fetchMyAudit(id)
-        .then(setData)
-        .catch(() => {/* silent background error */});
-    }, 10000);
-    return () => {
-      if (pollTimer.current) window.clearInterval(pollTimer.current);
-    };
-  }, [id]);
+  const { data, loading, error, grouped, downloadReport, downloadSummary } = useMyAuditDetail();
 
   return (
     <SiteLayout>
@@ -69,20 +29,8 @@ export const MyAuditDetailPage = () => {
             <div className="text-sm text-gray-700">Statut : {statusLabel(data.status)}</div>
             <div className="text-sm text-gray-700">Cible : {data.url}</div>
             <div className="flex gap-3">
-              <button className="underline text-brand-700" onClick={async () => {
-                try {
-                  const blob = await clientDownloadAuditPdf(data.id);
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a'); a.href = url; a.download = `${data.number}-rapport.pdf`; a.click(); URL.revokeObjectURL(url);
-                } catch {}
-              }}>Télécharger le PDF</button>
-              <button className="underline text-brand-700" onClick={async () => {
-                try {
-                  const blob = await clientDownloadAuditSummaryPdf(data.id);
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a'); a.href = url; a.download = `${data.number}-synthese.pdf`; a.click(); URL.revokeObjectURL(url);
-                } catch {}
-              }}>Télécharger la synthèse PDF</button>
+              <button className="underline text-brand-700" onClick={() => void downloadReport()}>Télécharger le PDF</button>
+              <button className="underline text-brand-700" onClick={() => void downloadSummary()}>Télécharger la synthèse PDF</button>
             </div>
             {data.objectives && (
               <div>

@@ -1,8 +1,8 @@
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
-import { QuoteEditorGrid } from '@/features/admin/extracted/quotes/AdminQuoteFormSections';
-import { useAdminQuoteFormController } from '@/features/admin/extracted/quotes/useAdminQuoteFormController';
+import { QuoteEditorGrid } from '@/features/admin/quotes/components/AdminQuoteFormSections';
+import { useAdminQuoteFormController } from '@/features/admin/quotes/hooks/useAdminQuoteFormController';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 
 export const QuoteFormPage = () => {

@@ -9,7 +9,6 @@ use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +25,6 @@ class SaveTrainingController extends AbstractController
         private readonly TrainingRepository $trainings,
         private readonly TrainingWriter $writer,
         private readonly TrainingFormatter $formatter,
-        private readonly EntityManagerInterface $em,
     ) {
     }
 
@@ -45,11 +43,10 @@ class SaveTrainingController extends AbstractController
 
         if (null === $training) {
             $training = new Training($title, $this->writer->slugify((string) ($payload['slug'] ?? $title)), 60, 0);
-            $this->em->persist($training);
         }
 
         $this->writer->apply($training, $payload);
-        $this->em->flush();
+        $this->writer->save($training);
 
         return ApiResponse::success($this->formatter->formatTraining($training), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }

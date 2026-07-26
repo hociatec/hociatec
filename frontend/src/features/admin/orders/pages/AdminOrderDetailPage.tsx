@@ -1,102 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { useAdminOrderDetail } from '@/features/admin/orders/hooks/useAdminOrderDetail';
 import { PageContainer } from '@/shared/components/PageContainer';
-import {
-  formatPaymentStatusFr,
-  buildOrderInvoiceFilename,
-  downloadOrderInvoicePdf,
-  downloadOrderInvoiceXml,
-  fetchAdminOrderById,
-  formatOrderStatusFr,
-  formatStripeEventTypeFr,
-  formatStripeFailureCodeFr,
-  formatStripePaymentStatusFr,
-  resendAdminOrderEmail,
-  retryAdminOrderInvoice,
-  updateAdminOrderDelivery,
-  type OrderDto,
-  type OrderEventDto,
-  type OrderProcessingDto,
-} from '@/features/orders/api';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { buildOrderInvoiceFilename, downloadOrderInvoicePdf, downloadOrderInvoiceXml, formatOrderStatusFr, formatPaymentStatusFr, formatStripeEventTypeFr, formatStripeFailureCodeFr, formatStripePaymentStatusFr, resendAdminOrderEmail, retryAdminOrderInvoice, updateAdminOrderDelivery } from '@/features/orders/api';
 
-const formatDateTime = (value?: string | null) =>
-  value ? formatOptionalFrenchDateTime(value) : 'Non envoyé';
-
-const toDateInputValue = (value?: string | null) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().slice(0, 10);
-};
+const formatDateTime = (value?: string | null) => value ? formatOptionalFrenchDateTime(value) : 'Non envoyé';
 
 export const AdminOrderDetailPage = () => {
-  const params = useParams();
   const navigate = useNavigate();
-  const orderId = Number(params.orderId);
-  const [order, setOrder] = useState<OrderDto | null>(null);
-  const [events, setEvents] = useState<OrderEventDto[]>([]);
-  const [processing, setProcessing] = useState<OrderProcessingDto | null>(null);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [error, setError] = useState<string | null>(null);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [deliverySaving, setDeliverySaving] = useState(false);
-  const [deliveryForm, setDeliveryForm] = useState({
-    status: 'preparing',
-    carrier: '',
-    trackingNumber: '',
-    trackingUrl: '',
-    estimatedAt: '',
-  });
-
-  useEffect(() => {
-    if (!orderId) {
-      setStatus('error');
-      setError('Commande invalide.');
-      return;
-    }
-
-    setStatus('loading');
-    setError(null);
-    setActionMessage(null);
-    void fetchAdminOrderById(orderId)
-      .then((data) => {
-        setOrder(data.order);
-        setEvents(data.events);
-        setProcessing(data.processing);
-        setDeliveryForm({
-          status: data.order.delivery?.status ?? 'preparing',
-          carrier: data.order.delivery?.carrier ?? '',
-          trackingNumber: data.order.delivery?.trackingNumber ?? '',
-          trackingUrl: data.order.delivery?.trackingUrl ?? '',
-          estimatedAt: toDateInputValue(data.order.delivery?.estimatedAt),
-        });
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setStatus('error');
-        setError(e instanceof Error ? e.message : 'Impossible de charger la commande.');
-      });
-  }, [orderId]);
-
-  const reload = async () => {
-    const data = await fetchAdminOrderById(orderId);
-    setOrder(data.order);
-    setEvents(data.events);
-    setProcessing(data.processing);
-    setDeliveryForm({
-      status: data.order.delivery?.status ?? 'preparing',
-      carrier: data.order.delivery?.carrier ?? '',
-      trackingNumber: data.order.delivery?.trackingNumber ?? '',
-      trackingUrl: data.order.delivery?.trackingUrl ?? '',
-      estimatedAt: toDateInputValue(data.order.delivery?.estimatedAt),
-    });
-  };
-
-  const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
-
+  const { actionMessage, canDownloadInvoice, deliveryForm, deliverySaving, error, events, order, processing, reload, setActionMessage, setDeliveryForm, setDeliverySaving, setError, status } = useAdminOrderDetail();
   return (
     <PageContainer size="admin"
       title={order ? `Commande ${order.number}` : 'Commande'}

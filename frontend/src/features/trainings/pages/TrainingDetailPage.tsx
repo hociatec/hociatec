@@ -1,111 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import {
-  enrollTrainingSession,
-  fetchPublicTraining,
   formatTrainingFormat,
-  type TrainingDto,
-  type TrainingSessionDto,
-} from '@/features/trainings/api';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+} from '@/features/trainings/api/trainingsApi';
+import { useTrainingDetail } from '../hooks/useTrainingDetail';
+import { calculateEndTime, calculateLatestStartTime, formatTrainingDuration } from '../lib/trainingDetail';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroCents, formatFrenchDate, formatFrenchTime } from '@/shared/lib/formatters';
-
-const formatDuration = (minutes: number) => {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0 && remainingMinutes > 0) return `${hours} h ${remainingMinutes} min`;
-  if (hours > 0) return `${hours} h`;
-  return `${minutes} min`;
-};
-
-const calculateEndTime = (date: string, time: string, durationMinutes: number) => {
-  if (!date || !time) return null;
-
-  const start = new Date(`${date}T${time}:00`);
-  if (Number.isNaN(start.getTime())) return null;
-
-  const end = new Date(start.getTime() + durationMinutes * 60_000);
-  return formatFrenchTime(end.toISOString());
-};
-
-const calculateLatestStartTime = (dailyEndTime: string, durationMinutes: number) => {
-  const end = new Date(`2000-01-01T${dailyEndTime}:00`);
-  if (Number.isNaN(end.getTime())) return dailyEndTime;
-
-  const latestStart = new Date(end.getTime() - durationMinutes * 60_000);
-  return formatFrenchTime(latestStart.toISOString());
-};
-
-const isWeekendDate = (date: string) => {
-  const parsed = new Date(`${date}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) return false;
-
-  return parsed.getDay() === 0 || parsed.getDay() === 6;
-};
+import { formatEuroCents, formatFrenchDate } from '@/shared/lib/formatters';
 
 export const TrainingDetailPage = () => {
-  const { slug = '' } = useParams();
-  const navigate = useNavigate();
-  const { status } = useAuth();
-  const [training, setTraining] = useState<TrainingDto | null>(null);
-  const [sessions, setSessions] = useState<TrainingSessionDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [submittingId, setSubmittingId] = useState<number | null>(null);
-  const [slotForms, setSlotForms] = useState<Record<number, { date: string; time: string }>>({});
+  const { training, sessions, loading, error, message, submittingId, slotForms, updateSlot, handleEnroll } = useTrainingDetail();
 
   useDocumentTitle(training ? training.title : 'Formation');
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchPublicTraining(slug)
-      .then((data) => {
-        setTraining(data.training);
-        setSessions(data.sessions);
-      })
-      .catch((err: Error) => setError(err.message || 'Formation introuvable.'))
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  const handleEnroll = async (session: TrainingSessionDto) => {
-    if (status !== 'authenticated') {
-      navigate('/login', { state: { redirectTo: `/formations/${slug}` } });
-      return;
-    }
-
-    const slot = slotForms[session.id];
-    if (!slot?.date || !slot?.time) {
-      setMessage('Choisissez une date et une heure de début.');
-      return;
-    }
-
-    if (!session.includeWeekends && isWeekendDate(slot.date)) {
-      setMessage('Cette session est réservable uniquement du lundi au vendredi.');
-      return;
-    }
-
-    setSubmittingId(session.id);
-    setMessage(null);
-    try {
-      const enrollment = await enrollTrainingSession(session.id, `${slot.date}T${slot.time}:00`);
-      if (enrollment.checkoutUrl) {
-        window.location.href = enrollment.checkoutUrl;
-        return;
-      }
-      setMessage('Inscription enregistrée. Retrouvez le suivi dans votre espace formations.');
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Inscription impossible.');
-    } finally {
-      setSubmittingId(null);
-    }
-  };
 
   return (
     <SiteLayout headerVariant="light">
@@ -169,7 +78,7 @@ export const TrainingDetailPage = () => {
                               Du {formatFrenchDate(session.startsAt) ?? '-'} au {formatFrenchDate(session.endsAt) ?? '-'}
                             </strong>
                             <p className="mt-1 text-sm text-stone-600">
-                              {formatTrainingFormat(session.format)} · {session.capacity} participant(s) maximum par créneau · durée {formatDuration(training.durationMinutes)}
+                              {formatTrainingFormat(session.format)} · {session.capacity} participant(s) maximum par créneau · durée {formatTrainingDuration(training.durationMinutes)}
                             </p>
                             <p className="mt-1 text-sm text-stone-600">
                               Début possible de {session.dailyStartTime} à {latestStartTime}, fin au plus tard à {session.dailyEndTime}
@@ -198,10 +107,7 @@ export const TrainingDetailPage = () => {
                                   min={session.startsAt.slice(0, 10)}
                                   max={session.endsAt.slice(0, 10)}
                                   value={slotForms[session.id]?.date ?? ''}
-                                  onChange={(event) => setSlotForms((prev) => ({
-                                    ...prev,
-                                    [session.id]: { date: event.target.value, time: prev[session.id]?.time ?? session.dailyStartTime },
-                                  }))}
+                                  onChange={(event) => updateSlot(session.id, 'date', event.target.value, { time: session.dailyStartTime })}
                                   className="rounded-xl border border-brand-200 px-3 py-2"
                                 />
                               </label>
@@ -212,10 +118,7 @@ export const TrainingDetailPage = () => {
                                   min={session.dailyStartTime}
                                   max={latestStartTime}
                                   value={slotForms[session.id]?.time ?? ''}
-                                  onChange={(event) => setSlotForms((prev) => ({
-                                    ...prev,
-                                    [session.id]: { date: prev[session.id]?.date ?? session.startsAt.slice(0, 10), time: event.target.value },
-                                  }))}
+                                  onChange={(event) => updateSlot(session.id, 'time', event.target.value, { date: session.startsAt.slice(0, 10) })}
                                   className="rounded-xl border border-brand-200 px-3 py-2"
                                 />
                               </label>

@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
@@ -6,7 +5,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatFrenchDate } from '@/shared/lib/formatters';
-import { fetchFavorites, removeFavorite, type FavoriteDto } from '../api';
+import { useFavorites } from '../hooks/useFavorites';
 
 const formatPrice = (cents: number, sellingType: 'sale' | 'rental') => {
   const value = formatEuroCents(cents);
@@ -18,45 +17,17 @@ export const MyFavoritesPage = () => {
   useDocumentTitle('Mes favoris');
   const { show } = useToast();
 
-  const [favorites, setFavorites] = useState<FavoriteDto[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [removingId, setRemovingId] = useState<number | null>(null);
-
-  const loadFavorites = useCallback(() => {
-    setStatus('loading');
-    setError(null);
-
-    void fetchFavorites()
-      .then((items) => {
-        setFavorites(items);
-        setStatus('success');
-      })
-      .catch((err: unknown) => {
-        const message =
-          err instanceof Error ? err.message : 'Une erreur est survenue en chargeant vos favoris.';
-        setError(message);
-        setStatus('error');
-      });
-  }, []);
-
-  useEffect(() => {
-    loadFavorites();
-  }, [loadFavorites]);
+  const { favorites, status, error, removingId, refresh: loadFavorites, remove } = useFavorites();
 
   const handleRemove = (productId: number) => {
-    setRemovingId(productId);
-    void removeFavorite(productId)
-      .then(() => {
-        setFavorites((prev) => prev.filter((favorite) => favorite.product.id !== productId));
-        show('Produit retiré de vos favoris.');
-      })
+    void remove(productId)
+      .then(() => show('Produit retiré de vos favoris.'))
       .catch((err: unknown) => {
         const message =
           err instanceof Error ? err.message : 'Impossible de retirer ce produit des favoris.';
         show(message, { variant: 'error' });
       })
-      .finally(() => setRemovingId((current) => (current === productId ? null : current)));
+      ;
   };
 
   const hasFavorites = favorites.length > 0;

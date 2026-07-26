@@ -16,8 +16,8 @@ import {
   fetchCart,
   removeCartItem,
   updateCartItemQuantity,
-} from '@/features/cart/api';
-import type { Cart, CartStatus } from '@/features/cart/types';
+} from '@/features/cart/api/cartApi';
+import type { Cart, CartStatus } from '@/features/cart/types/cart';
 import {
   clearCartToken,
   getPersistedCartToken,

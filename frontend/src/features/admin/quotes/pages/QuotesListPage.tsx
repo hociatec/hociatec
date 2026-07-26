@@ -2,7 +2,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote, formatQuoteStatus, sendAdminQuoteEmail, type QuoteDto } from '@/features/quotes/api';
+import { fetchAdminQuotes, deleteAdminQuote, duplicateAdminQuote, formatQuoteStatus, sendAdminQuoteEmail, type QuoteDto } from '@/features/quotes/api/quotesApi';
 import { useToast } from '@/shared/components/ui/toast';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';

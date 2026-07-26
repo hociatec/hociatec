@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Training\Controller\Admin;
 
 use App\Module\Training\Repository\TrainingRepository;
+use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class DeleteTrainingController extends AbstractController
 {
-    public function __construct(private readonly TrainingRepository $trainings, private readonly EntityManagerInterface $em)
+    public function __construct(private readonly TrainingRepository $trainings, private readonly TrainingWriter $writer)
     {
     }
 
@@ -28,8 +28,7 @@ class DeleteTrainingController extends AbstractController
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->em->remove($training);
-        $this->em->flush();
+        $this->writer->delete($training);
 
         return ApiResponse::success(['deleted' => true]);
     }

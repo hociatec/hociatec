@@ -6,6 +6,7 @@ namespace App\Module\Admin\User\Controller;
 
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,13 +25,18 @@ final class ListCustomersController extends AbstractController
     {
         $search = $request->query->get('search');
         $sort = (string) $request->query->get('sort', 'recent_order');
+        $pagination = Pagination::fromRequest($request, 25, 100);
 
-        return ApiResponse::success([
-            'items' => $this->users->findAdminCustomerRows(
+        $total = $this->users->countAdminCustomerRows(is_string($search) ? $search : null);
+
+        return ApiResponse::paginated(
+            $this->users->findAdminCustomerRows(
                 is_string($search) ? $search : null,
                 $sort,
-                150,
+                $pagination->perPage,
+                $pagination->offset(),
             ),
-        ]);
+            $pagination->metadata($total),
+        );
     }
 }

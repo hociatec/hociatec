@@ -8,6 +8,7 @@ use App\Module\Order\Entity\Order;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Service\VoucherManager;
+use App\Module\User\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class LoyaltyService
@@ -18,6 +19,7 @@ final class LoyaltyService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly VoucherManager $voucherManager,
+        private readonly UserRepository $users,
     ) {
     }
 
@@ -34,6 +36,36 @@ final class LoyaltyService
     public function calculateEarnedPoints(Order $order): int
     {
         return intdiv($order->getTotalPriceCents(), 100) * self::EARNING_POINTS_PER_EURO;
+    }
+
+    /** @return list<User> */
+    public function findCustomers(string $search, int $limit, int $offset): array
+    {
+        $qb = $this->users->createQueryBuilder('u')
+            ->orderBy('u.loyaltyPointsBalance', 'DESC')
+            ->addOrderBy('u.createdAt', 'DESC')
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->setFirstResult(max(0, $offset));
+
+        if ('' !== $search) {
+            $qb
+                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countCustomers(string $search): int
+    {
+        $qb = $this->users->createQueryBuilder('u')->select('COUNT(u.id)');
+        if ('' !== $search) {
+            $qb
+                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     public function syncOrderPoints(Order $order): void
@@ -59,6 +91,13 @@ final class LoyaltyService
     }
 
     public function convertPointsToVoucher(User $user, int $points): Voucher
+    {
+        return $this->entityManager->wrapInTransaction(
+            fn (): Voucher => $this->convertPointsToVoucherInTransaction($user, $points),
+        );
+    }
+
+    private function convertPointsToVoucherInTransaction(User $user, int $points): Voucher
     {
         $points = max(0, $points);
         $cents = $this->pointsToCents($points);

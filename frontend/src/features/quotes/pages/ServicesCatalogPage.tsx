@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { fetchPublicQuoteServices } from '@/features/quotes/api';
+import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
@@ -9,26 +9,12 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
-type PublicService = {
-  id: number;
-  title: string;
-  description?: string | null;
-  unit?: string | null;
-  durationValue?: number | null;
-  durationUnit?: 'hour' | 'day' | null;
-  durationLabel?: string | null;
-  priceCents: number;
-  vatRate?: number;
-};
-
 const SERVICES_PER_PAGE = 7;
 
 export const ServicesCatalogPage = () => {
   useDocumentTitle('Services');
 
-  const [services, setServices] = useState<PublicService[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { services, loading, error } = usePublicQuoteServices();
   const [page, setPage] = useState(1);
 
   useMetaTags({
@@ -36,19 +22,6 @@ export const ServicesCatalogPage = () => {
     description: 'Découvrez le catalogue de services Hociatec avec les détails, la durée estimée et la base tarifaire de chaque offre.',
     canonicalUrl: `${SITE_URL}/services`,
   });
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    void fetchPublicQuoteServices()
-      .then((items) => {
-        setServices(items);
-        setPage(1);
-      })
-      .catch((err: Error) => setError(err.message || 'Impossible de charger les services.'))
-      .finally(() => setLoading(false));
-  }, []);
 
   const totalPages = Math.max(1, Math.ceil(services.length / SERVICES_PER_PAGE));
   const paginatedServices = useMemo(() => {

@@ -7,8 +7,10 @@ namespace App\Module\Admin\Quote\Controller;
 use App\Module\Quote\Repository\ServiceRepository;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -20,12 +22,14 @@ class ListServicesController extends AbstractController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        $items = $this->serviceRepository->findBy([], ['title' => 'ASC']);
+        $pagination = Pagination::fromRequest($request);
+        $items = $this->serviceRepository->findBy([], ['title' => 'ASC'], $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::success([
-            'items' => array_map(static fn ($s) => QuoteFormatter::formatService($s), $items),
-        ]);
+        return ApiResponse::paginated(
+            array_map(static fn ($s) => QuoteFormatter::formatService($s), $items),
+            $pagination->metadata($this->serviceRepository->count([])),
+        );
     }
 }

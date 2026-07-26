@@ -12,17 +12,13 @@ import { type OrderDto } from '@/features/orders/api';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
-import {
-  CustomerAddressesSection,
-  CustomerAdminProfileSection,
-  CustomerEmailComposer,
-  CustomerOrdersSection,
-  CustomerQuickActions,
-  CustomerSummaryCards,
-  type CustomerEmailFormState,
-  type EmailTemplatePreset,
-  type OrderFilter,
-} from '@/features/admin/extracted/customers/AdminCustomerDetailSections';
+import { CustomerAddressesSection } from '@/features/admin/customers/components/CustomerAddressesSection';
+import { CustomerAdminProfileSection } from '@/features/admin/customers/components/CustomerAdminProfileSection';
+import { CustomerEmailComposer } from '@/features/admin/customers/components/CustomerEmailComposer';
+import { CustomerOrdersSection } from '@/features/admin/customers/components/CustomerOrdersSection';
+import { CustomerQuickActions } from '@/features/admin/customers/components/CustomerQuickActions';
+import { CustomerSummaryCards } from '@/features/admin/customers/components/CustomerSummaryCards';
+import { type CustomerEmailFormState, type EmailTemplatePreset, type OrderFilter } from '@/features/admin/customers/components/customerDetailShared';
 
 export const AdminCustomerDetailPage = () => {
   const params = useParams();

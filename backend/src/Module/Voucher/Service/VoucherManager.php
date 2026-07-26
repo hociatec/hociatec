@@ -87,6 +87,12 @@ final class VoucherManager
         return $voucher;
     }
 
+    public function delete(Voucher $voucher): void
+    {
+        $this->entityManager->remove($voucher);
+        $this->entityManager->flush();
+    }
+
     private function normalizeCode(?string $value): string
     {
         return mb_strtoupper(trim((string) $value));

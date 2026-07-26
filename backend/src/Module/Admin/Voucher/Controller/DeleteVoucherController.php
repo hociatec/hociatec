@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Voucher\Controller;
 
 use App\Module\Voucher\Repository\VoucherRepository;
+use App\Module\Voucher\Service\VoucherManager;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ final class DeleteVoucherController extends AbstractController
 {
     public function __construct(
         private readonly VoucherRepository $vouchers,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly VoucherManager $manager,
     ) {
     }
 
@@ -30,8 +30,7 @@ final class DeleteVoucherController extends AbstractController
             return ApiResponse::error('Bon de réduction introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->entityManager->remove($voucher);
-        $this->entityManager->flush();
+        $this->manager->delete($voucher);
 
         return ApiResponse::success(['deleted' => true]);
     }

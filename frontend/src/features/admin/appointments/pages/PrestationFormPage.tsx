@@ -8,7 +8,7 @@ import {
   updatePrestation,
   type UpsertPrestationPayload,
 } from '@/features/admin/appointments/api';
-import type { Prestation } from '@/features/appointments/types';
+import type { Prestation } from '@/features/appointments/types/appointments';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

@@ -7,8 +7,8 @@ namespace App\Module\Training\Controller\Admin;
 use App\Module\Training\Entity\TrainingEnrollment;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Service\TrainingFormatter;
+use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
     public function __construct(
         private readonly TrainingEnrollmentRepository $enrollments,
         private readonly TrainingFormatter $formatter,
-        private readonly EntityManagerInterface $em,
+        private readonly TrainingWriter $writer,
     ) {
     }
 
@@ -52,7 +52,7 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
         if (TrainingEnrollment::STATUS_PAID === $status && null === $enrollment->getPaidAt()) {
             $enrollment->setPaidAt(new \DateTimeImmutable());
         }
-        $this->em->flush();
+        $this->writer->save($enrollment);
 
         return ApiResponse::success($this->formatter->formatEnrollment($enrollment));
     }

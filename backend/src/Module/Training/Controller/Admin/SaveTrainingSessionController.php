@@ -8,8 +8,8 @@ use App\Module\Training\Entity\TrainingSession;
 use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Repository\TrainingSessionRepository;
 use App\Module\Training\Service\TrainingFormatter;
+use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ class SaveTrainingSessionController extends AbstractController
         private readonly TrainingRepository $trainings,
         private readonly TrainingSessionRepository $sessions,
         private readonly TrainingFormatter $formatter,
-        private readonly EntityManagerInterface $em,
+        private readonly TrainingWriter $writer,
     ) {
     }
 
@@ -61,7 +61,6 @@ class SaveTrainingSessionController extends AbstractController
 
         if (null === $session) {
             $session = new TrainingSession($training, $format, $startsAt, $endsAt, $capacity);
-            $this->em->persist($session);
         }
 
         $session
@@ -77,7 +76,7 @@ class SaveTrainingSessionController extends AbstractController
             ->setCapacity($capacity)
             ->setStatus(trim((string) ($payload['status'] ?? 'scheduled')) ?: 'scheduled');
 
-        $this->em->flush();
+        $this->writer->save($session);
 
         return ApiResponse::success($this->formatter->formatSession($session), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
     }

@@ -2,15 +2,14 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   ProductContentMediaSection,
-  ProductCurrentVariantSection,
   ProductDiscountSection,
-  ProductExtraVariantsSection,
-  ProductFormDatalists,
   ProductGeneralSection,
-  ProductPublicationSection,
   VariantSwitcherSection,
-} from '@/features/admin/extracted/catalog/ProductFormSections';
-import { useProductFormController } from '@/features/admin/extracted/catalog/useProductFormController';
+} from '@/features/admin/catalog/components/ProductFormContentSections';
+import { ProductCurrentVariantSection, ProductExtraVariantsSection } from '@/features/admin/catalog/components/ProductVariantSections';
+import { ProductFormDatalists } from '@/features/admin/catalog/components/ProductFormDatalists';
+import { ProductPublicationSection } from '@/features/admin/catalog/components/ProductPublicationSection';
+import { useProductFormController } from '@/features/admin/catalog/hooks/useProductFormControllerRefactored';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 
 import '@/features/catalog/pages/CatalogPages.css';

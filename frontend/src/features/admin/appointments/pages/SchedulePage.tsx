@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 
 import { fetchConfiguration, updateConfiguration } from '@/features/admin/appointments/api';
-import type { WorkingDay } from '@/features/appointments/types';
+import type { WorkingDay } from '@/features/appointments/types/appointments';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -59,7 +59,7 @@ export const SchedulePage = () => {
     );
   };
 
-  const sanitizedConfiguration = useMemo(
+  const sanitizedConfiguration = useMemo<WorkingDay[]>(
     () =>
       configuration.map((day) => ({
         dayOfWeek: day.dayOfWeek,
@@ -81,7 +81,7 @@ export const SchedulePage = () => {
     setSavingConfiguration(true);
 
     try {
-      const updated = await updateConfiguration(sanitizedConfiguration as WorkingDay[]);
+      const updated = await updateConfiguration(sanitizedConfiguration);
       setConfiguration(normalizeDays(updated));
       setConfigurationMessage('Configuration enregistrée.');
     } catch (error) {

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useMyAudits } from '../hooks/useMyAudits';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { fetchMyAudits, type AuditListItemDto } from '../api';
+import type { AuditListItemDto } from '../api/auditsApi';
 
 const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
   performance: 'Performance',
@@ -26,33 +26,7 @@ const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']
 
 export const MyAuditsPage = () => {
   useDocumentTitle('Mes audits');
-  const [items, setItems] = useState<AuditListItemDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const pollTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchMyAudits()
-      .then(setItems)
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Lightweight polling to keep statuses up-to-date
-  useEffect(() => {
-    // Poll every 15s when tab is visible
-    pollTimer.current = window.setInterval(() => {
-      if (document.hidden) return;
-      void fetchMyAudits()
-        .then(setItems)
-        .catch(() => {/* silent background error */});
-    }, 15000);
-    return () => {
-      if (pollTimer.current) window.clearInterval(pollTimer.current);
-    };
-  }, []);
+  const { items, loading, error } = useMyAudits();
 
   return (
     <SiteLayout>
