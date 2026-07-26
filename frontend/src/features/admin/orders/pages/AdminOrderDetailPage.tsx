@@ -2,15 +2,13 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useAdminOrderDetail } from '@/features/admin/orders/hooks/useAdminOrderDetail';
 import { AdminOrderDeliverySection } from '@/features/admin/orders/components/AdminOrderDeliverySection';
+import { AdminOrderPaymentSection } from '@/features/admin/orders/components/AdminOrderPaymentSection';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import {
   formatOrderStatusFr,
   formatPaymentStatusFr,
-  formatStripeEventTypeFr,
-  formatStripeFailureCodeFr,
-  formatStripePaymentStatusFr,
 } from '@/features/orders/api';
 
 const formatDateTime = (value?: string | null) =>
@@ -210,59 +208,7 @@ export const AdminOrderDetailPage = () => {
             </div>
           </section>
 
-          <section className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-brand-900">Paiement</h2>
-              <p className="mt-1 text-sm text-stone-500">
-                Contrôle rapide pour savoir si la commande a été payée et ouvrir la fiche paiement.
-              </p>
-            </div>
-            {order.payment ? (
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <div className="space-y-2 text-sm text-stone-700">
-                  <div>
-                    <span className="font-medium text-brand-900">Statut</span> :{' '}
-                    {order.payment.statusLabel ?? formatPaymentStatusFr(order.payment.status)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-brand-900">Statut Stripe</span> :{' '}
-                    {order.payment.stripePaymentStatusLabel ??
-                      formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-brand-900">Dernier événement Stripe</span> :{' '}
-                    {order.payment.lastStripeEventLabel ??
-                      formatStripeEventTypeFr(order.payment.lastStripeEventType)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-brand-900">Paiement confirmé le</span> :{' '}
-                    {formatOptionalFrenchDateTime(order.payment.completedAt)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-brand-900">Session expirée le</span> :{' '}
-                    {formatOptionalFrenchDateTime(order.payment.expiresAt)}
-                  </div>
-                  <div>
-                    <span className="font-medium text-brand-900">Motif d’échec</span> :{' '}
-                    {order.payment.failureMessage ||
-                      formatStripeFailureCodeFr(order.payment.failureCode)}
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <Link
-                    className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                    to={`/admin/payments/${order.payment.id}`}
-                  >
-                    Ouvrir la fiche paiement
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-brand-100 bg-brand-50 px-4 py-5 text-sm text-stone-600">
-                Aucun paiement lié à cette commande.
-              </div>
-            )}
-          </section>
+          <AdminOrderPaymentSection payment={order.payment ?? null} />
 
           <AdminOrderDeliverySection
             order={order}
