@@ -34,6 +34,6 @@ final readonly class CreateServiceController
             return ApiResponse::internalError('Impossible de créer le service.');
         }
 
-        return ApiResponse::created(QuoteFormatter::formatService($service));
+        return ApiResponse::created(QuoteFormatter::formatService($service), 'Le service a bien été créé.');
     }
 }

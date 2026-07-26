@@ -146,11 +146,11 @@ export const ServiceFormPage = () => {
     setSaving(true);
     try {
       if (isEdit && serviceId !== null) {
-        await updateAdminQuoteService(serviceId, payload);
-        setMessage('Service mis à jour.');
+        const response = await updateAdminQuoteService(serviceId, payload);
+        setMessage(response.message ?? 'Le service a bien été mis à jour.');
       } else {
-        await createAdminQuoteService(payload);
-        setMessage('Service créé.');
+        const response = await createAdminQuoteService(payload);
+        setMessage(response.message ?? 'Le service a bien été créé.');
       }
       navigate('/admin/services');
     } catch (e) {

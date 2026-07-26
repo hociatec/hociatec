@@ -36,9 +36,9 @@ export const useAdminServicesList = () => {
     )
       return;
     try {
-      await deleteAdminQuoteService(id);
+      const response = await deleteAdminQuoteService(id);
       setServices((items) => items.filter((item) => item.id !== id));
-      setMessage('Service supprimé.');
+      setMessage(response.message ?? 'Le service a bien été supprimé.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Suppression impossible.'));
     }

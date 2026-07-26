@@ -50,6 +50,6 @@ final class UpdateQuoteStatusController extends AbstractController
 
         $this->workflow->setStatus($quote, $status);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator), JsonResponse::HTTP_OK, 'Le statut du devis a bien été mis à jour.');
     }
 }

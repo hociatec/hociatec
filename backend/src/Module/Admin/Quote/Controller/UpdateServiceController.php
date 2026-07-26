@@ -42,6 +42,6 @@ final readonly class UpdateServiceController
             return ApiResponse::internalError('Impossible de mettre à jour le service.');
         }
 
-        return ApiResponse::success(QuoteFormatter::formatService($service));
+        return ApiResponse::success(QuoteFormatter::formatService($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');
     }
 }

@@ -10,7 +10,7 @@ import type {
   QuoteToOrderDto,
   AdminQuoteEmailDto,
 } from '../types/quoteTypes';
-import { extractQuoteApiError, unwrapQuoteApiData } from './quoteApiShared';
+import { extractQuoteApiError, unwrapQuoteApiData, unwrapQuoteApiResult } from './quoteApiShared';
 
 export interface QuoteMetadataOption { value: string; label: string }
 export interface AdminQuoteMetadataDto { statuses: QuoteMetadataOption[] }
@@ -40,12 +40,12 @@ export const updateAdminQuote = async (id: number, payload: QuoteInput) =>
   unwrapQuoteApiData(
     (await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`, payload)).data,
   );
-export const deleteAdminQuote = async (id: number): Promise<DeleteDto> =>
-  unwrapQuoteApiData(
+export const deleteAdminQuote = async (id: number) =>
+  unwrapQuoteApiResult(
     (await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/quotes/${id}`)).data,
   );
 export const duplicateAdminQuote = async (id: number) =>
-  unwrapQuoteApiData(
+  unwrapQuoteApiResult(
     (await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/duplicate`)).data,
   );
 
@@ -64,7 +64,7 @@ export const sendAdminQuoteEmail = async (id: number, to?: string) =>
 
 export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) => {
   try {
-    return unwrapQuoteApiData(
+    return unwrapQuoteApiResult(
       (await httpClient.patch<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/status`, { status }))
         .data,
     );
@@ -105,7 +105,7 @@ const toServiceFormData = (payload: Partial<QuoteServiceInput>) => {
 };
 
 export const createAdminQuoteService = async (payload: QuoteServiceInput) =>
-  unwrapQuoteApiData(
+  unwrapQuoteApiResult(
     (
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         '/api/admin/services',
@@ -115,7 +115,7 @@ export const createAdminQuoteService = async (payload: QuoteServiceInput) =>
     ).data,
   );
 export const updateAdminQuoteService = async (id: number, payload: Partial<QuoteServiceInput>) =>
-  unwrapQuoteApiData(
+  unwrapQuoteApiResult(
     (
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         `/api/admin/services/${id}`,
@@ -124,7 +124,7 @@ export const updateAdminQuoteService = async (id: number, payload: Partial<Quote
       )
     ).data,
   );
-export const deleteAdminQuoteService = async (id: number): Promise<DeleteDto> =>
-  unwrapQuoteApiData(
+export const deleteAdminQuoteService = async (id: number) =>
+  unwrapQuoteApiResult(
     (await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/services/${id}`)).data,
   );

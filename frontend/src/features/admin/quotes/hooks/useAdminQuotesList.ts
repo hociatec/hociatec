@@ -60,10 +60,10 @@ export const useAdminQuotesList = () => {
     )
       return;
     try {
-      await deleteAdminQuote(id);
+      const response = await deleteAdminQuote(id);
       setQuotes((items) => items.filter((item) => item.id !== id));
-      setMessage('Devis supprimé.');
-      toast.show('Devis supprimé.', { variant: 'success' });
+      setMessage(response.message ?? 'Le devis a bien été supprimé.');
+      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
     } catch (e) {
       const msg = getHttpErrorMessage(e, 'Suppression impossible.');
       setError(msg);
@@ -73,9 +73,9 @@ export const useAdminQuotesList = () => {
   const handleDuplicate = async (id: number) => {
     try {
       setQuotes((items) => items);
-      const copy = await duplicateAdminQuote(id);
-      setQuotes((items) => [copy, ...items]);
-      setMessage('Devis dupliqué.');
+      const response = await duplicateAdminQuote(id);
+      setQuotes((items) => [response.data, ...items]);
+      setMessage(response.message ?? 'Le devis a bien été dupliqué.');
     } catch (e) {
       const msg = getHttpErrorMessage(e, 'Duplication impossible.');
       setError(msg);

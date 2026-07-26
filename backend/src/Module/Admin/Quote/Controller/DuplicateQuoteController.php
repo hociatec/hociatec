@@ -35,6 +35,6 @@ class DuplicateQuoteController extends AbstractController
 
         $copy = $this->quoteService->duplicate($quote);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($copy, $this->calculator));
+        return ApiResponse::success(QuoteFormatter::formatQuote($copy, $this->calculator), JsonResponse::HTTP_OK, 'Le devis a bien été dupliqué.');
     }
 }

@@ -84,8 +84,9 @@ export const useAdminQuoteDetail = () => {
     if (!quote) return;
     setActionLoading(status);
     try {
-      setQuote(await updateAdminQuoteStatus(quote.id, status));
-      toast.show('Statut mis à jour.', { variant: 'success' });
+      const response = await updateAdminQuoteStatus(quote.id, status);
+      setQuote(response.data);
+      toast.show(response.message ?? 'Le statut du devis a bien été mis à jour.', { variant: 'success' });
     } catch (e) {
       toast.show(getHttpErrorMessage(e, 'Mise à jour impossible.'), {
         variant: 'error',

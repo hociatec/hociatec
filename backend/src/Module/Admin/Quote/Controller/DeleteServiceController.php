@@ -32,6 +32,6 @@ class DeleteServiceController extends AbstractController
 
         $this->catalog->delete($service);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le service a bien été supprimé.');
     }
 }
