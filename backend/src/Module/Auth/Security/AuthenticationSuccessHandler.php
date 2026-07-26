@@ -34,7 +34,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         $response = ApiResponse::success([
             'authenticated' => true,
             'refreshTokenExpiresAt' => $refreshToken['expiresAt'],
-        ]);
+        ], 200, 'Connexion réussie.');
         $this->authCookieService->attachLoginCookies(
             $response,
             $request,

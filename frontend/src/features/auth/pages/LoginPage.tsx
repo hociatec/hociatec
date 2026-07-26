@@ -14,6 +14,7 @@ import './LoginPage.css';
 
 interface LocationState {
   registered?: boolean;
+  registrationMessage?: string;
   redirectTo?: string;
   from?: {
     pathname?: string;
@@ -81,9 +82,9 @@ export const LoginPage = () => {
     const state = location.state as LocationState | null;
 
     if (state?.registered) {
-      setNotice('Votre compte est prêt. Vous pouvez désormais vous connecter.');
+      setNotice(state?.registrationMessage ?? 'Votre compte est prêt. Vous pouvez désormais vous connecter.');
       try {
-        toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', {
+        toast.show(state?.registrationMessage ?? 'Votre compte est prêt. Vous pouvez désormais vous connecter.', {
           variant: 'info',
         });
       } catch {}
@@ -121,12 +122,12 @@ export const LoginPage = () => {
         /* noop */
       }
 
-      await login(form);
+      const loginMessage = await login(form);
       const state = location.state as LocationState | null;
       const redirectState = state?.redirectState;
       const redirectTo = getAuthenticatedRedirect(state);
       try {
-        toast.show('Connexion réussie. Bienvenue !', { variant: 'success' });
+        toast.show(loginMessage ?? 'Connexion réussie.', { variant: 'success' });
       } catch {}
       try {
         window.sessionStorage.setItem(

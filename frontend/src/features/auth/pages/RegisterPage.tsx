@@ -33,7 +33,7 @@ export const RegisterPage = () => {
     const validationError = form.password !== form.confirmPassword ? 'Les mots de passe doivent être identiques.' : !PASSWORD_RULE.test(form.password) ? 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.' : !form.gender ? 'Veuillez sélectionner une option pour le champ sexe.' : null;
     if (validationError) { setError(validationError); try { toast.show(validationError, { variant: 'error' }); } catch {} return; }
     setLoading(true);
-    try { await registerUser(form); try { toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', { variant: 'success' }); } catch {} navigate('/login', { state: { registered: true } }); }
+    try { const response = await registerUser(form); try { toast.show(response.message ?? 'Compte créé.', { variant: 'success' }); } catch {} navigate('/login', { state: { registered: true, registrationMessage: response.message } }); }
     catch (submissionError) { console.error(submissionError); const message = submissionError instanceof Error ? submissionError.message || "Impossible de finaliser l'inscription pour le moment." : "Impossible de finaliser l'inscription pour le moment."; setError(message); if (submissionError instanceof Error && hasErrorDetails(submissionError)) setErrorDetails(submissionError.details); try { toast.show(message, { variant: 'error' }); } catch {} }
     finally { setLoading(false); }
   };

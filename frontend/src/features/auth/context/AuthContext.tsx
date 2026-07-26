@@ -25,7 +25,7 @@ import { fetchCart } from '@/features/cart/api/cartApi';
 interface AuthContextValue {
   user: AuthUser | null;
   status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
-  login: (payload: LoginFormPayload) => Promise<void>;
+  login: (payload: LoginFormPayload) => Promise<string | undefined>;
   logout: () => void;
   refresh: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
       try {
         const { rememberMe: _rememberMe = false, ...credentials } = payload;
-        await loginUser(credentials);
+        const response = await loginUser(credentials);
 
         await loadUser();
 
@@ -116,6 +116,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         } catch {
           // ignore cart errors during login
         }
+
+        return response.message;
       } catch (error) {
         clearAuthToken();
         setUser(null);

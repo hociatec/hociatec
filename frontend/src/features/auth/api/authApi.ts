@@ -33,6 +33,11 @@ export interface PasswordResetPayload {
   confirmPassword: string;
 }
 
+export interface AuthOperationResult<T> {
+  data: T;
+  message?: string;
+}
+
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') {
     const error = new Error(response.message);
@@ -56,28 +61,28 @@ const rethrowApiError = (error: unknown): never => {
   throw error;
 };
 
-export const registerUser = async (payload: RegisterPayload) => {
+export const registerUser = async (payload: RegisterPayload): Promise<AuthOperationResult<AuthUser>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<AuthUser>>('/api/auth/register', payload);
-    return unwrapResponse(data);
+    return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);
   }
 };
 
-export const loginUser = async (payload: LoginPayload) => {
+export const loginUser = async (payload: LoginPayload): Promise<AuthOperationResult<AuthSession>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/login', payload);
-    return unwrapResponse(data);
+    return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);
   }
 };
 
-export const refreshUserSession = async () => {
+export const refreshUserSession = async (): Promise<AuthOperationResult<AuthSession>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/refresh');
-    return unwrapResponse(data);
+    return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);
   }

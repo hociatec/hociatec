@@ -47,7 +47,7 @@ class RefreshTokenController extends AbstractController
         $response = ApiResponse::success([
             'authenticated' => true,
             'refreshTokenExpiresAt' => $rotated['expiresAt'],
-        ]);
+        ], 200, 'Session renouvelée.');
         $this->authCookieService->attachLoginCookies(
             $response,
             $request,

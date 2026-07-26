@@ -56,6 +56,6 @@ class RegisterController extends AbstractController
             );
         }
 
-        return ApiResponse::created($this->profiles->format($user));
+        return ApiResponse::created($this->profiles->format($user), 'Compte créé. Vérifiez votre adresse e-mail pour activer votre compte.');
     }
 }
