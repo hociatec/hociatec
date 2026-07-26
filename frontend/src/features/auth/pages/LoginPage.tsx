@@ -8,15 +8,9 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
-import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
 
 import './LoginPage.css';
-
-interface LoginFormState {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
 
 interface LocationState {
   registered?: boolean;
@@ -211,90 +205,18 @@ export const LoginPage = () => {
           </p>
         }
       >
-        {notice && (
-          <FeedbackMessage
-            id={loginNoticeId}
-            variant="success"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {notice}
-          </FeedbackMessage>
-        )}
-        {error && (
-          <FeedbackMessage id={loginErrorId} aria-live="assertive" aria-atomic="true">
-            <p>{error}</p>
-            {parsedErrorDetails.length > 0 && (
-              <ul className="mt-2 list-disc pl-5 text-sm">
-                {parsedErrorDetails.map((detail) => (
-                  <li key={detail}>{detail}</li>
-                ))}
-              </ul>
-            )}
-          </FeedbackMessage>
-        )}
-        <form
-          className="card__content"
+        <LoginForm
+          form={form}
+          error={error}
+          errorDetails={parsedErrorDetails}
+          notice={notice}
+          showPassword={showPassword}
+          loginErrorId={loginErrorId}
+          loginNoticeId={loginNoticeId}
+          onChange={handleChange}
           onSubmit={handleSubmit}
-          aria-describedby={
-            [error ? loginErrorId : null, notice ? loginNoticeId : null]
-              .filter(Boolean)
-              .join(' ') || undefined
-          }
-        >
-          <div className="form-field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={form.email}
-              onChange={handleChange}
-              aria-invalid={error ? true : undefined}
-              required
-            />
-          </div>
-          <div className="form-field">
-            <label htmlFor="password">Mot de passe</label>
-            <div className="login-form__password-wrapper">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                value={form.password}
-                onChange={handleChange}
-                aria-invalid={error ? true : undefined}
-                required
-              />
-              <button
-                type="button"
-                className="login-form__password-toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-              >
-                {showPassword ? 'Masquer' : 'Afficher'}
-              </button>
-            </div>
-            <Link to="/forgot-password" className="login-form__help-link">
-              Mot de passe oublié ?
-            </Link>
-          </div>
-          <label className="login-form__remember">
-            <input
-              id="rememberMe"
-              name="rememberMe"
-              type="checkbox"
-              checked={form.rememberMe}
-              onChange={handleChange}
-            />
-            <span>Se souvenir de mon email</span>
-          </label>
-          <button className="button" type="submit">
-            Se connecter
-          </button>
-        </form>
+          onTogglePassword={() => setShowPassword((prev) => !prev)}
+        />
       </PageContainer>
     </SiteLayout>
   );
