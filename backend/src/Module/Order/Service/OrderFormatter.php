@@ -26,6 +26,18 @@ final class OrderFormatter
         };
     }
 
+    /** @return list<array{value: string, label: string}> */
+    public static function statusOptions(): array
+    {
+        $statuses = [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_DELIVERED, Order::STATUS_CANCELLED];
+        $options = [];
+        foreach ($statuses as $status) {
+            $options[] = ['value' => $status, 'label' => self::formatStatusLabel($status)];
+        }
+
+        return $options;
+    }
+
     public static function formatDeliveryStatusLabel(string $deliveryStatus): string
     {
         return match ($deliveryStatus) {

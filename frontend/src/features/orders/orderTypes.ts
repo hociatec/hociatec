@@ -61,6 +61,10 @@ export interface OrderStatusOptionDto {
   label: string;
 }
 
+export interface AdminOrderMetadataDto {
+  statuses: OrderStatusOptionDto[];
+}
+
 export interface OrderEventDto {
   id: number;
   type: string;

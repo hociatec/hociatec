@@ -1,6 +1,12 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
-import type { OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
+import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
+
+export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> => {
+  const { data } = await httpClient.get<ApiResponse<AdminOrderMetadataDto>>('/api/admin/orders/metadata');
+  if (isApiOk(data)) return data.data;
+  throw new Error(data.message);
+};
 
 export const fetchAdminOrders = async (
   status: 'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled' = 'all',

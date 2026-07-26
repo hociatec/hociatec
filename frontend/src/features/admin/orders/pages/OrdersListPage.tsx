@@ -17,6 +17,7 @@ export const OrdersListPage = () => {
     error,
     filter,
     setFilter,
+    statusOptions,
     health,
     setHealth,
     search,
@@ -55,10 +56,7 @@ export const OrdersListPage = () => {
           onChange={(v) => setFilter(v as typeof filter)}
           options={[
             { value: 'all', label: 'Tous les statuts' },
-            { value: 'pending', label: 'En attente' },
-            { value: 'confirmed', label: 'Confirmé' },
-            { value: 'delivered', label: 'Livré' },
-            { value: 'cancelled', label: 'Annulé' },
+            ...statusOptions,
           ]}
           ariaLabel="Filtre statut"
         />

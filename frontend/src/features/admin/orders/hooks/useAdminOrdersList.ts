@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { fetchAdminOrders, updateAdminOrderStatus, type OrderDto } from '@/features/orders/api';
+import { fetchAdminOrders, fetchAdminOrderMetadata, updateAdminOrderStatus, type OrderDto } from '@/features/orders/api';
 import {
   filterAndSortAdminOrders,
   type OrderHealthFilter,
@@ -33,6 +33,10 @@ export const useAdminOrdersList = () => {
     order: OrderDto;
   } | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [statusOptions, setStatusOptions] = useState<{ value: OrderStatus; label: string }[]>([]);
+  useEffect(() => {
+    void fetchAdminOrderMetadata().then((metadata) => setStatusOptions(metadata.statuses as { value: OrderStatus; label: string }[])).catch(() => undefined);
+  }, []);
   useEffect(() => {
     setStatus('loading');
     setError(null);
@@ -82,6 +86,7 @@ export const useAdminOrdersList = () => {
     error,
     filter,
     setFilter,
+    statusOptions,
     health,
     setHealth,
     search,
