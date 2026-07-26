@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
+import type { TrainingFormat } from '@/features/trainings/api/trainingTypes';
 import {
   filterAndSortTrainings,
   getActiveTrainingCategories,
@@ -30,11 +31,18 @@ export const useTrainingCatalogController = () => {
     { value: ALL, label: 'Toutes les catégories' },
     ...availableCategories.map((item) => ({ value: item.slug, label: `${item.name} (${trainings.filter((training) => training.category === item.slug).length})` })),
   ], [availableCategories, trainings]);
-  const formatOptions = useMemo(() => [
-    { value: ALL, label: 'Tous les formats' },
-    { value: 'onsite', label: `Présentiel (${trainings.filter((training) => training.availableFormats.includes('onsite')).length})` },
-    { value: 'remote', label: `Distanciel (${trainings.filter((training) => training.availableFormats.includes('remote')).length})` },
-  ], [trainings]);
+  const formatOptions = useMemo(() => {
+    const formats = new Map<string, string>();
+    trainings.forEach((training) => training.availableFormatDetails.forEach(({ value, label }) => formats.set(value, label)));
+
+    return [
+      { value: ALL, label: 'Tous les formats' },
+      ...Array.from(formats, ([value, label]) => ({
+        value,
+        label: `${label} (${trainings.filter((training) => training.availableFormats.includes(value as TrainingFormat)).length})`,
+      })),
+    ];
+  }, [trainings]);
   const categoryName = (slug: string) =>
     trainings.find((training) => training.category === slug)?.categoryDetails?.name ?? '';
   const filteredTrainings = useMemo(() => filterAndSortTrainings(trainings, { category, format, query, sort, minPrice, maxPrice, minDuration, maxDuration }, categoryName), [category, format, maxDuration, maxPrice, minDuration, minPrice, query, sort, trainings, categories]);

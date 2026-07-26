@@ -4,13 +4,6 @@ import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import type { AccountNotificationItem } from '@/shared/types/accountNotifications';
 
-const AUDIT_STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-
 const isVoucherUsable = (voucher: MyVoucherDto, now: number) => {
   if (!voucher.isActive) return false;
   if (voucher.startsAt && new Date(voucher.startsAt).getTime() > now) return false;
@@ -78,7 +71,7 @@ export const buildAccountNotifications = ({
     activeAudit
       ? {
           key: `audit:${activeAudit.id}:${activeAudit.status}`,
-          label: `Audit ${AUDIT_STATUS_LABELS[activeAudit.status] ?? activeAudit.status} en suivi`,
+          label: `Audit ${activeAudit.statusLabel} en suivi`,
           to: `/audits/me/${activeAudit.id}`,
         }
       : null,
