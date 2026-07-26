@@ -12,7 +12,7 @@ import {
   type OrderDto,
 } from '@/features/orders/api';
 
-type ReviewFormState = {
+export type ReviewFormState = {
   score: number;
   comment: string;
   submitting: boolean;
