@@ -15,6 +15,7 @@ import {
 import { OperationsShippingQueue } from './OperationsShippingQueue';
 import { OperationsSupportCard } from './OperationsSupportCard';
 import { OperationsRefundCard } from './OperationsRefundCard';
+import { OperationsStockCard } from './OperationsStockCard';
 const { inputClass, primaryActionClass } = operationsUi;
 
 export const OperationsActionsSection = ({
@@ -70,60 +71,7 @@ export const OperationsActionsSection = ({
 
       <OperationsRefundCard refundForm={refundForm} setRefundForm={setRefundForm} submitRefund={submitRefund} />
 
-      <ActionCard
-        title="Corriger un stock"
-        description="Ajoute ou retire une quantité avec une trace exploitable dans l’historique."
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="ID produit">
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Ex. 15"
-              value={stockForm.productId}
-              onChange={(e) => setStockForm((p) => ({ ...p, productId: e.target.value }))}
-            />
-          </Field>
-          <Field label="Quantité à appliquer" helper="+5 ajoute du stock, -2 retire du stock.">
-            <input
-              className={inputClass}
-              placeholder="Ex. +5 ou -2"
-              value={stockForm.delta}
-              onChange={(e) => setStockForm((p) => ({ ...p, delta: e.target.value }))}
-            />
-          </Field>
-          <Field label="Motif" className="sm:col-span-2">
-            <select
-              className={inputClass}
-              value={stockForm.reason}
-              onChange={(e) => setStockForm((p) => ({ ...p, reason: e.target.value }))}
-            >
-              <option value="adjustment">Correction</option>
-              <option value="restock">Réapprovisionnement</option>
-              <option value="return">Retour</option>
-              <option value="damage">Casse</option>
-              <option value="reservation">Réservation</option>
-            </select>
-          </Field>
-          <Field label="Note" className="sm:col-span-2">
-            <textarea
-              className={inputClass}
-              rows={3}
-              placeholder="Pourquoi ce stock change ?"
-              value={stockForm.note}
-              onChange={(e) => setStockForm((p) => ({ ...p, note: e.target.value }))}
-            />
-          </Field>
-        </div>
-        <button
-          className={primaryActionClass}
-          type="button"
-          onClick={submitStock}
-          disabled={!stockForm.productId || !stockForm.delta}
-        >
-          Enregistrer le mouvement
-        </button>
-      </ActionCard>
+      <OperationsStockCard stockForm={stockForm} setStockForm={setStockForm} submitStock={submitStock} />
 
       <ActionCard
         title="Actions rapides"
