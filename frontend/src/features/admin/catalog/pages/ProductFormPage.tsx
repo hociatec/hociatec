@@ -3,8 +3,8 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   ProductContentMediaSection,
   ProductGeneralSection,
-  VariantSwitcherSection,
 } from '@/features/admin/catalog/components/ProductFormContentSections';
+import { VariantSwitcherSection } from '@/features/admin/catalog/components/VariantSwitcherSection';
 import { ProductDiscountSection } from '@/features/admin/catalog/components/ProductDiscountSection';
 import {
   ProductCurrentVariantSection,
