@@ -32,6 +32,6 @@ final class DeleteVoucherController extends AbstractController
 
         $this->manager->delete($voucher);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le bon de réduction a bien été supprimé.');
     }
 }

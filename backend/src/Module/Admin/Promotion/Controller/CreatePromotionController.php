@@ -40,6 +40,6 @@ final class CreatePromotionController extends AbstractController
 
         return ApiResponse::created([
             'promotion' => PromotionFormatter::formatPromotion($promotion),
-        ]);
+        ], 'La promotion a bien été créée.');
     }
 }

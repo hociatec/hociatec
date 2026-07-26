@@ -46,9 +46,9 @@ export const VouchersPage = () => {
     if (!confirmed) return;
 
     try {
-      await deleteVoucher(voucherId);
+      const response = await deleteVoucher(voucherId);
       setVouchers((current) => current.filter((item) => item.id !== voucherId));
-      toast.show('Bon de réduction supprimé.', { variant: 'success' });
+      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', { variant: 'success' });
     } catch (err) {
       const message = getHttpErrorMessage(err, 'Suppression impossible.');
       setError(message);

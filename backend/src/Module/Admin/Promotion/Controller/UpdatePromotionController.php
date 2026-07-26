@@ -47,6 +47,6 @@ final class UpdatePromotionController extends AbstractController
 
         return ApiResponse::success([
             'promotion' => PromotionFormatter::formatPromotion($promotion),
-        ]);
+        ], JsonResponse::HTTP_OK, 'La promotion a bien été mise à jour.');
     }
 }

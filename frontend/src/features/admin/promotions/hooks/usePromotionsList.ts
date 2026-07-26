@@ -49,9 +49,9 @@ export const usePromotionsList = () => {
     )
       return;
     try {
-      await deletePromotion(promotionId);
+      const response = await deletePromotion(promotionId);
       setPromotions((items) => items.filter((item) => item.id !== promotionId));
-      toast.show('Promotion supprimée.', { variant: 'success' });
+      toast.show(response.message ?? 'La promotion a bien été supprimée.', { variant: 'success' });
     } catch (e) {
       const message = getHttpErrorMessage(e, 'Suppression impossible.');
       setError(message);

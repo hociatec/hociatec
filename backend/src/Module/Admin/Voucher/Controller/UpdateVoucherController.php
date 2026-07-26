@@ -51,7 +51,7 @@ final class UpdateVoucherController extends AbstractController
 
         return ApiResponse::success([
             'voucher' => VoucherFormatter::formatVoucher($voucher),
-        ]);
+        ], JsonResponse::HTTP_OK, 'Le bon de réduction a bien été mis à jour.');
     }
 
     /** @return array{name: string, code: string, description: string|null, discountType: string, discountValue: int, isActive: bool, startsAt: \DateTimeImmutable|null, endsAt: \DateTimeImmutable|null} */

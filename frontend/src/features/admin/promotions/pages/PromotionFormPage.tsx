@@ -43,7 +43,7 @@ export const PromotionFormPage = () => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault(); setLoading(true); setError(null);
-    try { if (isEdit && promotionId) { await updatePromotion(Number(promotionId), payload); toast.show('Promotion mise à jour.', { variant: 'success' }); } else { await createPromotion(payload); toast.show('Promotion créée.', { variant: 'success' }); } navigate('/admin/promotions'); }
+    try { const response = isEdit && promotionId ? await updatePromotion(Number(promotionId), payload) : await createPromotion(payload); toast.show(response.message ?? (isEdit ? 'La promotion a bien été mise à jour.' : 'La promotion a bien été créée.'), { variant: 'success' }); navigate('/admin/promotions'); }
     catch (err) { const message = getHttpErrorMessage(err, 'Enregistrement impossible.'); setError(message); toast.show(message, { variant: 'error' }); }
     finally { setLoading(false); }
   };

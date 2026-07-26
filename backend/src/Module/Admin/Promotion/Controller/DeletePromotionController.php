@@ -32,6 +32,6 @@ final class DeletePromotionController extends AbstractController
 
         $this->manager->delete($promotion);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'La promotion a bien été supprimée.');
     }
 }

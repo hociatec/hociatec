@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 export type VoucherDto = {
   id: number;
@@ -39,25 +40,29 @@ export const fetchVoucher = async (voucherId: number): Promise<VoucherDto> => {
   return data.data.voucher;
 };
 
-export const createVoucher = async (payload: VoucherPayload): Promise<VoucherDto> => {
-  const { data } = await httpClient.post<{ data: { voucher: VoucherDto } }>(
+export const createVoucher = async (payload: VoucherPayload): Promise<ApiMutationResult<VoucherDto>> => {
+  const { data } = await httpClient.post<ApiResponse<{ voucher: VoucherDto }>>(
     '/api/admin/vouchers',
     payload,
   );
-  return data.data.voucher;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.voucher, message: data.message };
 };
 
 export const updateVoucher = async (
   voucherId: number,
   payload: VoucherPayload,
-): Promise<VoucherDto> => {
-  const { data } = await httpClient.put<{ data: { voucher: VoucherDto } }>(
+): Promise<ApiMutationResult<VoucherDto>> => {
+  const { data } = await httpClient.put<ApiResponse<{ voucher: VoucherDto }>>(
     `/api/admin/vouchers/${voucherId}`,
     payload,
   );
-  return data.data.voucher;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.voucher, message: data.message };
 };
 
-export const deleteVoucher = async (voucherId: number): Promise<void> => {
-  await httpClient.delete(`/api/admin/vouchers/${voucherId}`);
+export const deleteVoucher = async (voucherId: number): Promise<ApiMutationResult<{ deleted: boolean }>> => {
+  const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/vouchers/${voucherId}`);
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data, message: data.message };
 };

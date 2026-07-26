@@ -113,11 +113,11 @@ export const VoucherFormPage = () => {
         code: form.code.trim() || generateCode(form.name),
       };
       if (isEdit && editingId !== null) {
-        await updateVoucher(editingId, nextPayload);
-        toast.show('Bon de réduction mis à jour.', { variant: 'success' });
+        const response = await updateVoucher(editingId, nextPayload);
+        toast.show(response.message ?? 'Le bon de réduction a bien été mis à jour.', { variant: 'success' });
       } else {
-        await createVoucher(nextPayload);
-        toast.show('Bon de réduction créé.', { variant: 'success' });
+        const response = await createVoucher(nextPayload);
+        toast.show(response.message ?? 'Le bon de réduction a bien été créé.', { variant: 'success' });
       }
       navigate('/admin/vouchers');
     } catch (err) {

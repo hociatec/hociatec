@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 export type PromotionAudienceDefinition = {
   label: string;
@@ -60,25 +61,29 @@ export const fetchPromotion = async (promotionId: number): Promise<PromotionDto>
   return data.data.promotion;
 };
 
-export const createPromotion = async (payload: PromotionPayload): Promise<PromotionDto> => {
-  const { data } = await httpClient.post<{ data: { promotion: PromotionDto } }>(
+export const createPromotion = async (payload: PromotionPayload): Promise<ApiMutationResult<PromotionDto>> => {
+  const { data } = await httpClient.post<ApiResponse<{ promotion: PromotionDto }>>(
     '/api/admin/promotions',
     payload,
   );
-  return data.data.promotion;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.promotion, message: data.message };
 };
 
 export const updatePromotion = async (
   promotionId: number,
   payload: PromotionPayload,
-): Promise<PromotionDto> => {
-  const { data } = await httpClient.put<{ data: { promotion: PromotionDto } }>(
+): Promise<ApiMutationResult<PromotionDto>> => {
+  const { data } = await httpClient.put<ApiResponse<{ promotion: PromotionDto }>>(
     `/api/admin/promotions/${promotionId}`,
     payload,
   );
-  return data.data.promotion;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.promotion, message: data.message };
 };
 
-export const deletePromotion = async (promotionId: number): Promise<void> => {
-  await httpClient.delete(`/api/admin/promotions/${promotionId}`);
+export const deletePromotion = async (promotionId: number): Promise<ApiMutationResult<{ deleted: boolean }>> => {
+  const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/promotions/${promotionId}`);
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data, message: data.message };
 };
