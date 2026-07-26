@@ -5,14 +5,8 @@ export type OrderSortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 
 export type OrderHealthFilter = 'all' | 'issues';
 export type OrderStatusFilter = 'all' | OrderStatus;
 
-const nextStatusMap: Record<OrderStatus, OrderStatus[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['delivered'],
-  delivered: [],
-  cancelled: [],
-};
-export const getNextOrderStatuses = (status: OrderDto['status']) =>
-  nextStatusMap[status as OrderStatus] ?? [];
+export const getNextOrderStatuses = (order: Pick<OrderDto, 'allowedNextStatuses'>) =>
+  order.allowedNextStatuses;
 export const getOrderCustomerLabel = (order: OrderDto) =>
   order.customerDisplayName ||
   order.invoice?.billingName ||

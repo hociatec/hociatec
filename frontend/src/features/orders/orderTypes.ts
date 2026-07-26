@@ -56,6 +56,11 @@ export interface OrderDeliveryDto {
   deliveredAt?: string | null;
 }
 
+export interface OrderStatusOptionDto {
+  value: string;
+  label: string;
+}
+
 export interface OrderEventDto {
   id: number;
   type: string;
@@ -145,6 +150,8 @@ export interface OrderDto {
   customerDisplayName?: string;
   status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
   statusLabel?: string;
+  allowedNextStatuses: OrderDto['status'][];
+  allowedNextStatusDetails: OrderStatusOptionDto[];
   subtotalPriceCents?: number;
   discountAmountCents?: number;
   totalPriceCents: number;

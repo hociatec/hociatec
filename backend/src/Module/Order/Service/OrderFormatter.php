@@ -89,6 +89,7 @@ final class OrderFormatter
 
         $status = $order->getStatus();
         $statusLabel = self::formatStatusLabel($status);
+        $allowedNextStatuses = self::nextStatuses($status);
 
         $deliveryStatus = $order->getDeliveryStatus();
         $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
@@ -107,6 +108,8 @@ final class OrderFormatter
             'customerDisplayName' => trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName()),
             'status' => $status,
             'statusLabel' => $statusLabel,
+            'allowedNextStatuses' => array_map(static fn (string $nextStatus): string => $nextStatus, $allowedNextStatuses),
+            'allowedNextStatusDetails' => array_map(static fn (string $nextStatus): array => ['value' => $nextStatus, 'label' => self::formatStatusLabel($nextStatus)], $allowedNextStatuses),
             'subtotalPriceCents' => $order->getSubtotalPriceCents(),
             'discountAmountCents' => $order->getDiscountAmountCents(),
             'totalPriceCents' => $order->getTotalPriceCents(),
@@ -150,5 +153,15 @@ final class OrderFormatter
             'items' => $items,
             ...$extra,
         ];
+    }
+
+    /** @return list<string> */
+    private static function nextStatuses(string $status): array
+    {
+        return match ($status) {
+            Order::STATUS_PENDING => [Order::STATUS_CONFIRMED, Order::STATUS_CANCELLED],
+            Order::STATUS_CONFIRMED => [Order::STATUS_DELIVERED],
+            default => [],
+        };
     }
 }

@@ -30,6 +30,7 @@ export const useAdminOrdersList = () => {
     current: OrderStatus;
     next: OrderStatus;
     options: OrderStatus[];
+    order: OrderDto;
   } | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
   useEffect(() => {

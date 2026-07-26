@@ -96,13 +96,13 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
             </td>
             <td>
               <div className="flex flex-wrap gap-3">
-                {getNextOrderStatuses(order.status).length === 0 ? (
+                {getNextOrderStatuses(order).length === 0 ? (
                   <span className="inline-flex items-center text-xs text-stone-500">Statut final</span>
                 ) : (
                   <button
                     type="button"
                     className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                    onClick={() => onEditStatus(order, getNextOrderStatuses(order.status))}
+                    onClick={() => onEditStatus(order, getNextOrderStatuses(order))}
                     aria-label={`Modifier le statut de la commande ${order.number}`}
                   >
                     Modifier le statut

@@ -102,6 +102,7 @@ export const OrdersListPage = () => {
               current: (order.status as OrderStatus) ?? 'pending',
               next: options[0],
               options,
+              order,
             });
           }}
         />
