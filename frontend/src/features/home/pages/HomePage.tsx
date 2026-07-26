@@ -1,14 +1,9 @@
-import { useState } from 'react';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
-import type { CatalogProduct } from '@/features/catalog/api';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
-import { ProductActionToolbar } from '@/features/catalog/components/ProductActionToolbar';
-import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
-import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
-import { formatEuroCents } from '@/shared/lib/formatters';
 import { Link } from 'react-router-dom';
+import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
 import {
   ORGANIZATION_SCHEMA,
   WEBSITE_SCHEMA,
@@ -51,25 +46,6 @@ const operatingModes = [
   'Installation, reprise et valorisation des équipements',
   'Audits, devis, formations et projets web ou logiciels',
 ];
-
-const HomeProductMedia = ({ product }: { product: CatalogProduct }) => {
-  const [imageFailed, setImageFailed] = useState(false);
-  const productDisplayName = getCatalogProductDisplayName(product);
-
-  return (
-    <Link to={`/catalogue/produits/${product.slug}`} className="home-product-card__media">
-      {product.imageUrl && !imageFailed ? (
-        <img
-          src={product.imageUrl}
-          alt={product.imageAlt ?? productDisplayName}
-          onError={() => setImageFailed(true)}
-        />
-      ) : (
-        <div className="home-product-card__placeholder">Produit</div>
-      )}
-    </Link>
-  );
-};
 
 export const HomePage = () => {
   useDocumentTitle('Le numérique à taille humaine');
@@ -176,54 +152,9 @@ export const HomePage = () => {
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <div className="home-products__grid">
-              {products.map((product) => {
-                const compactSpecs = [
-                  product.brand?.trim(),
-                  product.storageCapacity?.trim(),
-                  product.memoryRam?.trim(),
-                  product.color?.trim(),
-                ]
-                  .filter(Boolean)
-                  .join(' • ');
-
-                return (
-                  <article key={product.id} className="home-product-card">
-                    <header>
-                      <h3>
-                        <Link to={`/catalogue/produits/${product.slug}`}>
-                          {getCatalogProductDisplayName(product)}
-                        </Link>
-                      </h3>
-                      <p className="home-product-card__sku">
-                        Référence produit: <span className="font-semibold">{product.sku}</span>
-                      </p>
-                      <ProductMetaBadges
-                        sellingType={product.sellingType}
-                        categoryName={product.category.name}
-                      />
-                      {compactSpecs.length > 0 && (
-                        <p
-                          className="catalog-product-card__spec-summary"
-                          aria-label="Caractéristiques principales"
-                        >
-                          {compactSpecs}
-                        </p>
-                      )}
-                    </header>
-
-                    <HomeProductMedia product={product} />
-
-                    {product.shortDescription && (
-                      <p className="home-product-card__description">{product.shortDescription}</p>
-                    )}
-
-                    <div className="home-product-card__footer">
-                      <span>{formatEuroCents(product.priceCents)}</span>
-                      <ProductActionToolbar product={product} />
-                    </div>
-                  </article>
-                );
-              })}
+              {products.map((product) => (
+                <HomeFeaturedProductCard key={product.id} product={product} />
+              ))}
             </div>
           )}
           {!loadingProducts && !errorProducts && products.length === 0 && (
