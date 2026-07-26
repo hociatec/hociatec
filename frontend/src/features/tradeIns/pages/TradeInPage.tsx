@@ -18,6 +18,7 @@ export const TradeInPage = () => {
   const { categories, conditions } = useTradeInMetadata();
   const [form, setForm] = useState<TradeInInput>(emptyForm);
   const [result, setResult] = useState<TradeInDto | null>(null);
+  const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -30,10 +31,10 @@ export const TradeInPage = () => {
   const update = <K extends keyof TradeInInput>(key: K, value: TradeInInput[K]) => setForm((current) => ({ ...current, [key]: value }));
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setError(null); setSaving(true);
-    try { setResult(await createTradeIn(form, status === 'authenticated')); } catch (submissionError) { setError(getHttpErrorMessage(submissionError)); } finally { setSaving(false); }
+    try { const response = await createTradeIn(form, status === 'authenticated'); setResult(response.item); setResultMessage(response.message ?? null); } catch (submissionError) { setError(getHttpErrorMessage(submissionError)); } finally { setSaving(false); }
   };
 
-  if (result) return <SiteLayout><PageContainer title="Demande envoyée"><div className="space-y-4 max-w-2xl"><FeedbackMessage variant="success">Votre demande {result.reference} a bien été enregistrée.</FeedbackMessage><p>Notre estimation indicative se situe entre <strong>{formatEuroCents(result.estimatedMinCents)}</strong> et <strong>{formatEuroCents(result.estimatedMaxCents)}</strong>. Cette estimation sera confirmée après vérification par Hociatec.</p><p>Vous pourrez suivre la demande depuis votre espace client si vous avez un compte.</p><button className="register-form__submit" type="button" onClick={() => { setResult(null); setForm(emptyForm); }}>Faire une autre demande</button></div></PageContainer></SiteLayout>;
+  if (result) return <SiteLayout><PageContainer title="Demande envoyée"><div className="space-y-4 max-w-2xl"><FeedbackMessage variant="success">{resultMessage ?? `Votre demande ${result.reference} a bien été enregistrée.`}</FeedbackMessage><p>Notre estimation indicative se situe entre <strong>{formatEuroCents(result.estimatedMinCents)}</strong> et <strong>{formatEuroCents(result.estimatedMaxCents)}</strong>. Cette estimation sera confirmée après vérification par Hociatec.</p><p>Vous pourrez suivre la demande depuis votre espace client si vous avez un compte.</p><button className="register-form__submit" type="button" onClick={() => { setResult(null); setResultMessage(null); setForm(emptyForm); }}>Faire une autre demande</button></div></PageContainer></SiteLayout>;
 
   return <SiteLayout><PageContainer size="wide" title="Faire reprendre un matériel"><div className="max-w-3xl space-y-6"><p>Décrivez votre matériel. Vous recevrez une estimation indicative, puis une offre définitive après contrôle.</p>{error && <FeedbackMessage>{error}</FeedbackMessage>}<form className="space-y-6" onSubmit={submit}>
     <section className="rounded border border-brand-100 p-5 space-y-4"><h2 className="text-lg font-semibold">Vos coordonnées</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Prénom" value={form.firstName} onChange={(v) => update('firstName', v)} required /><Field label="Nom" value={form.lastName} onChange={(v) => update('lastName', v)} required /><Field label="Email" type="email" value={form.email} onChange={(v) => update('email', v)} required /><Field label="Téléphone" type="tel" value={form.phone} onChange={(v) => update('phone', v)} required /></div>{status === 'authenticated' && <p className="text-sm text-stone-600">Vos informations de compte ont été préremplies.</p>}</section>

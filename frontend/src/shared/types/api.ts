@@ -1,6 +1,7 @@
 export interface ApiSuccess<T> {
   status: 'success';
   data: T;
+  message?: string;
 }
 
 export interface ApiError {
@@ -12,6 +13,7 @@ export interface ApiError {
 export interface ApiCreated<T> {
   status: 'created';
   data: T;
+  message?: string;
 }
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiCreated<T> | ApiError;

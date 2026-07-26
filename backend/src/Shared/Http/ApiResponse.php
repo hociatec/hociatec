@@ -15,20 +15,25 @@ final class ApiResponse
     /**
      * @param array<string, mixed> $data
      */
-    public static function success(array $data = [], int $status = JsonResponse::HTTP_OK): JsonResponse
+    public static function success(array $data = [], int $status = JsonResponse::HTTP_OK, ?string $message = null): JsonResponse
     {
-        return new JsonResponse([
+        $payload = [
             'status' => 'success',
             'data' => $data,
-        ], $status);
+        ];
+        if (null !== $message && '' !== trim($message)) {
+            $payload['message'] = $message;
+        }
+
+        return new JsonResponse($payload, $status);
     }
 
     /**
      * @param array<string, mixed> $data
      */
-    public static function created(array $data = []): JsonResponse
+    public static function created(array $data = [], ?string $message = null): JsonResponse
     {
-        return self::success($data, JsonResponse::HTTP_CREATED);
+        return self::success($data, JsonResponse::HTTP_CREATED, $message);
     }
 
     /**

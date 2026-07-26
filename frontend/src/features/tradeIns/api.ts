@@ -6,7 +6,7 @@ export async function fetchTradeInMetadata(): Promise<TradeInMetadataDto> {
   return response.data.data;
 }
 
-export async function createTradeIn(input: TradeInInput, authenticated: boolean): Promise<TradeInDto> {
+export async function createTradeIn(input: TradeInInput, authenticated: boolean): Promise<{ item: TradeInDto; message?: string }> {
   const form = new FormData();
   Object.entries(input).forEach(([key, value]) => {
     if ('rib' === key) {
@@ -16,7 +16,7 @@ export async function createTradeIn(input: TradeInInput, authenticated: boolean)
     }
   });
   const response = await httpClient.post(`/api${authenticated ? '' : '/public'}/trade-ins`, form);
-  return response.data.data;
+  return { item: response.data.data, message: response.data.message };
 }
 
 export async function fetchMyTradeIns(): Promise<TradeInDto[]> {
