@@ -10,6 +10,9 @@ export type TradeInStatus =
   | 'cancelled'
   | 'expired';
 
+export interface TradeInMetadataOption { value: string; label: string }
+export interface TradeInMetadataDto { categories: TradeInMetadataOption[]; conditions: TradeInMetadataOption[]; statuses: TradeInMetadataOption[] }
+
 export interface TradeInContact { firstName: string; lastName: string; email: string; phone: string }
 export interface TradeInDto {
   id: number;
