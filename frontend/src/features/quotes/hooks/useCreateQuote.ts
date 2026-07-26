@@ -11,7 +11,6 @@ import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import {
   createDefaultQuoteValidity,
-  DEFAULT_QUOTE_CONDITIONS,
   calculateQuoteTotals,
   type QuoteItem,
 } from '@/features/quotes/utils/quoteFormUtils';
@@ -29,7 +28,7 @@ export const useCreateQuote = () => {
     items: [],
     discountCents: 0,
     shippingCents: 0,
-    conditions: DEFAULT_QUOTE_CONDITIONS,
+    conditions: '',
     ...createDefaultQuoteValidity(),
   });
   const [message, setMessage] = useState<string | null>(null);

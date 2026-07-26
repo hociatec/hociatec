@@ -10,11 +10,7 @@ import {
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import {
-  BILLING_MODE_OPTIONS,
-  ServiceFormFields,
-  type ServiceFormState,
-} from '@/features/admin/quotes/components/ServiceFormFields';
+import { ServiceFormFields, type ServiceFormState } from '@/features/admin/quotes/components/ServiceFormFields';
 
 type ServicePayload = {
   title: string;
@@ -103,11 +99,6 @@ export const ServiceFormPage = () => {
     const description = form.description.trim();
     const unit = form.unit.trim().toLowerCase();
     const durationValue = form.durationValue.trim();
-
-    if (!BILLING_MODE_OPTIONS.some((option) => option.value === unit)) {
-      setError('Veuillez sélectionner un mode de facturation valide.');
-      return null;
-    }
 
     if (durationValue !== '') {
       const parsedDurationValue = Number.parseInt(durationValue, 10);

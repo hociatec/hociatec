@@ -10,16 +10,6 @@ export type ServiceFormState = {
   vatRate: string;
 };
 
-export const BILLING_MODE_OPTIONS = [
-  { value: 'prix fixe', label: 'Prix fixe' },
-  { value: 'heure', label: 'Par heure' },
-  { value: 'jour', label: 'Par jour' },
-  { value: 'intervention', label: 'Par intervention' },
-  { value: 'audit', label: 'Par audit' },
-  { value: 'installation', label: 'Par installation' },
-  { value: 'maintenance', label: 'Par maintenance' },
-] as const;
-
 type ServiceFormFieldsProps = {
   form: ServiceFormState;
   setForm: Dispatch<SetStateAction<ServiceFormState>>;
@@ -56,17 +46,13 @@ export const ServiceFormFields = ({ form, setForm }: ServiceFormFieldsProps) => 
       </label>
       <label className="register-form__field">
         <span className="register-form__label">Mode de facturation</span>
-        <select
+        <input
           className="register-form__input"
+          type="text"
           value={form.unit}
           onChange={(event) => setForm((prev) => ({ ...prev, unit: event.target.value }))}
-        >
-          {BILLING_MODE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          placeholder="Unité de facturation"
+        />
       </label>
       <div className="grid gap-4 md:grid-cols-[1fr_180px]">
         <label className="register-form__field">

@@ -1,10 +1,6 @@
 import { type ChangeEvent } from 'react';
 
-import {
-  DEFAULT_COLOR_OPTIONS,
-  type ProductFormState,
-  type VariantRowState,
-} from '@/features/admin/catalog/utils/productFormConfig';
+import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
@@ -28,14 +24,7 @@ export const ProductCurrentVariantSection = ({
     <div className="catalog-form-row catalog-form-row--columns">
       <label htmlFor="product-main-color">
         Couleur
-        <select id="product-main-color" name="color" value={form.color} onChange={onChange}>
-          <option value="">Sélectionnez une couleur</option>
-          {DEFAULT_COLOR_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <input id="product-main-color" name="color" value={form.color} onChange={onChange} placeholder="Couleur" />
       </label>
       <label htmlFor="product-main-storage">
         Stockage
@@ -96,18 +85,12 @@ export const ProductExtraVariantsSection = ({
           <div className="catalog-form-row catalog-form-row--columns">
             <label htmlFor={`variant-color-${index}`}>
               Couleur
-              <select
+              <input
                 id={`variant-color-${index}`}
                 value={row.color}
                 onChange={(event) => onUpdate(index, 'color', event.target.value)}
-              >
-                <option value="">Sélectionnez une couleur</option>
-                {DEFAULT_COLOR_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                placeholder="Couleur"
+              />
             </label>
             <label htmlFor={`variant-storage-${index}`}>
               Stockage

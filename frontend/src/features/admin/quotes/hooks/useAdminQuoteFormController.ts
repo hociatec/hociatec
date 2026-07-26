@@ -14,7 +14,6 @@ import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/ty
 import {
   adaptQuoteForSave,
   createDefaultQuoteValidity,
-  DEFAULT_QUOTE_CONDITIONS,
 } from '@/features/quotes/utils/quoteFormUtils';
 import { type AdminQuoteFormState } from '@/features/admin/quotes/components/AdminQuoteFormSections';
 import { useAdminQuoteItems } from './useAdminQuoteItems';
@@ -45,7 +44,7 @@ const createEmptyQuoteFormState = (): AdminQuoteFormState => ({
   items: [],
   discountCents: 0,
   shippingCents: 0,
-  conditions: DEFAULT_QUOTE_CONDITIONS,
+  conditions: '',
   ...createDefaultQuoteValidity(),
 });
 
@@ -94,7 +93,7 @@ export const useAdminQuoteFormController = () => {
         q
           ? {
               ...toQuoteFormState(q),
-              conditions: q.conditions ?? DEFAULT_QUOTE_CONDITIONS,
+              conditions: q.conditions ?? '',
               validFrom: q.validFrom ?? createDefaultQuoteValidity().validFrom,
               validUntil: q.validUntil ?? createDefaultQuoteValidity().validUntil,
             }
