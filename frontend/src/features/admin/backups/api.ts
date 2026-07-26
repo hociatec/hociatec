@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 export interface BackupSettingsDto {
   enabled: boolean;
@@ -76,25 +76,25 @@ export const fetchBackupStatus = async (): Promise<BackupStatusDto> => {
 
 export const updateBackupSettings = async (
   payload: Partial<Pick<BackupSettingsDto, 'enabled' | 'intervalHours' | 'retentionCount'>>,
-): Promise<BackupStatusDto> => {
+): Promise<ApiMutationResult<BackupStatusDto>> => {
   try {
     const { data } = await httpClient.patch<ApiResponse<BackupStatusDto>>(
       '/api/admin/backups/settings',
       payload,
     );
-    return unwrap(data, 'Impossible de sauvegarder la configuration.');
+    return { data: unwrap(data, 'Impossible de sauvegarder la configuration.'), message: data.message };
   } catch (error) {
     return rethrowApiError(error, 'Impossible de sauvegarder la configuration.');
   }
 };
 
-export const runBackupNow = async (): Promise<BackupStatusDto> => {
+export const runBackupNow = async (): Promise<ApiMutationResult<BackupStatusDto>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<BackupStatusDto>>(
       '/api/admin/backups/run',
       {},
     );
-    return unwrap(data, 'Impossible de lancer la sauvegarde.');
+    return { data: unwrap(data, 'Impossible de lancer la sauvegarde.'), message: data.message };
   } catch (error) {
     return rethrowApiError(error, 'Impossible de lancer la sauvegarde.');
   }
@@ -103,13 +103,13 @@ export const runBackupNow = async (): Promise<BackupStatusDto> => {
 export const updateMaintenanceMode = async (payload: {
   enabled: boolean;
   message: string;
-}): Promise<MaintenanceStatusDto> => {
+}): Promise<ApiMutationResult<MaintenanceStatusDto>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ maintenance: MaintenanceStatusDto }>>(
       '/api/admin/backups/maintenance',
       payload,
     );
-    return unwrap(data, 'Impossible de modifier le mode maintenance.').maintenance;
+    return { data: unwrap(data, 'Impossible de modifier le mode maintenance.').maintenance, message: data.message };
   } catch (error) {
     return rethrowApiError(error, 'Impossible de modifier le mode maintenance.');
   }

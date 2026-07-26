@@ -42,7 +42,7 @@ final class AdminBackupController
             $input = BackupSettingsInput::fromArray($payload);
             $this->validator->validate($input);
 
-            return ApiResponse::success($this->backupManager->updateSettings($input->settings()));
+            return ApiResponse::success($this->backupManager->updateSettings($input->settings()), Response::HTTP_OK, 'La configuration des sauvegardes a bien été enregistrée.');
         } catch (\InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\Throwable $e) {
@@ -54,7 +54,7 @@ final class AdminBackupController
     public function run(): JsonResponse
     {
         try {
-            return ApiResponse::success($this->backupManager->runBackup('manual'));
+            return ApiResponse::success($this->backupManager->runBackup('manual'), Response::HTTP_OK, 'La sauvegarde a bien été exécutée.');
         } catch (\RuntimeException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_CONFLICT);
         } catch (\Throwable $e) {
@@ -72,7 +72,7 @@ final class AdminBackupController
 
             return ApiResponse::success([
                 'maintenance' => $this->maintenanceModeService->set($input->enabled, $input->message),
-            ]);
+            ], Response::HTTP_OK, $input->enabled ? 'Le mode maintenance a été activé.' : 'Le mode maintenance a été désactivé.');
         } catch (\Throwable $e) {
             return ApiResponse::internalError();
         }

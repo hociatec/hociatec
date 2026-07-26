@@ -38,8 +38,9 @@ export const useAdminBackups = () => {
     setError(null);
     setMessage(null);
     try {
-      hydrate(await updateBackupSettings({ enabled, intervalHours, retentionCount }));
-      setMessage('Configuration des sauvegardes enregistrée.');
+      const response = await updateBackupSettings({ enabled, intervalHours, retentionCount });
+      hydrate(response.data);
+      setMessage(response.message ?? 'La configuration des sauvegardes a bien été enregistrée.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de sauvegarder la configuration.'));
     } finally {
@@ -51,8 +52,9 @@ export const useAdminBackups = () => {
     setError(null);
     setMessage(null);
     try {
-      hydrate(await runBackupNow());
-      setMessage('Sauvegarde terminée et rétention appliquée.');
+      const response = await runBackupNow();
+      hydrate(response.data);
+      setMessage(response.message ?? 'La sauvegarde a bien été exécutée.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de lancer la sauvegarde.'));
     } finally {
@@ -65,14 +67,14 @@ export const useAdminBackups = () => {
     setError(null);
     setMessage(null);
     try {
-      const maintenance = await updateMaintenanceMode({
+      const response = await updateMaintenanceMode({
         enabled: maintenanceEnabled,
         message: maintenanceMessage,
       });
-      setStatus((current) => (current ? { ...current, maintenance } : current));
-      setMaintenanceEnabled(maintenance.enabled);
-      setMaintenanceMessage(maintenance.message);
-      setMessage(maintenance.enabled ? 'Mode maintenance activé.' : 'Mode maintenance désactivé.');
+      setStatus((current) => (current ? { ...current, maintenance: response.data } : current));
+      setMaintenanceEnabled(response.data.enabled);
+      setMaintenanceMessage(response.data.message);
+      setMessage(response.message ?? (response.data.enabled ? 'Le mode maintenance a été activé.' : 'Le mode maintenance a été désactivé.'));
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de modifier le mode maintenance.'));
     } finally {
