@@ -23,6 +23,8 @@ const emptyForm = {
   currentPassword: '',
 };
 
+export type ProfileFormState = typeof emptyForm;
+
 export const useProfileController = () => {
   const { user, updateProfile, deleteAccount } = useAuth();
   const navigate = useNavigate();
