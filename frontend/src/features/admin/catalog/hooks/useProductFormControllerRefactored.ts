@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -26,6 +26,7 @@ import {
 } from '@/features/admin/catalog/utils/productFormModel';
 import { useProductGallery } from './useProductGallery';
 import { useProductVariantRows } from './useProductVariantRows';
+import { useProductBrandSelection } from './useProductBrandSelection';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
@@ -36,7 +37,6 @@ export const useProductFormController = () => {
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
-  const [brandQuery, setBrandQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [deletingVariantId, setDeletingVariantId] = useState<number | null>(null);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -52,6 +52,13 @@ export const useProductFormController = () => {
     removeVariantRow,
     resetVariantRows,
   } = useProductVariantRows();
+  const {
+    brandQuery,
+    setBrandQuery,
+    filteredBrands,
+    handleBrandQueryChange,
+    handleBrandSelection,
+  } = useProductBrandSelection(brands, form, setForm);
 
   useEffect(() => {
     setInitialLoading(true);
@@ -146,43 +153,6 @@ export const useProductFormController = () => {
 
   const handleGalleryFileChange = gallery.onFileChange;
   const handleRemoveGallery = gallery.remove;
-
-  const handleBrandQueryChange = (value: string) => {
-    setBrandQuery(value);
-    setForm((prev) => {
-      const selectedBrand =
-        prev.brand.trim() === ''
-          ? null
-          : (brands.find((brand) => brand.name.toLowerCase() === prev.brand.trim().toLowerCase()) ??
-            null);
-
-      if (
-        selectedBrand !== null &&
-        selectedBrand.name.toLowerCase() === value.trim().toLowerCase()
-      ) {
-        return prev;
-      }
-
-      return { ...prev, brand: '' };
-    });
-  };
-
-  const handleBrandSelection = (brand: CatalogBrand) => {
-    setBrandQuery(brand.name);
-    setForm((prev) => ({ ...prev, brand: brand.name }));
-  };
-
-  const filteredBrands = useMemo(() => {
-    const search = brandQuery.trim().toLowerCase();
-
-    if (search === '') {
-      return form.brand
-        ? brands.filter((brand) => brand.name.toLowerCase() === form.brand.trim().toLowerCase())
-        : [];
-    }
-
-    return brands.filter((brand) => brand.name.toLowerCase().includes(search)).slice(0, 8);
-  }, [brandQuery, brands, form.brand]);
 
   const handleDeleteVariant = (variant: CatalogProduct) => {
     if (groupVariants.length <= 1 || deletingVariantId !== null) return;
