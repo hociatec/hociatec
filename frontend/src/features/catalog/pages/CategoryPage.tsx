@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import type { CatalogSort } from '../api';
 import { CategoryProductGrid } from '../components/CategoryProductGrid';
+import { CategoryFiltersPanel } from '../components/CategoryFiltersPanel';
+import { CategoryPagination } from '../components/CategoryPagination';
 import { SiteFooter } from '../../../shared/components/SiteFooter';
 import { SiteHeader } from '../../../shared/components/SiteHeader';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
@@ -10,10 +11,6 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
 import { useCategoryData } from '@/features/catalog/hooks/useCategoryData';
 import { SITE_URL } from '@/shared/config/seoConfig';
-import { FilterBar } from '@/shared/components/filters/FilterBar';
-import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
-import { SelectFilter } from '@/shared/components/filters/SelectFilter';
-import { NumberRangeFilter } from '@/shared/components/filters/NumberRangeFilter';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
@@ -126,54 +123,12 @@ export const CategoryPage = () => {
     setSearchParams(next, { replace: true });
   };
 
-  const brandOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Toutes les marques' },
-      ...facets.brands.map((item) => ({
-        value: item.value,
-        label: `${item.value} (${item.count})`,
-      })),
-    ],
-    [facets.brands],
-  );
-  const storageOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Toutes les capacités' },
-      ...facets.storageCapacities.map((item) => ({
-        value: item.value,
-        label: `${item.value} (${item.count})`,
-      })),
-    ],
-    [facets.storageCapacities],
-  );
-  const memoryOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Toutes les RAM' },
-      ...facets.memoryRams.map((item) => ({
-        value: item.value,
-        label: `${item.value} (${item.count})`,
-      })),
-    ],
-    [facets.memoryRams],
-  );
-  const colorOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Toutes les couleurs' },
-      ...facets.colors.map((item) => ({
-        value: item.value,
-        label: `${item.value} (${item.count})`,
-      })),
-    ],
-    [facets.colors],
-  );
-  const showStorageFilter = facets.storageCapacities.length > 0 || storageCapacity !== ALL;
-  const showMemoryFilter = facets.memoryRams.length > 0 || memoryRam !== ALL;
-  const showColorFilter = facets.colors.length > 0 || color !== ALL;
-  const pageNumbers = useMemo(() => {
-    const start = Math.max(1, meta.page - 2);
-    const end = Math.min(meta.totalPages, meta.page + 2);
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-  }, [meta.page, meta.totalPages]);
+  const resetFilters = () => {
+    setSearchParams(
+      new URLSearchParams(search.trim() ? { q: search.trim(), sort: 'relevance' } : {}),
+      { replace: true },
+    );
+  };
 
   return (
     <div className="site-layout">
@@ -222,136 +177,29 @@ export const CategoryPage = () => {
                 )}
               </header>
 
-              <section className="catalog-search-panel" aria-label="Filtres catégorie">
-                <FilterBar
-                  className="catalog-filter-bar catalog-filter-bar--stacked"
-                  rightActions={
-                    <ResetFiltersButton
-                      onReset={() => {
-                        setSearchParams(
-                          new URLSearchParams(
-                            search.trim() ? { q: search.trim(), sort: 'relevance' } : {},
-                          ),
-                          { replace: true },
-                        );
-                      }}
-                    />
-                  }
-                >
-                  <SelectFilter
-                    value={brand}
-                    onChange={(next) => updateParam('brand', next)}
-                    options={brandOptions}
-                    ariaLabel="Marque"
-                  />
-                  <NumberRangeFilter
-                    min={minPrice}
-                    max={maxPrice}
-                    onChange={updatePriceRange}
-                    step={50}
-                  />
-                  {showStorageFilter && (
-                    <SelectFilter
-                      value={storageCapacity}
-                      onChange={(next) => updateParam('storageCapacity', next)}
-                      options={storageOptions}
-                      ariaLabel="Capacité de stockage"
-                    />
-                  )}
-                  {showMemoryFilter && (
-                    <SelectFilter
-                      value={memoryRam}
-                      onChange={(next) => updateParam('memoryRam', next)}
-                      options={memoryOptions}
-                      ariaLabel="Mémoire RAM"
-                    />
-                  )}
-                  {showColorFilter && (
-                    <SelectFilter
-                      value={color}
-                      onChange={(next) => updateParam('color', next)}
-                      options={colorOptions}
-                      ariaLabel="Couleur"
-                    />
-                  )}
-                  <SelectFilter
-                    value={sort}
-                    onChange={(next) => updateParam('sort', next)}
-                    options={[
-                      {
-                        value: search.trim() ? 'relevance' : 'release_year_desc',
-                        label: search.trim() ? 'Pertinence' : 'Plus récents',
-                      },
-                      ...(search.trim()
-                        ? [
-                            {
-                              value: 'release_year_desc' as const,
-                              label: 'Du plus récent au moins récent',
-                            },
-                          ]
-                        : []),
-                      { value: 'release_year_asc', label: 'Du moins récent au plus récent' },
-                      { value: 'price_asc', label: 'Prix croissant' },
-                      { value: 'price_desc', label: 'Prix décroissant' },
-                      { value: 'stock_desc', label: 'Stock le plus élevé' },
-                      { value: 'created_desc', label: 'Derniers ajoutés' },
-                    ]}
-                    ariaLabel="Tri"
-                  />
-                  <label className="catalog-filter-toggle">
-                    <input
-                      type="checkbox"
-                      checked={inStock}
-                      onChange={(event) =>
-                        updateParam('inStock', event.target.checked ? '1' : null)
-                      }
-                    />
-                    <span>Uniquement en stock</span>
-                  </label>
-                </FilterBar>
-                {(facets.price.min !== null || facets.price.max !== null) && (
-                  <p className="catalog-search-panel__hint">
-                    Plage disponible:{' '}
-                    {facets.price.min !== null ? `${Math.round(facets.price.min / 100)} €` : '0 €'}{' '}
-                    à{' '}
-                    {facets.price.max !== null ? `${Math.round(facets.price.max / 100)} €` : '0 €'}
-                  </p>
-                )}
-              </section>
+              <CategoryFiltersPanel
+                search={search}
+                brand={brand}
+                storageCapacity={storageCapacity}
+                memoryRam={memoryRam}
+                color={color}
+                sort={sort}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                inStock={inStock}
+                facets={facets}
+                updateParam={updateParam}
+                updatePriceRange={updatePriceRange}
+                resetFilters={resetFilters}
+              />
 
               <CategoryProductGrid products={products} />
 
-              {meta.totalPages > 1 && (
-                <nav className="catalog-pagination" aria-label="Pagination des produits">
-                  <button
-                    type="button"
-                    className="catalog-pagination__button"
-                    disabled={meta.page <= 1}
-                    onClick={() => updateParam('page', String(meta.page - 1))}
-                  >
-                    Précédent
-                  </button>
-                  {pageNumbers.map((pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      type="button"
-                      className={`catalog-pagination__button${pageNumber === meta.page ? ' is-active' : ''}`}
-                      onClick={() => updateParam('page', String(pageNumber))}
-                      aria-current={pageNumber === meta.page ? 'page' : undefined}
-                    >
-                      {pageNumber}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="catalog-pagination__button"
-                    disabled={meta.page >= meta.totalPages}
-                    onClick={() => updateParam('page', String(meta.page + 1))}
-                  >
-                    Suivant
-                  </button>
-                </nav>
-              )}
+              <CategoryPagination
+                page={meta.page}
+                totalPages={meta.totalPages}
+                updatePage={(nextPage) => updateParam('page', String(nextPage))}
+              />
             </>
           )}
         </div>
