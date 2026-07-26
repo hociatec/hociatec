@@ -254,7 +254,7 @@ export const createCustomerVoucher = async (
 export const sendCustomerEmail = async (
   customerId: number,
   payload: AdminCustomerEmailPayload,
-): Promise<void> => {
+): Promise<{ message?: string }> => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ sent: boolean }>>(
       `/api/admin/customers/${customerId}/send-email`,
@@ -262,7 +262,7 @@ export const sendCustomerEmail = async (
     );
 
     if (isApiOk(data)) {
-      return;
+      return { message: data.message };
     }
 
     const message = data.status === 'error' ? data.message : 'Impossible d’envoyer l’email';

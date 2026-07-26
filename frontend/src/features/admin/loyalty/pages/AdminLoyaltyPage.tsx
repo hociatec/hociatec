@@ -60,9 +60,9 @@ export const AdminLoyaltyPage = () => {
     const points = Math.max(0, Number.parseInt(drafts[customerId] ?? '0', 10) || 0);
     void updateAdminLoyaltyCustomer(customerId, points)
       .then((customer) => {
-        setItems((current) => current.map((item) => (item.id === customer.id ? customer : item)));
-        setDrafts((current) => ({ ...current, [customer.id]: String(customer.points) }));
-        toast.show('Solde fidélité mis à jour.', { variant: 'success' });
+        setItems((current) => current.map((item) => (item.id === customer.data.id ? customer.data : item)));
+        setDrafts((current) => ({ ...current, [customer.data.id]: String(customer.data.points) }));
+        toast.show(customer.message ?? 'Le solde fidélité a bien été mis à jour.', { variant: 'success' });
       })
       .catch((error: unknown) => {
         toast.show(

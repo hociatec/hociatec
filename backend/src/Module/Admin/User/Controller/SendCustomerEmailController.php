@@ -50,6 +50,6 @@ final class SendCustomerEmailController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
-        return ApiResponse::success(['sent' => true]);
+        return ApiResponse::success(['sent' => true], Response::HTTP_OK, 'L’e-mail a bien été envoyé au client.');
     }
 }

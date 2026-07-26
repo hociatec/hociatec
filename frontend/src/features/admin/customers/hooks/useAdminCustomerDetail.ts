@@ -122,7 +122,7 @@ export const useAdminCustomerDetail = (customerId: number) => {
     if (!customer) return;
     setEmailSending(true);
     void sendCustomerEmail(customer.id, emailForm)
-      .then(() => toast.show('E-mail envoyé au client.', { variant: 'success' }))
+      .then((response) => toast.show(response.message ?? 'L’e-mail a bien été envoyé au client.', { variant: 'success' }))
       .catch((e: unknown) => toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', { variant: 'error' }))
       .finally(() => setEmailSending(false));
   };

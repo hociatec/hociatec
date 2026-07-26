@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';
 
 export interface LoyaltyBalanceDto {
@@ -69,13 +69,13 @@ export const fetchAdminLoyaltyCustomers = async (
 export const updateAdminLoyaltyCustomer = async (
   customerId: number,
   points: number,
-): Promise<AdminLoyaltyCustomerDto> => {
+): Promise<ApiMutationResult<AdminLoyaltyCustomerDto>> => {
   const { data } = await httpClient.patch<ApiResponse<{ customer: AdminLoyaltyCustomerDto }>>(
     `/api/admin/loyalty/customers/${customerId}`,
     { points },
   );
   if (isApiOk(data)) {
-    return data.data.customer;
+    return { data: data.data.customer, message: data.message };
   }
 
   throw new Error(data.status === 'error' ? data.message : 'Impossible de mettre à jour le solde');

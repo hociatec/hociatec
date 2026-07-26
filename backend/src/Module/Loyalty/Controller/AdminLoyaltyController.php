@@ -55,7 +55,7 @@ final class AdminLoyaltyController extends AbstractController
         $points = (int) ($payload['points'] ?? $user->getLoyaltyPointsBalance());
         $this->loyalty->adjustBalance($user, $points);
 
-        return ApiResponse::success(['customer' => $this->formatCustomer($user)]);
+        return ApiResponse::success(['customer' => $this->formatCustomer($user)], Response::HTTP_OK, 'Le solde fidélité a bien été mis à jour.');
     }
 
     /** @return array<string, mixed> */
