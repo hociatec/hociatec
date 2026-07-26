@@ -2,16 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/components/ui/alert-dialog';
+import { OrderStatusDialog } from '@/features/admin/orders/components/OrderStatusDialog';
 import {
   formatInvoiceStatusFr,
   formatOrderStatusFr,
@@ -235,51 +226,7 @@ export const OrdersListPage = () => {
         </AdminTableShell>
       </AdminListState>
 
-      <AlertDialog
-        open={editing !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditing(null);
-            setUpdateError(null);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Modifier le statut</AlertDialogTitle>
-            <AlertDialogDescription>
-              Choisissez le nouveau statut de la commande.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {editing?.options.length ? (
-            <div className="space-y-2">
-              {editing.options.map((option) => (
-                <label className="block" key={option}>
-                  <input
-                    type="radio"
-                    name="order-status"
-                    value={option}
-                    checked={editing?.next === option}
-                    onChange={() =>
-                      setEditing((current) => (current ? { ...current, next: option } : current))
-                    }
-                  />{' '}
-                  {formatOrderStatusFr(option)}
-                </label>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-stone-500">Aucun changement possible depuis ce statut.</p>
-          )}
-          {updateError && <div className="text-sm text-red-600">{updateError}</div>}
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmUpdate} disabled={!editing?.options.length}>
-              Enregistrer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <OrderStatusDialog editing={editing} setEditing={setEditing} updateError={updateError} setUpdateError={setUpdateError} onConfirm={handleConfirmUpdate} />
     </PageContainer>
   );
 };

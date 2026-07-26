@@ -1,0 +1,9 @@
+import type { Dispatch, SetStateAction } from 'react';
+
+import { formatOrderStatusFr } from '@/features/orders/api';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/components/ui/alert-dialog';
+import type { useAdminOrdersList } from '@/features/admin/orders/hooks/useAdminOrdersList';
+
+type Editing = NonNullable<ReturnType<typeof useAdminOrdersList>['editing']>;
+
+export const OrderStatusDialog = ({ editing, setEditing, updateError, setUpdateError, onConfirm }: { editing: Editing | null; setEditing: Dispatch<SetStateAction<Editing | null>>; updateError: string | null; setUpdateError: (value: string | null) => void; onConfirm: () => void }) => <AlertDialog open={editing !== null} onOpenChange={(open) => { if (!open) { setEditing(null); setUpdateError(null); } }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Modifier le statut</AlertDialogTitle><AlertDialogDescription>Choisissez le nouveau statut de la commande.</AlertDialogDescription></AlertDialogHeader>{editing?.options.length ? <div className="space-y-2">{editing.options.map((option) => <label className="block" key={option}><input type="radio" name="order-status" value={option} checked={editing.next === option} onChange={() => setEditing((current) => current ? { ...current, next: option } : current)} /> {formatOrderStatusFr(option)}</label>)}</div> : <p className="text-sm text-stone-500">Aucun changement possible depuis ce statut.</p>}{updateError && <div className="text-sm text-red-600">{updateError}</div>}<AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction onClick={onConfirm} disabled={!editing?.options.length}>Enregistrer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>;
