@@ -6,6 +6,7 @@ import type { CatalogProduct, ProductPublicReview } from '../api';
 import { ProductMetaBadges } from '../components/ProductMetaBadges';
 import { RatingStars } from '../components/RatingStars';
 import { formatProductPrice } from '../utils/productPageDisplay';
+import { ProductVariantPicker } from './ProductVariantPicker';
 
 type ProductSlide = CatalogProduct['gallery'][number];
 
@@ -185,47 +186,6 @@ export const ProductDetailHeader = ({
       />
     )}
   </header>
-);
-
-interface ProductVariantPickerProps {
-  currentProductId: number;
-  groups: ProductVariantGroup[];
-  onVariantChange: (variantId: string) => void;
-}
-
-const ProductVariantPicker = ({
-  currentProductId,
-  groups,
-  onVariantChange,
-}: ProductVariantPickerProps) => (
-  <div className="catalog-detail-variant-picker">
-    <strong>Choisir une variante</strong>
-    <div className="catalog-detail-variant-groups" aria-label="Variantes du produit">
-      {groups.map((group) => (
-        <section key={group.storage} className="catalog-detail-variant-group">
-          <h3 className="catalog-detail-variant-group__title">{group.storage}</h3>
-          <div className="catalog-detail-variant-picker__grid" role="list">
-            {group.items.map((variant) => (
-              <button
-                key={variant.id}
-                type="button"
-                className={`catalog-detail-variant-card${variant.id === currentProductId ? ' is-active' : ''}`}
-                onClick={() => onVariantChange(String(variant.id))}
-                aria-pressed={variant.id === currentProductId}
-              >
-                <span className="catalog-detail-variant-card__title">{variant.title}</span>
-                <span className="catalog-detail-variant-card__meta">{variant.subtitle}</span>
-                <span className="catalog-detail-variant-card__footer">
-                  <span className="catalog-detail-variant-card__price">{variant.priceLabel}</span>
-                  <span className="catalog-detail-variant-card__stock">{variant.stockLabel}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  </div>
 );
 
 interface ProductInfoHighlightProps {
