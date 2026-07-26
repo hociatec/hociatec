@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Voucher\Controller;
 
+use App\Module\Admin\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,28 +22,22 @@ final class CreateVoucherController extends AbstractController
 {
     public function __construct(
         private readonly VoucherManager $voucherManager,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
+        $input = VoucherInput::fromArray($payload);
+        $this->validator->validate($input);
         try {
-            $voucher = $this->voucherManager->create([
-                'name' => trim((string) ($payload['name'] ?? '')),
-                'code' => $this->normalizeCode($payload['code'] ?? null),
-                'description' => isset($payload['description']) ? trim((string) $payload['description']) : null,
-                'discountType' => trim((string) ($payload['discountType'] ?? '')),
-                'discountValue' => (int) ($payload['discountValue'] ?? 0),
-                'isActive' => (bool) ($payload['isActive'] ?? true),
-                'startsAt' => $this->parseDate($payload['startsAt'] ?? null),
-                'endsAt' => $this->parseDate($payload['endsAt'] ?? null),
-            ]);
+            $voucher = $this->voucherManager->create($this->toPayload($input));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -51,9 +47,10 @@ final class CreateVoucherController extends AbstractController
         ]);
     }
 
-    private function normalizeCode(mixed $value): string
+    /** @return array{name: string, code: string, description: string|null, discountType: string, discountValue: int, isActive: bool, startsAt: \DateTimeImmutable|null, endsAt: \DateTimeImmutable|null} */
+    private function toPayload(VoucherInput $input): array
     {
-        return \is_string($value) ? mb_strtoupper(trim($value)) : '';
+        return ['name' => $input->name, 'code' => $input->code, 'description' => $input->description, 'discountType' => $input->discountType, 'discountValue' => $input->discountValue, 'isActive' => $input->isActive, 'startsAt' => $this->parseDate($input->startsAt), 'endsAt' => $this->parseDate($input->endsAt)];
     }
 
     private function parseDate(mixed $value): ?\DateTimeImmutable

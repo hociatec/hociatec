@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/quotes/{reference}/convert-to-order', name: 'api_admin_operations_quote_convert', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class ConvertQuoteToOrderController
 {
     public function __construct(private QuoteToOrderConverter $converter)

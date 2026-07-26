@@ -38,8 +38,7 @@ class DeleteAccountController extends AbstractController
 
             return ApiResponse::error(
                 'Impossible de supprimer le compte pour le moment.',
-                JsonResponse::HTTP_INTERNAL_SERVER_ERROR,
-                [$exception->getMessage()]
+                JsonResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
 

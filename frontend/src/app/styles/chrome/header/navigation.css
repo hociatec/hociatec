@@ -15,7 +15,7 @@
 }
 
 .site-header__service-trigger::after {
-  content: "";
+  content: '';
   width: 7px;
   height: 7px;
   margin-left: 0.55rem;
@@ -63,4 +63,3 @@
   height: 18px;
   color: var(--hocia-blue);
 }
-

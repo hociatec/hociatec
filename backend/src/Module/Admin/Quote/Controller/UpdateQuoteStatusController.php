@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Quote\Controller;
 
+use App\Module\Admin\Quote\DTO\QuoteStatusInput;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
@@ -11,6 +12,7 @@ use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteStatusTranslator;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +28,7 @@ final class UpdateQuoteStatusController extends AbstractController
         private readonly QuoteRepository $quotes,
         private readonly QuoteCalculator $calculator,
         private readonly QuoteWorkflowService $workflow,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -36,11 +39,10 @@ final class UpdateQuoteStatusController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $request->toArray();
-        $status = QuoteStatusTranslator::toCode((string) ($payload['status'] ?? ''));
-        if (!in_array($status, [Quote::STATUS_DRAFT, Quote::STATUS_SENT, Quote::STATUS_ACCEPTED, Quote::STATUS_REFUSED, Quote::STATUS_EXPIRED], true)) {
-            return ApiResponse::error('Statut invalide.', Response::HTTP_BAD_REQUEST);
-        }
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = QuoteStatusInput::fromArray($payload);
+        $this->validator->validate($input);
+        $status = QuoteStatusTranslator::toCode($input->status);
 
         if (null !== $quote->getConvertedOrder() && Quote::STATUS_ACCEPTED !== $status) {
             return ApiResponse::error('Un devis converti doit rester accepté.', Response::HTTP_BAD_REQUEST);

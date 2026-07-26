@@ -11,6 +11,7 @@ parameters:
     env(WEASYPRINT_PYTHON): ''
     env(WEASYPRINT_PYTHONPATH): ''
     env(STRIPE_SECRET_KEY): ''
+    env(BACKUP_ENCRYPTION_KEY_FILE): '/etc/hociatec/backup.key'
 
 services:
     # default configuration for services in *this* file
@@ -77,6 +78,14 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
+
+    App\Module\Admin\Backup\Service\BackupEncryptionService:
+        arguments:
+            $keyFile: '%env(BACKUP_ENCRYPTION_KEY_FILE)%'
+
+    App\Module\Order\Command\SecureInvoiceStorageCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
 
     App\Module\User\Service\AccountActivationEmailService:
         arguments:

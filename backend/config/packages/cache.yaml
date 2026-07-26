@@ -1,5 +1,15 @@
 framework:
     cache:
+        pools:
+            app.catalog_cache:
+                adapter: cache.app
+                default_lifetime: 300
+            app.reference_data_cache:
+                adapter: cache.app
+                default_lifetime: 900
+            app.metrics_cache:
+                adapter: cache.app
+                default_lifetime: 3600
         # Unique name of your app: used to compute stable namespaces for cache keys.
         #prefix_seed: your_vendor_name/app_name
 

@@ -77,12 +77,15 @@ export const TrainingCategoriesPage = () => {
     setMessage(null);
 
     try {
-      await saveAdminTrainingCategory({
-        name: form.name,
-        slug: form.slug.trim() || undefined,
-        position: form.position,
-        isActive: form.isActive,
-      }, form.id ?? undefined);
+      await saveAdminTrainingCategory(
+        {
+          name: form.name,
+          slug: form.slug.trim() || undefined,
+          position: form.position,
+          isActive: form.isActive,
+        },
+        form.id ?? undefined,
+      );
       await load();
       setMessage(form.id ? 'Catégorie mise à jour.' : 'Catégorie créée.');
       reset();
@@ -119,7 +122,8 @@ export const TrainingCategoriesPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Catégories de formation"
       headerActions={
         <Link to="/admin/trainings" className="catalog-admin-actions__edit">
@@ -132,21 +136,41 @@ export const TrainingCategoriesPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
-          <h2 className="text-lg font-semibold text-brand-900">{form.id ? 'Modifier la catégorie' : 'Nouvelle catégorie'}</h2>
+          <h2 className="text-lg font-semibold text-brand-900">
+            {form.id ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
+          </h2>
           <label className="register-form__field">
             <span>Nom</span>
-            <input value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} required />
+            <input
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              required
+            />
           </label>
           <label className="register-form__field">
             <span>Slug</span>
-            <input value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} placeholder="auto si vide" />
+            <input
+              value={form.slug}
+              onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
+              placeholder="auto si vide"
+            />
           </label>
           <label className="register-form__field">
             <span>Ordre d’affichage</span>
-            <input type="number" value={form.position} onChange={(event) => setForm((prev) => ({ ...prev, position: Number(event.target.value) }))} />
+            <input
+              type="number"
+              value={form.position}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, position: Number(event.target.value) }))
+              }
+            />
           </label>
           <label className="booking__checkbox">
-            <input type="checkbox" checked={form.isActive} onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))} />
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))}
+            />
             Catégorie visible dans les filtres
           </label>
           <div className="flex flex-wrap gap-3">
@@ -181,16 +205,26 @@ export const TrainingCategoriesPage = () => {
               <tbody>
                 {categories.map((category) => (
                   <tr key={category.id}>
-                    <td><strong>{category.name}</strong></td>
+                    <td>
+                      <strong>{category.name}</strong>
+                    </td>
                     <td>{category.slug}</td>
                     <td>{category.position}</td>
                     <td>{category.isActive ? 'Visible' : 'Masquée'}</td>
                     <td>
                       <div className="catalog-admin-actions">
-                        <button type="button" className="catalog-admin-actions__edit" onClick={() => edit(category)}>
+                        <button
+                          type="button"
+                          className="catalog-admin-actions__edit"
+                          onClick={() => edit(category)}
+                        >
                           Modifier
                         </button>
-                        <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(category)}>
+                        <button
+                          type="button"
+                          className="catalog-admin-actions__delete"
+                          onClick={() => void handleDelete(category)}
+                        >
                           Supprimer
                         </button>
                       </div>

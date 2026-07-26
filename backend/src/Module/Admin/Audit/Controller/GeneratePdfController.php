@@ -32,8 +32,8 @@ class GeneratePdfController extends AbstractController
         }
         try {
             $bin = $this->pdf->renderDetailed($audit);
-        } catch (\Throwable $e) {
-            return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED, [$e->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
         /** @var \App\Module\User\Entity\User|null $actor */
@@ -57,8 +57,8 @@ class GeneratePdfController extends AbstractController
         }
         try {
             $bin = $this->pdf->renderSummary($audit);
-        } catch (\Throwable $e) {
-            return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED, [$e->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
         /** @var \App\Module\User\Entity\User|null $actor */

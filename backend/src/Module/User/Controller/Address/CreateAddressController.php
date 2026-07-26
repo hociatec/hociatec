@@ -29,7 +29,7 @@ class CreateAddressController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
 
         $input = ShippingAddressInput::fromArray($payload);
         $this->dtoValidator->validate($input);

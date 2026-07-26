@@ -7,7 +7,7 @@ namespace App\Module\Order\Service;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Message\OrderStatusChangedMessage;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Workflow\WorkflowInterface;
@@ -22,7 +22,7 @@ final readonly class OrderStatusUpdater
     ];
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         #[Autowire(service: 'state_machine.order_status')]
         private WorkflowInterface $stateMachine,
         private MessageBusInterface $bus,
@@ -49,8 +49,8 @@ final readonly class OrderStatusUpdater
         $oldStatus = $order->getStatus();
         $this->stateMachine->apply($order, $transition);
         $this->synchronizeOperationalState($order, $status);
-        $this->entityManager->persist($order);
-        $this->entityManager->flush();
+        $this->persistence->persist($order);
+        $this->persistence->flush();
 
         $this->events->log(
             $order,

@@ -47,7 +47,9 @@ export const SchedulePage = () => {
       const days = await fetchConfiguration();
       setConfiguration(normalizeDays(days));
     } catch (error) {
-      setConfigurationError(getHttpErrorMessage(error, 'Erreur lors du chargement de la configuration'));
+      setConfigurationError(
+        getHttpErrorMessage(error, 'Erreur lors du chargement de la configuration'),
+      );
     } finally {
       setConfigurationLoading(false);
     }
@@ -55,7 +57,7 @@ export const SchedulePage = () => {
 
   const updateDay = (dayOfWeek: number, updater: (current: WorkingDay) => WorkingDay) => {
     setConfiguration((current) =>
-      current.map((day) => (day.dayOfWeek === dayOfWeek ? updater(day) : day))
+      current.map((day) => (day.dayOfWeek === dayOfWeek ? updater(day) : day)),
     );
   };
 
@@ -72,7 +74,7 @@ export const SchedulePage = () => {
               .map((pause) => ({ start: pause.start, end: pause.end }))
           : [],
       })),
-    [configuration]
+    [configuration],
   );
 
   const handleSaveConfiguration = async () => {
@@ -85,7 +87,9 @@ export const SchedulePage = () => {
       setConfiguration(normalizeDays(updated));
       setConfigurationMessage('Configuration enregistrée.');
     } catch (error) {
-      setConfigurationError(getHttpErrorMessage(error, 'Impossible de mettre à jour la configuration'));
+      setConfigurationError(
+        getHttpErrorMessage(error, 'Impossible de mettre à jour la configuration'),
+      );
     } finally {
       setSavingConfiguration(false);
     }
@@ -94,7 +98,9 @@ export const SchedulePage = () => {
   return (
     <PageContainer size="admin" title="Configuration des créneaux">
       {configurationError && <FeedbackMessage>{configurationError}</FeedbackMessage>}
-      {configurationMessage && <FeedbackMessage variant="success">{configurationMessage}</FeedbackMessage>}
+      {configurationMessage && (
+        <FeedbackMessage variant="success">{configurationMessage}</FeedbackMessage>
+      )}
 
       {configurationLoading ? (
         <LoadingState>Chargement de la configuration...</LoadingState>
@@ -110,9 +116,9 @@ export const SchedulePage = () => {
                     updateDay(day.dayOfWeek, (current) => ({
                       ...current,
                       isWorkingDay: event.target.checked,
-                      startTime: event.target.checked ? current.startTime ?? '09:00' : null,
-                      endTime: event.target.checked ? current.endTime ?? '18:00' : null,
-                      breaks: event.target.checked ? current.breaks ?? [] : [],
+                      startTime: event.target.checked ? (current.startTime ?? '09:00') : null,
+                      endTime: event.target.checked ? (current.endTime ?? '18:00') : null,
+                      breaks: event.target.checked ? (current.breaks ?? []) : [],
                     }))
                   }
                 />
@@ -168,7 +174,7 @@ export const SchedulePage = () => {
                             updateDay(day.dayOfWeek, (current) => ({
                               ...current,
                               breaks: current.breaks.map((slot, idx) =>
-                                idx === index ? { ...slot, start: event.target.value } : slot
+                                idx === index ? { ...slot, start: event.target.value } : slot,
                               ),
                             }))
                           }
@@ -182,7 +188,7 @@ export const SchedulePage = () => {
                             updateDay(day.dayOfWeek, (current) => ({
                               ...current,
                               breaks: current.breaks.map((slot, idx) =>
-                                idx === index ? { ...slot, end: event.target.value } : slot
+                                idx === index ? { ...slot, end: event.target.value } : slot,
                               ),
                             }))
                           }
@@ -209,7 +215,10 @@ export const SchedulePage = () => {
                           ...current,
                           breaks: [
                             ...current.breaks,
-                            { start: current.startTime ?? '12:00', end: current.endTime ?? '13:00' },
+                            {
+                              start: current.startTime ?? '12:00',
+                              end: current.endTime ?? '13:00',
+                            },
                           ],
                         }))
                       }

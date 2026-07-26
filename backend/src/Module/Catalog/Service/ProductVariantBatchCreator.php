@@ -6,14 +6,14 @@ namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Product;
 use App\Module\Catalog\Repository\ProductRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class ProductVariantBatchCreator
 {
     public function __construct(
         private ProductVariantService $variants,
         private ProductRepository $products,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
     ) {
     }
 
@@ -122,6 +122,6 @@ final readonly class ProductVariantBatchCreator
             $values['stock'],
             $position,
         );
-        $this->entityManager->persist($copy);
+        $this->persistence->persist($copy);
     }
 }

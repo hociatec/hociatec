@@ -1,18 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
 
-import { formatQuoteStatus } from '@/features/quotes/api/quotesApi';
+import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatDateInputForDisplay, formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import {
+  formatDateInputForDisplay,
+  formatEuroCents,
+  formatOptionalFrenchDateTime,
+} from '@/shared/lib/formatters';
 import { useMyQuoteDetail } from '../hooks/useMyQuoteDetail';
 
 export const MyQuoteDetailPage = () => {
   const navigate = useNavigate();
-  const { quote, loading, error, downloading, updatingStatus, handleDownload, handleStatusAction } = useMyQuoteDetail();
+  const { quote, loading, error, downloading, updatingStatus, handleDownload, handleStatusAction } =
+    useMyQuoteDetail();
 
   useDocumentTitle(quote ? `Devis ${quote.number}` : 'Consulter le devis');
-
 
   const quoteStatus = quote?.statusCode ?? quote?.status;
   const canAnswerQuote = quoteStatus === 'sent' && !quote?.convertedOrder;
@@ -28,7 +32,11 @@ export const MyQuoteDetailPage = () => {
             <h1 className="quote-detail-title">Consulter le devis</h1>
           </div>
           <div className="quote-actions-row">
-            <button type="button" className="catalog-admin-actions__edit" onClick={() => navigate('/quotes/me')}>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => navigate('/quotes/me')}
+            >
               Retour
             </button>
             <button
@@ -75,7 +83,9 @@ export const MyQuoteDetailPage = () => {
                 </div>
                 <div>
                   <div className="muted">Statut</div>
-                  <div className="quote-strong">{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                  <div className="quote-strong">
+                    {quote.statusLabel ?? formatQuoteStatus(quoteStatus)}
+                  </div>
                   {quote.convertedOrder ? (
                     <Link to={`/orders/${quote.convertedOrder.id}`} className="underline text-sm">
                       Voir la commande {quote.convertedOrder.number}
@@ -89,7 +99,8 @@ export const MyQuoteDetailPage = () => {
                 <div>
                   <div className="muted">Validité</div>
                   <div>
-                    {formatDateInputForDisplay(quote.validFrom)} au {formatDateInputForDisplay(quote.validUntil)}
+                    {formatDateInputForDisplay(quote.validFrom)} au{' '}
+                    {formatDateInputForDisplay(quote.validUntil)}
                   </div>
                 </div>
                 <div>
@@ -117,8 +128,12 @@ export const MyQuoteDetailPage = () => {
                 <div>Total HT : {formatEuroCents(quote?.totals?.ht ?? 0)}</div>
                 <div>TVA : {formatEuroCents(quote?.totals?.vat ?? 0)}</div>
                 <div>Total TTC : {formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
-                {quote.discountCents ? <div>Remise : {formatEuroCents(quote.discountCents)}</div> : null}
-                {quote.shippingCents ? <div>Frais : {formatEuroCents(quote.shippingCents)}</div> : null}
+                {quote.discountCents ? (
+                  <div>Remise : {formatEuroCents(quote.discountCents)}</div>
+                ) : null}
+                {quote.shippingCents ? (
+                  <div>Frais : {formatEuroCents(quote.shippingCents)}</div>
+                ) : null}
               </div>
             </section>
 

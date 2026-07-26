@@ -1,19 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { createPublicQuote, fetchPublicQuoteServices, generateMyQuotePdf, type QuoteDto, type QuoteInput, type QuoteServiceDto } from '@/features/quotes/api/quotesApi';
+import {
+  createPublicQuote,
+  fetchPublicQuoteServices,
+  generateMyQuotePdf,
+} from '@/features/quotes/api/quotesApi';
+import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
-import { createDefaultQuoteValidity, DEFAULT_QUOTE_CONDITIONS, type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
+import {
+  createDefaultQuoteValidity,
+  DEFAULT_QUOTE_CONDITIONS,
+  type QuoteItem,
+} from '@/features/quotes/utils/quoteFormUtils';
 
 type QuoteDraft = QuoteInput & {
   items: QuoteItem[];
 };
 
-
 export const useCreateQuote = () => {
-
   const { user, status } = useAuth();
   const toast = useToast();
   const [form, setForm] = useState<QuoteDraft>({
@@ -38,12 +45,17 @@ export const useCreateQuote = () => {
 
   const [allServices, setAllServices] = useState<QuoteServiceDto[]>([]);
   const filteredServices = useMemo(
-    () => allServices.filter((s) => s.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 20),
+    () =>
+      allServices
+        .filter((s) => s.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+        .slice(0, 20),
     [allServices, searchQuery],
   );
 
   useEffect(() => {
-    void fetchPublicQuoteServices().then(setAllServices).catch(() => void 0);
+    void fetchPublicQuoteServices()
+      .then(setAllServices)
+      .catch(() => void 0);
   }, []);
 
   useEffect(() => {
@@ -54,7 +66,10 @@ export const useCreateQuote = () => {
           ...f.customer,
           name: [user.firstName, user.lastName].filter(Boolean).join(' ').trim(),
           email: user.email,
-          address: [user.address, [user.postalCode, user.city].filter(Boolean).join(' ')].filter(Boolean).join(' ').trim(),
+          address: [user.address, [user.postalCode, user.city].filter(Boolean).join(' ')]
+            .filter(Boolean)
+            .join(' ')
+            .trim(),
         },
       }));
     }
@@ -83,7 +98,10 @@ export const useCreateQuote = () => {
     for (const it of form.items ?? []) {
       const isRental = it.sellingType === 'rental';
       const months = isRental ? Math.max(1, it.rentalMonths ?? 1) : 1;
-      const line = Math.max(0, (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0));
+      const line = Math.max(
+        0,
+        (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0),
+      );
       ht += line;
       vat += Math.round(line * ((it.vatRate ?? 0) / 100));
     }
@@ -133,7 +151,10 @@ export const useCreateQuote = () => {
   };
 
   const updateItem = (index: number, patch: Partial<QuoteItem>) => {
-    setForm((f) => ({ ...f, items: f.items.map((it, i: number) => (i === index ? { ...it, ...patch } : it)) }));
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i: number) => (i === index ? { ...it, ...patch } : it)),
+    }));
   };
 
   const removeItem = (index: number) => {
@@ -145,7 +166,9 @@ export const useCreateQuote = () => {
 
   const submit = async () => {
     if (status !== 'authenticated' || !user) {
-      toast.show('Connectez-vous pour enregistrer ce devis dans votre espace client.', { variant: 'info' });
+      toast.show('Connectez-vous pour enregistrer ce devis dans votre espace client.', {
+        variant: 'info',
+      });
       return;
     }
     setSaving(true);
@@ -154,10 +177,15 @@ export const useCreateQuote = () => {
     try {
       const created = await createPublicQuote(form);
       setSavedQuote(created ?? null);
-      toast.show('Devis enregistré. Vous pouvez le retrouver dans votre espace client.', { variant: 'success' });
+      toast.show('Devis enregistré. Vous pouvez le retrouver dans votre espace client.', {
+        variant: 'success',
+      });
       setMessage('Devis enregistré. Vous pouvez le retrouver dans votre espace client.');
     } catch (e) {
-      const messageText = getHttpErrorMessage(e, "Le devis n'a pas pu être créé. Vérifiez les informations saisies puis réessayez.");
+      const messageText = getHttpErrorMessage(
+        e,
+        "Le devis n'a pas pu être créé. Vérifiez les informations saisies puis réessayez.",
+      );
       toast.show(messageText, { variant: 'error' });
       setError(messageText);
     } finally {
@@ -167,12 +195,16 @@ export const useCreateQuote = () => {
 
   const handleDownloadPdf = async () => {
     if (status !== 'authenticated' || !user) {
-      toast.show('Connectez-vous pour générer et télécharger votre devis en PDF.', { variant: 'info' });
+      toast.show('Connectez-vous pour générer et télécharger votre devis en PDF.', {
+        variant: 'info',
+      });
       return;
     }
 
     if ((form.items ?? []).length === 0) {
-      toast.show('Ajoutez au moins un produit ou service avant de générer le PDF.', { variant: 'info' });
+      toast.show('Ajoutez au moins un produit ou service avant de générer le PDF.', {
+        variant: 'info',
+      });
       return;
     }
 
@@ -198,7 +230,10 @@ export const useCreateQuote = () => {
       link.remove();
       window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
-      const messageText = await getHttpErrorMessageAsync(e, "Le PDF n'a pas pu être généré. Réessayez dans quelques instants.");
+      const messageText = await getHttpErrorMessageAsync(
+        e,
+        "Le PDF n'a pas pu être généré. Réessayez dans quelques instants.",
+      );
       toast.show(messageText, { variant: 'error' });
       setError(messageText);
     } finally {
@@ -206,6 +241,32 @@ export const useCreateQuote = () => {
     }
   };
 
-
-  return { addProductLineFromProduct, addServiceLine, allServices, error, filteredServices, findProductItemIndex, form, handleDownloadPdf, message, products, productLoading, rentalCandidate, rentalDialogOpen, removeItem, savedQuote, saving, searchQuery, setForm, setRentalCandidate, setRentalDialogOpen, setSearchQuery, status, submit, totals, updateItem, user };
+  return {
+    addProductLineFromProduct,
+    addServiceLine,
+    allServices,
+    error,
+    filteredServices,
+    findProductItemIndex,
+    form,
+    handleDownloadPdf,
+    message,
+    products,
+    productLoading,
+    rentalCandidate,
+    rentalDialogOpen,
+    removeItem,
+    savedQuote,
+    saving,
+    searchQuery,
+    setForm,
+    setRentalCandidate,
+    setRentalDialogOpen,
+    setSearchQuery,
+    status,
+    submit,
+    totals,
+    updateItem,
+    user,
+  };
 };

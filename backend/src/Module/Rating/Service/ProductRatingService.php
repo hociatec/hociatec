@@ -11,14 +11,13 @@ use App\Module\Rating\Entity\ProductRating;
 use App\Module\Rating\Exception\ProductReviewException;
 use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 class ProductRatingService
 {
     public function __construct(
         private readonly ProductRatingRepository $ratings,
         private readonly ProductReviewStatsUpdater $statsUpdater,
-        private readonly EntityManagerInterface $em,
+        private readonly RatingPersistence $persistence,
     ) {
     }
 
@@ -52,11 +51,11 @@ class ProductRatingService
         if ('' !== $body) {
             $productComment = new ProductComment($rating, $body);
             $rating->setComment($productComment);
-            $this->em->persist($productComment);
+            $this->persistence->persist($productComment);
         }
 
-        $this->em->persist($rating);
-        $this->em->flush();
+        $this->persistence->persist($rating);
+        $this->persistence->flush();
 
         $this->statsUpdater->refresh($product);
 

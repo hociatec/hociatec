@@ -39,24 +39,19 @@ export const MyAppointmentsPage = () => {
         const canCancel = showCancelButton && !isCancelled;
 
         return (
-          <li
-            key={appointment.id}
-            className="rounded-lg border border-brand-200 p-3"
-          >
+          <li key={appointment.id} className="rounded-lg border border-brand-200 p-3">
             <div className="flex flex-wrap justify-between gap-3">
               <strong>{appointment.prestation.name}</strong>
               <span className="muted">
-                {appointment.prestation.durationMinutes} min · {formatEuroCents(appointment.prestation.priceCents)}
+                {appointment.prestation.durationMinutes} min ·{' '}
+                {formatEuroCents(appointment.prestation.priceCents)}
               </span>
             </div>
             <div className="mt-1">
-              {formatOptionalFrenchDateTime(appointment.startAt)} - {formatOptionalFrenchDateTime(appointment.endAt)}
+              {formatOptionalFrenchDateTime(appointment.startAt)} -{' '}
+              {formatOptionalFrenchDateTime(appointment.endAt)}
             </div>
-            {appointment.status && (
-              <div className="muted mt-1">
-                Statut : {appointment.status}
-              </div>
-            )}
+            {appointment.status && <div className="muted mt-1">Statut : {appointment.status}</div>}
             {canCancel && (
               <button
                 onClick={() => void handleCancel(appointment.id)}
@@ -89,50 +84,50 @@ export const MyAppointmentsPage = () => {
           {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
           {!error && (
-          <div className="grid gap-6">
-            <section>
-              <h2>À venir</h2>
-              {upcoming.length === 0 ? (
-                <p className="muted">Aucun rendez-vous à venir.</p>
-              ) : (
-                renderList(upcoming, true)
-              )}
-            </section>
+            <div className="grid gap-6">
+              <section>
+                <h2>À venir</h2>
+                {upcoming.length === 0 ? (
+                  <p className="muted">Aucun rendez-vous à venir.</p>
+                ) : (
+                  renderList(upcoming, true)
+                )}
+              </section>
 
-            <section>
-              <h2>Passés</h2>
-              {past.length === 0 ? (
-                <p className="muted">Aucun rendez-vous passé.</p>
-              ) : (
-                <>
-                  {renderList(paginatedPast, false)}
-                  {totalPastPages > 1 && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        className="site-header__link"
-                        disabled={pastPage === 1}
-                        onClick={() => setPastPage((page) => Math.max(1, page - 1))}
-                      >
-                        Précédent
-                      </button>
-                      <span className="muted">
-                        Page {pastPage} sur {totalPastPages}
-                      </span>
-                      <button
-                        type="button"
-                        className="site-header__link"
-                        disabled={pastPage === totalPastPages}
-                        onClick={() => setPastPage((page) => Math.min(totalPastPages, page + 1))}
-                      >
-                        Suivant
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </section>
-          </div>
+              <section>
+                <h2>Passés</h2>
+                {past.length === 0 ? (
+                  <p className="muted">Aucun rendez-vous passé.</p>
+                ) : (
+                  <>
+                    {renderList(paginatedPast, false)}
+                    {totalPastPages > 1 && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          className="site-header__link"
+                          disabled={pastPage === 1}
+                          onClick={() => setPastPage((page) => Math.max(1, page - 1))}
+                        >
+                          Précédent
+                        </button>
+                        <span className="muted">
+                          Page {pastPage} sur {totalPastPages}
+                        </span>
+                        <button
+                          type="button"
+                          className="site-header__link"
+                          disabled={pastPage === totalPastPages}
+                          onClick={() => setPastPage((page) => Math.min(totalPastPages, page + 1))}
+                        >
+                          Suivant
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            </div>
           )}
         </StableContent>
       </PageContainer>

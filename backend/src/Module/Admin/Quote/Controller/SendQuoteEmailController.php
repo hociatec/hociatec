@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Quote\Controller;
 
+use App\Module\Admin\Quote\DTO\QuoteEmailInput;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +33,7 @@ class SendQuoteEmailController extends AbstractController
         private readonly QuoteEmailService $quoteEmailService,
         private readonly QuoteWorkflowService $workflow,
         private readonly LoggerInterface $logger,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -47,13 +50,15 @@ class SendQuoteEmailController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $result = $this->quoteEmailService->send($quote, isset($payload['to']) ? (string) $payload['to'] : null);
+            $input = QuoteEmailInput::fromArray($payload);
+            $this->validator->validate($input);
+            $result = $this->quoteEmailService->send($quote, $input->to?->value());
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {

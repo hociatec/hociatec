@@ -23,6 +23,7 @@ export const fetchMyVouchers = async (): Promise<MyVoucherDto[]> => {
     return data.data.items;
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible de charger vos bons de réduction';
+  const message =
+    data.status === 'error' ? data.message : 'Impossible de charger vos bons de réduction';
   throw new Error(message);
 };

@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Operations\Controller;
 
+use App\Module\Admin\Operations\DTO\RefundCreateInput;
+use App\Module\Admin\Operations\DTO\RefundProcessInput;
+use App\Module\Admin\Operations\DTO\RefundUpdateInput;
 use App\Module\Admin\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Operations\Service\RefundOperationsService;
+use App\Module\Order\DTO\RefundCreateData;
+use App\Module\Order\DTO\RefundProcessData;
+use App\Module\Order\DTO\RefundUpdateData;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,10 +23,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/refunds')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final class RefundOperationsController extends AbstractController
 {
-    public function __construct(private readonly RefundOperationsService $refunds)
+    public function __construct(private readonly RefundOperationsService $refunds, private readonly DtoValidator $validator)
     {
     }
 
@@ -33,7 +40,9 @@ final class RefundOperationsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         try {
-            $item = $this->refunds->create($request->toArray(), $this->currentAdmin());
+            $input = RefundCreateInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $item = $this->refunds->create(new RefundCreateData($input->orderId, $input->amountCents, $input->reason, $input->internalNotes, $input->paymentId, $input->currencyCode), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\Throwable) {
@@ -47,7 +56,9 @@ final class RefundOperationsController extends AbstractController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $item = $this->refunds->update($id, $request->toArray());
+            $input = RefundUpdateInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $item = $this->refunds->update($id, new RefundUpdateData($input->status, $input->stripeRefundId, $input->internalNotes));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\Throwable) {
@@ -61,7 +72,9 @@ final class RefundOperationsController extends AbstractController
     public function processStripe(int $id, Request $request): JsonResponse
     {
         try {
-            $result = $this->refunds->processStripe($id, $request->toArray(), $this->currentAdmin());
+            $input = RefundProcessInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $result = $this->refunds->processStripe($id, new RefundProcessData($input->confirmation, $input->paymentIntentId), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {

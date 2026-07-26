@@ -9,7 +9,7 @@ use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class AppointmentService
 {
@@ -17,7 +17,7 @@ final class AppointmentService
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AvailabilityService $availabilityService,
         private readonly AppointmentStatusManager $appointmentStatusManager,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -31,8 +31,8 @@ final class AppointmentService
 
         $appointment = new Appointment($user, $prestation, $startAt);
 
-        $this->entityManager->persist($appointment);
-        $this->entityManager->flush();
+        $this->persistence->persist($appointment);
+        $this->persistence->flush();
 
         return $appointment;
     }
@@ -69,7 +69,7 @@ final class AppointmentService
         }
 
         $appointment->cancel();
-        $this->entityManager->flush();
+        $this->persistence->flush();
     }
 
     public function changeStatus(Appointment $appointment, string $targetStatus): void

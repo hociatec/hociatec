@@ -6,13 +6,43 @@ import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/u
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { formatOrderStatusFr } from '@/features/orders/api';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/shared/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/shared/components/ui/alert-dialog';
 
-const ReviewStarsDisplay = ({ value }: { value: number }) => <span className="text-yellow-500 text-base">{[1, 2, 3, 4, 5].map((star) => <span key={star}>{star <= Math.round(value) ? '★' : '☆'}</span>)}</span>;
+const ReviewStarsDisplay = ({ value }: { value: number }) => (
+  <span className="text-yellow-500 text-base">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <span key={star}>{star <= Math.round(value) ? '★' : '☆'}</span>
+    ))}
+  </span>
+);
 
 export const OrderDetailPage = () => {
   useDocumentTitle('Détail de la commande');
-  const { canDownloadInvoice, error, getReviewForm, handlePayOrder, handleSubmitReview, handleCancelOrder, handleDownloadInvoicePdf, handleDownloadInvoiceXml, isLoading, justConfirmed, order, paying, updateReviewForm } = useOrderDetail();
+  const {
+    canDownloadInvoice,
+    error,
+    getReviewForm,
+    handlePayOrder,
+    handleSubmitReview,
+    handleCancelOrder,
+    handleDownloadInvoicePdf,
+    handleDownloadInvoiceXml,
+    isLoading,
+    justConfirmed,
+    order,
+    paying,
+    updateReviewForm,
+  } = useOrderDetail();
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
@@ -39,7 +69,8 @@ export const OrderDetailPage = () => {
                 ) : null}
               </div>
               <div className="space-y-2 text-right">
-                {typeof order.subtotalPriceCents === 'number' && (order.discountAmountCents ?? 0) > 0 ? (
+                {typeof order.subtotalPriceCents === 'number' &&
+                (order.discountAmountCents ?? 0) > 0 ? (
                   <div className="text-sm text-gray-600">
                     <div>Sous-total: {formatEuroCents(order.subtotalPriceCents)}</div>
                     <div className="font-semibold text-emerald-700">
@@ -72,7 +103,8 @@ export const OrderDetailPage = () => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Voulez-vous annuler cette commande en attente ? Cette action est irréversible.
+                          Voulez-vous annuler cette commande en attente ? Cette action est
+                          irréversible.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -114,7 +146,11 @@ export const OrderDetailPage = () => {
                       className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void handleDownloadInvoicePdf()}
                       disabled={!canDownloadInvoice}
-                      title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
+                      title={
+                        !canDownloadInvoice
+                          ? 'La facture est disponible uniquement pour une commande réglée non annulée.'
+                          : undefined
+                      }
                     >
                       Télécharger la facture PDF
                     </button>
@@ -123,7 +159,11 @@ export const OrderDetailPage = () => {
                       className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void handleDownloadInvoiceXml()}
                       disabled={!canDownloadInvoice}
-                      title={!canDownloadInvoice ? 'La facture est disponible uniquement pour une commande réglée non annulée.' : undefined}
+                      title={
+                        !canDownloadInvoice
+                          ? 'La facture est disponible uniquement pour une commande réglée non annulée.'
+                          : undefined
+                      }
                     >
                       Télécharger le XML
                     </button>
@@ -132,9 +172,15 @@ export const OrderDetailPage = () => {
                 <div className="text-sm">
                   <div>{order.invoice.billingName}</div>
                   {order.invoice.billingCompany ? <div>{order.invoice.billingCompany}</div> : null}
-                  {order.invoice.billingCompanySiren ? <div>SIREN : {order.invoice.billingCompanySiren}</div> : null}
-                  {order.invoice.billingCompanyVatNumber ? <div>TVA : {order.invoice.billingCompanyVatNumber}</div> : null}
-                  {order.invoice.purchaseOrderNumber ? <div>Bon de commande : {order.invoice.purchaseOrderNumber}</div> : null}
+                  {order.invoice.billingCompanySiren ? (
+                    <div>SIREN : {order.invoice.billingCompanySiren}</div>
+                  ) : null}
+                  {order.invoice.billingCompanyVatNumber ? (
+                    <div>TVA : {order.invoice.billingCompanyVatNumber}</div>
+                  ) : null}
+                  {order.invoice.purchaseOrderNumber ? (
+                    <div>Bon de commande : {order.invoice.purchaseOrderNumber}</div>
+                  ) : null}
                   <div>{order.invoice.billingAddress}</div>
                   <div>
                     {order.invoice.billingPostalCode} {order.invoice.billingCity}
@@ -147,7 +193,9 @@ export const OrderDetailPage = () => {
             <div>
               <h2 className="mb-2 font-semibold">Livraison</h2>
               <div className="text-sm">
-                <div>{order.customerDisplayName || order.invoice?.billingName || order.shipping.name}</div>
+                <div>
+                  {order.customerDisplayName || order.invoice?.billingName || order.shipping.name}
+                </div>
                 <div>{order.shipping.address}</div>
                 <div>
                   {order.shipping.postalCode} {order.shipping.city}
@@ -155,12 +203,29 @@ export const OrderDetailPage = () => {
               </div>
               {order.delivery ? (
                 <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-stone-700">
-                  <div className="font-semibold text-brand-900">{order.delivery.statusLabel ?? 'Préparation en cours'}</div>
-                  <div className="mt-2"><span className="font-medium text-brand-900">Transporteur</span> : {order.delivery.carrier || '-'}</div>
-                  <div><span className="font-medium text-brand-900">Numéro de suivi</span> : {order.delivery.trackingNumber || '-'}</div>
-                  <div><span className="font-medium text-brand-900">Date estimée</span> : {formatOptionalFrenchDate(order.delivery.estimatedAt)}</div>
-                  <div><span className="font-medium text-brand-900">Expédiée le</span> : {formatOptionalFrenchDate(order.delivery.shippedAt)}</div>
-                  <div><span className="font-medium text-brand-900">Livrée le</span> : {formatOptionalFrenchDate(order.delivery.deliveredAt)}</div>
+                  <div className="font-semibold text-brand-900">
+                    {order.delivery.statusLabel ?? 'Préparation en cours'}
+                  </div>
+                  <div className="mt-2">
+                    <span className="font-medium text-brand-900">Transporteur</span> :{' '}
+                    {order.delivery.carrier || '-'}
+                  </div>
+                  <div>
+                    <span className="font-medium text-brand-900">Numéro de suivi</span> :{' '}
+                    {order.delivery.trackingNumber || '-'}
+                  </div>
+                  <div>
+                    <span className="font-medium text-brand-900">Date estimée</span> :{' '}
+                    {formatOptionalFrenchDate(order.delivery.estimatedAt)}
+                  </div>
+                  <div>
+                    <span className="font-medium text-brand-900">Expédiée le</span> :{' '}
+                    {formatOptionalFrenchDate(order.delivery.shippedAt)}
+                  </div>
+                  <div>
+                    <span className="font-medium text-brand-900">Livrée le</span> :{' '}
+                    {formatOptionalFrenchDate(order.delivery.deliveredAt)}
+                  </div>
                   {order.delivery.trackingUrl ? (
                     <div className="mt-3">
                       <a

@@ -6,7 +6,6 @@ namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\Entity\Prestation;
 use App\Module\Appointment\Repository\PrestationRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -14,7 +13,7 @@ final class PrestationService
 {
     public function __construct(
         private readonly PrestationRepository $prestationRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly PrestationPersistence $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }
@@ -33,8 +32,7 @@ final class PrestationService
 
         $prestation = new Prestation($name, $durationMinutes, $priceCents);
 
-        $this->entityManager->persist($prestation);
-        $this->entityManager->flush();
+        $this->persistence->save($prestation);
 
         return $prestation;
     }
@@ -48,15 +46,14 @@ final class PrestationService
             ->setDurationMinutes($durationMinutes)
             ->setPriceCents($priceCents);
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $prestation;
     }
 
     public function delete(Prestation $prestation): void
     {
-        $this->entityManager->remove($prestation);
-        $this->entityManager->flush();
+        $this->persistence->delete($prestation);
     }
 
     private function assertValidData(string $name, int $durationMinutes, int $priceCents): void

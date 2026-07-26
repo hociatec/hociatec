@@ -4,7 +4,10 @@ import { type ProductFormState } from '@/features/admin/catalog/utils/productFor
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
-export const ProductPublicationSection = ({ form, onChange }: {
+export const ProductPublicationSection = ({
+  form,
+  onChange,
+}: {
   form: ProductFormState;
   onChange: (event: FormChangeEvent) => void;
 }) => (
@@ -14,7 +17,12 @@ export const ProductPublicationSection = ({ form, onChange }: {
       Produit visible sur le site public
     </label>
     <label className="booking__checkbox">
-      <input type="checkbox" name="isFeaturedHome" checked={form.isFeaturedHome} onChange={onChange} />
+      <input
+        type="checkbox"
+        name="isFeaturedHome"
+        checked={form.isFeaturedHome}
+        onChange={onChange}
+      />
       Mettre en avant sur la page d'accueil
     </label>
   </div>

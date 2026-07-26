@@ -1,4 +1,4 @@
-.admin-shell__content .data-\[state\=active\]\:bg-brand-600[data-state="active"] {
+.admin-shell__content .data-\[state\=active\]\:bg-brand-600[data-state='active'] {
   background-color: var(--hocia-orange) !important;
   color: #ffffff !important;
 }

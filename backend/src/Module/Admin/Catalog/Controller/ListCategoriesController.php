@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/categories', name: 'api_admin_catalog_categories_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class ListCategoriesController extends AbstractController
 {
     public function __construct(private readonly CategoryService $categoryService)

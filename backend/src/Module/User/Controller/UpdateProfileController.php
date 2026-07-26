@@ -13,6 +13,7 @@ use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Service\UpdateProfileService;
 use App\Module\User\Service\UserProfileFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\JsonPayload;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,7 +34,7 @@ class UpdateProfileController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = JsonPayload::decode($request);
 
         $user = $this->getUser();
         if (!$user instanceof User) {

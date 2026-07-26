@@ -6,7 +6,6 @@ namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Repository\CategoryRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -14,7 +13,7 @@ final class CategoryService
 {
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly CatalogPersistence $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }
@@ -52,8 +51,7 @@ final class CategoryService
             ->setDescription($description)
             ->setIsVisible($isVisible);
 
-        $this->entityManager->persist($category);
-        $this->entityManager->flush();
+        $this->persistence->save($category);
 
         return $category;
     }
@@ -76,7 +74,7 @@ final class CategoryService
             ->setDescription($description)
             ->setIsVisible($isVisible);
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $category;
     }
@@ -87,8 +85,7 @@ final class CategoryService
             throw new \RuntimeException('Impossible de supprimer la categorie car elle contient encore des produits.');
         }
 
-        $this->entityManager->remove($category);
-        $this->entityManager->flush();
+        $this->persistence->delete($category);
     }
 
     private function generateUniqueSlug(string $name, ?int $excludeId): string

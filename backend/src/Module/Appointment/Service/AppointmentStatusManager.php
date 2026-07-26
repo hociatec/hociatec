@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\Entity\Appointment;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 /**
  * Centralizes all appointment status transitions and metadata so we have a
@@ -27,7 +27,7 @@ final class AppointmentStatusManager
         ],
     ];
 
-    public function __construct(private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly DoctrinePersistence $persistence)
     {
     }
 
@@ -101,6 +101,6 @@ final class AppointmentStatusManager
         }
 
         $appointment->setStatus($targetStatus);
-        $this->entityManager->flush();
+        $this->persistence->flush();
     }
 }

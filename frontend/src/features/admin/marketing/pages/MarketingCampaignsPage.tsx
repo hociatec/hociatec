@@ -1,20 +1,21 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import {
-  fetchMarketingCampaigns,
-  fetchMarketingSegments,
-  fetchMarketingTemplates,
-  type MarketingCampaign,
-  type MarketingSegmentDefinition,
-  type MarketingTemplate,
-} from '@/features/admin/marketing/api';
+import { type MarketingCampaign } from '@/features/admin/marketing/api';
+import { useMarketingCampaignsOverview } from '../hooks/useMarketingCampaignsOverview';
 import { PageContainer } from '@/shared/components/PageContainer';
-import { AdminListState, AdminMetricCard, AdminMetricGrid, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import {
+  AdminListState,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminTableShell,
+} from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroCents, formatFrenchDateTime, formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import {
+  formatEuroCents,
+  formatFrenchDateTime,
+  formatOptionalFrenchDate,
+} from '@/shared/lib/formatters';
 
 const formatCampaignCriteria = (campaign: MarketingCampaign) => {
   const criteria = campaign.criteria ?? {};
@@ -41,34 +42,12 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
 
 export const MarketingCampaignsPage = () => {
   useDocumentTitle('Admin - Campagnes e-mail');
-  const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
-  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
-  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments(), fetchMarketingCampaigns()])
-      .then(([templatesList, segmentsList, campaignsList]) => {
-        setTemplates(templatesList);
-        setSegments(segmentsList);
-        setCampaigns(campaignsList);
-      })
-      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger le module marketing.')))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const activeTemplates = useMemo(
-    () => templates.filter((item) => item.isActive),
-    [templates],
-  );
-
-  const lastCampaign = campaigns[0] ?? null;
+  const { segments, campaigns, loading, error, activeTemplates, lastCampaign } =
+    useMarketingCampaignsOverview();
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Campagnes e-mail"
       headerActions={
         <div className="flex flex-wrap gap-3">
@@ -78,9 +57,7 @@ export const MarketingCampaignsPage = () => {
           >
             Bibliothèque des modèles
           </Link>
-          <PrimaryLink to="/admin/marketing/templates/new">
-            Nouveau modèle
-          </PrimaryLink>
+          <PrimaryLink to="/admin/marketing/templates/new">Nouveau modèle</PrimaryLink>
           <Link
             to="/admin/marketing/new"
             className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800"
@@ -94,31 +71,29 @@ export const MarketingCampaignsPage = () => {
         <AdminMetricCard label="Modèles actifs" value={activeTemplates.length} />
         <AdminMetricCard label="Audiences disponibles" value={Object.keys(segments).length} />
         <AdminMetricCard label="Campagnes envoyées" value={campaigns.length} />
-        <AdminMetricCard label="Dernier envoi" value={lastCampaign ? formatOptionalFrenchDate(lastCampaign.sentAt) : 'Aucun'} />
+        <AdminMetricCard
+          label="Dernier envoi"
+          value={lastCampaign ? formatOptionalFrenchDate(lastCampaign.sentAt) : 'Aucun'}
+        />
       </AdminMetricGrid>
 
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          Activez vos relances marketing avec des audiences ciblées, des critères métier et des modèles réutilisables.
+          Activez vos relances marketing avec des audiences ciblées, des critères métier et des
+          modèles réutilisables.
         </p>
         <p className="text-sm text-stone-500">
-          L’espace permet maintenant de cibler l’acquisition, la réactivation, la fidélisation et la collecte d’avis depuis l’admin.
+          L’espace permet maintenant de cibler l’acquisition, la réactivation, la fidélisation et la
+          collecte d’avis depuis l’admin.
         </p>
       </div>
 
       {error && <FeedbackMessage>{error}</FeedbackMessage>}
-      <AdminListState
-        loading={loading}
-        isEmpty={false}
-        loadingLabel="Chargement..."
-        emptyLabel=""
-      >
+      <AdminListState loading={loading} isEmpty={false} loadingLabel="Chargement..." emptyLabel="">
         <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-brand-900">Création de campagne</h2>
           <div className="mt-4 flex flex-wrap gap-3">
-            <PrimaryLink to="/admin/marketing/new">
-              Créer une nouvelle campagne
-            </PrimaryLink>
+            <PrimaryLink to="/admin/marketing/new">Créer une nouvelle campagne</PrimaryLink>
             <Link
               to="/admin/marketing/templates"
               className="inline-flex items-center rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-900"
@@ -153,7 +128,9 @@ export const MarketingCampaignsPage = () => {
                   <tr key={campaign.id}>
                     <td>
                       <strong>{campaign.name}</strong>
-                      <div className="muted">{campaign.template?.name ?? campaign.subjectSnapshot}</div>
+                      <div className="muted">
+                        {campaign.template?.name ?? campaign.subjectSnapshot}
+                      </div>
                     </td>
                     <td>{segments[campaign.segmentKey]?.label ?? campaign.segmentKey}</td>
                     <td>{formatCampaignCriteria(campaign)}</td>

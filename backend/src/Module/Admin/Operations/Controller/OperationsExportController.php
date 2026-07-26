@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/exports/{resource}.csv', name: 'api_admin_operations_exports', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class OperationsExportController
 {
     public function __construct(private AdminOperationsExporter $exporter)

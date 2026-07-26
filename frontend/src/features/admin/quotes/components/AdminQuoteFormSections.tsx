@@ -2,7 +2,12 @@ import { type Dispatch, type SetStateAction } from 'react';
 
 import { AdminQuoteItemsTable } from '@/features/admin/quotes/components/AdminQuoteItemsTable';
 import { type CatalogProduct } from '@/features/catalog/api';
-import { type QuoteDto, type QuoteInput, type QuoteServiceDto, type QuoteStatus } from '@/features/quotes/api/quotesApi';
+import type {
+  QuoteDto,
+  QuoteInput,
+  QuoteServiceDto,
+  QuoteStatus,
+} from '@/features/quotes/types/quoteTypes';
 import { formatQuotePrice, type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
@@ -70,10 +75,34 @@ export const QuoteEditorGrid = ({
       <section>
         <h3 className="font-semibold mb-2">Client</h3>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <input placeholder="Nom" value={quote.customer?.name ?? ''} onChange={(e) => setQuote({ ...quote, customer: { ...quote.customer, name: e.target.value } })} />
-          <input placeholder="Email" value={quote.customer?.email ?? ''} onChange={(e) => setQuote({ ...quote, customer: { ...quote.customer, email: e.target.value } })} />
-          <input placeholder="Entreprise" value={quote.customer?.company ?? ''} onChange={(e) => setQuote({ ...quote, customer: { ...quote.customer, company: e.target.value } })} />
-          <input placeholder="Adresse" value={quote.customer?.address ?? ''} onChange={(e) => setQuote({ ...quote, customer: { ...quote.customer, address: e.target.value } })} />
+          <input
+            placeholder="Nom"
+            value={quote.customer?.name ?? ''}
+            onChange={(e) =>
+              setQuote({ ...quote, customer: { ...quote.customer, name: e.target.value } })
+            }
+          />
+          <input
+            placeholder="Email"
+            value={quote.customer?.email ?? ''}
+            onChange={(e) =>
+              setQuote({ ...quote, customer: { ...quote.customer, email: e.target.value } })
+            }
+          />
+          <input
+            placeholder="Entreprise"
+            value={quote.customer?.company ?? ''}
+            onChange={(e) =>
+              setQuote({ ...quote, customer: { ...quote.customer, company: e.target.value } })
+            }
+          />
+          <input
+            placeholder="Adresse"
+            value={quote.customer?.address ?? ''}
+            onChange={(e) =>
+              setQuote({ ...quote, customer: { ...quote.customer, address: e.target.value } })
+            }
+          />
         </div>
       </section>
 
@@ -93,8 +122,8 @@ export const QuoteEditorGrid = ({
           />
           {trimmedSearchQuery === '' && (
             <p className="text-sm text-stone-500">
-              Lance une recherche pour afficher les produits et services à ajouter au devis.
-              Utilise le bouton Ajouter une ligne manuelle si l’élément n’est pas encore au catalogue.
+              Lance une recherche pour afficher les produits et services à ajouter au devis. Utilise
+              le bouton Ajouter une ligne manuelle si l’élément n’est pas encore au catalogue.
             </p>
           )}
         </div>
@@ -112,23 +141,34 @@ export const QuoteEditorGrid = ({
                           {service.priceCents != null ? formatEuroCents(service.priceCents) : ''}
                         </div>
                       </div>
-                      {quote.items.some((item) => item.type === 'service' && item.serviceId === service.id) ? (
+                      {quote.items.some(
+                        (item) => item.type === 'service' && item.serviceId === service.id,
+                      ) ? (
                         <button
                           type="button"
                           className="catalog-admin-actions__delete"
                           onClick={() =>
-                            setQuote((current) => current ? ({
-                              ...current,
-                              items: current.items.filter(
-                                (item) => !(item.type === 'service' && item.serviceId === service.id),
-                              ),
-                            }) : current)
+                            setQuote((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    items: current.items.filter(
+                                      (item) =>
+                                        !(item.type === 'service' && item.serviceId === service.id),
+                                    ),
+                                  }
+                                : current,
+                            )
                           }
                         >
                           Retirer
                         </button>
                       ) : (
-                        <button type="button" className="catalog-admin-actions__edit" onClick={() => onAddItemFromService(service.id)}>
+                        <button
+                          type="button"
+                          className="catalog-admin-actions__edit"
+                          onClick={() => onAddItemFromService(service.id)}
+                        >
                           Ajouter
                         </button>
                       )}
@@ -159,7 +199,9 @@ export const QuoteEditorGrid = ({
                           type="button"
                           className="catalog-admin-actions__edit"
                           onClick={() => {
-                            const exists = quote.items.some((item) => item.type === 'product' && item.productId === product.id);
+                            const exists = quote.items.some(
+                              (item) => item.type === 'product' && item.productId === product.id,
+                            );
                             if (exists) {
                               setRentalCandidate(product);
                               setRentalDialogOpen(true);
@@ -170,23 +212,34 @@ export const QuoteEditorGrid = ({
                         >
                           Ajouter
                         </button>
-                      ) : quote.items.some((item) => item.type === 'product' && item.productId === product.id) ? (
+                      ) : quote.items.some(
+                          (item) => item.type === 'product' && item.productId === product.id,
+                        ) ? (
                         <button
                           type="button"
                           className="catalog-admin-actions__delete"
                           onClick={() =>
-                            setQuote((current) => current ? ({
-                              ...current,
-                              items: current.items.filter(
-                                (item) => !(item.type === 'product' && item.productId === product.id),
-                              ),
-                            }) : current)
+                            setQuote((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    items: current.items.filter(
+                                      (item) =>
+                                        !(item.type === 'product' && item.productId === product.id),
+                                    ),
+                                  }
+                                : current,
+                            )
                           }
                         >
                           Retirer
                         </button>
                       ) : (
-                        <button type="button" className="catalog-admin-actions__edit" onClick={() => onAddItemFromProduct(product.id)}>
+                        <button
+                          type="button"
+                          className="catalog-admin-actions__edit"
+                          onClick={() => onAddItemFromProduct(product.id)}
+                        >
                           Ajouter
                         </button>
                       )}
@@ -213,7 +266,10 @@ export const QuoteEditorGrid = ({
         <div className="space-y-2">
           <label className="flex items-center gap-2">
             Statut
-            <select value={quote.status} onChange={(e) => setQuote({ ...quote, status: e.target.value as QuoteStatus })}>
+            <select
+              value={quote.status}
+              onChange={(e) => setQuote({ ...quote, status: e.target.value as QuoteStatus })}
+            >
               <option value="draft">Brouillon</option>
               <option value="sent">Envoyé</option>
               <option value="accepted">Accepté</option>
@@ -228,7 +284,15 @@ export const QuoteEditorGrid = ({
               min={0}
               step="0.01"
               value={((quote.discountCents ?? 0) / 100).toFixed(2)}
-              onChange={(e) => setQuote({ ...quote, discountCents: Math.max(0, Math.round(Number(e.target.value.replace(',', '.')) * 100)) })}
+              onChange={(e) =>
+                setQuote({
+                  ...quote,
+                  discountCents: Math.max(
+                    0,
+                    Math.round(Number(e.target.value.replace(',', '.')) * 100),
+                  ),
+                })
+              }
             />
           </label>
           <label className="flex items-center gap-2">
@@ -238,20 +302,40 @@ export const QuoteEditorGrid = ({
               min={0}
               step="0.01"
               value={((quote.shippingCents ?? 0) / 100).toFixed(2)}
-              onChange={(e) => setQuote({ ...quote, shippingCents: Math.max(0, Math.round(Number(e.target.value.replace(',', '.')) * 100)) })}
+              onChange={(e) =>
+                setQuote({
+                  ...quote,
+                  shippingCents: Math.max(
+                    0,
+                    Math.round(Number(e.target.value.replace(',', '.')) * 100),
+                  ),
+                })
+              }
             />
           </label>
           <label className="flex items-center gap-2">
             Début de validité
-            <input type="date" value={quote.validFrom ?? ''} onChange={(e) => setQuote({ ...quote, validFrom: e.target.value })} />
+            <input
+              type="date"
+              value={quote.validFrom ?? ''}
+              onChange={(e) => setQuote({ ...quote, validFrom: e.target.value })}
+            />
           </label>
           <label className="flex items-center gap-2">
             Fin de validité
-            <input type="date" value={quote.validUntil ?? ''} onChange={(e) => setQuote({ ...quote, validUntil: e.target.value })} />
+            <input
+              type="date"
+              value={quote.validUntil ?? ''}
+              onChange={(e) => setQuote({ ...quote, validUntil: e.target.value })}
+            />
           </label>
           <label className="flex flex-col gap-2">
             Conditions
-            <textarea rows={7} value={quote.conditions ?? ''} onChange={(e) => setQuote({ ...quote, conditions: e.target.value })} />
+            <textarea
+              rows={7}
+              value={quote.conditions ?? ''}
+              onChange={(e) => setQuote({ ...quote, conditions: e.target.value })}
+            />
           </label>
         </div>
       </section>
@@ -259,12 +343,20 @@ export const QuoteEditorGrid = ({
       <section>
         <h3 className="font-semibold mb-2">Total</h3>
         <div className="space-y-1">
-          <div className="flex justify-between"><span>Total HT</span><strong>{formatQuotePrice(total.ht)}</strong></div>
-          <div className="flex justify-between"><span>TVA</span><strong>{formatQuotePrice(total.vat)}</strong></div>
-          <div className="flex justify-between"><span>TTC</span><strong>{formatQuotePrice(total.ttc)}</strong></div>
+          <div className="flex justify-between">
+            <span>Total HT</span>
+            <strong>{formatQuotePrice(total.ht)}</strong>
+          </div>
+          <div className="flex justify-between">
+            <span>TVA</span>
+            <strong>{formatQuotePrice(total.vat)}</strong>
+          </div>
+          <div className="flex justify-between">
+            <span>TTC</span>
+            <strong>{formatQuotePrice(total.ttc)}</strong>
+          </div>
         </div>
       </section>
     </div>
   </div>
 );
-

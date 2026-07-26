@@ -1,7 +1,5 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import {
-  DashboardWorkspace,
-} from '@/features/account/components/dashboard/DashboardWorkspace';
+import { DashboardWorkspace } from '@/features/account/components/dashboard/DashboardWorkspace';
 import { DashboardStatusNotice } from '@/features/account/components/dashboard/DashboardPanel';
 import { useClientDashboard } from '@/features/account/hooks/useClientDashboard';
 import { SiteLayout } from '@/shared/components/SiteLayout';
@@ -17,11 +15,17 @@ export const ClientDashboardPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <main className="client-dashboard client-dashboard--refresh" aria-labelledby="client-dashboard-title">
+      <main
+        className="client-dashboard client-dashboard--refresh"
+        aria-labelledby="client-dashboard-title"
+      >
         <header className="client-dashboard__hero client-dashboard__hero--compact">
           <div>
             <h1 id="client-dashboard-title">{firstName}, votre espace en un coup d'oeil</h1>
-            <p>Suivez vos dossiers actifs, vos avantages et vos prochaines actions depuis une seule page.</p>
+            <p>
+              Suivez vos dossiers actifs, vos avantages et vos prochaines actions depuis une seule
+              page.
+            </p>
           </div>
         </header>
 

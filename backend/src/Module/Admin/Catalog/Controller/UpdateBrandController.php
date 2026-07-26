@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Admin\Catalog\DTO\CatalogNameInput;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Service\BrandService;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,12 +18,13 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/brands/{id}', name: 'api_admin_catalog_brands_update', methods: ['PUT'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class UpdateBrandController extends AbstractController
 {
     public function __construct(
         private readonly BrandRepository $brandRepository,
         private readonly BrandService $brandService,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -34,21 +37,20 @@ class UpdateBrandController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $name = trim((string) ($payload['name'] ?? ''));
+        $input = CatalogNameInput::fromArray($payload);
+        $this->validator->validate($input);
 
         try {
-            $brand = $this->brandService->update($brand, $name);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de mettre à jour la marque.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+            $brand = $this->brandService->update($brand, $input->name);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de mettre à jour la marque.');
         }
 
         return ApiResponse::success(CatalogFormatter::formatBrand($brand));

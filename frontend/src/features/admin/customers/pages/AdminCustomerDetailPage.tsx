@@ -18,7 +18,11 @@ import { CustomerEmailComposer } from '@/features/admin/customers/components/Cus
 import { CustomerOrdersSection } from '@/features/admin/customers/components/CustomerOrdersSection';
 import { CustomerQuickActions } from '@/features/admin/customers/components/CustomerQuickActions';
 import { CustomerSummaryCards } from '@/features/admin/customers/components/CustomerSummaryCards';
-import { type CustomerEmailFormState, type EmailTemplatePreset, type OrderFilter } from '@/features/admin/customers/components/customerDetailShared';
+import {
+  type CustomerEmailFormState,
+  type EmailTemplatePreset,
+  type OrderFilter,
+} from '@/features/admin/customers/components/customerDetailShared';
 
 export const AdminCustomerDetailPage = () => {
   const params = useParams();
@@ -91,7 +95,11 @@ export const AdminCustomerDetailPage = () => {
   }, [orderFilter, orders]);
 
   const parsedTags = useMemo(
-    () => adminTagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
+    () =>
+      adminTagsInput
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
     [adminTagsInput],
   );
 
@@ -122,11 +130,15 @@ export const AdminCustomerDetailPage = () => {
       adminTags: parsedTags,
     })
       .then((result) => {
-        setCustomer((current) => current ? {
-          ...current,
-          adminNotes: result.adminNotes ?? null,
-          adminTags: result.adminTags,
-        } : current);
+        setCustomer((current) =>
+          current
+            ? {
+                ...current,
+                adminNotes: result.adminNotes ?? null,
+                adminTags: result.adminTags,
+              }
+            : current,
+        );
         setAdminNotes(result.adminNotes ?? '');
         setAdminTagsInput(result.adminTags.join(', '));
         setSaveState('saved');
@@ -134,7 +146,9 @@ export const AdminCustomerDetailPage = () => {
       })
       .catch((e: unknown) => {
         setSaveState('error');
-        setSaveMessage(e instanceof Error ? e.message : 'Impossible d’enregistrer le suivi interne.');
+        setSaveMessage(
+          e instanceof Error ? e.message : 'Impossible d’enregistrer le suivi interne.',
+        );
       });
   };
 
@@ -149,7 +163,9 @@ export const AdminCustomerDetailPage = () => {
       })
       .catch((e: unknown) => {
         setEmailSending(false);
-        toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', { variant: 'error' });
+        toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', {
+          variant: 'error',
+        });
       });
   };
 
@@ -177,16 +193,25 @@ export const AdminCustomerDetailPage = () => {
   ) : null;
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={emailOnlyView ? 'Envoyer un e-mail' : customer ? customer.fullName : 'Fiche client'}
       headerActions={
         <div className="flex items-center gap-4">
           {emailOnlyView && customer ? (
-            <button type="button" className="underline text-sm" onClick={() => navigate(`/admin/customers/${customer.id}`)}>
+            <button
+              type="button"
+              className="underline text-sm"
+              onClick={() => navigate(`/admin/customers/${customer.id}`)}
+            >
               Retour à la fiche client
             </button>
           ) : null}
-          <button type="button" className="underline text-sm" onClick={() => navigate('/admin/customers')}>
+          <button
+            type="button"
+            className="underline text-sm"
+            onClick={() => navigate('/admin/customers')}
+          >
             Retour aux clients
           </button>
         </div>

@@ -10,10 +10,7 @@ interface ProductCartActionsProps {
   variant?: 'card' | 'detail';
 }
 
-export const ProductCartActions = ({
-  product,
-  variant = 'card',
-}: ProductCartActionsProps) => {
+export const ProductCartActions = ({ product, variant = 'card' }: ProductCartActionsProps) => {
   const { cart, addItem, removeItem, isProductInCart, isProductPending } = useCart();
   const { show } = useToast();
 
@@ -77,7 +74,9 @@ export const ProductCartActions = ({
     event.stopPropagation();
     event.preventDefault();
 
-    const effectiveRentalMonths = isRentalProduct ? Math.max(1, normalizedRentalMonths ?? 1) : undefined;
+    const effectiveRentalMonths = isRentalProduct
+      ? Math.max(1, normalizedRentalMonths ?? 1)
+      : undefined;
 
     if (isInCart) {
       void removeItem(
@@ -87,13 +86,21 @@ export const ProductCartActions = ({
           : undefined,
       )
         .then(() => show(`Produit retiré du panier`, { variant: 'info', persistent: true }))
-        .catch(() => show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }));
+        .catch(() =>
+          show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }),
+        );
       return;
     }
 
-    void addItem(product.id, 1, isRentalProduct ? { rentalMonths: effectiveRentalMonths } : undefined)
+    void addItem(
+      product.id,
+      1,
+      isRentalProduct ? { rentalMonths: effectiveRentalMonths } : undefined,
+    )
       .then(() => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }))
-      .catch(() => show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }));
+      .catch(() =>
+        show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }),
+      );
   };
 
   return (
@@ -123,12 +130,7 @@ export const ProductCartActions = ({
           />
         </label>
       )}
-      <button
-        type="button"
-        className={buttonClassName}
-        onClick={handleClick}
-        disabled={isPending}
-      >
+      <button type="button" className={buttonClassName} onClick={handleClick} disabled={isPending}>
         {isPending
           ? isInCart
             ? 'Retrait...'

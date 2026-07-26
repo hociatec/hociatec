@@ -24,21 +24,37 @@ final readonly class BackupFileStorage
     {
         $this->ensureDirectory();
 
-        return $this->directory.'/db-'.$date->format('Y-m-d_H-i-s').'.sql.gz';
+        return $this->directory.'/db-'.$date->format('Y-m-d_H-i-s').'.sql.gz.enc';
+    }
+
+    public function temporaryPathFor(\DateTimeImmutable $date): string
+    {
+        $this->ensureDirectory();
+
+        return $this->directory.'/db-'.$date->format('Y-m-d_H-i-s').'.sql.gz.plain';
+    }
+
+    /** @return list<string> */
+    public function legacyPaths(): array
+    {
+        $this->ensureDirectory();
+
+        return array_values(array_filter(glob($this->directory.'/db-*.sql.gz') ?: [], 'is_file'));
     }
 
     /**
-     * @return list<array{filename: string, sizeBytes: int, createdAt: string}>
+     * @return list<array{filename: string, sizeBytes: int, checksum: string, createdAt: string}>
      */
     public function list(): array
     {
         $this->ensureDirectory();
         $items = [];
-        foreach (glob($this->directory.'/db-*.sql.gz') ?: [] as $file) {
+        foreach (glob($this->directory.'/db-*.sql.gz.enc') ?: [] as $file) {
             if (is_file($file)) {
                 $items[] = [
                     'filename' => basename($file),
                     'sizeBytes' => filesize($file) ?: 0,
+                    'checksum' => hash_file('sha256', $file) ?: '',
                     'createdAt' => (new \DateTimeImmutable('@'.(filemtime($file) ?: time())))->format(\DateTimeInterface::ATOM),
                 ];
             }
@@ -64,7 +80,7 @@ final readonly class BackupFileStorage
 
     private function ensureDirectory(): void
     {
-        if (!is_dir($this->directory) && !mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
+        if (!is_dir($this->directory) && !mkdir($this->directory, 0750, true) && !is_dir($this->directory)) {
             throw new \RuntimeException('Impossible de créer le dossier de sauvegardes.');
         }
     }

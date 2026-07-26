@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Admin\Catalog\DTO\CategoryInput;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\CategoryService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,12 +18,13 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/categories/{id}', name: 'api_admin_catalog_categories_update', methods: ['PUT'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class UpdateCategoryController extends AbstractController
 {
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
         private readonly CategoryService $categoryService,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -34,49 +37,22 @@ class UpdateCategoryController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $name = trim((string) ($payload['name'] ?? ''));
-        $description = $payload['description'] ?? null;
-        $slugInput = $payload['slug'] ?? null;
-        $slug = is_string($slugInput) ? trim($slugInput) : null;
-        if ('' === $slug) {
-            $slug = null;
-        }
-        $isVisible = $this->normalizeBoolean($payload['isVisible'] ?? true);
+        $input = CategoryInput::fromArray($payload);
+        $this->validator->validate($input);
 
         try {
-            $category = $this->categoryService->update($category, $name, $slug, $description, $isVisible);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de mettre à jour la catégorie.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+            $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de mettre à jour la catégorie.');
         }
 
         return ApiResponse::success(CatalogFormatter::formatCategory($category, true));
-    }
-
-    private function normalizeBoolean(mixed $value): bool
-    {
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        if (is_string($value)) {
-            $lower = strtolower($value);
-
-            return in_array($lower, ['1', 'true', 'on', 'yes'], true);
-        }
-
-        if (is_int($value)) {
-            return 1 === $value;
-        }
-
-        return (bool) $value;
     }
 }

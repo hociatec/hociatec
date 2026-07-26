@@ -8,7 +8,9 @@ export type CampaignCriteriaForm = {
   minimumPendingReviews: string;
 };
 
-export const buildCampaignCriteria = (form: CampaignCriteriaForm): Record<string, string | number | boolean> => {
+export const buildCampaignCriteria = (
+  form: CampaignCriteriaForm,
+): Record<string, string | number | boolean> => {
   const criteria: Record<string, string | number | boolean> = {};
 
   if (form.segmentKey === 'customers_with_orders' || form.segmentKey === 'loyal_customers') {
@@ -17,7 +19,10 @@ export const buildCampaignCriteria = (form: CampaignCriteriaForm): Record<string
   if (form.segmentKey === 'inactive_customers') {
     criteria.inactiveDays = Number.parseInt(form.inactiveDays, 10) || 90;
   }
-  if (form.segmentKey === 'recent_verified_users' || form.segmentKey === 'verified_without_orders_recent') {
+  if (
+    form.segmentKey === 'recent_verified_users' ||
+    form.segmentKey === 'verified_without_orders_recent'
+  ) {
     criteria.registeredDays = Number.parseInt(form.registeredDays, 10) || 30;
   }
   if (form.segmentKey === 'recent_customers') {

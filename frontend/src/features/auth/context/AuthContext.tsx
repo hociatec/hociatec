@@ -7,10 +7,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 
-import {
-  clearAuthToken,
-  purgeLegacyAuthLocalStorage,
-} from '../../../shared/lib/httpClient';
+import { clearAuthToken, purgeLegacyAuthLocalStorage } from '../../../shared/lib/httpClient';
 import axios from 'axios';
 import type { AuthUser } from '../../../shared/types/auth';
 import {
@@ -59,9 +56,9 @@ export const AuthContext = createContext<AuthContextValue>(defaultValue);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [status, setStatus] = useState<
-    'idle' | 'loading' | 'authenticated' | 'unauthenticated'
-  >('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'authenticated' | 'unauthenticated'>(
+    'idle',
+  );
 
   const loadUser = useCallback(async () => {
     purgeLegacyAuthLocalStorage();
@@ -72,9 +69,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       setUser(currentUser);
       setStatus('authenticated');
     } catch (error) {
-      console.error('Unable to fetch current user', error);
-
-      if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)) {
+      if (
+        axios.isAxiosError(error) &&
+        (error.response?.status === 401 || error.response?.status === 403)
+      ) {
         try {
           await refreshUserSession();
 
@@ -83,7 +81,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           setStatus('authenticated');
           return;
         } catch (refreshError) {
-          console.error('Unable to refresh current session', refreshError);
+          console.debug('No active authentication session to refresh.', refreshError);
         }
 
         clearAuthToken();
@@ -92,6 +90,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         return;
       }
 
+      console.error('Unable to fetch current user', error);
       setUser(null);
       setStatus('unauthenticated');
     }

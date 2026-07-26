@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/categories/{id}', name: 'api_admin_catalog_categories_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class DeleteCategoryController extends AbstractController
 {
     public function __construct(
@@ -33,12 +33,8 @@ class DeleteCategoryController extends AbstractController
 
         try {
             $this->categoryService->delete($category);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de supprimer la catégorie.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de supprimer la catégorie.');
         }
 
         return ApiResponse::success(['id' => $id]);

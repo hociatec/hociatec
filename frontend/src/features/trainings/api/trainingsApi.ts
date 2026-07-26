@@ -2,7 +2,8 @@ import { httpClient, getHttpErrorMessage } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 
 export type TrainingFormat = 'onsite' | 'remote';
-export type TrainingEnrollmentStatus = 'pending_payment' | 'paid' | 'confirmed' | 'completed' | 'cancelled';
+export type TrainingEnrollmentStatus =
+  'pending_payment' | 'paid' | 'confirmed' | 'completed' | 'cancelled';
 
 export const FALLBACK_TRAINING_CATEGORIES = [
   { value: 'bases', label: 'Bases numériques' },
@@ -120,7 +121,9 @@ export const formatTrainingFormat = (format?: string | null) =>
   format === 'remote' ? 'Distanciel' : format === 'onsite' ? 'Présentiel' : '-';
 
 export const formatTrainingCategory = (category?: string | null) =>
-  FALLBACK_TRAINING_CATEGORIES.find((item) => item.value === category)?.label ?? category ?? 'Général';
+  FALLBACK_TRAINING_CATEGORIES.find((item) => item.value === category)?.label ??
+  category ??
+  'Général';
 
 export const formatTrainingEnrollmentStatus = (status?: string | null) => {
   const labels: Record<string, string> = {
@@ -131,7 +134,7 @@ export const formatTrainingEnrollmentStatus = (status?: string | null) => {
     cancelled: 'Annulée',
   };
 
-  return status ? labels[status] ?? status : '-';
+  return status ? (labels[status] ?? status) : '-';
 };
 
 export const fetchPublicTrainings = async (category?: string): Promise<TrainingDto[]> => {
@@ -142,20 +145,30 @@ export const fetchPublicTrainings = async (category?: string): Promise<TrainingD
 };
 
 export const fetchPublicTrainingCategories = async (): Promise<TrainingCategoryDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>('/api/public/training-categories');
+  const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
+    '/api/public/training-categories',
+  );
   return unwrapData(res.data).items;
 };
 
-export const fetchPublicTraining = async (slug: string): Promise<{ training: TrainingDto; sessions: TrainingSessionDto[] }> => {
-  const res = await httpClient.get<ApiResponse<{ training: TrainingDto; sessions: TrainingSessionDto[] }>>(
-    `/api/public/trainings/${encodeURIComponent(slug)}`,
-  );
+export const fetchPublicTraining = async (
+  slug: string,
+): Promise<{ training: TrainingDto; sessions: TrainingSessionDto[] }> => {
+  const res = await httpClient.get<
+    ApiResponse<{ training: TrainingDto; sessions: TrainingSessionDto[] }>
+  >(`/api/public/trainings/${encodeURIComponent(slug)}`);
   return unwrapData(res.data);
 };
 
-export const enrollTrainingSession = async (sessionId: number, startsAt: string): Promise<TrainingEnrollmentDto> => {
+export const enrollTrainingSession = async (
+  sessionId: number,
+  startsAt: string,
+): Promise<TrainingEnrollmentDto> => {
   try {
-    const res = await httpClient.post<ApiResponse<TrainingEnrollmentDto>>('/api/trainings/enrollments', { sessionId, startsAt });
+    const res = await httpClient.post<ApiResponse<TrainingEnrollmentDto>>(
+      '/api/trainings/enrollments',
+      { sessionId, startsAt },
+    );
     return unwrapData(res.data);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Inscription impossible.'));
@@ -163,7 +176,9 @@ export const enrollTrainingSession = async (sessionId: number, startsAt: string)
 };
 
 export const fetchMyTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>('/api/trainings/enrollments/me');
+  const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>(
+    '/api/trainings/enrollments/me',
+  );
   return unwrapData(res.data).items;
 };
 
@@ -173,14 +188,25 @@ export const fetchAdminTrainings = async (): Promise<TrainingDto[]> => {
 };
 
 export const fetchAdminTrainingCategories = async (): Promise<TrainingCategoryDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>('/api/admin/training-categories');
+  const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
+    '/api/admin/training-categories',
+  );
   return unwrapData(res.data).items;
 };
 
-export const saveAdminTrainingCategory = async (payload: TrainingCategoryInput, id?: number): Promise<TrainingCategoryDto> => {
+export const saveAdminTrainingCategory = async (
+  payload: TrainingCategoryInput,
+  id?: number,
+): Promise<TrainingCategoryDto> => {
   const res = id
-    ? await httpClient.post<ApiResponse<TrainingCategoryDto>>(`/api/admin/training-categories/${id}`, payload)
-    : await httpClient.post<ApiResponse<TrainingCategoryDto>>('/api/admin/training-categories', payload);
+    ? await httpClient.post<ApiResponse<TrainingCategoryDto>>(
+        `/api/admin/training-categories/${id}`,
+        payload,
+      )
+    : await httpClient.post<ApiResponse<TrainingCategoryDto>>(
+        '/api/admin/training-categories',
+        payload,
+      );
 
   return unwrapData(res.data);
 };
@@ -194,7 +220,10 @@ export const fetchAdminTraining = async (id: number): Promise<TrainingDto> => {
   return unwrapData(res.data);
 };
 
-export const saveAdminTraining = async (payload: TrainingInput, id?: number): Promise<TrainingDto> => {
+export const saveAdminTraining = async (
+  payload: TrainingInput,
+  id?: number,
+): Promise<TrainingDto> => {
   const res = id
     ? await httpClient.post<ApiResponse<TrainingDto>>(`/api/admin/trainings/${id}`, payload)
     : await httpClient.post<ApiResponse<TrainingDto>>('/api/admin/trainings', payload);
@@ -207,7 +236,9 @@ export const deleteAdminTraining = async (id: number): Promise<void> => {
 };
 
 export const fetchAdminTrainingSessions = async (): Promise<TrainingSessionDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingSessionDto[] }>>('/api/admin/training-sessions');
+  const res = await httpClient.get<ApiResponse<{ items: TrainingSessionDto[] }>>(
+    '/api/admin/training-sessions',
+  );
   return unwrapData(res.data).items;
 };
 
@@ -216,8 +247,14 @@ export const saveAdminTrainingSession = async (
   id?: number,
 ): Promise<TrainingSessionDto> => {
   const res = id
-    ? await httpClient.post<ApiResponse<TrainingSessionDto>>(`/api/admin/training-sessions/${id}`, payload)
-    : await httpClient.post<ApiResponse<TrainingSessionDto>>('/api/admin/training-sessions', payload);
+    ? await httpClient.post<ApiResponse<TrainingSessionDto>>(
+        `/api/admin/training-sessions/${id}`,
+        payload,
+      )
+    : await httpClient.post<ApiResponse<TrainingSessionDto>>(
+        '/api/admin/training-sessions',
+        payload,
+      );
 
   return unwrapData(res.data);
 };
@@ -227,7 +264,9 @@ export const deleteAdminTrainingSession = async (id: number): Promise<void> => {
 };
 
 export const fetchAdminTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>('/api/admin/training-enrollments');
+  const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>(
+    '/api/admin/training-enrollments',
+  );
   return unwrapData(res.data).items;
 };
 

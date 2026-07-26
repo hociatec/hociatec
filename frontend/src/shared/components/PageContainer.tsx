@@ -1,7 +1,7 @@
 import { useId, type PropsWithChildren, type ReactNode } from 'react';
 
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface PageContainerProps extends PropsWithChildren {
   title: string;
@@ -20,7 +20,12 @@ export const PageContainer = ({
 
   return (
     <div className={cn('app-background', `app-background--${size}`)}>
-      <section className={cn('card', `card--${size}`)} role="main" aria-labelledby={titleId} tabIndex={-1}>
+      <section
+        className={cn('card', `card--${size}`)}
+        role="main"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
         <header className="card__header">
           <h1 id={titleId} className="card__title">
             {title}

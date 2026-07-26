@@ -1,7 +1,7 @@
 import type { HTMLAttributes, PropsWithChildren, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/lib/utils';
 
 type PageStateVariant = 'neutral' | 'error' | 'success';
 
@@ -26,8 +26,16 @@ const variantClass: Record<PageStateVariant, string> = {
   success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
 };
 
-export const PageState = ({ children, className, variant = 'neutral', ...props }: PageStateProps) => (
-  <div className={cn('rounded-2xl border px-4 py-8 text-center', variantClass[variant], className)} {...props}>
+export const PageState = ({
+  children,
+  className,
+  variant = 'neutral',
+  ...props
+}: PageStateProps) => (
+  <div
+    className={cn('rounded-2xl border px-4 py-8 text-center', variantClass[variant], className)}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -61,9 +69,7 @@ export const StableContent = ({
   );
 };
 
-export const EmptyState = ({ children }: PropsWithChildren) => (
-  <PageState>{children}</PageState>
-);
+export const EmptyState = ({ children }: PropsWithChildren) => <PageState>{children}</PageState>;
 
 export const ErrorState = ({ children }: PropsWithChildren) => (
   <PageState variant="error" role="alert">
@@ -71,7 +77,13 @@ export const ErrorState = ({ children }: PropsWithChildren) => (
   </PageState>
 );
 
-export const FeedbackMessage = ({ children, className, role, variant = 'error', ...props }: PageStateProps) => (
+export const FeedbackMessage = ({
+  children,
+  className,
+  role,
+  variant = 'error',
+  ...props
+}: PageStateProps) => (
   <div
     className={cn(
       'register-form__alert',

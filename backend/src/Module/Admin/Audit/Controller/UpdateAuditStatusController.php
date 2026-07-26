@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Audit\Controller;
 
-use App\Module\Audit\Entity\AuditRequest;
+use App\Module\Admin\Audit\DTO\AuditStatusInput;
 use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,6 +23,7 @@ class UpdateAuditStatusController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $repository,
         private readonly AuditEventLogger $events,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -31,18 +33,10 @@ class UpdateAuditStatusController extends AbstractController
         if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $payload = $request->toArray();
-        $status = (string) ($payload['status'] ?? '');
-
-        $allowed = [
-            AuditRequest::STATUS_NEW,
-            AuditRequest::STATUS_IN_PROGRESS,
-            AuditRequest::STATUS_REVIEW,
-            AuditRequest::STATUS_DONE,
-        ];
-        if (!in_array($status, $allowed, true)) {
-            return ApiResponse::error('Statut invalide.');
-        }
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = AuditStatusInput::fromArray($payload);
+        $this->validator->validate($input);
+        $status = $input->status;
 
         $old = $audit->getStatus();
         $audit->setStatus($status);

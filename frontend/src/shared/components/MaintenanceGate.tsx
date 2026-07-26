@@ -24,7 +24,9 @@ export const MaintenanceGate = ({ children }: { children: ReactNode }) => {
     return (
       <main className="min-h-screen bg-brand-900 px-6 py-16 text-white">
         <section className="mx-auto flex max-w-2xl flex-col gap-6 rounded-xl border border-amber-200/30 bg-white/[0.04] p-8 shadow-2xl shadow-black/30">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">Maintenance</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">
+            Maintenance
+          </p>
           <h1 className="text-4xl font-bold">Site temporairement indisponible</h1>
           <p className="text-lg text-stone-200">{maintenance.message}</p>
           <Link to="/login" className="btn-secondary w-fit">

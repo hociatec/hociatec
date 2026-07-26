@@ -81,7 +81,9 @@
   font-weight: 600;
   color: var(--hocia-ink);
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .catalog-gallery-remove:hover {

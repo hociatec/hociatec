@@ -1,20 +1,12 @@
 import axios, { type AxiosResponseHeaders } from 'axios';
 
-import {
-  clearCartToken,
-  httpClient,
-  persistCartToken,
-} from '@/shared/lib/httpClient';
+import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 import type { Cart } from '../types/cart';
 
 export type CartErrorCode =
-  | 'cart_not_found'
-  | 'token_missing'
-  | 'product_not_found'
-  | 'voucher_code_missing'
-  | 'unknown';
+  'cart_not_found' | 'token_missing' | 'product_not_found' | 'voucher_code_missing' | 'unknown';
 
 export class CartApiError extends Error {
   public readonly code: CartErrorCode;
@@ -35,8 +27,7 @@ const toCartError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const response = error.response;
     const data = response?.data as ApiResponse<unknown> | undefined;
-    const message =
-      data?.status === 'error' && data.message ? data.message : fallback;
+    const message = data?.status === 'error' && data.message ? data.message : fallback;
 
     if (!response) {
       throw new CartApiError(message, 'unknown');
@@ -122,9 +113,7 @@ const extractCartTokenFromHeaders = (headers?: AxiosResponseHeaders | Record<str
 
 export const fetchCart = async (): Promise<Cart> => {
   try {
-    const { data, headers } = await httpClient.get<ApiResponse<CartPayload>>(
-      '/api/public/cart',
-    );
+    const { data, headers } = await httpClient.get<ApiResponse<CartPayload>>('/api/public/cart');
     const cart = handleCartResponse(data, 'Impossible de charger le panier.');
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
@@ -158,27 +147,20 @@ export const addCartItem = async (
       '/api/public/cart/items',
       payload,
     );
-    const cart = handleCartResponse(
-      data,
-      'Impossible d\'ajouter le produit au panier.',
-    );
+    const cart = handleCartResponse(data, "Impossible d'ajouter le produit au panier.");
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
       persistCartToken(headerToken);
     }
     return cart;
   } catch (error) {
-    throw toCartError(
-      error,
-      'Impossible d\'ajouter le produit au panier.',
-    );
+    throw toCartError(error, "Impossible d'ajouter le produit au panier.");
   }
 };
 
 const buildRentalParams = (options?: CartItemOptions) => {
   const params: Record<string, number> = {};
-  const months =
-    options?.currentRentalMonths ?? options?.rentalMonths;
+  const months = options?.currentRentalMonths ?? options?.rentalMonths;
   if (typeof months === 'number') {
     params.currentRentalMonths = months;
   }
@@ -196,20 +178,14 @@ export const removeCartItem = async (
         params: buildRentalParams(options),
       },
     );
-    const cart = handleCartResponse(
-      data,
-      'Impossible de retirer le produit du panier.',
-    );
+    const cart = handleCartResponse(data, 'Impossible de retirer le produit du panier.');
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
       persistCartToken(headerToken);
     }
     return cart;
   } catch (error) {
-    throw toCartError(
-      error,
-      'Impossible de retirer le produit du panier.',
-    );
+    throw toCartError(error, 'Impossible de retirer le produit du panier.');
   }
 };
 
@@ -232,28 +208,20 @@ export const updateCartItemQuantity = async (
       `/api/public/cart/items/${productId}`,
       payload,
     );
-    const cart = handleCartResponse(
-      data,
-      'Impossible de mettre à jour la quantité.',
-    );
+    const cart = handleCartResponse(data, 'Impossible de mettre à jour la quantité.');
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
       persistCartToken(headerToken);
     }
     return cart;
   } catch (error) {
-    throw toCartError(
-      error,
-      'Impossible de mettre à jour la quantité.',
-    );
+    throw toCartError(error, 'Impossible de mettre à jour la quantité.');
   }
 };
 
 export const clearCart = async (): Promise<Cart> => {
   try {
-    const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>(
-      '/api/public/cart',
-    );
+    const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart');
     const cart = handleCartResponse(data, 'Impossible de vider le panier.');
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
@@ -271,22 +239,25 @@ export const applyVoucherCode = async (voucherCode: string): Promise<Cart> => {
       '/api/public/cart/voucher-code',
       { voucherCode },
     );
-    const cart = handleCartResponse(data, 'Impossible d\'appliquer le bon de réduction.');
+    const cart = handleCartResponse(data, "Impossible d'appliquer le bon de réduction.");
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
       persistCartToken(headerToken);
     }
     return cart;
   } catch (error) {
-    throw toCartError(error, 'Impossible d\'appliquer le bon de réduction.');
+    throw toCartError(error, "Impossible d'appliquer le bon de réduction.");
   }
 };
 
 export const clearVoucherCode = async (cartToken?: string): Promise<Cart> => {
   try {
-    const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart/voucher-code', {
-      params: cartToken ? { cartToken } : undefined,
-    });
+    const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>(
+      '/api/public/cart/voucher-code',
+      {
+        params: cartToken ? { cartToken } : undefined,
+      },
+    );
     const cart = handleCartResponse(data, 'Impossible de supprimer le bon de réduction.');
     const headerToken = extractCartTokenFromHeaders(headers);
     if (typeof headerToken === 'string' && headerToken !== '') {
@@ -297,4 +268,3 @@ export const clearVoucherCode = async (cartToken?: string): Promise<Cart> => {
     throw toCartError(error, 'Impossible de supprimer le bon de réduction.');
   }
 };
-

@@ -10,12 +10,17 @@ export const QuoteFormPage = () => {
   useDocumentTitle('Admin - Devis');
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={controller.quote?.number ? `Devis ${controller.quote.number}` : 'Nouveau devis'}
       headerActions={
         !controller.isNew ? (
           <div className="catalog-admin-actions">
-            <button type="button" className="catalog-admin-actions__edit" onClick={() => void controller.handleGeneratePdf()}>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => void controller.handleGeneratePdf()}
+            >
               Télécharger
             </button>
           </div>
@@ -23,7 +28,9 @@ export const QuoteFormPage = () => {
       }
     >
       {controller.error && <FeedbackMessage>{controller.error}</FeedbackMessage>}
-      {controller.message && <FeedbackMessage variant="success">{controller.message}</FeedbackMessage>}
+      {controller.message && (
+        <FeedbackMessage variant="success">{controller.message}</FeedbackMessage>
+      )}
 
       {controller.loading || !controller.quote ? (
         <LoadingState>Chargement...</LoadingState>
@@ -51,11 +58,20 @@ export const QuoteFormPage = () => {
       {!controller.loading && controller.quote ? (
         <div className="mt-8 flex items-center justify-end gap-3">
           {!controller.isNew && (
-            <button type="button" className="catalog-admin-actions__edit" onClick={() => void controller.handleGeneratePdf()}>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => void controller.handleGeneratePdf()}
+            >
               Télécharger
             </button>
           )}
-          <button type="button" className="register-form__submit" onClick={() => void controller.save()} disabled={controller.saving}>
+          <button
+            type="button"
+            className="register-form__submit"
+            onClick={() => void controller.save()}
+            disabled={controller.saving}
+          >
             {controller.saving ? 'Sauvegarde...' : 'Enregistrer'}
           </button>
         </div>
@@ -66,7 +82,8 @@ export const QuoteFormPage = () => {
         title="Ajouter une location au devis ?"
         description={
           <div>
-            Voulez-vous vraiment ajouter le produit en location à <strong>{controller.rentalCandidate?.name ?? ''}</strong> à votre devis ?
+            Voulez-vous vraiment ajouter le produit en location à{' '}
+            <strong>{controller.rentalCandidate?.name ?? ''}</strong> à votre devis ?
           </div>
         }
         confirmLabel="Oui, ajouter"

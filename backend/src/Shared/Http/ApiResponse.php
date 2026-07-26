@@ -32,7 +32,7 @@ final class ApiResponse
     }
 
     /**
-     * @param list<mixed> $items
+     * @param list<mixed>                                          $items
      * @param array{page:int,perPage:int,total:int,totalPages:int} $meta
      */
     public static function paginated(array $items, array $meta): JsonResponse
@@ -53,5 +53,10 @@ final class ApiResponse
             'message' => $message,
             'details' => $details,
         ], $status);
+    }
+
+    public static function internalError(string $message = 'Une erreur interne est survenue.'): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

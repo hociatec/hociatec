@@ -29,4 +29,3 @@ export const useCatalogMenu = () => {
 
   return { categories, status, error };
 };
-

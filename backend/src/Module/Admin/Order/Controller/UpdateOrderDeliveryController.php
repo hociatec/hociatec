@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Order\Controller;
 
+use App\Module\Order\DTO\DeliveryInput;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderDeliveryUpdater;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +26,7 @@ final class UpdateOrderDeliveryController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly OrderDeliveryUpdater $delivery,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -36,9 +39,11 @@ final class UpdateOrderDeliveryController extends AbstractController
 
         try {
             $actor = $this->getUser();
+            $input = DeliveryInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
             $order = $this->delivery->update(
                 $order,
-                $request->toArray(),
+                $input,
                 $actor instanceof User ? $actor : null,
             );
         } catch (\InvalidArgumentException $exception) {

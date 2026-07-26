@@ -8,12 +8,12 @@ use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderItem;
 use App\Module\Rating\Entity\ProductRating;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class MarketingRecipientContextProvider
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private string $frontendUrl,
     ) {
     }
@@ -21,14 +21,14 @@ final readonly class MarketingRecipientContextProvider
     /** @return array<string, string> */
     public function provide(User $user): array
     {
-        $orderStats = $this->entityManager->createQueryBuilder()
+        $orderStats = $this->persistence->queryBuilder()
             ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt', 'COALESCE(SUM(o.totalPriceCents), 0) AS totalSpentCents')
             ->from(Order::class, 'o')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleResult();
-        $lastOrder = $this->entityManager->createQueryBuilder()
+        $lastOrder = $this->persistence->queryBuilder()
             ->select('o')
             ->from(Order::class, 'o')
             ->andWhere('o.user = :user')
@@ -37,7 +37,7 @@ final readonly class MarketingRecipientContextProvider
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-        $pendingReviews = (int) $this->entityManager->createQueryBuilder()
+        $pendingReviews = (int) $this->persistence->queryBuilder()
             ->select('COUNT(DISTINCT oi.id)')
             ->from(Order::class, 'o')
             ->join(OrderItem::class, 'oi', 'WITH', 'oi.order = o')

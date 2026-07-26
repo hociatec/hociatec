@@ -30,7 +30,7 @@ class SaveTrainingCategoryController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
         $name = trim((string) ($payload['name'] ?? ''));
         if ('' === $name) {
             return ApiResponse::error('Le nom est requis.', Response::HTTP_BAD_REQUEST);

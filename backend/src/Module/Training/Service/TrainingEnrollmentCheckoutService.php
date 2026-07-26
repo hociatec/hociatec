@@ -12,7 +12,7 @@ use App\Module\Training\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Repository\TrainingSessionRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class TrainingEnrollmentCheckoutService
 {
@@ -21,7 +21,7 @@ final readonly class TrainingEnrollmentCheckoutService
         private TrainingEnrollmentRepository $enrollments,
         private TrainingSlotValidator $slots,
         private StripeApiClient $stripe,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private string $frontendUrl,
     ) {
     }
@@ -53,9 +53,9 @@ final readonly class TrainingEnrollmentCheckoutService
             ->setScheduledEndsAt($scheduledEndsAt);
 
         if ($created) {
-            $this->entityManager->persist($enrollment);
+            $this->persistence->persist($enrollment);
         }
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         if ($enrollment->getPriceCents() <= 0) {
             $enrollment
@@ -63,14 +63,14 @@ final readonly class TrainingEnrollmentCheckoutService
                 ->setPaidAt(null)
                 ->setStripeSessionId(null)
                 ->setStripePaymentIntentId(null);
-            $this->entityManager->flush();
+            $this->persistence->flush();
 
             return new TrainingEnrollmentCheckoutResult($enrollment, $created);
         }
 
         $stripeSession = $this->stripe->createCheckoutSession($this->checkoutPayload($enrollment, $user, $session));
         $enrollment->setStripeSessionId((string) $stripeSession['id']);
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return new TrainingEnrollmentCheckoutResult($enrollment, $created, (string) $stripeSession['url']);
     }

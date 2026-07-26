@@ -6,7 +6,11 @@ namespace App\Module\Admin\Backup\Controller;
 
 use App\Module\Admin\Backup\Service\BackupManager;
 use App\Module\Admin\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\DTO\BackupSettingsInput;
+use App\Module\Admin\DTO\MaintenanceInput;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\JsonPayload;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,12 +18,13 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/backups')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_BACKUP_MANAGER')]
 final class AdminBackupController
 {
     public function __construct(
         private readonly BackupManager $backupManager,
         private readonly MaintenanceModeService $maintenanceModeService,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -33,13 +38,15 @@ final class AdminBackupController
     public function settings(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = JsonPayload::decode($request);
+            $input = BackupSettingsInput::fromArray($payload);
+            $this->validator->validate($input);
 
-            return ApiResponse::success($this->backupManager->updateSettings($payload));
+            return ApiResponse::success($this->backupManager->updateSettings($input->settings()));
         } catch (\InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\Throwable $e) {
-            return ApiResponse::error($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return ApiResponse::internalError();
         }
     }
 
@@ -51,7 +58,7 @@ final class AdminBackupController
         } catch (\RuntimeException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_CONFLICT);
         } catch (\Throwable $e) {
-            return ApiResponse::error($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return ApiResponse::internalError();
         }
     }
 
@@ -59,15 +66,15 @@ final class AdminBackupController
     public function maintenance(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
-            $enabled = (bool) ($payload['enabled'] ?? false);
-            $message = is_string($payload['message'] ?? null) ? $payload['message'] : null;
+            $payload = JsonPayload::decode($request);
+            $input = MaintenanceInput::fromArray($payload);
+            $this->validator->validate($input);
 
             return ApiResponse::success([
-                'maintenance' => $this->maintenanceModeService->set($enabled, $message),
+                'maintenance' => $this->maintenanceModeService->set($input->enabled, $input->message),
             ]);
         } catch (\Throwable $e) {
-            return ApiResponse::error($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            return ApiResponse::internalError();
         }
     }
 }

@@ -6,12 +6,26 @@ export const useMyAudits = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const refresh = useCallback((silent = false) => {
-    if (!silent) { setLoading(true); setError(null); }
-    return fetchMyAudits().then(setItems).catch((reason: Error) => { if (!silent) setError(reason.message); }).finally(() => { if (!silent) setLoading(false); });
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
+    return fetchMyAudits()
+      .then(setItems)
+      .catch((reason: Error) => {
+        if (!silent) setError(reason.message);
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
-    const timer = window.setInterval(() => { if (!document.hidden) void refresh(true); }, 15000);
+    void refresh();
+  }, [refresh]);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (!document.hidden) void refresh(true);
+    }, 15000);
     return () => window.clearInterval(timer);
   }, [refresh]);
   return { items, loading, error };

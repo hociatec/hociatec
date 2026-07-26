@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Controller\PublicApi;
 
+use App\Module\Cart\DTO\AddCartItemInput;
 use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\RateLimited;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,18 +25,17 @@ class AddCartItemController extends AbstractController
         private readonly CartService $cartService,
         private readonly ProductRepository $productRepository,
         private readonly CartFormatter $cartFormatter,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = '' !== $request->getContent() ? $request->toArray() : [];
+        $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
 
-        if (!isset($payload['productId'])) {
-            return ApiResponse::error('Produit manquant.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $productId = (int) $payload['productId'];
+        $input = AddCartItemInput::fromArray($payload);
+        $this->validator->validate($input);
+        $productId = $input->productId;
 
         $product = $this->productRepository->find($productId);
         if (null === $product || !$product->isPublished()) {
@@ -43,22 +44,16 @@ class AddCartItemController extends AbstractController
 
         $rentalMonths = null;
         if ('rental' === $product->getSellingType()) {
-            if (!array_key_exists('rentalMonths', $payload)) {
+            if (null === $input->rentalMonths) {
                 return ApiResponse::error('Champ "rentalMonths" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $rentalMonths = (int) $payload['rentalMonths'];
-            if ($rentalMonths < 1) {
-                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
-            }
+            $rentalMonths = $input->rentalMonths;
         }
 
-        $quantity = isset($payload['quantity']) ? (int) $payload['quantity'] : 1;
-        if ($quantity < 1) {
-            $quantity = 1;
-        }
+        $quantity = $input->quantity;
 
-        $token = $this->extractToken($request, $payload);
+        $token = $this->extractToken($request, ['cartToken' => $input->cartToken]);
         try {
             $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
         } catch (\InvalidArgumentException $exception) {

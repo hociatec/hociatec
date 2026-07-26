@@ -60,5 +60,3 @@ export const segmentAdvice: Record<string, string[]> = {
     'Le message doit être clair, rassurant et orienté action.',
   ],
 };
-
-

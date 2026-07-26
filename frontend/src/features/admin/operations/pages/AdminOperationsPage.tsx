@@ -2,11 +2,19 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { useAdminOperations } from '@/features/admin/operations/hooks/useAdminOperations';
 import { OperationsActionsSection } from '@/features/admin/operations/components/OperationsActionsSection';
 import { OperationsRecentSection } from '@/features/admin/operations/components/OperationsRecentSection';
-import { OperationsExports, OperationsHeader, OperationsPriorities } from '@/features/admin/operations/components/AdminOperationsWidgets';
+import {
+  OperationsExports,
+  OperationsHeader,
+  OperationsPriorities,
+} from '@/features/admin/operations/components/AdminOperationsWidgets';
 
 const exportLabels: Record<string, string> = {
-  orders: 'Commandes', customers: 'Clients', products: 'Produits', quotes: 'Devis',
-  refunds: 'Remboursements', support: 'SAV',
+  orders: 'Commandes',
+  customers: 'Clients',
+  products: 'Produits',
+  quotes: 'Devis',
+  refunds: 'Remboursements',
+  support: 'SAV',
 };
 
 export const AdminOperationsPage = () => {
@@ -14,9 +22,17 @@ export const AdminOperationsPage = () => {
 
   return (
     <PageContainer size="admin" title="Centre exploitation">
-      <OperationsHeader message={operations.message} onRefresh={operations.refresh} status={operations.status} />
+      <OperationsHeader
+        message={operations.message}
+        onRefresh={operations.refresh}
+        status={operations.status}
+      />
       {operations.overview ? (
-        <OperationsPriorities failedEmails={operations.failedEmails} hasPriorities={operations.hasPriorities} overview={operations.overview} />
+        <OperationsPriorities
+          failedEmails={operations.failedEmails}
+          hasPriorities={operations.hasPriorities}
+          overview={operations.overview}
+        />
       ) : null}
       <OperationsActionsSection
         bulkForm={operations.bulkForm}

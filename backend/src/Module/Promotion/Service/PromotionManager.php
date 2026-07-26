@@ -6,11 +6,11 @@ namespace App\Module\Promotion\Service;
 
 use App\Module\Promotion\DTO\PromotionInput;
 use App\Module\Promotion\Entity\Promotion;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class PromotionManager
 {
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private DoctrinePersistence $persistence)
     {
     }
 
@@ -26,8 +26,8 @@ final readonly class PromotionManager
         );
 
         $this->apply($promotion, $input);
-        $this->entityManager->persist($promotion);
-        $this->entityManager->flush();
+        $this->persistence->persist($promotion);
+        $this->persistence->flush();
 
         return $promotion;
     }
@@ -43,15 +43,15 @@ final readonly class PromotionManager
             ->setCriteria($input->criteria);
 
         $this->apply($promotion, $input);
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $promotion;
     }
 
     public function delete(Promotion $promotion): void
     {
-        $this->entityManager->remove($promotion);
-        $this->entityManager->flush();
+        $this->persistence->remove($promotion);
+        $this->persistence->flush();
     }
 
     private function apply(Promotion $promotion, PromotionInput $input): void

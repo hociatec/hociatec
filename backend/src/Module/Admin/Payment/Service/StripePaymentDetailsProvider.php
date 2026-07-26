@@ -22,8 +22,8 @@ final readonly class StripePaymentDetailsProvider
     {
         try {
             $session = $this->stripe->retrieveCheckoutSession($payment->getStripeSessionId());
-        } catch (\Throwable $exception) {
-            return ['error' => $exception->getMessage()];
+        } catch (\Throwable) {
+            return ['error' => 'Détails Stripe indisponibles.'];
         }
 
         $paymentIntentId = is_string($session['payment_intent'] ?? null)
@@ -71,8 +71,8 @@ final readonly class StripePaymentDetailsProvider
 
         try {
             $intent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Throwable $exception) {
-            return ['error' => $exception->getMessage()];
+        } catch (\Throwable) {
+            return ['error' => 'Détails Stripe indisponibles.'];
         }
 
         $status = is_string($intent['status'] ?? null) ? $intent['status'] : null;

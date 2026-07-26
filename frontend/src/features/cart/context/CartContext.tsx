@@ -18,10 +18,7 @@ import {
   updateCartItemQuantity,
 } from '@/features/cart/api/cartApi';
 import type { Cart, CartStatus } from '@/features/cart/types/cart';
-import {
-  clearCartToken,
-  getPersistedCartToken,
-} from '@/shared/lib/httpClient';
+import { clearCartToken, getPersistedCartToken } from '@/shared/lib/httpClient';
 import { useToast } from '@/shared/components/ui/toast';
 
 type CartActionOptions = {
@@ -137,7 +134,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     };
 
     void initializeCart();
-  }, [handleCartError, toast]);
+  }, [handleCartError]);
 
   const addItem = useCallback(
     async (productId: number, quantity = 1, options?: CartActionOptions) => {
@@ -227,37 +224,47 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
       setPendingProductIds([]);
       setCart(updatedCart);
       setError(null);
-      toast.show('Panier vidé. Vous pouvez repartir sur une nouvelle sélection.', { variant: 'success' });
+      toast.show('Panier vidé. Vous pouvez repartir sur une nouvelle sélection.', {
+        variant: 'success',
+      });
     } catch (err) {
       const message = handleCartError(err);
-      toast.show(message || "Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", { variant: 'error' });
+      toast.show(message || "Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", {
+        variant: 'error',
+      });
       throw err;
     } finally {
       setIsClearing(false);
     }
   }, [handleCartError, toast]);
 
-  const applyVoucherCode = useCallback(async (voucherCode: string) => {
-    try {
-      const updatedCart = await applyVoucherCodeRequest(voucherCode);
-      setCart(updatedCart);
-      setError(null);
-    } catch (err) {
-      handleCartError(err);
-      throw err;
-    }
-  }, [handleCartError]);
+  const applyVoucherCode = useCallback(
+    async (voucherCode: string) => {
+      try {
+        const updatedCart = await applyVoucherCodeRequest(voucherCode);
+        setCart(updatedCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+        throw err;
+      }
+    },
+    [handleCartError],
+  );
 
-  const clearVoucherCode = useCallback(async (cartToken?: string) => {
-    try {
-      const updatedCart = await clearVoucherCodeRequest(cartToken);
-      setCart(updatedCart);
-      setError(null);
-    } catch (err) {
-      handleCartError(err);
-      throw err;
-    }
-  }, [handleCartError]);
+  const clearVoucherCode = useCallback(
+    async (cartToken?: string) => {
+      try {
+        const updatedCart = await clearVoucherCodeRequest(cartToken);
+        setCart(updatedCart);
+        setError(null);
+      } catch (err) {
+        handleCartError(err);
+        throw err;
+      }
+    },
+    [handleCartError],
+  );
 
   const isProductInCart = useCallback(
     (productId: number, options?: CartActionOptions) => {

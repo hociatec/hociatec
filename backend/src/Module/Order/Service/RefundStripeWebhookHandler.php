@@ -6,13 +6,13 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\RefundRequest;
 use App\Module\Order\Repository\RefundRequestRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class RefundStripeWebhookHandler
 {
     public function __construct(
         private readonly RefundRequestRepository $refunds,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -37,7 +37,7 @@ final class RefundStripeWebhookHandler
             return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => null];
         }
 
-        $this->entityManager->wrapInTransaction(function () use ($refund, $stripeRefundId, $type, $object): void {
+        $this->persistence->transactional(function () use ($refund, $stripeRefundId, $type, $object): void {
             if (null !== $stripeRefundId) {
                 $refund->setStripeRefundId($stripeRefundId);
             }
@@ -51,7 +51,7 @@ final class RefundStripeWebhookHandler
                 $refund->setStatus(RefundRequest::STATUS_APPROVED);
             }
 
-            $this->entityManager->flush();
+            $this->persistence->flush();
         });
 
         return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => $refund->getId()];

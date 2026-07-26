@@ -7,7 +7,6 @@ namespace App\Module\Auth\Service;
 use App\Module\Auth\Entity\RefreshToken;
 use App\Module\Auth\Repository\RefreshTokenRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class RefreshTokenService
 {
@@ -15,7 +14,7 @@ final class RefreshTokenService
 
     public function __construct(
         private readonly RefreshTokenRepository $refreshTokenRepository,
-        private readonly EntityManagerInterface $em,
+        private readonly RefreshTokenPersistence $persistence,
     ) {
     }
 
@@ -36,8 +35,8 @@ final class RefreshTokenService
             $expiresAt,
         );
 
-        $this->refreshTokenRepository->save($refreshToken);
-        $this->em->flush();
+        $this->persistence->save($refreshToken);
+        $this->persistence->flush();
 
         return [
             'refreshToken' => $plainToken,
@@ -63,7 +62,7 @@ final class RefreshTokenService
 
         if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
             $storedToken->revoke();
-            $this->em->flush();
+            $this->persistence->flush();
 
             return null;
         }
@@ -96,7 +95,7 @@ final class RefreshTokenService
         }
 
         $storedToken->revoke();
-        $this->em->flush();
+        $this->persistence->flush();
     }
 
     /** @return array{0: string, 1: string}|null */

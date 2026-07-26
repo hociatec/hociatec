@@ -6,13 +6,13 @@ namespace App\Module\Order\Service;
 
 use App\Module\Training\Entity\TrainingEnrollment;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class TrainingStripeWebhookHandler
 {
     public function __construct(
         private readonly TrainingEnrollmentRepository $enrollments,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -46,7 +46,7 @@ final class TrainingStripeWebhookHandler
             $enrollment->setStatus(TrainingEnrollment::STATUS_CANCELLED);
         }
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return ['type' => $type, 'sessionId' => $enrollment->getStripeSessionId()];
     }

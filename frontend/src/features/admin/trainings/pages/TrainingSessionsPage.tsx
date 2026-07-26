@@ -63,16 +63,15 @@ export const TrainingSessionsPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Sessions de formation"
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link to="/admin/trainings" className="catalog-admin-actions__edit">
             Formations
           </Link>
-          <PrimaryLink to="/admin/trainings/sessions/new">
-            Nouvelle session
-          </PrimaryLink>
+          <PrimaryLink to="/admin/trainings/sessions/new">Nouvelle session</PrimaryLink>
         </div>
       }
     >
@@ -101,18 +100,30 @@ export const TrainingSessionsPage = () => {
                 <tr key={session.id}>
                   <td>{session.training.title}</td>
                   <td>
-                    Du {formatOptionalFrenchDate(session.startsAt)} au {formatOptionalFrenchDate(session.endsAt)}
-                    <p className="muted">Chaque jour de {session.dailyStartTime} à {session.dailyEndTime}</p>
-                    <p className="muted">{session.includeWeekends ? 'Week-end inclus' : 'Hors week-end'}</p>
+                    Du {formatOptionalFrenchDate(session.startsAt)} au{' '}
+                    {formatOptionalFrenchDate(session.endsAt)}
+                    <p className="muted">
+                      Chaque jour de {session.dailyStartTime} à {session.dailyEndTime}
+                    </p>
+                    <p className="muted">
+                      {session.includeWeekends ? 'Week-end inclus' : 'Hors week-end'}
+                    </p>
                   </td>
                   <td>{formatTrainingFormat(session.format)}</td>
                   <td>{session.capacity} par créneau</td>
                   <td>
                     <div className="catalog-admin-actions">
-                      <Link to={`/admin/trainings/sessions/${session.id}/edit`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/trainings/sessions/${session.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                      >
                         Modifier
                       </Link>
-                      <button type="button" className="catalog-admin-actions__delete" onClick={() => void handleDelete(session)}>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(session)}
+                      >
                         Supprimer
                       </button>
                     </div>

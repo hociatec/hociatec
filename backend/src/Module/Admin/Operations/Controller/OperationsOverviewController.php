@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/overview', name: 'api_admin_operations_overview', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class OperationsOverviewController
 {
     public function __construct(private OperationsOverviewProvider $overview)

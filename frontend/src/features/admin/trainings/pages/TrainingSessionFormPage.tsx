@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -31,7 +31,7 @@ const toDateLocal = (value: string) => value.slice(0, 10);
 
 export const TrainingSessionFormPage = () => {
   const { sessionId } = useParams();
-  const isEdit = useMemo(() => Boolean(sessionId), [sessionId]);
+  const isEdit = Boolean(sessionId);
   const navigate = useNavigate();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une session' : 'Admin - Nouvelle session');
@@ -106,13 +106,16 @@ export const TrainingSessionFormPage = () => {
     setMessage(null);
 
     try {
-      await saveAdminTrainingSession({
-        ...form,
-        startsAt: `${form.startsAt}T00:00:00`,
-        endsAt: `${form.endsAt}T23:59:59`,
-        location: form.format === 'onsite' ? form.location.trim() || null : null,
-        meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
-      }, sessionId ? Number(sessionId) : undefined);
+      await saveAdminTrainingSession(
+        {
+          ...form,
+          startsAt: `${form.startsAt}T00:00:00`,
+          endsAt: `${form.endsAt}T23:59:59`,
+          location: form.format === 'onsite' ? form.location.trim() || null : null,
+          meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
+        },
+        sessionId ? Number(sessionId) : undefined,
+      );
       setMessage(isEdit ? 'Session mise à jour.' : 'Session créée.');
       setTimeout(() => navigate('/admin/trainings/sessions'), 600);
     } catch (err) {
@@ -123,10 +126,15 @@ export const TrainingSessionFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier une session' : 'Nouvelle session'}
       headerActions={
-        <button type="button" className="catalog-admin-actions__edit" onClick={() => navigate('/admin/trainings/sessions')}>
+        <button
+          type="button"
+          className="catalog-admin-actions__edit"
+          onClick={() => navigate('/admin/trainings/sessions')}
+        >
           Retour aux sessions
         </button>
       }
@@ -140,10 +148,17 @@ export const TrainingSessionFormPage = () => {
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span>Formation</span>
-            <select value={form.trainingId} onChange={(event) => setForm((prev) => ({ ...prev, trainingId: Number(event.target.value) }))}>
+            <select
+              value={form.trainingId}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, trainingId: Number(event.target.value) }))
+              }
+            >
               <option value={0}>Choisir...</option>
               {trainings.map((training) => (
-                <option key={training.id} value={training.id}>{training.title}</option>
+                <option key={training.id} value={training.id}>
+                  {training.title}
+                </option>
               ))}
             </select>
           </label>
@@ -168,49 +183,92 @@ export const TrainingSessionFormPage = () => {
           <div className="grid gap-4 md:grid-cols-2">
             <label className="register-form__field">
               <span>Date de début de disponibilité</span>
-              <input type="date" value={form.startsAt} onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))} required />
+              <input
+                type="date"
+                value={form.startsAt}
+                onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
+                required
+              />
             </label>
             <label className="register-form__field">
               <span>Date de fin de disponibilité</span>
-              <input type="date" value={form.endsAt} onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))} required />
+              <input
+                type="date"
+                value={form.endsAt}
+                onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
+                required
+              />
             </label>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="register-form__field">
               <span>Réservable chaque jour à partir de</span>
-              <input type="time" value={form.dailyStartTime} onChange={(event) => setForm((prev) => ({ ...prev, dailyStartTime: event.target.value }))} required />
+              <input
+                type="time"
+                value={form.dailyStartTime}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, dailyStartTime: event.target.value }))
+                }
+                required
+              />
             </label>
             <label className="register-form__field">
               <span>Réservable chaque jour jusqu’à</span>
-              <input type="time" value={form.dailyEndTime} onChange={(event) => setForm((prev) => ({ ...prev, dailyEndTime: event.target.value }))} required />
+              <input
+                type="time"
+                value={form.dailyEndTime}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, dailyEndTime: event.target.value }))
+                }
+                required
+              />
             </label>
           </div>
           <label className="flex items-start gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-stone-700">
             <input
               type="checkbox"
               checked={form.includeWeekends}
-              onChange={(event) => setForm((prev) => ({ ...prev, includeWeekends: event.target.checked }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, includeWeekends: event.target.checked }))
+              }
               className="mt-1"
             />
             <span>
-              <strong className="block text-brand-900">Autoriser les réservations le week-end</strong>
+              <strong className="block text-brand-900">
+                Autoriser les réservations le week-end
+              </strong>
               <span>Si décoché, les clients ne pourront réserver que du lundi au vendredi.</span>
             </span>
           </label>
           {form.format === 'onsite' ? (
             <label className="register-form__field">
               <span>Adresse ou lieu du rendez-vous</span>
-              <input value={form.location} onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))} />
+              <input
+                value={form.location}
+                onChange={(event) => setForm((prev) => ({ ...prev, location: event.target.value }))}
+              />
             </label>
           ) : (
             <label className="register-form__field">
               <span>Lien de visioconférence</span>
-              <input value={form.meetingUrl} onChange={(event) => setForm((prev) => ({ ...prev, meetingUrl: event.target.value }))} />
+              <input
+                value={form.meetingUrl}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, meetingUrl: event.target.value }))
+                }
+              />
             </label>
           )}
           <label className="register-form__field">
             <span>Nombre maximum de participants par créneau</span>
-            <input type="number" min={1} value={form.capacity} onChange={(event) => setForm((prev) => ({ ...prev, capacity: Number(event.target.value) }))} />
+            <input
+              type="number"
+              min={1}
+              value={form.capacity}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, capacity: Number(event.target.value) }))
+              }
+            />
           </label>
           <button type="submit" className="register-form__submit" disabled={saving}>
             {saving ? 'Enregistrement...' : 'Enregistrer'}

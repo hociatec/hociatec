@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { registerUser, type RegisterPayload } from '../api/authApi';
@@ -43,10 +43,7 @@ export const RegisterPage = () => {
     'details' in value &&
     Array.isArray((value as { details?: unknown }).details);
 
-  const parsedErrorDetails = useMemo(
-    () => (errorDetails.length > 0 ? [...errorDetails] : []),
-    [errorDetails],
-  );
+  const parsedErrorDetails = errorDetails;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -60,15 +57,20 @@ export const RegisterPage = () => {
 
     if (form.password !== form.confirmPassword) {
       setError('Les mots de passe doivent être identiques.');
-      try { toast.show('Les mots de passe doivent être identiques.', { variant: 'error' }); } catch {}
+      try {
+        toast.show('Les mots de passe doivent être identiques.', { variant: 'error' });
+      } catch {}
       return;
     }
 
     if (!PASSWORD_RULE.test(form.password)) {
-      setError(
-        'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
-      );
-      try { toast.show('Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.', { variant: 'error' }); } catch {}
+      setError('Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.');
+      try {
+        toast.show(
+          'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.',
+          { variant: 'error' },
+        );
+      } catch {}
       return;
     }
 
@@ -77,28 +79,40 @@ export const RegisterPage = () => {
     try {
       if (!form.gender) {
         setError('Veuillez sélectionner une option pour le champ sexe.');
-        try { toast.show('Veuillez sélectionner une option pour le champ sexe.', { variant: 'error' }); } catch {}
+        try {
+          toast.show('Veuillez sélectionner une option pour le champ sexe.', { variant: 'error' });
+        } catch {}
         return;
       }
 
       await registerUser(form);
-      try { toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', { variant: 'success' }); } catch {}
+      try {
+        toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', {
+          variant: 'success',
+        });
+      } catch {}
       navigate('/login', { state: { registered: true } });
     } catch (submissionError) {
       console.error(submissionError);
       if (submissionError instanceof Error) {
         setError(
-          submissionError.message ||
-            "Impossible de finaliser l'inscription pour le moment.",
+          submissionError.message || "Impossible de finaliser l'inscription pour le moment.",
         );
 
         if (hasErrorDetails(submissionError)) {
           setErrorDetails(submissionError.details);
         }
-        try { toast.show(submissionError.message || "Impossible de finaliser l'inscription pour le moment.", { variant: 'error' }); } catch {}
+        try {
+          toast.show(
+            submissionError.message || "Impossible de finaliser l'inscription pour le moment.",
+            { variant: 'error' },
+          );
+        } catch {}
       } else {
         setError("Impossible de finaliser l'inscription pour le moment.");
-        try { toast.show("Impossible de finaliser l'inscription pour le moment.", { variant: 'error' }); } catch {}
+        try {
+          toast.show("Impossible de finaliser l'inscription pour le moment.", { variant: 'error' });
+        } catch {}
       }
     } finally {
       setLoading(false);
@@ -135,7 +149,12 @@ export const RegisterPage = () => {
             <h2 id="register-form-title">Informations de compte</h2>
             <p>Complétez ce formulaire pour créer votre espace sécurisé.</p>
           </header>
-          <form className="register-form" onSubmit={handleSubmit} noValidate aria-describedby={error ? errorId : undefined}>
+          <form
+            className="register-form"
+            onSubmit={handleSubmit}
+            noValidate
+            aria-describedby={error ? errorId : undefined}
+          >
             {error ? (
               <FeedbackMessage id={errorId} aria-live="assertive" aria-atomic="true">
                 <p>{error}</p>
@@ -178,15 +197,14 @@ export const RegisterPage = () => {
                 name="email"
                 type="email"
                 autoComplete="email"
-                  maxLength={180}
-                  value={form.email}
-                  onChange={handleChange}
-                  aria-invalid={error ? true : undefined}
-                  required
-                />
+                maxLength={180}
+                value={form.email}
+                onChange={handleChange}
+                aria-invalid={error ? true : undefined}
+                required
+              />
             </label>
-            
-            
+
             <div className="register-form__grid">
               <label className="register-form__field">
                 <span>Date de naissance</span>
@@ -251,7 +269,9 @@ export const RegisterPage = () => {
                     type="button"
                     className="register-form__password-toggle"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    aria-label={
+                      showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                    }
                   >
                     {showPassword ? 'Masquer' : 'Afficher'}
                   </button>

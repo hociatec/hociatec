@@ -6,17 +6,14 @@ namespace App\Module\Promotion\Service;
 
 use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
-use App\Module\Order\Entity\Order;
 use App\Module\Promotion\Entity\Promotion;
 use App\Module\Promotion\Repository\PromotionRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class PromotionEngine
 {
     public function __construct(
         private readonly PromotionRepository $promotions,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -211,21 +208,6 @@ final class PromotionEngine
      */
     private function loadUserStats(User $user): array
     {
-        $result = $this->entityManager->createQueryBuilder()
-            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt')
-            ->from(Order::class, 'o')
-            ->andWhere('o.user = :user')
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getSingleResult();
-
-        $lastOrderAt = $result['lastOrderAt'] instanceof \DateTimeImmutable
-            ? $result['lastOrderAt']
-            : ($result['lastOrderAt'] instanceof \DateTimeInterface ? \DateTimeImmutable::createFromInterface($result['lastOrderAt']) : null);
-
-        return [
-            'ordersCount' => (int) ($result['ordersCount'] ?? 0),
-            'lastOrderAt' => $lastOrderAt,
-        ];
+        return $this->promotions->findUserOrderStats($user);
     }
 }

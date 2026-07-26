@@ -9,7 +9,7 @@ use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\User\Entity\ShippingAddress;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class CartHostedCheckoutCreator
 {
@@ -17,7 +17,7 @@ final readonly class CartHostedCheckoutCreator
         private StripeApiClient $stripe,
         private OrderCheckoutSessionRepository $checkoutSessions,
         private StripeCheckoutPayloadProvider $payloads,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private string $frontendUrl,
     ) {
     }
@@ -96,8 +96,8 @@ final readonly class CartHostedCheckoutCreator
             ->setItemsPayload($items)
             ->setExpiresAt(isset($session['expires_at']) ? new \DateTimeImmutable('@'.(int) $session['expires_at']) : null);
 
-        $this->entityManager->persist($checkout);
-        $this->entityManager->flush();
+        $this->persistence->persist($checkout);
+        $this->persistence->flush();
 
         return $checkout;
     }

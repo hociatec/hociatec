@@ -68,6 +68,17 @@ Production hardening checklist (Hociatec)
 
 9) Logs
 - Conserver les logs applicatifs et du reverse proxy.
+- Les logs JSON contiennent `X-Request-Id`; conserver cet identifiant lors des incidents.
+- Surveiller les erreurs 5xx, les échecs Stripe, les échecs d’envoi email et la file Messenger.
+
+11) Documentation API
+- Le contrat OpenAPI est disponible dans `docs/openapi.yaml`.
+- Publier ce fichier avec la documentation interne sans exposer les secrets de production.
+
+12) Migrations
+- La migration de suivi des webhooks Stripe doit être exécutée avant le déploiement du code correspondant:
+  `APP_ENV=prod php bin/console doctrine:migrations:migrate -n`.
+- Vérifier `doctrine:migrations:status` après chaque déploiement.
 
 10) Sécurité applicative
 - Mettre à jour régulièrement dépendances Composer/NPM.

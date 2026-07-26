@@ -71,18 +71,16 @@ export const CategoriesListPage = () => {
 
     return categories.filter(
       (category) =>
-        category.name.toLowerCase().includes(term) ||
-        category.slug.toLowerCase().includes(term),
+        category.name.toLowerCase().includes(term) || category.slug.toLowerCase().includes(term),
     );
   }, [categories, search]);
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Catégories"
       headerActions={
-        <PrimaryLink to="/admin/catalog/categories/new">
-          Ajouter une catégorie
-        </PrimaryLink>
+        <PrimaryLink to="/admin/catalog/categories/new">Ajouter une catégorie</PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
@@ -90,9 +88,7 @@ export const CategoriesListPage = () => {
           {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} affichée
           {filteredCategories.length > 1 ? 's' : ''}
         </p>
-        <p className="text-sm text-stone-500">
-          Filtrez par nom ou slug.
-        </p>
+        <p className="text-sm text-stone-500">Filtrez par nom ou slug.</p>
       </div>
 
       <div className="mb-6 max-w-sm">
@@ -127,11 +123,7 @@ export const CategoriesListPage = () => {
                 <tr key={category.id}>
                   <th scope="row">
                     <strong>{category.name}</strong>
-                    {category.description && (
-                      <p className="muted mt-1">
-                        {category.description}
-                      </p>
-                    )}
+                    {category.description && <p className="muted mt-1">{category.description}</p>}
                   </th>
                   <td>{category.slug}</td>
                   <td>{category.isVisible ? 'Visible' : 'Masquée'}</td>

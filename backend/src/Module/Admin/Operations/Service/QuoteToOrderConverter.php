@@ -20,7 +20,6 @@ use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class QuoteToOrderConverter
 {
@@ -34,7 +33,7 @@ final readonly class QuoteToOrderConverter
         private OrderInvoiceCalculator $invoiceCalculator,
         private OrderNotificationEmailService $notifications,
         private OrderEventLogger $events,
-        private EntityManagerInterface $entityManager,
+        private OperationsPersistence $persistence,
     ) {
     }
 
@@ -48,10 +47,10 @@ final readonly class QuoteToOrderConverter
         $customer = $this->resolveCustomer($quote);
         $order = $this->createOrder($quote, $customer);
 
-        $this->entityManager->persist($order);
+        $this->persistence->persist($order);
         $quote->setConvertedOrder($order);
         $quote->setStatus(Quote::STATUS_ACCEPTED);
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         [$emailSent, $emailError] = $this->sendNotification($order);
 
@@ -132,7 +131,7 @@ final readonly class QuoteToOrderConverter
                 ->setProduct($product instanceof Product ? $product : null)
                 ->setVatRateBps($quoteItem->getVatRateBps());
             $order->addItem($item);
-            $this->entityManager->persist($item);
+            $this->persistence->persist($item);
         }
 
         $this->invoiceCalculator->snapshot($order);
@@ -150,7 +149,7 @@ final readonly class QuoteToOrderConverter
         } catch (\Throwable $exception) {
             $this->events->log($order, null, 'email_failed', 'Échec email commande à régler: '.$exception->getMessage());
 
-            return [false, $exception->getMessage()];
+            return [false, 'La notification email n’a pas pu être envoyée.'];
         }
     }
 }

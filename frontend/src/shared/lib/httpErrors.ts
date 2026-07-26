@@ -11,10 +11,13 @@ export const getHttpErrorMessage = (
   const responseData = error.response?.data as { message?: unknown } | undefined;
   const apiMessage = typeof responseData?.message === 'string' ? responseData.message.trim() : '';
   if (apiMessage) return apiMessage;
-  if (!error.response) return 'Le service est momentanément indisponible. Vérifiez que le serveur API est démarré, puis réessayez.';
-  if (error.response.status >= 500) return 'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants.';
+  if (!error.response)
+    return 'Le service est momentanément indisponible. Vérifiez que le serveur API est démarré, puis réessayez.';
+  if (error.response.status >= 500)
+    return 'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants.';
   if (error.response.status === 404) return 'La ressource demandée est introuvable.';
-  if (error.response.status === 401 || error.response.status === 403) return 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.';
+  if (error.response.status === 401 || error.response.status === 403)
+    return 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.';
   return fallback;
 };
 

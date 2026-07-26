@@ -4,47 +4,33 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Service;
 
+use App\Module\Order\DTO\DeliveryInput;
 use App\Module\Order\Entity\Order;
+use App\Module\Order\Enum\DeliveryStatus;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class OrderDeliveryUpdater
 {
-    private const STATUSES = [
-        Order::DELIVERY_STATUS_PREPARING,
-        Order::DELIVERY_STATUS_SHIPPED,
-        Order::DELIVERY_STATUS_IN_TRANSIT,
-        Order::DELIVERY_STATUS_OUT_FOR_DELIVERY,
-        Order::DELIVERY_STATUS_DELIVERED,
-        Order::DELIVERY_STATUS_ISSUE,
-    ];
-
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private OrderEventLogger $events,
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    public function update(Order $order, array $payload, ?User $actor): Order
+    public function update(Order $order, DeliveryInput $input, ?User $actor): Order
     {
-        $status = isset($payload['status']) ? trim((string) $payload['status']) : $order->getDeliveryStatus();
-        if (!in_array($status, self::STATUSES, true)) {
+        $status = '' !== $input->status ? $input->status : $order->getDeliveryStatus();
+        if (null === DeliveryStatus::tryFrom($status)) {
             throw new \InvalidArgumentException('Étape de livraison invalide.');
         }
 
-        $carrier = $this->nullableString($payload['carrier'] ?? $order->getDeliveryCarrier());
-        $trackingNumber = $this->nullableString($payload['trackingNumber'] ?? $order->getDeliveryTrackingNumber());
-        $trackingUrl = $this->nullableString($payload['trackingUrl'] ?? $order->getDeliveryTrackingUrl());
-        $estimatedAt = array_key_exists('estimatedAt', $payload)
-            ? $this->nullableDate($payload['estimatedAt'])
+        $carrier = $input->carrier ?? $order->getDeliveryCarrier();
+        $trackingNumber = $input->trackingNumber ?? $order->getDeliveryTrackingNumber();
+        $trackingUrl = $input->trackingUrl?->value() ?? $order->getDeliveryTrackingUrl();
+        $estimatedAt = null !== $input->estimatedAt
+            ? $this->nullableDate($input->estimatedAt)
             : $order->getDeliveryEstimatedAt();
-        if (null !== $trackingUrl && false === filter_var($trackingUrl, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException('Lien de suivi invalide.');
-        }
-
         $before = $this->snapshot($order);
         $order
             ->setDeliveryStatus($status)
@@ -54,8 +40,8 @@ final readonly class OrderDeliveryUpdater
             ->setDeliveryEstimatedAt($estimatedAt);
         $this->applyStatusDates($order, $status);
 
-        $this->entityManager->persist($order);
-        $this->entityManager->flush();
+        $this->persistence->persist($order);
+        $this->persistence->flush();
         $this->events->log($order, $actor, 'delivery_updated', $this->changeMessage($before, $order));
 
         return $order;
@@ -121,13 +107,6 @@ final readonly class OrderDeliveryUpdater
         if ($before !== $after) {
             $changes[] = sprintf('%s "%s" -> "%s"', $label, $before ?? '-', $after ?? '-');
         }
-    }
-
-    private function nullableString(mixed $value): ?string
-    {
-        $normalized = trim((string) $value);
-
-        return '' !== $normalized ? $normalized : null;
     }
 
     private function nullableDate(mixed $value): ?\DateTimeImmutable

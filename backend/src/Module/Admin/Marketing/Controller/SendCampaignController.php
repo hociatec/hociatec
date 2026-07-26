@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Marketing\Controller;
 
+use App\Module\Admin\Marketing\DTO\MarketingCampaignInput;
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Service\MarketingCampaignService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,42 +17,30 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/marketing/campaigns/send', name: 'api_admin_marketing_campaigns_send', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_MARKETING_MANAGER')]
 final class SendCampaignController extends AbstractController
 {
     public function __construct(
         private readonly MarketingCampaignService $campaignService,
         private readonly EmailTemplateRepository $templates,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
-        $name = trim((string) ($payload['name'] ?? ''));
-        $segmentKey = trim((string) ($payload['segmentKey'] ?? ''));
-        $criteria = is_array($payload['criteria'] ?? null) ? $payload['criteria'] : [];
-        $subject = trim((string) ($payload['subject'] ?? ''));
-        $htmlBody = trim((string) ($payload['htmlBody'] ?? ''));
-        $textBody = isset($payload['textBody']) ? trim((string) $payload['textBody']) : null;
-        $templateId = isset($payload['templateId']) ? (int) $payload['templateId'] : null;
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = MarketingCampaignInput::fromArray($payload);
+        $this->validator->validate($input);
 
-        if ('' === $name || '' === $segmentKey || '' === $subject || '' === $htmlBody) {
-            return ApiResponse::error('Veuillez renseigner le nom, l’audience, l’objet et le contenu HTML.');
-        }
-
-        $template = $templateId ? $this->templates->find($templateId) : null;
+        $template = $input->templateId ? $this->templates->find($input->templateId) : null;
 
         /** @var User|null $actor */
         $actor = $this->getUser();
 
         $campaign = $this->campaignService->sendCampaign(
-            $name,
-            $segmentKey,
-            $criteria,
-            $subject,
-            $htmlBody,
-            $textBody,
+            $input->name, $input->segmentKey, $input->criteria, $input->subject,
+            $input->htmlBody, $input->textBody,
             $template,
             $actor?->getEmail(),
         );

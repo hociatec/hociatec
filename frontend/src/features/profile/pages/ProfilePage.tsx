@@ -11,10 +11,21 @@ export const ProfilePage = () => {
   useDocumentTitle('Profil');
 
   const {
-    user, feedback, isEditing, isSaving, isDeleting, form, initials,
-    formattedRoles, formattedBirthDate, hasCurrentPasswordRequirement,
-    handleFieldChange, handleStartEditing, handleCancelEditing,
-    handleSubmitProfile, handleConfirmDelete,
+    user,
+    feedback,
+    isEditing,
+    isSaving,
+    isDeleting,
+    form,
+    initials,
+    formattedRoles,
+    formattedBirthDate,
+    hasCurrentPasswordRequirement,
+    handleFieldChange,
+    handleStartEditing,
+    handleCancelEditing,
+    handleSubmitProfile,
+    handleConfirmDelete,
   } = useProfileController();
 
   if (!user) return null;
@@ -30,10 +41,7 @@ export const ProfilePage = () => {
         </header>
 
         {feedback ? (
-          <div
-            className={`profile-feedback profile-feedback--${feedback.type}`}
-            role="status"
-          >
+          <div className={`profile-feedback profile-feedback--${feedback.type}`} role="status">
             <p>{feedback.message}</p>
             {feedback.details?.map((detail) => (
               <p key={detail} className="profile-feedback__detail">
@@ -44,7 +52,11 @@ export const ProfilePage = () => {
         ) : null}
 
         <div className="profile-grid">
-          <ProfileSummaryCard initials={initials} name={`${user.firstName} ${user.lastName}`} email={user.email} />
+          <ProfileSummaryCard
+            initials={initials}
+            name={`${user.firstName} ${user.lastName}`}
+            email={user.email}
+          />
 
           <section
             className="profile-card profile-card--highlight profile-card--main"
@@ -53,11 +65,7 @@ export const ProfilePage = () => {
             <div className="profile-card__header">
               <h2 id="profile-info-heading">Informations personnelles</h2>
               {!isEditing ? (
-                <button
-                  type="button"
-                  className="profile-card__edit"
-                  onClick={handleStartEditing}
-                >
+                <button type="button" className="profile-card__edit" onClick={handleStartEditing}>
                   Modifier
                 </button>
               ) : null}
@@ -184,7 +192,9 @@ export const ProfilePage = () => {
                 <dl className="profile-details">
                   <div>
                     <dt>Nom complet</dt>
-                    <dd>{user.firstName} {user.lastName}</dd>
+                    <dd>
+                      {user.firstName} {user.lastName}
+                    </dd>
                   </div>
                   <div>
                     <dt>Date de naissance</dt>

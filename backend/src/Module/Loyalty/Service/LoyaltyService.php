@@ -6,10 +6,10 @@ namespace App\Module\Loyalty\Service;
 
 use App\Module\Order\Entity\Order;
 use App\Module\User\Entity\User;
+use App\Module\User\Repository\UserRepository;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Service\VoucherManager;
-use App\Module\User\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class LoyaltyService
 {
@@ -17,7 +17,7 @@ final class LoyaltyService
     public const POINTS_PER_EURO = 100;
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
         private readonly VoucherManager $voucherManager,
         private readonly UserRepository $users,
     ) {
@@ -86,13 +86,13 @@ final class LoyaltyService
     public function adjustBalance(User $user, int $points): void
     {
         $user->setLoyaltyPointsBalance($points);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->persistence->persist($user);
+        $this->persistence->flush();
     }
 
     public function convertPointsToVoucher(User $user, int $points): Voucher
     {
-        return $this->entityManager->wrapInTransaction(
+        return $this->persistence->transactional(
             fn (): Voucher => $this->convertPointsToVoucherInTransaction($user, $points),
         );
     }
@@ -127,9 +127,9 @@ final class LoyaltyService
             ->setRecipientEmail($user->getEmail());
 
         $user->addLoyaltyPoints(-$normalizedPoints);
-        $this->entityManager->persist($voucher);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->persistence->persist($voucher);
+        $this->persistence->persist($user);
+        $this->persistence->flush();
 
         return $voucher;
     }

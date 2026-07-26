@@ -1,14 +1,19 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 
 import { EmptyState, LoadingState, StableContent } from '@/shared/components/ui/page-state';
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface AdminTableShellProps extends PropsWithChildren {
   className?: string;
 }
 
 export const AdminTableShell = ({ children, className }: AdminTableShellProps) => (
-  <div className={cn('overflow-x-auto rounded-xl border border-brand-100 bg-white shadow-sm', className)}>
+  <div
+    className={cn(
+      'overflow-x-auto rounded-xl border border-brand-100 bg-white shadow-sm',
+      className,
+    )}
+  >
     {children}
   </div>
 );
@@ -48,7 +53,9 @@ interface AdminMetricGridProps extends PropsWithChildren {
 }
 
 export const AdminMetricGrid = ({ children, columns = 3 }: AdminMetricGridProps) => (
-  <div className={cn('mb-6 grid gap-4', columns === 4 ? 'md:grid-cols-4' : 'md:grid-cols-3')}>{children}</div>
+  <div className={cn('mb-6 grid gap-4', columns === 4 ? 'md:grid-cols-4' : 'md:grid-cols-3')}>
+    {children}
+  </div>
 );
 
 export const AdminMetricCard = ({ label, value }: { label: string; value: ReactNode }) => (

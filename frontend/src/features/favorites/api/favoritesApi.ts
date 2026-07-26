@@ -38,7 +38,7 @@ export const addFavorite = async (productId: number): Promise<FavoriteResponse> 
     };
   }
 
-  throw new Error(buildErrorMessage(data, 'Impossible d\'ajouter ce produit aux favoris.'));
+  throw new Error(buildErrorMessage(data, "Impossible d'ajouter ce produit aux favoris."));
 };
 
 export const removeFavorite = async (productId: number): Promise<void> => {

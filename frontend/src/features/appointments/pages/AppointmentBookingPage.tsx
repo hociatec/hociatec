@@ -13,194 +13,226 @@ import { useAppointmentBooking } from '../hooks/useAppointmentBooking';
 
 export const AppointmentBookingPage = () => {
   useDocumentTitle('Prendre un rendez-vous');
-  const { step, setStep, prestations, prestationsError, selectedPrestation, setSelectedPrestation, setSlots, selectedDate, setSelectedDate, selectedSlot, setSelectedSlot, booking, modalOpen, setModalOpen, modalMode, calendarRef, events, daySlots, handleDatesSet, handleDateClick, handleBooking, goPrevMonth, goNextMonth, goPrevYear, goNextYear, goToday } = useAppointmentBooking();
+  const {
+    step,
+    setStep,
+    prestations,
+    prestationsError,
+    selectedPrestation,
+    setSelectedPrestation,
+    setSlots,
+    selectedDate,
+    setSelectedDate,
+    selectedSlot,
+    setSelectedSlot,
+    booking,
+    modalOpen,
+    setModalOpen,
+    modalMode,
+    calendarRef,
+    events,
+    daySlots,
+    handleDatesSet,
+    handleDateClick,
+    handleBooking,
+    goPrevMonth,
+    goNextMonth,
+    goPrevYear,
+    goNextYear,
+    goToday,
+  } = useAppointmentBooking();
 
   return (
     <SiteLayout headerVariant="light">
       <PageContainer size="medium" title="Prendre un rendez-vous">
-      <div className="progress-bar">Étape {step} sur 3</div>
+        <div className="progress-bar">Étape {step} sur 3</div>
 
-      {/* Étape 1 — Choix de la prestation */}
-      {step === 1 && (
-        <div className="register-form-card">
-          <h2>Étape 1 — Choisissez une prestation</h2>
-          {prestationsError && (
-            <div className="booking__alert" role="alert">
-              {prestationsError}
+        {/* Étape 1 — Choix de la prestation */}
+        {step === 1 && (
+          <div className="register-form-card">
+            <h2>Étape 1 — Choisissez une prestation</h2>
+            {prestationsError && (
+              <div className="booking__alert" role="alert">
+                {prestationsError}
+              </div>
+            )}
+            {!prestationsError && prestations.length === 0 && (
+              <p className="booking__empty">Aucune prestation disponible pour le moment.</p>
+            )}
+            {prestations.map((p) => (
+              <label key={p.id} className="booking__checkbox">
+                <input
+                  type="radio"
+                  name="prestation"
+                  checked={selectedPrestation?.id === p.id}
+                  onChange={() => setSelectedPrestation(p)}
+                />
+                {p.name} — {p.priceCents / 100} € ({p.durationMinutes} min)
+              </label>
+            ))}
+            <div className="booking__actions">
+              <button
+                disabled={!selectedPrestation}
+                onClick={() => setStep(2)}
+                className="register-form__submit"
+              >
+                Suivant
+              </button>
             </div>
-          )}
-          {!prestationsError && prestations.length === 0 && (
-            <p className="booking__empty">Aucune prestation disponible pour le moment.</p>
-          )}
-          {prestations.map((p) => (
-            <label key={p.id} className="booking__checkbox">
-              <input
-                type="radio"
-                name="prestation"
-                checked={selectedPrestation?.id === p.id}
-                onChange={() => setSelectedPrestation(p)}
-              />
-              {p.name} — {p.priceCents / 100} € ({p.durationMinutes} min)
-            </label>
-          ))}
-          <div className="booking__actions">
-            <button
-              disabled={!selectedPrestation}
-              onClick={() => setStep(2)}
-              className="register-form__submit"
-            >
-              Suivant
-            </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Étape 2 — Choix du jour */}
-      {step === 2 && (
-        <div className="register-form-card">
-          <h2>Étape 2 — Choisissez un jour</h2>
+        {/* Étape 2 — Choix du jour */}
+        {step === 2 && (
+          <div className="register-form-card">
+            <h2>Étape 2 — Choisissez un jour</h2>
 
-          {/* Barre de navigation bien libellée */}
-          <div className="calendar-nav">
-            <button onClick={goPrevYear}>⟨ Année précédente</button>
-            <button onClick={goPrevMonth}>← Mois précédent</button>
-            <button onClick={goToday}>Aujourd’hui</button>
-            <button onClick={goNextMonth}>Mois suivant →</button>
-            <button onClick={goNextYear}>Année suivante ⟩</button>
+            {/* Barre de navigation bien libellée */}
+            <div className="calendar-nav">
+              <button onClick={goPrevYear}>⟨ Année précédente</button>
+              <button onClick={goPrevMonth}>← Mois précédent</button>
+              <button onClick={goToday}>Aujourd’hui</button>
+              <button onClick={goNextMonth}>Mois suivant →</button>
+              <button onClick={goNextYear}>Année suivante ⟩</button>
+            </div>
+
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              locales={[frLocale]}
+              locale="fr"
+              height="auto"
+              dateClick={handleDateClick}
+              datesSet={handleDatesSet}
+              events={events}
+            />
+
+            <div className="booking__actions">
+              <button onClick={() => setStep(1)} className="register-form__back">
+                ← Étape précédente
+              </button>
+            </div>
           </div>
+        )}
 
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            locales={[frLocale]}
-            locale="fr"
-            height="auto"
-            dateClick={handleDateClick}
-            datesSet={handleDatesSet}
-            events={events}
-          />
+        {/* Étape 3 — Choix du créneau */}
+        {step === 3 && (
+          <div className="register-form-card">
+            <h2>
+              Étape 3 — Choisissez un créneau <br />
+              <small>
+                {selectedDate && format(selectedDate, 'EEEE dd MMMM yyyy', { locale: fr })}
+              </small>
+            </h2>
 
-          <div className="booking__actions">
-            <button onClick={() => setStep(1)} className="register-form__back">
-              ← Étape précédente
-            </button>
-          </div>
-        </div>
-      )}
+            {daySlots.length === 0 && <p>Aucun créneau disponible ce jour-là.</p>}
 
-      {/* Étape 3 — Choix du créneau */}
-      {step === 3 && (
-        <div className="register-form-card">
-          <h2>
-            Étape 3 — Choisissez un créneau <br />
-            <small>
-              {selectedDate &&
-                format(selectedDate, "EEEE dd MMMM yyyy", { locale: fr })}
-            </small>
-          </h2>
-
-          {daySlots.length === 0 && <p>Aucun créneau disponible ce jour-là.</p>}
-
-          <div className="slot-list">
-            {daySlots.map((slot, i) => {
-              const s = new Date(slot.start);
-              const e = new Date(slot.end);
-              const active =
-                selectedSlot?.start === slot.start && selectedSlot?.end === slot.end;
-              return (
-                <button
-                  key={i}
-                  className={`slot-card ${active ? 'active' : ''}`}
-                  onClick={() => setSelectedSlot(slot)}
-                >
-                  {format(s, 'HH:mm')} - {format(e, 'HH:mm')}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="booking__actions">
-            <button onClick={() => setStep(2)} className="register-form__back">
-              ← Revenir au calendrier
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* --- Modale moderne --- */}
-      {modalOpen && (
-        <div className="modal-backdrop" onClick={() => !booking && setModalOpen(false)}>
-          <div
-            className="modal-container"
-            onClick={(e) => e.stopPropagation()} // empêcher fermeture au clic interne
-          >
-            {modalMode === 'recap' && (
-              <>
-                <h2>Récapitulatif du rendez-vous</h2>
-                <ul className="recap-list">
-                  <li><strong>Prestation :</strong> {selectedPrestation?.name}</li>
-                  <li>
-                    <strong>Date :</strong>{' '}
-                    {selectedSlot &&
-                      format(new Date(selectedSlot.start), "EEEE dd MMM yyyy", { locale: fr })}
-                  </li>
-                  <li>
-                    <strong>Heure :</strong>{' '}
-                    {selectedSlot &&
-                      format(new Date(selectedSlot.start), 'HH:mm', { locale: fr })}{' '}
-                    -{' '}
-                    {selectedSlot &&
-                      format(new Date(selectedSlot.end), 'HH:mm', { locale: fr })}
-                  </li>
-                  <li><strong>Durée :</strong> {selectedPrestation?.durationMinutes} min</li>
-                  <li><strong>Tarif :</strong> {selectedPrestation ? selectedPrestation.priceCents / 100 : 0} €</li>
-                </ul>
-
-                <div className="modal-actions">
-                  <button onClick={() => setModalOpen(false)} className="register-form__back">
-                    Annuler
-                  </button>
+            <div className="slot-list">
+              {daySlots.map((slot, i) => {
+                const s = new Date(slot.start);
+                const e = new Date(slot.end);
+                const active = selectedSlot?.start === slot.start && selectedSlot?.end === slot.end;
+                return (
                   <button
-                    onClick={handleBooking}
-                    disabled={booking}
+                    key={i}
+                    className={`slot-card ${active ? 'active' : ''}`}
+                    onClick={() => setSelectedSlot(slot)}
+                  >
+                    {format(s, 'HH:mm')} - {format(e, 'HH:mm')}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="booking__actions">
+              <button onClick={() => setStep(2)} className="register-form__back">
+                ← Revenir au calendrier
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- Modale moderne --- */}
+        {modalOpen && (
+          <div className="modal-backdrop" onClick={() => !booking && setModalOpen(false)}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()} // empêcher fermeture au clic interne
+            >
+              {modalMode === 'recap' && (
+                <>
+                  <h2>Récapitulatif du rendez-vous</h2>
+                  <ul className="recap-list">
+                    <li>
+                      <strong>Prestation :</strong> {selectedPrestation?.name}
+                    </li>
+                    <li>
+                      <strong>Date :</strong>{' '}
+                      {selectedSlot &&
+                        format(new Date(selectedSlot.start), 'EEEE dd MMM yyyy', { locale: fr })}
+                    </li>
+                    <li>
+                      <strong>Heure :</strong>{' '}
+                      {selectedSlot &&
+                        format(new Date(selectedSlot.start), 'HH:mm', { locale: fr })}{' '}
+                      -{' '}
+                      {selectedSlot && format(new Date(selectedSlot.end), 'HH:mm', { locale: fr })}
+                    </li>
+                    <li>
+                      <strong>Durée :</strong> {selectedPrestation?.durationMinutes} min
+                    </li>
+                    <li>
+                      <strong>Tarif :</strong>{' '}
+                      {selectedPrestation ? selectedPrestation.priceCents / 100 : 0} €
+                    </li>
+                  </ul>
+
+                  <div className="modal-actions">
+                    <button onClick={() => setModalOpen(false)} className="register-form__back">
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleBooking}
+                      disabled={booking}
+                      className="register-form__submit"
+                    >
+                      {booking ? 'Réservation...' : 'Confirmer'}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {modalMode === 'success' && (
+                <>
+                  <h2>Rendez-vous confirmé ✅</h2>
+                  <p>
+                    Votre rendez-vous pour <strong>{selectedPrestation?.name}</strong> est confirmé
+                    le{' '}
+                    {selectedSlot &&
+                      format(new Date(selectedSlot.start), "EEEE dd MMM yyyy 'à' HH:mm", {
+                        locale: fr,
+                      })}
+                    .
+                  </p>
+                  <button
+                    onClick={() => {
+                      setModalOpen(false);
+                      setStep(1);
+                      setSelectedPrestation(null);
+                      setSelectedSlot(null);
+                      setSelectedDate(null);
+                      setSlots([]);
+                    }}
                     className="register-form__submit"
                   >
-                    {booking ? 'Réservation...' : 'Confirmer'}
+                    Fermer
                   </button>
-                </div>
-              </>
-            )}
-
-            {modalMode === 'success' && (
-              <>
-                <h2>Rendez-vous confirmé ✅</h2>
-                <p>
-                  Votre rendez-vous pour <strong>{selectedPrestation?.name}</strong> est confirmé le{' '}
-                  {selectedSlot &&
-                    format(new Date(selectedSlot.start), "EEEE dd MMM yyyy 'à' HH:mm", {
-                      locale: fr,
-                    })}
-                  .
-                </p>
-                <button
-                  onClick={() => {
-                    setModalOpen(false);
-                    setStep(1);
-                    setSelectedPrestation(null);
-                    setSelectedSlot(null);
-                    setSelectedDate(null);
-                    setSlots([]);
-                  }}
-                  className="register-form__submit"
-                >
-                  Fermer
-                </button>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </PageContainer>
     </SiteLayout>
   );

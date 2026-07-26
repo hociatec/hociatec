@@ -38,8 +38,8 @@ final readonly class UpdateServiceController
             $service = $this->services->update($service, $this->forms->update($request, $service));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error('Impossible de mettre a jour le service.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de mettre à jour le service.');
         }
 
         return ApiResponse::success(QuoteFormatter::formatService($service));

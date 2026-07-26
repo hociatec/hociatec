@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 
 import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
-import { fetchPublicQuoteServices, type QuoteServiceDto } from '@/features/quotes/api/quotesApi';
-import { fetchPublicTrainings, formatTrainingCategory, type TrainingDto } from '@/features/trainings/api/trainingsApi';
+import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
+import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import {
+  fetchPublicTrainings,
+  formatTrainingCategory,
+  type TrainingDto,
+} from '@/features/trainings/api/trainingsApi';
 
 const normalize = (value: string | null | undefined) =>
-  (value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
 const matches = (query: string, fields: Array<string | null | undefined>) => {
   const normalizedQuery = normalize(query);
@@ -84,7 +92,8 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
           setState((current) => ({
             ...current,
             loading: false,
-            error: reason instanceof Error ? reason.message : 'Impossible de charger les résultats.',
+            error:
+              reason instanceof Error ? reason.message : 'Impossible de charger les résultats.',
           }));
         }
       }

@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/marketing/templates', name: 'api_admin_marketing_templates_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_MARKETING_MANAGER')]
 final class ListTemplatesController extends AbstractController
 {
     public function __construct(private readonly EmailTemplateRepository $templates)
@@ -24,6 +24,7 @@ final class ListTemplatesController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $pagination = Pagination::fromRequest($request);
+
         return ApiResponse::paginated(
             array_map(
                 static fn ($template) => [

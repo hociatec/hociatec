@@ -53,14 +53,19 @@ export const ResetPasswordPage = () => {
     if (form.password !== form.confirmPassword) {
       const nextError = 'Les mots de passe doivent être identiques.';
       setError(nextError);
-      try { toast.show(nextError, { variant: 'error' }); } catch {}
+      try {
+        toast.show(nextError, { variant: 'error' });
+      } catch {}
       return;
     }
 
     if (!PASSWORD_RULE.test(form.password)) {
-      const nextError = 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.';
+      const nextError =
+        'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.';
       setError(nextError);
-      try { toast.show(nextError, { variant: 'error' }); } catch {}
+      try {
+        toast.show(nextError, { variant: 'error' });
+      } catch {}
       return;
     }
 
@@ -70,14 +75,19 @@ export const ResetPasswordPage = () => {
       const response = await resetPassword(token, form);
       const nextMessage = response.message ?? 'Votre mot de passe a été réinitialisé avec succès.';
       setMessage(nextMessage);
-      try { toast.show(nextMessage, { variant: 'success' }); } catch {}
+      try {
+        toast.show(nextMessage, { variant: 'success' });
+      } catch {}
       window.setTimeout(() => navigate('/login', { replace: true }), 1200);
     } catch (submissionError) {
-      const nextError = submissionError instanceof Error
-        ? submissionError.message
-        : 'Impossible de réinitialiser le mot de passe pour le moment.';
+      const nextError =
+        submissionError instanceof Error
+          ? submissionError.message
+          : 'Impossible de réinitialiser le mot de passe pour le moment.';
       setError(nextError);
-      try { toast.show(nextError, { variant: 'error' }); } catch {}
+      try {
+        toast.show(nextError, { variant: 'error' });
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -140,7 +150,11 @@ export const ResetPasswordPage = () => {
                 type="button"
                 className="login-form__password-toggle"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
-                aria-label={showConfirmPassword ? 'Masquer la confirmation du mot de passe' : 'Afficher la confirmation du mot de passe'}
+                aria-label={
+                  showConfirmPassword
+                    ? 'Masquer la confirmation du mot de passe'
+                    : 'Afficher la confirmation du mot de passe'
+                }
               >
                 {showConfirmPassword ? 'Masquer' : 'Afficher'}
               </button>

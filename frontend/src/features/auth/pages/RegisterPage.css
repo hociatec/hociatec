@@ -164,7 +164,9 @@
   background: rgba(15, 23, 42, 0.6);
   color: var(--hocia-surface-soft);
   font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .register-form__field input:focus {
@@ -180,7 +182,9 @@
   background: rgba(15, 23, 42, 0.6);
   color: var(--hocia-surface-soft);
   font-size: 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .register-form__select:focus {
@@ -248,7 +252,9 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 22px 48px rgba(169, 79, 22, 0.25);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .register-form__submit:hover {

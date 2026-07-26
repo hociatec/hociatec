@@ -5,21 +5,20 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Catalog\Entity\Product;
+use App\Module\Quote\DTO\QuoteItemAddition;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class QuoteWorkflowService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private QuotePersistence $persistence,
     ) {
     }
 
     public function delete(Quote $quote): void
     {
-        $this->entityManager->remove($quote);
-        $this->entityManager->flush();
+        $this->persistence->delete($quote);
     }
 
     public function setStatus(Quote $quote, string $status): void
@@ -29,45 +28,38 @@ final readonly class QuoteWorkflowService
             $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
         }
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
     }
 
-    /** @param array<string,mixed> $payload */
-    public function addProductItem(Quote $quote, Product $product, array $payload): void
+    public function addProductItem(Quote $quote, Product $product, QuoteItemAddition $input): void
     {
-        $name = is_string($payload['name'] ?? null) && '' !== trim($payload['name'])
-            ? trim($payload['name'])
-            : $product->getName();
-        $unitPriceCents = is_numeric($payload['unitPriceCents'] ?? null)
-            ? (int) $payload['unitPriceCents']
-            : $product->getPriceCents();
+        $name = $input->name ?? $product->getName();
+        $unitPriceCents = $input->unitPriceCents ?? $product->getPriceCents();
 
         $item = new QuoteItem($name, max(0, $unitPriceCents));
         $item
             ->setItemType(QuoteItem::TYPE_PRODUCT)
             ->setProductId($product->getId())
-            ->setDescription($this->stringOrNull($payload['description'] ?? null))
-            ->setUnit($this->stringOrNull($payload['unit'] ?? ('rental' === strtolower($product->getSellingType()) ? 'jour' : null)))
-            ->setQuantity(max(1, (int) ($payload['quantity'] ?? 1)));
+            ->setDescription($this->stringOrNull($input->description))
+            ->setUnit($this->stringOrNull($input->unit ?? ('rental' === strtolower($product->getSellingType()) ? 'jour' : null)))
+            ->setQuantity($input->quantity);
 
-        if (isset($payload['vatRate'])) {
-            $item->setVatRateBps((int) round(((float) $payload['vatRate']) * 100));
-        } elseif (isset($payload['vatRateBps'])) {
-            $item->setVatRateBps((int) $payload['vatRateBps']);
+        if (null !== $input->vatRate) {
+            $item->setVatRateBps((int) round($input->vatRate * 100));
+        } elseif (null !== $input->vatRateBps) {
+            $item->setVatRateBps($input->vatRateBps);
         }
-        if (isset($payload['discountCents'])) {
-            $item->setDiscountCents((int) $payload['discountCents']);
+        if (null !== $input->discountCents) {
+            $item->setDiscountCents($input->discountCents);
         }
 
-        $quote->addItem($item);
-        $this->entityManager->persist($item);
-        $this->entityManager->flush();
+        $this->persistence->addItem($quote, $item);
+        $this->persistence->flush();
     }
 
     public function save(Quote $quote): void
     {
-        $this->entityManager->persist($quote);
-        $this->entityManager->flush();
+        $this->persistence->save($quote);
     }
 
     private function stringOrNull(mixed $value): ?string

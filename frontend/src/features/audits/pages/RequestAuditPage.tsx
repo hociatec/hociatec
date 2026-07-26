@@ -15,9 +15,22 @@ const AUDIT_TYPES: { value: AuditType; label: string }[] = [
 
 export const RequestAuditPage = () => {
   useDocumentTitle('Demander un audit');
-  const { type, setType, url, setUrl, objectives, setObjectives, loading, createdNumber, onSubmit } = useRequestAudit();
+  const {
+    type,
+    setType,
+    url,
+    setUrl,
+    objectives,
+    setObjectives,
+    loading,
+    createdNumber,
+    onSubmit,
+  } = useRequestAudit();
 
-  const handleSubmit = (event: FormEvent) => { event.preventDefault(); void onSubmit(); };
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    void onSubmit();
+  };
 
   return (
     <SiteLayout>
@@ -26,9 +39,15 @@ export const RequestAuditPage = () => {
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm mb-1">Type d'audit</label>
-            <select className="w-full border rounded p-2" value={type} onChange={(e) => setType(e.target.value as AuditType)}>
+            <select
+              className="w-full border rounded p-2"
+              value={type}
+              onChange={(e) => setType(e.target.value as AuditType)}
+            >
               {AUDIT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
               ))}
             </select>
           </div>
@@ -51,7 +70,10 @@ export const RequestAuditPage = () => {
               onChange={(e) => setObjectives(e.target.value)}
             />
           </div>
-          <button disabled={loading} className="bg-brand-600 text-white px-4 py-2 rounded disabled:opacity-60">
+          <button
+            disabled={loading}
+            className="bg-brand-600 text-white px-4 py-2 rounded disabled:opacity-60"
+          >
             {loading ? 'Envoi…' : 'Envoyer la demande'}
           </button>
         </form>

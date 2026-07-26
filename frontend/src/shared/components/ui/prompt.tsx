@@ -9,7 +9,13 @@ import {
   type ReactNode,
 } from 'react';
 
-import { Dialog, DialogBackdrop, DialogDescription, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogDescription,
+  DialogPanel,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 
 type PromptOptions = {
   title: string;
@@ -26,7 +32,9 @@ type PendingPrompt = PromptOptions & {
   resolve: (value: string | null) => void;
 };
 
-const PromptContext = createContext<((options: PromptOptions) => Promise<string | null>) | null>(null);
+const PromptContext = createContext<((options: PromptOptions) => Promise<string | null>) | null>(
+  null,
+);
 
 export const usePrompt = () => {
   const prompt = useContext(PromptContext);
@@ -42,18 +50,23 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
   const [pendingPrompt, setPendingPrompt] = useState<PendingPrompt | null>(null);
   const [value, setValue] = useState('');
 
-  const prompt = useCallback((options: PromptOptions) => (
-    new Promise<string | null>((resolve) => {
-      setValue(options.defaultValue ?? '');
-      setPendingPrompt({ ...options, resolve });
-    })
-  ), []);
+  const prompt = useCallback(
+    (options: PromptOptions) =>
+      new Promise<string | null>((resolve) => {
+        setValue(options.defaultValue ?? '');
+        setPendingPrompt({ ...options, resolve });
+      }),
+    [],
+  );
 
-  const close = useCallback((nextValue: string | null) => {
-    const current = pendingPrompt;
-    setPendingPrompt(null);
-    current?.resolve(nextValue);
-  }, [pendingPrompt]);
+  const close = useCallback(
+    (nextValue: string | null) => {
+      const current = pendingPrompt;
+      setPendingPrompt(null);
+      current?.resolve(nextValue);
+    },
+    [pendingPrompt],
+  );
 
   const contextValue = useMemo(() => prompt, [prompt]);
 
@@ -91,7 +104,11 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
                 />
               </label>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button type="button" className="catalog-admin-actions__edit" onClick={() => close(null)}>
+                <button
+                  type="button"
+                  className="catalog-admin-actions__edit"
+                  onClick={() => close(null)}
+                >
                   {pendingPrompt?.cancelLabel ?? 'Annuler'}
                 </button>
                 <button type="submit" className="register-form__submit">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Controller\PublicApi;
 
+use App\Module\Quote\DTO\QuotePayload;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
@@ -13,7 +14,6 @@ use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/quotes', name: 'api_public_quotes_create', methods: ['POST'])]
@@ -28,16 +28,16 @@ class CreateQuoteController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
         // Force status to sent for public submissions
         $payload['status'] = Quote::STATUS_SENT;
         // Le client ne peut pas modifier les frais de port
         $payload['shippingCents'] = 0;
 
         try {
-            $quote = $this->quoteService->createFromPayload($payload);
-        } catch (\Throwable $e) {
-            return ApiResponse::error('Impossible de creer le devis.', Response::HTTP_BAD_REQUEST, [$e->getMessage()]);
+            $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($payload));
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de créer le devis.');
         }
 
         return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator));

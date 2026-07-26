@@ -51,28 +51,30 @@ export const useAccountNotifications = (): UseAccountNotificationsResult => {
       fetchMyTrainingEnrollments(),
       fetchMyAudits(),
       fetchMyVouchers(),
-    ]).then(([reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult]) => {
-      if (cancelled) return;
+    ]).then(
+      ([reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult]) => {
+        if (cancelled) return;
 
-      setNotifications(
-        buildAccountNotifications({
-          pendingReviews: reviewsResult.status === 'fulfilled' ? reviewsResult.value : [],
-          appointments:
-            appointmentsResult.status === 'fulfilled'
-              ? appointmentsResult.value.upcoming ?? []
-              : [],
-          trainings: trainingsResult.status === 'fulfilled' ? trainingsResult.value : [],
-          audits: auditsResult.status === 'fulfilled' ? auditsResult.value : [],
-          vouchers: vouchersResult.status === 'fulfilled' ? vouchersResult.value : [],
-        }),
-      );
-      setHasPartialError(
-        [reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult].some(
-          (result) => result.status === 'rejected',
-        ),
-      );
-      setLoading(false);
-    });
+        setNotifications(
+          buildAccountNotifications({
+            pendingReviews: reviewsResult.status === 'fulfilled' ? reviewsResult.value : [],
+            appointments:
+              appointmentsResult.status === 'fulfilled'
+                ? (appointmentsResult.value.upcoming ?? [])
+                : [],
+            trainings: trainingsResult.status === 'fulfilled' ? trainingsResult.value : [],
+            audits: auditsResult.status === 'fulfilled' ? auditsResult.value : [],
+            vouchers: vouchersResult.status === 'fulfilled' ? vouchersResult.value : [],
+          }),
+        );
+        setHasPartialError(
+          [reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult].some(
+            (result) => result.status === 'rejected',
+          ),
+        );
+        setLoading(false);
+      },
+    );
 
     return () => {
       cancelled = true;

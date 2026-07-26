@@ -31,7 +31,7 @@ final class StripeWebhookController extends AbstractController
                 'error' => $exception->getMessage(),
             ]);
 
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiResponse::error('Webhook Stripe invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success(['received' => true] + $result);

@@ -61,9 +61,10 @@ export const adaptQuoteForSave = <T extends QuoteDraftForSave | null | undefined
 
       return {
         ...rest,
-        description: baseDescription && baseDescription.length > 0
-          ? `${baseDescription} - Durée: ${months} mois`
-          : `Durée: ${months} mois`,
+        description:
+          baseDescription && baseDescription.length > 0
+            ? `${baseDescription} - Durée: ${months} mois`
+            : `Durée: ${months} mois`,
         unit: item.unit ?? 'mois',
         quantity: Math.max(1, item.quantity ?? 1) * months,
       };

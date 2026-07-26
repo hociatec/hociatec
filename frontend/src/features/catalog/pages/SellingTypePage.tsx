@@ -10,19 +10,67 @@ import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import { formatCatalogResultsSummary } from '../lib/catalogSearch';
 import './CatalogPages.css';
 
-export interface SellingTypePageProps { sellingType: 'sale' | 'rental'; title?: string; }
+export interface SellingTypePageProps {
+  sellingType: 'sale' | 'rental';
+  title?: string;
+}
 
 export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) => {
   const catalog = useCatalogSearch({ sellingType });
   const pageTitle = title ?? (sellingType === 'rental' ? 'Location' : 'Vente');
-  const description = sellingType === 'rental' ? 'Louez du matériel informatique prêt à l’emploi, avec une durée adaptée à votre besoin.' : 'Achetez du matériel informatique sélectionné, vérifié et prêt à être commandé.';
+  const description =
+    sellingType === 'rental'
+      ? 'Louez du matériel informatique prêt à l’emploi, avec une durée adaptée à votre besoin.'
+      : 'Achetez du matériel informatique sélectionné, vérifié et prêt à être commandé.';
   const canonicalUrl = `${SITE_URL}/catalogue/${sellingType === 'rental' ? 'location' : 'vente'}`;
   useDocumentTitle(`${pageTitle} - Catalogue`);
   useMetaTags({ title: `${pageTitle} — Catalogue`, description, canonicalUrl });
-  return <div className="site-layout"><SiteHeader variant="light" /><div className="site-layout__content"><div className="catalog-detail-layout">
-    <Link to="/" className="catalog-page__breadcrumbs">Retour à l'accueil</Link>
-    <header className="catalog-detail-header"><span className="catalog-badge">{sellingType === 'rental' ? 'Location' : 'Vente'}</span><h1>{pageTitle}</h1><div className="catalog-detail-metadata"><span>{formatCatalogResultsSummary(catalog.meta.total, catalog.query, 'produit')}</span></div></header>
-    <CatalogFilters facets={catalog.facets} query={catalog.query} category={catalog.category} brand={catalog.brand} storageCapacity={catalog.storageCapacity} memoryRam={catalog.memoryRam} color={catalog.color} sort={catalog.sort} inStock={catalog.inStock} minPrice={catalog.minPrice} maxPrice={catalog.maxPrice} includeCategory onParamChange={catalog.updateParam} onPriceChange={catalog.updatePriceRange} onReset={catalog.resetFilters} />
-    <CatalogProductResults products={catalog.products} meta={catalog.meta} loading={catalog.loading} error={catalog.error} loadingMessage="Chargement des produits disponibles..." emptyMessage="Aucun produit ne correspond à ces filtres. Retirez un critère ou consultez les autres catégories du catalogue." onPageChange={(page) => catalog.updateParam('page', String(page))} />
-  </div></div><SiteFooter /></div>;
+  return (
+    <div className="site-layout">
+      <SiteHeader variant="light" />
+      <div className="site-layout__content">
+        <div className="catalog-detail-layout">
+          <Link to="/" className="catalog-page__breadcrumbs">
+            Retour à l'accueil
+          </Link>
+          <header className="catalog-detail-header">
+            <span className="catalog-badge">{sellingType === 'rental' ? 'Location' : 'Vente'}</span>
+            <h1>{pageTitle}</h1>
+            <div className="catalog-detail-metadata">
+              <span>
+                {formatCatalogResultsSummary(catalog.meta.total, catalog.query, 'produit')}
+              </span>
+            </div>
+          </header>
+          <CatalogFilters
+            facets={catalog.facets}
+            query={catalog.query}
+            category={catalog.category}
+            brand={catalog.brand}
+            storageCapacity={catalog.storageCapacity}
+            memoryRam={catalog.memoryRam}
+            color={catalog.color}
+            sort={catalog.sort}
+            inStock={catalog.inStock}
+            minPrice={catalog.minPrice}
+            maxPrice={catalog.maxPrice}
+            includeCategory
+            onParamChange={catalog.updateParam}
+            onPriceChange={catalog.updatePriceRange}
+            onReset={catalog.resetFilters}
+          />
+          <CatalogProductResults
+            products={catalog.products}
+            meta={catalog.meta}
+            loading={catalog.loading}
+            error={catalog.error}
+            loadingMessage="Chargement des produits disponibles..."
+            emptyMessage="Aucun produit ne correspond à ces filtres. Retirez un critère ou consultez les autres catégories du catalogue."
+            onPageChange={(page) => catalog.updateParam('page', String(page))}
+          />
+        </div>
+      </div>
+      <SiteFooter />
+    </div>
+  );
 };

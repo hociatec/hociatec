@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Catalog\Repository\ProductRepository;
+use App\Module\Quote\DTO\QuoteItemPayload;
+use App\Module\Quote\DTO\QuotePayload;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
-use Doctrine\ORM\EntityManagerInterface;
 
 class QuoteService
 {
@@ -19,7 +20,7 @@ Pour les clients professionnels uniquement, tout retard de paiement pourra entra
 Pour les clients consommateurs, les garanties légales applicables demeurent celles prévues par la loi.";
 
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly QuotePersistence $persistence,
         private readonly ProductRepository $productRepository,
         private readonly QuoteNumberGenerator $numberGenerator,
         private readonly QuoteCalculator $calculator,
@@ -29,32 +30,24 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     public function createEmpty(): Quote
     {
         $quote = new Quote($this->numberGenerator->generate());
-        $this->em->persist($quote);
-        $this->em->flush();
+        $this->persistence->save($quote);
 
         return $quote;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    public function createFromPayload(array $payload): Quote
+    public function createFromPayload(QuotePayload $payload): Quote
     {
         $quote = new Quote($this->numberGenerator->generate());
         $this->hydrateQuote($quote, $payload);
-        $this->em->persist($quote);
-        $this->em->flush();
+        $this->persistence->save($quote);
 
         return $quote;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    public function updateFromPayload(Quote $quote, array $payload): Quote
+    public function updateFromPayload(Quote $quote, QuotePayload $payload): Quote
     {
         $this->hydrateQuote($quote, $payload, true);
-        $this->em->flush();
+        $this->persistence->flush();
 
         return $quote;
     }
@@ -86,44 +79,39 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
             $copy->addItem($new);
         }
 
-        $this->em->persist($copy);
-        $this->em->flush();
+        $this->persistence->save($copy);
 
         return $copy;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function hydrateQuote(Quote $quote, array $payload, bool $clearItems = false): void
+    private function hydrateQuote(Quote $quote, QuotePayload $payload, bool $clearItems = false): void
     {
-        $quote->setCustomerName(self::strOrNull($payload['customer']['name'] ?? null));
-        $quote->setCustomerEmail(self::strOrNull($payload['customer']['email'] ?? null));
-        $quote->setCustomerCompany(self::strOrNull($payload['customer']['company'] ?? null));
-        $quote->setCustomerAddress(self::strOrNull($payload['customer']['address'] ?? null));
+        $quote->setCustomerName(self::strOrNull($payload->customer['name'] ?? null));
+        $quote->setCustomerEmail(self::strOrNull($payload->customer['email'] ?? null));
+        $quote->setCustomerCompany(self::strOrNull($payload->customer['company'] ?? null));
+        $quote->setCustomerAddress(self::strOrNull($payload->customer['address'] ?? null));
 
-        $statusInput = isset($payload['status']) ? (string) $payload['status'] : Quote::STATUS_DRAFT;
-        $status = QuoteStatusTranslator::toCode($statusInput);
+        $status = QuoteStatusTranslator::toCode($payload->status);
         if ('' === $status) {
             $status = Quote::STATUS_DRAFT;
         }
         $quote->setStatus($status);
 
-        $quote->setGlobalDiscountCents((int) ($payload['discountCents'] ?? 0));
-        $quote->setShippingCents((int) ($payload['shippingCents'] ?? 0));
+        $quote->setGlobalDiscountCents($payload->discount->cents());
+        $quote->setShippingCents($payload->shipping->cents());
 
-        if (array_key_exists('conditions', $payload) || !$clearItems) {
-            $quote->setConditions(self::strOrNull($payload['conditions'] ?? null) ?? self::DEFAULT_CONDITIONS);
+        if (null !== $payload->conditions || !$clearItems) {
+            $quote->setConditions(self::strOrNull($payload->conditions) ?? self::DEFAULT_CONDITIONS);
         }
 
-        if (array_key_exists('validFrom', $payload)) {
-            $quote->setValidFrom(self::dateOrNull($payload['validFrom'] ?? null));
+        if (null !== $payload->validFrom) {
+            $quote->setValidFrom(self::dateOrNull($payload->validFrom));
         } elseif (!$clearItems && null === $quote->getValidFrom()) {
             $quote->setValidFrom(new \DateTimeImmutable('today'));
         }
 
-        if (array_key_exists('validUntil', $payload)) {
-            $quote->setValidUntil(self::dateOrNull($payload['validUntil'] ?? null));
+        if (null !== $payload->validUntil) {
+            $quote->setValidUntil(self::dateOrNull($payload->validUntil));
         } elseif (!$clearItems && null === $quote->getValidUntil()) {
             $baseDate = $quote->getValidFrom() ?? new \DateTimeImmutable('today');
             $quote->setValidUntil($baseDate->modify('+30 days'));
@@ -132,30 +120,25 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         if ($clearItems) {
             foreach ($quote->getItems() as $existing) {
                 $quote->removeItem($existing);
-                $this->em->remove($existing);
+                $this->persistence->removeItem($existing);
             }
         }
 
-        $items = $payload['items'] ?? [];
-        if (is_array($items)) {
-            foreach ($items as $raw) {
-                $item = $this->buildItemFromPayload($raw);
-                $quote->addItem($item);
-                $this->em->persist($item);
-            }
+        foreach ($payload->items as $raw) {
+            $item = $this->buildItemFromPayload($raw);
+            $this->persistence->addItem($quote, $item);
         }
     }
 
-    /**
-     * @param array<string, mixed> $raw
-     */
-    private function buildItemFromPayload(array $raw): QuoteItem
+    private function buildItemFromPayload(QuoteItemPayload $raw): QuoteItem
     {
-        $name = (string) ($raw['name'] ?? '');
-        $unitPriceCents = isset($raw['unitPriceCents']) ? (int) $raw['unitPriceCents'] : null;
+        $name = $raw->name;
+        $unitPriceCents = $raw->unitPriceCents;
+        $unit = $raw->unit;
+        $type = $raw->type ?? QuoteItem::TYPE_CUSTOM;
 
-        if (isset($raw['productId'])) {
-            $product = $this->productRepository->find((int) $raw['productId']);
+        if (null !== $raw->productId) {
+            $product = $this->productRepository->find($raw->productId);
             if (null !== $product) {
                 if ('' === $name) {
                     $name = $product->getName();
@@ -163,11 +146,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
                 if (null === $unitPriceCents) {
                     $unitPriceCents = $product->getPriceCents();
                 }
-                if (!isset($raw['unit']) && 'rental' === strtolower($product->getSellingType())) {
-                    $raw['unit'] = 'jour';
+                if (null === $unit && 'rental' === strtolower($product->getSellingType())) {
+                    $unit = 'jour';
                 }
-                if (!isset($raw['type'])) {
-                    $raw['type'] = QuoteItem::TYPE_PRODUCT;
+                if (null === $raw->type) {
+                    $type = QuoteItem::TYPE_PRODUCT;
                 }
             }
         }
@@ -180,33 +163,21 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         }
 
         $item = new QuoteItem($name, $unitPriceCents);
-        $item->setItemType((string) ($raw['type'] ?? QuoteItem::TYPE_CUSTOM));
-        $item->setDescription(self::strOrNull($raw['description'] ?? null));
-        $item->setUnit(self::strOrNull($raw['unit'] ?? null));
-        $item->setQuantity((int) ($raw['quantity'] ?? 1));
-
-        if (isset($raw['vatRate'])) {
-            $item->setVatRateBps((int) round(((float) $raw['vatRate']) * 100));
-        } elseif (isset($raw['vatRateBps'])) {
-            $item->setVatRateBps((int) $raw['vatRateBps']);
-        }
-
-        $item->setDiscountCents((int) ($raw['discountCents'] ?? 0));
-
-        if (isset($raw['productId'])) {
-            $item->setProductId((int) $raw['productId']);
-        }
-        if (isset($raw['serviceId'])) {
-            $item->setServiceId((int) $raw['serviceId']);
-        }
+        $item->setItemType($type);
+        $item->setDescription(self::strOrNull($raw->description));
+        $item->setUnit(self::strOrNull($unit));
+        $item->setQuantity($raw->quantity);
+        $item->setVatRateBps($raw->vatRateBps);
+        $item->setDiscountCents($raw->discountCents);
+        $item->setProductId($raw->productId);
+        $item->setServiceId($raw->serviceId);
 
         return $item;
     }
 
     public function delete(Quote $quote): void
     {
-        $this->em->remove($quote);
-        $this->em->flush();
+        $this->persistence->delete($quote);
     }
 
     /** @return array{totalHt: int, totalVat: int, totalTtc: int} */

@@ -33,7 +33,7 @@ final readonly class ShareProductEmailController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $input = ShareProductInput::fromPayload($request->toArray());
+        $input = ShareProductInput::fromPayload(\App\Shared\Http\JsonPayload::decode($request));
         $this->dtoValidator->validate($input);
 
         try {

@@ -32,12 +32,38 @@ export const DashboardWorkspace = ({
 }) => (
   <section className="client-dashboard__workspace" aria-label="Tableau de bord">
     <div className="client-dashboard__main-column">
-      <DashboardPanel heading="À faire maintenant" id="dashboard-actions-title" className="client-dashboard__panel--focus">
-        {dashboardActions.length > 0 ? <div className="client-dashboard__action-list">{dashboardActions.map((action) => <ActionCard key={`${action.to}-${action.title}`} action={action} />)}</div> : <DashboardEmptyState>Vos prochaines commandes, rendez-vous, devis ou formations apparaîtront ici dès qu'une action sera utile.</DashboardEmptyState>}
+      <DashboardPanel
+        heading="À faire maintenant"
+        id="dashboard-actions-title"
+        className="client-dashboard__panel--focus"
+      >
+        {dashboardActions.length > 0 ? (
+          <div className="client-dashboard__action-list">
+            {dashboardActions.map((action) => (
+              <ActionCard key={`${action.to}-${action.title}`} action={action} />
+            ))}
+          </div>
+        ) : (
+          <DashboardEmptyState>
+            Vos prochaines commandes, rendez-vous, devis ou formations apparaîtront ici dès qu'une
+            action sera utile.
+          </DashboardEmptyState>
+        )}
       </DashboardPanel>
-      <DashboardVoucherCard conversionEuroCents={conversionEuroCents} conversionPoints={conversionPoints} conversionState={conversionState} convertPoints={convertPoints} hasConvertiblePoints={hasConvertiblePoints} loyalty={loyalty} onConvert={onConvert} onConvertPointsChange={onConvertPointsChange} />
+      <DashboardVoucherCard
+        conversionEuroCents={conversionEuroCents}
+        conversionPoints={conversionPoints}
+        conversionState={conversionState}
+        convertPoints={convertPoints}
+        hasConvertiblePoints={hasConvertiblePoints}
+        loyalty={loyalty}
+        onConvert={onConvert}
+        onConvertPointsChange={onConvertPointsChange}
+      />
     </div>
-    <aside className="client-dashboard__side-column"><DashboardAccessLinks /></aside>
+    <aside className="client-dashboard__side-column">
+      <DashboardAccessLinks />
+    </aside>
   </section>
 );
 

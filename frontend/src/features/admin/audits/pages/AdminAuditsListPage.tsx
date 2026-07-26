@@ -1,9 +1,15 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/api/auditsApi';
+import {
+  useAdminAuditsList,
+  isAuditSort,
+  isAuditStatusFilter,
+  isAuditTypeFilter,
+  statusLabel,
+  typeLabel,
+} from '../hooks/useAdminAuditsList';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
@@ -12,103 +18,25 @@ import { DateRangeFilter } from '@/shared/components/filters/DateRangeFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
-const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
-  performance: 'Performance',
-  security: 'Sécurité',
-  ux: 'UX',
-  seo: 'SEO',
-  technical: 'Technique',
-  accessibility: 'Accessibilité',
-};
-
-const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-
-const typeLabel = (t: string) => TYPE_LABELS[t as AuditListItemDto['type']] ?? t;
-const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
-const auditTypes = ['all', 'accessibility', 'performance', 'security', 'ux', 'seo', 'technical'] as const;
-const auditStatuses = ['all', 'new', 'in_progress', 'review', 'done'] as const;
-const sortValues = ['date_desc', 'date_asc', 'number_asc', 'number_desc', 'status_asc', 'status_desc'] as const;
-type AuditTypeFilter = (typeof auditTypes)[number];
-type AuditStatusFilter = (typeof auditStatuses)[number];
-type AuditSort = (typeof sortValues)[number];
-const isAuditTypeFilter = (value: string): value is AuditTypeFilter => auditTypes.includes(value as AuditTypeFilter);
-const isAuditStatusFilter = (value: string): value is AuditStatusFilter => auditStatuses.includes(value as AuditStatusFilter);
-const isAuditSort = (value: string): value is AuditSort => sortValues.includes(value as AuditSort);
-
 export const AdminAuditsListPage = () => {
   useDocumentTitle('Admin - Audits');
-  const [items, setItems] = useState<AuditListItemDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const pollTimer = useRef<number | null>(null);
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<AuditStatusFilter>('all');
-  const [filterType, setFilterType] = useState<AuditTypeFilter>('all');
-  const [fromDate, setFromDate] = useState<string | null>(null);
-  const [toDate, setToDate] = useState<string | null>(null);
-  const [sort, setSort] = useState<AuditSort>('date_desc');
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void adminFetchAudits()
-      .then(setItems)
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    pollTimer.current = window.setInterval(() => {
-      if (document.hidden) return;
-      void adminFetchAudits()
-        .then(setItems)
-        .catch(() => undefined);
-    }, 15000);
-    return () => {
-      if (pollTimer.current) window.clearInterval(pollTimer.current);
-    };
-  }, []);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const fromTs = fromDate ? new Date(fromDate).getTime() : null;
-    const toTs = toDate ? new Date(toDate).getTime() : null;
-    return items.filter((a) => {
-      const matchSearch = !q || a.number.toLowerCase().includes(q) || a.url.toLowerCase().includes(q);
-      const matchStatus = filterStatus === 'all' || a.status === filterStatus;
-      const matchType = filterType === 'all' || a.type === filterType;
-      const createdTs = a.createdAt ? new Date(a.createdAt).getTime() : null;
-      const matchFrom = fromTs === null || (createdTs !== null && createdTs >= fromTs);
-      const matchTo = toTs === null || (createdTs !== null && createdTs <= toTs);
-      return matchSearch && matchStatus && matchType && matchFrom && matchTo;
-    });
-  }, [items, search, filterStatus, filterType, fromDate, toDate]);
-
-  const view = useMemo(() => {
-    const list = [...filtered];
-    if (sort === 'date_desc' || sort === 'date_asc') {
-      list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      if (sort === 'date_desc') list.reverse();
-      return list;
-    }
-    if (sort === 'number_asc' || sort === 'number_desc') {
-      list.sort((a, b) => a.number.localeCompare(b.number, 'fr'));
-      if (sort === 'number_desc') list.reverse();
-      return list;
-    }
-    if (sort === 'status_asc' || sort === 'status_desc') {
-      const order: Record<AuditListItemDto['status'], number> = { new: 0, in_progress: 1, review: 2, done: 3 };
-      list.sort((a, b) => order[a.status] - order[b.status]);
-      if (sort === 'status_desc') list.reverse();
-      return list;
-    }
-    return list;
-  }, [filtered, sort]);
+  const {
+    loading,
+    error,
+    search,
+    setSearch,
+    filterStatus,
+    setFilterStatus,
+    filterType,
+    setFilterType,
+    fromDate,
+    setFromDate,
+    toDate,
+    setToDate,
+    sort,
+    setSort,
+    view,
+  } = useAdminAuditsList();
 
   return (
     <PageContainer size="admin" title="Audits">
@@ -116,9 +44,7 @@ export const AdminAuditsListPage = () => {
         <p className="text-sm text-stone-600">
           {view.length} audit{view.length > 1 ? 's' : ''} affiché{view.length > 1 ? 's' : ''}.
         </p>
-        <p className="text-sm text-stone-500">
-          Filtrez par numéro, URL, type, statut et période.
-        </p>
+        <p className="text-sm text-stone-500">Filtrez par numéro, URL, type, statut et période.</p>
       </div>
 
       <FilterBar>

@@ -8,7 +8,8 @@ export const CgvPage = () => {
   useDocumentTitle('Conditions générales de vente (CGV)');
   useMetaTags({
     title: 'CGV — Hociatec',
-    description: 'Conditions générales de vente applicables aux produits, locations, devis et prestations Hociatec.',
+    description:
+      'Conditions générales de vente applicables aux produits, locations, devis et prestations Hociatec.',
     type: 'article',
   });
 
@@ -27,18 +28,19 @@ export const CgvPage = () => {
           </p>
           <p>
             Toute commande implique l’acceptation sans réserve des présentes CGV par le client. Des
-            conditions particulières peuvent compléter les présentes CGV lorsqu’elles figurent sur un
-            devis, une commande, une facture ou un contrat spécifique.
+            conditions particulières peuvent compléter les présentes CGV lorsqu’elles figurent sur
+            un devis, une commande, une facture ou un contrat spécifique.
           </p>
 
           <h2>2. Identification du vendeur</h2>
           <p>
             Hociatec, SARL au capital de 1 000 €, immatriculée au RCS de Nanterre sous le numéro
-            SIREN 934 814 559, dont le siège social est situé au 2 allée Anatoli Vaisser,
-            92600 Asnières-sur-Seine, France.
+            SIREN 934 814 559, dont le siège social est situé au 2 allée Anatoli Vaisser, 92600
+            Asnières-sur-Seine, France.
           </p>
           <p>
-            Contact commercial et service client: <a href="mailto:contact@hociatec.fr">contact@hociatec.fr</a>.
+            Contact commercial et service client:{' '}
+            <a href="mailto:contact@hociatec.fr">contact@hociatec.fr</a>.
           </p>
 
           <h2>3. Produits, services et locations</h2>
@@ -48,9 +50,9 @@ export const CgvPage = () => {
             audits, formations et prestations associées.
           </p>
           <p>
-            Les caractéristiques essentielles des produits ou services sont présentées sur les fiches
-            produit, les pages de services, les devis ou tout document contractuel remis au client.
-            Le client est invité à les lire attentivement avant toute commande.
+            Les caractéristiques essentielles des produits ou services sont présentées sur les
+            fiches produit, les pages de services, les devis ou tout document contractuel remis au
+            client. Le client est invité à les lire attentivement avant toute commande.
           </p>
 
           <h2>4. Prix</h2>
@@ -119,8 +121,8 @@ export const CgvPage = () => {
           <h2>10. Droit de rétractation des consommateurs</h2>
           <p>
             Lorsqu’il agit en qualité de consommateur et que le contrat est conclu à distance, le
-            client dispose en principe d’un délai de 14 jours pour exercer son droit de rétractation,
-            sauf exceptions légales.
+            client dispose en principe d’un délai de 14 jours pour exercer son droit de
+            rétractation, sauf exceptions légales.
           </p>
           <p>
             Le droit de rétractation peut notamment être exclu pour certains services pleinement
@@ -143,8 +145,8 @@ export const CgvPage = () => {
           <h2>11. Garanties légales</h2>
           <p>
             Les clients consommateurs bénéficient des garanties légales applicables, notamment la
-            garantie légale de conformité et la garantie contre les vices cachés, dans les conditions
-            prévues par les textes en vigueur.
+            garantie légale de conformité et la garantie contre les vices cachés, dans les
+            conditions prévues par les textes en vigueur.
           </p>
           <p>
             Pour toute demande de garantie ou de service après-vente, le client doit contacter
@@ -153,10 +155,10 @@ export const CgvPage = () => {
 
           <h2>12. Responsabilité</h2>
           <p>
-            Hociatec est responsable de la bonne exécution de ses obligations contractuelles dans les
-            limites prévues par la loi. Sa responsabilité ne saurait être engagée en cas de faute du
-            client, d’usage non conforme, de force majeure, de fait imprévisible d’un tiers ou de
-            mauvaise configuration d’un environnement non maîtrisé par Hociatec.
+            Hociatec est responsable de la bonne exécution de ses obligations contractuelles dans
+            les limites prévues par la loi. Sa responsabilité ne saurait être engagée en cas de
+            faute du client, d’usage non conforme, de force majeure, de fait imprévisible d’un tiers
+            ou de mauvaise configuration d’un environnement non maîtrisé par Hociatec.
           </p>
 
           <h2>13. Clients professionnels</h2>
@@ -180,9 +182,9 @@ export const CgvPage = () => {
 
           <h2>15. Droit applicable et juridiction</h2>
           <p>
-            Les présentes CGV sont soumises au droit français. En cas de litige, le client est invité
-            à contacter Hociatec afin de rechercher une solution amiable. À défaut, les juridictions
-            compétentes seront déterminées conformément aux règles légales applicables.
+            Les présentes CGV sont soumises au droit français. En cas de litige, le client est
+            invité à contacter Hociatec afin de rechercher une solution amiable. À défaut, les
+            juridictions compétentes seront déterminées conformément aux règles légales applicables.
           </p>
         </div>
       </div>

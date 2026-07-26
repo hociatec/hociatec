@@ -34,13 +34,18 @@ export const ForgotPasswordPage = () => {
       const response = await requestPasswordReset(email);
       const nextMessage = response.message ?? 'Si un compte existe, un e-mail vient d’être envoyé.';
       setMessage(nextMessage);
-      try { toast.show(nextMessage, { variant: 'success' }); } catch {}
+      try {
+        toast.show(nextMessage, { variant: 'success' });
+      } catch {}
     } catch (submissionError) {
-      const nextError = submissionError instanceof Error
-        ? submissionError.message
-        : 'Impossible de traiter votre demande pour le moment.';
+      const nextError =
+        submissionError instanceof Error
+          ? submissionError.message
+          : 'Impossible de traiter votre demande pour le moment.';
       setError(nextError);
-      try { toast.show(nextError, { variant: 'error' }); } catch {}
+      try {
+        toast.show(nextError, { variant: 'error' });
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -60,7 +65,8 @@ export const ForgotPasswordPage = () => {
         }
       >
         <p className="login-form__intro">
-          Saisissez l&apos;adresse e-mail liée à votre compte. Si elle existe, vous recevrez un lien pour définir un nouveau mot de passe.
+          Saisissez l&apos;adresse e-mail liée à votre compte. Si elle existe, vous recevrez un lien
+          pour définir un nouveau mot de passe.
         </p>
         {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
         {error && <FeedbackMessage>{error}</FeedbackMessage>}

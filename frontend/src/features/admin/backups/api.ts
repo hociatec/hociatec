@@ -78,7 +78,10 @@ export const updateBackupSettings = async (
   payload: Partial<Pick<BackupSettingsDto, 'enabled' | 'intervalHours' | 'retentionCount'>>,
 ): Promise<BackupStatusDto> => {
   try {
-    const { data } = await httpClient.patch<ApiResponse<BackupStatusDto>>('/api/admin/backups/settings', payload);
+    const { data } = await httpClient.patch<ApiResponse<BackupStatusDto>>(
+      '/api/admin/backups/settings',
+      payload,
+    );
     return unwrap(data, 'Impossible de sauvegarder la configuration.');
   } catch (error) {
     return rethrowApiError(error, 'Impossible de sauvegarder la configuration.');
@@ -87,7 +90,10 @@ export const updateBackupSettings = async (
 
 export const runBackupNow = async (): Promise<BackupStatusDto> => {
   try {
-    const { data } = await httpClient.post<ApiResponse<BackupStatusDto>>('/api/admin/backups/run', {});
+    const { data } = await httpClient.post<ApiResponse<BackupStatusDto>>(
+      '/api/admin/backups/run',
+      {},
+    );
     return unwrap(data, 'Impossible de lancer la sauvegarde.');
   } catch (error) {
     return rethrowApiError(error, 'Impossible de lancer la sauvegarde.');

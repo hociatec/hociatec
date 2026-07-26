@@ -12,16 +12,31 @@ export const useMyAppointments = () => {
   const loadAppointments = useCallback(async () => {
     try {
       const data = await fetchMyAppointments();
-      setUpcoming(data.upcoming); setPast(data.past); setError(null);
-    } catch (reason) { setError(getHttpErrorMessage(reason, 'Erreur lors du chargement de mes rendez-vous')); }
-    finally { setLoading(false); }
+      setUpcoming(data.upcoming);
+      setPast(data.past);
+      setError(null);
+    } catch (reason) {
+      setError(getHttpErrorMessage(reason, 'Erreur lors du chargement de mes rendez-vous'));
+    } finally {
+      setLoading(false);
+    }
   }, []);
-  useEffect(() => { void loadAppointments(); }, [loadAppointments]);
-  const cancel = useCallback(async (id: number) => {
-    setCancellingId(id);
-    try { await cancelAppointment(id); await loadAppointments(); }
-    catch (reason) { setError(getHttpErrorMessage(reason, "Erreur lors de l'annulation du rendez-vous")); }
-    finally { setCancellingId(null); }
+  useEffect(() => {
+    void loadAppointments();
   }, [loadAppointments]);
+  const cancel = useCallback(
+    async (id: number) => {
+      setCancellingId(id);
+      try {
+        await cancelAppointment(id);
+        await loadAppointments();
+      } catch (reason) {
+        setError(getHttpErrorMessage(reason, "Erreur lors de l'annulation du rendez-vous"));
+      } finally {
+        setCancellingId(null);
+      }
+    },
+    [loadAppointments],
+  );
   return { loading, error, upcoming, past, cancellingId, cancel };
 };

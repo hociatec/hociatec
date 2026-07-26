@@ -6,11 +6,11 @@ namespace App\Module\Admin\Quote\Service;
 
 use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Entity\Service;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class QuoteServiceCatalogManager
 {
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private DoctrinePersistence $persistence)
     {
     }
 
@@ -19,8 +19,8 @@ final readonly class QuoteServiceCatalogManager
         $this->validate($data, true);
         $service = new Service($data->title, $data->priceCents ?? 0, $data->vatRateBps ?? 0);
         $this->apply($service, $data);
-        $this->entityManager->persist($service);
-        $this->entityManager->flush();
+        $this->persistence->persist($service);
+        $this->persistence->flush();
 
         return $service;
     }
@@ -29,7 +29,7 @@ final readonly class QuoteServiceCatalogManager
     {
         $this->validate($data, false);
         $this->apply($service, $data);
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $service;
     }

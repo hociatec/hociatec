@@ -137,7 +137,8 @@ export const VoucherFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier un bon' : 'Créer un bon'}
       headerActions={
         <button
@@ -242,9 +243,7 @@ export const VoucherFormPage = () => {
                 className="register-form__input"
                 type="datetime-local"
                 value={form.startsAt}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, startsAt: event.target.value }))
-                }
+                onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
               />
             </label>
           </div>

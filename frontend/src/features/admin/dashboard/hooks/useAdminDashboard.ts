@@ -9,8 +9,18 @@ export const useAdminDashboard = () => {
 
   useEffect(() => {
     void fetchAdminDashboard()
-      .then((data) => { setDashboard(data); setStatus('success'); })
-      .catch((reason: unknown) => { setStatus('error'); setError(reason instanceof Error ? reason.message : "Les indicateurs d'administration n'ont pas pu être chargés."); });
+      .then((data) => {
+        setDashboard(data);
+        setStatus('success');
+      })
+      .catch((reason: unknown) => {
+        setStatus('error');
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "Les indicateurs d'administration n'ont pas pu être chargés.",
+        );
+      });
   }, []);
 
   return { dashboard, error, status };

@@ -57,13 +57,10 @@ export const VouchersPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Bons de réduction"
-      headerActions={
-        <PrimaryLink to="/admin/vouchers/new">
-          Créer un bon
-        </PrimaryLink>
-      }
+      headerActions={<PrimaryLink to="/admin/vouchers/new">Créer un bon</PrimaryLink>}
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
@@ -83,18 +80,18 @@ export const VouchersPage = () => {
         emptyLabel="Aucun bon de réduction."
       >
         <AdminTableShell>
-        <table className="catalog-admin-table">
-          <thead>
-            <tr>
-              <th scope="col">Nom</th>
-              <th scope="col">Code</th>
-              <th scope="col">Remise</th>
-              <th scope="col">Statut</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vouchers.map((voucher) => (
+          <table className="catalog-admin-table">
+            <thead>
+              <tr>
+                <th scope="col">Nom</th>
+                <th scope="col">Code</th>
+                <th scope="col">Remise</th>
+                <th scope="col">Statut</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vouchers.map((voucher) => (
                 <tr key={voucher.id}>
                   <th scope="row">{voucher.name}</th>
                   <td>{voucher.code}</td>
@@ -106,27 +103,27 @@ export const VouchersPage = () => {
                   <td>{voucher.isActive ? 'Actif' : 'Inactif'}</td>
                   <td>
                     <div className="catalog-admin-actions">
-                    <Link
-                      to={`/admin/vouchers/${voucher.id}/edit`}
-                      className="catalog-admin-actions__edit"
-                      aria-label={`Modifier le bon ${voucher.name} (${voucher.code})`}
-                    >
-                      Modifier
-                    </Link>
-                    <button
-                      type="button"
-                      className="catalog-admin-actions__delete"
-                      onClick={() => void handleDelete(voucher.id)}
-                      aria-label={`Supprimer le bon ${voucher.name} (${voucher.code})`}
-                    >
-                      Supprimer
-                    </button>
+                      <Link
+                        to={`/admin/vouchers/${voucher.id}/edit`}
+                        className="catalog-admin-actions__edit"
+                        aria-label={`Modifier le bon ${voucher.name} (${voucher.code})`}
+                      >
+                        Modifier
+                      </Link>
+                      <button
+                        type="button"
+                        className="catalog-admin-actions__delete"
+                        onClick={() => void handleDelete(voucher.id)}
+                        aria-label={`Supprimer le bon ${voucher.name} (${voucher.code})`}
+                      >
+                        Supprimer
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
         </AdminTableShell>
       </AdminListState>
     </PageContainer>

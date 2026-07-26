@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\User\Controller;
 
+use App\Module\Admin\User\DTO\CustomerVoucherInput;
 use App\Module\User\Repository\UserRepository;
-use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
 use App\Module\Voucher\Service\VoucherNotificationEmailService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,7 @@ final class CreateCustomerVoucherController extends AbstractController
         private readonly VoucherManager $voucherManager,
         private readonly VoucherNotificationEmailService $notifications,
         private readonly VoucherRepository $vouchers,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -38,21 +40,23 @@ final class CreateCustomerVoucherController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
+            $input = CustomerVoucherInput::fromArray($payload);
+            $this->validator->validate($input);
             $voucher = $this->voucherManager->create([
-                'name' => trim((string) ($payload['name'] ?? '')),
-                'code' => $this->normalizeCode($payload['code'] ?? $this->generateCode($user->getLastName())),
-                'description' => isset($payload['description']) ? trim((string) $payload['description']) : null,
-                'discountType' => trim((string) ($payload['discountType'] ?? Voucher::TYPE_FIXED_CENTS)),
-                'discountValue' => (int) ($payload['discountValue'] ?? 0),
-                'isActive' => (bool) ($payload['isActive'] ?? true),
-                'startsAt' => $this->parseDate($payload['startsAt'] ?? null),
-                'endsAt' => $this->parseDate($payload['endsAt'] ?? null),
+                'name' => $input->name,
+                'code' => $this->normalizeCode($input->code ?? $this->generateCode($user->getLastName())),
+                'description' => $input->description,
+                'discountType' => $input->discountType,
+                'discountValue' => $input->discountValue,
+                'isActive' => $input->isActive,
+                'startsAt' => $this->parseDate($input->startsAt),
+                'endsAt' => $this->parseDate($input->endsAt),
             ]);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
@@ -63,7 +67,7 @@ final class CreateCustomerVoucherController extends AbstractController
             ->setRecipientUserId($user->getId())
             ->setRecipientEmail($user->getEmail());
 
-        if ((bool) ($payload['sendEmail'] ?? true)) {
+        if ($input->sendEmail) {
             $this->notifications->sendCustomerVoucher($user, $voucher);
             $voucher->setSentAt(new \DateTimeImmutable());
             $emailSent = true;

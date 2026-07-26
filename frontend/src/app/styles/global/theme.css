@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
   background-color: var(--hocia-ink);
   color: var(--hocia-line);
@@ -36,4 +36,3 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
-

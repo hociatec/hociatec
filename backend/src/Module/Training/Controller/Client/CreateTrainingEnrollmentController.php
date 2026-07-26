@@ -29,7 +29,7 @@ final class CreateTrainingEnrollmentController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
             $result = $this->checkout->enroll(
                 $this->currentUser(),
                 (int) ($payload['sessionId'] ?? 0),
@@ -39,8 +39,8 @@ final class CreateTrainingEnrollmentController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error('Impossible de finaliser l’inscription à la formation.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::error('Impossible de finaliser l’inscription à la formation.', Response::HTTP_BAD_REQUEST);
         }
 
         $data = $this->formatter->formatEnrollment($result->enrollment);

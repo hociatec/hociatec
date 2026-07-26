@@ -36,7 +36,7 @@ final class UpdatePromotionController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -49,5 +49,4 @@ final class UpdatePromotionController extends AbstractController
             'promotion' => PromotionFormatter::formatPromotion($promotion),
         ]);
     }
-
 }

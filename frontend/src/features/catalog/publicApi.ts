@@ -65,10 +65,9 @@ export const fetchPublicProduct = async (slug: string) => {
 
 export const shareProductByEmail = async (slug: string, payload: ShareProductEmailPayload) => {
   try {
-    const { data } = await httpClient.post<ApiResponse<{ sent: boolean; to: string; message: string }>>(
-      `/api/public/catalog/products/${slug}/share`,
-      payload,
-    );
+    const { data } = await httpClient.post<
+      ApiResponse<{ sent: boolean; to: string; message: string }>
+    >(`/api/public/catalog/products/${slug}/share`, payload);
 
     if (data.status === 'success') {
       return data.data;
@@ -98,7 +97,10 @@ export const fetchProductReviews = async (
 ) => {
   try {
     const { data } = await httpClient.get<
-      ApiResponse<{ items: ProductPublicReview[]; meta: { page: number; perPage: number; total: number; average: number } }>
+      ApiResponse<{
+        items: ProductPublicReview[];
+        meta: { page: number; perPage: number; total: number; average: number };
+      }>
     >(`/api/public/catalog/products/${slug}/reviews`, {
       params: {
         page: params.page ?? 1,
@@ -116,22 +118,24 @@ export const fetchProductReviews = async (
   }
 };
 
-export const fetchPublicProducts = async (params: {
-  category?: string;
-  q?: string;
-  homepage?: boolean;
-  sellingType?: 'sale' | 'rental';
-  brand?: string;
-  storageCapacity?: string;
-  memoryRam?: string;
-  color?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  page?: number;
-  perPage?: number;
-  sort?: CatalogSort;
-} = {}) => {
+export const fetchPublicProducts = async (
+  params: {
+    category?: string;
+    q?: string;
+    homepage?: boolean;
+    sellingType?: 'sale' | 'rental';
+    brand?: string;
+    storageCapacity?: string;
+    memoryRam?: string;
+    color?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    page?: number;
+    perPage?: number;
+    sort?: CatalogSort;
+  } = {},
+) => {
   const queryParams: Record<string, string> = {};
 
   if (params.category) {
@@ -206,22 +210,24 @@ export const fetchPublicProducts = async (params: {
   }
 };
 
-export const searchPublicProducts = async (params: {
-  category?: string;
-  q?: string;
-  homepage?: boolean;
-  sellingType?: 'sale' | 'rental';
-  brand?: string;
-  storageCapacity?: string;
-  memoryRam?: string;
-  color?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  page?: number;
-  perPage?: number;
-  sort?: CatalogSort;
-} = {}) => {
+export const searchPublicProducts = async (
+  params: {
+    category?: string;
+    q?: string;
+    homepage?: boolean;
+    sellingType?: 'sale' | 'rental';
+    brand?: string;
+    storageCapacity?: string;
+    memoryRam?: string;
+    color?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    page?: number;
+    perPage?: number;
+    sort?: CatalogSort;
+  } = {},
+) => {
   const queryParams: Record<string, string> = {};
 
   if (params.category) queryParams.category = params.category;
@@ -232,18 +238,19 @@ export const searchPublicProducts = async (params: {
   if (params.storageCapacity) queryParams.storageCapacity = params.storageCapacity;
   if (params.memoryRam) queryParams.memoryRam = params.memoryRam;
   if (params.color) queryParams.color = params.color;
-  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice)) queryParams.minPrice = String(params.minPrice);
-  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice)) queryParams.maxPrice = String(params.maxPrice);
+  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice))
+    queryParams.minPrice = String(params.minPrice);
+  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice))
+    queryParams.maxPrice = String(params.maxPrice);
   if (params.inStock !== undefined) queryParams.inStock = params.inStock ? '1' : '0';
   if (params.page !== undefined) queryParams.page = String(params.page);
   if (params.perPage !== undefined) queryParams.perPage = String(params.perPage);
   if (params.sort) queryParams.sort = params.sort;
 
   try {
-    const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>>(
-      '/api/public/catalog/products',
-      { params: queryParams },
-    );
+    const { data } = await httpClient.get<
+      ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>
+    >('/api/public/catalog/products', { params: queryParams });
 
     if (data.status === 'success') {
       return data.data;

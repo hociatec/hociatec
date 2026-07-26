@@ -7,14 +7,14 @@ namespace App\Module\Cart\Service;
 use App\Module\Cart\Entity\CartItem;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Catalog\Entity\Product;
+use App\Shared\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class CartService
 {
     public function __construct(
         private readonly CartSessionProvider $cartSessions,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -39,15 +39,15 @@ final class CartService
         if (null === $existing) {
             $item = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
             $cart->addItem($item);
-            $this->entityManager->persist($item);
+            $this->persistence->persist($item);
         } else {
             $existing->increaseQuantity($quantity);
         }
 
         try {
             $cart->touch();
-            $this->entityManager->persist($cart);
-            $this->entityManager->flush();
+            $this->persistence->persist($cart);
+            $this->persistence->flush();
 
             return $cart;
         } catch (UniqueConstraintViolationException $exception) {
@@ -58,13 +58,13 @@ final class CartService
             $cartToken = $cart->getToken();
             $productId = $product->getId();
 
-            $this->entityManager->clear();
+            $this->persistence->clear();
             if (null === $productId) {
                 throw $exception;
             }
 
             $freshCart = $this->findCartByToken($cartToken);
-            $freshProduct = $this->entityManager->find(Product::class, $productId);
+            $freshProduct = $this->persistence->findForUpdate(Product::class, $productId);
 
             if (null === $freshCart || null === $freshProduct) {
                 throw $exception;
@@ -86,10 +86,10 @@ final class CartService
 
         if (null !== $existing) {
             $cart->removeItem($existing);
-            $this->entityManager->remove($existing);
+            $this->persistence->remove($existing);
             $cart->touch();
-            $this->entityManager->persist($cart);
-            $this->entityManager->flush();
+            $this->persistence->persist($cart);
+            $this->persistence->flush();
         }
 
         return $cart;
@@ -117,7 +117,7 @@ final class CartService
         if (0 === $quantity) {
             if (null !== $existing) {
                 $cart->removeItem($existing);
-                $this->entityManager->remove($existing);
+                $this->persistence->remove($existing);
             }
         } else {
             if (null === $existing) {
@@ -127,7 +127,7 @@ final class CartService
 
                 $existing = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
                 $cart->addItem($existing);
-                $this->entityManager->persist($existing);
+                $this->persistence->persist($existing);
             } else {
                 $skipQuantityUpdate = false;
 
@@ -136,7 +136,7 @@ final class CartService
                     if (null !== $duplicate && $duplicate !== $existing) {
                         $duplicate->increaseQuantity($quantity);
                         $cart->removeItem($existing);
-                        $this->entityManager->remove($existing);
+                        $this->persistence->remove($existing);
                         $skipQuantityUpdate = true;
                         $existing = $duplicate;
                     } else {
@@ -151,8 +151,8 @@ final class CartService
         }
 
         $cart->touch();
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }
@@ -163,12 +163,12 @@ final class CartService
 
         foreach ($cart->getItems()->toArray() as $item) {
             $cart->removeItem($item);
-            $this->entityManager->remove($item);
+            $this->persistence->remove($item);
         }
 
         $cart->touch();
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }

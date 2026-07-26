@@ -20,10 +20,18 @@ export const SiteFooter = () => (
       <div className="site-footer__bottom">
         <p>© {new Date().getFullYear()} Hociatec</p>
         <nav className="site-footer__links" aria-label="Liens légaux">
-          <Link to="/legal/cgu" className="site-footer__link">CGU</Link>
-          <Link to="/legal/cgv" className="site-footer__link">CGV</Link>
-          <Link to="/legal/confidentialite" className="site-footer__link">Confidentialité</Link>
-          <Link to="/legal/mentions-legales" className="site-footer__link">Mentions légales</Link>
+          <Link to="/legal/cgu" className="site-footer__link">
+            CGU
+          </Link>
+          <Link to="/legal/cgv" className="site-footer__link">
+            CGV
+          </Link>
+          <Link to="/legal/confidentialite" className="site-footer__link">
+            Confidentialité
+          </Link>
+          <Link to="/legal/mentions-legales" className="site-footer__link">
+            Mentions légales
+          </Link>
           <Link to="/contact" className="site-footer__link">
             <Mail aria-hidden="true" />
             Contact

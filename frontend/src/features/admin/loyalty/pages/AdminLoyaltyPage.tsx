@@ -6,7 +6,12 @@ import {
   type AdminLoyaltyCustomerDto,
 } from '@/features/loyalty/api/loyaltyApi';
 import { PageContainer } from '@/shared/components/PageContainer';
-import { AdminListState, AdminMetricCard, AdminMetricGrid, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import {
+  AdminListState,
+  AdminMetricCard,
+  AdminMetricGrid,
+  AdminTableShell,
+} from '@/shared/components/admin/AdminDataView';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatEuroCents, formatFrenchNumber } from '@/shared/lib/formatters';
@@ -29,21 +34,25 @@ export const AdminLoyaltyPage = () => {
         setStatus('success');
       })
       .catch((error: unknown) => {
-        toast.show(error instanceof Error ? error.message : 'Impossible de charger les soldes fidélité.', {
-          variant: 'error',
-        });
+        toast.show(
+          error instanceof Error ? error.message : 'Impossible de charger les soldes fidélité.',
+          {
+            variant: 'error',
+          },
+        );
         setStatus('error');
       });
   }, [search, toast]);
 
   const totals = useMemo(
-    () => items.reduce(
-      (acc, item) => ({
-        points: acc.points + item.points,
-        euroCents: acc.euroCents + item.euroCents,
-      }),
-      { points: 0, euroCents: 0 },
-    ),
+    () =>
+      items.reduce(
+        (acc, item) => ({
+          points: acc.points + item.points,
+          euroCents: acc.euroCents + item.euroCents,
+        }),
+        { points: 0, euroCents: 0 },
+      ),
     [items],
   );
 
@@ -56,9 +65,12 @@ export const AdminLoyaltyPage = () => {
         toast.show('Solde fidélité mis à jour.', { variant: 'success' });
       })
       .catch((error: unknown) => {
-        toast.show(error instanceof Error ? error.message : 'Impossible de mettre à jour ce solde.', {
-          variant: 'error',
-        });
+        toast.show(
+          error instanceof Error ? error.message : 'Impossible de mettre à jour ce solde.',
+          {
+            variant: 'error',
+          },
+        );
       });
   };
 
@@ -92,7 +104,10 @@ export const AdminLoyaltyPage = () => {
             </thead>
             <tbody>
               {items.map((customer) => {
-                const draftPoints = Math.max(0, Number.parseInt(drafts[customer.id] ?? '0', 10) || 0);
+                const draftPoints = Math.max(
+                  0,
+                  Number.parseInt(drafts[customer.id] ?? '0', 10) || 0,
+                );
 
                 return (
                   <tr key={customer.id}>
@@ -106,7 +121,12 @@ export const AdminLoyaltyPage = () => {
                         min={0}
                         step={10}
                         value={drafts[customer.id] ?? String(customer.points)}
-                        onChange={(event) => setDrafts((current) => ({ ...current, [customer.id]: event.target.value }))}
+                        onChange={(event) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [customer.id]: event.target.value,
+                          }))
+                        }
                         className="w-32 rounded-xl border border-brand-200 px-3 py-2"
                         aria-label={`Solde fidélité de ${customer.fullName}`}
                       />

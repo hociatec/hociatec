@@ -7,13 +7,13 @@ namespace App\Module\Cart\Service;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class CartMergeService
 {
     public function __construct(
         private readonly CartSessionRepository $carts,
-        private readonly EntityManagerInterface $em,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -29,16 +29,16 @@ final class CartMergeService
                 $existing = $userCart->getItemForProduct($item->getProduct(), $rentalMonths);
                 if ($existing) {
                     $existing->increaseQuantity($item->getQuantity());
-                    $this->em->remove($item);
+                    $this->persistence->remove($item);
                 } else {
                     $userCart->addItem($item);
                 }
             }
             $userCart->touch();
-            $this->em->persist($userCart);
+            $this->persistence->persist($userCart);
             // Remove the old cart shell
-            $this->em->remove($tokenCart);
-            $this->em->flush();
+            $this->persistence->remove($tokenCart);
+            $this->persistence->flush();
 
             return $userCart;
         }
@@ -50,8 +50,8 @@ final class CartMergeService
         if (!$userCart && $tokenCart) {
             $tokenCart->setUser($user);
             $tokenCart->touch();
-            $this->em->persist($tokenCart);
-            $this->em->flush();
+            $this->persistence->persist($tokenCart);
+            $this->persistence->flush();
 
             return $tokenCart;
         }
@@ -72,8 +72,8 @@ final class CartMergeService
 
         $cart = new CartSession($token);
         $cart->setUser($user);
-        $this->em->persist($cart);
-        $this->em->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }

@@ -1,6 +1,6 @@
- .home-intro,
- .home-services,
- .home-products {
+.home-intro,
+.home-services,
+.home-products {
   padding: 4rem 0;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .home-intro__panel li::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   top: 0.62rem;

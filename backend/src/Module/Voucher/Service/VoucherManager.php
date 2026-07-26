@@ -6,13 +6,13 @@ namespace App\Module\Voucher\Service;
 
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class VoucherManager
 {
     public function __construct(
         private readonly VoucherRepository $vouchers,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -44,8 +44,8 @@ final class VoucherManager
             ->setStartsAt($data['startsAt'] ?? null)
             ->setEndsAt($data['endsAt'] ?? null);
 
-        $this->entityManager->persist($voucher);
-        $this->entityManager->flush();
+        $this->persistence->persist($voucher);
+        $this->persistence->flush();
 
         return $voucher;
     }
@@ -81,16 +81,16 @@ final class VoucherManager
             ->setStartsAt($data['startsAt'] ?? null)
             ->setEndsAt($data['endsAt'] ?? null);
 
-        $this->entityManager->persist($voucher);
-        $this->entityManager->flush();
+        $this->persistence->persist($voucher);
+        $this->persistence->flush();
 
         return $voucher;
     }
 
     public function delete(Voucher $voucher): void
     {
-        $this->entityManager->remove($voucher);
-        $this->entityManager->flush();
+        $this->persistence->remove($voucher);
+        $this->persistence->flush();
     }
 
     private function normalizeCode(?string $value): string

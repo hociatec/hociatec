@@ -7,7 +7,7 @@ namespace App\Module\Marketing\Service;
 use App\Module\Marketing\Entity\EmailCampaign;
 use App\Module\Marketing\Entity\EmailTemplate;
 use App\Shared\Mail\DualTransportMailer;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -18,7 +18,7 @@ final readonly class MarketingCampaignSender
         private MarketingRecipientContextProvider $contexts,
         private MarketingTemplateRenderer $renderer,
         private DualTransportMailer $mailer,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private string $mailerFrom,
     ) {
     }
@@ -68,8 +68,8 @@ final readonly class MarketingCampaignSender
             $createdByEmail,
             $template,
         );
-        $this->entityManager->persist($campaign);
-        $this->entityManager->flush();
+        $this->persistence->persist($campaign);
+        $this->persistence->flush();
 
         return $campaign;
     }

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -13,155 +12,60 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
-import { fetchAdminOrders, updateAdminOrderStatus, type OrderDto, formatInvoiceStatusFr, formatOrderStatusFr, formatPaymentStatusFr, formatStripePaymentStatusFr } from '../../../orders/api';
+import {
+  formatInvoiceStatusFr,
+  formatOrderStatusFr,
+  formatStripePaymentStatusFr,
+} from '../../../orders/api';
+import { useAdminOrdersList } from '../hooks/useAdminOrdersList';
+import {
+  getNextOrderStatuses,
+  getOrderCustomerLabel,
+  getOrderPaymentLabel,
+  type OrderSortKey,
+  type OrderStatus,
+} from '../lib/adminOrderList';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
-import { formatEuroCents, formatOptionalFrenchDate, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
-
-type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
-type SortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'customer_asc';
-
-const nextStatusMap: Record<OrderStatus, Array<OrderStatus>> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['delivered'],
-  delivered: [],
-  cancelled: [],
-};
-
-const getNextStatuses = (status: OrderDto['status']): Array<OrderStatus> =>
-  nextStatusMap[status as OrderStatus] ?? [];
-
-const getOrderCustomerLabel = (order: OrderDto) =>
-  order.customerDisplayName
-  || order.invoice?.billingName
-  || order.shipping?.name
-  || order.invoice?.billingEmail
-  || 'Client inconnu';
-
-const getPaymentLabel = (order: OrderDto) => {
-  if (!order.payment) {
-    return 'Aucun';
-  }
-
-  return order.payment.statusLabel
-    ?? formatPaymentStatusFr(order.payment.status);
-};
+import {
+  formatEuroCents,
+  formatOptionalFrenchDate,
+  formatOptionalFrenchDateTime,
+} from '@/shared/lib/formatters';
 
 export const OrdersListPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled'>(
-    (searchParams.get('status') as 'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled' | null) ?? 'all',
-  );
-  const [health, setHealth] = useState<'all' | 'issues'>(
-    (searchParams.get('health') as 'all' | 'issues' | null) ?? 'all',
-  );
-  const [search, setSearch] = useState(searchParams.get('search') ?? '');
-  const [sort, setSort] = useState<SortKey>(
-    (searchParams.get('sort') as SortKey | null) ?? 'newest',
-  );
-  const [editing, setEditing] = useState<{
-    id: number;
-    current: OrderStatus;
-    next: OrderStatus;
-    options: Array<OrderStatus>;
-  } | null>(null);
-  const [updateError, setUpdateError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStatus('loading');
-    setError(null);
-    void fetchAdminOrders(filter, health)
-      .then((items) => {
-        setOrders(items);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Erreur');
-        setStatus('error');
-      });
-  }, [filter, health]);
-
-  useEffect(() => {
-    const next = new URLSearchParams();
-    if (filter !== 'all') next.set('status', filter);
-    if (health !== 'all') next.set('health', health);
-    if (search.trim() !== '') next.set('search', search.trim());
-    if (sort !== 'newest') next.set('sort', sort);
-    setSearchParams(next, { replace: true });
-  }, [filter, health, search, sort, setSearchParams]);
-
-  const filteredOrders = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-    const items = orders.filter((order) => {
-      if (normalizedSearch === '') {
-        return true;
-      }
-
-      const haystack = [
-        order.number,
-        getOrderCustomerLabel(order),
-        order.invoice?.billingEmail,
-        order.invoice?.billingCompany,
-        order.invoice?.number,
-        order.shipping?.address,
-        order.shipping?.city,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return haystack.includes(normalizedSearch);
-    });
-
-    return [...items].sort((left, right) => {
-      switch (sort) {
-        case 'oldest':
-          return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
-        case 'amount_desc':
-          return right.totalPriceCents - left.totalPriceCents;
-        case 'amount_asc':
-          return left.totalPriceCents - right.totalPriceCents;
-        case 'customer_asc':
-          return getOrderCustomerLabel(left).localeCompare(getOrderCustomerLabel(right), 'fr', { sensitivity: 'base' });
-        case 'newest':
-        default:
-          return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
-      }
-    });
-  }, [orders, search, sort]);
-
-  const handleConfirmUpdate = () => {
-    if (!editing) return;
-    if (editing.options.length === 0) {
-      setUpdateError('Aucune transition disponible pour ce statut.');
-      return;
-    }
-    const { id, next } = editing;
-    void updateAdminOrderStatus(id, next)
-      .then((updated) => {
-        setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
-        setEditing(null);
-        setUpdateError(null);
-      })
-      .catch((e: unknown) => {
-        const message = e instanceof Error ? e.message : 'Impossible de mettre à jour le statut.';
-        setUpdateError(message);
-      });
-  };
+  const {
+    orders,
+    status,
+    error,
+    filter,
+    setFilter,
+    health,
+    setHealth,
+    search,
+    setSearch,
+    sort,
+    setSort,
+    editing,
+    setEditing,
+    updateError,
+    setUpdateError,
+    filteredOrders,
+    handleConfirmUpdate,
+  } = useAdminOrdersList();
 
   return (
     <PageContainer size="admin" title="Commandes">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} affichée{filteredOrders.length > 1 ? 's' : ''} sur {orders.length}.
+          {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} affichée
+          {filteredOrders.length > 1 ? 's' : ''} sur {orders.length}.
         </p>
         <p className="text-sm text-stone-500">
-          Recherchez une commande par numéro, client, email, société ou facture, puis triez la liste selon votre besoin.
+          Recherchez une commande par numéro, client, email, société ou facture, puis triez la liste
+          selon votre besoin.
         </p>
       </div>
 
@@ -185,7 +89,7 @@ export const OrdersListPage = () => {
         />
         <SelectFilter
           value={sort}
-          onChange={(v) => setSort(v as SortKey)}
+          onChange={(v) => setSort(v as OrderSortKey)}
           options={[
             { value: 'newest', label: 'Plus récentes' },
             { value: 'oldest', label: 'Plus anciennes' },
@@ -261,10 +165,12 @@ export const OrdersListPage = () => {
                     )}
                   </td>
                   <td>
-                    <div className="font-medium text-brand-900">{getPaymentLabel(order)}</div>
+                    <div className="font-medium text-brand-900">{getOrderPaymentLabel(order)}</div>
                     {order.payment?.stripePaymentStatus ? (
                       <div className="muted">
-                        Stripe: {order.payment.stripePaymentStatusLabel ?? formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
+                        Stripe:{' '}
+                        {order.payment.stripePaymentStatusLabel ??
+                          formatStripePaymentStatusFr(order.payment.stripePaymentStatus)}
                       </div>
                     ) : null}
                     {order.payment?.lastStripeEventType ? (
@@ -275,7 +181,9 @@ export const OrdersListPage = () => {
                   </td>
                   <td>{formatEuroCents(order.totalPriceCents)}</td>
                   <td>
-                    <div className="capitalize">{order.statusLabel ?? formatOrderStatusFr(order.status)}</div>
+                    <div className="capitalize">
+                      {order.statusLabel ?? formatOrderStatusFr(order.status)}
+                    </div>
                     {order.hasIssues && (order.issueReasons?.length ?? 0) > 0 ? (
                       <div className="mt-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                         <div className="font-semibold">Anomalies détectées</div>
@@ -289,14 +197,16 @@ export const OrdersListPage = () => {
                   </td>
                   <td>
                     <div className="flex flex-wrap gap-3">
-                      {getNextStatuses(order.status).length === 0 ? (
-                        <span className="inline-flex items-center text-xs text-stone-500">Statut final</span>
+                      {getNextOrderStatuses(order.status).length === 0 ? (
+                        <span className="inline-flex items-center text-xs text-stone-500">
+                          Statut final
+                        </span>
                       ) : (
                         <button
                           type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
                           onClick={() => {
-                            const options = getNextStatuses(order.status);
+                            const options = getNextOrderStatuses(order.status);
                             if (!options.length) return;
                             setEditing({
                               id: order.id,
@@ -310,7 +220,10 @@ export const OrdersListPage = () => {
                           Modifier le statut
                         </button>
                       )}
-                      <Link className="inline-flex items-center text-sm font-semibold underline" to={`/admin/orders/${order.id}`}>
+                      <Link
+                        className="inline-flex items-center text-sm font-semibold underline"
+                        to={`/admin/orders/${order.id}`}
+                      >
                         Détails
                       </Link>
                     </div>
@@ -347,7 +260,9 @@ export const OrdersListPage = () => {
                     name="order-status"
                     value={option}
                     checked={editing?.next === option}
-                    onChange={() => setEditing((current) => (current ? { ...current, next: option } : current))}
+                    onChange={() =>
+                      setEditing((current) => (current ? { ...current, next: option } : current))
+                    }
                   />{' '}
                   {formatOrderStatusFr(option)}
                 </label>

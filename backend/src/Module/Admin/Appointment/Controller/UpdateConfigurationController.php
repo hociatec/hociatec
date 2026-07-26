@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Appointment\Controller;
 
+use App\Module\Admin\Appointment\DTO\WorkingDaysInput;
 use App\Module\Appointment\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Service\WorkingDayPayloadMapper;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,26 +23,25 @@ class UpdateConfigurationController extends AbstractController
     public function __construct(
         private readonly WorkingDayConfigurationService $configurationService,
         private readonly WorkingDayPayloadMapper $payloadMapper,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
-            $days = $this->payloadMapper->map($payload);
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
+            $input = WorkingDaysInput::fromArray($payload);
+            $this->validator->validate($input);
+            $days = $this->payloadMapper->map($input->toPayload());
         } catch (\JsonException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $configurations = $this->configurationService->update($days);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de mettre a jour la configuration.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+        } catch (\Throwable) {
+            return ApiResponse::error('Impossible de mettre a jour la configuration.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success([

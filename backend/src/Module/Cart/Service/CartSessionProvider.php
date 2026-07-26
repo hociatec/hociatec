@@ -7,13 +7,13 @@ namespace App\Module\Cart\Service;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\Cart\Repository\CartSessionRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class CartSessionProvider
 {
     public function __construct(
         private CartSessionRepository $cartSessions,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
     ) {
     }
 
@@ -66,8 +66,8 @@ final readonly class CartSessionProvider
         } while (null !== $this->cartSessions->findOneByToken($token));
 
         $cart = new CartSession($token);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }
@@ -76,8 +76,8 @@ final readonly class CartSessionProvider
     {
         $cart = $this->create();
         $cart->setUser($user);
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }

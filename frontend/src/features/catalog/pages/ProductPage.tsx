@@ -9,7 +9,12 @@ import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useProductFavorite } from '@/features/catalog/hooks/useProductFavorite';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
-import { formatProductDate, formatProductPrice } from '../utils/productPageDisplay';
+import {
+  buildProductSlides,
+  buildProductVariantOptions,
+  formatProductDate,
+  groupProductVariants,
+} from '../utils/productPageDisplay';
 import {
   ProductDetailHeader,
   ProductGallery,
@@ -27,12 +32,23 @@ export const ProductPage = () => {
   const navigate = useNavigate();
   const { product, colorVariants, loading, error } = useProductPageData(slug);
   const [activeSlide, setActiveSlide] = useState(0);
-  const { hasMoreReviews, loadMoreReviews, reviews, reviewsError, reviewsLoading, reviewsMeta } = useProductReviews(product);
+  const { hasMoreReviews, loadMoreReviews, reviews, reviewsError, reviewsLoading, reviewsMeta } =
+    useProductReviews(product);
   const [failedSlideUrls, setFailedSlideUrls] = useState<Set<string>>(() => new Set());
   const { show: showToast } = useToast();
-  const { isAuthenticated, isFavorite, favoriteStatus, favoriteAction, toggle: toggleFavorite } = useProductFavorite(product?.id);
+  const {
+    isAuthenticated,
+    isFavorite,
+    favoriteStatus,
+    favoriteAction,
+    toggle: toggleFavorite,
+  } = useProductFavorite(product?.id);
   const previousSlidesSignatureRef = useRef<string>('');
-  const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
+  const canonicalUrl = product
+    ? `${SITE_URL}/catalogue/produits/${product.slug}`
+    : slug
+      ? `${SITE_URL}/catalogue/produits/${slug}`
+      : undefined;
   const productDisplayName = product ? getCatalogProductDisplayName(product) : null;
   const productStructuredData = product
     ? {
@@ -54,32 +70,22 @@ export const ProductPage = () => {
       }
     : undefined;
 
-  useDocumentTitle(productDisplayName ? `${productDisplayName} - Catalogue` : 'Produit - Catalogue');
+  useDocumentTitle(
+    productDisplayName ? `${productDisplayName} - Catalogue` : 'Produit - Catalogue',
+  );
   useMetaTags({
     title: productDisplayName ? `${productDisplayName} — Catalogue` : 'Produit - Catalogue',
-    description: product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
+    description:
+      product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
     imageUrl: product?.imageUrl ?? undefined,
     type: 'product',
     canonicalUrl,
     structuredData: productStructuredData,
   });
 
-
   const slides = useMemo(
-    () =>
-      product && product.gallery.length > 0
-        ? product.gallery
-        : product && product.imageUrl
-          ? [
-              {
-                position: 0,
-                url: product.imageUrl,
-                alt: product.imageAlt ?? productDisplayName ?? product.name,
-                isPrimary: true,
-              },
-            ]
-          : [],
-    [product],
+    () => buildProductSlides(product, productDisplayName),
+    [product, productDisplayName],
   );
   const visibleSlides = useMemo(
     () => slides.filter((slide) => !failedSlideUrls.has(slide.url)),
@@ -91,7 +97,9 @@ export const ProductPage = () => {
     const previousSignature = previousSlidesSignatureRef.current;
 
     if (signature === previousSignature) {
-      setActiveSlide((previous) => (visibleSlides.length === 0 ? 0 : Math.min(previous, visibleSlides.length - 1)));
+      setActiveSlide((previous) =>
+        visibleSlides.length === 0 ? 0 : Math.min(previous, visibleSlides.length - 1),
+      );
       return;
     }
 
@@ -112,8 +120,9 @@ export const ProductPage = () => {
     };
   }, [product]);
 
-  const summaryAverage = reviewsMeta.total > 0 ? reviewsMeta.average : product?.reviews?.average ?? 0;
-  const summaryCount = reviewsMeta.total > 0 ? reviewsMeta.total : product?.reviews?.count ?? 0;
+  const summaryAverage =
+    reviewsMeta.total > 0 ? reviewsMeta.average : (product?.reviews?.average ?? 0);
+  const summaryCount = reviewsMeta.total > 0 ? reviewsMeta.total : (product?.reviews?.count ?? 0);
   const favoriteButtonLabel =
     favoriteAction === 'saving'
       ? 'Veuillez patienter...'
@@ -121,63 +130,8 @@ export const ProductPage = () => {
         ? 'Retirer des favoris'
         : 'Ajouter aux favoris';
   const favoriteButtonDisabled = favoriteAction === 'saving' || favoriteStatus === 'loading';
-  const variantOptions = useMemo(
-    () =>
-      [...colorVariants]
-        .sort((left, right) => {
-          const leftPosition = left.variantPosition ?? Number.MAX_SAFE_INTEGER;
-          const rightPosition = right.variantPosition ?? Number.MAX_SAFE_INTEGER;
-
-          if (leftPosition !== rightPosition) {
-            return leftPosition - rightPosition;
-          }
-
-          return left.id - right.id;
-        })
-        .map((variant) => {
-          const storage = variant.storageCapacity?.trim() || null;
-          const color = variant.color?.trim() || null;
-          const attributes = [storage, color].filter((value): value is string => Boolean(value));
-          const title = color ?? storage ?? variant.name;
-          const subtitle =
-            storage && color
-              ? `${storage} • ${color}`
-              : attributes.length > 0
-                ? attributes.join(' • ')
-                : 'Version disponible';
-
-          return {
-            id: variant.id,
-            slug: variant.slug,
-            title,
-            subtitle,
-            storage,
-            color,
-            priceLabel: `${formatProductPrice(variant.priceCents)}${variant.sellingType === 'rental' ? ' / mois' : ''}`,
-            stockLabel:
-              variant.stock > 0
-                ? `${variant.stock} en stock`
-                : 'Indisponible',
-            isAvailable: variant.stock > 0,
-          };
-        }),
-    [colorVariants],
-  );
-  const variantGroups = useMemo(() => {
-    const groups = new Map<string, typeof variantOptions>();
-
-    variantOptions.forEach((variant) => {
-      const key = variant.storage ?? 'Autres versions';
-      const items = groups.get(key) ?? [];
-      items.push(variant);
-      groups.set(key, items);
-    });
-
-    return Array.from(groups.entries()).map(([storage, items]) => ({
-      storage,
-      items: items.sort((left, right) => left.title.localeCompare(right.title, 'fr')),
-    }));
-  }, [variantOptions]);
+  const variantOptions = useMemo(() => buildProductVariantOptions(colorVariants), [colorVariants]);
+  const variantGroups = useMemo(() => groupProductVariants(variantOptions), [variantOptions]);
 
   const handleVariantChange = (variantId: string) => {
     const target = colorVariants.find((variant) => variant.id === Number(variantId));
@@ -194,15 +148,18 @@ export const ProductPage = () => {
       return;
     }
     void toggleFavorite()
-      .then(({ alreadyFavorite }) => showToast(alreadyFavorite ? 'Ce produit est déjà présent dans vos favoris.' : 'Produit ajouté à vos favoris.'))
+      .then(({ alreadyFavorite }) =>
+        showToast(
+          alreadyFavorite
+            ? 'Ce produit est déjà présent dans vos favoris.'
+            : 'Produit ajouté à vos favoris.',
+        ),
+      )
       .catch((error: unknown) => {
         const message =
-          error instanceof Error
-            ? error.message
-            : "Impossible d'ajouter ce produit aux favoris.";
+          error instanceof Error ? error.message : "Impossible d'ajouter ce produit aux favoris.";
         showToast(message, { variant: 'error' });
-      })
-      ;
+      });
   };
 
   const handleRemoveFavorite = () => {
@@ -213,12 +170,9 @@ export const ProductPage = () => {
       .then(() => showToast('Produit retiré de vos favoris.'))
       .catch((error: unknown) => {
         const message =
-          error instanceof Error
-            ? error.message
-            : 'Impossible de retirer ce produit des favoris.';
+          error instanceof Error ? error.message : 'Impossible de retirer ce produit des favoris.';
         showToast(message, { variant: 'error' });
-      })
-      ;
+      });
   };
 
   const handleNextSlide = () => {

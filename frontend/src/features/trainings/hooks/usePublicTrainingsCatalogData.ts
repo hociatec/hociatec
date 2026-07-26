@@ -25,10 +25,15 @@ export const usePublicTrainingsCatalogData = () => {
         setCategories(categoryItems);
       })
       .catch((reason) => {
-        if (!cancelled) setError(getHttpErrorMessage(reason, 'Impossible de charger les formations.'));
+        if (!cancelled)
+          setError(getHttpErrorMessage(reason, 'Impossible de charger les formations.'));
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { trainings, categories, loading, error };

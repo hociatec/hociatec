@@ -16,18 +16,28 @@ export const extractNumericValue = (value: string | null | undefined) => {
   return match ? match[0] : '';
 };
 
-export const buildVariantIdentityKey = (color: string | null | undefined, storageCapacity: string | null | undefined) =>
-  `${(color ?? '').trim().toLowerCase()}|${(storageCapacity ?? '').trim().toLowerCase()}`;
+export const buildVariantIdentityKey = (
+  color: string | null | undefined,
+  storageCapacity: string | null | undefined,
+) => `${(color ?? '').trim().toLowerCase()}|${(storageCapacity ?? '').trim().toLowerCase()}`;
 
-export const formatVariantConflictLabel = (color: string | null | undefined, storageCapacity: string | null | undefined) => {
-  const parts = [color?.trim(), storageCapacity?.trim()].filter((value): value is string => Boolean(value));
+export const formatVariantConflictLabel = (
+  color: string | null | undefined,
+  storageCapacity: string | null | undefined,
+) => {
+  const parts = [color?.trim(), storageCapacity?.trim()].filter((value): value is string =>
+    Boolean(value),
+  );
 
   return parts.length > 0 ? parts.join(' / ') : 'cette variante';
 };
 
-export const formatVariantDetails = (product: { color?: string | null; storageCapacity?: string | null }) => {
-  const details = [product.color, product.storageCapacity].filter(
-    (value): value is string => Boolean(value && value.trim() !== ''),
+export const formatVariantDetails = (product: {
+  color?: string | null;
+  storageCapacity?: string | null;
+}) => {
+  const details = [product.color, product.storageCapacity].filter((value): value is string =>
+    Boolean(value && value.trim() !== ''),
   );
 
   return details.length > 0 ? details.join(' • ') : 'Aucune précision';

@@ -27,7 +27,7 @@ final class ContactController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
         $input = ContactInput::fromArray($payload);
         $this->dtoValidator->validate($input);
 

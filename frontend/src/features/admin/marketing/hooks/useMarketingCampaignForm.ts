@@ -12,7 +12,10 @@ import {
 } from '@/features/admin/marketing/api';
 import { buildCampaignCriteria } from '@/features/admin/marketing/lib/buildCampaignCriteria';
 import { segmentAdvice } from '@/features/admin/marketing/lib/segmentAdvice';
-import { emptyCampaignForm, type CampaignFormState } from '@/features/admin/marketing/types/campaignForm';
+import {
+  emptyCampaignForm,
+  type CampaignFormState,
+} from '@/features/admin/marketing/types/campaignForm';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const useMarketingCampaignForm = () => {
@@ -38,10 +41,15 @@ export const useMarketingCampaignForm = () => {
         setSegments(segmentItems);
       })
       .catch((reason) => {
-        if (!cancelled) setError(getHttpErrorMessage(reason, 'Impossible de charger le module marketing.'));
+        if (!cancelled)
+          setError(getHttpErrorMessage(reason, 'Impossible de charger le module marketing.'));
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -50,11 +58,14 @@ export const useMarketingCampaignForm = () => {
     const template = templates.find((item) => String(item.id) === templateId);
     if (!template) return;
     setForm((current) => ({ ...current, templateId }));
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.delete('templateId');
-      return next;
-    }, { replace: true });
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete('templateId');
+        return next;
+      },
+      { replace: true },
+    );
   }, [searchParams, setSearchParams, templates]);
 
   const selectedTemplate = useMemo(
@@ -79,12 +90,26 @@ export const useMarketingCampaignForm = () => {
     if (!defaults) return;
     setForm((current) => ({
       ...current,
-      minimumOrders: defaults.minimumOrders !== undefined ? String(defaults.minimumOrders) : current.minimumOrders,
-      inactiveDays: defaults.inactiveDays !== undefined ? String(defaults.inactiveDays) : current.inactiveDays,
-      registeredDays: defaults.registeredDays !== undefined ? String(defaults.registeredDays) : current.registeredDays,
-      recentDays: defaults.recentDays !== undefined ? String(defaults.recentDays) : current.recentDays,
-      minimumTotalCents: defaults.minimumTotalCents !== undefined ? String(defaults.minimumTotalCents) : current.minimumTotalCents,
-      minimumPendingReviews: defaults.minimumPendingReviews !== undefined ? String(defaults.minimumPendingReviews) : current.minimumPendingReviews,
+      minimumOrders:
+        defaults.minimumOrders !== undefined
+          ? String(defaults.minimumOrders)
+          : current.minimumOrders,
+      inactiveDays:
+        defaults.inactiveDays !== undefined ? String(defaults.inactiveDays) : current.inactiveDays,
+      registeredDays:
+        defaults.registeredDays !== undefined
+          ? String(defaults.registeredDays)
+          : current.registeredDays,
+      recentDays:
+        defaults.recentDays !== undefined ? String(defaults.recentDays) : current.recentDays,
+      minimumTotalCents:
+        defaults.minimumTotalCents !== undefined
+          ? String(defaults.minimumTotalCents)
+          : current.minimumTotalCents,
+      minimumPendingReviews:
+        defaults.minimumPendingReviews !== undefined
+          ? String(defaults.minimumPendingReviews)
+          : current.minimumPendingReviews,
     }));
   }, [form.segmentKey, segments]);
 

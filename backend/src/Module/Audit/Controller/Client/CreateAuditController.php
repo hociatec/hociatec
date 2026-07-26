@@ -32,7 +32,7 @@ class CreateAuditController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
         $dto = new CreateAuditRequestDto();
         $dto->type = (string) ($payload['type'] ?? '');
         $dto->url = trim((string) ($payload['url'] ?? ''));

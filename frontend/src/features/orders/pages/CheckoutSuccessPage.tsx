@@ -16,7 +16,9 @@ export const CheckoutSuccessPage = () => {
           <h1 className="text-2xl font-semibold text-brand-900">Confirmation du paiement</h1>
           <p className="mt-4 text-stone-600">{message}</p>
           {status === 'pending' ? (
-            <p className="mt-2 text-sm text-stone-500">Ne fermez pas cette page pendant la confirmation.</p>
+            <p className="mt-2 text-sm text-stone-500">
+              Ne fermez pas cette page pendant la confirmation.
+            </p>
           ) : null}
           {status === 'error' ? (
             <div className="mt-6">

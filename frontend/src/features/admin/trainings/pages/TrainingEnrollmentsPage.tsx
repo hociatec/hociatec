@@ -49,7 +49,8 @@ export const TrainingEnrollmentsPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Inscriptions aux formations"
       headerActions={
         <Link to="/admin/trainings" className="catalog-admin-actions__edit">
@@ -85,7 +86,12 @@ export const TrainingEnrollmentsPage = () => {
                     <select
                       className="select-filter"
                       value={enrollment.status}
-                      onChange={(event) => void handleStatus(enrollment.id, event.target.value as TrainingEnrollmentStatus)}
+                      onChange={(event) =>
+                        void handleStatus(
+                          enrollment.id,
+                          event.target.value as TrainingEnrollmentStatus,
+                        )
+                      }
                     >
                       <option value="pending_payment">Paiement en attente</option>
                       <option value="paid">Payée</option>

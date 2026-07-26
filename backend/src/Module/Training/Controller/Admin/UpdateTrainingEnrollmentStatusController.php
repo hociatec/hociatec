@@ -42,7 +42,7 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
             return ApiResponse::error('Inscription introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
         $status = (string) ($payload['status'] ?? '');
         if (!in_array($status, self::ALLOWED, true)) {
             return ApiResponse::error('Statut invalide.', Response::HTTP_BAD_REQUEST);

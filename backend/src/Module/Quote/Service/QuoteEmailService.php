@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class QuoteEmailService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private QuotePersistence $persistence,
         private QuoteCreatedEmailContentProvider $content,
         private QuoteEmailDeliveryService $delivery,
     ) {
@@ -30,7 +29,7 @@ final readonly class QuoteEmailService
 
         $this->sendCreated($quote);
         $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return true;
     }

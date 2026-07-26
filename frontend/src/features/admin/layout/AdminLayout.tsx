@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { isAnyPathActive } from '@/shared/lib/routes';
 
 type AdminNavLink = {
   to: string;
@@ -92,12 +93,12 @@ export const AdminLayout = () => {
       return location.pathname === '/admin';
     }
 
-    const paths = [link.to, ...(link.match ?? [])];
-
-    return paths.some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
+    return isAnyPathActive(location.pathname, [link.to, ...(link.match ?? [])]);
   };
 
-  const currentGroup = adminNavGroups.find((group) => group.links.some((link) => isLinkActive(link)));
+  const currentGroup = adminNavGroups.find((group) =>
+    group.links.some((link) => isLinkActive(link)),
+  );
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(adminNavGroups.map((group) => [group.id, group.id === currentGroup?.id])),
   );

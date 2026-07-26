@@ -1,6 +1,10 @@
 import { type ChangeEvent } from 'react';
 
-import { type CatalogBrand, type CatalogCategory, type CatalogProduct } from '@/features/catalog/api';
+import {
+  type CatalogBrand,
+  type CatalogCategory,
+  type CatalogProduct,
+} from '@/features/catalog/api';
 import {
   GALLERY_SIZE,
   type ProductFormState,
@@ -36,12 +40,17 @@ export const VariantSwitcherSection = ({
         const isActive = variant.id === currentProductId;
 
         return (
-          <div key={variant.id} className={`catalog-variant-switcher__card${isActive ? ' is-active' : ''}`}>
+          <div
+            key={variant.id}
+            className={`catalog-variant-switcher__card${isActive ? ' is-active' : ''}`}
+          >
             <div className="catalog-variant-switcher__item">
               <span className="catalog-variant-switcher__eyebrow">
                 Variante {variant.variantPosition ?? index + 1}
               </span>
-              <span className="catalog-variant-switcher__name">{formatVariantDetails(variant)}</span>
+              <span className="catalog-variant-switcher__name">
+                {formatVariantDetails(variant)}
+              </span>
               <span className="catalog-variant-switcher__meta">
                 SKU : {variant.sku} · Stock : {variant.stock}
               </span>
@@ -101,11 +110,24 @@ export const ProductGeneralSection = ({
       </label>
       <label>
         SKU
-        <input name="sku" value={form.sku} onChange={onChange} maxLength={60} placeholder="Identifiant interne" required />
+        <input
+          name="sku"
+          value={form.sku}
+          onChange={onChange}
+          maxLength={60}
+          placeholder="Identifiant interne"
+          required
+        />
       </label>
       <label>
         Slug (URL)
-        <input name="slug" value={form.slug} onChange={onChange} maxLength={200} placeholder="ex : solution-supervision" />
+        <input
+          name="slug"
+          value={form.slug}
+          onChange={onChange}
+          maxLength={200}
+          placeholder="ex : solution-supervision"
+        />
       </label>
       <label>
         Catégorie
@@ -127,15 +149,41 @@ export const ProductGeneralSection = ({
       </label>
       <label>
         {form.sellingType === 'rental' ? 'Prix mensuel (euros TTC / mois)' : 'Prix (en euros TTC)'}
-        <input name="price" type="number" step="0.01" min="0" value={form.price} onChange={onChange} required />
+        <input
+          name="price"
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.price}
+          onChange={onChange}
+          required
+        />
       </label>
       <label>
         Année du modèle
-        <input name="releaseYear" type="number" min="2000" max="2100" step="1" value={form.releaseYear} onChange={onChange} placeholder="2025" />
+        <input
+          name="releaseYear"
+          type="number"
+          min="2000"
+          max="2100"
+          step="1"
+          value={form.releaseYear}
+          onChange={onChange}
+          placeholder="2025"
+        />
       </label>
       <label>
         Mémoire RAM (Go)
-        <input name="memoryRam" type="number" min="1" max="256" step="1" value={form.memoryRam} onChange={onChange} placeholder="8" />
+        <input
+          name="memoryRam"
+          type="number"
+          min="1"
+          max="256"
+          step="1"
+          value={form.memoryRam}
+          onChange={onChange}
+          placeholder="8"
+        />
       </label>
     </div>
 
@@ -153,20 +201,31 @@ export const ProductGeneralSection = ({
         />
       </label>
       <div className="catalog-brand-picker__header">
-        <span className="muted">La marque est obligatoire. Recherchez puis cochez une marque existante.</span>
-        {form.brand && <span className="catalog-brand-picker__selected">Marque choisie : {form.brand}</span>}
+        <span className="muted">
+          La marque est obligatoire. Recherchez puis cochez une marque existante.
+        </span>
+        {form.brand && (
+          <span className="catalog-brand-picker__selected">Marque choisie : {form.brand}</span>
+        )}
       </div>
       <div className="catalog-brand-picker__results">
         {brandQuery.trim() === '' ? (
-          <p className="catalog-brand-picker__empty">Saisissez au moins une lettre pour afficher les marques disponibles.</p>
+          <p className="catalog-brand-picker__empty">
+            Saisissez au moins une lettre pour afficher les marques disponibles.
+          </p>
         ) : filteredBrands.length === 0 ? (
-          <p className="catalog-brand-picker__empty">Aucune marque trouvée. Ajoutez-la d’abord dans l’onglet Marques.</p>
+          <p className="catalog-brand-picker__empty">
+            Aucune marque trouvée. Ajoutez-la d’abord dans l’onglet Marques.
+          </p>
         ) : (
           filteredBrands.map((brand) => {
             const checked = form.brand.toLowerCase() === brand.name.toLowerCase();
 
             return (
-              <label key={brand.id} className={`catalog-brand-picker__option${checked ? ' is-selected' : ''}`}>
+              <label
+                key={brand.id}
+                className={`catalog-brand-picker__option${checked ? ' is-selected' : ''}`}
+              >
                 <input type="checkbox" checked={checked} onChange={() => onBrandSelection(brand)} />
                 <span>{brand.name}</span>
               </label>
@@ -178,7 +237,10 @@ export const ProductGeneralSection = ({
   </section>
 );
 
-export const ProductDiscountSection = ({ form, onChange }: {
+export const ProductDiscountSection = ({
+  form,
+  onChange,
+}: {
   form: ProductFormState;
   onChange: (event: FormChangeEvent) => void;
 }) => (
@@ -186,7 +248,12 @@ export const ProductDiscountSection = ({ form, onChange }: {
     <span className="register-form__label">Remise</span>
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <label className="booking__checkbox">
-        <input type="checkbox" name="discountEnabled" checked={form.discountEnabled} onChange={onChange} />
+        <input
+          type="checkbox"
+          name="discountEnabled"
+          checked={form.discountEnabled}
+          onChange={onChange}
+        />
         Activer une remise
       </label>
 
@@ -212,17 +279,28 @@ export const ProductDiscountSection = ({ form, onChange }: {
           </label>
           <label>
             Début (optionnel)
-            <input name="discountStartsAt" type="date" value={form.discountStartsAt} onChange={onChange} />
+            <input
+              name="discountStartsAt"
+              type="date"
+              value={form.discountStartsAt}
+              onChange={onChange}
+            />
           </label>
           <label>
             Fin (optionnel)
-            <input name="discountEndsAt" type="date" value={form.discountEndsAt} onChange={onChange} />
+            <input
+              name="discountEndsAt"
+              type="date"
+              value={form.discountEndsAt}
+              onChange={onChange}
+            />
           </label>
         </>
       )}
     </div>
   </div>
-);export const ProductContentMediaSection = ({
+);
+export const ProductContentMediaSection = ({
   form,
   galleryFiles,
   galleryPreviews,
@@ -245,14 +323,26 @@ export const ProductDiscountSection = ({ form, onChange }: {
     <div className="catalog-form-row">
       <label>
         Description courte
-        <textarea name="shortDescription" rows={2} maxLength={240} value={form.shortDescription} onChange={onChange} />
+        <textarea
+          name="shortDescription"
+          rows={2}
+          maxLength={240}
+          value={form.shortDescription}
+          onChange={onChange}
+        />
       </label>
     </div>
 
     <div className="catalog-form-row">
       <label>
         Description détaillée
-        <textarea name="description" rows={6} value={form.description} onChange={onChange} required />
+        <textarea
+          name="description"
+          rows={6}
+          value={form.description}
+          onChange={onChange}
+          required
+        />
       </label>
     </div>
 
@@ -277,22 +367,31 @@ export const ProductDiscountSection = ({ form, onChange }: {
               </div>
               <div className="catalog-gallery-slot__actions">
                 <label className="catalog-gallery-upload">
-                  <input type="file" accept="image/*" onChange={(event) => onGalleryFileChange(index, event.target.files)} hidden />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => onGalleryFileChange(index, event.target.files)}
+                    hidden
+                  />
                   {preview ? 'Remplacer' : 'Ajouter'}
                 </label>
                 {(preview || hasExisting) && (
-                  <button type="button" className="catalog-gallery-remove" onClick={() => onRemoveGallery(index)}>
+                  <button
+                    type="button"
+                    className="catalog-gallery-remove"
+                    onClick={() => onRemoveGallery(index)}
+                  >
                     {hasNewFile ? 'Annuler' : 'Supprimer'}
                   </button>
                 )}
               </div>
               {index === 0 && (
-                <p className="muted mt-1.5">
-                  Image principale affichée sur les cartes produits.
-                </p>
+                <p className="muted mt-1.5">Image principale affichée sur les cartes produits.</p>
               )}
               {galleryToRemove.includes(index) && (
-                <p className="catalog-gallery-alert">L'image sera supprimée lors de l'enregistrement.</p>
+                <p className="catalog-gallery-alert">
+                  L'image sera supprimée lors de l'enregistrement.
+                </p>
               )}
             </div>
           );
@@ -303,7 +402,13 @@ export const ProductDiscountSection = ({ form, onChange }: {
     <div className="catalog-form-row catalog-form-row--columns">
       <label>
         Texte alternatif (accessibilité)
-        <input name="imageAlt" value={form.imageAlt} onChange={onChange} maxLength={160} placeholder="Décrivez brièvement l'image principale" />
+        <input
+          name="imageAlt"
+          value={form.imageAlt}
+          onChange={onChange}
+          maxLength={160}
+          placeholder="Décrivez brièvement l'image principale"
+        />
       </label>
     </div>
   </>

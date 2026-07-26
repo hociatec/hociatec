@@ -8,7 +8,8 @@ export const CguPage = () => {
   useDocumentTitle('Conditions générales d’utilisation (CGU)');
   useMetaTags({
     title: 'CGU — Hociatec',
-    description: 'Conditions générales d’utilisation du site, du compte client et des services numériques Hociatec.',
+    description:
+      'Conditions générales d’utilisation du site, du compte client et des services numériques Hociatec.',
     type: 'article',
   });
 
@@ -21,9 +22,9 @@ export const CguPage = () => {
         <div className="prose prose-stone max-w-none">
           <h2>1. Objet</h2>
           <p>
-            Les présentes CGU encadrent l’accès et l’utilisation du site <strong>hociatec.fr</strong>,
-            du compte client, des formulaires, des espaces de suivi et des fonctionnalités proposées
-            par Hociatec.
+            Les présentes CGU encadrent l’accès et l’utilisation du site{' '}
+            <strong>hociatec.fr</strong>, du compte client, des formulaires, des espaces de suivi et
+            des fonctionnalités proposées par Hociatec.
           </p>
           <p>
             En utilisant le site, l’utilisateur accepte les présentes CGU. Les ventes, locations et
@@ -66,26 +67,34 @@ export const CguPage = () => {
           <h2>5. Comportements interdits</h2>
           <p>Sont notamment interdits:</p>
           <ul>
-            <li>l’utilisation du site à des fins frauduleuses, illicites ou contraires aux droits de tiers;</li>
+            <li>
+              l’utilisation du site à des fins frauduleuses, illicites ou contraires aux droits de
+              tiers;
+            </li>
             <li>la perturbation du fonctionnement normal du site ou de ses services;</li>
             <li>l’extraction massive ou automatisée de contenus sans autorisation;</li>
-            <li>l’envoi de contenus malveillants, trompeurs, diffamatoires ou portant atteinte à autrui;</li>
-            <li>le contournement de mesures de sécurité, d’authentification ou de limitation d’accès.</li>
+            <li>
+              l’envoi de contenus malveillants, trompeurs, diffamatoires ou portant atteinte à
+              autrui;
+            </li>
+            <li>
+              le contournement de mesures de sécurité, d’authentification ou de limitation d’accès.
+            </li>
           </ul>
 
           <h2>6. Suspension ou suppression d’accès</h2>
           <p>
-            Hociatec peut suspendre ou supprimer l’accès d’un utilisateur à tout ou partie du site en
-            cas de violation des présentes CGU, suspicion de fraude, incident de sécurité, demande
-            légale ou nécessité de protection du service.
+            Hociatec peut suspendre ou supprimer l’accès d’un utilisateur à tout ou partie du site
+            en cas de violation des présentes CGU, suspicion de fraude, incident de sécurité,
+            demande légale ou nécessité de protection du service.
           </p>
 
           <h2>7. Contenus et informations</h2>
           <p>
             Hociatec s’efforce de présenter des informations exactes et actualisées. Toutefois, les
             informations publiées sur le site peuvent être modifiées à tout moment et ne constituent
-            pas à elles seules un engagement contractuel, sauf validation expresse dans une commande,
-            un devis ou un contrat.
+            pas à elles seules un engagement contractuel, sauf validation expresse dans une
+            commande, un devis ou un contrat.
           </p>
 
           <h2>8. Propriété intellectuelle</h2>
@@ -110,9 +119,9 @@ export const CguPage = () => {
 
           <h2>11. Modification des CGU</h2>
           <p>
-            Hociatec peut modifier les présentes CGU pour tenir compte de l’évolution du site, de ses
-            services ou de la réglementation. La version applicable est celle publiée sur le site au
-            moment de l’utilisation.
+            Hociatec peut modifier les présentes CGU pour tenir compte de l’évolution du site, de
+            ses services ou de la réglementation. La version applicable est celle publiée sur le
+            site au moment de l’utilisation.
           </p>
 
           <h2>12. Contact</h2>

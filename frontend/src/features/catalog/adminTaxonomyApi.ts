@@ -1,7 +1,12 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
-import type { CatalogBrand, CatalogCategory, UpsertBrandPayload, UpsertCategoryPayload } from './apiTypes';
+import type {
+  CatalogBrand,
+  CatalogCategory,
+  UpsertBrandPayload,
+  UpsertCategoryPayload,
+} from './apiTypes';
 
 export const fetchAdminCategories = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
@@ -79,7 +84,7 @@ export const fetchAdminBrands = async () => {
 
 export const fetchAdminBrand = async (id: number) => {
   const { data } = await httpClient.get<ApiResponse<CatalogBrand>>(
-    "/api/admin/catalog/brands/" + id,
+    '/api/admin/catalog/brands/' + id,
   );
 
   if (data.status === 'success') {
@@ -104,7 +109,7 @@ export const createBrand = async (payload: UpsertBrandPayload) => {
 
 export const updateBrand = async (id: number, payload: UpsertBrandPayload) => {
   const { data } = await httpClient.put<ApiResponse<CatalogBrand>>(
-    "/api/admin/catalog/brands/" + id,
+    '/api/admin/catalog/brands/' + id,
     payload,
   );
 
@@ -117,7 +122,7 @@ export const updateBrand = async (id: number, payload: UpsertBrandPayload) => {
 
 export const deleteBrand = async (id: number) => {
   const { data } = await httpClient.delete<ApiResponse<{ id: number }>>(
-    "/api/admin/catalog/brands/" + id,
+    '/api/admin/catalog/brands/' + id,
   );
 
   if (data.status === 'success') {
@@ -126,4 +131,3 @@ export const deleteBrand = async (id: number) => {
 
   throw new Error(extractErrorMessage(data, 'Suppression de la marque impossible.'));
 };
-

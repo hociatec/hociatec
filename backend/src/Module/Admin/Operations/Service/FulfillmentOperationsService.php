@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Module\Admin\Operations\Service;
 
 use App\Module\Admin\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Order\DTO\DeliveryInput;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderEventLogger;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class FulfillmentOperationsService
 {
     public function __construct(
         private OrderRepository $orders,
-        private EntityManagerInterface $entityManager,
+        private OperationsPersistence $persistence,
         private OrderEventLogger $events,
         private AdminOperationsFormatter $formatter,
     ) {
@@ -29,24 +29,17 @@ final readonly class FulfillmentOperationsService
         return array_map($this->formatter->fulfillmentOrder(...), $this->orders->findFulfillmentQueue(50));
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function ship(int $orderId, array $payload, ?User $actor): array
+    /** @return array<string, mixed> */
+    public function ship(int $orderId, DeliveryInput $input, ?User $actor): array
     {
         $order = $this->orders->find($orderId);
         if (!$order instanceof Order) {
             throw new OperationsResourceNotFoundException('Commande introuvable.');
         }
 
-        $carrier = $this->nullableString($payload['carrier'] ?? $order->getDeliveryCarrier());
-        $trackingNumber = $this->nullableString($payload['trackingNumber'] ?? $order->getDeliveryTrackingNumber());
-        $trackingUrl = $this->nullableString($payload['trackingUrl'] ?? $order->getDeliveryTrackingUrl());
-        if (null !== $trackingUrl && false === filter_var($trackingUrl, FILTER_VALIDATE_URL)) {
-            throw new \InvalidArgumentException('Lien de suivi invalide.');
-        }
+        $carrier = $input->carrier ?? $order->getDeliveryCarrier();
+        $trackingNumber = $input->trackingNumber ?? $order->getDeliveryTrackingNumber();
+        $trackingUrl = $input->trackingUrl?->value() ?? $order->getDeliveryTrackingUrl();
 
         $order
             ->setStatus(Order::STATUS_CONFIRMED)
@@ -58,7 +51,7 @@ final readonly class FulfillmentOperationsService
         if (null === $order->getDeliveryShippedAt()) {
             $order->setDeliveryShippedAt(new \DateTimeImmutable());
         }
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         $this->events->log(
             $order,
@@ -68,12 +61,5 @@ final readonly class FulfillmentOperationsService
         );
 
         return $this->formatter->fulfillmentOrder($order);
-    }
-
-    private function nullableString(mixed $value): ?string
-    {
-        $normalized = trim((string) $value);
-
-        return '' !== $normalized ? $normalized : null;
     }
 }

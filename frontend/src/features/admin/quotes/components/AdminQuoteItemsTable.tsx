@@ -22,7 +22,12 @@ const parseRate = (value: string) => {
   return Number.isFinite(rate) ? Math.max(0, rate) : 0;
 };
 
-export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveItem }: AdminQuoteItemsTableProps) => (
+export const AdminQuoteItemsTable = ({
+  items,
+  products,
+  onUpdateItem,
+  onRemoveItem,
+}: AdminQuoteItemsTableProps) => (
   <div className="quote-table-scroll">
     <table className="catalog-admin-table">
       <thead>
@@ -41,10 +46,15 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
         {items.map((item, index) => {
           const isRental =
             item.type === 'product' &&
-            products.some((product) => product.id === item.productId && product.sellingType === 'rental');
+            products.some(
+              (product) => product.id === item.productId && product.sellingType === 'rental',
+            );
           const isCustom = item.type === 'custom';
           const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-          const line = Math.max(0, item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0));
+          const line = Math.max(
+            0,
+            item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0),
+          );
 
           return (
             <tr key={`${item.type}-${item.productId ?? item.serviceId ?? index}`}>
@@ -73,7 +83,7 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                     aria-label="Description de la ligne"
                   />
                 ) : (
-                  item.description ?? ''
+                  (item.description ?? '')
                 )}
               </td>
               <td>
@@ -113,7 +123,9 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                     <button
                       type="button"
                       className="catalog-admin-actions__edit"
-                      onClick={() => onUpdateItem(index, { quantity: Math.min(9999, (item.quantity ?? 1) + 1) })}
+                      onClick={() =>
+                        onUpdateItem(index, { quantity: Math.min(9999, (item.quantity ?? 1) + 1) })
+                      }
                       aria-label="Augmenter la quantité"
                     >
                       +
@@ -126,7 +138,11 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                       <button
                         type="button"
                         className="catalog-admin-actions__edit"
-                        onClick={() => onUpdateItem(index, { rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1) })}
+                        onClick={() =>
+                          onUpdateItem(index, {
+                            rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1),
+                          })
+                        }
                         aria-label="Diminuer le nombre de mois"
                       >
                         -
@@ -139,14 +155,22 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                         value={Math.max(1, item.rentalMonths ?? 1)}
                         onChange={(event) => {
                           const value = Number.parseInt(event.target.value, 10);
-                          onUpdateItem(index, { rentalMonths: Number.isNaN(value) ? 1 : Math.max(1, Math.min(120, value)) });
+                          onUpdateItem(index, {
+                            rentalMonths: Number.isNaN(value)
+                              ? 1
+                              : Math.max(1, Math.min(120, value)),
+                          });
                         }}
                         className="quote-stepper-input"
                       />
                       <button
                         type="button"
                         className="catalog-admin-actions__edit"
-                        onClick={() => onUpdateItem(index, { rentalMonths: Math.min(120, (item.rentalMonths ?? 1) + 1) })}
+                        onClick={() =>
+                          onUpdateItem(index, {
+                            rentalMonths: Math.min(120, (item.rentalMonths ?? 1) + 1),
+                          })
+                        }
                         aria-label="Augmenter le nombre de mois"
                       >
                         +
@@ -173,7 +197,9 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                     min={0}
                     step="0.01"
                     value={(item.unitPriceCents / 100).toFixed(2)}
-                    onChange={(event) => onUpdateItem(index, { unitPriceCents: parseCents(event.target.value) })}
+                    onChange={(event) =>
+                      onUpdateItem(index, { unitPriceCents: parseCents(event.target.value) })
+                    }
                     className="quote-line-input quote-line-input--money"
                     aria-label="Prix HT"
                   />
@@ -191,7 +217,9 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                     min={0}
                     step="0.1"
                     value={item.vatRate ?? 0}
-                    onChange={(event) => onUpdateItem(index, { vatRate: parseRate(event.target.value) })}
+                    onChange={(event) =>
+                      onUpdateItem(index, { vatRate: parseRate(event.target.value) })
+                    }
                     className="quote-line-input quote-line-input--rate"
                     aria-label="TVA en pourcentage"
                   />
@@ -206,7 +234,9 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
                     min={0}
                     step="0.01"
                     value={((item.discountCents ?? 0) / 100).toFixed(2)}
-                    onChange={(event) => onUpdateItem(index, { discountCents: parseCents(event.target.value) })}
+                    onChange={(event) =>
+                      onUpdateItem(index, { discountCents: parseCents(event.target.value) })
+                    }
                     className="quote-line-input quote-line-input--money"
                     aria-label="Remise"
                   />
@@ -216,7 +246,11 @@ export const AdminQuoteItemsTable = ({ items, products, onUpdateItem, onRemoveIt
               </td>
               <td>{formatQuotePrice(line)}</td>
               <td>
-                <button type="button" className="catalog-admin-actions__delete" onClick={() => onRemoveItem(index)}>
+                <button
+                  type="button"
+                  className="catalog-admin-actions__delete"
+                  onClick={() => onRemoveItem(index)}
+                >
                   Retirer
                 </button>
               </td>

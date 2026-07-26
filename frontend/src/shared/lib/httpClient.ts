@@ -26,7 +26,8 @@ type RetriableRequestConfig = InternalAxiosRequestConfig & {
 };
 
 const hasLocalStorage = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-const hasSessionStorage = typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+const hasSessionStorage =
+  typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
 
 const readLocalStorage = (key: string) => {
   if (!hasLocalStorage) return null;
@@ -84,9 +85,10 @@ const isCsrfTokenRequest = (url?: string) => {
 
 const getRequestPath = (url?: string) => {
   if (!url) return '';
-  const baseUrl = API_BASE_URL && !API_BASE_URL.startsWith('/')
-    ? API_BASE_URL
-    : `http://localhost${API_BASE_URL || ''}`;
+  const baseUrl =
+    API_BASE_URL && !API_BASE_URL.startsWith('/')
+      ? API_BASE_URL
+      : `http://localhost${API_BASE_URL || ''}`;
 
   return new URL(url, baseUrl).pathname;
 };
@@ -130,10 +132,10 @@ export const shouldAttachCsrfToken = (
   url?: string,
   headers = new AxiosHeaders(),
 ) =>
-  isUnsafeMethod(method)
-  && !isCsrfTokenRequest(url)
-  && !isCsrfExcludedRequest(url)
-  && !headers.has(CSRF_HEADER_NAME);
+  isUnsafeMethod(method) &&
+  !isCsrfTokenRequest(url) &&
+  !isCsrfExcludedRequest(url) &&
+  !headers.has(CSRF_HEADER_NAME);
 
 httpClient.interceptors.request.use(async (config) => {
   const headers =

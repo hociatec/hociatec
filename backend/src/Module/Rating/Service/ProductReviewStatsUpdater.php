@@ -6,13 +6,13 @@ namespace App\Module\Rating\Service;
 
 use App\Module\Catalog\Entity\Product;
 use App\Module\Rating\Repository\ProductRatingRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 class ProductReviewStatsUpdater
 {
     public function __construct(
         private readonly ProductRatingRepository $ratings,
-        private readonly EntityManagerInterface $em,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -21,7 +21,7 @@ class ProductReviewStatsUpdater
         $stats = $this->ratings->getStatsForProduct($product);
         $product->setReviewsCount($stats['count']);
         $product->setReviewsAverage($stats['average']);
-        $this->em->persist($product);
-        $this->em->flush();
+        $this->persistence->persist($product);
+        $this->persistence->flush();
     }
 }

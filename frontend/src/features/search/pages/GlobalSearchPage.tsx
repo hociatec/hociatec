@@ -62,7 +62,9 @@ export const GlobalSearchPage = () => {
   };
 
   const resultsTotal = search.productTotal + search.serviceTotal + search.trainingTotal;
-  const productSearchUrl = query ? `/catalogue/recherche?q=${encodeURIComponent(query)}` : '/catalogue/recherche';
+  const productSearchUrl = query
+    ? `/catalogue/recherche?q=${encodeURIComponent(query)}`
+    : '/catalogue/recherche';
   const trainingSearchUrl = query ? `/formations?q=${encodeURIComponent(query)}` : '/formations';
 
   return (

@@ -12,7 +12,17 @@ export type AddressFormState = {
   isDefault?: boolean;
 };
 
-export const emptyAddressForm = (): AddressFormState => ({ name: '', address: '', postalCode: '', city: '', company: '', companySiren: '', companyVatNumber: '', purchaseOrderNumber: '', isDefault: false });
+export const emptyAddressForm = (): AddressFormState => ({
+  name: '',
+  address: '',
+  postalCode: '',
+  city: '',
+  company: '',
+  companySiren: '',
+  companyVatNumber: '',
+  purchaseOrderNumber: '',
+  isDefault: false,
+});
 
 export const addressToForm = (address: AddressDto): AddressFormState => ({
   name: address.name,

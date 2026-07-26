@@ -35,9 +35,7 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
     const resolved = {
       title: opts.title ?? DEFAULT_SEO.title,
       description: opts.description ?? DEFAULT_SEO.description,
-      imageUrl:
-        opts.imageUrl ??
-        `${origin ?? SITE_URL}${DEFAULT_SEO.ogImagePath}`,
+      imageUrl: opts.imageUrl ?? `${origin ?? SITE_URL}${DEFAULT_SEO.ogImagePath}`,
       imageAlt: opts.imageAlt ?? `${DEFAULT_SEO.siteName} — visuel`,
       type: opts.type ?? 'website',
       robots: opts.robots ?? DEFAULT_SEO.robots,

@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -37,7 +37,7 @@ const slugify = (value: string) =>
 
 export const CategoryFormPage = () => {
   const { categoryId } = useParams();
-  const isEdit = useMemo(() => Boolean(categoryId), [categoryId]);
+  const isEdit = Boolean(categoryId);
   const navigate = useNavigate();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une catégorie' : 'Admin - Nouvelle catégorie');
@@ -91,8 +91,7 @@ export const CategoryFormPage = () => {
     if (name === 'name') {
       const generatedSlug = slugify(value);
       setForm((prev) => {
-        const shouldSyncSlug =
-          prev.slug.trim() === '' || prev.slug === slugify(prev.name);
+        const shouldSyncSlug = prev.slug.trim() === '' || prev.slug === slugify(prev.name);
         return {
           ...prev,
           name: value,
@@ -152,7 +151,8 @@ export const CategoryFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier une catégorie' : 'Nouvelle catégorie'}
       headerActions={
         <button
@@ -170,10 +170,7 @@ export const CategoryFormPage = () => {
       {initialLoading ? (
         <LoadingState>Chargement de la catégorie...</LoadingState>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="register-form-card form-card-grid"
-        >
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
             <input

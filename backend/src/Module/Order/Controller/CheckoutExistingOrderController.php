@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Controller;
 
+use App\Module\Order\DTO\CheckoutInput;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderFormatter;
@@ -11,7 +12,10 @@ use App\Module\Order\Service\StripeCheckoutService;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\ShippingAddressRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\ApiValidationException;
+use App\Shared\Http\JsonPayload;
 use App\Shared\Http\RateLimited;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +32,7 @@ final class CheckoutExistingOrderController extends AbstractController
         private readonly OrderRepository $orders,
         private readonly ShippingAddressRepository $addresses,
         private readonly StripeCheckoutService $stripeCheckout,
+        private readonly DtoValidator $dtoValidator,
     ) {
     }
 
@@ -56,14 +61,16 @@ final class CheckoutExistingOrderController extends AbstractController
             return ApiResponse::error('Cette commande ne contient rien à régler.', Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = [];
         try {
-            $payload = '' !== $request->getContent() ? $request->toArray() : [];
+            $input = CheckoutInput::fromArray(JsonPayload::decode($request));
+            $this->dtoValidator->validate($input);
+        } catch (ApiValidationException $exception) {
+            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
         } catch (\Throwable) {
-            // ignore and assume empty
+            return ApiResponse::error('Payload de checkout invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $addressId = isset($payload['addressId']) ? (int) $payload['addressId'] : 0;
+        $addressId = $input->addressId ?? 0;
         $shipping = $addressId > 0
             ? $this->addresses->findOneForUser($addressId, $user)
             : $this->addresses->findFirstForUser($user);

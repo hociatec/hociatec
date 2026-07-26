@@ -29,7 +29,7 @@ class RequestPasswordResetController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }

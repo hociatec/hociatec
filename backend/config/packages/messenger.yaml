@@ -5,8 +5,15 @@ framework:
             # Example DSN for doctrine transport:
             # async: '%env(MESSENGER_TRANSPORT_DSN)%'
             # Use DSN from env; define MESSENGER_TRANSPORT_DSN in .env
-            async: '%env(MESSENGER_TRANSPORT_DSN)%'
-            failed: '%env(MESSENGER_FAILURE_TRANSPORT_DSN)%'
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                retry_strategy:
+                    max_retries: 5
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 60000
+            failed:
+                dsn: '%env(MESSENGER_FAILURE_TRANSPORT_DSN)%'
         failure_transport: failed
         routing:
             App\Module\Order\Message\OrderCreatedMessage: async

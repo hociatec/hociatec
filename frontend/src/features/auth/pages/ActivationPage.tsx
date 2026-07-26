@@ -23,14 +23,18 @@ export const ActivationPage = () => {
         const msg = res.message ?? 'Votre compte a été activé.';
         setMessage(msg);
         setStatus('ok');
-        try { toast.show(msg, { variant: 'success' }); } catch {}
+        try {
+          toast.show(msg, { variant: 'success' });
+        } catch {}
       })
       .catch((err) => {
         const details = (err as Error & { details?: string[] }).details;
         const msg = details?.[0] ?? (err as Error).message;
         setMessage(msg);
         setStatus('error');
-        try { toast.show(msg, { variant: 'error' }); } catch {}
+        try {
+          toast.show(msg, { variant: 'error' });
+        } catch {}
       });
   }, [token]);
 

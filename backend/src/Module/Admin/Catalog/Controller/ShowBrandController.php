@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/brands/{id}', name: 'api_admin_catalog_brands_show', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowBrandController extends AbstractController
 {
     public function __construct(private readonly BrandRepository $brandRepository)

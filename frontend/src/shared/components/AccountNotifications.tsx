@@ -16,11 +16,7 @@ export const AccountNotifications = () => {
   return (
     <Popover className="site-header__notifications">
       {({ open }) => (
-        <AccountNotificationsPopover
-          {...state}
-          buttonLabel={buttonLabel}
-          open={open}
-        />
+        <AccountNotificationsPopover {...state} buttonLabel={buttonLabel} open={open} />
       )}
     </Popover>
   );

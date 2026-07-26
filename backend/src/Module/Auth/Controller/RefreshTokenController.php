@@ -7,6 +7,7 @@ namespace App\Module\Auth\Controller;
 use App\Module\Auth\Http\AuthCookieService;
 use App\Module\Auth\Service\RefreshTokenService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\JsonPayload;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,7 @@ class RefreshTokenController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = $request->toArray();
+        $payload = JsonPayload::decode($request);
         $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
         if (!is_string($refreshToken) || '' === $refreshToken) {
             $refreshToken = (string) ($payload['refreshToken'] ?? '');

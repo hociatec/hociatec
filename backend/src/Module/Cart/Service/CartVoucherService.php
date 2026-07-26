@@ -7,14 +7,14 @@ namespace App\Module\Cart\Service;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Service\VoucherEngine;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class CartVoucherService
 {
     public function __construct(
         private CartSessionProvider $carts,
         private VoucherEngine $voucherEngine,
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
     ) {
     }
 
@@ -40,8 +40,8 @@ final readonly class CartVoucherService
 
     private function save(CartSession $cart): CartSession
     {
-        $this->entityManager->persist($cart);
-        $this->entityManager->flush();
+        $this->persistence->persist($cart);
+        $this->persistence->flush();
 
         return $cart;
     }

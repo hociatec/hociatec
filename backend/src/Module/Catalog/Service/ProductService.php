@@ -7,17 +7,21 @@ namespace App\Module\Catalog\Service;
 use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Entity\Product;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
+use Psr\Cache\CacheItemPoolInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class ProductService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
         private readonly ProductCatalogRules $rules,
         private readonly ProductVariantService $variants,
         private readonly ProductVariantBatchCreator $variantBatch,
         private readonly ProductGalleryManager $gallery,
+        #[Autowire(service: 'app.catalog_cache')]
+        private readonly CacheItemPoolInterface $catalogCache,
     ) {
     }
 
@@ -106,7 +110,7 @@ final class ProductService
 
         $this->gallery->update($product, $galleryFiles, []);
 
-        $this->entityManager->persist($product);
+        $this->persistence->persist($product);
         $this->variantBatch->forNewProduct(
             $product,
             $name,
@@ -117,7 +121,8 @@ final class ProductService
             $variantDefinitions,
         );
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
+        $this->catalogCache->clear();
 
         return $product;
     }
@@ -219,14 +224,16 @@ final class ProductService
             $variantDefinitions,
         );
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
+        $this->catalogCache->clear();
 
         return $product;
     }
 
     public function delete(Product $product): void
     {
-        $this->entityManager->remove($product);
-        $this->entityManager->flush();
+        $this->persistence->remove($product);
+        $this->persistence->flush();
+        $this->catalogCache->clear();
     }
 }

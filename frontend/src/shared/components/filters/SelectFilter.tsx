@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
 
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/lib/utils';
 
 export interface SelectOption {
   value: string;
@@ -15,7 +15,13 @@ interface SelectFilterProps {
   className?: string;
 }
 
-export const SelectFilter = ({ value, onChange, options, ariaLabel, className }: SelectFilterProps) => (
+export const SelectFilter = ({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+  className,
+}: SelectFilterProps) => (
   <select
     aria-label={ariaLabel}
     value={value}
@@ -23,7 +29,9 @@ export const SelectFilter = ({ value, onChange, options, ariaLabel, className }:
     className={cn('select-filter', className)}
   >
     {options.map((opt) => (
-      <option key={opt.value} value={opt.value}>{opt.label}</option>
+      <option key={opt.value} value={opt.value}>
+        {opt.label}
+      </option>
     ))}
   </select>
 );

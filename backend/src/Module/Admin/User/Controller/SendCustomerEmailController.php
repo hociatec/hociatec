@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\User\Controller;
 
+use App\Module\Admin\User\DTO\CustomerEmailInput;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Service\AdminCustomerEmailService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +23,7 @@ final class SendCustomerEmailController extends AbstractController
     public function __construct(
         private readonly UserRepository $users,
         private readonly AdminCustomerEmailService $emails,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -32,17 +35,15 @@ final class SendCustomerEmailController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $this->emails->send(
-                $user,
-                (string) ($payload['subject'] ?? ''),
-                (string) ($payload['message'] ?? ''),
-            );
+            $input = CustomerEmailInput::fromArray($payload);
+            $this->validator->validate($input);
+            $this->emails->send($user, $input->subject, $input->message);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {

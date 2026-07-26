@@ -8,7 +8,7 @@ use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class OrderStripeWebhookHandler
 {
@@ -17,7 +17,7 @@ final class OrderStripeWebhookHandler
         private readonly OrderRepository $orders,
         private readonly OrderService $orderCreator,
         private readonly StripeApiClient $stripe,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -198,7 +198,7 @@ final class OrderStripeWebhookHandler
 
     private function save(object $entity): void
     {
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $this->persistence->persist($entity);
+        $this->persistence->flush();
     }
 }

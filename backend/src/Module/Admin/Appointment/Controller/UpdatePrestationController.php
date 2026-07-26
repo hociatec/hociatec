@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Appointment\Controller;
 
+use App\Module\Admin\Appointment\DTO\PrestationInput;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\PrestationService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +23,7 @@ class UpdatePrestationController extends AbstractController
     public function __construct(
         private readonly PrestationRepository $prestationRepository,
         private readonly PrestationService $prestationService,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -33,28 +36,25 @@ class UpdatePrestationController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $name = (string) ($payload['name'] ?? '');
-        $durationMinutes = (int) ($payload['durationMinutes'] ?? 0);
-        $price = $payload['price'] ?? 0;
-        $priceCents = $this->normalizePriceToCents($price);
+        $input = PrestationInput::fromArray($payload);
+        $this->validator->validate($input);
+        $priceCents = $this->normalizePriceToCents($input->price);
 
         if ($priceCents < 0) {
             return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         try {
-            $prestation = $this->prestationService->update($prestation, $name, $durationMinutes, $priceCents);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de mettre a jour la prestation.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+            $prestation = $this->prestationService->update($prestation, $input->name, $input->durationMinutes, $priceCents);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de mettre à jour la prestation.');
         }
 
         return ApiResponse::success([

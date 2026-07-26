@@ -39,12 +39,16 @@ export const MyAuditsPage = () => {
           {items.map((a) => (
             <li key={a.id} className="py-3 flex items-center justify-between">
               <div>
-                <div className="font-medium">{a.number} — {typeLabel(a.type)}</div>
+                <div className="font-medium">
+                  {a.number} — {typeLabel(a.type)}
+                </div>
                 <div className="text-sm text-gray-600">{a.url}</div>
               </div>
               <div className="text-sm">{statusLabel(a.status)}</div>
               <div>
-                <Link className="underline" to={`/audits/me/${a.id}`}>Détails</Link>
+                <Link className="underline" to={`/audits/me/${a.id}`}>
+                  Détails
+                </Link>
               </div>
             </li>
           ))}

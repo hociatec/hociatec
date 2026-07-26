@@ -8,7 +8,11 @@ type PublicQuoteSelectionListProps = {
   onRemoveItem: (index: number) => void;
 };
 
-export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: PublicQuoteSelectionListProps) => {
+export const PublicQuoteSelectionList = ({
+  items,
+  onUpdateItem,
+  onRemoveItem,
+}: PublicQuoteSelectionListProps) => {
   if (items.length === 0) {
     return (
       <div className="quote-selection-empty">
@@ -22,10 +26,16 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
       {items.map((item, index) => {
         const isRental = item.type === 'product' && Boolean(item.rentalMonths);
         const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-        const line = Math.max(0, (item.unitPriceCents ?? 0) * (item.quantity ?? 1) * months - (item.discountCents ?? 0));
+        const line = Math.max(
+          0,
+          (item.unitPriceCents ?? 0) * (item.quantity ?? 1) * months - (item.discountCents ?? 0),
+        );
 
         return (
-          <article key={`${item.type}-${item.productId ?? item.serviceId ?? index}`} className="quote-selection-card">
+          <article
+            key={`${item.type}-${item.productId ?? item.serviceId ?? index}`}
+            className="quote-selection-card"
+          >
             <div className="quote-selection-card__header">
               <div className="quote-selection-card__title-area">
                 <div className="quote-selection-card__title-row">
@@ -39,7 +49,9 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                   {isRental ? ' / mois' : ''}
                   {' · TVA '}
                   {(item.vatRate ?? 0).toString()}%
-                  {(item.discountCents ?? 0) > 0 ? ` · Remise ${formatQuotePrice(item.discountCents ?? 0)}` : ''}
+                  {(item.discountCents ?? 0) > 0
+                    ? ` · Remise ${formatQuotePrice(item.discountCents ?? 0)}`
+                    : ''}
                 </p>
               </div>
 
@@ -57,7 +69,9 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                     type="button"
                     aria-label="Diminuer la quantité"
                     className="quote-selection-stepper__button"
-                    onClick={() => onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) - 1) })}
+                    onClick={() =>
+                      onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) - 1) })
+                    }
                   >
                     -
                   </button>
@@ -68,14 +82,18 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                     value={item.quantity ?? 1}
                     onChange={(event) => {
                       const value = Number.parseInt(event.target.value, 10);
-                      onUpdateItem(index, { quantity: Number.isNaN(value) ? 1 : Math.max(1, value) });
+                      onUpdateItem(index, {
+                        quantity: Number.isNaN(value) ? 1 : Math.max(1, value),
+                      });
                     }}
                   />
                   <button
                     type="button"
                     aria-label="Augmenter la quantité"
                     className="quote-selection-stepper__button"
-                    onClick={() => onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) + 1) })}
+                    onClick={() =>
+                      onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) + 1) })
+                    }
                   >
                     +
                   </button>
@@ -88,7 +106,11 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                       type="button"
                       aria-label="Diminuer le nombre de mois"
                       className="quote-selection-stepper__button"
-                      onClick={() => onUpdateItem(index, { rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1) })}
+                      onClick={() =>
+                        onUpdateItem(index, {
+                          rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1),
+                        })
+                      }
                     >
                       -
                     </button>
@@ -99,7 +121,9 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                       value={Math.max(1, item.rentalMonths ?? 1)}
                       onChange={(event) => {
                         const value = Number.parseInt(event.target.value, 10);
-                        onUpdateItem(index, { rentalMonths: Number.isNaN(value) ? 1 : Math.max(1, value) });
+                        onUpdateItem(index, {
+                          rentalMonths: Number.isNaN(value) ? 1 : Math.max(1, value),
+                        });
                       }}
                     />
                     <span className="quote-selection-stepper__unit">mois</span>
@@ -107,7 +131,11 @@ export const PublicQuoteSelectionList = ({ items, onUpdateItem, onRemoveItem }: 
                       type="button"
                       aria-label="Augmenter le nombre de mois"
                       className="quote-selection-stepper__button"
-                      onClick={() => onUpdateItem(index, { rentalMonths: Math.max(1, (item.rentalMonths ?? 1) + 1) })}
+                      onClick={() =>
+                        onUpdateItem(index, {
+                          rentalMonths: Math.max(1, (item.rentalMonths ?? 1) + 1),
+                        })
+                      }
                     >
                       +
                     </button>

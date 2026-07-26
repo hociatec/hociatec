@@ -149,7 +149,9 @@
   border-radius: 16px;
   background: #fff;
   text-align: left;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .catalog-variant-switcher__card.is-active .catalog-variant-switcher__item {
@@ -187,7 +189,9 @@
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .catalog-variant-switcher__select {
@@ -275,7 +279,10 @@
   border-radius: 14px;
   background: #fff;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .catalog-brand-picker__option:hover {
@@ -320,5 +327,7 @@
   padding: 10px 12px;
   font-size: 0.95rem;
   font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }

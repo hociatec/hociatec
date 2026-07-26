@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -23,7 +23,7 @@ const emptyForm: BrandFormState = {
 
 export const BrandFormPage = () => {
   const { brandId } = useParams();
-  const isEdit = useMemo(() => Boolean(brandId), [brandId]);
+  const isEdit = Boolean(brandId);
   const navigate = useNavigate();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une marque' : 'Admin - Nouvelle marque');
@@ -99,7 +99,8 @@ export const BrandFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier une marque' : 'Nouvelle marque'}
       headerActions={
         <button

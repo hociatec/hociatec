@@ -213,19 +213,11 @@ const ProductVariantPicker = ({
                 onClick={() => onVariantChange(String(variant.id))}
                 aria-pressed={variant.id === currentProductId}
               >
-                <span className="catalog-detail-variant-card__title">
-                  {variant.title}
-                </span>
-                <span className="catalog-detail-variant-card__meta">
-                  {variant.subtitle}
-                </span>
+                <span className="catalog-detail-variant-card__title">{variant.title}</span>
+                <span className="catalog-detail-variant-card__meta">{variant.subtitle}</span>
                 <span className="catalog-detail-variant-card__footer">
-                  <span className="catalog-detail-variant-card__price">
-                    {variant.priceLabel}
-                  </span>
-                  <span className="catalog-detail-variant-card__stock">
-                    {variant.stockLabel}
-                  </span>
+                  <span className="catalog-detail-variant-card__price">{variant.priceLabel}</span>
+                  <span className="catalog-detail-variant-card__stock">{variant.stockLabel}</span>
                 </span>
               </button>
             ))}
@@ -241,10 +233,7 @@ interface ProductInfoHighlightProps {
   productDates: { created: string | null; updated: string | null } | null;
 }
 
-export const ProductInfoHighlight = ({
-  product,
-  productDates,
-}: ProductInfoHighlightProps) => (
+export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighlightProps) => (
   <section className="catalog-detail-highlight">
     <div className="catalog-highlight-card">
       <h2>Informations clés</h2>
@@ -252,7 +241,8 @@ export const ProductInfoHighlight = ({
         <div>
           <dt>Prix public</dt>
           <dd>
-            {formatProductPrice(product.priceCents)}{product.sellingType === 'rental' ? ' / mois' : ''}
+            {formatProductPrice(product.priceCents)}
+            {product.sellingType === 'rental' ? ' / mois' : ''}
           </dd>
         </div>
         <div>
@@ -343,9 +333,7 @@ export const ProductReviewsSection = ({
       <div className="catalog-reviews-card__header">
         <div>
           <h2>Avis clients</h2>
-          <p className="muted">
-            Ce que disent les clients ayant commandé ce produit.
-          </p>
+          <p className="muted">Ce que disent les clients ayant commandé ce produit.</p>
         </div>
         <div className="catalog-review-badge catalog-review-badge--summary">
           <RatingStars value={summaryAverage} />
@@ -369,9 +357,7 @@ export const ProductReviewsSection = ({
               <RatingStars value={review.score} />
               <div>
                 <strong>{review.author.displayName}</strong>
-                <span className="muted">
-                  {formatOptionalFrenchDate(review.createdAt)}
-                </span>
+                <span className="muted">{formatOptionalFrenchDate(review.createdAt)}</span>
               </div>
             </div>
             {review.comment && <p>{review.comment}</p>}

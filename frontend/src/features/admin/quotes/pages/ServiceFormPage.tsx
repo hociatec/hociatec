@@ -2,7 +2,11 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { type ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { createAdminQuoteService, fetchAdminQuoteService, updateAdminQuoteService } from '@/features/quotes/api/quotesApi';
+import {
+  createAdminQuoteService,
+  fetchAdminQuoteService,
+  updateAdminQuoteService,
+} from '@/features/quotes/api/quotesApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -85,9 +89,9 @@ export const ServiceFormPage = () => {
 
   const handleChange =
     (field: keyof ServiceFormState) =>
-      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setForm((prev) => ({ ...prev, [field]: event.target.value }));
-      };
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   const parseNumberField = (value: string): number => {
     const normalized = value.replace(',', '.').trim();
@@ -135,7 +139,8 @@ export const ServiceFormPage = () => {
     }
 
     const parsedDurationValue = durationValue === '' ? '' : Number.parseInt(durationValue, 10);
-    const parsedDurationUnit: ServicePayload['durationUnit'] = durationValue === '' ? '' : form.durationUnit;
+    const parsedDurationUnit: ServicePayload['durationUnit'] =
+      durationValue === '' ? '' : form.durationUnit;
 
     return {
       title,
@@ -177,7 +182,8 @@ export const ServiceFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier un service' : 'Nouveau service'}
       headerActions={
         <button
@@ -190,7 +196,8 @@ export const ServiceFormPage = () => {
       }
     >
       <p className="mb-4 text-sm text-stone-600">
-        Renseignez ici les informations complètes du service, y compris sa durée estimée lorsqu’elle est connue.
+        Renseignez ici les informations complètes du service, y compris sa durée estimée lorsqu’elle
+        est connue.
       </p>
       {error && <FeedbackMessage>{error}</FeedbackMessage>}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
@@ -198,10 +205,7 @@ export const ServiceFormPage = () => {
       {initialLoading && isEdit ? (
         <LoadingState>Chargement du service...</LoadingState>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="register-form-card form-card-grid"
-        >
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Titre</span>
             <input

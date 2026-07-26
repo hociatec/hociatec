@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\DTO\ProductSearchCriteria;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\Cache\CacheInterface;
 
 final readonly class ProductCatalogSearchProvider
 {
-    public function __construct(private ProductQueryService $products)
-    {
+    public function __construct(
+        private ProductQueryService $products,
+        #[Autowire(service: 'app.catalog_cache')]
+        private CacheInterface $cache,
+    ) {
     }
 
     /**
@@ -17,24 +22,35 @@ final readonly class ProductCatalogSearchProvider
      */
     public function search(ProductSearchCriteria $criteria): array
     {
-        $filters = $criteria->filterArguments();
-        $items = $this->products->listPublished(
-            ...[...$filters, $criteria->sort, $criteria->perPage, $criteria->offset()],
-        );
-        $total = $this->products->countPublished(...$filters);
+        $cacheKey = 'catalog_'.sha1((string) json_encode([
+            'page' => $criteria->page,
+            'perPage' => $criteria->perPage,
+            'filters' => $criteria->filterArguments(),
+            'sort' => $criteria->sort,
+        ], JSON_THROW_ON_ERROR));
 
-        return [
-            'items' => array_map(
-                static fn ($product): array => CatalogFormatter::formatProduct($product),
-                $items,
-            ),
-            'meta' => [
-                'page' => $criteria->page,
-                'perPage' => $criteria->perPage,
-                'total' => $total,
-                'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
-            ],
-            'facets' => $this->products->collectPublishedFacets(...$filters),
-        ];
+        $result = $this->cache->get($cacheKey, function () use ($criteria): array {
+            $filters = $criteria->filterArguments();
+            $items = $this->products->listPublished(
+                ...[...$filters, $criteria->sort, $criteria->perPage, $criteria->offset()],
+            );
+            $total = $this->products->countPublished(...$filters);
+
+            return [
+                'items' => array_map(
+                    static fn ($product): array => CatalogFormatter::formatProduct($product),
+                    $items,
+                ),
+                'meta' => [
+                    'page' => $criteria->page,
+                    'perPage' => $criteria->perPage,
+                    'total' => $total,
+                    'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
+                ],
+                'facets' => $this->products->collectPublishedFacets(...$filters),
+            ];
+        });
+
+        return $result;
     }
 }

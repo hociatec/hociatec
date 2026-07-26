@@ -20,7 +20,17 @@ export const DashboardPanel = ({
 );
 
 export const DashboardStatusNotice = ({ state }: { state: 'loading' | 'success' | 'error' }) => {
-  if (state === 'loading') return <div className="client-dashboard__notice" role="status" aria-live="polite">Chargement de votre espace...</div>;
-  if (state === 'error') return <div className="client-dashboard__notice client-dashboard__notice--warning">Certaines informations n’ont pas pu être chargées. Les accès rapides restent disponibles.</div>;
+  if (state === 'loading')
+    return (
+      <div className="client-dashboard__notice" role="status" aria-live="polite">
+        Chargement de votre espace...
+      </div>
+    );
+  if (state === 'error')
+    return (
+      <div className="client-dashboard__notice client-dashboard__notice--warning">
+        Certaines informations n’ont pas pu être chargées. Les accès rapides restent disponibles.
+      </div>
+    );
   return null;
 };

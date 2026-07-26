@@ -36,10 +36,7 @@ export const ProductMetaBadges = ({
 
   return (
     <div className={clsx('product-meta', variantClassName[variant], className)}>
-      <div
-        className={clsx('product-meta__item', sellingTypeClass)}
-        aria-label={accessibleLabel}
-      >
+      <div className={clsx('product-meta__item', sellingTypeClass)} aria-label={accessibleLabel}>
         <span className="product-meta__text" aria-hidden="true">
           {categoryName} ({sellingTypeText})
         </span>

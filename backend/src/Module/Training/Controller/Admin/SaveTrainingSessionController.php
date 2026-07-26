@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Controller\Admin;
 
+use App\Module\Training\DTO\TrainingSessionInput;
 use App\Module\Training\Entity\TrainingSession;
 use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Repository\TrainingSessionRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,31 +29,25 @@ class SaveTrainingSessionController extends AbstractController
         private readonly TrainingSessionRepository $sessions,
         private readonly TrainingFormatter $formatter,
         private readonly TrainingWriter $writer,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = $request->toArray();
-        $training = $this->trainings->find((int) ($payload['trainingId'] ?? 0));
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = TrainingSessionInput::fromArray($payload);
+        $this->validator->validate($input);
+        if ($input->endsAt <= $input->startsAt) {
+            return ApiResponse::error('La date de fin doit être après la date de début.', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        if ($input->dailyEndTime <= $input->dailyStartTime) {
+            return ApiResponse::error("L'heure de fin journalière doit être après l'heure de début.", Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $training = $this->trainings->find($input->trainingId);
         if (null === $training) {
             return ApiResponse::error('Formation introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        $startsAt = new \DateTimeImmutable((string) ($payload['startsAt'] ?? 'now'));
-        $endsAt = new \DateTimeImmutable((string) ($payload['endsAt'] ?? $startsAt->modify('+1 day')->format(\DateTimeImmutable::ATOM)));
-        $dailyStartTime = new \DateTimeImmutable((string) ($payload['dailyStartTime'] ?? '08:00'));
-        $dailyEndTime = new \DateTimeImmutable((string) ($payload['dailyEndTime'] ?? '20:00'));
-        $includeWeekends = (bool) ($payload['includeWeekends'] ?? true);
-        $format = in_array($payload['format'] ?? '', ['onsite', 'remote'], true) ? (string) $payload['format'] : 'onsite';
-        $capacity = max(1, (int) ($payload['capacity'] ?? 1));
-
-        if ($endsAt <= $startsAt) {
-            return ApiResponse::error('La date de fin doit être après la date de début.', Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($dailyEndTime <= $dailyStartTime) {
-            return ApiResponse::error("L'heure de fin journalière doit être après l'heure de début.", Response::HTTP_BAD_REQUEST);
         }
 
         $session = null !== $id ? $this->sessions->find($id) : null;
@@ -60,31 +56,24 @@ class SaveTrainingSessionController extends AbstractController
         }
 
         if (null === $session) {
-            $session = new TrainingSession($training, $format, $startsAt, $endsAt, $capacity);
+            $session = new TrainingSession($training, $input->format, $input->startsAt, $input->endsAt, $input->capacity);
         }
 
         $session
             ->setTraining($training)
-            ->setFormat($format)
-            ->setStartsAt($startsAt)
-            ->setEndsAt($endsAt)
-            ->setDailyStartTime($dailyStartTime)
-            ->setDailyEndTime($dailyEndTime)
-            ->setIncludeWeekends($includeWeekends)
-            ->setLocation($this->nullableString($payload['location'] ?? null))
-            ->setMeetingUrl($this->nullableString($payload['meetingUrl'] ?? null))
-            ->setCapacity($capacity)
-            ->setStatus(trim((string) ($payload['status'] ?? 'scheduled')) ?: 'scheduled');
+            ->setFormat($input->format)
+            ->setStartsAt($input->startsAt)
+            ->setEndsAt($input->endsAt)
+            ->setDailyStartTime($input->dailyStartTime)
+            ->setDailyEndTime($input->dailyEndTime)
+            ->setIncludeWeekends($input->includeWeekends)
+            ->setLocation($input->location)
+            ->setMeetingUrl($input->meetingUrl)
+            ->setCapacity($input->capacity)
+            ->setStatus($input->status);
 
         $this->writer->save($session);
 
         return ApiResponse::success($this->formatter->formatSession($session), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);
-    }
-
-    private function nullableString(mixed $value): ?string
-    {
-        $text = trim((string) $value);
-
-        return '' !== $text ? $text : null;
     }
 }

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Controller\PublicApi;
 
+use App\Module\Cart\DTO\ApplyCartVoucherInput;
 use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartVoucherService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\RateLimited;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,24 +23,22 @@ final class ApplyCartPromotionCodeController extends AbstractController
     public function __construct(
         private readonly CartVoucherService $cartVouchers,
         private readonly CartFormatter $cartFormatter,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = '' !== $request->getContent() ? $request->toArray() : [];
-        $voucherCode = trim((string) ($payload['voucherCode'] ?? ''));
-
-        if ('' === $voucherCode) {
-            return ApiResponse::error('Bon de réduction manquant.', JsonResponse::HTTP_BAD_REQUEST);
-        }
+        $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
+        $input = ApplyCartVoucherInput::fromArray($payload);
+        $this->validator->validate($input);
 
         $user = $this->getUser();
 
         try {
             $cart = $this->cartVouchers->apply(
-                $this->extractToken($request, $payload),
-                $voucherCode,
+                $this->extractToken($request, ['cartToken' => $input->cartToken]),
+                $input->voucherCode,
                 $user instanceof User ? $user : null,
             );
         } catch (\InvalidArgumentException $exception) {

@@ -58,10 +58,7 @@ const rethrowApiError = (error: unknown): never => {
 
 export const registerUser = async (payload: RegisterPayload) => {
   try {
-    const { data } = await httpClient.post<ApiResponse<AuthUser>>(
-      '/api/auth/register',
-      payload,
-    );
+    const { data } = await httpClient.post<ApiResponse<AuthUser>>('/api/auth/register', payload);
     return unwrapResponse(data);
   } catch (error) {
     return rethrowApiError(error);
@@ -113,18 +110,13 @@ export interface UpdateProfilePayload {
 }
 
 export const updateProfile = async (payload: UpdateProfilePayload) => {
-  const { data } = await httpClient.put<ApiResponse<AuthUser>>(
-    '/api/auth/profile',
-    payload,
-  );
+  const { data } = await httpClient.put<ApiResponse<AuthUser>>('/api/auth/profile', payload);
 
   return unwrapResponse(data);
 };
 
 export const deleteAccount = async () => {
-  const { data } = await httpClient.delete<ApiResponse<{ message: string }>>(
-    '/api/auth/profile',
-  );
+  const { data } = await httpClient.delete<ApiResponse<{ message: string }>>('/api/auth/profile');
 
   return unwrapResponse(data);
 };
@@ -150,7 +142,10 @@ export const requestPasswordReset = async (email: string): Promise<{ message: st
   }
 };
 
-export const resetPassword = async (token: string, payload: PasswordResetPayload): Promise<{ message: string }> => {
+export const resetPassword = async (
+  token: string,
+  payload: PasswordResetPayload,
+): Promise<{ message: string }> => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ message: string }>>(
       `/api/auth/password-reset/reset/${token}`,

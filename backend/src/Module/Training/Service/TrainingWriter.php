@@ -4,47 +4,47 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Service;
 
+use App\Module\Training\DTO\TrainingInput;
 use App\Module\Training\Entity\Training;
 use App\Module\Training\Entity\TrainingRoadmapItem;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class TrainingWriter
 {
-    public function __construct(private readonly EntityManagerInterface $entityManager)
+    public function __construct(private readonly DoctrinePersistence $persistence)
     {
     }
 
     public function save(object $entity): void
     {
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $this->persistence->persist($entity);
+        $this->persistence->flush();
     }
 
     public function delete(object $entity): void
     {
-        $this->entityManager->remove($entity);
-        $this->entityManager->flush();
+        $this->persistence->remove($entity);
+        $this->persistence->flush();
     }
 
-    /** @param array<string, mixed> $payload */
-    public function apply(Training $training, array $payload): Training
+    public function apply(Training $training, TrainingInput $input): Training
     {
         $training
-            ->setTitle(trim((string) ($payload['title'] ?? $training->getTitle())))
-            ->setSlug($this->slugify((string) ($payload['slug'] ?? $payload['title'] ?? $training->getSlug())))
-            ->setShortDescription($this->nullableString($payload['shortDescription'] ?? null))
-            ->setObjective($this->nullableString($payload['objective'] ?? null))
-            ->setAudience($this->nullableString($payload['audience'] ?? null))
-            ->setCategory($this->category($payload['category'] ?? $training->getCategory()))
-            ->setDurationMinutes(max(15, (int) ($payload['durationMinutes'] ?? $training->getDurationMinutes())))
-            ->setPriceCents(max(0, (int) ($payload['priceCents'] ?? $training->getPriceCents())))
-            ->setAvailableFormats($this->formats($payload['availableFormats'] ?? $training->getAvailableFormats()))
-            ->setIsActive((bool) ($payload['isActive'] ?? $training->isActive()));
+            ->setTitle($input->title)
+            ->setSlug($this->slugify($input->slug ?? $input->title))
+            ->setShortDescription($this->nullableString($input->shortDescription))
+            ->setObjective($this->nullableString($input->objective))
+            ->setAudience($this->nullableString($input->audience))
+            ->setCategory($this->category($input->category ?? $training->getCategory()))
+            ->setDurationMinutes(max(15, $input->durationMinutes))
+            ->setPriceCents($input->priceCents)
+            ->setAvailableFormats($this->formats($input->availableFormats))
+            ->setIsActive($input->isActive);
 
         $training->clearRoadmapItems();
         $position = 1;
-        foreach ((array) ($payload['roadmap'] ?? []) as $item) {
-            $title = trim((string) $item);
+        foreach ($input->roadmap as $item) {
+            $title = trim($item);
             if ('' === $title) {
                 continue;
             }

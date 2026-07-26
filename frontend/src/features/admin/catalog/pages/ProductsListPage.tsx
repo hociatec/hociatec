@@ -1,14 +1,7 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import type { CatalogProduct } from '@/features/catalog/api';
 
-import {
-  deleteProduct,
-  fetchAdminCategories,
-  fetchAdminProducts,
-  type CatalogCategory,
-  type CatalogProduct,
-} from '@/features/catalog/api';
+import { useAdminProductsList } from '../hooks/useAdminProductsList';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -16,9 +9,7 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
-import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
-import { groupCatalogProducts } from '@/features/catalog/utils/groupProducts';
 
 import '@/features/catalog/pages/CatalogPages.css';
 
@@ -26,112 +17,30 @@ const getStockLevel = (product: CatalogProduct) => product.totalStock ?? product
 
 export const ProductsListPage = () => {
   useDocumentTitle('Admin - Produits');
-  const [searchParams, setSearchParams] = useSearchParams();
+  const {
+    categories,
+    loading,
+    error,
+    message,
+    search,
+    setSearch,
+    filterCategory,
+    setFilterCategory,
+    stockFilter,
+    setStockFilter,
+    filteredProducts,
+    resetFilters,
+    handleDelete,
+  } = useAdminProductsList();
 
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [search, setSearch] = useState(searchParams.get('search') ?? '');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [stockFilter, setStockFilter] = useState<'all' | 'low'>(
-    (searchParams.get('stock') as 'all' | 'low' | null) ?? 'all',
-  );
-  const confirm = useConfirm();
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    void Promise.all([fetchAdminProducts(), fetchAdminCategories()])
-      .then(([productList, categoryList]) => {
-        setProducts(productList);
-        setCategories(categoryList);
-      })
-      .catch((err) => setError(getHttpErrorMessage(err, "Le catalogue admin n'a pas pu être chargé. Réessayez ou vérifiez votre session.")))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleDelete = async (productId: number) => {
-    const product = products.find((item) => item.id === productId);
-    const productLabel = product ? `"${product.name}"` : 'ce produit';
-
-    const confirmed = await confirm({
-      title: 'Supprimer le produit',
-      description: `Supprimer ${productLabel} du catalogue ? Cette action le retirera aussi des vues publiques.`,
-      confirmLabel: 'Supprimer',
-      cancelLabel: 'Annuler',
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    setError(null);
-    setMessage(null);
-
-    try {
-      await deleteProduct(productId);
-      setProducts((prev) => prev.filter((product) => product.id !== productId));
-      setMessage('Produit supprimé du catalogue.');
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Le produit n'a pas pu être supprimé. Vérifiez qu'il n'est pas lié à une commande ou un devis."));
-    }
-  };
-
-  const filteredProducts = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    const filterSlug = filterCategory === 'all' ? null : filterCategory;
-    const groupedProducts = groupCatalogProducts(products);
-
-    return groupedProducts.filter((product) => {
-      const matchSearch =
-        term.length === 0 ||
-        product.name.toLowerCase().includes(term) ||
-        product.slug.toLowerCase().includes(term) ||
-        product.sku.toLowerCase().includes(term) ||
-        (product.brand?.toLowerCase().includes(term) ?? false);
-
-      const matchCategory = !filterSlug || product.category.slug === filterSlug;
-      const totalStock = getStockLevel(product);
-      const matchStock = stockFilter !== 'low' || totalStock <= 3;
-
-      return matchSearch && matchCategory && matchStock;
-    });
-  }, [products, search, filterCategory, stockFilter]);
-
-  const hasActiveFilters = search.trim() !== '' || filterCategory !== 'all' || stockFilter !== 'all';
-
-  const resetFilters = () => {
-    setSearch('');
-    setFilterCategory('all');
-    setStockFilter('all');
-  };
-
-  useEffect(() => {
-    const next = new URLSearchParams();
-    if (search.trim() !== '') next.set('search', search.trim());
-    if (filterCategory !== 'all') next.set('category', filterCategory);
-    if (stockFilter !== 'all') next.set('stock', stockFilter);
-    setSearchParams(next, { replace: true });
-  }, [search, filterCategory, stockFilter, setSearchParams]);
-
-  useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam) {
-      setFilterCategory(categoryParam);
-    }
-  }, [searchParams]);
+  const hasActiveFilters =
+    search.trim() !== '' || filterCategory !== 'all' || stockFilter !== 'all';
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Produits"
-      headerActions={
-        <PrimaryLink to="/admin/catalog/products/new">
-          Nouveau produit
-        </PrimaryLink>
-      }
+      headerActions={<PrimaryLink to="/admin/catalog/products/new">Nouveau produit</PrimaryLink>}
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
@@ -147,8 +56,8 @@ export const ProductsListPage = () => {
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
           <div className="font-semibold">Stock faible à traiter</div>
           <div className="mt-1">
-            Cette vue affiche les produits dont le stock total est inférieur ou égal à 3.
-            Ouvrez la fiche produit pour ajuster le stock ou préparer le réassort.
+            Cette vue affiche les produits dont le stock total est inférieur ou égal à 3. Ouvrez la
+            fiche produit pour ajuster le stock ou préparer le réassort.
           </div>
         </div>
       )}
@@ -228,7 +137,7 @@ export const ProductsListPage = () => {
                           className="catalog-admin-actions__edit"
                           aria-label={`Réapprovisionner le produit ${product.name}`}
                         >
-                        Ajuster le stock
+                          Ajuster le stock
                         </Link>
                       ) : null}
                       <Link

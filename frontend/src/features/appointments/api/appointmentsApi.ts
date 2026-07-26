@@ -15,7 +15,7 @@ const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =
 export const fetchPrestations = async () => {
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: Prestation[] }>>(
-      '/api/public/appointments/prestations'
+      '/api/public/appointments/prestations',
     );
 
     if (data.status === 'success') {
@@ -31,7 +31,7 @@ export const fetchPrestations = async () => {
 export const fetchSchedule = async () => {
   try {
     const { data } = await httpClient.get<ApiResponse<{ days: WorkingDay[] }>>(
-      '/api/public/appointments/schedule'
+      '/api/public/appointments/schedule',
     );
 
     if (data.status === 'success') {
@@ -56,7 +56,7 @@ export const fetchAvailability = async ({
   try {
     const { data } = await httpClient.get<ApiResponse<{ slots: AvailabilitySlot[] }>>(
       '/api/public/appointments/availability',
-      { params: { start, end, prestationId } }
+      { params: { start, end, prestationId } },
     );
 
     if (data.status === 'success') {
@@ -73,7 +73,7 @@ export const bookAppointment = async (payload: AppointmentPayload) => {
   try {
     const { data } = await httpClient.post<ApiResponse<AppointmentItem>>(
       '/api/appointments',
-      payload
+      payload,
     );
 
     if (isApiOk(data)) {
@@ -87,9 +87,10 @@ export const bookAppointment = async (payload: AppointmentPayload) => {
 };
 
 export const fetchMyAppointments = async () => {
-  const { data } = await httpClient.get<
-    ApiResponse<{ upcoming: AppointmentItem[]; past: AppointmentItem[] }>
-  >('/api/appointments/me');
+  const { data } =
+    await httpClient.get<ApiResponse<{ upcoming: AppointmentItem[]; past: AppointmentItem[] }>>(
+      '/api/appointments/me',
+    );
 
   if (data.status === 'success') {
     return data.data;
@@ -101,13 +102,12 @@ export const fetchMyAppointments = async () => {
 export const cancelAppointment = async (id: number) => {
   const { data } = await httpClient.patch<ApiResponse<{ appointment: AppointmentItem }>>(
     `/api/appointments/${id}/status`,
-    { status: 'cancelled' }
+    { status: 'cancelled' },
   );
 
   if (isApiOk(data)) {
     return data.data.appointment;
   }
 
-  throw new Error(extractErrorMessage(data, 'Erreur lors de l\'annulation du rendez-vous'));
+  throw new Error(extractErrorMessage(data, "Erreur lors de l'annulation du rendez-vous"));
 };
-

@@ -1,11 +1,14 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import { fetchMarketingSegments, fetchMarketingTemplate, type MarketingSegmentDefinition, type MarketingTemplate } from '@/features/admin/marketing/api';
+import { useMarketingTemplateDetail } from '../hooks/useMarketingTemplateDetail';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminMetricCard, AdminMetricGrid } from '@/shared/components/admin/AdminDataView';
-import { EmptyState, FeedbackMessage, LoadingState, PrimaryLink } from '@/shared/components/ui/page-state';
+import {
+  EmptyState,
+  FeedbackMessage,
+  LoadingState,
+  PrimaryLink,
+} from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
@@ -59,31 +62,22 @@ const buildPreviewDocument = (htmlBody: string) => `<!doctype html>
 </html>`;
 
 export const MarketingTemplateDetailPage = () => {
-  const location = useLocation();
-  const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
-  useDocumentTitle(isTransactionalView ? 'Admin - Détail d’un e-mail transactionnel' : 'Admin - Détail d’un modèle d’e-mail');
-  const { templateId } = useParams();
-  const [template, setTemplate] = useState<MarketingTemplate | null>(null);
-  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!templateId) return;
-    setLoading(true);
-    setError(null);
-    void Promise.all([fetchMarketingTemplate(Number(templateId)), fetchMarketingSegments(isTransactionalView ? 'transactional' : 'templates')])
-      .then(([templateItem, segmentsList]) => {
-        setTemplate(templateItem);
-        setSegments(segmentsList);
-      })
-      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger le modèle.')))
-      .finally(() => setLoading(false));
-  }, [templateId, isTransactionalView]);
-
+  const { template, segments, loading, error, isTransactionalView } = useMarketingTemplateDetail();
+  useDocumentTitle(
+    isTransactionalView
+      ? 'Admin - Détail d’un e-mail transactionnel'
+      : 'Admin - Détail d’un modèle d’e-mail',
+  );
   return (
-    <PageContainer size="admin"
-      title={template ? template.name : (isTransactionalView ? 'Détail d’un e-mail transactionnel' : 'Détail d’un modèle d’e-mail')}
+    <PageContainer
+      size="admin"
+      title={
+        template
+          ? template.name
+          : isTransactionalView
+            ? 'Détail d’un e-mail transactionnel'
+            : 'Détail d’un modèle d’e-mail'
+      }
       headerActions={
         <div className="flex flex-wrap gap-3">
           <Link
@@ -102,7 +96,13 @@ export const MarketingTemplateDetailPage = () => {
                   Utiliser en campagne
                 </Link>
               ) : null}
-              <PrimaryLink to={isTransactionalView ? `/admin/transactional-emails/${template.id}/edit` : `/admin/marketing/templates/${template.id}/edit`}>
+              <PrimaryLink
+                to={
+                  isTransactionalView
+                    ? `/admin/transactional-emails/${template.id}/edit`
+                    : `/admin/marketing/templates/${template.id}/edit`
+                }
+              >
                 Modifier
               </PrimaryLink>
             </>
@@ -125,14 +125,19 @@ export const MarketingTemplateDetailPage = () => {
                 <>
                   {segments[template.scenarioKey]?.label ?? template.scenarioKey}
                   <span className="mt-1 block text-xs font-normal text-stone-500">
-                    {segments[template.scenarioKey]?.type === 'transactional' ? 'Transactionnel' : 'Marketing'}
+                    {segments[template.scenarioKey]?.type === 'transactional'
+                      ? 'Transactionnel'
+                      : 'Marketing'}
                   </span>
                 </>
               }
             />
             <AdminMetricCard label="Statut" value={template.isActive ? 'Actif' : 'Désactivé'} />
             <AdminMetricCard label="Créé le" value={formatOptionalFrenchDate(template.createdAt)} />
-            <AdminMetricCard label="Mis à jour" value={formatOptionalFrenchDate(template.updatedAt)} />
+            <AdminMetricCard
+              label="Mis à jour"
+              value={formatOptionalFrenchDate(template.updatedAt)}
+            />
           </AdminMetricGrid>
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -141,20 +146,31 @@ export const MarketingTemplateDetailPage = () => {
                 <h2 className="text-xl font-semibold text-brand-900">Informations</h2>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Nom</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                      Nom
+                    </div>
                     <div className="mt-2 text-sm text-stone-800">{template.name}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Slug</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                      Slug
+                    </div>
                     <div className="mt-2 text-sm text-stone-800">{template.slug}</div>
                   </div>
                   <div className="md:col-span-2">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Objet</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                      Objet
+                    </div>
                     <div className="mt-2 text-sm text-stone-800">{template.subjectTemplate}</div>
                   </div>
                   <div className="md:col-span-2">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">Description d’usage</div>
-                    <div className="mt-2 text-sm text-stone-600">{segments[template.scenarioKey]?.description ?? 'Scénario métier associé au modèle.'}</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                      Description d’usage
+                    </div>
+                    <div className="mt-2 text-sm text-stone-600">
+                      {segments[template.scenarioKey]?.description ??
+                        'Scénario métier associé au modèle.'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -183,7 +199,10 @@ export const MarketingTemplateDetailPage = () => {
                 <h2 className="text-xl font-semibold text-brand-900">Variables disponibles</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {availableVariables.map((variable) => (
-                    <span key={variable} className="rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-stone-700">
+                    <span
+                      key={variable}
+                      className="rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-stone-700"
+                    >
                       {variable}
                     </span>
                   ))}
@@ -195,21 +214,42 @@ export const MarketingTemplateDetailPage = () => {
                 <div className="mt-4 space-y-3 text-sm">
                   {segments[template.scenarioKey]?.type !== 'transactional' ? (
                     <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                      <p className="m-0 font-semibold text-stone-700">Créer une campagne avec ce modèle</p>
-                      <Link to={`/admin/marketing/new?templateId=${template.id}`} className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900">
+                      <p className="m-0 font-semibold text-stone-700">
+                        Créer une campagne avec ce modèle
+                      </p>
+                      <Link
+                        to={`/admin/marketing/new?templateId=${template.id}`}
+                        className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
+                      >
                         Ouvrir
                       </Link>
                     </div>
                   ) : null}
                   <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
                     <p className="m-0 font-semibold text-stone-700">Modifier ce modèle</p>
-                    <Link to={isTransactionalView ? `/admin/transactional-emails/${template.id}/edit` : `/admin/marketing/templates/${template.id}/edit`} className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900">
+                    <Link
+                      to={
+                        isTransactionalView
+                          ? `/admin/transactional-emails/${template.id}/edit`
+                          : `/admin/marketing/templates/${template.id}/edit`
+                      }
+                      className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
+                    >
                       Ouvrir
                     </Link>
                   </div>
                   <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                    <p className="m-0 font-semibold text-stone-700">Dupliquer manuellement dans un nouveau modèle</p>
-                    <Link to={isTransactionalView ? '/admin/transactional-emails/new' : '/admin/marketing/templates/new'} className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900">
+                    <p className="m-0 font-semibold text-stone-700">
+                      Dupliquer manuellement dans un nouveau modèle
+                    </p>
+                    <Link
+                      to={
+                        isTransactionalView
+                          ? '/admin/transactional-emails/new'
+                          : '/admin/marketing/templates/new'
+                      }
+                      className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
+                    >
                       Ouvrir
                     </Link>
                   </div>

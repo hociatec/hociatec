@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-  fetchAdminPayments,
   formatPaymentStatusFr,
   formatStripeFailureCodeFr,
   formatStripeEventTypeFr,
   formatStripePaymentStatusFr,
-  type AdminPaymentDto,
 } from '@/features/orders/api';
+import { useAdminPaymentsList } from '../hooks/useAdminPaymentsList';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -16,35 +14,34 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
-import { formatCurrencyCents, formatOptionalFrenchDate, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import {
+  formatCurrencyCents,
+  formatOptionalFrenchDate,
+  formatOptionalFrenchDateTime,
+} from '@/shared/lib/formatters';
 
 export const PaymentsListPage = () => {
   useDocumentTitle('Admin - Paiements');
 
-  const [items, setItems] = useState<AdminPaymentDto[]>([]);
-  const [status, setStatus] = useState<'all' | 'open' | 'paid' | 'expired' | 'failed'>('all');
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchAdminPayments(status, search)
-      .then(setItems)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Impossible de charger les paiements.'))
-      .finally(() => setLoading(false));
-  }, [status, search]);
+  const { items, status, setStatus, search, setSearch, loading, error } = useAdminPaymentsList();
 
   return (
     <PageContainer size="admin" title="Paiements">
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-stone-600">{items.length} paiement{items.length > 1 ? 's' : ''} affiché{items.length > 1 ? 's' : ''}.</p>
-        <p className="text-sm text-stone-500">Suivi Stripe, statuts, échecs et lien vers la commande quand elle existe.</p>
+        <p className="text-sm text-stone-600">
+          {items.length} paiement{items.length > 1 ? 's' : ''} affiché{items.length > 1 ? 's' : ''}.
+        </p>
+        <p className="text-sm text-stone-500">
+          Suivi Stripe, statuts, échecs et lien vers la commande quand elle existe.
+        </p>
       </div>
 
       <FilterBar>
-        <SearchFilter value={search} onChange={setSearch} placeholder="Rechercher par client, email, session Stripe..." />
+        <SearchFilter
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher par client, email, session Stripe..."
+        />
         <SelectFilter
           value={status}
           onChange={(value) => setStatus(value as typeof status)}
@@ -88,15 +85,17 @@ export const PaymentsListPage = () => {
                     <div className="muted">{formatOptionalFrenchDateTime(payment.createdAt)}</div>
                   </td>
                   <td>
-                    <div><strong>{payment.customerFullName || '-'}</strong></div>
+                    <div>
+                      <strong>{payment.customerFullName || '-'}</strong>
+                    </div>
                     <div className="muted">{payment.customerEmail}</div>
                   </td>
                   <td>{formatCurrencyCents(payment.totalPriceCents, payment.currencyCode)}</td>
                   <td>
                     <div>{payment.statusLabel ?? formatPaymentStatusFr(payment.status)}</div>
                     <div className="muted">
-                      {payment.stripePaymentStatusLabel
-                        ?? (payment.stripePaymentStatus
+                      {payment.stripePaymentStatusLabel ??
+                        (payment.stripePaymentStatus
                           ? formatStripePaymentStatusFr(payment.stripePaymentStatus)
                           : formatStripeEventTypeFr(payment.lastStripeEventType))}
                     </div>
@@ -104,8 +103,12 @@ export const PaymentsListPage = () => {
                   <td>
                     {payment.failureMessage || payment.failureCode ? (
                       <div>
-                        <div>{payment.failureMessage || formatStripeFailureCodeFr(payment.failureCode)}</div>
-                        {payment.failureCode ? <div className="muted">{payment.failureCode}</div> : null}
+                        <div>
+                          {payment.failureMessage || formatStripeFailureCodeFr(payment.failureCode)}
+                        </div>
+                        {payment.failureCode ? (
+                          <div className="muted">{payment.failureCode}</div>
+                        ) : null}
                       </div>
                     ) : (
                       '-'
@@ -113,7 +116,10 @@ export const PaymentsListPage = () => {
                   </td>
                   <td>
                     {payment.orderId ? (
-                      <Link to={`/admin/orders/${payment.orderId}`} className="catalog-admin-table__primary-link">
+                      <Link
+                        to={`/admin/orders/${payment.orderId}`}
+                        className="catalog-admin-table__primary-link"
+                      >
                         #{payment.orderId}
                       </Link>
                     ) : (
@@ -122,7 +128,10 @@ export const PaymentsListPage = () => {
                   </td>
                   <td>
                     <div className="catalog-admin-actions">
-                      <Link to={`/admin/payments/${payment.id}`} className="catalog-admin-actions__edit">
+                      <Link
+                        to={`/admin/payments/${payment.id}`}
+                        className="catalog-admin-actions__edit"
+                      >
                         Voir
                       </Link>
                     </div>

@@ -61,35 +61,33 @@ export type MarketingCampaignPayload = {
 export const fetchMarketingSegments = async (
   type: 'templates' | 'campaigns' | 'transactional' = 'templates',
 ): Promise<Record<string, MarketingSegmentDefinition>> => {
-  const { data } =
-    await httpClient.get<{ data: { items: Record<string, MarketingSegmentDefinition> } }>(
-      `/api/admin/marketing/segments?type=${type}`,
-    );
+  const { data } = await httpClient.get<{
+    data: { items: Record<string, MarketingSegmentDefinition> };
+  }>(`/api/admin/marketing/segments?type=${type}`);
   return data.data.items;
 };
 
 export const fetchMarketingTemplates = async (): Promise<MarketingTemplate[]> => {
-  const { data } =
-    await httpClient.get<{ data: { items: MarketingTemplate[] } }>(
-      '/api/admin/marketing/templates',
-    );
+  const { data } = await httpClient.get<{ data: { items: MarketingTemplate[] } }>(
+    '/api/admin/marketing/templates',
+  );
   return data.data.items;
 };
 
 export const fetchMarketingTemplate = async (templateId: number): Promise<MarketingTemplate> => {
-  const { data } =
-    await httpClient.get<{ data: { template: MarketingTemplate } }>(
-      `/api/admin/marketing/templates/${templateId}`,
-    );
+  const { data } = await httpClient.get<{ data: { template: MarketingTemplate } }>(
+    `/api/admin/marketing/templates/${templateId}`,
+  );
   return data.data.template;
 };
 
-export const createMarketingTemplate = async (payload: MarketingTemplatePayload): Promise<MarketingTemplate> => {
-  const { data } =
-    await httpClient.post<{ data: { template: MarketingTemplate } }>(
-      '/api/admin/marketing/templates',
-      payload,
-    );
+export const createMarketingTemplate = async (
+  payload: MarketingTemplatePayload,
+): Promise<MarketingTemplate> => {
+  const { data } = await httpClient.post<{ data: { template: MarketingTemplate } }>(
+    '/api/admin/marketing/templates',
+    payload,
+  );
   return data.data.template;
 };
 
@@ -97,11 +95,10 @@ export const updateMarketingTemplate = async (
   templateId: number,
   payload: MarketingTemplatePayload,
 ): Promise<MarketingTemplate> => {
-  const { data } =
-    await httpClient.put<{ data: { template: MarketingTemplate } }>(
-      `/api/admin/marketing/templates/${templateId}`,
-      payload,
-    );
+  const { data } = await httpClient.put<{ data: { template: MarketingTemplate } }>(
+    `/api/admin/marketing/templates/${templateId}`,
+    payload,
+  );
   return data.data.template;
 };
 
@@ -110,24 +107,25 @@ export const deleteMarketingTemplate = async (templateId: number): Promise<void>
 };
 
 export const fetchMarketingCampaigns = async (): Promise<MarketingCampaign[]> => {
-  const { data } =
-    await httpClient.get<{ data: { items: MarketingCampaign[] } }>(
-      '/api/admin/marketing/campaigns',
-    );
+  const { data } = await httpClient.get<{ data: { items: MarketingCampaign[] } }>(
+    '/api/admin/marketing/campaigns',
+  );
   return data.data.items;
 };
 
 export const previewMarketingAudience = async (
   segmentKey: string,
   criteria: Record<string, string | number | boolean>,
-): Promise<{ preview: MarketingAudiencePreview; segments: Record<string, MarketingSegmentDefinition> }> => {
-  const { data } =
-    await httpClient.post<{
-      data: {
-        preview: MarketingAudiencePreview;
-        segments: Record<string, MarketingSegmentDefinition>;
-      };
-    }>('/api/admin/marketing/campaigns/preview', { segmentKey, criteria });
+): Promise<{
+  preview: MarketingAudiencePreview;
+  segments: Record<string, MarketingSegmentDefinition>;
+}> => {
+  const { data } = await httpClient.post<{
+    data: {
+      preview: MarketingAudiencePreview;
+      segments: Record<string, MarketingSegmentDefinition>;
+    };
+  }>('/api/admin/marketing/campaigns/preview', { segmentKey, criteria });
 
   return data.data;
 };
@@ -135,12 +133,11 @@ export const previewMarketingAudience = async (
 export const sendMarketingCampaign = async (
   payload: MarketingCampaignPayload,
 ): Promise<{ id: number; name: string; recipientsCount: number; sentAt: string }> => {
-  const { data } =
-    await httpClient.post<{
-      data: {
-        campaign: { id: number; name: string; recipientsCount: number; sentAt: string };
-      };
-    }>('/api/admin/marketing/campaigns/send', payload);
+  const { data } = await httpClient.post<{
+    data: {
+      campaign: { id: number; name: string; recipientsCount: number; sentAt: string };
+    };
+  }>('/api/admin/marketing/campaigns/send', payload);
 
   return data.data.campaign;
 };

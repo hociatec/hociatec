@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Admin\Catalog\DTO\CategoryInput;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\CategoryService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,59 +17,32 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/categories', name: 'api_admin_catalog_categories_create', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class CreateCategoryController extends AbstractController
 {
-    public function __construct(private readonly CategoryService $categoryService)
+    public function __construct(private readonly CategoryService $categoryService, private readonly DtoValidator $validator)
     {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $name = trim((string) ($payload['name'] ?? ''));
-        $description = $payload['description'] ?? null;
-        $slugInput = $payload['slug'] ?? null;
-        $slug = is_string($slugInput) ? trim($slugInput) : null;
-        if ('' === $slug) {
-            $slug = null;
-        }
-        $isVisible = $this->normalizeBoolean($payload['isVisible'] ?? true);
+        $input = CategoryInput::fromArray($payload);
+        $this->validator->validate($input);
 
         try {
-            $category = $this->categoryService->create($name, $slug, $description, $isVisible);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de créer la catégorie.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+            $category = $this->categoryService->create($input->name, $input->slug, $input->description, $input->isVisible);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de créer la catégorie.');
         }
 
         return ApiResponse::created(CatalogFormatter::formatCategory($category, true));
-    }
-
-    private function normalizeBoolean(mixed $value): bool
-    {
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        if (is_string($value)) {
-            $lower = strtolower($value);
-
-            return in_array($lower, ['1', 'true', 'on', 'yes'], true);
-        }
-
-        if (is_int($value)) {
-            return 1 === $value;
-        }
-
-        return (bool) $value;
     }
 }

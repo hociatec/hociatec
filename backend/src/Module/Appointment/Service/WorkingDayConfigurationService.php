@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Service;
 
+use App\Module\Appointment\DTO\WorkingDayData;
 use App\Module\Appointment\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class WorkingDayConfigurationService
 {
@@ -25,7 +25,7 @@ final class WorkingDayConfigurationService
 
     public function __construct(
         private readonly WorkingDayConfigurationRepository $repository,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly WorkingDayConfigurationPersistence $persistence,
     ) {
     }
 
@@ -44,13 +44,7 @@ final class WorkingDayConfigurationService
     }
 
     /**
-     * @param list<array{
-     *     dayOfWeek: int,
-     *     isWorkingDay: bool,
-     *     startTime?: ?string,
-     *     endTime?: ?string,
-     *     breaks?: list<array{start: string, end: string}>
-     * }> $payload
+     * @param list<WorkingDayData> $payload
      *
      * @return list<WorkingDayConfiguration>
      */
@@ -59,23 +53,23 @@ final class WorkingDayConfigurationService
         $configurations = [];
 
         foreach ($payload as $item) {
-            $day = $item['dayOfWeek'];
+            $day = $item->dayOfWeek;
             $configuration = $this->repository->findOneByDay($day);
 
             if (null === $configuration) {
                 $configuration = new WorkingDayConfiguration($day, false);
-                $this->entityManager->persist($configuration);
+                $this->persistence->save($configuration);
             }
 
-            $isWorkingDay = (bool) $item['isWorkingDay'];
+            $isWorkingDay = $item->isWorkingDay;
             $configuration->setWorkingDay($isWorkingDay);
 
             if ($isWorkingDay) {
-                $startTime = isset($item['startTime'])
-                    ? \DateTimeImmutable::createFromFormat('H:i', $item['startTime'])
+                $startTime = null !== $item->startTime
+                    ? \DateTimeImmutable::createFromFormat('H:i', $item->startTime)
                     : null;
-                $endTime = isset($item['endTime'])
-                    ? \DateTimeImmutable::createFromFormat('H:i', $item['endTime'])
+                $endTime = null !== $item->endTime
+                    ? \DateTimeImmutable::createFromFormat('H:i', $item->endTime)
                     : null;
 
                 if (false === $startTime || false === $endTime || null === $startTime || null === $endTime) {
@@ -89,15 +83,13 @@ final class WorkingDayConfigurationService
                 $configuration->setStartTime($startTime);
                 $configuration->setEndTime($endTime);
 
-                /** @var list<array{start: string, end: string}> $breaks */
-                $breaks = $item['breaks'] ?? [];
-                $configuration->setBreaks($breaks);
+                $configuration->setBreaks($item->breaks);
             }
 
             $configurations[] = $configuration;
         }
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $configurations;
     }
@@ -124,11 +116,11 @@ final class WorkingDayConfigurationService
                 $configuration = new WorkingDayConfiguration($dayOfWeek, false);
             }
 
-            $this->entityManager->persist($configuration);
+            $this->persistence->save($configuration);
             $defaults[] = $configuration;
         }
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $defaults;
     }

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import type { CatalogProduct } from '@/features/catalog/apiTypes';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
-import type { QuoteServiceDto } from '@/features/quotes/api/quotesApi';
+import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
   formatTrainingCategory,
   formatTrainingFormat,
@@ -15,9 +15,7 @@ const formatDuration = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
 
-  return hours > 0
-    ? `${hours}h${rest ? String(rest).padStart(2, '0') : ''}`
-    : `${minutes} min`;
+  return hours > 0 ? `${hours}h${rest ? String(rest).padStart(2, '0') : ''}` : `${minutes} min`;
 };
 
 interface ResultSectionProps {

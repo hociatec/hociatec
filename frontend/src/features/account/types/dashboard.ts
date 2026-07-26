@@ -1,7 +1,7 @@
 import type { AppointmentItem } from '@/features/appointments/types/appointments';
 import type { PendingReviewDto } from '@/features/orders/api';
 import type { LoyaltyBalanceDto } from '@/features/loyalty/api/loyaltyApi';
-import type { QuoteDto } from '@/features/quotes/api/quotesApi';
+import type { QuoteDto } from '@/features/quotes/types/quoteTypes';
 import type { TrainingEnrollmentDto } from '@/features/trainings/api/trainingsApi';
 
 export type DashboardLoadState = 'loading' | 'success' | 'error';

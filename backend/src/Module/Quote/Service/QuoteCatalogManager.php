@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Service;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class QuoteCatalogManager
 {
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private DoctrinePersistence $persistence)
     {
     }
 
     public function delete(Service $service): void
     {
-        $this->entityManager->remove($service);
-        $this->entityManager->flush();
+        $this->persistence->remove($service);
+        $this->persistence->flush();
     }
 }

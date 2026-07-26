@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Service;
 
+use App\Module\Order\Entity\StripeWebhookEvent;
+use App\Module\Order\Repository\StripeWebhookEventRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+
 final class StripeWebhookService
 {
     public function __construct(
@@ -11,6 +15,8 @@ final class StripeWebhookService
         private readonly OrderStripeWebhookHandler $orders,
         private readonly TrainingStripeWebhookHandler $training,
         private readonly RefundStripeWebhookHandler $refunds,
+        private readonly StripeWebhookEventRepository $events,
+        private readonly StripeWebhookEventPersistence $persistence,
     ) {
     }
 
@@ -20,30 +26,57 @@ final class StripeWebhookService
     public function handle(string $payload, ?string $signatureHeader): array
     {
         $event = $this->verifier->verifyAndDecode($payload, $signatureHeader);
+        $eventId = is_string($event['id'] ?? null) ? $event['id'] : null;
         $type = (string) ($event['type'] ?? '');
+        if (null === $eventId || '' === $type) {
+            throw new \InvalidArgumentException('Webhook Stripe invalide.');
+        }
+
+        $received = $this->events->findOneByStripeEventId($eventId);
+        if ($received?->isProcessed()) {
+            return ['type' => $type, 'eventId' => $eventId, 'duplicate' => true];
+        }
+        if (null === $received) {
+            $received = new StripeWebhookEvent($eventId, $type);
+            try {
+                $this->persistence->save($received);
+            } catch (UniqueConstraintViolationException) {
+                $received = $this->events->findOneByStripeEventId($eventId);
+                if ($received?->isProcessed()) {
+                    return ['type' => $type, 'eventId' => $eventId, 'duplicate' => true];
+                }
+            }
+        }
+
         $object = $event['data']['object'] ?? null;
 
         if (!is_array($object)) {
             throw new \RuntimeException('Webhook Stripe invalide.');
         }
 
-        if (in_array($type, [
-            'checkout.session.completed',
-            'checkout.session.async_payment_succeeded',
-            'checkout.session.expired',
-            'checkout.session.async_payment_failed',
-        ], true)) {
-            return $this->handleCheckout($object, $type);
-        }
+        try {
+            $result = in_array($type, [
+                'checkout.session.completed',
+                'checkout.session.async_payment_succeeded',
+                'checkout.session.expired',
+                'checkout.session.async_payment_failed',
+            ], true) ? $this->handleCheckout($object, $type) : match ($type) {
+                'payment_intent.payment_failed' => $this->orders->handlePaymentIntentFailed($object, $type),
+                'refund.created', 'refund.updated', 'refund.failed' => $this->refunds->handle($object, $type),
+                default => [
+                    'type' => $type,
+                    'sessionId' => is_string($object['id'] ?? null) ? $object['id'] : null,
+                ],
+            };
+            $received?->markProcessed();
+            $this->persistence->flush();
 
-        return match ($type) {
-            'payment_intent.payment_failed' => $this->orders->handlePaymentIntentFailed($object, $type),
-            'refund.created', 'refund.updated', 'refund.failed' => $this->refunds->handle($object, $type),
-            default => [
-                'type' => $type,
-                'sessionId' => is_string($object['id'] ?? null) ? $object['id'] : null,
-            ],
-        };
+            return ['eventId' => $eventId] + $result;
+        } catch (\Throwable $exception) {
+            $received?->markFailed($exception->getMessage());
+            $this->persistence->flush();
+            throw $exception;
+        }
     }
 
     /**

@@ -27,7 +27,9 @@ export const MyVouchersPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { vouchers, loading, error } = useVouchers();
-  useEffect(() => { if (error) toast.show(error, { variant: 'error' }); }, [error, toast]);
+  useEffect(() => {
+    if (error) toast.show(error, { variant: 'error' });
+  }, [error, toast]);
 
   const activeVouchers = useMemo(
     () => vouchers.filter((voucher) => !isVoucherPast(voucher)),
@@ -47,7 +49,8 @@ export const MyVouchersPage = () => {
             <p className="text-sm uppercase tracking-[0.25em] text-stone-500">Mon espace</p>
             <h1 className="text-3xl font-semibold text-brand-900">Mes bons de réduction</h1>
             <p className="mt-2 max-w-2xl text-sm text-stone-600">
-              Consultez vos bons actuellement utilisables et l’historique des bons déjà expirés ou inactifs.
+              Consultez vos bons actuellement utilisables et l’historique des bons déjà expirés ou
+              inactifs.
             </p>
           </div>
           <button
@@ -59,28 +62,52 @@ export const MyVouchersPage = () => {
           </button>
         </header>
 
-        <section className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm" aria-busy={loading || undefined}>
+        <section
+          className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm"
+          aria-busy={loading || undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold text-brand-900">Bons actifs</h2>
-            <div className="text-sm text-stone-500">{activeVouchers.length} disponible{activeVouchers.length > 1 ? 's' : ''}</div>
+            <div className="text-sm text-stone-500">
+              {activeVouchers.length} disponible{activeVouchers.length > 1 ? 's' : ''}
+            </div>
           </div>
-          <StableContent loading={loading} hasContent={hasLoadedVouchers} loadingLabel="Chargement des bons actifs...">
+          <StableContent
+            loading={loading}
+            hasContent={hasLoadedVouchers}
+            loadingLabel="Chargement des bons actifs..."
+          >
             {activeVouchers.length === 0 ? (
               <p className="text-sm text-stone-500">Aucun bon actif pour le moment.</p>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {activeVouchers.map((voucher) => (
-                  <article key={voucher.id} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Actif</div>
+                  <article
+                    key={voucher.id}
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                      Actif
+                    </div>
                     <h3 className="mt-2 text-lg font-semibold text-brand-900">{voucher.name}</h3>
                     <div className="mt-1 text-sm text-stone-600">Code {voucher.code}</div>
                     <div className="mt-3 text-sm font-medium text-stone-800">
-                      {voucher.discountType === 'percent' ? `${voucher.discountValue}%` : formatEuroCents(voucher.discountValue)}
+                      {voucher.discountType === 'percent'
+                        ? `${voucher.discountValue}%`
+                        : formatEuroCents(voucher.discountValue)}
                     </div>
-                    {voucher.description ? <p className="mt-3 text-sm text-stone-600">{voucher.description}</p> : null}
+                    {voucher.description ? (
+                      <p className="mt-3 text-sm text-stone-600">{voucher.description}</p>
+                    ) : null}
                     <div className="mt-4 space-y-1 text-xs text-stone-500">
-                      {voucher.startsAt ? <div>Début {formatOptionalFrenchDate(voucher.startsAt)}</div> : null}
-                      {voucher.endsAt ? <div>Fin {formatOptionalFrenchDate(voucher.endsAt)}</div> : <div>Sans date de fin</div>}
+                      {voucher.startsAt ? (
+                        <div>Début {formatOptionalFrenchDate(voucher.startsAt)}</div>
+                      ) : null}
+                      {voucher.endsAt ? (
+                        <div>Fin {formatOptionalFrenchDate(voucher.endsAt)}</div>
+                      ) : (
+                        <div>Sans date de fin</div>
+                      )}
                     </div>
                   </article>
                 ))}
@@ -89,12 +116,21 @@ export const MyVouchersPage = () => {
           </StableContent>
         </section>
 
-        <section className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm" aria-busy={loading || undefined}>
+        <section
+          className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm"
+          aria-busy={loading || undefined}
+        >
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold text-brand-900">Bons passés</h2>
-            <div className="text-sm text-stone-500">{pastVouchers.length} archivé{pastVouchers.length > 1 ? 's' : ''}</div>
+            <div className="text-sm text-stone-500">
+              {pastVouchers.length} archivé{pastVouchers.length > 1 ? 's' : ''}
+            </div>
           </div>
-          <StableContent loading={loading} hasContent={hasLoadedVouchers} loadingLabel="Chargement des bons passés...">
+          <StableContent
+            loading={loading}
+            hasContent={hasLoadedVouchers}
+            loadingLabel="Chargement des bons passés..."
+          >
             {pastVouchers.length === 0 ? (
               <p className="text-sm text-stone-500">Aucun bon passé.</p>
             ) : (
@@ -105,12 +141,19 @@ export const MyVouchersPage = () => {
                       <div>
                         <h3 className="font-semibold text-brand-900">{voucher.name}</h3>
                         <div className="text-sm text-stone-600">
-                          Code {voucher.code} · {voucher.discountType === 'percent' ? `${voucher.discountValue}%` : formatEuroCents(voucher.discountValue)}
+                          Code {voucher.code} ·{' '}
+                          {voucher.discountType === 'percent'
+                            ? `${voucher.discountValue}%`
+                            : formatEuroCents(voucher.discountValue)}
                         </div>
-                        {voucher.description ? <p className="mt-2 text-sm text-stone-600">{voucher.description}</p> : null}
+                        {voucher.description ? (
+                          <p className="mt-2 text-sm text-stone-600">{voucher.description}</p>
+                        ) : null}
                       </div>
                       <div className="text-xs text-stone-500">
-                        {voucher.endsAt ? `Expiré le ${formatOptionalFrenchDate(voucher.endsAt)}` : 'Inactif'}
+                        {voucher.endsAt
+                          ? `Expiré le ${formatOptionalFrenchDate(voucher.endsAt)}`
+                          : 'Inactif'}
                       </div>
                     </div>
                   </article>

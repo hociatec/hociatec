@@ -29,8 +29,12 @@ export const MyAuditDetailPage = () => {
             <div className="text-sm text-gray-700">Statut : {statusLabel(data.status)}</div>
             <div className="text-sm text-gray-700">Cible : {data.url}</div>
             <div className="flex gap-3">
-              <button className="underline text-brand-700" onClick={() => void downloadReport()}>Télécharger le PDF</button>
-              <button className="underline text-brand-700" onClick={() => void downloadSummary()}>Télécharger la synthèse PDF</button>
+              <button className="underline text-brand-700" onClick={() => void downloadReport()}>
+                Télécharger le PDF
+              </button>
+              <button className="underline text-brand-700" onClick={() => void downloadSummary()}>
+                Télécharger la synthèse PDF
+              </button>
             </div>
             {data.objectives && (
               <div>
@@ -45,9 +49,21 @@ export const MyAuditDetailPage = () => {
                   <ul className="space-y-2">
                     {items.map((it) => (
                       <li key={it.id} className="p-3 border rounded">
-                        <div className="font-medium">{it.label}{it.level ? ` (${it.level})` : ''}</div>
-                        <div className="text-sm">Conformité : {it.isCompliant === null ? 'À évaluer' : it.isCompliant ? 'Conforme' : 'Non conforme'}</div>
-                        {it.comment && <div className="text-sm text-gray-700">Commentaire : {it.comment}</div>}
+                        <div className="font-medium">
+                          {it.label}
+                          {it.level ? ` (${it.level})` : ''}
+                        </div>
+                        <div className="text-sm">
+                          Conformité :{' '}
+                          {it.isCompliant === null
+                            ? 'À évaluer'
+                            : it.isCompliant
+                              ? 'Conforme'
+                              : 'Non conforme'}
+                        </div>
+                        {it.comment && (
+                          <div className="text-sm text-gray-700">Commentaire : {it.comment}</div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -60,7 +76,10 @@ export const MyAuditDetailPage = () => {
                 <ul className="space-y-1 text-sm text-gray-700">
                   {data.events.map((e) => (
                     <li key={e.id}>
-                      <span className="text-gray-500">{formatOptionalFrenchDateTime(e.createdAt)} :</span> {e.message || e.type}
+                      <span className="text-gray-500">
+                        {formatOptionalFrenchDateTime(e.createdAt)} :
+                      </span>{' '}
+                      {e.message || e.type}
                     </li>
                   ))}
                 </ul>

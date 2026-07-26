@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\User\Controller;
 
+use App\Module\Admin\User\DTO\CustomerAdminProfileInput;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class UpdateCustomerAdminProfileController extends AbstractController
 {
-    public function __construct(private readonly UserRepository $users)
+    public function __construct(private readonly UserRepository $users, private readonly DtoValidator $validator)
     {
     }
 
@@ -28,24 +30,17 @@ final class UpdateCustomerAdminProfileController extends AbstractController
         }
 
         try {
-            $payload = '' !== $request->getContent() ? $request->toArray() : [];
+            $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
         } catch (\JsonException) {
             return ApiResponse::error('Payload JSON invalide.');
         }
 
-        $notes = array_key_exists('adminNotes', $payload) ? (string) ($payload['adminNotes'] ?? '') : '';
-        $tagsInput = $payload['adminTags'] ?? [];
-        $tags = [];
-
-        if (is_array($tagsInput)) {
-            foreach ($tagsInput as $tag) {
-                $tags[] = (string) $tag;
-            }
-        }
+        $input = CustomerAdminProfileInput::fromArray($payload);
+        $this->validator->validate($input);
 
         $user
-            ->setAdminNotes('' !== $notes ? $notes : null)
-            ->setAdminTags($tags);
+            ->setAdminNotes('' !== $input->adminNotes ? $input->adminNotes : null)
+            ->setAdminTags($input->adminTags);
 
         $this->users->save($user, true);
 

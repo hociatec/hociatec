@@ -11,7 +11,11 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import type { CartItem as CartLine } from '@/features/cart/types/cart';
-import { CartItemsList, CartPageHeader, EmptyCartState } from '@/features/cart/components/CartPageBaseSections';
+import {
+  CartItemsList,
+  CartPageHeader,
+  EmptyCartState,
+} from '@/features/cart/components/CartPageBaseSections';
 import { CartSummarySidebar } from '@/features/cart/components/CartSummarySidebar';
 import './CartPage.css';
 
@@ -42,7 +46,15 @@ export const CartPage = () => {
   const isLoading = status === 'loading';
   const hasItems = !!(cart && cart.items.length > 0);
   const isPromotionCodeEmpty = promotionCode.trim() === '';
-  const { addresses, addressesLoading, addressesError, selectedAddressId, setSelectedAddressId, isCheckout, checkout } = useCartCheckout(authStatus === 'authenticated');
+  const {
+    addresses,
+    addressesLoading,
+    addressesError,
+    selectedAddressId,
+    setSelectedAddressId,
+    isCheckout,
+    checkout,
+  } = useCartCheckout(authStatus === 'authenticated');
 
   useEffect(() => {
     setPromotionCode(cart?.enteredVoucherCode ?? '');
@@ -60,7 +72,9 @@ export const CartPage = () => {
           item.product.id,
           rentalReference ? { currentRentalMonths: rentalReference } : undefined,
         ).catch(() =>
-          show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", { variant: 'error' }),
+          show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", {
+            variant: 'error',
+          }),
         );
         return;
       }
@@ -70,7 +84,9 @@ export const CartPage = () => {
         item.quantity - 1,
         rentalReference ? { currentRentalMonths: rentalReference } : undefined,
       ).catch(() =>
-        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", { variant: 'error' }),
+        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", {
+          variant: 'error',
+        }),
       );
     },
     [removeItem, setItemQuantity, show],
@@ -86,7 +102,9 @@ export const CartPage = () => {
         item.quantity + 1,
         rentalReference ? { currentRentalMonths: rentalReference } : undefined,
       ).catch(() =>
-        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", { variant: 'error' }),
+        show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", {
+          variant: 'error',
+        }),
       );
     },
     [setItemQuantity, show],
@@ -108,7 +126,9 @@ export const CartPage = () => {
         currentRentalMonths: currentMonths,
         rentalMonths: normalized,
       }).catch(() =>
-        show("La durée de location n'a pas pu être mise à jour. Réessayez avant de valider.", { variant: 'error' }),
+        show("La durée de location n'a pas pu être mise à jour. Réessayez avant de valider.", {
+          variant: 'error',
+        }),
       );
     },
     [setItemQuantity, show],
@@ -124,7 +144,9 @@ export const CartPage = () => {
       if (!confirmed) return;
 
       void clear().catch(() =>
-        show("Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", { variant: 'error' })
+        show("Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", {
+          variant: 'error',
+        }),
       );
     });
   }, [clear, confirm, show]);
@@ -139,7 +161,11 @@ export const CartPage = () => {
     setIsApplyingPromotionCode(true);
     void applyVoucherCode(trimmed)
       .then(() => show('Code promo appliqué au panier.', { variant: 'success' }))
-      .catch((err) => show(getHttpErrorMessage(err, "Impossible d'appliquer le bon de réduction."), { variant: 'error' }))
+      .catch((err) =>
+        show(getHttpErrorMessage(err, "Impossible d'appliquer le bon de réduction."), {
+          variant: 'error',
+        }),
+      )
       .finally(() => setIsApplyingPromotionCode(false));
   }, [applyVoucherCode, promotionCode, show]);
 
@@ -147,7 +173,11 @@ export const CartPage = () => {
     setIsApplyingPromotionCode(true);
     void clearVoucherCode(cart?.token)
       .then(() => show('Code promo retiré du panier.', { variant: 'success' }))
-      .catch((err) => show(getHttpErrorMessage(err, 'Impossible de supprimer le bon de réduction.'), { variant: 'error' }))
+      .catch((err) =>
+        show(getHttpErrorMessage(err, 'Impossible de supprimer le bon de réduction.'), {
+          variant: 'error',
+        }),
+      )
       .finally(() => setIsApplyingPromotionCode(false));
   }, [cart?.token, clearVoucherCode, show]);
 
@@ -160,7 +190,9 @@ export const CartPage = () => {
         item.product.id,
         isRental ? { currentRentalMonths: rentalMonths } : undefined,
       ).catch(() =>
-        show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", { variant: 'error' }),
+        show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", {
+          variant: 'error',
+        }),
       );
     },
     [removeItem, show],
@@ -169,7 +201,10 @@ export const CartPage = () => {
   const handleCheckout = useCallback(() => {
     if (!hasItems) return;
     if (authStatus !== 'authenticated') {
-      show('Connectez-vous pour finaliser votre commande et retrouver vos informations de livraison.', { variant: 'info' });
+      show(
+        'Connectez-vous pour finaliser votre commande et retrouver vos informations de livraison.',
+        { variant: 'info' },
+      );
       navigate('/login', {
         state: { redirectTo: '/panier' },
       });
@@ -177,8 +212,20 @@ export const CartPage = () => {
     }
 
     void checkout((url) => window.location.assign(url))
-      .then((order) => { if (order) { resetAfterCheckout(); navigate(`/orders/${order.id}`, { state: { justConfirmed: true } }); } })
-      .catch((err: unknown) => show(err instanceof Error ? err.message : "La commande n'a pas pu être validée. Vérifiez votre panier puis réessayez.", { variant: 'error' }));
+      .then((order) => {
+        if (order) {
+          resetAfterCheckout();
+          navigate(`/orders/${order.id}`, { state: { justConfirmed: true } });
+        }
+      })
+      .catch((err: unknown) =>
+        show(
+          err instanceof Error
+            ? err.message
+            : "La commande n'a pas pu être validée. Vérifiez votre panier puis réessayez.",
+          { variant: 'error' },
+        ),
+      );
   }, [authStatus, checkout, hasItems, navigate, resetAfterCheckout, show]);
 
   return (
@@ -208,27 +255,25 @@ export const CartPage = () => {
             <CartSummarySidebar
               addresses={addresses}
               addressesError={addressesError}
-                addressesLoading={addressesLoading}
-                authStatus={authStatus}
+              addressesLoading={addressesLoading}
+              authStatus={authStatus}
               cart={cart}
               isApplyingPromotionCode={isApplyingPromotionCode}
-                isCheckout={isCheckout}
+              isCheckout={isCheckout}
               isPromotionCodeEmpty={isPromotionCodeEmpty}
               promotionCode={promotionCode}
               selectedAddressId={selectedAddressId}
               onAddAddress={() => navigate('/profile/addresses')}
               onAddressSelect={setSelectedAddressId}
               onApplyPromotionCode={handleApplyPromotionCode}
-                onCheckout={handleCheckout}
+              onCheckout={handleCheckout}
               onClearPromotionCode={handleClearPromotionCode}
-                onContinueShopping={() => navigate(shoppingLink)}
+              onContinueShopping={() => navigate(shoppingLink)}
               onPromotionCodeChange={setPromotionCode}
             />
           </div>
         ) : (
-          !isLoading && (
-            <EmptyCartState onExplore={() => navigate(shoppingLink)} />
-          )
+          !isLoading && <EmptyCartState onExplore={() => navigate(shoppingLink)} />
         )}
       </div>
     </SiteLayout>

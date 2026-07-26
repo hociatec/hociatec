@@ -13,8 +13,7 @@ export const formatCurrencyCents = (valueInCents: number, currency = 'EUR') =>
     currency,
   }).format((valueInCents ?? 0) / 100);
 
-export const formatFrenchNumber = (value: number) =>
-  new Intl.NumberFormat('fr-FR').format(value);
+export const formatFrenchNumber = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
 
 export const formatFrenchDate = (value: string) => {
   const date = new Date(value);

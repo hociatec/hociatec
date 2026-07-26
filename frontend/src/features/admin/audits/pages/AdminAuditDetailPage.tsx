@@ -1,13 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { downloadBlob } from '@/shared/lib/downloadFile';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
-import { adminFetchAudit, adminUpdateAuditItem, adminUpdateAuditStatus, adminDownloadAuditPdf, adminDownloadAuditSummaryPdf, type AuditItemDto, type AuditListItemDto } from '@/features/audits/api/auditsApi';
-
-type AdminAuditDetail = Awaited<ReturnType<typeof adminFetchAudit>>;
+import type { AuditListItemDto } from '@/features/audits/api/auditsApi';
+import { useAdminAuditDetail } from '../hooks/useAdminAuditDetail';
 
 const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
   new: 'Non commencé',
@@ -20,106 +17,18 @@ const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']
 
 export const AdminAuditDetailPage = () => {
   useDocumentTitle('Admin - Audit');
-  const params = useParams();
   const navigate = useNavigate();
-  const id = Number(params.auditId);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [audit, setAudit] = useState<AdminAuditDetail | null>(null);
-  const pendingTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
-  const pollTimer = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    void adminFetchAudit(id)
-      .then(setAudit)
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  // Poll audit detail every 10s (avoid when typing comments)
-  useEffect(() => {
-    if (!id) return;
-    pollTimer.current = window.setInterval(() => {
-      if (document.hidden) return;
-      // If there are pending debounced comment updates, skip refresh to avoid overwriting the input
-      const hasPending = Object.values(pendingTimers.current).some(Boolean);
-      if (hasPending) return;
-      void adminFetchAudit(id)
-        .then(setAudit)
-        .catch(() => {/* ignore background error */});
-    }, 10000);
-    return () => { if (pollTimer.current) window.clearInterval(pollTimer.current); };
-  }, [id]);
-
-  const grouped = useMemo(() => {
-    if (!audit) return {} as Record<string, AuditItemDto[]>;
-    const map: Record<string, AuditItemDto[]> = {};
-    for (const it of [...audit.items].sort((a, b) => a.position - b.position)) {
-      map[it.category] = map[it.category] ?? [];
-      map[it.category].push(it);
-    }
-    return map;
-  }, [audit]);
-
-  const updateStatus = async (next: AuditListItemDto['status']) => {
-    if (!audit) return;
-    setError(null);
-    try {
-      await adminUpdateAuditStatus(audit.id, next);
-      setAudit((a) => a ? { ...a, status: next } : a);
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  const updateItem = async (item: AuditItemDto, patch: Partial<Pick<AuditItemDto, 'isCompliant' | 'comment'>>) => {
-    if (!audit) return;
-    setError(null);
-    try {
-      await adminUpdateAuditItem(audit.id, item.id, patch);
-      setAudit((prev) => prev ? ({
-        ...prev,
-        items: prev.items.map((x: AuditItemDto) => (x.id === item.id ? { ...x, ...patch } : x)),
-      }) : prev);
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  };
-
-  // Debounced comment update to avoid a PUT on each keystroke
-  const scheduleCommentUpdate = (item: AuditItemDto, comment: string) => {
-    if (!audit) return;
-
-    // Optimistic local update
-    setAudit((prev) => prev ? ({
-      ...prev,
-      items: prev.items.map((x: AuditItemDto) => (x.id === item.id ? { ...x, comment } : x)),
-    }) : prev);
-
-    const key = item.id;
-    const auditId = audit.id;
-    const prevTimer = pendingTimers.current[key];
-    if (prevTimer) {
-      clearTimeout(prevTimer);
-    }
-    pendingTimers.current[key] = setTimeout(async () => {
-      try {
-        await adminUpdateAuditItem(auditId, item.id, { comment });
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    }, 400);
-  };
-
-  useEffect(() => {
-    return () => {
-      // Cleanup pending timers on unmount
-      Object.values(pendingTimers.current).forEach((t) => t && clearTimeout(t));
-    };
-  }, []);
+  const {
+    audit,
+    loading,
+    error,
+    grouped,
+    updateStatus,
+    updateItem,
+    scheduleCommentUpdate,
+    downloadReport,
+    downloadSummary,
+  } = useAdminAuditDetail();
 
   return (
     <PageContainer size="admin" title={`Audit ${audit?.number ?? ''}`}>
@@ -128,27 +37,43 @@ export const AdminAuditDetailPage = () => {
       {audit && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">Client : {audit.client?.name} ({audit.client?.email})</div>
+            <div className="text-sm text-gray-700">
+              Client : {audit.client?.name} ({audit.client?.email})
+            </div>
             <div className="space-x-2">
-              <select value={audit.status} onChange={(e) => void updateStatus(e.target.value as AuditListItemDto['status'])} className="border rounded p-1 text-sm">
+              <select
+                value={audit.status}
+                onChange={(e) => void updateStatus(e.target.value as AuditListItemDto['status'])}
+                className="border rounded p-1 text-sm"
+              >
                 <option value="new">{statusLabel('new')}</option>
                 <option value="in_progress">{statusLabel('in_progress')}</option>
                 <option value="review">{statusLabel('review')}</option>
                 <option value="done">{statusLabel('done')}</option>
               </select>
-              <button className="underline" onClick={async () => {
-                try {
-                  const blob = await adminDownloadAuditPdf(audit.id);
-                  downloadBlob(blob, `${audit.number}-rapport.pdf`);
-                } catch {}
-              }}>Télécharger le PDF</button>
-              <button className="underline" onClick={async () => {
-                try {
-                  const blob = await adminDownloadAuditSummaryPdf(audit.id);
-                  downloadBlob(blob, `${audit.number}-synthese.pdf`);
-                } catch {}
-              }}>Télécharger la synthèse PDF</button>
-              <button className="underline" onClick={() => navigate('/admin/audits')}>Retour</button>
+              <button
+                className="underline"
+                onClick={async () => {
+                  try {
+                    await downloadReport();
+                  } catch {}
+                }}
+              >
+                Télécharger le PDF
+              </button>
+              <button
+                className="underline"
+                onClick={async () => {
+                  try {
+                    await downloadSummary();
+                  } catch {}
+                }}
+              >
+                Télécharger la synthèse PDF
+              </button>
+              <button className="underline" onClick={() => navigate('/admin/audits')}>
+                Retour
+              </button>
             </div>
           </div>
           <div>
@@ -168,16 +93,37 @@ export const AdminAuditDetailPage = () => {
                 <div className="space-y-2">
                   {items.map((it) => (
                     <div key={it.id} className="p-3 border rounded">
-                      <div className="font-medium">{it.label}{it.level ? ` (${it.level})` : ''}</div>
+                      <div className="font-medium">
+                        {it.label}
+                        {it.level ? ` (${it.level})` : ''}
+                      </div>
                       <div className="flex items-center gap-3 text-sm mt-1">
                         <label className="flex items-center gap-1">
-                          <input type="radio" name={`c_${it.id}`} checked={it.isCompliant === true} onChange={() => void updateItem(it, { isCompliant: true })} /> Conforme
+                          <input
+                            type="radio"
+                            name={`c_${it.id}`}
+                            checked={it.isCompliant === true}
+                            onChange={() => void updateItem(it, { isCompliant: true })}
+                          />{' '}
+                          Conforme
                         </label>
                         <label className="flex items-center gap-1">
-                          <input type="radio" name={`c_${it.id}`} checked={it.isCompliant === false} onChange={() => void updateItem(it, { isCompliant: false })} /> Non conforme
+                          <input
+                            type="radio"
+                            name={`c_${it.id}`}
+                            checked={it.isCompliant === false}
+                            onChange={() => void updateItem(it, { isCompliant: false })}
+                          />{' '}
+                          Non conforme
                         </label>
                         <label className="flex items-center gap-1">
-                          <input type="radio" name={`c_${it.id}`} checked={it.isCompliant === null} onChange={() => void updateItem(it, { isCompliant: null })} /> À évaluer
+                          <input
+                            type="radio"
+                            name={`c_${it.id}`}
+                            checked={it.isCompliant === null}
+                            onChange={() => void updateItem(it, { isCompliant: null })}
+                          />{' '}
+                          À évaluer
                         </label>
                       </div>
                       <div className="mt-2">
@@ -200,8 +146,8 @@ export const AdminAuditDetailPage = () => {
               <ul className="space-y-1 text-sm text-gray-700">
                 {audit.events.map((e) => (
                   <li key={e.id}>
-                    <span className="text-gray-500">{formatFrenchDateTime(e.createdAt)} :</span>
-                    {' '}{e.message || e.type}
+                    <span className="text-gray-500">{formatFrenchDateTime(e.createdAt)} :</span>{' '}
+                    {e.message || e.type}
                     {e.actor?.name ? ` — ${e.actor.name}` : ''}
                   </li>
                 ))}

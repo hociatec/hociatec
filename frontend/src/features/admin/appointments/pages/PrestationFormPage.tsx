@@ -30,7 +30,11 @@ export const PrestationFormPage = () => {
   const isEdit = Boolean(prestationId);
   const navigate = useNavigate();
 
-  useDocumentTitle(isEdit ? 'Admin - Modifier une prestation de rendez-vous' : 'Admin - Nouvelle prestation de rendez-vous');
+  useDocumentTitle(
+    isEdit
+      ? 'Admin - Modifier une prestation de rendez-vous'
+      : 'Admin - Nouvelle prestation de rendez-vous',
+  );
 
   const [form, setForm] = useState<PrestationFormState>(emptyForm);
   const [loading, setLoading] = useState(false);
@@ -114,8 +118,11 @@ export const PrestationFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
-      title={isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'}
+    <PageContainer
+      size="admin"
+      title={
+        isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'
+      }
       headerActions={
         <button
           type="button"
@@ -127,7 +134,8 @@ export const PrestationFormPage = () => {
       }
     >
       <p className="mb-4 text-sm text-stone-600">
-        Cette fiche sert à la réservation de rendez-vous. Pour gérer le catalogue de services autonome de l’entreprise, utilisez{' '}
+        Cette fiche sert à la réservation de rendez-vous. Pour gérer le catalogue de services
+        autonome de l’entreprise, utilisez{' '}
         <Link to="/admin/services" className="font-semibold underline">
           Services
         </Link>
@@ -139,10 +147,7 @@ export const PrestationFormPage = () => {
       {initialLoading ? (
         <LoadingState>Chargement de la prestation...</LoadingState>
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="register-form-card form-card-grid"
-        >
+        <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
             <input

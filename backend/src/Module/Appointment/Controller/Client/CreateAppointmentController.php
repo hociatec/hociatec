@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Controller\Client;
 
+use App\Module\Appointment\DTO\CreateAppointmentInput;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\Appointment\Service\AppointmentService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,32 +26,36 @@ class CreateAppointmentController extends AbstractController
         private readonly AppointmentService $appointmentService,
         private readonly AppointmentFormatter $appointmentFormatter,
         private readonly PrestationRepository $prestationRepository,
+        private readonly DtoValidator $dtoValidator,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $prestationId = (int) ($payload['prestationId'] ?? 0);
-        $start = $payload['startAt'] ?? null;
-
-        if (0 === $prestationId || null === $start) {
-            return ApiResponse::error('Les champs "prestationId" et "startAt" sont requis.', Response::HTTP_BAD_REQUEST);
+        try {
+            $input = CreateAppointmentInput::fromArray($payload);
+            $this->dtoValidator->validate($input);
+        } catch (\Throwable $exception) {
+            return ApiResponse::error('Donnees de rendez-vous invalides.', Response::HTTP_UNPROCESSABLE_ENTITY, [$exception->getMessage()]);
         }
 
-        $prestation = $this->prestationRepository->find($prestationId);
+        $prestation = $this->prestationRepository->find($input->prestationId);
 
         if (null === $prestation) {
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $startAt = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, (string) $start)
-            ?: new \DateTimeImmutable((string) $start);
+        try {
+            $startAt = new \DateTimeImmutable($input->startAt);
+        } catch (\Exception) {
+            return ApiResponse::error('La date de debut est invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         /** @var User $user */
         $user = $this->getUser();

@@ -6,14 +6,14 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final class StripeCheckoutSessionSyncService
 {
     public function __construct(
         private readonly OrderCheckoutSessionRepository $checkoutSessions,
         private readonly StripeApiClient $stripe,
-        private readonly EntityManagerInterface $em,
+        private readonly DoctrinePersistence $persistence,
     ) {
     }
 
@@ -42,8 +42,8 @@ final class StripeCheckoutSessionSyncService
             }
 
             $checkout->markExpired('checkout.session.expired');
-            $this->em->persist($checkout);
-            $this->em->flush();
+            $this->persistence->persist($checkout);
+            $this->persistence->flush();
 
             return;
         }
@@ -60,8 +60,8 @@ final class StripeCheckoutSessionSyncService
             $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
         } catch (\Throwable) {
             $checkout->setStripePaymentIntentId($paymentIntentId);
-            $this->em->persist($checkout);
-            $this->em->flush();
+            $this->persistence->persist($checkout);
+            $this->persistence->flush();
 
             return;
         }
@@ -89,8 +89,8 @@ final class StripeCheckoutSessionSyncService
                 ->setStripePaymentStatus($paymentStatus);
         }
 
-        $this->em->persist($checkout);
-        $this->em->flush();
+        $this->persistence->persist($checkout);
+        $this->persistence->flush();
     }
 
     public function syncRecentOpenPayments(int $limit = 20): void

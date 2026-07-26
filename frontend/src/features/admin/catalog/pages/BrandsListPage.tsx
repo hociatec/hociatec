@@ -73,28 +73,23 @@ export const BrandsListPage = () => {
   }, [brands, search]);
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Marques"
-      headerActions={
-        <PrimaryLink to="/admin/catalog/brands/new">
-          Ajouter une marque
-        </PrimaryLink>
-      }
+      headerActions={<PrimaryLink to="/admin/catalog/brands/new">Ajouter une marque</PrimaryLink>}
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
           {filteredBrands.length} marque{filteredBrands.length > 1 ? 's' : ''} affichée
           {filteredBrands.length > 1 ? 's' : ''}
         </p>
-        <p className="text-sm text-stone-500">Recherchez une marque existante et gérez son libellé.</p>
+        <p className="text-sm text-stone-500">
+          Recherchez une marque existante et gérez son libellé.
+        </p>
       </div>
 
       <div className="mb-6 max-w-sm">
-        <SearchFilter
-          value={search}
-          onChange={setSearch}
-          placeholder="Rechercher une marque..."
-        />
+        <SearchFilter value={search} onChange={setSearch} placeholder="Rechercher une marque..." />
       </div>
 
       {error && <FeedbackMessage>{error}</FeedbackMessage>}

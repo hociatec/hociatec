@@ -7,11 +7,10 @@ namespace App\Module\Order\Service;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderEvent;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class OrderEventLogger
 {
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly OrderEventPersistence $persistence)
     {
     }
 
@@ -25,7 +24,6 @@ final class OrderEventLogger
             $actor?->getFullName() ?? $actor?->getEmail(),
         );
 
-        $this->em->persist($event);
-        $this->em->flush();
+        $this->persistence->save($event);
     }
 }

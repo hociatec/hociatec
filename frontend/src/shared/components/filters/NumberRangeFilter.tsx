@@ -7,7 +7,12 @@ interface NumberRangeFilterProps {
   step?: number;
 }
 
-export const NumberRangeFilter = ({ min = null, max = null, onChange, step = 1 }: NumberRangeFilterProps) => {
+export const NumberRangeFilter = ({
+  min = null,
+  max = null,
+  onChange,
+  step = 1,
+}: NumberRangeFilterProps) => {
   const idMin = useId();
   const idMax = useId();
 
@@ -20,7 +25,9 @@ export const NumberRangeFilter = ({ min = null, max = null, onChange, step = 1 }
 
   return (
     <div className="number-range-filter">
-      <label htmlFor={idMin} className="sr-only">Prix min</label>
+      <label htmlFor={idMin} className="sr-only">
+        Prix min
+      </label>
       <input
         id={idMin}
         type="number"
@@ -31,7 +38,9 @@ export const NumberRangeFilter = ({ min = null, max = null, onChange, step = 1 }
         placeholder="Prix min"
       />
       <span className="muted">à</span>
-      <label htmlFor={idMax} className="sr-only">Prix max</label>
+      <label htmlFor={idMax} className="sr-only">
+        Prix max
+      </label>
       <input
         id={idMax}
         type="number"

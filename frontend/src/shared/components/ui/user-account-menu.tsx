@@ -17,11 +17,7 @@ export const UserAccountMenu = ({ onLogout, profileActive = false }: UserAccount
       <UserRound aria-hidden="true" />
       <span className="site-header__account-label">Mon espace</span>
     </Link>
-    <button
-      type="button"
-      className="site-header__logout-button"
-      onClick={onLogout}
-    >
+    <button type="button" className="site-header__logout-button" onClick={onLogout}>
       <LogOut aria-hidden="true" />
       Se déconnecter
     </button>

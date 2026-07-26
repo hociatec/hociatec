@@ -26,8 +26,7 @@ export const MyFavoritesPage = () => {
         const message =
           err instanceof Error ? err.message : 'Impossible de retirer ce produit des favoris.';
         show(message, { variant: 'error' });
-      })
-      ;
+      });
   };
 
   const hasFavorites = favorites.length > 0;
@@ -60,9 +59,7 @@ export const MyFavoritesPage = () => {
           </div>
         </header>
 
-        {status === 'loading' && (
-          <LoadingState>Chargement de vos favoris...</LoadingState>
-        )}
+        {status === 'loading' && <LoadingState>Chargement de vos favoris...</LoadingState>}
 
         {status === 'error' && (
           <ErrorState>

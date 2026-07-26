@@ -7,6 +7,7 @@ namespace App\Module\Order\Repository;
 use App\Module\Order\Entity\Order;
 use App\Module\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -17,6 +18,13 @@ class OrderRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Order::class);
+    }
+
+    public function findForUpdate(int $id): ?Order
+    {
+        $order = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $order instanceof Order ? $order : null;
     }
 
     public function countForYear(int $year): int

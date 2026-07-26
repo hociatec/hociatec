@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/products/{id}', name: 'api_admin_catalog_products_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class DeleteProductController extends AbstractController
 {
     public function __construct(
@@ -33,12 +33,8 @@ class DeleteProductController extends AbstractController
 
         try {
             $this->productService->delete($product);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error(
-                'Impossible de supprimer le produit.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
-            );
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de supprimer le produit.');
         }
 
         return ApiResponse::success(['id' => $id]);

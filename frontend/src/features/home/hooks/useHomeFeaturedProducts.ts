@@ -13,12 +13,19 @@ export const useHomeFeaturedProducts = () => {
     setLoading(true);
     setError(null);
     void fetchPublicProducts({ homepage: true })
-      .then((items) => { if (!cancelled) setProducts(items); })
-      .catch((reason) => {
-        if (!cancelled) setError(getHttpErrorMessage(reason, 'Impossible de charger les produits.'));
+      .then((items) => {
+        if (!cancelled) setProducts(items);
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .catch((reason) => {
+        if (!cancelled)
+          setError(getHttpErrorMessage(reason, 'Impossible de charger les produits.'));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { products, loading, error };

@@ -48,10 +48,15 @@ export const AccountNotificationsPopover = ({
         <Bell aria-hidden="true" />
         <span className="site-header__notifications-label">Notifications</span>
         {!open && unreadCount > 0 ? (
-          <span className="site-header__badge" aria-hidden="true">{unreadCount}</span>
+          <span className="site-header__badge" aria-hidden="true">
+            {unreadCount}
+          </span>
         ) : null}
       </PopoverButton>
-      <PopoverPanel className="site-header__notifications-panel" aria-label="Notifications du compte">
+      <PopoverPanel
+        className="site-header__notifications-panel"
+        aria-label="Notifications du compte"
+      >
         {loading ? (
           <p aria-hidden="true">Chargement des notifications...</p>
         ) : notifications.length === 0 ? (

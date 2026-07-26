@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Quote\Controller;
 
+use App\Module\Admin\Quote\DTO\QuoteProductItemInput;
 use App\Module\Catalog\Repository\ProductRepository;
+use App\Module\Quote\DTO\QuoteItemAddition;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +29,7 @@ class AddProductItemController extends AbstractController
         private readonly QuoteRepository $quoteRepository,
         private readonly ProductRepository $productRepository,
         private readonly QuoteCalculator $calculator,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -36,20 +40,16 @@ class AddProductItemController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = '' !== $request->getContent() ? $request->toArray() : [];
-        if (!isset($payload['productId'])) {
-            return ApiResponse::error('Produit manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $productId = (int) $payload['productId'];
-        $product = $this->productRepository->find($productId);
+        $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
+        $input = QuoteProductItemInput::fromArray($payload);
+        $this->validator->validate($input);
+        $product = $this->productRepository->find($input->productId);
         if (null === $product || !$product->isPublished()) {
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->workflow->addProductItem($quote, $product, $payload);
+        $this->workflow->addProductItem($quote, $product, QuoteItemAddition::fromArray($input->toPayload()));
 
         return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
     }
-
 }

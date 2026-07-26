@@ -8,7 +8,7 @@ const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =
 
 export const fetchAdminPrestations = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: Prestation[] }>>(
-    '/api/admin/appointments/prestations'
+    '/api/admin/appointments/prestations',
   );
 
   if (data.status === 'success') {
@@ -20,7 +20,7 @@ export const fetchAdminPrestations = async () => {
 
 export const fetchAdminPrestation = async (id: number) => {
   const { data } = await httpClient.get<ApiResponse<Prestation>>(
-    `/api/admin/appointments/prestations/${id}`
+    `/api/admin/appointments/prestations/${id}`,
   );
 
   if (data.status === 'success') {
@@ -39,7 +39,7 @@ export interface UpsertPrestationPayload {
 export const createPrestation = async (payload: UpsertPrestationPayload) => {
   const { data } = await httpClient.post<ApiResponse<Prestation>>(
     '/api/admin/appointments/prestations',
-    payload
+    payload,
   );
 
   if (isApiOk(data)) {
@@ -52,7 +52,7 @@ export const createPrestation = async (payload: UpsertPrestationPayload) => {
 export const updatePrestation = async (id: number, payload: UpsertPrestationPayload) => {
   const { data } = await httpClient.put<ApiResponse<Prestation>>(
     `/api/admin/appointments/prestations/${id}`,
-    payload
+    payload,
   );
 
   if (data.status === 'success') {
@@ -64,7 +64,7 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
 
 export const deletePrestation = async (id: number) => {
   const { data } = await httpClient.delete<ApiResponse<{ id: number }>>(
-    `/api/admin/appointments/prestations/${id}`
+    `/api/admin/appointments/prestations/${id}`,
   );
 
   if (data.status === 'success') {
@@ -76,7 +76,7 @@ export const deletePrestation = async (id: number) => {
 
 export const fetchConfiguration = async () => {
   const { data } = await httpClient.get<ApiResponse<{ days: WorkingDay[] }>>(
-    '/api/admin/appointments/configuration'
+    '/api/admin/appointments/configuration',
   );
 
   if (data.status === 'success') {
@@ -89,7 +89,7 @@ export const fetchConfiguration = async () => {
 export const updateConfiguration = async (days: WorkingDay[]) => {
   const { data } = await httpClient.put<ApiResponse<{ days: WorkingDay[] }>>(
     '/api/admin/appointments/configuration',
-    { days }
+    { days },
   );
 
   if (data.status === 'success') {

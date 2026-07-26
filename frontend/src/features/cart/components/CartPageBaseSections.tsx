@@ -45,12 +45,11 @@ interface EmptyCartStateProps {
 export const EmptyCartState = ({ onExplore }: EmptyCartStateProps) => (
   <div className="cart-page__empty">
     <p>Votre panier est vide pour le moment.</p>
-    <span>Explorez le catalogue pour ajouter un produit, une location ou préparer votre prochaine commande.</span>
-    <button
-      type="button"
-      className="cart-page__empty-button"
-      onClick={onExplore}
-    >
+    <span>
+      Explorez le catalogue pour ajouter un produit, une location ou préparer votre prochaine
+      commande.
+    </span>
+    <button type="button" className="cart-page__empty-button" onClick={onExplore}>
       Explorer nos solutions
     </button>
   </div>
@@ -87,9 +86,7 @@ export const CartSummaryActions = ({
       className="hero__button hero__button--secondary"
       onClick={onCheckout}
       disabled={
-        isCheckout ||
-        (authStatus === 'authenticated' &&
-          (addressesLoading || !selectedAddressId))
+        isCheckout || (authStatus === 'authenticated' && (addressesLoading || !selectedAddressId))
       }
     >
       {isCheckout ? 'Validation...' : 'Valider ma commande'}
@@ -194,7 +191,9 @@ export const CartItemsList = ({
                     min={1}
                     className="cart-page__rental-input"
                     value={rentalMonths}
-                    onChange={(event) => onUpdateRentalMonths(item, Number.parseInt(event.target.value, 10))}
+                    onChange={(event) =>
+                      onUpdateRentalMonths(item, Number.parseInt(event.target.value, 10))
+                    }
                     disabled={pending}
                   />
                   <button

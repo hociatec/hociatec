@@ -25,4 +25,3 @@ export const sendContactMessage = async (payload: ContactPayload) => {
 
   return unwrapResponse(data);
 };
-

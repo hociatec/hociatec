@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Marketing\Controller;
 
-use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/marketing/templates/{templateId}', name: 'api_admin_marketing_templates_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_MARKETING_MANAGER')]
 final class DeleteTemplateController extends AbstractController
 {
     public function __construct(

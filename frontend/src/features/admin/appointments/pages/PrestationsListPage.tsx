@@ -66,12 +66,11 @@ export const PrestationsListPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Prestations de rendez-vous"
       headerActions={
-        <PrimaryLink to="/admin/appointments/prestations/new">
-          Ajouter une prestation
-        </PrimaryLink>
+        <PrimaryLink to="/admin/appointments/prestations/new">Ajouter une prestation</PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
@@ -79,7 +78,8 @@ export const PrestationsListPage = () => {
           {prestations.length} prestation{prestations.length > 1 ? 's' : ''} au catalogue.
         </p>
         <p className="text-sm text-stone-500">
-          Ces prestations sont utilisées uniquement pour la prise de rendez-vous et la planification des interventions.
+          Ces prestations sont utilisées uniquement pour la prise de rendez-vous et la planification
+          des interventions.
         </p>
         <p className="text-sm text-brand-700">
           Pour le catalogue de services global, utilisez{' '}

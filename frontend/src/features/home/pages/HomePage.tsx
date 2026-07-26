@@ -1,15 +1,20 @@
-import { useState } from "react";
-import { SiteLayout } from "../../../shared/components/SiteLayout";
-import { useDocumentTitle } from "../../../shared/hooks/useDocumentTitle";
-import { useMetaTags } from "@/shared/hooks/useMetaTags";
-import type { CatalogProduct } from "@/features/catalog/api";
+import { useState } from 'react';
+import { SiteLayout } from '../../../shared/components/SiteLayout';
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import type { CatalogProduct } from '@/features/catalog/api';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
-import { ProductActionToolbar } from "@/features/catalog/components/ProductActionToolbar";
-import { ProductMetaBadges } from "@/features/catalog/components/ProductMetaBadges";
-import { getCatalogProductDisplayName } from "@/features/catalog/utils/productDisplay";
-import { formatEuroCents } from "@/shared/lib/formatters";
-import { Link } from "react-router-dom";
-import { ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, SITE_URL, LOCAL_BUSINESS_SCHEMA } from "@/shared/config/seoConfig";
+import { ProductActionToolbar } from '@/features/catalog/components/ProductActionToolbar';
+import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
+import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
+import { formatEuroCents } from '@/shared/lib/formatters';
+import { Link } from 'react-router-dom';
+import {
+  ORGANIZATION_SCHEMA,
+  WEBSITE_SCHEMA,
+  SITE_URL,
+  LOCAL_BUSINESS_SCHEMA,
+} from '@/shared/config/seoConfig';
 
 const serviceHighlights = [
   {
@@ -60,16 +65,14 @@ const HomeProductMedia = ({ product }: { product: CatalogProduct }) => {
           onError={() => setImageFailed(true)}
         />
       ) : (
-        <div className="home-product-card__placeholder">
-          Produit
-        </div>
+        <div className="home-product-card__placeholder">Produit</div>
       )}
     </Link>
   );
 };
 
 export const HomePage = () => {
-  useDocumentTitle("Le numérique à taille humaine");
+  useDocumentTitle('Le numérique à taille humaine');
   useMetaTags({
     title: 'Hociatec — Le numérique à taille humaine',
     description:
@@ -157,13 +160,19 @@ export const HomePage = () => {
               <p>Catalogue</p>
               <h2>Produits tendances</h2>
             </div>
-            <Link to="/catalogue/vente" className="home-button home-button--secondary">Tous les produits</Link>
+            <Link to="/catalogue/vente" className="home-button home-button--secondary">
+              Tous les produits
+            </Link>
           </div>
           {loadingProducts && (
-            <p className="home-loading" role="status" aria-live="polite">Chargement des produits...</p>
+            <p className="home-loading" role="status" aria-live="polite">
+              Chargement des produits...
+            </p>
           )}
           {errorProducts && (
-            <div className="home-alert" role="alert">{errorProducts}</div>
+            <div className="home-alert" role="alert">
+              {errorProducts}
+            </div>
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <div className="home-products__grid">
@@ -193,7 +202,10 @@ export const HomePage = () => {
                         categoryName={product.category.name}
                       />
                       {compactSpecs.length > 0 && (
-                        <p className="catalog-product-card__spec-summary" aria-label="Caractéristiques principales">
+                        <p
+                          className="catalog-product-card__spec-summary"
+                          aria-label="Caractéristiques principales"
+                        >
                           {compactSpecs}
                         </p>
                       )}
@@ -206,9 +218,7 @@ export const HomePage = () => {
                     )}
 
                     <div className="home-product-card__footer">
-                      <span>
-                        {formatEuroCents(product.priceCents)}
-                      </span>
+                      <span>{formatEuroCents(product.priceCents)}</span>
                       <ProductActionToolbar product={product} />
                     </div>
                   </article>

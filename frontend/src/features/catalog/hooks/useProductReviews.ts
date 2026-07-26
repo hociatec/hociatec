@@ -12,25 +12,30 @@ export const useProductReviews = (product: CatalogProduct | null) => {
   const [reviewsPage, setReviewsPage] = useState(1);
   const [hasMoreReviews, setHasMoreReviews] = useState(false);
 
-  const loadReviews = useCallback((page = 1, append = false) => {
-    if (!product) return;
-    setReviewsLoading(true);
-    setReviewsError(null);
+  const loadReviews = useCallback(
+    (page = 1, append = false) => {
+      if (!product) return;
+      setReviewsLoading(true);
+      setReviewsError(null);
 
-    void fetchProductReviews(product.slug, { page, perPage: REVIEWS_PER_PAGE })
-      .then((response) => {
-        const meta = response?.meta ?? { total: 0, average: 0 };
-        setReviewsMeta({ total: meta.total, average: meta.average });
-        setReviews((previous) => {
-          const next = append ? [...previous, ...(response?.items ?? [])] : (response?.items ?? []);
-          setHasMoreReviews(meta.total > next.length);
-          return next;
-        });
-        setReviewsPage(page);
-      })
-      .catch((err: Error) => setReviewsError(err.message || 'Impossible de charger les avis.'))
-      .finally(() => setReviewsLoading(false));
-  }, [product]);
+      void fetchProductReviews(product.slug, { page, perPage: REVIEWS_PER_PAGE })
+        .then((response) => {
+          const meta = response?.meta ?? { total: 0, average: 0 };
+          setReviewsMeta({ total: meta.total, average: meta.average });
+          setReviews((previous) => {
+            const next = append
+              ? [...previous, ...(response?.items ?? [])]
+              : (response?.items ?? []);
+            setHasMoreReviews(meta.total > next.length);
+            return next;
+          });
+          setReviewsPage(page);
+        })
+        .catch((err: Error) => setReviewsError(err.message || 'Impossible de charger les avis.'))
+        .finally(() => setReviewsLoading(false));
+    },
+    [product],
+  );
 
   useEffect(() => {
     if (!product) return;

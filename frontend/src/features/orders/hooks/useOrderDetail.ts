@@ -1,20 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import { buildOrderInvoiceFilename, cancelMyOrder, checkoutExistingOrder, downloadOrderInvoicePdf, downloadOrderInvoiceXml, fetchOrderById, submitOrderItemReview, type OrderDto } from '@/features/orders/api';
+import {
+  buildOrderInvoiceFilename,
+  cancelMyOrder,
+  checkoutExistingOrder,
+  downloadOrderInvoicePdf,
+  downloadOrderInvoiceXml,
+  fetchOrderById,
+  submitOrderItemReview,
+  type OrderDto,
+} from '@/features/orders/api';
 
-type ReviewFormState = { score: number; comment: string; submitting: boolean; error: string | null; success: boolean };
+type ReviewFormState = {
+  score: number;
+  comment: string;
+  submitting: boolean;
+  error: string | null;
+  success: boolean;
+};
 
 export const useOrderDetail = () => {
-
   const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<OrderDto | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>(
-    'idle',
-  );
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
   const [justConfirmed, setJustConfirmed] = useState(false);
@@ -108,8 +120,7 @@ export const useOrderDetail = () => {
 
       updateReviewForm(orderItemId, { submitting: false, success: true });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Impossible d\'enregistrer votre avis';
+      const message = err instanceof Error ? err.message : "Impossible d'enregistrer votre avis";
       updateReviewForm(orderItemId, { submitting: false, error: message, success: false });
     }
   };
@@ -135,14 +146,32 @@ export const useOrderDetail = () => {
     }
   };
 
-
   const handleCancelOrder = async () => {
     if (!order) return;
-    try { setOrder(await cancelMyOrder(order.id)); } catch { /* The current order remains visible if cancellation fails. */ }
+    try {
+      setOrder(await cancelMyOrder(order.id));
+    } catch {
+      /* The current order remains visible if cancellation fails. */
+    }
   };
-  const handleDownloadInvoicePdf = () => order ? downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order)) : undefined;
-  const handleDownloadInvoiceXml = () => order ? downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order)) : undefined;
+  const handleDownloadInvoicePdf = () =>
+    order ? downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order)) : undefined;
+  const handleDownloadInvoiceXml = () =>
+    order ? downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order)) : undefined;
 
-  return { canDownloadInvoice, error, getReviewForm, handlePayOrder, handleSubmitReview, handleCancelOrder,
-    handleDownloadInvoicePdf, handleDownloadInvoiceXml, isLoading, justConfirmed, order, paying, updateReviewForm };
+  return {
+    canDownloadInvoice,
+    error,
+    getReviewForm,
+    handlePayOrder,
+    handleSubmitReview,
+    handleCancelOrder,
+    handleDownloadInvoicePdf,
+    handleDownloadInvoiceXml,
+    isLoading,
+    justConfirmed,
+    order,
+    paying,
+    updateReviewForm,
+  };
 };

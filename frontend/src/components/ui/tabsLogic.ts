@@ -1,5 +1,14 @@
 import type { ButtonHTMLAttributes, KeyboardEvent } from 'react';
-import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 export interface TabsContextValue {
   activeValue: string;
@@ -21,7 +30,12 @@ export const useTabsContext = (component: string) => {
 };
 
 export const toSafeTabIdPart = (value: string) => {
-  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9_-]+/gi, '-').replace(/^-|-$/g, '') || 'tab';
+  const normalized =
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/gi, '-')
+      .replace(/^-|-$/g, '') || 'tab';
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
     hash = (hash * 31 + value.charCodeAt(index)) | 0;
@@ -39,49 +53,62 @@ export const useTabsController = (
   const idPrefix = useId();
   const activeValue = value ?? internalValue;
 
-  const setActiveValue = useCallback((nextValue: string) => {
-    onValueChange?.(nextValue);
-    if (value === undefined) {
-      setInternalValue(nextValue);
-    }
-  }, [onValueChange, value]);
+  const setActiveValue = useCallback(
+    (nextValue: string) => {
+      onValueChange?.(nextValue);
+      if (value === undefined) {
+        setInternalValue(nextValue);
+      }
+    },
+    [onValueChange, value],
+  );
 
-  const registerTab = useCallback((tabValue: string, element: HTMLButtonElement | null, disabled = false) => {
-    if (element) {
-      tabElements.current.set(tabValue, { element, disabled });
-      return;
-    }
-    tabElements.current.delete(tabValue);
-  }, []);
+  const registerTab = useCallback(
+    (tabValue: string, element: HTMLButtonElement | null, disabled = false) => {
+      if (element) {
+        tabElements.current.set(tabValue, { element, disabled });
+        return;
+      }
+      tabElements.current.delete(tabValue);
+    },
+    [],
+  );
 
-  const getEnabledTabValues = useCallback(() => Array.from(tabElements.current.entries())
-    .filter(([, tab]) => !tab.disabled)
-    .sort(([, left], [, right]) => {
-      if (left.element === right.element) return 0;
-      return left.element.compareDocumentPosition(right.element) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-    })
-    .map(([tabValue]) => tabValue), []);
+  const getEnabledTabValues = useCallback(
+    () =>
+      Array.from(tabElements.current.entries())
+        .filter(([, tab]) => !tab.disabled)
+        .sort(([, left], [, right]) => {
+          if (left.element === right.element) return 0;
+          return left.element.compareDocumentPosition(right.element) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+            ? -1
+            : 1;
+        })
+        .map(([tabValue]) => tabValue),
+    [],
+  );
 
   const focusTab = useCallback((tabValue: string) => {
     tabElements.current.get(tabValue)?.element.focus();
   }, []);
 
-  return useMemo(() => ({ activeValue, setActiveValue, idPrefix, registerTab, getEnabledTabValues, focusTab }), [
-    activeValue,
-    focusTab,
-    getEnabledTabValues,
-    idPrefix,
-    registerTab,
-    setActiveValue,
-  ]);
+  return useMemo(
+    () => ({ activeValue, setActiveValue, idPrefix, registerTab, getEnabledTabValues, focusTab }),
+    [activeValue, focusTab, getEnabledTabValues, idPrefix, registerTab, setActiveValue],
+  );
 };
 
-interface UseTabsTriggerOptions extends Pick<ButtonHTMLAttributes<HTMLButtonElement>, 'disabled' | 'onKeyDown'> {
+interface UseTabsTriggerOptions extends Pick<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'disabled' | 'onKeyDown'
+> {
   value: string;
 }
 
 export const useTabsTrigger = ({ value, disabled, onKeyDown }: UseTabsTriggerOptions) => {
-  const { activeValue, idPrefix, registerTab, getEnabledTabValues, setActiveValue, focusTab } = useTabsContext('TabsTrigger');
+  const { activeValue, idPrefix, registerTab, getEnabledTabValues, setActiveValue, focusTab } =
+    useTabsContext('TabsTrigger');
   const elementRef = useRef<HTMLButtonElement | null>(null);
   const safeValue = toSafeTabIdPart(value);
 
@@ -100,7 +127,8 @@ export const useTabsTrigger = ({ value, disabled, onKeyDown }: UseTabsTriggerOpt
 
     let nextIndex: number | null = null;
     if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabValues.length;
-    if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabValues.length) % tabValues.length;
+    if (event.key === 'ArrowLeft')
+      nextIndex = (currentIndex - 1 + tabValues.length) % tabValues.length;
     if (event.key === 'Home') nextIndex = 0;
     if (event.key === 'End') nextIndex = tabValues.length - 1;
     if (nextIndex === null) return;

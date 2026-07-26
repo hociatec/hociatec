@@ -12,10 +12,9 @@ export interface CheckoutRedirectDto {
 type CheckoutResponseDto = CheckoutRedirectDto | { order: OrderDto } | OrderDto;
 
 export const checkoutOrder = async (addressId: number): Promise<OrderDto | CheckoutRedirectDto> => {
-  const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>(
-    '/api/orders/checkout',
-    { addressId },
-  );
+  const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>('/api/orders/checkout', {
+    addressId,
+  });
 
   if (isApiOk(data)) {
     const payload = data.data;
@@ -30,7 +29,10 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
   throw new Error(message);
 };
 
-export const checkoutExistingOrder = async (orderId: number, addressId?: number): Promise<OrderDto | CheckoutRedirectDto> => {
+export const checkoutExistingOrder = async (
+  orderId: number,
+  addressId?: number,
+): Promise<OrderDto | CheckoutRedirectDto> => {
   const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>(
     `/api/orders/${orderId}/checkout`,
     addressId ? { addressId } : {},
@@ -51,13 +53,20 @@ export const checkoutExistingOrder = async (orderId: number, addressId?: number)
 
 export const fetchCheckoutSessionStatus = async (
   stripeSessionId: string,
-): Promise<{ status: string; checkoutSessionId: string; orderId?: number | null; order?: OrderDto | null }> => {
-  const { data } = await httpClient.get<ApiResponse<{
-    status: string;
-    checkoutSessionId: string;
-    orderId?: number | null;
-    order?: OrderDto | null;
-  }>>(`/api/orders/checkout/sessions/${encodeURIComponent(stripeSessionId)}`);
+): Promise<{
+  status: string;
+  checkoutSessionId: string;
+  orderId?: number | null;
+  order?: OrderDto | null;
+}> => {
+  const { data } = await httpClient.get<
+    ApiResponse<{
+      status: string;
+      checkoutSessionId: string;
+      orderId?: number | null;
+      order?: OrderDto | null;
+    }>
+  >(`/api/orders/checkout/sessions/${encodeURIComponent(stripeSessionId)}`);
   if (isApiOk(data)) {
     return data.data as {
       status: string;
@@ -80,9 +89,7 @@ export const fetchMyOrders = async (): Promise<OrderDto[]> => {
 };
 
 export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
-  const { data } = await httpClient.get<ApiResponse<{ order: OrderDto }>>(
-    `/api/orders/${orderId}`,
-  );
+  const { data } = await httpClient.get<ApiResponse<{ order: OrderDto }>>(`/api/orders/${orderId}`);
   if (isApiOk(data)) {
     return data.data.order;
   }
@@ -97,7 +104,7 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
   if (isApiOk(data)) {
     return data.data.order;
   }
-  const message = data.status === 'error' ? data.message : 'Impossible d\'annuler la commande';
+  const message = data.status === 'error' ? data.message : "Impossible d'annuler la commande";
   throw new Error(message);
 };
 
@@ -129,7 +136,7 @@ export const submitOrderItemReview = async (
     return data.data.review;
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible d\'enregistrer l\'avis';
+  const message = data.status === 'error' ? data.message : "Impossible d'enregistrer l'avis";
   throw new Error(message);
 };
 
@@ -142,6 +149,7 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
     return data.data.items;
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible de charger les avis en attente';
+  const message =
+    data.status === 'error' ? data.message : 'Impossible de charger les avis en attente';
   throw new Error(message);
 };

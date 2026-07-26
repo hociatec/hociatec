@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { cn } from '@/shared/lib/cn';
+import { cn } from '@/lib/utils';
 
 interface DateRangeFilterProps {
   from?: string | null;
@@ -9,13 +9,20 @@ interface DateRangeFilterProps {
   className?: string;
 }
 
-export const DateRangeFilter = ({ from = null, to = null, onChange, className }: DateRangeFilterProps) => {
+export const DateRangeFilter = ({
+  from = null,
+  to = null,
+  onChange,
+  className,
+}: DateRangeFilterProps) => {
   const idFrom = useId();
   const idTo = useId();
 
   return (
     <div className={cn('date-range-filter', className)}>
-      <label htmlFor={idFrom} className="sr-only">Du</label>
+      <label htmlFor={idFrom} className="sr-only">
+        Du
+      </label>
       <input
         id={idFrom}
         type="date"
@@ -23,7 +30,9 @@ export const DateRangeFilter = ({ from = null, to = null, onChange, className }:
         onChange={(e) => onChange({ from: e.target.value || null, to })}
       />
       <span className="muted">à</span>
-      <label htmlFor={idTo} className="sr-only">Au</label>
+      <label htmlFor={idTo} className="sr-only">
+        Au
+      </label>
       <input
         id={idTo}
         type="date"

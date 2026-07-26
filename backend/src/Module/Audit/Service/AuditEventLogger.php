@@ -7,11 +7,11 @@ namespace App\Module\Audit\Service;
 use App\Module\Audit\Entity\AuditEvent;
 use App\Module\Audit\Entity\AuditRequest;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 class AuditEventLogger
 {
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly DoctrinePersistence $persistence)
     {
     }
 
@@ -24,13 +24,13 @@ class AuditEventLogger
             $actor?->getId(),
             $actor?->getFullName() ?? $actor?->getEmail()
         );
-        $this->em->persist($event);
-        $this->em->flush();
+        $this->persistence->persist($event);
+        $this->persistence->flush();
     }
 
     public function save(object $entity): void
     {
-        $this->em->persist($entity);
-        $this->em->flush();
+        $this->persistence->persist($entity);
+        $this->persistence->flush();
     }
 }

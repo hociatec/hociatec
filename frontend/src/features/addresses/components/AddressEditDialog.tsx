@@ -2,4 +2,36 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { AddressFormState } from '@/features/addresses/types/address';
 import { AddressFields } from './AddressFields';
 
-export const AddressEditDialog = ({ form, saving, setForm, onClose, onSubmit }: { form: AddressFormState; saving: boolean; setForm: Dispatch<SetStateAction<AddressFormState>>; onClose: () => void; onSubmit: () => void }) => <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-900/50 px-4 py-6"><div className="w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl"><h3 className="text-2xl font-semibold text-brand-900">Modifier l’adresse</h3><p className="mt-1 text-sm text-stone-600">Mettez à jour les informations sans perdre vos commandes existantes.</p><div className="mt-6 grid gap-4"><AddressFields form={form} setForm={setForm} /></div><div className="mt-6 flex flex-wrap justify-end gap-3"><button type="button" className="address-button" onClick={onClose}>Annuler</button><button type="button" className="address-submit" onClick={onSubmit} disabled={saving}>{saving ? 'Enregistrement...' : 'Enregistrer'}</button></div></div></div>;
+export const AddressEditDialog = ({
+  form,
+  saving,
+  setForm,
+  onClose,
+  onSubmit,
+}: {
+  form: AddressFormState;
+  saving: boolean;
+  setForm: Dispatch<SetStateAction<AddressFormState>>;
+  onClose: () => void;
+  onSubmit: () => void;
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-900/50 px-4 py-6">
+    <div className="w-full max-w-xl rounded-xl bg-white p-6 shadow-2xl">
+      <h3 className="text-2xl font-semibold text-brand-900">Modifier l’adresse</h3>
+      <p className="mt-1 text-sm text-stone-600">
+        Mettez à jour les informations sans perdre vos commandes existantes.
+      </p>
+      <div className="mt-6 grid gap-4">
+        <AddressFields form={form} setForm={setForm} />
+      </div>
+      <div className="mt-6 flex flex-wrap justify-end gap-3">
+        <button type="button" className="address-button" onClick={onClose}>
+          Annuler
+        </button>
+        <button type="button" className="address-submit" onClick={onSubmit} disabled={saving}>
+          {saving ? 'Enregistrement...' : 'Enregistrer'}
+        </button>
+      </div>
+    </div>
+  </div>
+);

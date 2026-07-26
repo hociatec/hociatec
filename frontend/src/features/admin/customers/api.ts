@@ -149,7 +149,12 @@ export const fetchAdminDashboard = async (): Promise<AdminDashboardDto> => {
 
 export const fetchAdminCustomers = async (
   search = '',
-  sort: 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc' = 'recent_order',
+  sort:
+    | 'recent_order'
+    | 'highest_spent'
+    | 'most_orders'
+    | 'newest_account'
+    | 'name_asc' = 'recent_order',
 ): Promise<AdminCustomerSummaryDto[]> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
@@ -176,12 +181,14 @@ export const fetchAdminCustomerById = async (
   orders: OrderDto[];
   vouchers: AdminCustomerVoucherDto[];
 }> => {
-  const { data } = await httpClient.get<ApiResponse<{
-    customer: AdminCustomerDetailDto;
-    addresses: AdminCustomerAddressDto[];
-    orders: OrderDto[];
-    vouchers: AdminCustomerVoucherDto[];
-  }>>(`/api/admin/customers/${customerId}`);
+  const { data } = await httpClient.get<
+    ApiResponse<{
+      customer: AdminCustomerDetailDto;
+      addresses: AdminCustomerAddressDto[];
+      orders: OrderDto[];
+      vouchers: AdminCustomerVoucherDto[];
+    }>
+  >(`/api/admin/customers/${customerId}`);
 
   if (isApiOk(data)) {
     return {
@@ -200,12 +207,14 @@ export const updateAdminCustomerAdminProfile = async (
   customerId: number,
   payload: { adminNotes: string; adminTags: string[] },
 ): Promise<{ adminNotes?: string | null; adminTags: string[] }> => {
-  const { data } = await httpClient.patch<ApiResponse<{
-    customer: {
-      adminNotes?: string | null;
-      adminTags: string[];
-    };
-  }>>(`/api/admin/customers/${customerId}/admin-profile`, payload);
+  const { data } = await httpClient.patch<
+    ApiResponse<{
+      customer: {
+        adminNotes?: string | null;
+        adminTags: string[];
+      };
+    }>
+  >(`/api/admin/customers/${customerId}/admin-profile`, payload);
 
   if (isApiOk(data)) {
     return {
@@ -214,7 +223,8 @@ export const updateAdminCustomerAdminProfile = async (
     };
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le suivi interne';
+  const message =
+    data.status === 'error' ? data.message : 'Impossible de mettre à jour le suivi interne';
   throw new Error(message);
 };
 
@@ -222,10 +232,12 @@ export const createCustomerVoucher = async (
   customerId: number,
   payload: CustomerVoucherPayload,
 ): Promise<{ voucher: AdminCustomerVoucherDto; emailSent: boolean }> => {
-  const { data } = await httpClient.post<ApiResponse<{
-    voucher: AdminCustomerVoucherDto;
-    emailSent: boolean;
-  }>>(`/api/admin/customers/${customerId}/vouchers`, payload);
+  const { data } = await httpClient.post<
+    ApiResponse<{
+      voucher: AdminCustomerVoucherDto;
+      emailSent: boolean;
+    }>
+  >(`/api/admin/customers/${customerId}/vouchers`, payload);
 
   if (isApiOk(data)) {
     return {
@@ -234,7 +246,8 @@ export const createCustomerVoucher = async (
     };
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible de créer le bon de réduction';
+  const message =
+    data.status === 'error' ? data.message : 'Impossible de créer le bon de réduction';
   throw new Error(message);
 };
 
@@ -258,9 +271,7 @@ export const sendCustomerEmail = async (
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as ApiResponse<unknown> | undefined;
       const message =
-        data?.status === 'error' && data.message
-          ? data.message
-          : 'Impossible d’envoyer l’email';
+        data?.status === 'error' && data.message ? data.message : 'Impossible d’envoyer l’email';
       throw new Error(message);
     }
 

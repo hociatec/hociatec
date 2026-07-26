@@ -7,7 +7,6 @@ namespace App\Module\Catalog\Service;
 use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Repository\ProductRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -16,7 +15,7 @@ final class BrandService
     public function __construct(
         private readonly BrandRepository $brandRepository,
         private readonly ProductRepository $productRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly CatalogPersistence $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }
@@ -36,8 +35,7 @@ final class BrandService
         $this->assertUniqueName($normalizedName, null);
 
         $brand = new Brand($normalizedName);
-        $this->entityManager->persist($brand);
-        $this->entityManager->flush();
+        $this->persistence->save($brand);
 
         return $brand;
     }
@@ -49,7 +47,7 @@ final class BrandService
         $this->assertUniqueName($normalizedName, $brand->getId());
 
         $brand->setName($normalizedName);
-        $this->entityManager->flush();
+        $this->persistence->flush();
 
         return $brand;
     }
@@ -57,8 +55,7 @@ final class BrandService
     public function delete(Brand $brand): void
     {
         $this->productRepository->clearBrand($brand);
-        $this->entityManager->remove($brand);
-        $this->entityManager->flush();
+        $this->persistence->delete($brand);
     }
 
     private function normalizeName(string $name): string

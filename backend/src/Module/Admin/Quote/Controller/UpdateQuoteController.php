@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Quote\Controller;
 
+use App\Module\Admin\Quote\DTO\QuotePayloadInput;
+use App\Module\Quote\DTO\QuotePayload;
 use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteService as QuoteDomainService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +29,7 @@ class UpdateQuoteController extends AbstractController
         private readonly QuoteDomainService $quoteService,
         private readonly QuoteCalculator $calculator,
         private readonly QuoteEmailService $quoteEmailService,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -36,12 +40,14 @@ class UpdateQuoteController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $request->toArray();
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = QuotePayloadInput::fromArray($payload);
+        $this->validator->validate($input);
 
         try {
-            $quote = $this->quoteService->updateFromPayload($quote, $payload);
-        } catch (\Throwable $e) {
-            return ApiResponse::error('Impossible de mettre a jour le devis.', Response::HTTP_BAD_REQUEST, [$e->getMessage()]);
+            $quote = $this->quoteService->updateFromPayload($quote, QuotePayload::fromArray($input->toPayload()));
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de mettre à jour le devis.');
         }
 
         $data = QuoteFormatter::formatQuote($quote, $this->calculator);
@@ -50,7 +56,7 @@ class UpdateQuoteController extends AbstractController
             $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
         } catch (\Throwable $exception) {
             $data['emailNotificationSent'] = false;
-            $data['emailNotificationError'] = $exception->getMessage();
+            $data['emailNotificationError'] = 'Notification email indisponible.';
         }
 
         return ApiResponse::success($data);

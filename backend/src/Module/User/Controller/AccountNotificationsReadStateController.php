@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Controller;
 
+use App\Module\User\DTO\NotificationReadStateInput;
 use App\Module\User\Entity\User;
 use App\Module\User\Service\AccountNotificationReadStateService;
 use App\Shared\Http\ApiResponse;
@@ -34,8 +35,8 @@ final class AccountNotificationsReadStateController extends AbstractController
     public function update(Request $request): JsonResponse
     {
         try {
-            $payload = $request->toArray();
-            $state = $this->readState->update($this->currentUser(), $payload);
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
+            $state = $this->readState->update($this->currentUser(), NotificationReadStateInput::fromArray($payload));
         } catch (\JsonException|\InvalidArgumentException) {
             return ApiResponse::error('État de lecture invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\Throwable) {

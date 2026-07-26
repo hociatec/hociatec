@@ -10,14 +10,13 @@ use App\Module\Catalog\Entity\StockMovement;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Catalog\Repository\StockMovementRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class StockOperationsService
 {
     public function __construct(
         private ProductRepository $products,
         private StockMovementRepository $movements,
-        private EntityManagerInterface $entityManager,
+        private OperationsPersistence $persistence,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -38,24 +37,27 @@ final readonly class StockOperationsService
      */
     public function create(int $productId, int $delta, string $reason, ?string $note, ?User $actor): array
     {
-        $product = $this->products->find($productId);
-        if (!$product instanceof Product) {
-            throw new OperationsResourceNotFoundException('Produit introuvable.');
-        }
         if (0 === $delta) {
             throw new \InvalidArgumentException('Le mouvement de stock doit être différent de zéro.');
         }
 
-        $before = $product->getStock();
-        $after = max(0, $before + $delta);
-        $product->setStock($after);
+        return $this->persistence->transactional(function () use ($productId, $delta, $reason, $note, $actor): array {
+            $product = $this->products->findForUpdate($productId);
+            if (!$product instanceof Product) {
+                throw new OperationsResourceNotFoundException('Produit introuvable.');
+            }
 
-        $movement = new StockMovement($product, $after - $before, $before, $after, $reason, $actor);
-        $movement->setNote($note);
-        $this->entityManager->persist($movement);
-        $this->entityManager->flush();
+            $before = $product->getStock();
+            $after = max(0, $before + $delta);
+            $product->setStock($after);
 
-        return $this->formatter->stockMovement($movement);
+            $movement = new StockMovement($product, $after - $before, $before, $after, $reason, $actor);
+            $movement->setNote($note);
+            $this->persistence->persist($movement);
+            $this->persistence->flush();
+
+            return $this->formatter->stockMovement($movement);
+        });
     }
 
     /**
@@ -63,17 +65,20 @@ final readonly class StockOperationsService
      */
     public function updateThreshold(int $productId, int $threshold): array
     {
-        $product = $this->products->find($productId);
-        if (!$product instanceof Product) {
-            throw new OperationsResourceNotFoundException('Produit introuvable.');
-        }
         if ($threshold < 0) {
             throw new \InvalidArgumentException('Le seuil doit être un entier positif.');
         }
 
-        $product->setLowStockThreshold($threshold);
-        $this->entityManager->flush();
+        return $this->persistence->transactional(function () use ($productId, $threshold): array {
+            $product = $this->products->findForUpdate($productId);
+            if (!$product instanceof Product) {
+                throw new OperationsResourceNotFoundException('Produit introuvable.');
+            }
 
-        return $this->formatter->lowStockProduct($product);
+            $product->setLowStockThreshold($threshold);
+            $this->persistence->flush();
+
+            return $this->formatter->lowStockProduct($product);
+        });
     }
 }

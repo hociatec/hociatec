@@ -1,148 +1,46 @@
-import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
-import { downloadBlob } from '@/shared/lib/downloadFile';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-import {
-  convertAdminQuoteToOrder,
-  fetchAdminQuote,
-  formatQuoteStatus,
-  generateAdminQuotePdf,
-  sendAdminQuoteEmail,
-  updateAdminQuoteStatus,
-  type QuoteDto,
-  type QuoteStatus,
-} from '@/features/quotes/api/quotesApi';
+import { formatQuoteStatus } from '@/features/quotes/lib/quoteStatus';
+import { useAdminQuoteDetail } from '../hooks/useAdminQuoteDetail';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
-import { usePrompt } from '@/shared/components/ui/prompt';
-import { useToast } from '@/shared/components/ui/toast';
-import { formatDateInputForDisplay, formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import {
+  formatDateInputForDisplay,
+  formatEuroCents,
+  formatOptionalFrenchDateTime,
+} from '@/shared/lib/formatters';
 
 export const AdminQuoteDetailPage = () => {
-  const { quoteId } = useParams();
-  const navigate = useNavigate();
-  const toast = useToast();
-  const prompt = usePrompt();
-  const [quote, setQuote] = useState<QuoteDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [downloading, setDownloading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const {
+    quote,
+    loading,
+    error,
+    downloading,
+    actionLoading,
+    handleDownload,
+    handleSendEmail,
+    handleUpdateStatus,
+    handleConvertToOrder,
+    navigate,
+  } = useAdminQuoteDetail();
 
   useDocumentTitle(quote ? `Admin - Devis ${quote.number}` : 'Admin - Consulter le devis');
-
-  useEffect(() => {
-    const id = Number(quoteId);
-
-    if (!id) {
-      setError('Devis introuvable.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void fetchAdminQuote(id)
-      .then((result) => setQuote(result))
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger ce devis.')))
-      .finally(() => setLoading(false));
-  }, [quoteId]);
-
-  const handleDownload = async () => {
-    if (!quote) return;
-
-    setDownloading(true);
-    try {
-      const blob = await generateAdminQuotePdf(quote.id);
-      downloadBlob(blob, `${quote.number}.pdf`);
-    } catch (e) {
-      toast.show(await getHttpErrorMessageAsync(e, 'Impossible de télécharger le devis.'), { variant: 'error' });
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const refreshQuote = async () => {
-    if (!quote) return;
-    const updated = await fetchAdminQuote(quote.id);
-    setQuote(updated);
-    return updated;
-  };
-
-  const handleSendEmail = async () => {
-    if (!quote) return;
-
-    const to = await prompt({
-      title: 'Envoyer le devis',
-      description: `Choisissez le destinataire du devis ${quote.number}.`,
-      label: 'Destinataire (e-mail)',
-      defaultValue: quote?.customer?.email ?? '',
-      inputType: 'email',
-      inputMode: 'email',
-      confirmLabel: 'Envoyer',
-      cancelLabel: 'Annuler',
-    });
-    if (to === null) return;
-
-    setActionLoading('send');
-    try {
-      const response = await sendAdminQuoteEmail(quote.id, to);
-      await refreshQuote();
-      toast.show(getHttpErrorMessage(response, 'Devis envoyé.'), { variant: 'success' });
-    } catch (e) {
-      toast.show(getHttpErrorMessage(e, 'Envoi impossible.'), { variant: 'error' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleUpdateStatus = async (status: QuoteStatus) => {
-    if (!quote) return;
-
-    setActionLoading(status);
-    try {
-      const updated = await updateAdminQuoteStatus(quote.id, status);
-      setQuote(updated);
-      toast.show('Statut mis à jour.', { variant: 'success' });
-    } catch (e) {
-      toast.show(getHttpErrorMessage(e, 'Mise à jour impossible.'), { variant: 'error' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handleConvertToOrder = async () => {
-    if (!quote) return;
-
-    setActionLoading('convert');
-    try {
-      const response = await convertAdminQuoteToOrder(quote.id);
-      const order = response?.order;
-      toast.show(order ? `Commande ${order.number} créée.` : 'Commande créée.', { variant: 'success' });
-      if (order?.id) {
-        navigate(`/admin/orders/${order.id}`);
-      } else {
-        await refreshQuote();
-      }
-    } catch (e) {
-      toast.show(getHttpErrorMessage(e, 'Conversion impossible.'), { variant: 'error' });
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const quoteStatus = quote?.statusCode ?? quote?.status;
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={quote ? `Devis ${quote.number}` : 'Consulter le devis'}
       headerActions={
         quote ? (
           <div className="catalog-admin-actions">
-            <button type="button" className="catalog-admin-actions__edit" onClick={() => navigate('/admin/quotes')}>
+            <button
+              type="button"
+              className="catalog-admin-actions__edit"
+              onClick={() => navigate('/admin/quotes')}
+            >
               Retour
             </button>
             <button
@@ -168,7 +66,9 @@ export const AdminQuoteDetailPage = () => {
               type="button"
               className="catalog-admin-actions__edit"
               onClick={() => void handleUpdateStatus('accepted')}
-              disabled={actionLoading !== null || quoteStatus === 'accepted' || !!quote.convertedOrder}
+              disabled={
+                actionLoading !== null || quoteStatus === 'accepted' || !!quote.convertedOrder
+              }
             >
               Accepter
             </button>
@@ -176,12 +76,17 @@ export const AdminQuoteDetailPage = () => {
               type="button"
               className="catalog-admin-actions__edit"
               onClick={() => void handleUpdateStatus('refused')}
-              disabled={actionLoading !== null || quoteStatus === 'refused' || !!quote.convertedOrder}
+              disabled={
+                actionLoading !== null || quoteStatus === 'refused' || !!quote.convertedOrder
+              }
             >
               Refuser
             </button>
             {quote.convertedOrder ? (
-              <Link to={`/admin/orders/${quote.convertedOrder.id}`} className="catalog-admin-actions__edit">
+              <Link
+                to={`/admin/orders/${quote.convertedOrder.id}`}
+                className="catalog-admin-actions__edit"
+              >
                 Commande
               </Link>
             ) : (
@@ -189,7 +94,11 @@ export const AdminQuoteDetailPage = () => {
                 type="button"
                 className="register-form__submit"
                 onClick={() => void handleConvertToOrder()}
-                disabled={actionLoading !== null || quoteStatus !== 'accepted' || (quote.items ?? []).length === 0}
+                disabled={
+                  actionLoading !== null ||
+                  quoteStatus !== 'accepted' ||
+                  (quote.items ?? []).length === 0
+                }
               >
                 {actionLoading === 'convert' ? 'Conversion...' : 'Convertir'}
               </button>
@@ -211,14 +120,19 @@ export const AdminQuoteDetailPage = () => {
               </div>
               <div>
                 <div className="muted">Statut</div>
-                <div className="quote-strong">{quote.statusLabel ?? formatQuoteStatus(quoteStatus)}</div>
+                <div className="quote-strong">
+                  {quote.statusLabel ?? formatQuoteStatus(quoteStatus)}
+                </div>
                 {quote.sentAt ? (
                   <div className="muted quote-small-muted">
                     Envoyé le {formatOptionalFrenchDateTime(quote.sentAt)}
                   </div>
                 ) : null}
                 {quote.convertedOrder ? (
-                  <Link to={`/admin/orders/${quote.convertedOrder.id}`} className="underline text-sm">
+                  <Link
+                    to={`/admin/orders/${quote.convertedOrder.id}`}
+                    className="underline text-sm"
+                  >
                     Commande {quote.convertedOrder.number}
                   </Link>
                 ) : null}
@@ -256,8 +170,12 @@ export const AdminQuoteDetailPage = () => {
               <div>Total HT : {formatEuroCents(quote?.totals?.ht ?? 0)}</div>
               <div>TVA : {formatEuroCents(quote?.totals?.vat ?? 0)}</div>
               <div>Total TTC : {formatEuroCents(quote?.totals?.ttc ?? 0)}</div>
-              {quote.discountCents ? <div>Remise : {formatEuroCents(quote.discountCents)}</div> : null}
-              {quote.shippingCents ? <div>Frais de port : {formatEuroCents(quote.shippingCents)}</div> : null}
+              {quote.discountCents ? (
+                <div>Remise : {formatEuroCents(quote.discountCents)}</div>
+              ) : null}
+              {quote.shippingCents ? (
+                <div>Frais de port : {formatEuroCents(quote.shippingCents)}</div>
+              ) : null}
             </div>
           </section>
 

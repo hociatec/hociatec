@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Marketing\Controller;
 
+use App\Module\Admin\Marketing\DTO\MarketingTemplateInput;
+use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
-use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,13 +18,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/marketing/templates/{templateId}', name: 'api_admin_marketing_templates_update', methods: ['PUT'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_MARKETING_MANAGER')]
 final class UpdateTemplateController extends AbstractController
 {
     public function __construct(
         private readonly EmailTemplateAdminManager $manager,
         private readonly EmailTemplateRepository $templates,
         private readonly EmailTemplateScenarioProvider $scenarioProvider,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -33,36 +36,27 @@ final class UpdateTemplateController extends AbstractController
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $request->toArray();
-        $name = trim((string) ($payload['name'] ?? ''));
-        $slug = trim((string) ($payload['slug'] ?? ''));
-        $scenarioKey = trim((string) ($payload['scenarioKey'] ?? ''));
-        $subjectTemplate = trim((string) ($payload['subjectTemplate'] ?? ''));
-        $htmlBody = trim((string) ($payload['htmlBody'] ?? ''));
-        $textBody = isset($payload['textBody']) ? trim((string) $payload['textBody']) : null;
-        $isActive = (bool) ($payload['isActive'] ?? true);
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = MarketingTemplateInput::fromArray($payload);
+        $this->validator->validate($input);
 
-        if ('' === $name || '' === $slug || '' === $scenarioKey || '' === $subjectTemplate || '' === $htmlBody) {
-            return ApiResponse::error('Veuillez renseigner tous les champs obligatoires.');
-        }
-
-        if (!isset($this->scenarioProvider->getTemplateScenarioDefinitions()[$scenarioKey])) {
+        if (!isset($this->scenarioProvider->getTemplateScenarioDefinitions()[$input->scenarioKey])) {
             return ApiResponse::error('Scénario de template invalide.');
         }
 
-        $existing = $this->templates->findOneBySlug($slug);
+        $existing = $this->templates->findOneBySlug($input->slug);
         if (null !== $existing && $existing->getId() !== $template->getId()) {
             return ApiResponse::error('Ce slug de template est déjà utilisé.');
         }
 
         $template
-            ->setName($name)
-            ->setSlug($slug)
-            ->setScenarioKey($scenarioKey)
-            ->setSubjectTemplate($subjectTemplate)
-            ->setHtmlBody($htmlBody)
-            ->setTextBody($textBody)
-            ->setIsActive($isActive);
+            ->setName($input->name)
+            ->setSlug($input->slug)
+            ->setScenarioKey($input->scenarioKey)
+            ->setSubjectTemplate($input->subjectTemplate)
+            ->setHtmlBody($input->htmlBody)
+            ->setTextBody($input->textBody)
+            ->setIsActive($input->isActive);
 
         $this->manager->save($template);
 

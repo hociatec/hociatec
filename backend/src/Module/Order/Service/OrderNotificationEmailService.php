@@ -6,14 +6,13 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
 use App\Shared\Mail\DualTransportMailer;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 final class OrderNotificationEmailService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly OrderPersistence $persistence,
         private readonly OrderNotificationContentProvider $contentProvider,
         private readonly DualTransportMailer $mailer,
         private readonly OrderEventLogger $events,
@@ -59,7 +58,7 @@ final class OrderNotificationEmailService
 
         $this->sendScenario($order, 'order_created');
         $order->setOrderCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->entityManager->flush();
+        $this->persistence->flush();
         $this->events->log($order, null, 'email_sent', $force ? 'Email client renvoyé: commande enregistrée.' : 'Email client envoyé: commande enregistrée.');
 
         return true;
@@ -77,7 +76,7 @@ final class OrderNotificationEmailService
 
         $this->sendScenario($order, 'order_invoice_issued');
         $order->setInvoiceEmailSentAt(new \DateTimeImmutable());
-        $this->entityManager->flush();
+        $this->persistence->flush();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', $force ? 'Email client renvoyé: facture disponible.' : 'Email client envoyé: facture disponible.');
 
         return true;
@@ -106,7 +105,7 @@ final class OrderNotificationEmailService
             Order::STATUS_CANCELLED => $order->setStatusCancelledEmailSentAt($sentAt),
         };
 
-        $this->entityManager->flush();
+        $this->persistence->flush();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', ($force ? 'Email client renvoyé: statut ' : 'Email client envoyé: statut ').$this->formatStatus($newStatus).'.');
 
         return true;

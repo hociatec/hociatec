@@ -1,13 +1,10 @@
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { deletePromotion, fetchPromotionAudiences, fetchPromotions, type Promotion } from '@/features/admin/promotions/api';
+import type { Promotion } from '@/features/admin/promotions/api';
+import { usePromotionsList } from '../hooks/usePromotionsList';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
-import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
-import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
@@ -18,80 +15,30 @@ const formatDiscount = (promotion: Promotion) =>
 
 export const PromotionsListPage = () => {
   useDocumentTitle('Admin - Promotions');
-  const toast = useToast();
-  const confirm = useConfirm();
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [audiences, setAudiences] = useState<Record<string, { label: string; description: string }>>({});
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void Promise.all([fetchPromotions(), fetchPromotionAudiences()])
-      .then(([promotionsList, audienceList]) => {
-        setPromotions(promotionsList);
-        setAudiences(audienceList);
-      })
-      .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de charger les promotions.')))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filteredPromotions = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return promotions.filter((promotion) => {
-      const matchesQuery = normalizedQuery.length === 0
-        || promotion.name.toLowerCase().includes(normalizedQuery)
-        || promotion.slug.toLowerCase().includes(normalizedQuery);
-      const matchesStatus = statusFilter === 'all'
-        || (statusFilter === 'active' && promotion.isActive)
-        || (statusFilter === 'inactive' && !promotion.isActive);
-
-      return matchesQuery && matchesStatus;
-    });
-  }, [promotions, query, statusFilter]);
-
-  const handleDelete = async (promotionId: number) => {
-    const promotion = promotions.find((item) => item.id === promotionId);
-    const promotionLabel = promotion ? `"${promotion.name}" (${promotion.slug})` : 'cette promotion';
-
-    const confirmed = await confirm({
-      title: 'Supprimer la promotion',
-      description: `Supprimer ${promotionLabel} ?`,
-      confirmLabel: 'Supprimer',
-      cancelLabel: 'Annuler',
-    });
-
-    if (!confirmed) return;
-    try {
-      await deletePromotion(promotionId);
-      setPromotions((prev) => prev.filter((item) => item.id !== promotionId));
-      toast.show('Promotion supprimée.', { variant: 'success' });
-    } catch (err) {
-      const message = getHttpErrorMessage(err, 'Suppression impossible.');
-      setError(message);
-      toast.show(message, { variant: 'error' });
-    }
-  };
+  const {
+    audiences,
+    query,
+    setQuery,
+    statusFilter,
+    setStatusFilter,
+    loading,
+    error,
+    filteredPromotions,
+    handleDelete,
+  } = usePromotionsList();
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title="Promotions"
       headerActions={
         <div className="flex gap-3">
-          <PrimaryLink to="/admin/promotions/new">
-            Nouvelle promotion
-          </PrimaryLink>
+          <PrimaryLink to="/admin/promotions/new">Nouvelle promotion</PrimaryLink>
         </div>
       }
     >
       <div className="mb-6 space-y-1">
-        <p className="text-sm text-stone-600">
-          Créez des remises automatiques.
-        </p>
+        <p className="text-sm text-stone-600">Créez des remises automatiques.</p>
         <p className="text-sm text-stone-500">
           La meilleure promotion éligible est appliquée automatiquement dans le panier.
         </p>
@@ -102,11 +49,20 @@ export const PromotionsListPage = () => {
       <div className="mb-6 grid gap-4 rounded-xl border border-brand-100 bg-white p-5 shadow-sm md:grid-cols-2">
         <label className="register-form__field">
           <span className="register-form__label">Recherche</span>
-          <input className="register-form__input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom ou slug..." />
+          <input
+            className="register-form__input"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Nom ou slug..."
+          />
         </label>
         <label className="register-form__field">
           <span className="register-form__label">Statut</span>
-          <select className="register-form__input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <select
+            className="register-form__input"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
             <option value="all">Toutes</option>
             <option value="active">Actives</option>
             <option value="inactive">Inactives</option>

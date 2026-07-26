@@ -9,10 +9,8 @@ import {
   fetchAdminQuoteServices,
   generateAdminQuotePdf,
   updateAdminQuote,
-  type QuoteDto,
-  type QuoteInput,
-  type QuoteServiceDto,
 } from '@/features/quotes/api/quotesApi';
+import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
   adaptQuoteForSave,
   createDefaultQuoteValidity,
@@ -94,11 +92,15 @@ export const useAdminQuoteFormController = () => {
   const trimmedSearchQuery = searchQuery.trim().toLowerCase();
   const filteredServices = useMemo(() => {
     if (trimmedSearchQuery === '') return [];
-    return services.filter((service) => service.title.toLowerCase().includes(trimmedSearchQuery)).slice(0, 20);
+    return services
+      .filter((service) => service.title.toLowerCase().includes(trimmedSearchQuery))
+      .slice(0, 20);
   }, [services, trimmedSearchQuery]);
   const filteredProducts = useMemo(() => {
     if (trimmedSearchQuery === '') return [];
-    return products.filter((product) => product.name.toLowerCase().includes(trimmedSearchQuery)).slice(0, 20);
+    return products
+      .filter((product) => product.name.toLowerCase().includes(trimmedSearchQuery))
+      .slice(0, 20);
   }, [products, trimmedSearchQuery]);
 
   const load = useCallback(async () => {
@@ -125,7 +127,9 @@ export const useAdminQuoteFormController = () => {
     } catch (e) {
       const msg = getHttpErrorMessage(e, 'Échec de sauvegarde.');
       setError(msg);
-      try { toast.show(msg, { variant: 'error' }); } catch {}
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch {}
     } finally {
       setLoading(false);
     }
@@ -140,9 +144,16 @@ export const useAdminQuoteFormController = () => {
     let ht = 0;
     let vat = 0;
     for (const item of quote.items) {
-      const isRental = item.type === 'product' && products.some((product) => product.id === item.productId && product.sellingType === 'rental');
+      const isRental =
+        item.type === 'product' &&
+        products.some(
+          (product) => product.id === item.productId && product.sellingType === 'rental',
+        );
       const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-      const line = Math.max(0, item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0));
+      const line = Math.max(
+        0,
+        item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0),
+      );
       ht += line;
       vat += Math.round(line * (item.vatRate / 100));
     }
@@ -155,7 +166,9 @@ export const useAdminQuoteFormController = () => {
     if (!service) return;
     setQuote((current) => {
       if (!current) return current;
-      const index = current.items.findIndex((item) => item.type === 'service' && item.serviceId === service.id);
+      const index = current.items.findIndex(
+        (item) => item.type === 'service' && item.serviceId === service.id,
+      );
       if (index >= 0) {
         const next = [...current.items];
         next[index] = { ...next[index], quantity: (next[index].quantity ?? 1) + 1 };
@@ -163,17 +176,20 @@ export const useAdminQuoteFormController = () => {
       }
       return {
         ...current,
-        items: [...current.items, {
-          type: 'service',
-          serviceId: service.id,
-          name: service.title,
-          description: service.description ?? undefined,
-          unit: service.unit ?? undefined,
-          quantity: 1,
-          unitPriceCents: service.priceCents,
-          vatRate: Number(service.vatRate ?? 0),
-          discountCents: 0,
-        }],
+        items: [
+          ...current.items,
+          {
+            type: 'service',
+            serviceId: service.id,
+            name: service.title,
+            description: service.description ?? undefined,
+            unit: service.unit ?? undefined,
+            quantity: 1,
+            unitPriceCents: service.priceCents,
+            vatRate: Number(service.vatRate ?? 0),
+            discountCents: 0,
+          },
+        ],
       };
     });
   };
@@ -186,7 +202,9 @@ export const useAdminQuoteFormController = () => {
       if (product.sellingType === 'rental') {
         return { ...current, items: [...current.items, createProductQuoteItem(product)] };
       }
-      const index = current.items.findIndex((item) => item.type === 'product' && item.productId === product.id);
+      const index = current.items.findIndex(
+        (item) => item.type === 'product' && item.productId === product.id,
+      );
       if (index >= 0) {
         const next = [...current.items];
         next[index] = { ...next[index], quantity: (next[index].quantity ?? 1) + 1 };
@@ -197,18 +215,30 @@ export const useAdminQuoteFormController = () => {
   };
 
   const addCustomItem = () => {
-    setQuote((current) => current ? ({ ...current, items: [...current.items, createCustomQuoteItem()] }) : current);
+    setQuote((current) =>
+      current ? { ...current, items: [...current.items, createCustomQuoteItem()] } : current,
+    );
   };
 
   const updateItem = (index: number, patch: Partial<QuoteItem>) => {
-    setQuote((current) => current ? ({
-      ...current,
-      items: current.items.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
-    }) : current);
+    setQuote((current) =>
+      current
+        ? {
+            ...current,
+            items: current.items.map((item, itemIndex) =>
+              itemIndex === index ? { ...item, ...patch } : item,
+            ),
+          }
+        : current,
+    );
   };
 
   const removeItem = (index: number) => {
-    setQuote((current) => current ? ({ ...current, items: current.items.filter((_, itemIndex) => itemIndex !== index) }) : current);
+    setQuote((current) =>
+      current
+        ? { ...current, items: current.items.filter((_, itemIndex) => itemIndex !== index) }
+        : current,
+    );
   };
 
   const save = async () => {
@@ -224,18 +254,25 @@ export const useAdminQuoteFormController = () => {
       if (isNew) navigate(`/admin/quotes/${saved.id}/edit`, { replace: true });
       setQuote(toQuoteFormState(saved));
       const emailNotificationSent = saved.emailNotificationSent === true;
-      const emailNotificationError = typeof saved.emailNotificationError === 'string' ? saved.emailNotificationError : null;
+      const emailNotificationError =
+        typeof saved.emailNotificationError === 'string' ? saved.emailNotificationError : null;
       const successMessage = emailNotificationSent
         ? 'Devis enregistré. Email automatique envoyé au client.'
         : emailNotificationError
           ? `Devis enregistré. Email automatique non envoyé : ${emailNotificationError}`
           : 'Devis enregistré.';
       setMessage(successMessage);
-      try { toast.show(successMessage, { variant: emailNotificationSent ? 'success' : emailNotificationError ? 'info' : 'success' }); } catch {}
+      try {
+        toast.show(successMessage, {
+          variant: emailNotificationSent ? 'success' : emailNotificationError ? 'info' : 'success',
+        });
+      } catch {}
     } catch (e) {
       const msg = getHttpErrorMessage(e, 'Échec de sauvegarde.');
       setError(msg);
-      try { toast.show(msg, { variant: 'error' }); } catch {}
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch {}
     } finally {
       setSaving(false);
     }
@@ -247,14 +284,18 @@ export const useAdminQuoteFormController = () => {
       const blob = await generateAdminQuotePdf(quote.id);
       downloadBlob(blob, `${quote.number ?? 'devis'}.pdf`);
     } catch (e) {
-      alert(getHttpErrorMessage(e, "Impossible de générer le PDF."));
+      alert(getHttpErrorMessage(e, 'Impossible de générer le PDF.'));
     }
   };
 
   const confirmRentalAdd = () => {
     if (rentalCandidate) {
       const product = rentalCandidate;
-      setQuote((current) => current ? ({ ...current, items: [...current.items, createProductQuoteItem(product)] }) : current);
+      setQuote((current) =>
+        current
+          ? { ...current, items: [...current.items, createProductQuoteItem(product)] }
+          : current,
+      );
     }
     setRentalDialogOpen(false);
     setRentalCandidate(null);

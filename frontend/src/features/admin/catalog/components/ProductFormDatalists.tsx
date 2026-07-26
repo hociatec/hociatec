@@ -1,4 +1,7 @@
-import { DEFAULT_COLOR_OPTIONS, DEFAULT_STORAGE_OPTIONS } from '@/features/admin/catalog/utils/productFormConfig';
+import {
+  DEFAULT_COLOR_OPTIONS,
+  DEFAULT_STORAGE_OPTIONS,
+} from '@/features/admin/catalog/utils/productFormConfig';
 
 export const ProductFormDatalists = () => (
   <>

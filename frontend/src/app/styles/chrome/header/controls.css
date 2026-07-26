@@ -50,6 +50,11 @@
   height: 16px;
 }
 
+.site-header__search-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .site-header__badge {
   margin-left: 0;
   min-width: 22px;
@@ -64,4 +69,3 @@
   color: #ffffff;
   border-color: var(--hocia-ink);
 }
-

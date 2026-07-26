@@ -9,11 +9,7 @@ const ALERT_SELECTORS = [
   '.catalog-gallery-alert',
 ].join(',');
 
-const ERROR_CLASS_HINTS = [
-  'register-form__alert--error',
-  'alert--error',
-  'booking__alert--error',
-];
+const ERROR_CLASS_HINTS = ['register-form__alert--error', 'alert--error', 'booking__alert--error'];
 
 const SUCCESS_CLASS_HINTS = [
   'register-form__alert--success',

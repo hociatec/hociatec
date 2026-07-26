@@ -35,11 +35,10 @@ class GeneratePdfController extends AbstractController
 
         try {
             $pdf = $this->pdfService->render($quote, $totals);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return ApiResponse::error(
                 'Génération PDF accessible indisponible.',
-                Response::HTTP_NOT_IMPLEMENTED,
-                [$e->getMessage()]
+                Response::HTTP_NOT_IMPLEMENTED
             );
         }
 

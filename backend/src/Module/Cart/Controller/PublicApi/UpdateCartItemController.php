@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Controller\PublicApi;
 
+use App\Module\Cart\DTO\UpdateCartItemInput;
 use App\Module\Cart\Service\CartFormatter;
 use App\Module\Cart\Service\CartService;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\RateLimited;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,23 +25,19 @@ final class UpdateCartItemController extends AbstractController
         private readonly CartService $cartService,
         private readonly ProductRepository $productRepository,
         private readonly CartFormatter $cartFormatter,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(int $productId, Request $request): JsonResponse
     {
-        $payload = '' !== $request->getContent() ? $request->toArray() : [];
+        $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
 
-        if (!array_key_exists('quantity', $payload)) {
-            return ApiResponse::error('Champ "quantity" requis.', JsonResponse::HTTP_BAD_REQUEST);
-        }
+        $input = UpdateCartItemInput::fromArray($payload);
+        $this->validator->validate($input);
+        $quantity = $input->quantity;
 
-        $quantity = (int) $payload['quantity'];
-        if ($quantity < 0) {
-            return ApiResponse::error('La quantite doit etre positive.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $token = $this->extractToken($request, $payload);
+        $token = $this->extractToken($request, ['cartToken' => $input->cartToken]);
 
         $product = $this->productRepository->find($productId);
         if (null === $product) {
@@ -48,22 +46,10 @@ final class UpdateCartItemController extends AbstractController
 
         $rentalMonths = null;
         $currentRentalMonths = null;
-        if (array_key_exists('rentalMonths', $payload)) {
-            $rentalMonths = (int) $payload['rentalMonths'];
-        }
-
-        if (array_key_exists('currentRentalMonths', $payload)) {
-            $currentRentalMonths = (int) $payload['currentRentalMonths'];
-        }
+        $rentalMonths = $input->rentalMonths;
+        $currentRentalMonths = $input->currentRentalMonths;
 
         if ('rental' === $product->getSellingType()) {
-            if (null !== $rentalMonths && $rentalMonths < 1) {
-                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
-            }
-
-            if (null !== $currentRentalMonths && $currentRentalMonths < 1) {
-                return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
-            }
         } else {
             $rentalMonths = null;
             $currentRentalMonths = null;

@@ -19,7 +19,8 @@ export const ServicesCatalogPage = () => {
 
   useMetaTags({
     title: 'Services — Hociatec',
-    description: 'Découvrez le catalogue de services Hociatec avec les détails, la durée estimée et la base tarifaire de chaque offre.',
+    description:
+      'Découvrez le catalogue de services Hociatec avec les détails, la durée estimée et la base tarifaire de chaque offre.',
     canonicalUrl: `${SITE_URL}/services`,
   });
 
@@ -42,10 +43,12 @@ export const ServicesCatalogPage = () => {
           <span className="inline-flex w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
             Services Hociatec
           </span>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">Catalogue de services</h1>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
+            Catalogue de services
+          </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">
-            Retrouvez l’ensemble des services proposés par Hociatec avec leurs informations essentielles,
-            leur durée estimée et leur base tarifaire.
+            Retrouvez l’ensemble des services proposés par Hociatec avec leurs informations
+            essentielles, leur durée estimée et leur base tarifaire.
           </p>
         </header>
 
@@ -60,7 +63,10 @@ export const ServicesCatalogPage = () => {
             <div className="space-y-8">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {paginatedServices.map((service) => (
-                  <article key={service.id} className="flex h-full flex-col rounded-xl border border-brand-100 bg-brand-50 p-5">
+                  <article
+                    key={service.id}
+                    className="flex h-full flex-col rounded-xl border border-brand-100 bg-brand-50 p-5"
+                  >
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <h3 className="text-lg font-semibold text-brand-900">{service.title}</h3>
@@ -69,18 +75,25 @@ export const ServicesCatalogPage = () => {
                         </span>
                       </div>
                       <p className="min-h-[4.5rem] text-sm leading-6 text-stone-600">
-                        {service.description?.trim() || 'Plus de détails disponibles dans la fiche du service.'}
+                        {service.description?.trim() ||
+                          'Plus de détails disponibles dans la fiche du service.'}
                       </p>
                     </div>
                     <div className="mt-6 grid gap-3 border-t border-brand-100 pt-4 text-sm text-stone-600">
                       <div className="flex items-center justify-between gap-4">
                         <span>Durée estimée</span>
-                        <strong className="text-brand-900">{service.durationLabel || 'Sur étude'}</strong>
+                        <strong className="text-brand-900">
+                          {service.durationLabel || 'Sur étude'}
+                        </strong>
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <div>
-                          <p className="text-xs uppercase tracking-[0.16em] text-stone-500">Base tarifaire</p>
-                          <p className="mt-1 text-xl font-semibold text-brand-900">{formatEuroCents(service.priceCents)}</p>
+                          <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
+                            Base tarifaire
+                          </p>
+                          <p className="mt-1 text-xl font-semibold text-brand-900">
+                            {formatEuroCents(service.priceCents)}
+                          </p>
                         </div>
                         <Link
                           to={`/services/${service.id}`}
@@ -95,7 +108,10 @@ export const ServicesCatalogPage = () => {
               </div>
 
               {totalPages > 1 && (
-                <nav className="flex flex-wrap items-center justify-center gap-3" aria-label="Pagination des services">
+                <nav
+                  className="flex flex-wrap items-center justify-center gap-3"
+                  aria-label="Pagination des services"
+                >
                   <button
                     type="button"
                     className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 disabled:cursor-not-allowed disabled:opacity-50"

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Controller\Client;
 
+use App\Module\Appointment\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\Appointment\Service\AppointmentService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +26,7 @@ final class UpdateAppointmentStatusController extends AbstractController
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AppointmentService $appointmentService,
         private readonly AppointmentFormatter $appointmentFormatter,
+        private readonly DtoValidator $dtoValidator,
     ) {
     }
 
@@ -43,19 +46,16 @@ final class UpdateAppointmentStatusController extends AbstractController
         }
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
         } catch (\Throwable) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $status = isset($payload['status']) ? trim((string) $payload['status']) : '';
-
-        if ('' === $status) {
-            return ApiResponse::error('Le champ "status" est requis.', Response::HTTP_BAD_REQUEST);
-        }
+        $input = UpdateAppointmentStatusInput::fromArray($payload);
+        $this->dtoValidator->validate($input);
 
         try {
-            $this->appointmentService->changeStatus($appointment, $status);
+            $this->appointmentService->changeStatus($appointment, $input->status);
         } catch (\DomainException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }

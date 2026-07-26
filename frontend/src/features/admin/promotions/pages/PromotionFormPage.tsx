@@ -56,7 +56,7 @@ const euroInputToCents = (value: string) => {
 
 export const PromotionFormPage = () => {
   const { promotionId } = useParams();
-  const isEdit = useMemo(() => Boolean(promotionId), [promotionId]);
+  const isEdit = Boolean(promotionId);
   useDocumentTitle(isEdit ? 'Admin - Modifier une promotion' : 'Admin - Nouvelle promotion');
   const navigate = useNavigate();
   const toast = useToast();
@@ -67,7 +67,9 @@ export const PromotionFormPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetchPromotionAudiences().then(setAudiences).catch(() => undefined);
+    void fetchPromotionAudiences()
+      .then(setAudiences)
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -80,9 +82,14 @@ export const PromotionFormPage = () => {
           slug: promotion.slug,
           description: promotion.description ?? '',
           discountType: promotion.discountType,
-          discountValue: promotion.discountType === 'fixed_cents' ? centsToEuroInput(promotion.discountValue) : String(promotion.discountValue),
+          discountValue:
+            promotion.discountType === 'fixed_cents'
+              ? centsToEuroInput(promotion.discountValue)
+              : String(promotion.discountValue),
           audienceKey: promotion.audienceKey,
-          minimumCartTotalEuros: centsToEuroInput(Number(promotion.criteria.minimumCartTotalCents ?? 0)),
+          minimumCartTotalEuros: centsToEuroInput(
+            Number(promotion.criteria.minimumCartTotalCents ?? 0),
+          ),
           registeredDays: String(promotion.criteria.registeredDays ?? 30),
           minimumOrders: String(promotion.criteria.minimumOrders ?? 3),
           inactiveDays: String(promotion.criteria.inactiveDays ?? 90),
@@ -119,9 +126,10 @@ export const PromotionFormPage = () => {
       slug: form.slug.trim(),
       description: form.description.trim() || null,
       discountType: form.discountType,
-      discountValue: form.discountType === 'fixed_cents'
-        ? euroInputToCents(form.discountValue)
-        : Number.parseInt(form.discountValue, 10) || 0,
+      discountValue:
+        form.discountType === 'fixed_cents'
+          ? euroInputToCents(form.discountValue)
+          : Number.parseInt(form.discountValue, 10) || 0,
       audienceKey: form.audienceKey,
       criteria,
       isActive: form.isActive,
@@ -154,7 +162,8 @@ export const PromotionFormPage = () => {
   };
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={isEdit ? 'Modifier une promotion' : 'Nouvelle promotion'}
       headerActions={
         <button
@@ -174,36 +183,77 @@ export const PromotionFormPage = () => {
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <label className="register-form__field">
             <span className="register-form__label">Nom</span>
-            <input className="register-form__input" value={form.name} onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))} />
+            <input
+              className="register-form__input"
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            />
           </label>
 
           <label className="register-form__field">
             <span className="register-form__label">Slug</span>
-            <input className="register-form__input" value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} />
+            <input
+              className="register-form__input"
+              value={form.slug}
+              onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
+            />
           </label>
 
           <label className="register-form__field">
             <span className="register-form__label">Description</span>
-            <input className="register-form__input" value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
+            <input
+              className="register-form__input"
+              value={form.description}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+            />
           </label>
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="register-form__field">
               <span className="register-form__label">Type de remise</span>
-              <select className="register-form__input" value={form.discountType} onChange={(event) => setForm((prev) => ({ ...prev, discountType: event.target.value as 'percent' | 'fixed_cents' }))}>
+              <select
+                className="register-form__input"
+                value={form.discountType}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    discountType: event.target.value as 'percent' | 'fixed_cents',
+                  }))
+                }
+              >
                 <option value="percent">Pourcentage</option>
                 <option value="fixed_cents">Montant fixe en euros</option>
               </select>
             </label>
             <label className="register-form__field">
-              <span className="register-form__label">Valeur {form.discountType === 'percent' ? '(%)' : '(EUR)'}</span>
-              <input className="register-form__input" type="number" min={1} step={form.discountType === 'percent' ? 1 : 0.01} value={form.discountValue} onChange={(event) => setForm((prev) => ({ ...prev, discountValue: event.target.value }))} placeholder={form.discountType === 'percent' ? 'Ex: 10' : 'Ex: 15,00'} />
+              <span className="register-form__label">
+                Valeur {form.discountType === 'percent' ? '(%)' : '(EUR)'}
+              </span>
+              <input
+                className="register-form__input"
+                type="number"
+                min={1}
+                step={form.discountType === 'percent' ? 1 : 0.01}
+                value={form.discountValue}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, discountValue: event.target.value }))
+                }
+                placeholder={form.discountType === 'percent' ? 'Ex: 10' : 'Ex: 15,00'}
+              />
             </label>
           </div>
 
           <label className="register-form__field">
             <span className="register-form__label">Audience</span>
-            <select className="register-form__input" value={form.audienceKey} onChange={(event) => setForm((prev) => ({ ...prev, audienceKey: event.target.value }))}>
+            <select
+              className="register-form__input"
+              value={form.audienceKey}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, audienceKey: event.target.value }))
+              }
+            >
               {Object.entries(audiences).map(([key, audience]) => (
                 <option key={key} value={key}>
                   {audience.label}
@@ -221,43 +271,90 @@ export const PromotionFormPage = () => {
 
           <label className="register-form__field">
             <span className="register-form__label">Panier minimum en euros</span>
-            <input className="register-form__input" type="number" min={0} step={0.01} value={form.minimumCartTotalEuros} onChange={(event) => setForm((prev) => ({ ...prev, minimumCartTotalEuros: event.target.value }))} />
+            <input
+              className="register-form__input"
+              type="number"
+              min={0}
+              step={0.01}
+              value={form.minimumCartTotalEuros}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, minimumCartTotalEuros: event.target.value }))
+              }
+            />
           </label>
 
           {form.audienceKey === 'new_users' && (
             <label className="register-form__field">
               <span className="register-form__label">Inscription depuis moins de X jours</span>
-              <input className="register-form__input" type="number" min={1} value={form.registeredDays} onChange={(event) => setForm((prev) => ({ ...prev, registeredDays: event.target.value }))} />
+              <input
+                className="register-form__input"
+                type="number"
+                min={1}
+                value={form.registeredDays}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, registeredDays: event.target.value }))
+                }
+              />
             </label>
           )}
 
           {form.audienceKey === 'loyal_customers' && (
             <label className="register-form__field">
               <span className="register-form__label">Nombre minimum de commandes</span>
-              <input className="register-form__input" type="number" min={2} value={form.minimumOrders} onChange={(event) => setForm((prev) => ({ ...prev, minimumOrders: event.target.value }))} />
+              <input
+                className="register-form__input"
+                type="number"
+                min={2}
+                value={form.minimumOrders}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, minimumOrders: event.target.value }))
+                }
+              />
             </label>
           )}
 
           {form.audienceKey === 'inactive_customers' && (
             <label className="register-form__field">
               <span className="register-form__label">Inactivité depuis X jours</span>
-              <input className="register-form__input" type="number" min={30} value={form.inactiveDays} onChange={(event) => setForm((prev) => ({ ...prev, inactiveDays: event.target.value }))} />
+              <input
+                className="register-form__input"
+                type="number"
+                min={30}
+                value={form.inactiveDays}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, inactiveDays: event.target.value }))
+                }
+              />
             </label>
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="register-form__field">
               <span className="register-form__label">Début</span>
-              <input className="register-form__input" type="datetime-local" value={form.startsAt} onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))} />
+              <input
+                className="register-form__input"
+                type="datetime-local"
+                value={form.startsAt}
+                onChange={(event) => setForm((prev) => ({ ...prev, startsAt: event.target.value }))}
+              />
             </label>
             <label className="register-form__field">
               <span className="register-form__label">Fin</span>
-              <input className="register-form__input" type="datetime-local" value={form.endsAt} onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))} />
+              <input
+                className="register-form__input"
+                type="datetime-local"
+                value={form.endsAt}
+                onChange={(event) => setForm((prev) => ({ ...prev, endsAt: event.target.value }))}
+              />
             </label>
           </div>
 
           <label className="booking__checkbox">
-            <input type="checkbox" checked={form.isActive} onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))} />
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))}
+            />
             Promotion active
           </label>
 

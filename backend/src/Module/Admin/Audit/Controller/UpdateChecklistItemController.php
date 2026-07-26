@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Audit\Controller;
 
+use App\Module\Admin\Audit\DTO\ChecklistItemInput;
 use App\Module\Audit\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Service\AuditEventLogger;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +25,7 @@ class UpdateChecklistItemController extends AbstractController
         private readonly AuditRequestRepository $audits,
         private readonly AuditChecklistItemRepository $items,
         private readonly AuditEventLogger $events,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -40,13 +43,11 @@ class UpdateChecklistItemController extends AbstractController
             return ApiResponse::error('Association invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = $request->toArray();
-        $isCompliant = $payload['isCompliant'] ?? null;
-        $comment = $payload['comment'] ?? null;
-
-        if (null !== $isCompliant && !is_bool($isCompliant)) {
-            return ApiResponse::error('Valeur de conformité invalide.');
-        }
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = ChecklistItemInput::fromArray($payload);
+        $this->validator->validate($input);
+        $isCompliant = $input->isCompliant;
+        $comment = $input->comment;
         $changes = [];
         if (null !== $isCompliant && $item->getIsCompliant() !== $isCompliant) {
             $changes[] = sprintf('Conformité: %s → %s',

@@ -1,0 +1,128 @@
+AUDIT DE SÉCURITÉ HOCIATEC
+Date : 26 juillet 2026
+
+Audit défensif réalisé en lecture seule. Aucun fichier applicatif n'a été modifié pendant l'audit.
+
+PRIORITÉ CRITIQUE
+=================
+
+1. Factures accessibles publiquement
+
+Les fichiers présents dans public/uploads/invoices sont directement accessibles depuis le web,
+par exemple :
+
+  /uploads/invoices/FAC-2026-0001.pdf
+  /uploads/invoices/*.xml
+
+Ils répondent actuellement en HTTP 200 sans authentification.
+
+Risque : fuite de factures, commandes et données clients.
+
+Correction recommandée :
+- déplacer les factures hors de public/;
+- les servir via un contrôleur authentifié;
+- vérifier que la facture appartient à l'utilisateur connecté;
+- utiliser Content-Disposition: attachment;
+- ne jamais exposer de chemin de fichier prévisible.
+
+2. Permissions trop ouvertes
+
+Constats relevés :
+
+  /home/ubuntu/hociatec       777
+  public/                      777
+  var/                         777
+  var/backups/*.sql.gz         666
+  var/secret-rotation-backups 777
+
+Les sauvegardes SQL et les copies de secrets doivent être protégées.
+
+Correction indicative, à adapter aux propriétaires réels :
+
+  chmod 750 /home/ubuntu/hociatec
+  chmod 755 public
+  chmod 750 var
+  chmod 700 var/backups var/secret-rotation-backups
+  chmod 600 var/backups/*.sql.gz
+
+Vérifier également les propriétaires www-data et ubuntu.
+
+3. Port backend exposé publiquement
+
+Nginx écoute actuellement sur :
+
+  listen 8083;
+
+Le backend devrait être accessible uniquement en local :
+
+  listen 127.0.0.1:8083;
+
+Puis recharger Nginx et vérifier le pare-feu.
+
+PRIORITÉ ÉLEVÉE
+===============
+
+4. Dépendance frontend vulnérable
+
+npm audit signale deux vulnérabilités élevées dans react-router.
+
+À faire après vérification de compatibilité :
+
+  cd /home/ubuntu/hociatec/frontend
+  npm audit fix
+  npm test
+  npm run build
+
+5. Sauvegardes non chiffrées
+
+Les fichiers .sql.gz sont compressés mais pas chiffrés.
+
+Recommandation : chiffrer les sauvegardes avant stockage et conserver une copie sur un
+emplacement séparé, avec une clé différente du serveur applicatif.
+
+PRIORITÉ MOYENNE
+================
+
+6. Endpoint /metrics public
+
+/metrics expose notamment la version PHP et l'état de la base de données.
+
+Recommandation : limiter cet endpoint à Prometheus ou à une IP interne, ou ajouter une
+authentification dédiée.
+
+7. Vérification des mots de passe compromis désactivée
+
+config/packages/validator.yaml désactive not_compromised_password.
+
+Recommandation : l'activer en production si le service de vérification est disponible et
+acceptable pour la politique de confidentialité.
+
+8. expose_php activé
+
+Recommandation PHP :
+
+  expose_php = Off
+
+Ce réglage réduit la divulgation d'informations, sans remplacer les autres protections.
+
+POINTS DÉJÀ CORRECTEMENT PROTÉGÉS
+=================================
+
+- Cookies JWT HttpOnly, Secure en production et SameSite=Lax.
+- Protection CSRF par cookie et header.
+- CORS limité aux domaines Hociatec attendus.
+- Rate limiting présent sur plusieurs endpoints sensibles.
+- APP_DEBUG=0 en production.
+- Contrôles de rôles sur les routes administrateur.
+- Aucun advisory Composer détecté.
+
+ORDRE DE TRAITEMENT CONSEILLÉ
+=============================
+
+1. Rendre les factures privées.
+2. Corriger les permissions des sauvegardes et des copies de secrets.
+3. Fermer le port 8083 sur Internet.
+4. Mettre à jour react-router avec tests.
+5. Chiffrer les sauvegardes.
+6. Restreindre /metrics.
+

@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/email-logs', name: 'api_admin_operations_email_logs', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class EmailLogsController
 {
     public function __construct(private AdminOperationsFormatter $formatter)

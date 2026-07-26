@@ -8,13 +8,13 @@ use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderItem;
 use App\Module\Rating\Entity\ProductRating;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 use Doctrine\ORM\QueryBuilder;
 
 final readonly class MarketingAudienceProvider
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private EmailTemplateScenarioProvider $scenarioProvider,
     ) {
     }
@@ -53,7 +53,7 @@ final readonly class MarketingAudienceProvider
      */
     public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null): array
     {
-        $qb = $this->entityManager->createQueryBuilder()
+        $qb = $this->persistence->queryBuilder()
             ->select('DISTINCT u')
             ->from(User::class, 'u')
             ->andWhere('u.isVerified = :verified')

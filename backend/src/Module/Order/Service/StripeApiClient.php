@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Service;
 
+use App\Shared\Http\ExternalServiceException;
+
 final class StripeApiClient
 {
     private const BASE_URL = 'https://api.stripe.com/v1';
@@ -59,12 +61,12 @@ final class StripeApiClient
     private function request(string $method, string $path, array $payload = []): array
     {
         if ('' === $this->secretKey) {
-            throw new \RuntimeException('STRIPE_SECRET_KEY manquante.');
+            throw new ExternalServiceException('Le service de paiement est momentanément indisponible.');
         }
 
         $curl = curl_init();
         if (false === $curl) {
-            throw new \RuntimeException('Impossible d’initialiser la requête Stripe.');
+            throw new ExternalServiceException('Impossible d’initialiser le service de paiement.');
         }
 
         $body = http_build_query($payload);
@@ -93,7 +95,7 @@ final class StripeApiClient
         curl_close($curl);
 
         if (!is_string($response)) {
-            throw new \RuntimeException('' !== $error ? $error : 'Appel Stripe échoué.');
+            throw new ExternalServiceException('Appel du service de paiement échoué.');
         }
 
         /** @var array<string, mixed> $decoded */
@@ -101,7 +103,7 @@ final class StripeApiClient
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = (string) (($decoded['error']['message'] ?? null) ?: 'Stripe a refusé la requête.');
-            throw new \RuntimeException($message);
+            throw new ExternalServiceException($message);
         }
 
         return $decoded;

@@ -49,7 +49,9 @@ export async function fetchMyAudits(): Promise<AuditListItemDto[]> {
   return res.data.data.items;
 }
 
-export async function fetchMyAudit(id: number): Promise<AuditDetailDto & { events: AuditEventDto[] }> {
+export async function fetchMyAudit(
+  id: number,
+): Promise<AuditDetailDto & { events: AuditEventDto[] }> {
   const res = await httpClient.get(`/api/audits/${id}`);
   return res.data.data;
 }
@@ -60,16 +62,27 @@ export async function adminFetchAudits(): Promise<AuditListItemDto[]> {
   return res.data.data.items;
 }
 
-export async function adminFetchAudit(id: number): Promise<AuditDetailDto & { client: { id: number; name: string; email: string }, events: AuditEventDto[] }> {
+export async function adminFetchAudit(
+  id: number,
+): Promise<
+  AuditDetailDto & { client: { id: number; name: string; email: string }; events: AuditEventDto[] }
+> {
   const res = await httpClient.get(`/api/admin/audits/${id}`);
   return res.data.data;
 }
 
-export async function adminUpdateAuditStatus(id: number, status: AuditListItemDto['status']): Promise<void> {
+export async function adminUpdateAuditStatus(
+  id: number,
+  status: AuditListItemDto['status'],
+): Promise<void> {
   await httpClient.put(`/api/admin/audits/${id}/status`, { status });
 }
 
-export async function adminUpdateAuditItem(auditId: number, itemId: number, patch: Partial<Pick<AuditItemDto, 'isCompliant' | 'comment'>>): Promise<void> {
+export async function adminUpdateAuditItem(
+  auditId: number,
+  itemId: number,
+  patch: Partial<Pick<AuditItemDto, 'isCompliant' | 'comment'>>,
+): Promise<void> {
   await httpClient.put(`/api/admin/audits/${auditId}/items/${itemId}`, patch);
 }
 
@@ -79,7 +92,9 @@ export async function adminDownloadAuditPdf(id: number): Promise<Blob> {
   return res.data as Blob;
 }
 export async function adminDownloadAuditSummaryPdf(id: number): Promise<Blob> {
-  const res = await httpClient.post(`/api/admin/audits/${id}/pdf-summary`, null, { responseType: 'blob' });
+  const res = await httpClient.post(`/api/admin/audits/${id}/pdf-summary`, null, {
+    responseType: 'blob',
+  });
   return res.data as Blob;
 }
 export async function clientDownloadAuditPdf(id: number): Promise<Blob> {
@@ -87,6 +102,8 @@ export async function clientDownloadAuditPdf(id: number): Promise<Blob> {
   return res.data as Blob;
 }
 export async function clientDownloadAuditSummaryPdf(id: number): Promise<Blob> {
-  const res = await httpClient.post(`/api/audits/${id}/pdf-summary`, null, { responseType: 'blob' });
+  const res = await httpClient.post(`/api/audits/${id}/pdf-summary`, null, {
+    responseType: 'blob',
+  });
   return res.data as Blob;
 }

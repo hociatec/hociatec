@@ -7,12 +7,15 @@ namespace App\Module\Admin\Operations\Service;
 use App\Module\Admin\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Support\DTO\SupportCreateData;
+use App\Module\Support\DTO\SupportReplyData;
+use App\Module\Support\DTO\SupportUpdateData;
 use App\Module\Support\Entity\SupportRequest;
+use App\Module\Support\Enum\SupportStatus;
 use App\Module\Support\Repository\SupportRequestRepository;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Service\AdminCustomerEmailService;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class SupportOperationsService
 {
@@ -21,7 +24,7 @@ final readonly class SupportOperationsService
         private UserRepository $users,
         private OrderRepository $orders,
         private AdminCustomerEmailService $customerEmails,
-        private EntityManagerInterface $entityManager,
+        private OperationsPersistence $persistence,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -32,67 +35,58 @@ final readonly class SupportOperationsService
         return array_map($this->formatter->supportRequest(...), $this->supportRequests->findBy([], ['updatedAt' => 'DESC']));
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function create(array $payload): array
+    /** @return array<string, mixed> */
+    public function create(SupportCreateData $data): array
     {
-        $customer = $this->users->find((int) ($payload['customerId'] ?? 0));
+        $customer = $this->users->find($data->customerId);
         if (!$customer instanceof User) {
             throw new OperationsResourceNotFoundException('Client introuvable.');
         }
 
-        $support = new SupportRequest($customer, (string) ($payload['subject'] ?? 'Demande SAV'));
+        $support = new SupportRequest($customer, $data->subject);
         $support
-            ->setReason((string) ($payload['reason'] ?? 'other'))
-            ->setMessage(isset($payload['message']) ? (string) $payload['message'] : null)
-            ->setInternalNotes(isset($payload['internalNotes']) ? (string) $payload['internalNotes'] : null);
+            ->setReason($data->reason)
+            ->setMessage($data->message)
+            ->setInternalNotes($data->internalNotes);
 
-        $order = $this->orders->find((int) ($payload['orderId'] ?? 0));
+        $order = null !== $data->orderId ? $this->orders->find($data->orderId) : null;
         if ($order instanceof Order) {
             $support->setOrder($order);
         }
 
-        $this->entityManager->persist($support);
-        $this->entityManager->flush();
+        $this->persistence->persist($support);
+        $this->persistence->flush();
 
         return $this->formatter->supportRequest($support);
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function update(int $supportId, array $payload): array
+    /** @return array<string, mixed> */
+    public function update(int $supportId, SupportUpdateData $data): array
     {
         $support = $this->findSupport($supportId);
-        if (isset($payload['status'])) {
-            $support->setStatus((string) $payload['status']);
+        if (null !== $data->status && null === SupportStatus::tryFrom($data->status)) {
+            throw new \InvalidArgumentException('Statut de support invalide.');
         }
-        if (array_key_exists('internalNotes', $payload)) {
-            $support->setInternalNotes(null !== $payload['internalNotes'] ? (string) $payload['internalNotes'] : null);
+        if (null !== $data->status) {
+            $support->setStatus($data->status);
         }
-        if (isset($payload['subject'])) {
-            $support->setSubject((string) $payload['subject']);
+        if (null !== $data->internalNotes) {
+            $support->setInternalNotes($data->internalNotes);
         }
-        $this->entityManager->flush();
+        if (null !== $data->subject) {
+            $support->setSubject($data->subject);
+        }
+        $this->persistence->flush();
 
         return $this->formatter->supportRequest($support);
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function reply(int $supportId, array $payload): array
+    /** @return array<string, mixed> */
+    public function reply(int $supportId, SupportReplyData $data): array
     {
         $support = $this->findSupport($supportId);
-        $subject = trim((string) ($payload['subject'] ?? ('Réponse à votre demande SAV #'.$support->getId())));
-        $message = trim((string) ($payload['message'] ?? ''));
+        $subject = trim($data->subject ?? ('Réponse à votre demande SAV #'.$support->getId()));
+        $message = trim($data->message);
         if ('' === $message) {
             throw new \InvalidArgumentException('Le message de réponse est obligatoire.');
         }
@@ -106,8 +100,8 @@ final readonly class SupportOperationsService
         ));
         $support
             ->setInternalNotes($note)
-            ->setStatus((string) ($payload['status'] ?? SupportRequest::STATUS_WAITING_CUSTOMER));
-        $this->entityManager->flush();
+            ->setStatus($data->status ?? SupportRequest::STATUS_WAITING_CUSTOMER);
+        $this->persistence->flush();
 
         return $this->formatter->supportRequest($support);
     }

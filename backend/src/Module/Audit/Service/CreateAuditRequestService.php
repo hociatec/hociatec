@@ -8,12 +8,11 @@ use App\Module\Audit\Entity\AuditChecklistItem;
 use App\Module\Audit\Entity\AuditRequest;
 use App\Module\Audit\Entity\AuditType;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 class CreateAuditRequestService
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly AuditPersistence $persistence,
         private readonly AuditTemplateProvider $templates,
     ) {
     }
@@ -43,8 +42,7 @@ class CreateAuditRequestService
             }
         }
 
-        $this->em->persist($audit);
-        $this->em->flush();
+        $this->persistence->save($audit);
 
         return $audit;
     }

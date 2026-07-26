@@ -12,9 +12,29 @@ export const useRequestAudit = () => {
   const [createdNumber, setCreatedNumber] = useState<string | null>(null);
   const onSubmit = async () => {
     setLoading(true);
-    try { const result = await createAuditRequest({ type, url, objectives }); setCreatedNumber(result.number); toast.show('Votre demande a été enregistrée.', { variant: 'success' }); setUrl(''); setObjectives(''); }
-    catch (error) { toast.show(getHttpErrorMessage(error, 'Impossible de créer la demande.'), { variant: 'error' }); }
-    finally { setLoading(false); }
+    try {
+      const result = await createAuditRequest({ type, url, objectives });
+      setCreatedNumber(result.number);
+      toast.show('Votre demande a été enregistrée.', { variant: 'success' });
+      setUrl('');
+      setObjectives('');
+    } catch (error) {
+      toast.show(getHttpErrorMessage(error, 'Impossible de créer la demande.'), {
+        variant: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  return { type, setType, url, setUrl, objectives, setObjectives, loading, createdNumber, onSubmit };
+  return {
+    type,
+    setType,
+    url,
+    setUrl,
+    objectives,
+    setObjectives,
+    loading,
+    createdNumber,
+    onSubmit,
+  };
 };

@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Service;
 
+use App\Module\Appointment\DTO\WorkingDayData;
+
 final class WorkingDayPayloadMapper
 {
     /**
      * @param array<mixed> $payload
      *
-     * @return list<array{
-     *     dayOfWeek: int,
-     *     isWorkingDay: bool,
-     *     startTime?: string|null,
-     *     endTime?: string|null,
-     *     breaks?: list<array{start: string, end: string}>
-     * }>
+     * @return list<WorkingDayData>
      */
     public function map(array $payload): array
     {
@@ -25,26 +21,43 @@ final class WorkingDayPayloadMapper
         }
 
         $result = [];
+        $seenDays = [];
         foreach ($days as $day) {
             if (!is_array($day) || !isset($day['dayOfWeek'], $day['isWorkingDay'])) {
                 throw new \InvalidArgumentException('Chaque jour doit définir dayOfWeek et isWorkingDay.');
             }
 
-            $item = [
-                'dayOfWeek' => (int) $day['dayOfWeek'],
-                'isWorkingDay' => (bool) $day['isWorkingDay'],
-            ];
+            $startTime = $day['startTime'] ?? null;
+            $endTime = $day['endTime'] ?? null;
 
             foreach (['startTime', 'endTime'] as $field) {
-                $value = $day[$field] ?? null;
+                $value = 'startTime' === $field ? $startTime : $endTime;
                 if (null !== $value && !is_string($value)) {
                     throw new \InvalidArgumentException(sprintf('Le champ %s doit être une heure valide.', $field));
                 }
-                $item[$field] = $value;
             }
 
-            $item['breaks'] = $this->mapBreaks($day['breaks'] ?? []);
-            $result[] = $item;
+            $dayOfWeek = $day['dayOfWeek'];
+            if (!is_int($dayOfWeek) && !(is_string($dayOfWeek) && ctype_digit($dayOfWeek))) {
+                throw new \InvalidArgumentException('Le jour doit être un entier compris entre 0 et 6.');
+            }
+            $dayOfWeek = (int) $dayOfWeek;
+            if ($dayOfWeek < 0 || $dayOfWeek > 6 || isset($seenDays[$dayOfWeek])) {
+                throw new \InvalidArgumentException('Chaque jour doit être unique et compris entre 0 et 6.');
+            }
+            $seenDays[$dayOfWeek] = true;
+
+            if (!is_bool($day['isWorkingDay'])) {
+                throw new \InvalidArgumentException('isWorkingDay doit être un booléen.');
+            }
+
+            $result[] = new WorkingDayData(
+                $dayOfWeek,
+                $day['isWorkingDay'],
+                $startTime,
+                $endTime,
+                $this->mapBreaks($day['breaks'] ?? []),
+            );
         }
 
         return $result;

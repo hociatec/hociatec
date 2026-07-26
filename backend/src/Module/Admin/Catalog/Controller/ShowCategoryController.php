@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/catalog/categories/{id}', name: 'api_admin_catalog_categories_show', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowCategoryController extends AbstractController
 {
     public function __construct(private readonly CategoryRepository $categoryRepository)

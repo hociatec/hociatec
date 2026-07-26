@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Controller\Admin;
 
+use App\Module\Training\DTO\TrainingInput;
 use App\Module\Training\Entity\Training;
 use App\Module\Training\Repository\TrainingRepository;
 use App\Module\Training\Service\TrainingFormatter;
 use App\Module\Training\Service\TrainingWriter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,16 +27,15 @@ class SaveTrainingController extends AbstractController
         private readonly TrainingRepository $trainings,
         private readonly TrainingWriter $writer,
         private readonly TrainingFormatter $formatter,
+        private readonly DtoValidator $validator,
     ) {
     }
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = $request->toArray();
-        $title = trim((string) ($payload['title'] ?? ''));
-        if ('' === $title) {
-            return ApiResponse::error('Le titre est requis.', Response::HTTP_BAD_REQUEST);
-        }
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = TrainingInput::fromArray($payload);
+        $this->validator->validate($input);
 
         $training = null !== $id ? $this->trainings->find($id) : null;
         if (null !== $id && null === $training) {
@@ -42,10 +43,10 @@ class SaveTrainingController extends AbstractController
         }
 
         if (null === $training) {
-            $training = new Training($title, $this->writer->slugify((string) ($payload['slug'] ?? $title)), 60, 0);
+            $training = new Training($input->title, $this->writer->slugify($input->slug ?? $input->title), $input->durationMinutes, $input->priceCents);
         }
 
-        $this->writer->apply($training, $payload);
+        $this->writer->apply($training, $input);
         $this->writer->save($training);
 
         return ApiResponse::success($this->formatter->formatTraining($training), null === $id ? Response::HTTP_CREATED : Response::HTTP_OK);

@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Exception\JsonException as HttpFoundationJs
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 #[AsEventListener(event: 'kernel.exception', priority: 20)]
 final readonly class ApiExceptionSubscriber
@@ -68,6 +69,8 @@ final readonly class ApiExceptionSubscriber
         }
 
         return match (true) {
+            $exception instanceof AccessDeniedException => ['Accès refusé.', JsonResponse::HTTP_FORBIDDEN, []],
+            $exception instanceof ExternalServiceException => [$exception->getMessage(), $exception->getStatusCode(), []],
             $exception instanceof UniqueConstraintViolationException => ['Une ressource avec ces informations existe déjà.', JsonResponse::HTTP_CONFLICT, []],
             $exception instanceof ApiProblemException => [$exception->getMessage(), $exception->getStatusCode(), []],
             $exception instanceof \DomainException => [$exception->getMessage(), JsonResponse::HTTP_UNPROCESSABLE_ENTITY, []],

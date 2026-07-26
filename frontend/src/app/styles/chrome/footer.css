@@ -56,7 +56,7 @@
 }
 
 .site-footer__trust li + li::before {
-  content: "";
+  content: '';
   position: absolute;
   left: -0.62rem;
   top: 50%;
@@ -89,4 +89,3 @@
 .site-footer__link:hover {
   color: #ffffff;
 }
-

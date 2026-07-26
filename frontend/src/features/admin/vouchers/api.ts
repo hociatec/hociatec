@@ -33,17 +33,28 @@ export const fetchVouchers = async (): Promise<VoucherDto[]> => {
 };
 
 export const fetchVoucher = async (voucherId: number): Promise<VoucherDto> => {
-  const { data } = await httpClient.get<{ data: { voucher: VoucherDto } }>(`/api/admin/vouchers/${voucherId}`);
+  const { data } = await httpClient.get<{ data: { voucher: VoucherDto } }>(
+    `/api/admin/vouchers/${voucherId}`,
+  );
   return data.data.voucher;
 };
 
 export const createVoucher = async (payload: VoucherPayload): Promise<VoucherDto> => {
-  const { data } = await httpClient.post<{ data: { voucher: VoucherDto } }>('/api/admin/vouchers', payload);
+  const { data } = await httpClient.post<{ data: { voucher: VoucherDto } }>(
+    '/api/admin/vouchers',
+    payload,
+  );
   return data.data.voucher;
 };
 
-export const updateVoucher = async (voucherId: number, payload: VoucherPayload): Promise<VoucherDto> => {
-  const { data } = await httpClient.put<{ data: { voucher: VoucherDto } }>(`/api/admin/vouchers/${voucherId}`, payload);
+export const updateVoucher = async (
+  voucherId: number,
+  payload: VoucherPayload,
+): Promise<VoucherDto> => {
+  const { data } = await httpClient.put<{ data: { voucher: VoucherDto } }>(
+    `/api/admin/vouchers/${voucherId}`,
+    payload,
+  );
   return data.data.voucher;
 };
 

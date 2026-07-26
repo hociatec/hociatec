@@ -6,7 +6,10 @@ import {
   ProductGeneralSection,
   VariantSwitcherSection,
 } from '@/features/admin/catalog/components/ProductFormContentSections';
-import { ProductCurrentVariantSection, ProductExtraVariantsSection } from '@/features/admin/catalog/components/ProductVariantSections';
+import {
+  ProductCurrentVariantSection,
+  ProductExtraVariantsSection,
+} from '@/features/admin/catalog/components/ProductVariantSections';
 import { ProductFormDatalists } from '@/features/admin/catalog/components/ProductFormDatalists';
 import { ProductPublicationSection } from '@/features/admin/catalog/components/ProductPublicationSection';
 import { useProductFormController } from '@/features/admin/catalog/hooks/useProductFormControllerRefactored';
@@ -20,7 +23,8 @@ export const ProductFormPage = () => {
   useDocumentTitle(controller.isEdit ? 'Admin - Modifier un produit' : 'Admin - Nouveau produit');
 
   return (
-    <PageContainer size="admin"
+    <PageContainer
+      size="admin"
       title={controller.isEdit ? 'Modifier un produit' : 'Nouveau produit'}
       headerActions={
         <button
@@ -33,7 +37,9 @@ export const ProductFormPage = () => {
       }
     >
       {controller.error && <FeedbackMessage>{controller.error}</FeedbackMessage>}
-      {controller.message && <FeedbackMessage variant="success">{controller.message}</FeedbackMessage>}
+      {controller.message && (
+        <FeedbackMessage variant="success">{controller.message}</FeedbackMessage>
+      )}
 
       {controller.initialLoading ? (
         <LoadingState>Chargement du produit...</LoadingState>
@@ -86,7 +92,11 @@ export const ProductFormPage = () => {
 
           <div className="catalog-form-actions">
             <button className="register-form__submit" type="submit" disabled={controller.saving}>
-              {controller.saving ? 'Enregistrement...' : controller.isEdit ? 'Mettre à jour' : 'Créer'}
+              {controller.saving
+                ? 'Enregistrement...'
+                : controller.isEdit
+                  ? 'Mettre à jour'
+                  : 'Créer'}
             </button>
           </div>
         </form>

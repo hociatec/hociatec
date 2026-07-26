@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Order\Controller;
 
+use App\Module\Admin\Order\DTO\OrderEmailScenarioInput;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderNotificationEmailService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +27,7 @@ final class ResendOrderEmailController extends AbstractController
         private readonly OrderRepository $orders,
         private readonly OrderNotificationEmailService $notifications,
         private readonly OrderEventLogger $events,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -35,11 +38,10 @@ final class ResendOrderEmailController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = $request->toArray();
-        $scenario = $payload['scenario'] ?? null;
-        if (!\is_string($scenario) || '' === $scenario) {
-            return ApiResponse::error('Scénario email invalide.', Response::HTTP_BAD_REQUEST);
-        }
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $input = OrderEmailScenarioInput::fromArray($payload);
+        $this->validator->validate($input);
+        $scenario = $input->scenario;
 
         try {
             $sent = match ($scenario) {
@@ -48,8 +50,10 @@ final class ResendOrderEmailController extends AbstractController
                 'current_status' => $this->resendCurrentStatusEmail($order),
                 default => throw new \InvalidArgumentException('Scénario email invalide.'),
             };
-        } catch (\Throwable $exception) {
-            return ApiResponse::error('Impossible de renvoyer l’email.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de renvoyer l’email.');
         }
 
         if (!$sent) {

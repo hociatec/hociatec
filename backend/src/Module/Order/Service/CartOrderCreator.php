@@ -12,13 +12,12 @@ use App\Module\Promotion\Service\PromotionEngine;
 use App\Module\User\Entity\ShippingAddress;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Service\VoucherEngine;
-use Doctrine\DBAL\LockMode;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class CartOrderCreator
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
@@ -35,14 +34,14 @@ final readonly class CartOrderCreator
 
         $summary = $this->cartSummary($cart, $user);
 
-        return $this->entityManager->wrapInTransaction(
-            function (EntityManagerInterface $em) use ($user, $cart, $address, $summary): Order {
+        return $this->persistence->transactional(
+            function () use ($user, $cart, $address, $summary): Order {
                 $cartId = $cart->getId();
                 if (null === $cartId) {
                     throw new \InvalidArgumentException('Panier invalide.');
                 }
 
-                $lockedCart = $em->find(CartSession::class, $cartId, LockMode::PESSIMISTIC_WRITE);
+                $lockedCart = $this->persistence->findForUpdate(CartSession::class, $cartId);
                 if (!$lockedCart instanceof CartSession) {
                     throw new \InvalidArgumentException('Panier introuvable.');
                 }
@@ -60,7 +59,7 @@ final readonly class CartOrderCreator
                         throw new \InvalidArgumentException('Produit invalide.');
                     }
 
-                    $product = $em->find(Product::class, $productId, LockMode::PESSIMISTIC_WRITE);
+                    $product = $this->persistence->findForUpdate(Product::class, $productId);
                     if (!$product instanceof Product) {
                         throw new \InvalidArgumentException('Produit introuvable.');
                     }
@@ -75,19 +74,19 @@ final readonly class CartOrderCreator
                         ->setProduct($product)
                         ->setVatRateBps(2000);
                     $order->addItem($item);
-                    $em->persist($item);
+                    $this->persistence->persist($item);
                 }
 
                 $this->invoiceCalculator->snapshot($order);
-                $em->persist($order);
-                $em->flush();
+                $this->persistence->persist($order);
+                $this->persistence->flush();
 
                 if (null === $order->getId()) {
                     throw new \InvalidArgumentException('Commande invalide.');
                 }
                 $lockedCart->markConverted($order->getId());
-                $em->persist($lockedCart);
-                $em->flush();
+                $this->persistence->persist($lockedCart);
+                $this->persistence->flush();
 
                 return $order;
             },

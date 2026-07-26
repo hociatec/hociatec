@@ -23,34 +23,50 @@ export const fetchMyAddresses = async (): Promise<AddressDto[]> => {
   throw new Error(message);
 };
 
-export const createAddress = async (payload: Omit<AddressDto, 'id' | 'isDefault'> & { isDefault?: boolean }): Promise<AddressDto> => {
-  const { data } = await httpClient.post<ApiResponse<{ address: AddressDto }>>('/api/addresses', payload);
+export const createAddress = async (
+  payload: Omit<AddressDto, 'id' | 'isDefault'> & { isDefault?: boolean },
+): Promise<AddressDto> => {
+  const { data } = await httpClient.post<ApiResponse<{ address: AddressDto }>>(
+    '/api/addresses',
+    payload,
+  );
   if (isApiOk(data)) {
     return data.data.address;
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de créer l\'adresse';
+  const message = data.status === 'error' ? data.message : "Impossible de créer l'adresse";
   throw new Error(message);
 };
 
-export const updateAddress = async (id: number, payload: Omit<AddressDto, 'id' | 'isDefault'>): Promise<AddressDto> => {
-  const { data } = await httpClient.put<ApiResponse<{ address: AddressDto }>>(`/api/addresses/${id}`, payload);
+export const updateAddress = async (
+  id: number,
+  payload: Omit<AddressDto, 'id' | 'isDefault'>,
+): Promise<AddressDto> => {
+  const { data } = await httpClient.put<ApiResponse<{ address: AddressDto }>>(
+    `/api/addresses/${id}`,
+    payload,
+  );
   if (isApiOk(data)) {
     return data.data.address;
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour l\'adresse';
+  const message = data.status === 'error' ? data.message : "Impossible de mettre à jour l'adresse";
   throw new Error(message);
 };
 
 export const deleteAddress = async (id: number): Promise<void> => {
-  const { data } = await httpClient.delete<ApiResponse<{ message: string }>>(`/api/addresses/${id}`);
+  const { data } = await httpClient.delete<ApiResponse<{ message: string }>>(
+    `/api/addresses/${id}`,
+  );
   if (isApiOk(data)) return;
-  const message = data.status === 'error' ? data.message : 'Impossible de supprimer l\'adresse';
+  const message = data.status === 'error' ? data.message : "Impossible de supprimer l'adresse";
   throw new Error(message);
 };
 
 export const setDefaultAddress = async (id: number): Promise<void> => {
-  const { data } = await httpClient.put<ApiResponse<{ message: string }>>(`/api/addresses/${id}/default`);
+  const { data } = await httpClient.put<ApiResponse<{ message: string }>>(
+    `/api/addresses/${id}/default`,
+  );
   if (isApiOk(data)) return;
-  const message = data.status === 'error' ? data.message : 'Impossible de définir l\'adresse par défaut';
+  const message =
+    data.status === 'error' ? data.message : "Impossible de définir l'adresse par défaut";
   throw new Error(message);
 };

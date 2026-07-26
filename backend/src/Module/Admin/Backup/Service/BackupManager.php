@@ -11,6 +11,7 @@ final readonly class BackupManager
         private MaintenanceModeService $maintenance,
         private BackupStateStore $states,
         private BackupFileStorage $files,
+        private BackupEncryptionService $encryption,
         private DatabaseBackupDumper $database,
     ) {
     }
@@ -90,6 +91,7 @@ final readonly class BackupManager
     {
         $startedAt = new \DateTimeImmutable();
         $path = $this->files->pathFor($startedAt);
+        $temporaryPath = $this->files->temporaryPathFor($startedAt);
         $run = [
             'id' => $startedAt->format('YmdHis'),
             'status' => 'running',
@@ -102,7 +104,9 @@ final readonly class BackupManager
         ];
         $state = $this->states->recordRun($run);
         try {
-            $this->database->dump($path);
+            $this->database->dump($temporaryPath);
+            $this->encryption->encryptFile($temporaryPath, $path);
+            $this->files->delete($temporaryPath);
             $run['status'] = 'success';
             $run['finishedAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
             $run['sizeBytes'] = is_file($path) ? filesize($path) : 0;
@@ -114,6 +118,7 @@ final readonly class BackupManager
             return $this->getStatus();
         } catch (\Throwable $exception) {
             $this->files->delete($path);
+            $this->files->delete($temporaryPath);
             $run['status'] = 'failed';
             $run['finishedAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
             $run['message'] = $exception->getMessage();

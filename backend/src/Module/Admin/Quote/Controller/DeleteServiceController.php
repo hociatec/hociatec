@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Repository\ServiceRepository;
-use App\Shared\Http\ApiResponse;
 use App\Module\Quote\Service\QuoteCatalogManager;
+use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

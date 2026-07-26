@@ -120,7 +120,9 @@
 
 .quote-selection-stepper__button {
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
 
 .quote-selection-stepper__button:hover {
@@ -146,7 +148,9 @@
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
 
 .quote-selection-card__remove:hover {

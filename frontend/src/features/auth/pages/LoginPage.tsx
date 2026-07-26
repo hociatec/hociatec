@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
@@ -70,10 +70,7 @@ export const LoginPage = () => {
   const loginErrorId = 'login-form-error';
   const loginNoticeId = 'login-form-notice';
 
-  const parsedErrorDetails = useMemo(
-    () => (errorDetails.length > 0 ? [...errorDetails] : []),
-    [errorDetails],
-  );
+  const parsedErrorDetails = errorDetails;
 
   useEffect(() => {
     try {
@@ -91,7 +88,11 @@ export const LoginPage = () => {
 
     if (state?.registered) {
       setNotice('Votre compte est prêt. Vous pouvez désormais vous connecter.');
-      try { toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', { variant: 'info' }); } catch {}
+      try {
+        toast.show('Compte créé. Vérifiez vos emails pour activer votre compte.', {
+          variant: 'info',
+        });
+      } catch {}
     }
   }, [location.state]);
 
@@ -130,7 +131,9 @@ export const LoginPage = () => {
       const state = location.state as LocationState | null;
       const redirectState = state?.redirectState;
       const redirectTo = getAuthenticatedRedirect(state);
-      try { toast.show('Connexion réussie. Bienvenue !', { variant: 'success' }); } catch {}
+      try {
+        toast.show('Connexion réussie. Bienvenue !', { variant: 'success' });
+      } catch {}
       try {
         window.sessionStorage.setItem(
           'hociatec.a11y.route-announcement',
@@ -153,14 +156,20 @@ export const LoginPage = () => {
         if (Array.isArray(details)) {
           setErrorDetails(details.map((detail: unknown) => String(detail)));
         }
-        try { toast.show(msg, { variant: 'error' }); } catch {}
+        try {
+          toast.show(msg, { variant: 'error' });
+        } catch {}
       } else if (loginError instanceof Error) {
         setError(loginError.message);
-        try { toast.show(loginError.message, { variant: 'error' }); } catch {}
+        try {
+          toast.show(loginError.message, { variant: 'error' });
+        } catch {}
       } else {
         const msg = 'Impossible de vérifier vos identifiants.';
         setError(msg);
-        try { toast.show(msg, { variant: 'error' }); } catch {}
+        try {
+          toast.show(msg, { variant: 'error' });
+        } catch {}
       }
     }
   };
@@ -203,7 +212,12 @@ export const LoginPage = () => {
         }
       >
         {notice && (
-          <FeedbackMessage id={loginNoticeId} variant="success" aria-live="polite" aria-atomic="true">
+          <FeedbackMessage
+            id={loginNoticeId}
+            variant="success"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {notice}
           </FeedbackMessage>
         )}
@@ -219,7 +233,15 @@ export const LoginPage = () => {
             )}
           </FeedbackMessage>
         )}
-        <form className="card__content" onSubmit={handleSubmit} aria-describedby={[error ? loginErrorId : null, notice ? loginNoticeId : null].filter(Boolean).join(' ') || undefined}>
+        <form
+          className="card__content"
+          onSubmit={handleSubmit}
+          aria-describedby={
+            [error ? loginErrorId : null, notice ? loginNoticeId : null]
+              .filter(Boolean)
+              .join(' ') || undefined
+          }
+        >
           <div className="form-field">
             <label htmlFor="email">Email</label>
             <input

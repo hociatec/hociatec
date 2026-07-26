@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Module\Admin\Operations\Service;
 
 use App\Module\Admin\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Order\DTO\RefundCreateData;
+use App\Module\Order\DTO\RefundProcessData;
+use App\Module\Order\DTO\RefundUpdateData;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\RefundRequest;
+use App\Module\Order\Enum\RefundStatus;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Repository\RefundRequestRepository;
 use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\StripeApiClient;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class RefundOperationsService
 {
@@ -23,7 +26,7 @@ final readonly class RefundOperationsService
         private OrderCheckoutSessionRepository $payments,
         private StripeApiClient $stripe,
         private OrderEventLogger $events,
-        private EntityManagerInterface $entityManager,
+        private OperationsPersistence $persistence,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -34,59 +37,50 @@ final readonly class RefundOperationsService
         return array_map($this->formatter->refund(...), $this->refunds->findBy([], ['updatedAt' => 'DESC']));
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function create(array $payload, ?User $actor): array
+    /** @return array<string, mixed> */
+    public function create(RefundCreateData $data, ?User $actor): array
     {
-        $order = $this->orders->find((int) ($payload['orderId'] ?? 0));
+        $order = $this->orders->find($data->orderId);
         if (!$order instanceof Order) {
             throw new OperationsResourceNotFoundException('Commande introuvable.');
         }
 
-        $refund = new RefundRequest($order, (int) ($payload['amountCents'] ?? $order->getTotalPriceCents()), $actor);
+        $refund = new RefundRequest($order, $data->amountCents ?? $order->getTotalPriceCents(), $actor);
         $refund
-            ->setReason(isset($payload['reason']) ? (string) $payload['reason'] : null)
-            ->setInternalNotes(isset($payload['internalNotes']) ? (string) $payload['internalNotes'] : null)
-            ->setPaymentId(isset($payload['paymentId']) ? (int) $payload['paymentId'] : null)
-            ->setCurrencyCode((string) ($payload['currencyCode'] ?? $order->getCurrencyCode()));
+            ->setReason($data->reason)
+            ->setInternalNotes($data->internalNotes)
+            ->setPaymentId($data->paymentId)
+            ->setCurrencyCode($data->currencyCode);
 
-        $this->entityManager->persist($refund);
-        $this->entityManager->flush();
+        $this->persistence->persist($refund);
+        $this->persistence->flush();
 
         return $this->formatter->refund($refund);
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function update(int $refundId, array $payload): array
+    /** @return array<string, mixed> */
+    public function update(int $refundId, RefundUpdateData $data): array
     {
         $refund = $this->findRefund($refundId);
-        if (isset($payload['status'])) {
-            $refund->setStatus((string) $payload['status']);
+        if (null !== $data->status && null === RefundStatus::tryFrom($data->status)) {
+            throw new \InvalidArgumentException('Statut de remboursement invalide.');
         }
-        if (array_key_exists('stripeRefundId', $payload)) {
-            $refund->setStripeRefundId(null !== $payload['stripeRefundId'] ? (string) $payload['stripeRefundId'] : null);
+        if (null !== $data->status) {
+            $refund->setStatus($data->status);
         }
-        if (array_key_exists('internalNotes', $payload)) {
-            $refund->setInternalNotes(null !== $payload['internalNotes'] ? (string) $payload['internalNotes'] : null);
+        if (null !== $data->stripeRefundId) {
+            $refund->setStripeRefundId($data->stripeRefundId);
         }
-        $this->entityManager->flush();
+        if (null !== $data->internalNotes) {
+            $refund->setInternalNotes($data->internalNotes);
+        }
+        $this->persistence->flush();
 
         return $this->formatter->refund($refund);
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function processStripe(int $refundId, array $payload, ?User $actor): array
+    /** @return array<string, mixed> */
+    public function processStripe(int $refundId, RefundProcessData $data, ?User $actor): array
     {
         $refund = $this->findRefund($refundId);
         if (null !== $refund->getStripeRefundId() || RefundRequest::STATUS_PROCESSED === $refund->getStatus()) {
@@ -95,16 +89,31 @@ final readonly class RefundOperationsService
         if ($refund->getAmountCents() <= 0) {
             throw new \InvalidArgumentException('Le montant du remboursement doit être supérieur à zéro.');
         }
-        if ('REMBOURSER' !== trim((string) ($payload['confirmation'] ?? ''))) {
+        if ('REMBOURSER' !== $data->confirmation) {
             throw new \InvalidArgumentException('Confirmation requise : saisis REMBOURSER pour déclencher Stripe.');
         }
 
-        $paymentIntentId = is_string($payload['paymentIntentId'] ?? null) && '' !== trim($payload['paymentIntentId'])
-            ? trim($payload['paymentIntentId'])
+        $paymentIntentId = null !== $data->paymentIntentId && '' !== trim($data->paymentIntentId)
+            ? trim($data->paymentIntentId)
             : $this->findPaymentIntent($refund->getOrder());
         if (null === $paymentIntentId) {
             throw new \InvalidArgumentException('Aucun PaymentIntent Stripe trouvé pour cette commande.');
         }
+
+        $previousStatus = $refund->getStatus();
+        $refund = $this->persistence->transactional(function () use ($refundId): RefundRequest {
+            $locked = $this->refunds->findForUpdate($refundId);
+            if (!$locked instanceof RefundRequest) {
+                throw new OperationsResourceNotFoundException('Remboursement introuvable.');
+            }
+            if (null !== $locked->getStripeRefundId() || in_array($locked->getStatus(), [RefundRequest::STATUS_PROCESSING, RefundRequest::STATUS_PROCESSED], true)) {
+                throw new \InvalidArgumentException('Ce remboursement est déjà en cours ou a déjà été traité.');
+            }
+            $locked->setStatus(RefundRequest::STATUS_PROCESSING);
+            $this->persistence->flush();
+
+            return $locked;
+        });
 
         try {
             $stripeRefund = $this->stripe->createRefund([
@@ -115,12 +124,14 @@ final readonly class RefundOperationsService
                 'metadata[order_number]' => $refund->getOrder()->getNumber(),
             ]);
         } catch (\Throwable $exception) {
-            throw new \InvalidArgumentException('Stripe a refusé le remboursement : '.$exception->getMessage(), previous: $exception);
+            $refund->setStatus($previousStatus);
+            $this->persistence->flush();
+            throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);
         }
 
         $stripeRefundId = is_string($stripeRefund['id'] ?? null) ? $stripeRefund['id'] : null;
         $refund->setStripeRefundId($stripeRefundId)->setStatus(RefundRequest::STATUS_PROCESSED);
-        $this->entityManager->flush();
+        $this->persistence->flush();
         $this->events->log(
             $refund->getOrder(),
             $actor,

@@ -45,8 +45,8 @@ final class DownloadMyOrderInvoicePdfController extends AbstractController
 
         try {
             $pdf = $this->documents->getPdf($order);
-        } catch (\Throwable $e) {
-            return ApiResponse::error('Génération de facture PDF indisponible.', Response::HTTP_NOT_IMPLEMENTED, [$e->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::error('Génération de facture PDF indisponible.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
         $filename = sprintf('%s.pdf', $this->nameBuilder->build($order));

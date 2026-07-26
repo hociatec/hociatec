@@ -22,13 +22,11 @@ const getNextTraining = (trainings: TrainingEnrollmentDto[], now: number) =>
   trainings
     .filter(
       (training) =>
-        training.status !== 'cancelled' &&
-        new Date(training.scheduledStartsAt).getTime() >= now,
+        training.status !== 'cancelled' && new Date(training.scheduledStartsAt).getTime() >= now,
     )
     .sort(
       (left, right) =>
-        new Date(left.scheduledStartsAt).getTime() -
-        new Date(right.scheduledStartsAt).getTime(),
+        new Date(left.scheduledStartsAt).getTime() - new Date(right.scheduledStartsAt).getTime(),
     )[0] ?? null;
 
 interface NotificationSources {

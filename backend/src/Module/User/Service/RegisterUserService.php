@@ -10,7 +10,6 @@ use App\Module\User\Exception\InvalidBirthDateException;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class RegisterUserService
@@ -19,7 +18,7 @@ class RegisterUserService
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly AccountActivationEmailService $activationEmails,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly UserPersistence $persistence,
     ) {
     }
 
@@ -60,8 +59,9 @@ class RegisterUserService
         $user->setIsVerified(false);
 
         try {
-            return $this->entityManager->wrapInTransaction(function () use ($user, $token): User {
-                $this->userRepository->save($user, true);
+            return $this->persistence->transactional(function () use ($user, $token): User {
+                $this->persistence->save($user);
+                $this->persistence->flush();
                 $this->activationEmails->sendActivationEmail($user, $token);
 
                 return $user;

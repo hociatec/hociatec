@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: Hociatec API
+  version: 1.0.0
+  description: API HTTP du backend Hociatec.
+servers:
+  - url: https://api.hociatec.fr
+    description: Production
+tags:
+  - name: Auth
+  - name: Catalog
+  - name: Orders
+  - name: Admin
+security:
+  - cookieAuth: []
+paths:
+  /api/health:
+    get:
+      tags: [System]
+      summary: Vérifie la disponibilité de l’API et de la base de données
+      security: []
+      responses:
+        '200':
+          description: Service disponible
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SuccessResponse'}
+        '503':
+          description: Service indisponible
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Ouvre une session d’authentification
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: {type: string, format: email}
+                password: {type: string, format: password}
+      responses:
+        '200': {description: Cookies HttpOnly déposés}
+        '401': {description: Identifiants invalides}
+  /api/public/catalog/products:
+    get:
+      tags: [Catalog]
+      summary: Recherche les produits publiés
+      security: []
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+        - {$ref: '#/components/parameters/PerPage'}
+        - {name: q, in: query, schema: {type: string}}
+        - {name: category, in: query, schema: {type: string}}
+        - {name: sort, in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: Résultats paginés
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PaginatedResponse'}
+  /api/stripe/webhook:
+    post:
+      tags: [Orders]
+      summary: Reçoit un événement Stripe signé
+      security: []
+      parameters:
+        - {name: Stripe-Signature, in: header, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json: {schema: {type: object}}
+      responses:
+        '200': {description: Événement accepté ou déjà traité}
+        '400': {description: Signature ou événement invalide}
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: hociatec_access
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema: {type: integer, minimum: 1, default: 1}
+    PerPage:
+      name: perPage
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status: {type: string, enum: [success]}
+        data: {type: object}
+    PaginatedResponse:
+      type: object
+      properties:
+        status: {type: string, enum: [success]}
+        data:
+          type: object
+          properties:
+            items: {type: array, items: {type: object}}
+            meta:
+              type: object
+              required: [page, perPage, total, totalPages]
+              properties:
+                page: {type: integer}
+                perPage: {type: integer}
+                total: {type: integer}
+                totalPages: {type: integer}
+    ErrorResponse:
+      type: object
+      required: [status, message, details]
+      properties:
+        status: {type: string, enum: [error]}
+        message: {type: string}
+        details:
+          type: array
+          items: {type: string}

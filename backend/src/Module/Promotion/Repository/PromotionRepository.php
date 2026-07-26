@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Promotion\Repository;
 
+use App\Module\Order\Entity\Order;
 use App\Module\Promotion\Entity\Promotion;
+use App\Module\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -32,5 +34,23 @@ class PromotionRepository extends ServiceEntityRepository
             ->orderBy('p.updatedAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /** @return array{ordersCount: int, lastOrderAt: \DateTimeImmutable|null} */
+    public function findUserOrderStats(User $user): array
+    {
+        $result = $this->getEntityManager()->createQueryBuilder()
+            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt')
+            ->from(Order::class, 'o')
+            ->andWhere('o.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleResult();
+
+        $lastOrderAt = $result['lastOrderAt'] instanceof \DateTimeImmutable
+            ? $result['lastOrderAt']
+            : ($result['lastOrderAt'] instanceof \DateTimeInterface ? \DateTimeImmutable::createFromInterface($result['lastOrderAt']) : null);
+
+        return ['ordersCount' => (int) ($result['ordersCount'] ?? 0), 'lastOrderAt' => $lastOrderAt];
     }
 }

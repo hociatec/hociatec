@@ -42,8 +42,8 @@ final class RetryOrderInvoiceController extends AbstractController
                 'invoice_regenerated',
                 'Facture regénérée depuis l’admin.',
             );
-        } catch (\Throwable $exception) {
-            return ApiResponse::error('Impossible de regénérer la facture.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        } catch (\Throwable) {
+            return ApiResponse::internalError('Impossible de regénérer la facture.');
         }
 
         return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);

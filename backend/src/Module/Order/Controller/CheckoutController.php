@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Controller;
 
+use App\Module\Order\DTO\CheckoutInput;
 use App\Module\Order\Exception\CartCheckoutConflictException;
 use App\Module\Order\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Service\CartCheckoutService;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\ApiValidationException;
+use App\Shared\Http\JsonPayload;
 use App\Shared\Http\RateLimited;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,8 +27,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[RateLimited('checkout')]
 final class CheckoutController extends AbstractController
 {
-    public function __construct(private readonly CartCheckoutService $checkout)
-    {
+    public function __construct(
+        private readonly CartCheckoutService $checkout,
+        private readonly DtoValidator $dtoValidator,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
@@ -35,16 +41,20 @@ final class CheckoutController extends AbstractController
         }
 
         try {
-            $payload = '' !== $request->getContent() ? $request->toArray() : [];
+            $payload = JsonPayload::decode($request);
+            $input = CheckoutInput::fromArray($payload);
+            $this->dtoValidator->validate($input);
             $result = $this->checkout->checkout(
                 $this->currentUser(),
                 $token,
-                isset($payload['addressId']) ? (int) $payload['addressId'] : null,
+                $input->addressId,
             );
         } catch (CartCheckoutNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (CartCheckoutConflictException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+        } catch (ApiValidationException $exception) {
+            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Impossible de valider la commande.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
         } catch (\Throwable $exception) {

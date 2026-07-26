@@ -20,17 +20,17 @@ import {
   type ProductFormState,
   type VariantRowState,
 } from '@/features/admin/catalog/utils/productFormConfig';
+import { formatVariantDetails, slugify } from '@/features/admin/catalog/utils/productFormUtils';
 import {
-  formatVariantDetails,
-  slugify,
-} from '@/features/admin/catalog/utils/productFormUtils';
-import { buildProductFormState, buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
+  buildProductFormState,
+  buildProductPayload,
+} from '@/features/admin/catalog/utils/productFormModel';
 import { useProductGallery } from './useProductGallery';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
-  const isEdit = useMemo(() => Boolean(productId), [productId]);
-  const currentProductId = useMemo(() => (productId ? Number(productId) : null), [productId]);
+  const isEdit = Boolean(productId);
+  const currentProductId = productId ? Number(productId) : null;
   const navigate = useNavigate();
 
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
@@ -125,7 +125,9 @@ export const useProductFormController = () => {
     });
   };
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value, type, checked } = event.target as HTMLInputElement;
 
     if (type === 'checkbox') {
@@ -145,9 +147,13 @@ export const useProductFormController = () => {
       const selectedBrand =
         prev.brand.trim() === ''
           ? null
-          : brands.find((brand) => brand.name.toLowerCase() === prev.brand.trim().toLowerCase()) ?? null;
+          : (brands.find((brand) => brand.name.toLowerCase() === prev.brand.trim().toLowerCase()) ??
+            null);
 
-      if (selectedBrand !== null && selectedBrand.name.toLowerCase() === value.trim().toLowerCase()) {
+      if (
+        selectedBrand !== null &&
+        selectedBrand.name.toLowerCase() === value.trim().toLowerCase()
+      ) {
         return prev;
       }
 
@@ -177,7 +183,9 @@ export const useProductFormController = () => {
   };
 
   const updateVariantRow = (index: number, field: keyof VariantRowState, value: string) => {
-    setVariantRows((previous) => previous.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)));
+    setVariantRows((previous) =>
+      previous.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)),
+    );
   };
 
   const removeVariantRow = (index: number) => {
@@ -197,7 +205,11 @@ export const useProductFormController = () => {
         const remainingVariants = groupVariants.filter((item) => item.id !== variant.id);
         if (variant.id === currentProductId) {
           const nextVariant = remainingVariants[0] ?? null;
-          void navigate(nextVariant ? `/admin/catalog/products/${nextVariant.id}/edit` : '/admin/catalog/products');
+          void navigate(
+            nextVariant
+              ? `/admin/catalog/products/${nextVariant.id}/edit`
+              : '/admin/catalog/products',
+          );
           return;
         }
 

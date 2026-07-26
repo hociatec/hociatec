@@ -61,7 +61,9 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .button:hover {
@@ -162,7 +164,10 @@
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease,
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
     border-color 0.15s ease;
   background: rgba(15, 23, 42, 0.55);
   color: var(--hocia-line);

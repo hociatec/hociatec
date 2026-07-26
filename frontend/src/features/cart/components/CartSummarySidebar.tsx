@@ -106,7 +106,9 @@ export const CartSummarySidebar = ({
         ) : null}
       </div>
       {cart?.voucherCodeStatus === 'invalid' ? (
-        <div className="cart-promotion__message cart-promotion__message--error">Ce bon de réduction est invalide.</div>
+        <div className="cart-promotion__message cart-promotion__message--error">
+          Ce bon de réduction est invalide.
+        </div>
       ) : null}
       {cart?.voucherCodeStatus === 'ineligible' ? (
         <div className="cart-promotion__message cart-promotion__message--warning">
@@ -120,7 +122,12 @@ export const CartSummarySidebar = ({
         <div className="cart-promotion-card__label">Code promo appliqué</div>
         <div className="cart-promotion-card__title">{cart.appliedVoucher.name}</div>
         <div className="cart-promotion-card__text">
-          Remise {formatPromotionValue(cart.appliedVoucher.discountType, cart.appliedVoucher.discountValue)}.
+          Remise{' '}
+          {formatPromotionValue(
+            cart.appliedVoucher.discountType,
+            cart.appliedVoucher.discountValue,
+          )}
+          .
         </div>
         {cart.appliedVoucher.code ? (
           <div className="cart-promotion-card__code">Code: {cart.appliedVoucher.code}</div>
@@ -138,8 +145,8 @@ export const CartSummarySidebar = ({
               <div key={promotion.id} className="cart-promotion-card__item">
                 <div className="cart-promotion-card__item-title">{promotion.name}</div>
                 <div className="cart-promotion-card__text">
-                  {formatPromotionValue(promotion.discountType, promotion.discountValue)} potentiels, soit{' '}
-                  {formatCartPrice(promotion.discountAmountCents)}.
+                  {formatPromotionValue(promotion.discountType, promotion.discountValue)}{' '}
+                  potentiels, soit {formatCartPrice(promotion.discountAmountCents)}.
                 </div>
               </div>
             ))}

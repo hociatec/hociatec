@@ -21,7 +21,8 @@ export interface AdminLoyaltyCustomerDto {
 }
 
 export const fetchMyLoyalty = async (): Promise<LoyaltyBalanceDto> => {
-  const { data } = await httpClient.get<ApiResponse<{ loyalty: LoyaltyBalanceDto }>>('/api/loyalty/me');
+  const { data } =
+    await httpClient.get<ApiResponse<{ loyalty: LoyaltyBalanceDto }>>('/api/loyalty/me');
   if (isApiOk(data)) {
     return data.data?.loyalty as LoyaltyBalanceDto;
   }
@@ -32,10 +33,9 @@ export const fetchMyLoyalty = async (): Promise<LoyaltyBalanceDto> => {
 export const convertMyLoyalty = async (
   points: number,
 ): Promise<{ loyalty: LoyaltyBalanceDto; voucher: MyVoucherDto }> => {
-  const { data } = await httpClient.post<ApiResponse<{ loyalty: LoyaltyBalanceDto; voucher: MyVoucherDto }>>(
-    '/api/loyalty/me/convert',
-    { points },
-  );
+  const { data } = await httpClient.post<
+    ApiResponse<{ loyalty: LoyaltyBalanceDto; voucher: MyVoucherDto }>
+  >('/api/loyalty/me/convert', { points });
   if (isApiOk(data)) {
     return {
       loyalty: data.data?.loyalty as LoyaltyBalanceDto,
@@ -46,7 +46,9 @@ export const convertMyLoyalty = async (
   throw new Error(data.status === 'error' ? data.message : 'Impossible de convertir la fidélité');
 };
 
-export const fetchAdminLoyaltyCustomers = async (search = ''): Promise<AdminLoyaltyCustomerDto[]> => {
+export const fetchAdminLoyaltyCustomers = async (
+  search = '',
+): Promise<AdminLoyaltyCustomerDto[]> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
     query.set('search', search.trim());
@@ -59,7 +61,9 @@ export const fetchAdminLoyaltyCustomers = async (search = ''): Promise<AdminLoya
     return data.data.items;
   }
 
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger la fidélité admin');
+  throw new Error(
+    data.status === 'error' ? data.message : 'Impossible de charger la fidélité admin',
+  );
 };
 
 export const updateAdminLoyaltyCustomer = async (

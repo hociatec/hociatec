@@ -37,45 +37,45 @@ export type PromotionPayload = {
   endsAt?: string | null;
 };
 
-export const fetchPromotionAudiences = async (): Promise<Record<string, PromotionAudienceDefinition>> => {
-  const { data } =
-    await httpClient.get<{ data: { items: Record<string, PromotionAudienceDefinition> } }>(
-      '/api/admin/promotions/audiences',
-    );
+export const fetchPromotionAudiences = async (): Promise<
+  Record<string, PromotionAudienceDefinition>
+> => {
+  const { data } = await httpClient.get<{
+    data: { items: Record<string, PromotionAudienceDefinition> };
+  }>('/api/admin/promotions/audiences');
   return data.data.items;
 };
 
 export const fetchPromotions = async (): Promise<PromotionDto[]> => {
-  const { data } =
-    await httpClient.get<{ data: { items: PromotionDto[] } }>(
-      '/api/admin/promotions',
-    );
+  const { data } = await httpClient.get<{ data: { items: PromotionDto[] } }>(
+    '/api/admin/promotions',
+  );
   return data.data.items;
 };
 
 export const fetchPromotion = async (promotionId: number): Promise<PromotionDto> => {
-  const { data } =
-    await httpClient.get<{ data: { promotion: PromotionDto } }>(
-      `/api/admin/promotions/${promotionId}`,
-    );
+  const { data } = await httpClient.get<{ data: { promotion: PromotionDto } }>(
+    `/api/admin/promotions/${promotionId}`,
+  );
   return data.data.promotion;
 };
 
 export const createPromotion = async (payload: PromotionPayload): Promise<PromotionDto> => {
-  const { data } =
-    await httpClient.post<{ data: { promotion: PromotionDto } }>(
-      '/api/admin/promotions',
-      payload,
-    );
+  const { data } = await httpClient.post<{ data: { promotion: PromotionDto } }>(
+    '/api/admin/promotions',
+    payload,
+  );
   return data.data.promotion;
 };
 
-export const updatePromotion = async (promotionId: number, payload: PromotionPayload): Promise<PromotionDto> => {
-  const { data } =
-    await httpClient.put<{ data: { promotion: PromotionDto } }>(
-      `/api/admin/promotions/${promotionId}`,
-      payload,
-    );
+export const updatePromotion = async (
+  promotionId: number,
+  payload: PromotionPayload,
+): Promise<PromotionDto> => {
+  const { data } = await httpClient.put<{ data: { promotion: PromotionDto } }>(
+    `/api/admin/promotions/${promotionId}`,
+    payload,
+  );
   return data.data.promotion;
 };
 

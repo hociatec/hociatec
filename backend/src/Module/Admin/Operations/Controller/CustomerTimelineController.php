@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/customers/{id}/timeline', name: 'api_admin_operations_customer_timeline', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class CustomerTimelineController
 {
     public function __construct(private CustomerTimelineProvider $timeline)

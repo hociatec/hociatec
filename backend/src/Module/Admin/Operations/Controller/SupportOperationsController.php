@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Operations\Controller;
 
+use App\Module\Admin\Operations\DTO\SupportCreateInput;
+use App\Module\Admin\Operations\DTO\SupportReplyInput;
+use App\Module\Admin\Operations\DTO\SupportUpdateInput;
 use App\Module\Admin\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Operations\Service\SupportOperationsService;
+use App\Module\Support\DTO\SupportCreateData;
+use App\Module\Support\DTO\SupportReplyData;
+use App\Module\Support\DTO\SupportUpdateData;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,10 +21,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/operations/support-requests')]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_OPERATIONS')]
 final readonly class SupportOperationsController
 {
-    public function __construct(private SupportOperationsService $support)
+    public function __construct(private SupportOperationsService $support, private DtoValidator $validator)
     {
     }
 
@@ -31,7 +38,9 @@ final readonly class SupportOperationsController
     public function create(Request $request): JsonResponse
     {
         try {
-            $item = $this->support->create($request->toArray());
+            $input = SupportCreateInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $item = $this->support->create(new SupportCreateData($input->customerId, $input->subject, $input->reason, $input->message, $input->internalNotes, $input->orderId));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\Throwable) {
@@ -45,7 +54,9 @@ final readonly class SupportOperationsController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $item = $this->support->update($id, $request->toArray());
+            $input = SupportUpdateInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $item = $this->support->update($id, new SupportUpdateData($input->status, $input->internalNotes, $input->subject));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\Throwable) {
@@ -59,7 +70,9 @@ final readonly class SupportOperationsController
     public function reply(int $id, Request $request): JsonResponse
     {
         try {
-            $item = $this->support->reply($id, $request->toArray());
+            $input = SupportReplyInput::fromArray(\App\Shared\Http\JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $item = $this->support->reply($id, new SupportReplyData($input->message, $input->subject, $input->status));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException|\RuntimeException $exception) {

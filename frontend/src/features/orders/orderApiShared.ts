@@ -11,12 +11,16 @@ const normalizeFilenamePart = (value: string) =>
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-');
 
-export const buildOrderInvoiceFilename = (order: Pick<OrderDto, 'number' | 'createdAt' | 'shipping' | 'customerDisplayName'>) => {
+export const buildOrderInvoiceFilename = (
+  order: Pick<OrderDto, 'number' | 'createdAt' | 'shipping' | 'customerDisplayName'>,
+) => {
   const date = new Date(order.createdAt);
   const datePart = Number.isNaN(date.getTime())
     ? 'date-inconnue'
     : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const clientName = normalizeFilenamePart(order.customerDisplayName || order.shipping?.name || 'client');
+  const clientName = normalizeFilenamePart(
+    order.customerDisplayName || order.shipping?.name || 'client',
+  );
   const orderNumber = normalizeFilenamePart(order.number || 'commande');
 
   return `facture-${datePart}-${clientName}-${orderNumber}`;

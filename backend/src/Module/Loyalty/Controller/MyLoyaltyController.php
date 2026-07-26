@@ -39,7 +39,7 @@ final class MyLoyaltyController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $payload = $request->toArray();
+            $payload = \App\Shared\Http\JsonPayload::decode($request);
             $points = (int) ($payload['points'] ?? 0);
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {

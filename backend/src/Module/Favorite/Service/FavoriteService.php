@@ -8,13 +8,12 @@ use App\Module\Catalog\Entity\Product;
 use App\Module\Favorite\Entity\Favorite;
 use App\Module\Favorite\Repository\FavoriteRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 class FavoriteService
 {
     public function __construct(
         private readonly FavoriteRepository $favorites,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly FavoritePersistence $persistence,
     ) {
     }
 
@@ -40,8 +39,7 @@ class FavoriteService
         }
 
         $favorite = new Favorite($user, $product);
-        $this->entityManager->persist($favorite);
-        $this->entityManager->flush();
+        $this->persistence->save($favorite);
 
         return [
             'favorite' => $favorite,
@@ -56,8 +54,7 @@ class FavoriteService
             return;
         }
 
-        $this->entityManager->remove($favorite);
-        $this->entityManager->flush();
+        $this->persistence->delete($favorite);
     }
 
     public function isFavorite(User $user, Product $product): bool

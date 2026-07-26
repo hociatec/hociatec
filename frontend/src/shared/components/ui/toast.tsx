@@ -44,7 +44,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const idRef = useRef(1);
   const timeoutsRef = useRef<Map<number, number>>(new Map());
   const location = useLocation();
-  const navigationKey = [location.key, location.pathname, location.search, location.hash].join(":");
+  const navigationKey = [location.key, location.pathname, location.search, location.hash].join(':');
 
   const clearToastTimeout = useCallback((id: number) => {
     if (typeof window === 'undefined') {
@@ -97,9 +97,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const expiresAt = now + duration;
       const duplicate = toasts.find(
         (toast) =>
-          toast.message === message &&
-          toast.variant === variant &&
-          toast.persistent === persistent,
+          toast.message === message && toast.variant === variant && toast.persistent === persistent,
       );
 
       if (duplicate) {

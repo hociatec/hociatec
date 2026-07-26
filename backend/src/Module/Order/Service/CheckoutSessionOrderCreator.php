@@ -9,13 +9,12 @@ use App\Module\Catalog\Entity\Product;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Entity\OrderItem;
-use Doctrine\DBAL\LockMode;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class CheckoutSessionOrderCreator
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private DoctrinePersistence $persistence,
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
@@ -24,10 +23,10 @@ final readonly class CheckoutSessionOrderCreator
 
     public function create(OrderCheckoutSession $checkout): Order
     {
-        return $this->entityManager->wrapInTransaction(
-            function (EntityManagerInterface $em) use ($checkout): Order {
+        return $this->persistence->transactional(
+            function () use ($checkout): Order {
                 if (null !== $checkout->getOrderId()) {
-                    $existing = $em->find(Order::class, $checkout->getOrderId());
+                    $existing = $this->persistence->findForUpdate(Order::class, $checkout->getOrderId());
                     if ($existing instanceof Order) {
                         return $existing;
                     }
@@ -35,20 +34,20 @@ final readonly class CheckoutSessionOrderCreator
 
                 $order = $this->createOrder($checkout);
                 foreach ($checkout->getItemsPayload() as $rawItem) {
-                    $this->addItem($em, $order, $rawItem);
+                    $this->addItem($order, $rawItem);
                 }
 
                 $this->invoiceCalculator->snapshot($order);
-                $em->persist($order);
-                $em->flush();
+                $this->persistence->persist($order);
+                $this->persistence->flush();
                 if (null === $order->getId()) {
                     throw new \InvalidArgumentException('Commande invalide.');
                 }
 
-                $this->markCartConverted($em, $checkout, $order->getId());
+                $this->markCartConverted($checkout, $order->getId());
                 $checkout->setOrderId($order->getId());
-                $em->persist($checkout);
-                $em->flush();
+                $this->persistence->persist($checkout);
+                $this->persistence->flush();
 
                 return $order;
             },
@@ -85,14 +84,14 @@ final readonly class CheckoutSessionOrderCreator
     }
 
     /** @param array<string, mixed> $rawItem */
-    private function addItem(EntityManagerInterface $em, Order $order, array $rawItem): void
+    private function addItem(Order $order, array $rawItem): void
     {
         $productId = (int) ($rawItem['productId'] ?? 0);
         if ($productId <= 0) {
             throw new \InvalidArgumentException('Produit Stripe invalide.');
         }
 
-        $product = $em->find(Product::class, $productId, LockMode::PESSIMISTIC_WRITE);
+        $product = $this->persistence->findForUpdate(Product::class, $productId);
         if (!$product instanceof Product) {
             throw new \InvalidArgumentException('Produit introuvable.');
         }
@@ -112,11 +111,10 @@ final readonly class CheckoutSessionOrderCreator
             ->setProduct($product)
             ->setVatRateBps(max(0, (int) ($rawItem['vatRateBps'] ?? 2000)));
         $order->addItem($item);
-        $em->persist($item);
+        $this->persistence->persist($item);
     }
 
     private function markCartConverted(
-        EntityManagerInterface $em,
         OrderCheckoutSession $checkout,
         int $orderId,
     ): void {
@@ -124,11 +122,11 @@ final readonly class CheckoutSessionOrderCreator
             return;
         }
 
-        $cart = $em->find(CartSession::class, $checkout->getCartId(), LockMode::PESSIMISTIC_WRITE);
+        $cart = $this->persistence->findForUpdate(CartSession::class, $checkout->getCartId());
         if ($cart instanceof CartSession && !$cart->isConverted()) {
             $cart->markConverted($orderId);
-            $em->persist($cart);
-            $em->flush();
+            $this->persistence->persist($cart);
+            $this->persistence->flush();
         }
     }
 }

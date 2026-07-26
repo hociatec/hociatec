@@ -7,6 +7,7 @@ namespace App\Module\Catalog\Repository;
 use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,6 +19,13 @@ class ProductRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Product::class);
+    }
+
+    public function findForUpdate(int $id): ?Product
+    {
+        $product = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $product instanceof Product ? $product : null;
     }
 
     /**

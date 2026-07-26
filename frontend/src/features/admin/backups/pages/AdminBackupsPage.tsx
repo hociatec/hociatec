@@ -1,16 +1,8 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { AlertTriangle, DatabaseBackup, HardDrive, ShieldCheck } from 'lucide-react';
 
-import {
-  fetchBackupStatus,
-  runBackupNow,
-  updateBackupSettings,
-  updateMaintenanceMode,
-  type BackupStatusDto,
-} from '@/features/admin/backups/api';
+import { useAdminBackups } from '../hooks/useAdminBackups';
 import { LoadingState } from '@/shared/components/ui/page-state';
-import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 const formatDate = (value?: string | null) => {
@@ -37,98 +29,45 @@ const formatBytes = (bytes?: number | null) => {
 
 export const AdminBackupsPage = () => {
   useDocumentTitle('Admin - Sauvegardes');
-  const [status, setStatus] = useState<BackupStatusDto | null>(null);
-  const [intervalHours, setIntervalHours] = useState(24);
-  const [retentionCount, setRetentionCount] = useState(7);
-  const [enabled, setEnabled] = useState(false);
-  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
-  const [maintenanceMessage, setMaintenanceMessage] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const hydrate = (data: BackupStatusDto) => {
-    setStatus(data);
-    setIntervalHours(data.settings.intervalHours);
-    setRetentionCount(data.settings.retentionCount);
-    setEnabled(data.settings.enabled);
-    setMaintenanceEnabled(data.maintenance.enabled);
-    setMaintenanceMessage(data.maintenance.message);
-  };
-
-  useEffect(() => {
-    setLoading(true);
-    void fetchBackupStatus()
-      .then(hydrate)
-      .catch((e: unknown) => setError(getHttpErrorMessage(e, 'Impossible de charger les sauvegardes.')))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const submitSettings = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      hydrate(await updateBackupSettings({ enabled, intervalHours, retentionCount }));
-      setMessage('Configuration des sauvegardes enregistrée.');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de sauvegarder la configuration.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const launchBackup = async () => {
-    setBusy(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      hydrate(await runBackupNow());
-      setMessage('Sauvegarde terminée et rétention appliquée.');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de lancer la sauvegarde.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitMaintenance = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    setMessage(null);
-
-    try {
-      const maintenance = await updateMaintenanceMode({
-        enabled: maintenanceEnabled,
-        message: maintenanceMessage,
-      });
-      setStatus((current) => (current ? { ...current, maintenance } : current));
-      setMaintenanceEnabled(maintenance.enabled);
-      setMaintenanceMessage(maintenance.message);
-      setMessage(maintenance.enabled ? 'Mode maintenance activé.' : 'Mode maintenance désactivé.');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de modifier le mode maintenance.');
-    } finally {
-      setBusy(false);
-    }
-  };
+  const {
+    status,
+    intervalHours,
+    setIntervalHours,
+    retentionCount,
+    setRetentionCount,
+    enabled,
+    setEnabled,
+    maintenanceEnabled,
+    setMaintenanceEnabled,
+    maintenanceMessage,
+    setMaintenanceMessage,
+    loading,
+    busy,
+    message,
+    error,
+    submitSettings,
+    launchBackup,
+    submitMaintenance,
+  } = useAdminBackups();
 
   if (loading) {
-    return <LoadingState className="mx-auto my-12 w-full max-w-6xl">Chargement des sauvegardes...</LoadingState>;
+    return (
+      <LoadingState className="mx-auto my-12 w-full max-w-6xl">
+        Chargement des sauvegardes...
+      </LoadingState>
+    );
   }
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
       <header className="rounded-xl border border-amber-200/20 bg-brand-900/80 p-8 shadow-2xl shadow-black/20">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">Exploitation</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">
+          Exploitation
+        </p>
         <h1 className="mt-3 text-4xl font-bold text-white">Sauvegardes et maintenance</h1>
         <p className="mt-4 max-w-3xl text-stone-500">
-          Pilotez les sauvegardes MySQL, la fréquence d’exécution, la rétention locale et le mode maintenance public.
+          Pilotez les sauvegardes MySQL, la fréquence d’exécution, la rétention locale et le mode
+          maintenance public.
         </p>
       </header>
 
@@ -139,7 +78,10 @@ export const AdminBackupsPage = () => {
           </div>
         ) : null}
         {error ? (
-          <div className="rounded-2xl border border-red-300/40 bg-red-950/70 p-4 text-red-100" role="alert">
+          <div
+            className="rounded-2xl border border-red-300/40 bg-red-950/70 p-4 text-red-100"
+            role="alert"
+          >
             {error}
           </div>
         ) : null}
@@ -154,7 +96,11 @@ export const AdminBackupsPage = () => {
         <StatusCard
           icon={<ShieldCheck className="h-5 w-5" />}
           label="Planification"
-          value={status?.settings.enabled ? `Toutes les ${status.settings.intervalHours} h` : 'Désactivée'}
+          value={
+            status?.settings.enabled
+              ? `Toutes les ${status.settings.intervalHours} h`
+              : 'Désactivée'
+          }
         />
         <StatusCard
           icon={<HardDrive className="h-5 w-5" />}
@@ -170,18 +116,24 @@ export const AdminBackupsPage = () => {
       </div>
 
       {status && (!status.tools.mysqldumpAvailable || !status.tools.gzipAvailable) ? (
-        <div className="rounded-2xl border border-red-300/40 bg-red-950/60 p-5 text-red-100" role="alert">
-          Outils serveur incomplets: `mysqldump` ou l’extension PHP `zlib` est indisponible. Les sauvegardes ne
-          pourront pas être fiables tant que le serveur n’est pas corrigé.
+        <div
+          className="rounded-2xl border border-red-300/40 bg-red-950/60 p-5 text-red-100"
+          role="alert"
+        >
+          Outils serveur incomplets: `mysqldump` ou l’extension PHP `zlib` est indisponible. Les
+          sauvegardes ne pourront pas être fiables tant que le serveur n’est pas corrigé.
         </div>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-        <form onSubmit={submitSettings} className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+        <form
+          onSubmit={submitSettings}
+          className="rounded-xl border border-white/10 bg-white/[0.04] p-6"
+        >
           <h2 className="text-xl font-semibold text-white">Configuration automatique</h2>
           <p className="mt-2 text-sm text-stone-500">
-            La configuration est appliquée par la commande cron indiquée plus bas. Le bouton manuel utilise la même
-            procédure, avec verrou anti-concurrence et rétention automatique.
+            La configuration est appliquée par la commande cron indiquée plus bas. Le bouton manuel
+            utilise la même procédure, avec verrou anti-concurrence et rétention automatique.
           </p>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -224,7 +176,9 @@ export const AdminBackupsPage = () => {
 
             <div className="rounded-2xl border border-white/10 bg-brand-900/70 p-4 text-sm text-stone-500">
               Prochaine exécution prévue:
-              <strong className="mt-1 block text-white">{formatDate(status?.settings.nextRunAt)}</strong>
+              <strong className="mt-1 block text-white">
+                {formatDate(status?.settings.nextRunAt)}
+              </strong>
             </div>
           </div>
 
@@ -238,11 +192,14 @@ export const AdminBackupsPage = () => {
           </div>
         </form>
 
-        <form onSubmit={submitMaintenance} className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
+        <form
+          onSubmit={submitMaintenance}
+          className="rounded-xl border border-white/10 bg-white/[0.04] p-6"
+        >
           <h2 className="text-xl font-semibold text-white">Mode maintenance</h2>
           <p className="mt-2 text-sm text-stone-500">
-            Le site public affiche un écran de maintenance et les APIs publiques renvoient un `503`. L’admin et la
-            connexion restent accessibles.
+            Le site public affiche un écran de maintenance et les APIs publiques renvoient un `503`.
+            L’admin et la connexion restent accessibles.
           </p>
 
           <label className="mt-6 flex items-center gap-3 rounded-2xl border border-white/10 bg-brand-900/70 p-4 text-stone-100">
@@ -283,13 +240,15 @@ export const AdminBackupsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/10 text-stone-200">
-              {status?.backups.length ? status.backups.map((backup) => (
-                <tr key={backup.filename}>
-                  <td className="py-4 pr-4 font-medium text-white">{backup.filename}</td>
-                  <td className="py-4 pr-4">{formatDate(backup.createdAt)}</td>
-                  <td className="py-4 pr-4">{formatBytes(backup.sizeBytes)}</td>
-                </tr>
-              )) : (
+              {status?.backups.length ? (
+                status.backups.map((backup) => (
+                  <tr key={backup.filename}>
+                    <td className="py-4 pr-4 font-medium text-white">{backup.filename}</td>
+                    <td className="py-4 pr-4">{formatDate(backup.createdAt)}</td>
+                    <td className="py-4 pr-4">{formatBytes(backup.sizeBytes)}</td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={3} className="py-8 text-center text-stone-400">
                     Aucune sauvegarde disponible pour le moment.
@@ -304,7 +263,8 @@ export const AdminBackupsPage = () => {
       <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
         <h2 className="text-xl font-semibold text-white">Planification serveur</h2>
         <p className="mt-2 text-sm text-stone-500">
-          À installer sur le serveur pour que la fréquence configurée dans l’admin soit réellement exécutée.
+          À installer sur le serveur pour que la fréquence configurée dans l’admin soit réellement
+          exécutée.
         </p>
         <pre className="mt-4 overflow-x-auto rounded-2xl bg-brand-900 p-4 text-sm text-amber-100">
           {status?.scheduler.cronExample}
@@ -325,7 +285,9 @@ const StatusCard = ({
   value: string;
   danger?: boolean;
 }) => (
-  <div className={`rounded-2xl border p-5 ${danger ? 'border-red-300/40 bg-red-950/50' : 'border-white/10 bg-white/[0.04]'}`}>
+  <div
+    className={`rounded-2xl border p-5 ${danger ? 'border-red-300/40 bg-red-950/50' : 'border-white/10 bg-white/[0.04]'}`}
+  >
     <div className={danger ? 'text-red-200' : 'text-amber-200'}>{icon}</div>
     <p className="mt-4 text-xs uppercase tracking-[0.18em] text-stone-400">{label}</p>
     <strong className="mt-1 block text-lg text-white">{value}</strong>

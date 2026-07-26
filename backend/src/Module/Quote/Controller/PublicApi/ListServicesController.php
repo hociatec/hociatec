@@ -8,10 +8,10 @@ use App\Module\Quote\Repository\ServiceRepository;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\Pagination;
-use Symfony\Component\HttpFoundation\Request;
 use App\Shared\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/services', name: 'api_public_services_list', methods: ['GET'])]

@@ -27,11 +27,13 @@ export const fetchAdminOrders = async (
 export const fetchAdminOrderById = async (
   orderId: number,
 ): Promise<{ order: OrderDto; events: OrderEventDto[]; processing: OrderProcessingDto }> => {
-  const { data } = await httpClient.get<ApiResponse<{
-    order: OrderDto;
-    events: OrderEventDto[];
-    processing: OrderProcessingDto;
-  }>>(`/api/admin/orders/${orderId}`);
+  const { data } = await httpClient.get<
+    ApiResponse<{
+      order: OrderDto;
+      events: OrderEventDto[];
+      processing: OrderProcessingDto;
+    }>
+  >(`/api/admin/orders/${orderId}`);
   if (isApiOk(data)) {
     return {
       order: data.data.order,
@@ -75,7 +77,8 @@ export const updateAdminOrderDelivery = async (
   if (isApiOk(data)) {
     return data.data.order;
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour la livraison';
+  const message =
+    data.status === 'error' ? data.message : 'Impossible de mettre à jour la livraison';
   throw new Error(message);
 };
 

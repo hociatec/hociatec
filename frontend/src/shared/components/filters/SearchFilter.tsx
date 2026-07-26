@@ -9,17 +9,29 @@ interface SearchFilterProps {
   className?: string;
 }
 
-export const SearchFilter = ({ value, onChange, placeholder = 'Rechercher…', debounceMs = 300, className }: SearchFilterProps) => {
+export const SearchFilter = ({
+  value,
+  onChange,
+  placeholder = 'Rechercher…',
+  debounceMs = 300,
+  className,
+}: SearchFilterProps) => {
   const inputId = useId();
   const [raw, setRaw] = useState(value);
   const debounced = useDebounce(raw, debounceMs);
 
-  useEffect(() => { setRaw(value); }, [value]);
-  useEffect(() => { if (debounced !== value) onChange(debounced); }, [debounced]);
+  useEffect(() => {
+    setRaw(value);
+  }, [value]);
+  useEffect(() => {
+    if (debounced !== value) onChange(debounced);
+  }, [debounced]);
 
   return (
     <div className={className ?? 'catalog-filter-bar__search'}>
-      <label htmlFor={inputId} className="sr-only">Recherche</label>
+      <label htmlFor={inputId} className="sr-only">
+        Recherche
+      </label>
       <input
         id={inputId}
         type="search"

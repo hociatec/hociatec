@@ -25,6 +25,7 @@ final class ListVouchersController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $pagination = Pagination::fromRequest($request);
+
         return ApiResponse::paginated(
             array_map(
                 static fn ($voucher) => VoucherFormatter::formatVoucher($voucher),

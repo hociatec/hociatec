@@ -2,7 +2,10 @@ import type { CatalogProduct } from '../api';
 
 const buildGroupKey = (product: CatalogProduct) =>
   product.variantGroup?.trim() ||
-  product.name.replace(/\s*\([^)]*\)\s*$/u, '').replace(/\s*\([^)]*\)\s*$/u, '').trim() ||
+  product.name
+    .replace(/\s*\([^)]*\)\s*$/u, '')
+    .replace(/\s*\([^)]*\)\s*$/u, '')
+    .trim() ||
   product.sku;
 
 const compareVariantLead = (left: CatalogProduct, right: CatalogProduct) => {
