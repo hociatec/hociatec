@@ -11,7 +11,9 @@ import {
 } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { MarketingTemplateActionsCard } from '@/features/admin/marketing/components/MarketingTemplateActionsCard';
 import { MarketingTemplateHtmlPreview } from '@/features/admin/marketing/components/MarketingTemplateHtmlPreview';
+import { MarketingTemplateInfoCard } from '@/features/admin/marketing/components/MarketingTemplateInfoCard';
 
 const availableVariables = ['{{first_name}}', '{{last_name}}', '{{full_name}}', '{{email}}', '{{order_count}}', '{{total_spent_eur}}', '{{last_order_number}}', '{{last_order_date}}', '{{days_since_last_order}}', '{{pending_reviews_count}}', '{{app_frontend_url}}', '{{order_number}}', '{{order_status}}', '{{order_status_label}}', '{{order_email_status_title}}', '{{order_payment_instruction}}', '{{order_payment_next_step}}', '{{quote_number}}', '{{order_origin_sentence}}', '{{previous_order_status}}', '{{previous_order_status_label}}', '{{invoice_number}}', '{{invoice_date}}', '{{order_total_eur}}', '{{order_created_at}}', '{{billing_name}}', '{{purchase_order_number}}', '{{order_detail_url}}', '{{orders_list_url}}'];
 
@@ -96,38 +98,13 @@ export const MarketingTemplateDetailPage = () => {
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-6">
-              <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-brand-900">Informations</h2>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
-                      Nom
-                    </div>
-                    <div className="mt-2 text-sm text-stone-800">{template.name}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
-                      Slug
-                    </div>
-                    <div className="mt-2 text-sm text-stone-800">{template.slug}</div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
-                      Objet
-                    </div>
-                    <div className="mt-2 text-sm text-stone-800">{template.subjectTemplate}</div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
-                      Description d’usage
-                    </div>
-                    <div className="mt-2 text-sm text-stone-600">
-                      {segments[template.scenarioKey]?.description ??
-                        'Scénario métier associé au modèle.'}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <MarketingTemplateInfoCard
+                template={template}
+                description={
+                  segments[template.scenarioKey]?.description ??
+                  'Scénario métier associé au modèle.'
+                }
+              />
 
               <MarketingTemplateHtmlPreview name={template.name} htmlBody={template.htmlBody} />
 
@@ -154,52 +131,11 @@ export const MarketingTemplateDetailPage = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-brand-900">Actions rapides</h2>
-                <div className="mt-4 space-y-3 text-sm">
-                  {segments[template.scenarioKey]?.type !== 'transactional' ? (
-                    <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                      <p className="m-0 font-semibold text-stone-700">
-                        Créer une campagne avec ce modèle
-                      </p>
-                      <Link
-                        to={`/admin/marketing/new?templateId=${template.id}`}
-                        className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
-                      >
-                        Ouvrir
-                      </Link>
-                    </div>
-                  ) : null}
-                  <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                    <p className="m-0 font-semibold text-stone-700">Modifier ce modèle</p>
-                    <Link
-                      to={
-                        isTransactionalView
-                          ? `/admin/transactional-emails/${template.id}/edit`
-                          : `/admin/marketing/templates/${template.id}/edit`
-                      }
-                      className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
-                    >
-                      Ouvrir
-                    </Link>
-                  </div>
-                  <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                    <p className="m-0 font-semibold text-stone-700">
-                      Dupliquer manuellement dans un nouveau modèle
-                    </p>
-                    <Link
-                      to={
-                        isTransactionalView
-                          ? '/admin/transactional-emails/new'
-                          : '/admin/marketing/templates/new'
-                      }
-                      className="mt-3 inline-flex rounded-lg border border-brand-200 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-brand-600 hover:text-brand-900"
-                    >
-                      Ouvrir
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <MarketingTemplateActionsCard
+                templateId={template.id}
+                isTransactionalView={isTransactionalView}
+                isMarketingTemplate={segments[template.scenarioKey]?.type !== 'transactional'}
+              />
             </div>
           </div>
         </div>
