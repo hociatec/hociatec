@@ -11,55 +11,9 @@ import {
 } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { MarketingTemplateHtmlPreview } from '@/features/admin/marketing/components/MarketingTemplateHtmlPreview';
 
-const availableVariables = [
-  '{{first_name}}',
-  '{{last_name}}',
-  '{{full_name}}',
-  '{{email}}',
-  '{{order_count}}',
-  '{{total_spent_eur}}',
-  '{{last_order_number}}',
-  '{{last_order_date}}',
-  '{{days_since_last_order}}',
-  '{{pending_reviews_count}}',
-  '{{app_frontend_url}}',
-  '{{order_number}}',
-  '{{order_status}}',
-  '{{order_status_label}}',
-  '{{order_email_status_title}}',
-  '{{order_payment_instruction}}',
-  '{{order_payment_next_step}}',
-  '{{quote_number}}',
-  '{{order_origin_sentence}}',
-  '{{previous_order_status}}',
-  '{{previous_order_status_label}}',
-  '{{invoice_number}}',
-  '{{invoice_date}}',
-  '{{order_total_eur}}',
-  '{{order_created_at}}',
-  '{{billing_name}}',
-  '{{purchase_order_number}}',
-  '{{order_detail_url}}',
-  '{{orders_list_url}}',
-];
-
-const buildPreviewDocument = (htmlBody: string) => `<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src https: data:;" />
-    <base target="_blank" />
-    <style>
-      html, body { margin: 0; padding: 0; background: var(--hocia-surface-soft); color: var(--hocia-ink); font-family: Arial, sans-serif; }
-      body { padding: 20px; }
-      img { max-width: 100%; height: auto; }
-      table { max-width: 100%; }
-      a { color: #2563eb; }
-    </style>
-  </head>
-  <body>${htmlBody}</body>
-</html>`;
+const availableVariables = ['{{first_name}}', '{{last_name}}', '{{full_name}}', '{{email}}', '{{order_count}}', '{{total_spent_eur}}', '{{last_order_number}}', '{{last_order_date}}', '{{days_since_last_order}}', '{{pending_reviews_count}}', '{{app_frontend_url}}', '{{order_number}}', '{{order_status}}', '{{order_status_label}}', '{{order_email_status_title}}', '{{order_payment_instruction}}', '{{order_payment_next_step}}', '{{quote_number}}', '{{order_origin_sentence}}', '{{previous_order_status}}', '{{previous_order_status_label}}', '{{invoice_number}}', '{{invoice_date}}', '{{order_total_eur}}', '{{order_created_at}}', '{{billing_name}}', '{{purchase_order_number}}', '{{order_detail_url}}', '{{orders_list_url}}'];
 
 export const MarketingTemplateDetailPage = () => {
   const { template, segments, loading, error, isTransactionalView } = useMarketingTemplateDetail();
@@ -175,16 +129,7 @@ export const MarketingTemplateDetailPage = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-brand-900">Aperçu HTML</h2>
-                <iframe
-                  title={`Aperçu HTML - ${template.name}`}
-                  className="mt-4 h-[520px] w-full rounded-2xl border border-brand-100 bg-brand-50"
-                  sandbox=""
-                  referrerPolicy="no-referrer"
-                  srcDoc={buildPreviewDocument(template.htmlBody)}
-                />
-              </div>
+              <MarketingTemplateHtmlPreview name={template.name} htmlBody={template.htmlBody} />
 
               <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-brand-900">Version texte</h2>
