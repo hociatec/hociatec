@@ -7,9 +7,8 @@ import {
   isAuditSort,
   isAuditStatusFilter,
   isAuditTypeFilter,
-  statusLabel,
-  typeLabel,
 } from '../hooks/useAdminAuditsList';
+import { useAuditMetadata } from '@/features/audits/hooks/useAuditMetadata';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
@@ -37,6 +36,7 @@ export const AdminAuditsListPage = () => {
     setSort,
     view,
   } = useAdminAuditsList();
+  const { types, statuses } = useAuditMetadata();
 
   return (
     <PageContainer size="admin" title="Audits">
@@ -56,12 +56,7 @@ export const AdminAuditsListPage = () => {
           }}
           options={[
             { value: 'all', label: 'Tous les types' },
-            { value: 'accessibility', label: 'Accessibilité' },
-            { value: 'performance', label: 'Performance' },
-            { value: 'security', label: 'Sécurité' },
-            { value: 'ux', label: 'UX' },
-            { value: 'seo', label: 'SEO' },
-            { value: 'technical', label: 'Technique' },
+            ...types,
           ]}
           ariaLabel="Type"
         />
@@ -72,10 +67,7 @@ export const AdminAuditsListPage = () => {
           }}
           options={[
             { value: 'all', label: 'Tous les statuts' },
-            { value: 'new', label: statusLabel('new') },
-            { value: 'in_progress', label: statusLabel('in_progress') },
-            { value: 'review', label: statusLabel('review') },
-            { value: 'done', label: statusLabel('done') },
+            ...statuses,
           ]}
           ariaLabel="Statut"
         />
@@ -130,8 +122,8 @@ export const AdminAuditsListPage = () => {
                     <strong>{a.number}</strong>
                     <div className="muted">{formatOptionalFrenchDate(a.createdAt)}</div>
                   </th>
-                  <td>{typeLabel(a.type)}</td>
-                  <td>{statusLabel(a.status)}</td>
+                    <td>{a.typeLabel}</td>
+                    <td>{a.statusLabel}</td>
                   <td className="max-w-[320px] truncate">{a.url}</td>
                   <td>
                     <Link

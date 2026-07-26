@@ -4,20 +4,13 @@ import { LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import type { AuditListItemDto } from '@/features/audits/api/auditsApi';
+import { useAuditMetadata } from '@/features/audits/hooks/useAuditMetadata';
 import { useAdminAuditDetail } from '../hooks/useAdminAuditDetail';
-
-const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-
-const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const AdminAuditDetailPage = () => {
   useDocumentTitle('Admin - Audit');
   const navigate = useNavigate();
+  const { statuses } = useAuditMetadata();
   const {
     audit,
     loading,
@@ -46,10 +39,11 @@ export const AdminAuditDetailPage = () => {
                 onChange={(e) => void updateStatus(e.target.value as AuditListItemDto['status'])}
                 className="border rounded p-1 text-sm"
               >
-                <option value="new">{statusLabel('new')}</option>
-                <option value="in_progress">{statusLabel('in_progress')}</option>
-                <option value="review">{statusLabel('review')}</option>
-                <option value="done">{statusLabel('done')}</option>
+                {statuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
               </select>
               <button
                 className="underline"

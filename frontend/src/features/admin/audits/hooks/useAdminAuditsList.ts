@@ -22,23 +22,6 @@ export const AUDIT_SORTS = [
 export type AuditTypeFilter = (typeof AUDIT_TYPES)[number];
 export type AuditStatusFilter = (typeof AUDIT_STATUSES)[number];
 export type AuditSort = (typeof AUDIT_SORTS)[number];
-const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
-  performance: 'Performance',
-  security: 'Sécurité',
-  ux: 'UX',
-  seo: 'SEO',
-  technical: 'Technique',
-  accessibility: 'Accessibilité',
-};
-const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-export const typeLabel = (value: string) => TYPE_LABELS[value as AuditListItemDto['type']] ?? value;
-export const statusLabel = (value: string) =>
-  STATUS_LABELS[value as AuditListItemDto['status']] ?? value;
 export const isAuditTypeFilter = (value: string): value is AuditTypeFilter =>
   AUDIT_TYPES.includes(value as AuditTypeFilter);
 export const isAuditStatusFilter = (value: string): value is AuditStatusFilter =>

@@ -3,15 +3,7 @@ import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useRequestAudit } from '../hooks/useRequestAudit';
 import type { AuditType } from '../api/auditsApi';
-
-const AUDIT_TYPES: { value: AuditType; label: string }[] = [
-  { value: 'performance', label: 'Performance' },
-  { value: 'security', label: 'Sécurité' },
-  { value: 'ux', label: 'Expérience utilisateur (UX)' },
-  { value: 'seo', label: 'SEO' },
-  { value: 'technical', label: 'Technique complet' },
-  { value: 'accessibility', label: 'Accessibilité numérique' },
-];
+import { useAuditMetadata } from '../hooks/useAuditMetadata';
 
 export const RequestAuditPage = () => {
   useDocumentTitle('Demander un audit');
@@ -26,6 +18,7 @@ export const RequestAuditPage = () => {
     createdNumber,
     onSubmit,
   } = useRequestAudit();
+  const { types } = useAuditMetadata();
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -44,7 +37,7 @@ export const RequestAuditPage = () => {
               value={type}
               onChange={(e) => setType(e.target.value as AuditType)}
             >
-              {AUDIT_TYPES.map((t) => (
+              {types.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>
