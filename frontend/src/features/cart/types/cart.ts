@@ -50,3 +50,8 @@ export interface Cart {
 }
 
 export type CartStatus = 'idle' | 'loading' | 'ready';
+
+export type CartActionOptions = {
+  rentalMonths?: number;
+  currentRentalMonths?: number;
+};

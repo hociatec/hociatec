@@ -8,23 +8,12 @@ import {
 } from 'react';
 
 import {
-  addCartItem,
-  applyVoucherCode as applyVoucherCodeRequest,
   CartApiError,
-  clearCart as clearCartRequest,
-  clearVoucherCode as clearVoucherCodeRequest,
   fetchCart,
-  removeCartItem,
-  updateCartItemQuantity,
 } from '@/features/cart/api/cartApi';
-import type { Cart, CartStatus } from '@/features/cart/types/cart';
+import type { Cart, CartActionOptions, CartStatus } from '@/features/cart/types/cart';
 import { clearCartToken, getPersistedCartToken } from '@/shared/lib/httpClient';
-import { useToast } from '@/shared/components/ui/toast';
-
-type CartActionOptions = {
-  rentalMonths?: number;
-  currentRentalMonths?: number;
-};
+import { useCartActions } from '@/features/cart/hooks/useCartActions';
 
 interface CartContextValue {
   cart: Cart | null;
@@ -76,7 +65,6 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
   const [error, setError] = useState<string | null>(null);
   const [pendingProductIds, setPendingProductIds] = useState<number[]>([]);
   const [isClearing, setIsClearing] = useState(false);
-  const toast = useToast();
 
   const setPending = useCallback((productId: number, pending: boolean) => {
     setPendingProductIds((previous) => {
@@ -136,40 +124,6 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     void initializeCart();
   }, [handleCartError]);
 
-  const addItem = useCallback(
-    async (productId: number, quantity = 1, options?: CartActionOptions) => {
-      setPending(productId, true);
-      try {
-        const updatedCart = await addCartItem(productId, quantity, options);
-        setCart(updatedCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-        throw err;
-      } finally {
-        setPending(productId, false);
-      }
-    },
-    [handleCartError, setPending],
-  );
-
-  const removeItem = useCallback(
-    async (productId: number, options?: CartActionOptions) => {
-      setPending(productId, true);
-      try {
-        const updatedCart = await removeCartItem(productId, options);
-        setCart(updatedCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-        throw err;
-      } finally {
-        setPending(productId, false);
-      }
-    },
-    [handleCartError, setPending],
-  );
-
   const refresh = useCallback(async () => {
     const existingToken = getPersistedCartToken();
 
@@ -200,71 +154,15 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     setStatus('ready');
   }, []);
 
-  const setItemQuantity = useCallback(
-    async (productId: number, quantity: number, options?: CartActionOptions) => {
-      setPending(productId, true);
-      try {
-        const updatedCart = await updateCartItemQuantity(productId, quantity, options);
-        setCart(updatedCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-        throw err;
-      } finally {
-        setPending(productId, false);
-      }
-    },
-    [handleCartError, setPending],
-  );
-
-  const clear = useCallback(async () => {
-    setIsClearing(true);
-    try {
-      const updatedCart = await clearCartRequest();
-      setPendingProductIds([]);
-      setCart(updatedCart);
-      setError(null);
-      toast.show('Panier vidé. Vous pouvez repartir sur une nouvelle sélection.', {
-        variant: 'success',
-      });
-    } catch (err) {
-      const message = handleCartError(err);
-      toast.show(message || "Le panier n'a pas pu être vidé. Réessayez dans quelques secondes.", {
-        variant: 'error',
-      });
-      throw err;
-    } finally {
-      setIsClearing(false);
-    }
-  }, [handleCartError, toast]);
-
-  const applyVoucherCode = useCallback(
-    async (voucherCode: string) => {
-      try {
-        const updatedCart = await applyVoucherCodeRequest(voucherCode);
-        setCart(updatedCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-        throw err;
-      }
-    },
-    [handleCartError],
-  );
-
-  const clearVoucherCode = useCallback(
-    async (cartToken?: string) => {
-      try {
-        const updatedCart = await clearVoucherCodeRequest(cartToken);
-        setCart(updatedCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-        throw err;
-      }
-    },
-    [handleCartError],
-  );
+  const { addItem, removeItem, setItemQuantity, clear, applyVoucherCode, clearVoucherCode } =
+    useCartActions({
+      setCart,
+      setError,
+      setPendingProductIds,
+      setIsClearing,
+      setPending,
+      handleCartError,
+    });
 
   const isProductInCart = useCallback(
     (productId: number, options?: CartActionOptions) => {
