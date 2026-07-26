@@ -33,7 +33,7 @@ final class ClearCartController extends AbstractController
 
         $response = ApiResponse::success([
             'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
-        ]);
+        ], JsonResponse::HTTP_OK, 'Le panier a bien été vidé.');
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;

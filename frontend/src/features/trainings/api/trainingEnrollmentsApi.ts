@@ -1,18 +1,19 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 import type { TrainingEnrollmentDto } from './trainingTypes';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
 
 export const enrollTrainingSession = async (
   sessionId: number,
   startsAt: string,
-): Promise<TrainingEnrollmentDto> => {
+): Promise<ApiMutationResult<TrainingEnrollmentDto & { checkoutUrl?: string | null }>> => {
   return trainingRequest(async () => {
     const res = await httpClient.post<ApiResponse<TrainingEnrollmentDto>>(
       TRAINING_API_ROUTES.enrollments,
       { sessionId, startsAt },
     );
-    return unwrapTrainingData(res.data);
+    const data = unwrapTrainingData(res.data);
+    return { data, message: res.data.status === 'error' ? undefined : res.data.message };
   }, 'Inscription impossible.');
 };
 

@@ -81,11 +81,11 @@ export const useCartActions = ({
   const clear = useCallback(async () => {
     setIsClearing(true);
     try {
-      const updatedCart = await clearCartRequest();
+      const response = await clearCartRequest();
       setPendingProductIds([]);
-      setCart(updatedCart);
+      setCart(response.data);
       setError(null);
-      toast.show('Panier vidé. Vous pouvez repartir sur une nouvelle sélection.', {
+      toast.show(response.message ?? 'Le panier a bien été vidé.', {
         variant: 'success',
       });
     } catch (error) {

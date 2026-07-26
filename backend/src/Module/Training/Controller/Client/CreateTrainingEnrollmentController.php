@@ -48,7 +48,11 @@ final class CreateTrainingEnrollmentController extends AbstractController
             $data['checkoutUrl'] = $result->checkoutUrl;
         }
 
-        return ApiResponse::success($data, $result->created ? Response::HTTP_CREATED : Response::HTTP_OK);
+        return ApiResponse::success(
+            $data,
+            $result->created ? Response::HTTP_CREATED : Response::HTTP_OK,
+            $result->created ? 'Votre inscription à la formation a bien été enregistrée.' : 'Votre inscription à la formation existe déjà.',
+        );
     }
 
     private function currentUser(): User

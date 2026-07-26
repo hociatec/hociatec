@@ -1,7 +1,7 @@
 import axios, { type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 import type { Cart } from '../types/cart';
 
@@ -219,7 +219,7 @@ export const updateCartItemQuantity = async (
   }
 };
 
-export const clearCart = async (): Promise<Cart> => {
+export const clearCart = async (): Promise<ApiMutationResult<Cart>> => {
   try {
     const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart');
     const cart = handleCartResponse(data, 'Impossible de vider le panier.');
@@ -227,7 +227,7 @@ export const clearCart = async (): Promise<Cart> => {
     if (typeof headerToken === 'string' && headerToken !== '') {
       persistCartToken(headerToken);
     }
-    return cart;
+    return { data: cart, message: data.status === 'error' ? undefined : data.message };
   } catch (error) {
     throw toCartError(error, 'Impossible de vider le panier.');
   }

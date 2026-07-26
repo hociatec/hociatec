@@ -62,12 +62,12 @@ export const useTrainingDetail = () => {
     setSubmittingId(session.id);
     setMessage(null);
     try {
-      const enrollment = await enrollTrainingSession(session.id, `${slot.date}T${slot.time}:00`);
-      if (enrollment.checkoutUrl) {
-        window.location.href = enrollment.checkoutUrl;
+      const response = await enrollTrainingSession(session.id, `${slot.date}T${slot.time}:00`);
+      if (response.data.checkoutUrl) {
+        window.location.href = response.data.checkoutUrl;
         return;
       }
-      setMessage('Inscription enregistrée. Retrouvez le suivi dans votre espace formations.');
+      setMessage(response.message ?? 'Votre inscription a bien été enregistrée.');
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Inscription impossible.');
     } finally {
