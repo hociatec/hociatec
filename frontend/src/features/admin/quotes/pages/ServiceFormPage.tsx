@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -10,16 +10,11 @@ import {
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-
-type ServiceFormState = {
-  title: string;
-  description: string;
-  unit: string;
-  durationValue: string;
-  durationUnit: 'hour' | 'day';
-  price: string;
-  vatRate: string;
-};
+import {
+  BILLING_MODE_OPTIONS,
+  ServiceFormFields,
+  type ServiceFormState,
+} from '@/features/admin/quotes/components/ServiceFormFields';
 
 type ServicePayload = {
   title: string;
@@ -30,16 +25,6 @@ type ServicePayload = {
   price: number;
   vatRate: number;
 };
-
-const BILLING_MODE_OPTIONS = [
-  { value: 'prix fixe', label: 'Prix fixe' },
-  { value: 'heure', label: 'Par heure' },
-  { value: 'jour', label: 'Par jour' },
-  { value: 'intervention', label: 'Par intervention' },
-  { value: 'audit', label: 'Par audit' },
-  { value: 'installation', label: 'Par installation' },
-  { value: 'maintenance', label: 'Par maintenance' },
-] as const;
 
 const emptyForm: ServiceFormState = {
   title: '',
@@ -86,12 +71,6 @@ export const ServiceFormPage = () => {
       .catch((e) => setError(getHttpErrorMessage(e, 'Chargement impossible.')))
       .finally(() => setInitialLoading(false));
   }, [isEdit, serviceId]);
-
-  const handleChange =
-    (field: keyof ServiceFormState) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
-    };
 
   const parseNumberField = (value: string): number => {
     const normalized = value.replace(',', '.').trim();
@@ -206,104 +185,7 @@ export const ServiceFormPage = () => {
         <LoadingState>Chargement du service...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
-          <label className="register-form__field">
-            <span className="register-form__label">Titre</span>
-            <input
-              className="register-form__input"
-              placeholder="Intitulé du service"
-              value={form.title}
-              onChange={handleChange('title')}
-              required
-            />
-          </label>
-
-          <label className="register-form__field">
-            <span className="register-form__label">Description</span>
-            <textarea
-              className="register-form__input"
-              rows={4}
-              placeholder="Détails affichés dans le catalogue et les parcours associés"
-              value={form.description}
-              onChange={handleChange('description')}
-            />
-          </label>
-
-          <label className="register-form__field">
-            <span className="register-form__label">Mode de facturation</span>
-            <select
-              className="register-form__input"
-              value={form.unit}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  unit: event.target.value,
-                }))
-              }
-            >
-              {BILLING_MODE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="grid gap-4 md:grid-cols-[1fr_180px]">
-            <label className="register-form__field">
-              <span className="register-form__label">Durée estimée</span>
-              <input
-                className="register-form__input"
-                type="number"
-                min="1"
-                step="1"
-                inputMode="numeric"
-                placeholder="Ex: 2"
-                value={form.durationValue}
-                onChange={handleChange('durationValue')}
-              />
-            </label>
-
-            <label className="register-form__field">
-              <span className="register-form__label">Unité de durée</span>
-              <select
-                className="register-form__input"
-                value={form.durationUnit}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    durationUnit: event.target.value === 'day' ? 'day' : 'hour',
-                  }))
-                }
-              >
-                <option value="hour">Heure(s)</option>
-                <option value="day">Jour(s)</option>
-              </select>
-            </label>
-          </div>
-
-          <label className="register-form__field">
-            <span className="register-form__label">Prix HT (EUR)</span>
-            <input
-              className="register-form__input"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.price}
-              onChange={handleChange('price')}
-            />
-          </label>
-
-          <label className="register-form__field">
-            <span className="register-form__label">TVA (%)</span>
-            <input
-              className="register-form__input"
-              type="number"
-              min="0"
-              step="0.1"
-              value={form.vatRate}
-              onChange={handleChange('vatRate')}
-            />
-          </label>
+          <ServiceFormFields form={form} setForm={setForm} />
 
           <button type="submit" className="register-form__submit" disabled={saving}>
             {saving ? 'Sauvegarde...' : isEdit ? 'Mettre à jour' : 'Créer'}
