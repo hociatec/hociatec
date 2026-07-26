@@ -1,12 +1,25 @@
 import { httpClient } from '@/shared/lib/httpClient';
 
 export type AuditType = 'performance' | 'security' | 'ux' | 'seo' | 'technical' | 'accessibility';
+export type AuditStatus = 'new' | 'in_progress' | 'review' | 'done';
+
+export interface AuditMetadataOption {
+  value: string;
+  label: string;
+}
+
+export interface AuditMetadataDto {
+  types: AuditMetadataOption[];
+  statuses: AuditMetadataOption[];
+}
 
 export interface AuditListItemDto {
   id: number;
   number: string;
   type: AuditType;
-  status: 'new' | 'in_progress' | 'review' | 'done';
+  status: AuditStatus;
+  typeLabel: string;
+  statusLabel: string;
   url: string;
   createdAt: string;
 }
@@ -41,6 +54,11 @@ export async function createAuditRequest(input: {
   objectives?: string;
 }): Promise<{ id: number; number: string }> {
   const res = await httpClient.post('/api/audits', input);
+  return res.data.data;
+}
+
+export async function fetchAuditMetadata(): Promise<AuditMetadataDto> {
+  const res = await httpClient.get('/api/audits/metadata');
   return res.data.data;
 }
 

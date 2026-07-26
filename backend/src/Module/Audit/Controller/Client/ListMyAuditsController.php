@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Audit\Controller\Client;
 
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,8 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAuditsController extends AbstractController
 {
-    public function __construct(private readonly AuditRequestRepository $repository)
-    {
+    public function __construct(
+        private readonly AuditRequestRepository $repository,
+        private readonly AuditMetadataFormatter $metadata,
+    ) {
     }
 
     public function __invoke(): JsonResponse
@@ -27,12 +30,14 @@ class ListMyAuditsController extends AbstractController
         $items = $this->repository->findByUser($user);
 
         return ApiResponse::success([
-            'items' => array_map(static function ($a) {
+            'items' => array_map(function ($a) {
                 return [
                     'id' => $a->getId(),
                     'number' => $a->getNumber(),
                     'type' => $a->getType()->value,
+                    'typeLabel' => $this->metadata->typeLabel($a->getType()),
                     'status' => $a->getStatus(),
+                    'statusLabel' => $this->metadata->statusLabel($a->getStatus()),
                     'url' => $a->getTargetUrl(),
                     'createdAt' => $a->getCreatedAt()->format(DATE_ATOM),
                 ];

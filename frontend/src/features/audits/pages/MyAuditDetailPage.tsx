@@ -2,17 +2,7 @@ import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
-import type { AuditListItemDto } from '../api/auditsApi';
 import { useMyAuditDetail } from '../hooks/useMyAuditDetail';
-
-const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-
-const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const MyAuditDetailPage = () => {
   useDocumentTitle('Détail de mon audit');
@@ -26,7 +16,7 @@ export const MyAuditDetailPage = () => {
         {data && (
           <div className="space-y-4">
             <h1 className="text-2xl font-semibold">Audit {data.number}</h1>
-            <div className="text-sm text-gray-700">Statut : {statusLabel(data.status)}</div>
+            <div className="text-sm text-gray-700">Statut : {data.statusLabel}</div>
             <div className="text-sm text-gray-700">Cible : {data.url}</div>
             <div className="flex gap-3">
               <button className="underline text-brand-700" onClick={() => void downloadReport()}>

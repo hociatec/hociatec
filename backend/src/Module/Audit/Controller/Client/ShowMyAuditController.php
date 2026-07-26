@@ -6,6 +6,7 @@ namespace App\Module\Audit\Controller\Client;
 
 use App\Module\Audit\Repository\AuditEventRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ class ShowMyAuditController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $repository,
         private readonly AuditEventRepository $events,
+        private readonly AuditMetadataFormatter $metadata,
     ) {
     }
 
@@ -39,7 +41,9 @@ class ShowMyAuditController extends AbstractController
             'id' => $audit->getId(),
             'number' => $audit->getNumber(),
             'type' => $audit->getType()->value,
+            'typeLabel' => $this->metadata->typeLabel($audit->getType()),
             'status' => $audit->getStatus(),
+            'statusLabel' => $this->metadata->statusLabel($audit->getStatus()),
             'url' => $audit->getTargetUrl(),
             'objectives' => $audit->getObjectives(),
             'createdAt' => $audit->getCreatedAt()->format(DATE_ATOM),

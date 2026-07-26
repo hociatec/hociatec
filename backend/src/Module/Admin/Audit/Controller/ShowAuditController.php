@@ -6,6 +6,7 @@ namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Repository\AuditEventRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +21,7 @@ class ShowAuditController extends AbstractController
     public function __construct(
         private readonly AuditRequestRepository $repository,
         private readonly AuditEventRepository $events,
+        private readonly AuditMetadataFormatter $metadata,
     ) {
     }
 
@@ -36,7 +38,9 @@ class ShowAuditController extends AbstractController
             'id' => $audit->getId(),
             'number' => $audit->getNumber(),
             'type' => $audit->getType()->value,
+            'typeLabel' => $this->metadata->typeLabel($audit->getType()),
             'status' => $audit->getStatus(),
+            'statusLabel' => $this->metadata->statusLabel($audit->getStatus()),
             'url' => $audit->getTargetUrl(),
             'objectives' => $audit->getObjectives(),
             'client' => [

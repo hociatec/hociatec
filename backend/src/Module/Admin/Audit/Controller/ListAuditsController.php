@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Audit\Controller;
 
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,8 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListAuditsController extends AbstractController
 {
-    public function __construct(private readonly AuditRequestRepository $repository)
-    {
+    public function __construct(
+        private readonly AuditRequestRepository $repository,
+        private readonly AuditMetadataFormatter $metadata,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
@@ -27,12 +30,14 @@ class ListAuditsController extends AbstractController
         $items = $this->repository->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(static function ($a) {
+            array_map(function ($a) {
                 return [
                     'id' => $a->getId(),
                     'number' => $a->getNumber(),
                     'type' => $a->getType()->value,
+                    'typeLabel' => $this->metadata->typeLabel($a->getType()),
                     'status' => $a->getStatus(),
+                    'statusLabel' => $this->metadata->statusLabel($a->getStatus()),
                     'url' => $a->getTargetUrl(),
                     'client' => [
                         'id' => $a->getClient()->getId(),

@@ -3,26 +3,6 @@ import { useMyAudits } from '../hooks/useMyAudits';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import type { AuditListItemDto } from '../api/auditsApi';
-
-const TYPE_LABELS: Record<AuditListItemDto['type'], string> = {
-  performance: 'Performance',
-  security: 'Sécurité',
-  ux: 'UX',
-  seo: 'SEO',
-  technical: 'Technique',
-  accessibility: 'Accessibilité',
-};
-
-const STATUS_LABELS: Record<AuditListItemDto['status'], string> = {
-  new: 'Non commencé',
-  in_progress: 'En cours',
-  review: 'En revue',
-  done: 'Finalisé',
-};
-
-const typeLabel = (t: string) => TYPE_LABELS[t as AuditListItemDto['type']] ?? t;
-const statusLabel = (s: string) => STATUS_LABELS[s as AuditListItemDto['status']] ?? s;
 
 export const MyAuditsPage = () => {
   useDocumentTitle('Mes audits');
@@ -40,11 +20,11 @@ export const MyAuditsPage = () => {
             <li key={a.id} className="py-3 flex items-center justify-between">
               <div>
                 <div className="font-medium">
-                  {a.number} — {typeLabel(a.type)}
+                  {a.number} — {a.typeLabel}
                 </div>
                 <div className="text-sm text-gray-600">{a.url}</div>
               </div>
-              <div className="text-sm">{statusLabel(a.status)}</div>
+              <div className="text-sm">{a.statusLabel}</div>
               <div>
                 <Link className="underline" to={`/audits/me/${a.id}`}>
                   Détails
