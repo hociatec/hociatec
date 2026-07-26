@@ -14,6 +14,7 @@ import {
 } from './operationsTypes';
 import { OperationsShippingQueue } from './OperationsShippingQueue';
 import { OperationsSupportCard } from './OperationsSupportCard';
+import { OperationsRefundCard } from './OperationsRefundCard';
 const { inputClass, primaryActionClass } = operationsUi;
 
 export const OperationsActionsSection = ({
@@ -67,57 +68,7 @@ export const OperationsActionsSection = ({
 
       <OperationsSupportCard supportForm={supportForm} setSupportForm={setSupportForm} submitSupport={submitSupport} />
 
-      <ActionCard
-        title="Créer un suivi de remboursement"
-        description="Ce suivi sert à piloter la décision. Il ne déclenche pas automatiquement un remboursement Stripe."
-        warning="Action comptable sensible : vérifie la commande et le montant avant de marquer le suivi comme traité."
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="ID commande">
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Ex. 128"
-              value={refundForm.orderId}
-              onChange={(e) => setRefundForm((p) => ({ ...p, orderId: e.target.value }))}
-            />
-          </Field>
-          <Field label="Montant" helper="En centimes. Exemple : 1990 = 19,90 €.">
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Ex. 1990"
-              value={refundForm.amountCents}
-              onChange={(e) => setRefundForm((p) => ({ ...p, amountCents: e.target.value }))}
-            />
-          </Field>
-          <Field label="Motif" className="sm:col-span-2">
-            <input
-              className={inputClass}
-              placeholder="Ex. Retour client accepté"
-              value={refundForm.reason}
-              onChange={(e) => setRefundForm((p) => ({ ...p, reason: e.target.value }))}
-            />
-          </Field>
-          <Field label="Notes internes" className="sm:col-span-2">
-            <textarea
-              className={inputClass}
-              rows={3}
-              placeholder="Décision, preuve, référence Stripe si déjà traitée..."
-              value={refundForm.internalNotes}
-              onChange={(e) => setRefundForm((p) => ({ ...p, internalNotes: e.target.value }))}
-            />
-          </Field>
-        </div>
-        <button
-          className={primaryActionClass}
-          type="button"
-          onClick={submitRefund}
-          disabled={!refundForm.orderId || !refundForm.amountCents}
-        >
-          Créer le suivi remboursement
-        </button>
-      </ActionCard>
+      <OperationsRefundCard refundForm={refundForm} setRefundForm={setRefundForm} submitRefund={submitRefund} />
 
       <ActionCard
         title="Corriger un stock"
