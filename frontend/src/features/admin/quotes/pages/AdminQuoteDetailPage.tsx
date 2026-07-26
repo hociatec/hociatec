@@ -5,6 +5,7 @@ import { useAdminQuoteDetail } from '../hooks/useAdminQuoteDetail';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
+import { AdminQuoteDetailItemsTable } from '@/features/admin/quotes/components/AdminQuoteDetailItemsTable';
 import {
   formatDateInputForDisplay,
   formatEuroCents,
@@ -183,35 +184,7 @@ export const AdminQuoteDetailPage = () => {
             <div className="catalog-form-section__header">
               <h2 className="catalog-form-section__title">Articles</h2>
             </div>
-            <div className="quote-table-scroll">
-              <table className="catalog-admin-table">
-                <thead>
-                  <tr>
-                    <th>Article</th>
-                    <th>Description</th>
-                    <th>Qté</th>
-                    <th>PU HT</th>
-                    <th>TVA</th>
-                    <th>Total TTC</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(quote.items ?? []).map((item) => (
-                    <tr key={item.id ?? `${item.name}-${item.quantity}`}>
-                      <td className="quote-strong">{item.name}</td>
-                      <td>{item.description || '-'}</td>
-                      <td>
-                        {item.quantity}
-                        {item.unit ? ` ${item.unit}` : ''}
-                      </td>
-                      <td>{formatEuroCents(item.unitPriceCents ?? 0)}</td>
-                      <td>{item.vatRate ?? 0}%</td>
-                      <td>{formatEuroCents(item?.lineTotals?.ttc ?? 0)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <AdminQuoteDetailItemsTable items={quote.items ?? []} />
           </section>
 
           {quote.conditions ? (
