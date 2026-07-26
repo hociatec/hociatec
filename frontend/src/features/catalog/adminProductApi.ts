@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
 import type { CatalogProduct, UpsertProductPayload } from './apiTypes';
 
@@ -172,7 +172,7 @@ export const deleteProduct = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
   }
 
   throw new Error(extractErrorMessage(data, 'Suppression du produit impossible.'));

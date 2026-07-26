@@ -127,12 +127,12 @@ export const useCreateQuote = () => {
     setError(null);
     setMessage(null);
     try {
-      const created = await createPublicQuote(form);
-      setSavedQuote(created ?? null);
-      toast.show('Devis enregistré. Vous pouvez le retrouver dans votre espace client.', {
+      const response = await createPublicQuote(form);
+      setSavedQuote(response.data ?? null);
+      toast.show(response.message ?? 'Votre devis a bien été enregistré.', {
         variant: 'success',
       });
-      setMessage('Devis enregistré. Vous pouvez le retrouver dans votre espace client.');
+      setMessage(response.message ?? 'Votre devis a bien été enregistré.');
     } catch (e) {
       const messageText = getHttpErrorMessage(
         e,
@@ -166,9 +166,10 @@ export const useCreateQuote = () => {
         setSaving(true);
         setError(null);
         setMessage(null);
-        quote = await createPublicQuote(form);
-        setSavedQuote(quote ?? null);
-        setMessage('Devis enregistré. Le PDF est en cours de préparation.');
+        const response = await createPublicQuote(form);
+        quote = response.data;
+        setSavedQuote(response.data);
+        setMessage(response.message ?? 'Votre devis a bien été enregistré. Le PDF est en cours de préparation.');
       }
 
       const pdf = await generateMyQuotePdf(quote.id);

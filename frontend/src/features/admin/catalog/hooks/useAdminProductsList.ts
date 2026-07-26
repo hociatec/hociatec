@@ -75,9 +75,9 @@ export const useAdminProductsList = () => {
     setError(null);
     setMessage(null);
     try {
-      await deleteProduct(productId);
+      const response = await deleteProduct(productId);
       setProducts((items) => items.filter((item) => item.id !== productId));
-      setMessage('Produit supprimé du catalogue.');
+      setMessage(response.message ?? 'Le produit a bien été supprimé du catalogue.');
     } catch (e) {
       setError(getHttpErrorMessage(e, "Le produit n'a pas pu être supprimé."));
     }

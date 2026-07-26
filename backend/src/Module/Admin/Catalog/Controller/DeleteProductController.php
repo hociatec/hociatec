@@ -37,6 +37,6 @@ class DeleteProductController extends AbstractController
             return ApiResponse::internalError('Impossible de supprimer le produit.');
         }
 
-        return ApiResponse::success(['id' => $id]);
+        return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'Le produit a bien été supprimé du catalogue.');
     }
 }

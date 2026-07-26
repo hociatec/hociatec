@@ -40,6 +40,6 @@ class CreateQuoteController extends AbstractController
             return ApiResponse::internalError('Impossible de créer le devis.');
         }
 
-        return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator), 'Votre devis a bien été enregistré.');
     }
 }

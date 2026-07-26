@@ -1,10 +1,10 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import type { QuoteDto, QuoteInput, QuoteServiceDto } from '../types/quoteTypes';
-import { unwrapQuoteApiData } from './quoteApiShared';
+import { unwrapQuoteApiResult, unwrapQuoteApiData } from './quoteApiShared';
 
 export const createPublicQuote = async (payload: QuoteInput) =>
-  unwrapQuoteApiData(
+  unwrapQuoteApiResult(
     (await httpClient.post<ApiResponse<QuoteDto>>('/api/public/quotes', payload)).data,
   );
 export const fetchPublicQuoteServices = async (): Promise<QuoteServiceDto[]> =>
