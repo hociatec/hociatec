@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import type { CatalogSort } from '../api';
-import { ProductActionToolbar } from '../components/ProductActionToolbar';
-import { ProductCard } from '../components/ProductCard';
+import { CategoryProductGrid } from '../components/CategoryProductGrid';
 import { SiteFooter } from '../../../shared/components/SiteFooter';
 import { SiteHeader } from '../../../shared/components/SiteHeader';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
@@ -320,22 +319,7 @@ export const CategoryPage = () => {
                 )}
               </section>
 
-              <section className="catalog-grid catalog-grid--products">
-                {products.length === 0 ? (
-                  <div className="catalog-empty-state">
-                    Aucun produit ne correspond à ces filtres dans cette catégorie. Essayez une
-                    autre marque, une autre capacité ou retirez le filtre stock.
-                  </div>
-                ) : (
-                  products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      actionSlot={<ProductActionToolbar product={product} />}
-                    />
-                  ))
-                )}
-              </section>
+              <CategoryProductGrid products={products} />
 
               {meta.totalPages > 1 && (
                 <nav className="catalog-pagination" aria-label="Pagination des produits">
