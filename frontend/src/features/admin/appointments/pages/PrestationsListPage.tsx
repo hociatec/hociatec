@@ -57,9 +57,9 @@ export const PrestationsListPage = () => {
     setMessage(null);
 
     try {
-      await deletePrestation(prestationId);
+      const response = await deletePrestation(prestationId);
       await loadPrestations();
-      setMessage('Prestation supprimée.');
+      setMessage(response.message ?? 'La prestation a bien été supprimée.');
     } catch (err) {
       setError(getHttpErrorMessage(err, 'Impossible de supprimer la prestation'));
     }

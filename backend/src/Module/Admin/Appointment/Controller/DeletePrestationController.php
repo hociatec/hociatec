@@ -30,8 +30,6 @@ class DeletePrestationController extends AbstractController
 
         $this->prestationRepository->remove($prestation, true);
 
-        return ApiResponse::success([
-            'id' => $id,
-        ]);
+        return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La prestation a bien été supprimée.');
     }
 }

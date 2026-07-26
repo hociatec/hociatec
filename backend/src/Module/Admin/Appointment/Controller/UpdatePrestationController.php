@@ -62,7 +62,7 @@ class UpdatePrestationController extends AbstractController
             'name' => $prestation->getName(),
             'durationMinutes' => $prestation->getDurationMinutes(),
             'priceCents' => $prestation->getPriceCents(),
-        ]);
+        ], JsonResponse::HTTP_OK, 'La prestation a bien été mise à jour.');
     }
 
     private function normalizePriceToCents(mixed $price): int

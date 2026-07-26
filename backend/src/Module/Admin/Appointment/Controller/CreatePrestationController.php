@@ -56,7 +56,7 @@ class CreatePrestationController extends AbstractController
             'name' => $prestation->getName(),
             'durationMinutes' => $prestation->getDurationMinutes(),
             'priceCents' => $prestation->getPriceCents(),
-        ]);
+        ], 'La prestation a bien été créée.');
     }
 
     private function normalizePriceToCents(mixed $price): int

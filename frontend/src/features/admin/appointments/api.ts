@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 import type { Prestation, WorkingDay } from '@/features/appointments/types/appointments';
 
@@ -43,7 +43,7 @@ export const createPrestation = async (payload: UpsertPrestationPayload) => {
   );
 
   if (isApiOk(data)) {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<Prestation>;
   }
 
   throw new Error(data.message || 'Impossible de créer la prestation');
@@ -56,7 +56,7 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<Prestation>;
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de mettre à jour la prestation'));
@@ -68,7 +68,7 @@ export const deletePrestation = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de supprimer la prestation'));

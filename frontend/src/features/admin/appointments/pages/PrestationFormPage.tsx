@@ -99,11 +99,11 @@ export const PrestationFormPage = () => {
 
     try {
       if (isEdit) {
-        await updatePrestation(Number(prestationId), payload);
-        setMessage('Prestation mise à jour.');
+        const response = await updatePrestation(Number(prestationId), payload);
+        setMessage(response.message ?? 'La prestation a bien été mise à jour.');
       } else {
-        await createPrestation(payload);
-        setMessage('Prestation créée.');
+        const response = await createPrestation(payload);
+        setMessage(response.message ?? 'La prestation a bien été créée.');
         setForm(emptyForm);
       }
 
