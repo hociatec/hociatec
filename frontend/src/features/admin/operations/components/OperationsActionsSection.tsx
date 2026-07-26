@@ -13,6 +13,7 @@ import {
   type SupportForm,
 } from './operationsTypes';
 import { OperationsShippingQueue } from './OperationsShippingQueue';
+import { OperationsSupportCard } from './OperationsSupportCard';
 const { inputClass, primaryActionClass } = operationsUi;
 
 export const OperationsActionsSection = ({
@@ -64,86 +65,7 @@ export const OperationsActionsSection = ({
     <section className="mb-8 grid gap-6 xl:grid-cols-2">
       <OperationsShippingQueue fulfillmentOrders={fulfillmentOrders} shippingForms={shippingForms} setShippingForms={setShippingForms} submitShipOrder={submitShipOrder} />
 
-      <ActionCard
-        title="Créer un dossier SAV"
-        description="À utiliser quand un client signale un problème ou quand une commande nécessite un suivi manuel."
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="ID client" helper="Obligatoire. À récupérer depuis la fiche client.">
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Ex. 42"
-              value={supportForm.customerId}
-              onChange={(e) => setSupportForm((p) => ({ ...p, customerId: e.target.value }))}
-            />
-          </Field>
-          <Field
-            label="ID commande"
-            helper="Optionnel si la demande n’est pas liée à une commande."
-          >
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Ex. 128"
-              value={supportForm.orderId}
-              onChange={(e) => setSupportForm((p) => ({ ...p, orderId: e.target.value }))}
-            />
-          </Field>
-          <Field label="Sujet" className="sm:col-span-2">
-            <input
-              className={inputClass}
-              placeholder="Ex. Produit reçu endommagé"
-              value={supportForm.subject}
-              onChange={(e) => setSupportForm((p) => ({ ...p, subject: e.target.value }))}
-            />
-          </Field>
-          <Field label="Type de demande" className="sm:col-span-2">
-            <select
-              className={inputClass}
-              value={supportForm.reason}
-              onChange={(e) => setSupportForm((p) => ({ ...p, reason: e.target.value }))}
-            >
-              <option value="defective_product">Produit défectueux</option>
-              <option value="wrong_order">Erreur commande</option>
-              <option value="return">Retour</option>
-              <option value="exchange">Échange</option>
-              <option value="refund">Remboursement</option>
-              <option value="other">Autre</option>
-            </select>
-          </Field>
-          <Field label="Message / contexte" className="sm:col-span-2">
-            <textarea
-              className={inputClass}
-              rows={3}
-              placeholder="Résumé clair du problème client"
-              value={supportForm.message}
-              onChange={(e) => setSupportForm((p) => ({ ...p, message: e.target.value }))}
-            />
-          </Field>
-          <Field
-            label="Notes internes"
-            className="sm:col-span-2"
-            helper="Visible uniquement côté admin."
-          >
-            <textarea
-              className={inputClass}
-              rows={3}
-              placeholder="Décision, historique, prochaine action..."
-              value={supportForm.internalNotes}
-              onChange={(e) => setSupportForm((p) => ({ ...p, internalNotes: e.target.value }))}
-            />
-          </Field>
-        </div>
-        <button
-          className={primaryActionClass}
-          type="button"
-          onClick={submitSupport}
-          disabled={!supportForm.customerId}
-        >
-          Créer le dossier SAV
-        </button>
-      </ActionCard>
+      <OperationsSupportCard supportForm={supportForm} setSupportForm={setSupportForm} submitSupport={submitSupport} />
 
       <ActionCard
         title="Créer un suivi de remboursement"
