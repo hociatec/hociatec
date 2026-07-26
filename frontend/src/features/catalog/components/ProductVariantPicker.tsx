@@ -1,4 +1,4 @@
-import type { ProductVariantGroup } from './ProductPageSections';
+import type { ProductVariantGroup } from './productVariantTypes';
 
 export const ProductVariantPicker = ({ currentProductId, groups, onVariantChange }: { currentProductId: number; groups: ProductVariantGroup[]; onVariantChange: (variantId: string) => void }) => (
   <div className="catalog-detail-variant-picker">
