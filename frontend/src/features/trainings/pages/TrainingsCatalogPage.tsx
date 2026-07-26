@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import {
-  formatTrainingCategory,
-} from '@/features/trainings/api/trainingsApi';
+import { formatTrainingCategory } from '@/features/trainings/api/trainingsApi';
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import {
   filterAndSortTrainings,
@@ -15,59 +13,12 @@ import {
   TRAINING_CATALOG_PER_PAGE as PER_PAGE,
 } from '../lib/trainingCatalog';
 import { SiteLayout } from '@/shared/components/SiteLayout';
-import { FilterBar } from '@/shared/components/filters/FilterBar';
-import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
-import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { TrainingCatalogGrid } from '@/features/trainings/components/TrainingCatalogGrid';
-
-interface RangeInputsProps {
-  min: number | null;
-  max: number | null;
-  onChange: (next: { min: number | null; max: number | null }) => void;
-  minLabel: string;
-  maxLabel: string;
-  minPlaceholder: string;
-  maxPlaceholder: string;
-  step?: number;
-}
-
-const RangeInputs = ({
-  min,
-  max,
-  onChange,
-  minLabel,
-  maxLabel,
-  minPlaceholder,
-  maxPlaceholder,
-  step = 1,
-}: RangeInputsProps) => (
-  <div className="flex items-center gap-2">
-    <input
-      type="number"
-      min={0}
-      step={step}
-      value={min ?? ''}
-      onChange={(event) => onChange({ min: toNullableNumber(event.target.value), max })}
-      placeholder={minPlaceholder}
-      aria-label={minLabel}
-      className="w-28 rounded-full border border-brand-200 px-4 py-2 text-sm"
-    />
-    <span className="text-sm text-stone-500">à</span>
-    <input
-      type="number"
-      min={0}
-      step={step}
-      value={max ?? ''}
-      onChange={(event) => onChange({ min, max: toNullableNumber(event.target.value) })}
-      placeholder={maxPlaceholder}
-      aria-label={maxLabel}
-      className="w-28 rounded-full border border-brand-200 px-4 py-2 text-sm"
-    />
-  </div>
-);
+import { TrainingCatalogFilters } from '@/features/trainings/components/TrainingCatalogFilters';
+import { TrainingCatalogPagination } from '@/features/trainings/components/TrainingCatalogPagination';
 
 export const TrainingsCatalogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -178,7 +129,6 @@ export const TrainingsCatalogPage = () => {
     (currentPage - 1) * PER_PAGE,
     currentPage * PER_PAGE,
   );
-  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
   const resultSummary = query
     ? `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} pour "${query}"`
     : `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} affichée${filteredTrainings.length > 1 ? 's' : ''}`;
@@ -223,105 +173,30 @@ export const TrainingsCatalogPage = () => {
           </div>
         ) : (
           <>
-            <section
-              className="rounded-xl border border-brand-100 bg-white p-4 shadow-sm"
-              aria-label="Filtres formations"
-            >
-              <p id="training-filter-summary" className="mb-3 text-sm font-medium text-stone-700">
-                {resultSummary}
-              </p>
-              <FilterBar
-                className="catalog-filter-bar catalog-filter-bar--stacked"
-                rightActions={<ResetFiltersButton onReset={resetFilters} />}
-              >
-                <SelectFilter
-                  value={category}
-                  onChange={(next) => updateParam('category', next)}
-                  options={categoryOptions}
-                  ariaLabel="Catégorie de formation"
-                />
-                <SelectFilter
-                  value={format}
-                  onChange={(next) => updateParam('format', next)}
-                  options={formatOptions}
-                  ariaLabel="Format de formation"
-                />
-                <RangeInputs
-                  min={minPrice}
-                  max={maxPrice}
-                  onChange={(next) => updateRange('minPrice', 'maxPrice', next)}
-                  minLabel="Prix minimum en euros"
-                  maxLabel="Prix maximum en euros"
-                  minPlaceholder="Prix min"
-                  maxPlaceholder="Prix max"
-                  step={10}
-                />
-                <RangeInputs
-                  min={minDuration}
-                  max={maxDuration}
-                  onChange={(next) => updateRange('minDuration', 'maxDuration', next)}
-                  minLabel="Durée minimum en minutes"
-                  maxLabel="Durée maximum en minutes"
-                  minPlaceholder="Durée min"
-                  maxPlaceholder="Durée max"
-                  step={15}
-                />
-                <SelectFilter
-                  value={sort}
-                  onChange={(next) => updateParam('sort', next)}
-                  options={[
-                    { value: 'title_asc', label: 'Titre A à Z' },
-                    { value: 'price_asc', label: 'Prix croissant' },
-                    { value: 'price_desc', label: 'Prix décroissant' },
-                    { value: 'duration_asc', label: 'Durée courte à longue' },
-                    { value: 'duration_desc', label: 'Durée longue à courte' },
-                  ]}
-                  ariaLabel="Tri des formations"
-                />
-              </FilterBar>
-              {(priceHint || durationHint) && (
-                <p className="mt-3 text-sm text-stone-500">
-                  {priceHint ? `Prix disponibles : ${priceHint}. ` : ''}
-                  {durationHint ? `Durées disponibles : ${durationHint}.` : ''}
-                </p>
-              )}
-            </section>
+            <TrainingCatalogFilters
+              resultSummary={resultSummary}
+              category={category}
+              format={format}
+              sort={sort}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              minDuration={minDuration}
+              maxDuration={maxDuration}
+              categoryOptions={categoryOptions}
+              formatOptions={formatOptions}
+              priceHint={priceHint}
+              durationHint={durationHint}
+              updateParam={updateParam}
+              updateRange={updateRange}
+              resetFilters={resetFilters}
+            />
 
             <TrainingCatalogGrid trainings={paginatedTrainings} categoryName={categoryName} />
-            {totalPages > 1 ? (
-              <nav
-                className="flex flex-wrap items-center justify-center gap-2"
-                aria-label="Pagination des formations"
-              >
-                <button
-                  type="button"
-                  className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 disabled:opacity-40"
-                  disabled={currentPage === 1}
-                  onClick={() => updateParam('page', String(currentPage - 1))}
-                >
-                  Précédent
-                </button>
-                {pageNumbers.map((pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    className={`rounded-full border px-4 py-2 text-sm font-semibold ${pageNumber === currentPage ? 'border-brand-900 bg-brand-900 text-white' : 'border-brand-200 text-stone-700'}`}
-                    aria-current={pageNumber === currentPage ? 'page' : undefined}
-                    onClick={() => updateParam('page', String(pageNumber))}
-                  >
-                    {pageNumber}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 disabled:opacity-40"
-                  disabled={currentPage === totalPages}
-                  onClick={() => updateParam('page', String(currentPage + 1))}
-                >
-                  Suivant
-                </button>
-              </nav>
-            ) : null}
+            <TrainingCatalogPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              updatePage={(nextPage) => updateParam('page', String(nextPage))}
+            />
           </>
         )}
       </main>
