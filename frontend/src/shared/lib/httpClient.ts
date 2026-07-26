@@ -1,7 +1,13 @@
 import axios, { AxiosHeaders, isAxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 import { API_BASE_URL } from '../config/appConfig';
-export { getHttpErrorMessage, getHttpErrorMessageAsync } from './httpErrors';
+export {
+  ApiResponseError,
+  createApiResponseError,
+  getHttpErrorMessage,
+  getHttpErrorMessageAsync,
+} from './httpErrors';
+import { createApiResponseError } from './httpErrors';
 
 const CART_TOKEN_KEY = 'hociatec.cart.token';
 const LEGACY_AUTH_TOKEN_KEY = 'hociatec.auth.token';
@@ -171,7 +177,12 @@ const refreshAuthSession = async () => {
 };
 
 httpClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const apiError = createApiResponseError(response.data);
+    if (apiError) throw apiError;
+
+    return response;
+  },
   async (error: unknown) => {
     if (!isAxiosError(error) || error.response?.status !== 401 || !error.config) {
       throw error;

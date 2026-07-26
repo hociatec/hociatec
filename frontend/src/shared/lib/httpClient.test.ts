@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 
-import { getHttpErrorMessage, getHttpErrorMessageAsync, shouldAttachCsrfToken } from './httpClient';
+import { ApiResponseError, createApiResponseError, getHttpErrorMessage, getHttpErrorMessageAsync, shouldAttachCsrfToken } from './httpClient';
 
 describe('getHttpErrorMessage', () => {
   it('prefers the API message when present', () => {
@@ -34,6 +34,24 @@ describe('getHttpErrorMessage', () => {
     });
 
     await expect(getHttpErrorMessageAsync(error)).resolves.toBe('Génération PDF accessible indisponible.');
+  });
+});
+
+describe('createApiResponseError', () => {
+  it('preserves the backend message and validation details', () => {
+    const error = createApiResponseError({
+      status: 'error',
+      message: 'Le formulaire est invalide.',
+      details: ['Le prix est obligatoire.'],
+    });
+
+    expect(error).toBeInstanceOf(ApiResponseError);
+    expect(error?.message).toBe('Le formulaire est invalide.');
+    expect(error?.details).toEqual(['Le prix est obligatoire.']);
+  });
+
+  it('ignores successful API envelopes', () => {
+    expect(createApiResponseError({ status: 'success', data: {} })).toBeNull();
   });
 });
 

@@ -1,5 +1,26 @@
 import { isAxiosError } from 'axios';
 
+export class ApiResponseError extends Error {
+  readonly details: string[];
+
+  constructor(message: string, details: string[] = []) {
+    super(message);
+    this.name = 'ApiResponseError';
+    this.details = details;
+  }
+}
+
+export const createApiResponseError = (payload: unknown): ApiResponseError | null => {
+  if (!payload || typeof payload !== 'object') return null;
+  const response = payload as { status?: unknown; message?: unknown; details?: unknown };
+  if (response.status !== 'error' || typeof response.message !== 'string') return null;
+
+  return new ApiResponseError(
+    response.message,
+    Array.isArray(response.details) ? response.details.map(String) : [],
+  );
+};
+
 export const getHttpErrorMessage = (
   error: unknown,
   fallback = 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
