@@ -2,21 +2,10 @@ import { useOrderDetail } from '@/features/orders/hooks/useOrderDetail';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
-import { formatOrderStatusFr } from '@/features/orders/api';
 import { OrderInvoiceCard } from '@/features/orders/components/OrderInvoiceCard';
 import { OrderItemsReviewTable } from '@/features/orders/components/OrderItemsReviewTable';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/shared/components/ui/alert-dialog';
+import { OrderDetailSummary } from '@/features/orders/components/OrderDetailSummary';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 export const OrderDetailPage = () => {
   useDocumentTitle('Détail de la commande');
@@ -48,72 +37,12 @@ export const OrderDetailPage = () => {
         )}
         {order && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Commande {order.number}</div>
-                <div className="text-sm text-gray-600">
-                  Passée le {formatOptionalFrenchDate(order.createdAt)}
-                </div>
-                {order.appliedPromotion ? (
-                  <div className="mt-2 text-sm text-green-700">
-                    Réduction appliquée: {order.appliedPromotion.name}
-                  </div>
-                ) : null}
-              </div>
-              <div className="space-y-2 text-right">
-                {typeof order.subtotalPriceCents === 'number' &&
-                (order.discountAmountCents ?? 0) > 0 ? (
-                  <div className="text-sm text-gray-600">
-                    <div>Sous-total: {formatEuroCents(order.subtotalPriceCents)}</div>
-                    <div className="font-semibold text-emerald-700">
-                      Remise: - {formatEuroCents(order.discountAmountCents ?? 0)}
-                    </div>
-                  </div>
-                ) : null}
-                <div className="font-semibold">{formatEuroCents(order.totalPriceCents)}</div>
-                <div className="text-sm capitalize">
-                  Statut: {order.statusLabel ?? formatOrderStatusFr(order.status)}
-                </div>
-                {order.status === 'pending' && (
-                  <button
-                    type="button"
-                    className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
-                    onClick={() => void handlePayOrder()}
-                    disabled={paying}
-                  >
-                    {paying ? 'Redirection...' : 'Régler cette commande'}
-                  </button>
-                )}
-                {order.status === 'pending' && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button type="button" className="text-red-600 underline">
-                        Annuler la commande
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Voulez-vous annuler cette commande en attente ? Cette action est
-                          irréversible.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Non</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            void handleCancelOrder();
-                          }}
-                        >
-                          Oui, annuler
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-            </div>
+            <OrderDetailSummary
+              order={order}
+              onPay={() => void handlePayOrder()}
+              onCancel={() => void handleCancelOrder()}
+              paying={paying}
+            />
 
             {order.invoice && <OrderInvoiceCard invoice={order.invoice} canDownloadInvoice={canDownloadInvoice} onDownloadPdf={() => void handleDownloadInvoicePdf()} onDownloadXml={() => void handleDownloadInvoiceXml()} />}
 
