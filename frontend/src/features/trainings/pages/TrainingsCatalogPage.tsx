@@ -1,202 +1,56 @@
-import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-
-import { formatTrainingCategory } from '@/features/trainings/api/trainingsApi';
-import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
-import {
-  filterAndSortTrainings,
-  getActiveTrainingCategories,
-  normalizeTrainingParam,
-  normalizeTrainingSort,
-  toNullableNumber,
-  TRAINING_CATALOG_ALL as ALL,
-  TRAINING_CATALOG_PER_PAGE as PER_PAGE,
-} from '../lib/trainingCatalog';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { TrainingCatalogFilters } from '@/features/trainings/components/TrainingCatalogFilters';
+import { TrainingCatalogGrid } from '@/features/trainings/components/TrainingCatalogGrid';
+import { TrainingCatalogPagination } from '@/features/trainings/components/TrainingCatalogPagination';
+import { useTrainingCatalogController } from '@/features/trainings/hooks/useTrainingCatalogController';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
-import { TrainingCatalogGrid } from '@/features/trainings/components/TrainingCatalogGrid';
-import { TrainingCatalogFilters } from '@/features/trainings/components/TrainingCatalogFilters';
-import { TrainingCatalogPagination } from '@/features/trainings/components/TrainingCatalogPagination';
 
 export const TrainingsCatalogPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   useDocumentTitle('Formations');
   useMetaTags({
     title: 'Formations — Hociatec',
-    description:
-      'Formations Hociatec en présentiel ou distanciel, organisées autour de feuilles de route concrètes.',
+    description: 'Formations Hociatec en présentiel ou distanciel, organisées autour de feuilles de route concrètes.',
     canonicalUrl: `${SITE_URL}/formations`,
   });
-
-  const { trainings, categories, loading, error } = usePublicTrainingsCatalogData();
-
-  const category = normalizeTrainingParam(searchParams.get('category'));
-  const query = searchParams.get('q')?.trim() ?? '';
-  const format = normalizeTrainingParam(searchParams.get('format'));
-  const sort = normalizeTrainingSort(searchParams.get('sort'));
-  const minPrice = toNullableNumber(searchParams.get('minPrice'));
-  const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
-  const minDuration = toNullableNumber(searchParams.get('minDuration'));
-  const maxDuration = toNullableNumber(searchParams.get('maxDuration'));
-  const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
-
-  const availableCategories = useMemo(
-    () => getActiveTrainingCategories(categories, trainings),
-    [categories, trainings],
-  );
-
-  const categoryOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Toutes les catégories' },
-      ...availableCategories.map((item) => ({
-        value: item.slug,
-        label: `${item.name} (${trainings.filter((training) => training.category === item.slug).length})`,
-      })),
-    ],
-    [availableCategories, trainings],
-  );
-
-  const formatOptions = useMemo(
-    () => [
-      { value: ALL, label: 'Tous les formats' },
-      {
-        value: 'onsite',
-        label: `Présentiel (${trainings.filter((training) => training.availableFormats.includes('onsite')).length})`,
-      },
-      {
-        value: 'remote',
-        label: `Distanciel (${trainings.filter((training) => training.availableFormats.includes('remote')).length})`,
-      },
-    ],
-    [trainings],
-  );
-
-  const categoryName = (slug: string) =>
-    categories.find((item) => item.slug === slug)?.name ?? formatTrainingCategory(slug);
-
-  const filteredTrainings = useMemo(
-    () =>
-      filterAndSortTrainings(
-        trainings,
-        { category, format, query, sort, minPrice, maxPrice, minDuration, maxDuration },
-        categoryName,
-      ),
-    [
-      category,
-      format,
-      maxDuration,
-      maxPrice,
-      minDuration,
-      minPrice,
-      query,
-      sort,
-      trainings,
-      categories,
-    ],
-  );
-
-  const updateParam = (key: string, value: string | null) => {
-    const next = new URLSearchParams(searchParams);
-    if (value === null || value === '' || value === ALL) next.delete(key);
-    else next.set(key, value);
-    if (key !== 'page') next.delete('page');
-    setSearchParams(next, { replace: true });
-  };
-
-  const updateRange = (
-    minKey: string,
-    maxKey: string,
-    nextRange: { min: number | null; max: number | null },
-  ) => {
-    const next = new URLSearchParams(searchParams);
-    if (nextRange.min === null) next.delete(minKey);
-    else next.set(minKey, String(nextRange.min));
-    if (nextRange.max === null) next.delete(maxKey);
-    else next.set(maxKey, String(nextRange.max));
-    next.delete('page');
-    setSearchParams(next, { replace: true });
-  };
-
-  const resetFilters = () => {
-    setSearchParams(new URLSearchParams(), { replace: true });
-  };
-
-  const totalPages = Math.max(1, Math.ceil(filteredTrainings.length / PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedTrainings = filteredTrainings.slice(
-    (currentPage - 1) * PER_PAGE,
-    currentPage * PER_PAGE,
-  );
-  const resultSummary = query
-    ? `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} pour "${query}"`
-    : `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} affichée${filteredTrainings.length > 1 ? 's' : ''}`;
-  const priceValues = trainings.map((training) => training.priceCents / 100);
-  const durationValues = trainings.map((training) => training.durationMinutes);
-  const hasPriceRange = priceValues.length > 0;
-  const hasDurationRange = durationValues.length > 0;
-  const priceHint = hasPriceRange
-    ? `${Math.min(...priceValues)} € à ${Math.max(...priceValues)} €`
-    : null;
-  const durationHint = hasDurationRange
-    ? `${Math.min(...durationValues)} à ${Math.max(...durationValues)} min`
-    : null;
+  const controller = useTrainingCatalogController();
 
   return (
     <SiteLayout headerVariant="light">
       <main className="public-directory-page mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
-          <span className="inline-flex w-fit rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-800">
-            Formations Hociatec
-          </span>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
-            Formations accompagnées
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">
-            Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route
-            pratique.
-          </p>
+          <span className="inline-flex w-fit rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-800">Formations Hociatec</span>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">Formations accompagnées</h1>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route pratique.</p>
         </header>
-
-        {loading ? (
-          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">
-            Chargement des formations...
-          </div>
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
-            {error}
-          </div>
-        ) : trainings.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">
-            Aucune formation publiée pour le moment.
-          </div>
+        {controller.loading ? (
+          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">Chargement des formations...</div>
+        ) : controller.error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-700">{controller.error}</div>
+        ) : controller.trainings.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">Aucune formation publiée pour le moment.</div>
         ) : (
           <>
             <TrainingCatalogFilters
-              resultSummary={resultSummary}
-              category={category}
-              format={format}
-              sort={sort}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              minDuration={minDuration}
-              maxDuration={maxDuration}
-              categoryOptions={categoryOptions}
-              formatOptions={formatOptions}
-              priceHint={priceHint}
-              durationHint={durationHint}
-              updateParam={updateParam}
-              updateRange={updateRange}
-              resetFilters={resetFilters}
+              resultSummary={controller.resultSummary}
+              category={controller.category}
+              format={controller.format}
+              sort={controller.sort}
+              minPrice={controller.minPrice}
+              maxPrice={controller.maxPrice}
+              minDuration={controller.minDuration}
+              maxDuration={controller.maxDuration}
+              categoryOptions={controller.categoryOptions}
+              formatOptions={controller.formatOptions}
+              priceHint={controller.priceHint}
+              durationHint={controller.durationHint}
+              updateParam={controller.updateParam}
+              updateRange={controller.updateRange}
+              resetFilters={controller.resetFilters}
             />
-
-            <TrainingCatalogGrid trainings={paginatedTrainings} categoryName={categoryName} />
-            <TrainingCatalogPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              updatePage={(nextPage) => updateParam('page', String(nextPage))}
-            />
+            <TrainingCatalogGrid trainings={controller.paginatedTrainings} categoryName={controller.categoryName} />
+            <TrainingCatalogPagination currentPage={controller.currentPage} totalPages={controller.totalPages} updatePage={(nextPage) => controller.updateParam('page', String(nextPage))} />
           </>
         )}
       </main>
