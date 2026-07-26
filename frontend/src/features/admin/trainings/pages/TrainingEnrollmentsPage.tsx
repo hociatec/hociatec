@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 
 import {
   fetchAdminTrainingEnrollments,
-  formatTrainingEnrollmentStatus,
   updateAdminTrainingEnrollmentStatus,
   type TrainingEnrollmentDto,
   type TrainingEnrollmentStatus,
@@ -81,7 +80,7 @@ export const TrainingEnrollmentsPage = () => {
                 <tr key={enrollment.id}>
                   <td>{enrollment.session.training.title}</td>
                   <td>{formatFrenchDateTime(enrollment.scheduledStartsAt)}</td>
-                  <td>{formatTrainingEnrollmentStatus(enrollment.status)}</td>
+                  <td>{enrollment.statusLabel}</td>
                   <td>
                     <select
                       className="select-filter"

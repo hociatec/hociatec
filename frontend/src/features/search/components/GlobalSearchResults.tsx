@@ -5,8 +5,6 @@ import type { CatalogProduct } from '@/features/catalog/apiTypes';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
-  formatTrainingCategory,
-  formatTrainingFormat,
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
@@ -107,10 +105,10 @@ export const TrainingSearchResults = ({ trainings }: { trainings: TrainingDto[] 
       <SearchCard
         key={training.id}
         to={`/formations/${training.slug}`}
-        label={`${formatTrainingCategory(training.category)} · ${formatDuration(training.durationMinutes)}`}
+        label={`${training.categoryDetails?.name ?? ''} · ${formatDuration(training.durationMinutes)}`}
         title={training.title}
         description={training.shortDescription}
-        price={`${formatEuroCents(training.priceCents)} · ${training.availableFormats.map(formatTrainingFormat).join(', ')}`}
+        price={`${formatEuroCents(training.priceCents)} · ${training.availableFormatDetails.map((format) => format.label).join(', ')}`}
       />
     ))}
   </div>

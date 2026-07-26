@@ -1,9 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
 
-import {
-  formatTrainingEnrollmentStatus,
-  formatTrainingFormat,
-} from '@/features/trainings/api/trainingsApi';
 import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
 import { trainingEnrollmentStatusClassName } from '../lib/trainingEnrollment';
 import { SiteLayout } from '@/shared/components/SiteLayout';
@@ -46,7 +42,7 @@ export const MyTrainingDetailPage = () => {
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${trainingEnrollmentStatusClassName(enrollment.status)}`}
               >
-                {formatTrainingEnrollmentStatus(enrollment.status)}
+                {enrollment.statusLabel}
               </span>
             ) : null}
           </div>
@@ -101,7 +97,7 @@ export const MyTrainingDetailPage = () => {
                   <div>
                     <dt className="text-stone-500">Format</dt>
                     <dd className="font-medium text-brand-900">
-                      {formatTrainingFormat(enrollment.session.format)}
+                      {enrollment.session.formatLabel}
                     </dd>
                   </div>
                   <div>
@@ -129,7 +125,7 @@ export const MyTrainingDetailPage = () => {
                   <div>
                     <dt className="text-stone-500">Statut</dt>
                     <dd className="font-medium text-brand-900">
-                      {formatTrainingEnrollmentStatus(enrollment.status)}
+                      {enrollment.statusLabel}
                     </dd>
                   </div>
                   <div>

@@ -56,7 +56,7 @@ export const filterAndSortTrainings = (
           training.shortDescription,
           training.objective,
           training.audience,
-          categoryName(training.category),
+          training.categoryDetails?.name ?? categoryName(training.category),
         ].some((value) => normalizeTrainingSearch(value).includes(normalizedQuery));
       return (
         matchesQuery &&

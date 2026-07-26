@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { formatTrainingCategory } from '@/features/trainings/api/trainingsApi';
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import {
   filterAndSortTrainings,
@@ -36,7 +35,8 @@ export const useTrainingCatalogController = () => {
     { value: 'onsite', label: `Présentiel (${trainings.filter((training) => training.availableFormats.includes('onsite')).length})` },
     { value: 'remote', label: `Distanciel (${trainings.filter((training) => training.availableFormats.includes('remote')).length})` },
   ], [trainings]);
-  const categoryName = (slug: string) => categories.find((item) => item.slug === slug)?.name ?? formatTrainingCategory(slug);
+  const categoryName = (slug: string) =>
+    trainings.find((training) => training.category === slug)?.categoryDetails?.name ?? '';
   const filteredTrainings = useMemo(() => filterAndSortTrainings(trainings, { category, format, query, sort, minPrice, maxPrice, minDuration, maxDuration }, categoryName), [category, format, maxDuration, maxPrice, minDuration, minPrice, query, sort, trainings, categories]);
 
   const updateParam = (key: string, value: string | null) => {

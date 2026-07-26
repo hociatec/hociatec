@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import { formatTrainingFormat } from '@/features/trainings/api/trainingsApi';
 import type { TrainingDto } from '@/features/trainings/api/trainingsApi';
 import { formatTrainingDuration } from '@/features/trainings/lib/trainingCatalog';
 import { formatEuroCents } from '@/shared/lib/formatters';
@@ -10,8 +9,8 @@ export const TrainingCatalogGrid = ({ trainings, categoryName }: { trainings: Tr
     {trainings.map((training) => (
       <article key={training.id} className="flex h-full flex-col rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">{categoryName(training.category)}</span>
-          {training.availableFormats.map((format) => <span key={format} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-stone-700">{formatTrainingFormat(format)}</span>)}
+          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">{training.categoryDetails?.name ?? categoryName(training.category)}</span>
+          {training.availableFormatDetails.map((format) => <span key={format.value} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-stone-700">{format.label}</span>)}
         </div>
         <h2 className="mt-4 text-2xl font-semibold text-brand-900">{training.title}</h2>
         <p className="mt-3 min-h-[4rem] text-sm leading-6 text-stone-600">{training.shortDescription || training.objective || 'Formation accompagnée avec feuille de route.'}</p>

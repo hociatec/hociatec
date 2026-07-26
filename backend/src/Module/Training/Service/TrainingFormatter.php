@@ -12,8 +12,10 @@ use App\Module\Training\Repository\TrainingEnrollmentRepository;
 
 final class TrainingFormatter
 {
-    public function __construct(private readonly TrainingEnrollmentRepository $enrollments)
-    {
+    public function __construct(
+        private readonly TrainingEnrollmentRepository $enrollments,
+        private readonly TrainingMetadataFormatter $metadata,
+    ) {
     }
 
     /** @return array<string, mixed> */
@@ -27,9 +29,11 @@ final class TrainingFormatter
             'objective' => $training->getObjective(),
             'audience' => $training->getAudience(),
             'category' => $training->getCategory(),
+            'categoryDetails' => $this->metadata->category($training->getCategory()),
             'durationMinutes' => $training->getDurationMinutes(),
             'priceCents' => $training->getPriceCents(),
             'availableFormats' => $training->getAvailableFormats(),
+            'availableFormatDetails' => $this->metadata->formats($training->getAvailableFormats()),
             'isActive' => $training->isActive(),
             'roadmap' => array_map(
                 static fn (TrainingRoadmapItem $item): array => [
@@ -51,6 +55,7 @@ final class TrainingFormatter
             'id' => $session->getId(),
             'training' => $this->formatTraining($session->getTraining()),
             'format' => $session->getFormat(),
+            'formatLabel' => $this->metadata->formatLabel($session->getFormat()),
             'startsAt' => $session->getStartsAt()->format(\DateTimeImmutable::ATOM),
             'endsAt' => $session->getEndsAt()->format(\DateTimeImmutable::ATOM),
             'dailyStartTime' => $session->getDailyStartTime()->format('H:i'),
@@ -62,6 +67,12 @@ final class TrainingFormatter
             'enrolledCount' => $enrolledCount,
             'remainingSeats' => max(0, $session->getCapacity() - $enrolledCount),
             'status' => $session->getStatus(),
+            'statusLabel' => match ($session->getStatus()) {
+                'scheduled' => 'Planifiée',
+                'cancelled' => 'Annulée',
+                'completed' => 'Terminée',
+                default => $session->getStatus(),
+            },
         ];
     }
 
@@ -71,6 +82,7 @@ final class TrainingFormatter
         return [
             'id' => $enrollment->getId(),
             'status' => $enrollment->getStatus(),
+            'statusLabel' => $this->metadata->enrollmentStatusLabel($enrollment->getStatus()),
             'priceCents' => $enrollment->getPriceCents(),
             'scheduledStartsAt' => $enrollment->getScheduledStartsAt()->format(\DateTimeImmutable::ATOM),
             'scheduledEndsAt' => $enrollment->getScheduledEndsAt()->format(\DateTimeImmutable::ATOM),

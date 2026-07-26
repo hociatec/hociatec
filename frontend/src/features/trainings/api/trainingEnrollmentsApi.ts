@@ -1,11 +1,7 @@
 import { httpClient, getHttpErrorMessage } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import type { TrainingEnrollmentDto } from './trainingTypes';
-
-const unwrapData = <T>(response: ApiResponse<T>): T => {
-  if (response.status === 'error') throw new Error(response.message);
-  return response.data;
-};
+import { TRAINING_API_ROUTES, unwrapTrainingData } from './trainingApiShared';
 
 export const enrollTrainingSession = async (
   sessionId: number,
@@ -13,10 +9,10 @@ export const enrollTrainingSession = async (
 ): Promise<TrainingEnrollmentDto> => {
   try {
     const res = await httpClient.post<ApiResponse<TrainingEnrollmentDto>>(
-      '/api/trainings/enrollments',
+      TRAINING_API_ROUTES.enrollments,
       { sessionId, startsAt },
     );
-    return unwrapData(res.data);
+    return unwrapTrainingData(res.data);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Inscription impossible.'));
   }
@@ -24,7 +20,7 @@ export const enrollTrainingSession = async (
 
 export const fetchMyTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>(
-    '/api/trainings/enrollments/me',
+    TRAINING_API_ROUTES.myEnrollments,
   );
-  return unwrapData(res.data).items;
+  return unwrapTrainingData(res.data).items;
 };

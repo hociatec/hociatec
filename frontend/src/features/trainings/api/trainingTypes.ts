@@ -2,15 +2,16 @@ export type TrainingFormat = 'onsite' | 'remote';
 export type TrainingEnrollmentStatus =
   'pending_payment' | 'paid' | 'confirmed' | 'completed' | 'cancelled';
 
-export const FALLBACK_TRAINING_CATEGORIES = [
-  { value: 'bases', label: 'Bases numériques' },
-  { value: 'securite', label: 'Sécurité et sauvegarde' },
-  { value: 'productivite', label: 'Productivité' },
-  { value: 'web', label: 'Web et présence en ligne' },
-  { value: 'ia', label: 'Intelligence artificielle' },
-  { value: 'entreprise', label: 'Entreprise' },
-  { value: 'general', label: 'Général' },
-] as const;
+export interface TrainingCategoryReference {
+  id: number | null;
+  name: string;
+  slug: string;
+}
+
+export interface TrainingFormatOption {
+  value: string;
+  label: string;
+}
 
 export interface TrainingCategoryDto {
   id: number;
@@ -46,12 +47,15 @@ export interface TrainingDto {
   availableFormats: TrainingFormat[];
   isActive: boolean;
   roadmap: TrainingRoadmapItemDto[];
+  categoryDetails: TrainingCategoryReference | null;
+  availableFormatDetails: TrainingFormatOption[];
 }
 
 export interface TrainingSessionDto {
   id: number;
   training: TrainingDto;
   format: TrainingFormat;
+  formatLabel: string;
   startsAt: string;
   endsAt: string;
   dailyStartTime: string;
@@ -63,11 +67,13 @@ export interface TrainingSessionDto {
   enrolledCount: number;
   remainingSeats: number;
   status: string;
+  statusLabel: string;
 }
 
 export interface TrainingEnrollmentDto {
   id: number;
-  status: TrainingEnrollmentStatus | string;
+  status: TrainingEnrollmentStatus;
+  statusLabel: string;
   priceCents: number;
   scheduledStartsAt: string;
   scheduledEndsAt: string;
@@ -105,23 +111,3 @@ export interface TrainingSessionInput {
   capacity: number;
   status: string;
 }
-
-export const formatTrainingFormat = (format?: string | null) =>
-  format === 'remote' ? 'Distanciel' : format === 'onsite' ? 'Présentiel' : '-';
-
-export const formatTrainingCategory = (category?: string | null) =>
-  FALLBACK_TRAINING_CATEGORIES.find((item) => item.value === category)?.label ??
-  category ??
-  'Général';
-
-export const formatTrainingEnrollmentStatus = (status?: string | null) => {
-  const labels: Record<string, string> = {
-    pending_payment: 'Paiement en attente',
-    paid: 'Payée',
-    confirmed: 'Confirmée',
-    completed: 'Terminée',
-    cancelled: 'Annulée',
-  };
-
-  return status ? (labels[status] ?? status) : '-';
-};

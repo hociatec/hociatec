@@ -1,9 +1,6 @@
 import { Link } from 'react-router-dom';
 
 import {
-  formatTrainingCategory,
-  formatTrainingFormat,
-  type TrainingCategoryDto,
   type TrainingDto,
   type TrainingEnrollmentDto,
   type TrainingSessionDto,
@@ -14,7 +11,6 @@ import { AdminTrainingEnrollmentsTable } from './AdminTrainingEnrollmentsTable';
 
 type AdminTrainingsCatalogSectionsProps = {
   trainings: TrainingDto[];
-  categories: TrainingCategoryDto[];
   sessions: TrainingSessionDto[];
   enrollments: TrainingEnrollmentDto[];
   onDeleteTraining: (training: TrainingDto) => void;
@@ -23,14 +19,13 @@ type AdminTrainingsCatalogSectionsProps = {
 
 export const AdminTrainingsCatalogSections = ({
   trainings,
-  categories,
   sessions,
   enrollments,
   onDeleteTraining,
   onDeleteSession,
 }: AdminTrainingsCatalogSectionsProps) => {
   const categoryName = (slug: string) =>
-    categories.find((category) => category.slug === slug)?.name ?? formatTrainingCategory(slug);
+    trainings.find((training) => training.category === slug)?.categoryDetails?.name ?? '';
 
   return (
     <div className="space-y-8">
@@ -78,7 +73,7 @@ export const AdminTrainingsCatalogSections = ({
                     </td>
                     <td>{formatEuroCents(training.priceCents)}</td>
                     <td>{categoryName(training.category)}</td>
-                    <td>{training.availableFormats.map(formatTrainingFormat).join(', ')}</td>
+                    <td>{training.availableFormatDetails.map((format) => format.label).join(', ')}</td>
                     <td>{training.isActive ? 'Publiée' : 'Masquée'}</td>
                     <td>
                       <div className="catalog-admin-actions">
@@ -148,7 +143,7 @@ export const AdminTrainingsCatalogSections = ({
                         {session.includeWeekends ? 'Week-end inclus' : 'Hors week-end'}
                       </p>
                     </td>
-                    <td>{formatTrainingFormat(session.format)}</td>
+                    <td>{session.formatLabel}</td>
                     <td>{session.capacity} par créneau</td>
                     <td>
                       <div className="catalog-admin-actions">

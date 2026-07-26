@@ -5,7 +5,6 @@ import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
   fetchPublicTrainings,
-  formatTrainingCategory,
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
 
@@ -73,7 +72,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
             training.shortDescription,
             training.objective,
             training.audience,
-            formatTrainingCategory(training.category),
+            training.categoryDetails?.name,
           ]),
         );
 

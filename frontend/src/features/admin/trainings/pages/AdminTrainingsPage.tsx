@@ -12,7 +12,6 @@ export const AdminTrainingsPage = () => {
 
   const {
     trainings,
-    categories,
     sessions,
     enrollments,
     loading,
@@ -66,7 +65,6 @@ export const AdminTrainingsPage = () => {
       >
         <AdminTrainingsCatalogSections
           trainings={trainings}
-          categories={categories}
           sessions={sessions}
           enrollments={enrollments}
           onDeleteTraining={(training) => void handleDelete(training)}

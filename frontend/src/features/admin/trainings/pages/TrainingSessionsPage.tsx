@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import {
   deleteAdminTrainingSession,
   fetchAdminTrainingSessions,
-  formatTrainingFormat,
   type TrainingSessionDto,
 } from '@/features/trainings/api/trainingsApi';
 import { PageContainer } from '@/shared/components/PageContainer';
@@ -109,7 +108,7 @@ export const TrainingSessionsPage = () => {
                       {session.includeWeekends ? 'Week-end inclus' : 'Hors week-end'}
                     </p>
                   </td>
-                  <td>{formatTrainingFormat(session.format)}</td>
+                  <td>{session.formatLabel}</td>
                   <td>{session.capacity} par créneau</td>
                   <td>
                     <div className="catalog-admin-actions">

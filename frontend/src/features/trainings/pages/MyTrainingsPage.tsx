@@ -1,9 +1,5 @@
 import { Link } from 'react-router-dom';
 
-import {
-  formatTrainingEnrollmentStatus,
-  formatTrainingFormat,
-} from '@/features/trainings/api/trainingsApi';
 import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -75,9 +71,9 @@ export const MyTrainingsPage = () => {
                         ) : null}
                       </td>
                       <td>{formatFrenchDateTime(item.scheduledStartsAt)}</td>
-                      <td>{formatTrainingFormat(item.session.format)}</td>
+                      <td>{item.session.formatLabel}</td>
                       <td>{formatEuroCents(item.priceCents)}</td>
-                      <td>{formatTrainingEnrollmentStatus(item.status)}</td>
+                      <td>{item.statusLabel}</td>
                       <td>
                         <Link
                           to={`/trainings/me/${item.id}`}
