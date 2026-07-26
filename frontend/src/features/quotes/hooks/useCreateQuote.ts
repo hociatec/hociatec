@@ -16,7 +16,7 @@ import {
   type QuoteItem,
 } from '@/features/quotes/utils/quoteFormUtils';
 
-type QuoteDraft = QuoteInput & {
+export type QuoteDraft = QuoteInput & {
   items: QuoteItem[];
 };
 

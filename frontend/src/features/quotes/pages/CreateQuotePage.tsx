@@ -3,6 +3,7 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { PublicQuoteSelectionList } from '@/features/quotes/components/PublicQuoteSelectionList';
+import { QuoteCustomerFields } from '@/features/quotes/components/QuoteCustomerFields';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { formatQuoteDate, formatQuotePrice } from '@/features/quotes/utils/quoteFormUtils';
 import { useCreateQuote } from '@/features/quotes/hooks/useCreateQuote';
@@ -43,58 +44,7 @@ export const CreateQuotePage = () => {
 
         <div className="quote-builder grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="md:col-span-2 space-y-6">
-            <section>
-              <h3 className="font-semibold mb-2">Coordonnées du demandeur</h3>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <label className="register-form__field">
-                  <span>Nom complet</span>
-                  <input
-                    placeholder="Ex. Camille Martin"
-                    value={form.customer?.name ?? ''}
-                    onChange={(e) =>
-                      setForm({ ...form, customer: { ...form.customer, name: e.target.value } })
-                    }
-                    disabled={status === 'authenticated'}
-                  />
-                </label>
-                <label className="register-form__field">
-                  <span>Email de contact</span>
-                  <input
-                    placeholder="Ex. camille@entreprise.fr"
-                    value={form.customer?.email ?? ''}
-                    onChange={(e) =>
-                      setForm({ ...form, customer: { ...form.customer, email: e.target.value } })
-                    }
-                    disabled={status === 'authenticated'}
-                  />
-                </label>
-                <label className="register-form__field">
-                  <span>
-                    Entreprise <span className="text-stone-500">(facultatif)</span>
-                  </span>
-                  <input
-                    placeholder="Ex. Hociatec"
-                    value={form.customer?.company ?? ''}
-                    onChange={(e) =>
-                      setForm({ ...form, customer: { ...form.customer, company: e.target.value } })
-                    }
-                  />
-                </label>
-                <label className="register-form__field">
-                  <span>
-                    Adresse de facturation <span className="text-stone-500">(facultatif)</span>
-                  </span>
-                  <input
-                    placeholder="Rue, code postal et ville"
-                    value={form.customer?.address ?? ''}
-                    onChange={(e) =>
-                      setForm({ ...form, customer: { ...form.customer, address: e.target.value } })
-                    }
-                    disabled={status === 'authenticated'}
-                  />
-                </label>
-              </div>
-            </section>
+            <QuoteCustomerFields form={form} setForm={setForm} authenticated={status === 'authenticated'} />
 
             <section>
               <h3 className="font-semibold mb-2">Produits et services à chiffrer</h3>

@@ -6,6 +6,7 @@ import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/u
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { formatOrderStatusFr } from '@/features/orders/api';
+import { OrderInvoiceCard } from '@/features/orders/components/OrderInvoiceCard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,72 +124,7 @@ export const OrderDetailPage = () => {
               </div>
             </div>
 
-            {order.invoice && (
-              <div className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
-                <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 className="font-semibold">Facture</h2>
-                    {order.invoice.number ? (
-                      <div className="text-sm text-stone-600">{order.invoice.number}</div>
-                    ) : null}
-                    {order.invoice.issuedAt ? (
-                      <div className="text-sm text-stone-500">
-                        Émise le {formatOptionalFrenchDate(order.invoice.issuedAt)}
-                      </div>
-                    ) : null}
-                    <div className="text-sm text-stone-500">
-                      Format électronique: {order.invoice.electronicFormat}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void handleDownloadInvoicePdf()}
-                      disabled={!canDownloadInvoice}
-                      title={
-                        !canDownloadInvoice
-                          ? 'La facture est disponible uniquement pour une commande réglée non annulée.'
-                          : undefined
-                      }
-                    >
-                      Télécharger la facture PDF
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void handleDownloadInvoiceXml()}
-                      disabled={!canDownloadInvoice}
-                      title={
-                        !canDownloadInvoice
-                          ? 'La facture est disponible uniquement pour une commande réglée non annulée.'
-                          : undefined
-                      }
-                    >
-                      Télécharger le XML
-                    </button>
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <div>{order.invoice.billingName}</div>
-                  {order.invoice.billingCompany ? <div>{order.invoice.billingCompany}</div> : null}
-                  {order.invoice.billingCompanySiren ? (
-                    <div>SIREN : {order.invoice.billingCompanySiren}</div>
-                  ) : null}
-                  {order.invoice.billingCompanyVatNumber ? (
-                    <div>TVA : {order.invoice.billingCompanyVatNumber}</div>
-                  ) : null}
-                  {order.invoice.purchaseOrderNumber ? (
-                    <div>Bon de commande : {order.invoice.purchaseOrderNumber}</div>
-                  ) : null}
-                  <div>{order.invoice.billingAddress}</div>
-                  <div>
-                    {order.invoice.billingPostalCode} {order.invoice.billingCity}
-                  </div>
-                  {order.invoice.billingEmail ? <div>{order.invoice.billingEmail}</div> : null}
-                </div>
-              </div>
-            )}
+            {order.invoice && <OrderInvoiceCard invoice={order.invoice} canDownloadInvoice={canDownloadInvoice} onDownloadPdf={() => void handleDownloadInvoicePdf()} onDownloadXml={() => void handleDownloadInvoiceXml()} />}
 
             <div>
               <h2 className="mb-2 font-semibold">Livraison</h2>
