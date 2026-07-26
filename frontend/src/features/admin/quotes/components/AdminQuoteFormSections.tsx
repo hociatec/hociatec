@@ -1,6 +1,7 @@
 import { type Dispatch, type SetStateAction } from 'react';
 
 import { AdminQuoteItemsTable } from '@/features/admin/quotes/components/AdminQuoteItemsTable';
+import { AdminQuoteCatalogSearchResults } from './AdminQuoteCatalogSearchResults';
 import { type CatalogProduct } from '@/features/catalog/api';
 import type {
   QuoteDto,
@@ -9,7 +10,6 @@ import type {
   QuoteStatus,
 } from '@/features/quotes/types/quoteTypes';
 import { type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
-import { formatEuroCents } from '@/shared/lib/formatters';
 import { AdminQuoteCustomerFields, AdminQuoteSettingsSummary } from './AdminQuoteCustomerAndSettings';
 
 export type AdminQuoteFormState = {
@@ -96,129 +96,16 @@ export const QuoteEditorGrid = ({
             </p>
           )}
         </div>
-        <div className="space-y-6">
-          {filteredServices.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Services ({filteredServices.length})</h2>
-              <div className="space-y-2 max-h-64 overflow-auto">
-                {filteredServices.map((service) => (
-                  <div key={service.id} className="rounded border border-brand-100 p-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold">{service.title}</div>
-                        <div className="text-xs text-stone-500">
-                          {service.priceCents != null ? formatEuroCents(service.priceCents) : ''}
-                        </div>
-                      </div>
-                      {quote.items.some(
-                        (item) => item.type === 'service' && item.serviceId === service.id,
-                      ) ? (
-                        <button
-                          type="button"
-                          className="catalog-admin-actions__delete"
-                          onClick={() =>
-                            setQuote((current) =>
-                              current
-                                ? {
-                                    ...current,
-                                    items: current.items.filter(
-                                      (item) =>
-                                        !(item.type === 'service' && item.serviceId === service.id),
-                                    ),
-                                  }
-                                : current,
-                            )
-                          }
-                        >
-                          Retirer
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="catalog-admin-actions__edit"
-                          onClick={() => onAddItemFromService(service.id)}
-                        >
-                          Ajouter
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {filteredProducts.length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Produits ({filteredProducts.length})</h2>
-              <div className="space-y-2 max-h-64 overflow-auto">
-                {filteredProducts.map((product) => (
-                  <div key={product.id} className="rounded border border-brand-100 p-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold">{product.name}</div>
-                        <div className="text-xs text-stone-500">Référence: {product.sku}</div>
-                        <div className="text-xs text-stone-500">
-                          {formatEuroCents(product.effectivePriceCents ?? product.priceCents)}
-                          {product.sellingType === 'rental' ? ' / mois' : ''}
-                        </div>
-                      </div>
-                      {product.sellingType === 'rental' ? (
-                        <button
-                          type="button"
-                          className="catalog-admin-actions__edit"
-                          onClick={() => {
-                            const exists = quote.items.some(
-                              (item) => item.type === 'product' && item.productId === product.id,
-                            );
-                            if (exists) {
-                              setRentalCandidate(product);
-                              setRentalDialogOpen(true);
-                            } else {
-                              onAddItemFromProduct(product.id);
-                            }
-                          }}
-                        >
-                          Ajouter
-                        </button>
-                      ) : quote.items.some(
-                          (item) => item.type === 'product' && item.productId === product.id,
-                        ) ? (
-                        <button
-                          type="button"
-                          className="catalog-admin-actions__delete"
-                          onClick={() =>
-                            setQuote((current) =>
-                              current
-                                ? {
-                                    ...current,
-                                    items: current.items.filter(
-                                      (item) =>
-                                        !(item.type === 'product' && item.productId === product.id),
-                                    ),
-                                  }
-                                : current,
-                            )
-                          }
-                        >
-                          Retirer
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="catalog-admin-actions__edit"
-                          onClick={() => onAddItemFromProduct(product.id)}
-                        >
-                          Ajouter
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <AdminQuoteCatalogSearchResults
+          filteredProducts={filteredProducts}
+          filteredServices={filteredServices}
+          onAddItemFromProduct={onAddItemFromProduct}
+          onAddItemFromService={onAddItemFromService}
+          quote={quote}
+          setQuote={setQuote}
+          setRentalCandidate={setRentalCandidate}
+          setRentalDialogOpen={setRentalDialogOpen}
+        />
 
         <AdminQuoteItemsTable
           items={quote.items}
