@@ -128,9 +128,9 @@ export const AdminTradeInsPage = () => {
     });
     if (!confirmed) return;
     try {
-      await adminDeleteTradeIn(request.id);
+      const response = await adminDeleteTradeIn(request.id);
       if (selected?.id === request.id) setSelected(null);
-      toast.show('Demande supprimée.', { variant: 'success' });
+      toast.show(response.message ?? 'La demande de reprise a bien été supprimée.', { variant: 'success' });
       await load();
     } catch (deleteError) {
       setError(getHttpErrorMessage(deleteError));
@@ -140,7 +140,7 @@ export const AdminTradeInsPage = () => {
   const closeTradeIn = async () => {
     if (!selected || !finalOffer || !paymentMethod || !paymentStatus) return;
     try {
-      await adminCloseTradeIn(selected.id, {
+      const response = await adminCloseTradeIn(selected.id, {
         finalOfferCents: Math.round(Number(finalOffer.replace(',', '.')) * 100),
         paymentMethod,
         paymentStatus,
@@ -148,7 +148,7 @@ export const AdminTradeInsPage = () => {
         note: closureNote,
       });
       setSelected(null);
-      toast.show('Reprise clôturée et justificatif généré.', { variant: 'success' });
+      toast.show(response.message ?? 'La reprise a été clôturée et le justificatif a été généré.', { variant: 'success' });
       await load();
     } catch (closeError) {
       setError(getHttpErrorMessage(closeError));

@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import type { TradeInDto, TradeInInput, TradeInMetadataDto, TradeInStatus } from './types';
 
 export async function fetchTradeInMetadata(): Promise<TradeInMetadataDto> {
@@ -46,8 +47,10 @@ export async function adminSetTradeInStatus(id: number, status: TradeInStatus): 
   await httpClient.put(`/api/admin/trade-ins/${id}/status`, { status });
 }
 
-export async function adminDeleteTradeIn(id: number): Promise<void> {
-  await httpClient.delete(`/api/admin/trade-ins/${id}`);
+export async function adminDeleteTradeIn(id: number): Promise<ApiMutationResult<unknown>> {
+  const response = await httpClient.delete<ApiResponse<unknown>>(`/api/admin/trade-ins/${id}`);
+  if (!isApiOk(response.data)) throw new Error('Réponse API invalide.');
+  return { data: response.data.data, message: response.data.message };
 }
 
 export async function adminDownloadTradeInDocument(id: number, document: 'rib' | 'receipt'): Promise<Blob> {
@@ -58,6 +61,8 @@ export async function downloadMyTradeInReceipt(id: number): Promise<Blob> {
   return (await httpClient.get(`/api/trade-ins/${id}/receipt`, { responseType: 'blob' })).data as Blob;
 }
 
-export async function adminCloseTradeIn(id: number, payload: { finalOfferCents: number; paymentMethod: string; paymentStatus: string; transactionReference?: string; note?: string }): Promise<void> {
-  await httpClient.post(`/api/admin/trade-ins/${id}/close`, payload);
+export async function adminCloseTradeIn(id: number, payload: { finalOfferCents: number; paymentMethod: string; paymentStatus: string; transactionReference?: string; note?: string }): Promise<ApiMutationResult<unknown>> {
+  const response = await httpClient.post<ApiResponse<unknown>>(`/api/admin/trade-ins/${id}/close`, payload);
+  if (!isApiOk(response.data)) throw new Error('Réponse API invalide.');
+  return { data: response.data.data, message: response.data.message };
 }
