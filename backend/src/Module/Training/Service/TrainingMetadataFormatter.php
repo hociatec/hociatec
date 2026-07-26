@@ -24,7 +24,8 @@ final class TrainingMetadataFormatter
     }
 
     /**
-     * @param list<string> $formats
+     * @param array<mixed> $formats
+     *
      * @return list<array{value: string, label: string}>
      */
     public function formats(array $formats): array
@@ -34,13 +35,19 @@ final class TrainingMetadataFormatter
             'remote' => 'Distanciel',
         ];
 
-        return array_map(
-            static fn (string $format): array => [
+        $options = [];
+        foreach ($formats as $format) {
+            if (!is_string($format) || '' === trim($format)) {
+                continue;
+            }
+
+            $options[] = [
                 'value' => $format,
                 'label' => $labels[$format] ?? $format,
-            ],
-            $formats,
-        );
+            ];
+        }
+
+        return $options;
     }
 
     public function formatLabel(string $format): string

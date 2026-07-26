@@ -27,7 +27,7 @@ export const AdminOrderDeliverySection = ({ order, deliveryForm, deliverySaving,
     </div>
     <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <div className="rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-stone-700">
-        <div><span className="font-medium text-brand-900">Étape</span> : {order.delivery?.statusLabel ?? 'Préparation en cours'}</div>
+        <div><span className="font-medium text-brand-900">Étape</span> : {order.delivery?.statusLabel ?? '—'}</div>
         <div><span className="font-medium text-brand-900">Transporteur</span> : {order.delivery?.carrier || '-'}</div>
         <div><span className="font-medium text-brand-900">Numéro de suivi</span> : {order.delivery?.trackingNumber || '-'}</div>
         <div><span className="font-medium text-brand-900">Date estimée</span> : {formatOptionalFrenchDateTime(order.delivery?.estimatedAt)}</div>

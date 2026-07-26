@@ -47,7 +47,7 @@ export interface OrderInvoiceDto {
 
 export interface OrderDeliveryDto {
   status: string;
-  statusLabel?: string;
+  statusLabel: string;
   carrier?: string | null;
   trackingNumber?: string | null;
   trackingUrl?: string | null;

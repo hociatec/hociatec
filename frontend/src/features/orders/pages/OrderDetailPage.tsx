@@ -60,7 +60,7 @@ export const OrderDetailPage = () => {
               {order.delivery ? (
                 <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-stone-700">
                   <div className="font-semibold text-brand-900">
-                    {order.delivery.statusLabel ?? 'Préparation en cours'}
+                    {order.delivery.statusLabel}
                   </div>
                   <div className="mt-2">
                     <span className="font-medium text-brand-900">Transporteur</span> :{' '}

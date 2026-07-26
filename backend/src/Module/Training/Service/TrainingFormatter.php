@@ -21,6 +21,11 @@ final class TrainingFormatter
     /** @return array<string, mixed> */
     public function formatTraining(Training $training): array
     {
+        $availableFormats = array_values(array_filter(
+            $training->getAvailableFormats(),
+            static fn (string $format): bool => '' !== trim($format),
+        ));
+
         return [
             'id' => $training->getId(),
             'title' => $training->getTitle(),
@@ -32,8 +37,8 @@ final class TrainingFormatter
             'categoryDetails' => $this->metadata->category($training->getCategory()),
             'durationMinutes' => $training->getDurationMinutes(),
             'priceCents' => $training->getPriceCents(),
-            'availableFormats' => $training->getAvailableFormats(),
-            'availableFormatDetails' => $this->metadata->formats($training->getAvailableFormats()),
+            'availableFormats' => $availableFormats,
+            'availableFormatDetails' => $this->metadata->formats($availableFormats),
             'isActive' => $training->isActive(),
             'roadmap' => array_map(
                 static fn (TrainingRoadmapItem $item): array => [
