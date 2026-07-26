@@ -17,7 +17,7 @@ import {
 export const PaymentsListPage = () => {
   useDocumentTitle('Admin - Paiements');
 
-  const { items, status, setStatus, search, setSearch, loading, error } = useAdminPaymentsList();
+  const { items, status, setStatus, statusOptions, search, setSearch, loading, error } = useAdminPaymentsList();
 
   return (
     <PageContainer size="admin" title="Paiements">
@@ -41,10 +41,7 @@ export const PaymentsListPage = () => {
           onChange={(value) => setStatus(value as typeof status)}
           options={[
             { value: 'all', label: 'Tous les paiements' },
-            { value: 'open', label: 'Ouverts' },
-            { value: 'paid', label: 'Payés' },
-            { value: 'failed', label: 'Échoués' },
-            { value: 'expired', label: 'Expirés' },
+            ...statusOptions,
           ]}
           ariaLabel="Statut de paiement"
         />

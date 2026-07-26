@@ -4,7 +4,14 @@ import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
   AdminPaymentLiveStripeDto,
+  OrderStatusOptionDto,
 } from './orderTypes';
+
+export const fetchAdminPaymentMetadata = async (): Promise<{ statuses: OrderStatusOptionDto[] }> => {
+  const { data } = await httpClient.get<ApiResponse<{ statuses: OrderStatusOptionDto[] }>>('/api/admin/payments/metadata');
+  if (isApiOk(data)) return data.data;
+  throw new Error(data.message);
+};
 
 export const fetchAdminPayments = async (
   status: 'all' | 'open' | 'paid' | 'expired' | 'failed' = 'all',

@@ -66,6 +66,18 @@ final class AdminPaymentFormatter
         };
     }
 
+    /** @return list<array{value: string, label: string}> */
+    public function statusOptions(): array
+    {
+        $statuses = [OrderCheckoutSession::STATUS_OPEN, OrderCheckoutSession::STATUS_PAID, OrderCheckoutSession::STATUS_FAILED, OrderCheckoutSession::STATUS_EXPIRED];
+        $options = [];
+        foreach ($statuses as $status) {
+            $options[] = ['value' => $status, 'label' => $this->statusLabel($status)];
+        }
+
+        return $options;
+    }
+
     public function stripePaymentStatusLabel(?string $status): ?string
     {
         return match ($status) {
