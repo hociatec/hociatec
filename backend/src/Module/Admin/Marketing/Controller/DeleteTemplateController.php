@@ -32,6 +32,6 @@ final class DeleteTemplateController extends AbstractController
 
         $this->manager->delete($template);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le modèle d’e-mail a bien été supprimé.');
     }
 }

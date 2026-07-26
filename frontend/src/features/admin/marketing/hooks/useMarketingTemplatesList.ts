@@ -71,9 +71,9 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
     )
       return;
     try {
-      await deleteMarketingTemplate(id);
+      const response = await deleteMarketingTemplate(id);
       setTemplates((items) => items.filter((item) => item.id !== id));
-      setMessage('Modèle supprimé.');
+      setMessage(response.message ?? 'Le modèle d’e-mail a bien été supprimé.');
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Suppression impossible.'));
     }

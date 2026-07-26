@@ -71,6 +71,6 @@ final class UpdateTemplateController extends AbstractController
                 'textBody' => $template->getTextBody(),
                 'isActive' => $template->isActive(),
             ],
-        ]);
+        ], JsonResponse::HTTP_OK, 'Le modèle d’e-mail a bien été mis à jour.');
     }
 }

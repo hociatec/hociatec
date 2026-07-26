@@ -68,11 +68,11 @@ export const useMarketingTemplateForm = () => {
     setError(null);
     try {
       if (isEdit && templateId) {
-        await updateMarketingTemplate(Number(templateId), form);
-        setMessage('Modèle mis à jour.');
+        const response = await updateMarketingTemplate(Number(templateId), form);
+        setMessage(response.message ?? 'Le modèle d’e-mail a bien été mis à jour.');
       } else {
-        await createMarketingTemplate(form);
-        setMessage('Modèle créé.');
+        const response = await createMarketingTemplate(form);
+        setMessage(response.message ?? 'Le modèle d’e-mail a bien été créé.');
       }
       window.setTimeout(
         () =>

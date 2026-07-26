@@ -59,6 +59,6 @@ final class CreateTemplateController extends AbstractController
                 'textBody' => $template->getTextBody(),
                 'isActive' => $template->isActive(),
             ],
-        ]);
+        ], 'Le modèle d’e-mail a bien été créé.');
     }
 }

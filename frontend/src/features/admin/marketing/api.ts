@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 export type MarketingSegmentDefinition = {
   label: string;
@@ -83,27 +84,31 @@ export const fetchMarketingTemplate = async (templateId: number): Promise<Market
 
 export const createMarketingTemplate = async (
   payload: MarketingTemplatePayload,
-): Promise<MarketingTemplate> => {
-  const { data } = await httpClient.post<{ data: { template: MarketingTemplate } }>(
+): Promise<ApiMutationResult<MarketingTemplate>> => {
+  const { data } = await httpClient.post<ApiResponse<{ template: MarketingTemplate }>>(
     '/api/admin/marketing/templates',
     payload,
   );
-  return data.data.template;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.template, message: data.message };
 };
 
 export const updateMarketingTemplate = async (
   templateId: number,
   payload: MarketingTemplatePayload,
-): Promise<MarketingTemplate> => {
-  const { data } = await httpClient.put<{ data: { template: MarketingTemplate } }>(
+): Promise<ApiMutationResult<MarketingTemplate>> => {
+  const { data } = await httpClient.put<ApiResponse<{ template: MarketingTemplate }>>(
     `/api/admin/marketing/templates/${templateId}`,
     payload,
   );
-  return data.data.template;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data.template, message: data.message };
 };
 
-export const deleteMarketingTemplate = async (templateId: number): Promise<void> => {
-  await httpClient.delete(`/api/admin/marketing/templates/${templateId}`);
+export const deleteMarketingTemplate = async (templateId: number) => {
+  const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/marketing/templates/${templateId}`);
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return { data: data.data, message: data.message };
 };
 
 export const fetchMarketingCampaigns = async (): Promise<MarketingCampaign[]> => {
