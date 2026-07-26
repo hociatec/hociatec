@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
@@ -8,25 +8,14 @@ import {
   createRefund,
   createStockMovement,
   createSupportRequest,
-  fetchEmailLogs,
-  fetchFulfillmentOrders,
-  fetchOperationsOverview,
-  fetchRefunds,
-  fetchStockMovements,
-  fetchSupportRequests,
   processStripeRefund,
   replySupportRequest,
   shipFulfillmentOrder,
   updateLowStockThreshold,
   updateRefund,
   updateSupportRequest,
-  type EmailLogDto,
-  type FulfillmentOrderDto,
-  type OperationsOverviewDto,
-  type RefundRequestDto,
-  type StockMovementDto,
-  type SupportRequestDto,
 } from '@/features/admin/operations/api';
+import { useAdminOperationsData } from './useAdminOperationsData';
 import type {
   BulkForm,
   RefundForm,
@@ -51,14 +40,22 @@ const emptyShippingForm = { carrier: '', trackingNumber: '', trackingUrl: '' };
 
 export const useAdminOperations = () => {
   const navigate = useNavigate();
-  const [overview, setOverview] = useState<OperationsOverviewDto | null>(null);
-  const [support, setSupport] = useState<SupportRequestDto[]>([]);
-  const [refunds, setRefunds] = useState<RefundRequestDto[]>([]);
-  const [stock, setStock] = useState<StockMovementDto[]>([]);
-  const [emails, setEmails] = useState<EmailLogDto[]>([]);
-  const [fulfillmentOrders, setFulfillmentOrders] = useState<FulfillmentOrderDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [message, setMessage] = useState<string | null>(null);
+  const {
+    overview,
+    support,
+    refunds,
+    stock,
+    emails,
+    fulfillmentOrders,
+    status,
+    message: dataMessage,
+    refresh,
+  } = useAdminOperationsData();
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const refreshOperations = useCallback(async () => {
+    setActionMessage(null);
+    await refresh();
+  }, [refresh]);
   const [supportForm, setSupportForm] = useState<SupportForm>(emptySupportForm);
   const [refundForm, setRefundForm] = useState<RefundForm>(emptyRefundForm);
   const [stockForm, setStockForm] = useState<StockForm>(emptyStockForm);
@@ -73,47 +70,17 @@ export const useAdminOperations = () => {
   const [refundConfirmations, setRefundConfirmations] = useState<Record<number, string>>({});
   const [stockThresholds, setStockThresholds] = useState<Record<number, string>>({});
 
-  const refresh = useCallback(async () => {
-    setStatus('loading');
-    setMessage(null);
-    try {
-      const [overviewData, supportData, refundData, stockData, emailData, fulfillmentData] =
-        await Promise.all([
-          fetchOperationsOverview(),
-          fetchSupportRequests(),
-          fetchRefunds(),
-          fetchStockMovements(),
-          fetchEmailLogs(),
-          fetchFulfillmentOrders(),
-        ]);
-      setOverview(overviewData);
-      setSupport(supportData);
-      setRefunds(refundData);
-      setStock(stockData);
-      setEmails(emailData);
-      setFulfillmentOrders(fulfillmentData);
-      setStatus('success');
-    } catch (error) {
-      setMessage(getHttpErrorMessage(error, 'Erreur de chargement.'));
-      setStatus('error');
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
   const runAction = useCallback(
     async (action: () => Promise<void>, successMessage: string, fallback: string) => {
       try {
         await action();
-        await refresh();
-        setMessage(successMessage);
+        await refreshOperations();
+        setActionMessage(successMessage);
       } catch (error) {
-        setMessage(getHttpErrorMessage(error, fallback));
+        setActionMessage(getHttpErrorMessage(error, fallback));
       }
     },
-    [refresh],
+    [refreshOperations],
   );
 
   const submitSupport = useCallback(
@@ -198,7 +165,7 @@ export const useAdminOperations = () => {
     setQuoteConversionMessage(null);
     void convertQuoteToOrder(reference)
       .then((order) => {
-        setMessage(`Devis converti en commande ${order.number}.`);
+        setActionMessage(`Devis converti en commande ${order.number}.`);
         setQuoteReference('');
         navigate(`/admin/orders/${order.id}`);
       })
@@ -252,7 +219,7 @@ export const useAdminOperations = () => {
           const refund = await processStripeRefund(refundId, {
             confirmation: refundConfirmations[refundId] ?? '',
           });
-          setMessage(
+          setActionMessage(
             `Remboursement Stripe traité : ${refund.stripeRefundId ?? 'référence Stripe créée'}.`,
           );
           setRefundConfirmations((current) => ({ ...current, [refundId]: '' }));
@@ -319,8 +286,8 @@ export const useAdminOperations = () => {
     emails,
     fulfillmentOrders,
     status,
-    message,
-    refresh,
+    message: actionMessage ?? dataMessage,
+    refresh: refreshOperations,
     failedEmails,
     hasPriorities,
     supportForm,
