@@ -13,6 +13,7 @@ import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/http
 import {
   createDefaultQuoteValidity,
   DEFAULT_QUOTE_CONDITIONS,
+  calculateQuoteTotals,
   type QuoteItem,
 } from '@/features/quotes/utils/quoteFormUtils';
 
@@ -92,22 +93,7 @@ export const useCreateQuote = () => {
     }, 300);
   }, [searchQuery]);
 
-  const totals = useMemo(() => {
-    let ht = 0;
-    let vat = 0;
-    for (const it of form.items ?? []) {
-      const isRental = it.sellingType === 'rental';
-      const months = isRental ? Math.max(1, it.rentalMonths ?? 1) : 1;
-      const line = Math.max(
-        0,
-        (it.unitPriceCents ?? 0) * (it.quantity ?? 1) * months - (it.discountCents ?? 0),
-      );
-      ht += line;
-      vat += Math.round(line * ((it.vatRate ?? 0) / 100));
-    }
-    ht = Math.max(0, ht - (form.discountCents ?? 0));
-    return { ht, vat, ttc: ht + vat + (form.shippingCents ?? 0) };
-  }, [form]);
+  const totals = useMemo(() => calculateQuoteTotals(form), [form]);
 
   const addProductLineFromProduct = (p: CatalogProduct) => {
     if (!p) return;

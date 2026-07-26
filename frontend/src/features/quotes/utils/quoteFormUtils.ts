@@ -16,6 +16,38 @@ export type QuoteItem = {
   sellingType?: 'sale' | 'rental';
 };
 
+export type QuoteTotals = {
+  ht: number;
+  vat: number;
+  ttc: number;
+};
+
+export const calculateQuoteTotals = ({
+  items = [],
+  discountCents = 0,
+  shippingCents = 0,
+}: {
+  items?: QuoteItem[];
+  discountCents?: number;
+  shippingCents?: number;
+}): QuoteTotals => {
+  let ht = 0;
+  let vat = 0;
+
+  for (const item of items) {
+    const months = item.sellingType === 'rental' ? Math.max(1, item.rentalMonths ?? 1) : 1;
+    const line = Math.max(
+      0,
+      (item.unitPriceCents ?? 0) * (item.quantity ?? 1) * months - (item.discountCents ?? 0),
+    );
+    ht += line;
+    vat += Math.round(line * ((item.vatRate ?? 0) / 100));
+  }
+
+  const netHt = Math.max(0, ht - discountCents);
+  return { ht: netHt, vat, ttc: netHt + vat + shippingCents };
+};
+
 type QuoteDraftForSave = {
   items?: QuoteItem[];
 };
