@@ -3,4 +3,3 @@ export * from './orderApiShared';
 export * from './clientOrdersApi';
 export * from './adminOrdersApi';
 export * from './adminPaymentsApi';
-export * from './orderFormatters';
