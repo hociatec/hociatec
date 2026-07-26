@@ -80,6 +80,7 @@
         "app:cs-fix": "php-cs-fixer fix --using-cache=no --allow-unsupported-php-version=yes",
         "app:deptrac": "deptrac analyse --no-progress --no-cache",
         "app:lint-container": "APP_ENV=prod php bin/console lint:container",
+        "app:test": "php bin/phpunit --testdox",
         "app:phpstan": "APP_ENV=dev APP_DEBUG=1 phpstan analyse --no-progress --memory-limit=1G",
         "app:validate": "composer validate --strict --no-check-publish",
         "quality": [
@@ -89,7 +90,8 @@
             "@app:cs",
             "@app:deptrac",
             "@app:phpstan",
-            "@app:lint-container"
+            "@app:lint-container",
+            "@app:test"
         ],
         "post-install-cmd": [
             "@auto-scripts"
@@ -114,6 +116,7 @@
         "phpstan/phpstan": "^2.2",
         "phpstan/phpstan-doctrine": "^2.0",
         "phpstan/phpstan-symfony": "^2.0",
+        "phpunit/phpunit": "^11.5",
         "symfony/maker-bundle": "^1.67"
     }
 }

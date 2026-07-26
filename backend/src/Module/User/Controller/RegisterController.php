@@ -16,6 +16,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/register', name: 'api_auth_register', methods: ['POST'])]
@@ -26,11 +28,23 @@ class RegisterController extends AbstractController
         private readonly DtoValidator $dtoValidator,
         private readonly LoggerInterface $logger,
         private readonly UserProfileFormatter $profiles,
+        #[Autowire(service: 'limiter.auth_register')]
+        private readonly RateLimiterFactory $registrationLimiter,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
+        $limit = $this->registrationLimiter
+            ->create($request->getClientIp() ?? 'unknown')
+            ->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error(
+                'Trop de tentatives d’inscription. Veuillez réessayer plus tard.',
+                JsonResponse::HTTP_TOO_MANY_REQUESTS,
+            );
+        }
+
         $payload = \App\Shared\Http\JsonPayload::decode($request);
         $input = RegisterUserInput::fromArray($payload);
         $this->dtoValidator->validate($input);

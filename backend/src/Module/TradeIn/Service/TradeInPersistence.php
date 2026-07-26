@@ -9,6 +9,19 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class TradeInPersistence
 {
-    public function __construct(private EntityManagerInterface $entityManager) {}
-    public function save(TradeInRequest $request): void { $this->entityManager->persist($request); $this->entityManager->flush(); }
+    public function __construct(private EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function save(TradeInRequest $request): void
+    {
+        $this->entityManager->persist($request);
+        $this->entityManager->flush();
+    }
+
+    public function remove(TradeInRequest $request): void
+    {
+        $this->entityManager->remove($request);
+        $this->entityManager->flush();
+    }
 }

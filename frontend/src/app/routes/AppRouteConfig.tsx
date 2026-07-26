@@ -19,6 +19,7 @@ import {
   AdminOrderDetailPage,
   AdminQuoteDetailPage,
   AdminTrainingsPage,
+  AdminTradeInsPage,
   AppointmentBookingPage,
   BrandFormPage,
   BrandsListPage,
@@ -52,6 +53,7 @@ import {
   MyQuotesPage,
   MyTrainingDetailPage,
   MyTrainingsPage,
+  MyTradeInsPage,
   MyVouchersPage,
   OrderDetailPage,
   OrdersListPage,
@@ -84,6 +86,7 @@ import {
   TrainingSessionFormPage,
   TrainingSessionsPage,
   TrainingsCatalogPage,
+  TradeInPage,
   VoucherFormPage,
   VouchersPage,
 } from './AppRoutePages';
@@ -132,6 +135,7 @@ export const publicRoutes: AppRouteDefinition[] = [
   { path: '/panier', element: <CartPage /> },
   { path: '/devis/nouveau', element: <CreateQuotePage /> },
   { path: '/appointments/book', element: <AppointmentBookingPage /> },
+  { path: '/reprise', element: <TradeInPage /> },
 ];
 
 export const protectedRoutes: AppRouteDefinition[] = [
@@ -146,6 +150,7 @@ export const protectedRoutes: AppRouteDefinition[] = [
   { path: '/mon-espace', element: protectedElement(<ClientDashboardPage />) },
   { path: '/profile', element: protectedElement(<ProfilePage />) },
   { path: '/favorites', element: protectedElement(<MyFavoritesPage />) },
+  { path: '/reprises', element: protectedElement(<MyTradeInsPage />) },
   { path: '/profile/addresses', element: protectedElement(<AddressesPage />) },
   { path: '/appointments/me', element: protectedElement(<MyAppointmentsPage />) },
   { path: '/audits/request', element: protectedElement(<RequestAuditPage />) },
@@ -305,6 +310,7 @@ export const adminRoutes: AppRouteDefinition = {
         { path: ':auditId', element: <AdminAuditDetailPage /> },
       ],
     },
+    { path: 'trade-ins', element: <AdminTradeInsPage /> },
   ],
 };
 

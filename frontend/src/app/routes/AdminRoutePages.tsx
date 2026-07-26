@@ -168,6 +168,7 @@ export const AdminAuditsListPage = lazyPage(
   () => import('@/features/admin/audits/pages/AdminAuditsListPage'),
   'AdminAuditsListPage',
 );
+export const AdminTradeInsPage = lazyPage(() => import('@/features/admin/tradeIns/AdminTradeInsPage'), 'AdminTradeInsPage');
 export const AdminAuditDetailPage = lazyPage(
   () => import('@/features/admin/audits/pages/AdminAuditDetailPage'),
   'AdminAuditDetailPage',

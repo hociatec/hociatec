@@ -58,7 +58,20 @@ const annotateAlerts = (root: ParentNode = document) => {
 
 const ROUTE_ANNOUNCEMENT_KEY = 'hociatec.a11y.route-announcement';
 
-const getPageTitle = () => document.title.split('|')[0]?.trim() || 'Page chargée';
+const focusPageHeading = () => {
+  const heading = document.querySelector<HTMLElement>('main h1, [role="main"] h1, h1');
+  const target = heading ?? document.querySelector<HTMLElement>('main, [role="main"]');
+
+  if (!target) {
+    return;
+  }
+
+  if (!target.hasAttribute('tabindex')) {
+    target.setAttribute('tabindex', '-1');
+  }
+
+  target.focus({ preventScroll: true });
+};
 
 export const AccessibilityAnnouncer = () => {
   const location = useLocation();
@@ -121,7 +134,8 @@ export const AccessibilityAnnouncer = () => {
         /* noop */
       }
 
-      setRouteAnnouncement(announcement || getPageTitle());
+      setRouteAnnouncement(announcement);
+      focusPageHeading();
     }, 120);
 
     return () => window.clearTimeout(timeoutId);

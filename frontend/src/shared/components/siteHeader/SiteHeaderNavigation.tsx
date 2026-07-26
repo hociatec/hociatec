@@ -9,6 +9,7 @@ import {
   GraduationCap,
   KeyRound,
   MonitorCog,
+  RefreshCw,
   ShoppingBag,
 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ import { isPathActive } from '@/shared/lib/routes';
 const primaryLinks = [
   { path: '/catalogue/vente', label: 'Vente', Icon: ShoppingBag },
   { path: '/catalogue/location', label: 'Location', Icon: KeyRound },
+  { path: '/reprise', label: 'Reprise', Icon: RefreshCw },
   { path: '/services', label: 'Services', Icon: MonitorCog },
   { path: '/formations', label: 'Formations', Icon: GraduationCap },
 ] as const;

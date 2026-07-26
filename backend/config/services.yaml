@@ -79,6 +79,10 @@ services:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
 
+    App\Module\TradeIn\Service\TradeInPrivateFileStorage:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     App\Module\Admin\Backup\Service\BackupEncryptionService:
         arguments:
             $keyFile: '%env(BACKUP_ENCRYPTION_KEY_FILE)%'
@@ -100,6 +104,11 @@ services:
     App\Module\Contact\Service\ContactAcknowledgementSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\TradeIn\Service\TradeInNotificationEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
     App\Module\Catalog\Service\ProductShareEmailService:
         arguments:

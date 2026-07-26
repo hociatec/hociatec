@@ -175,6 +175,18 @@ final class EmailTemplateScenarioProvider
                 'defaults' => [],
                 'type' => 'transactional',
             ],
+            'trade_in_created' => [
+                'label' => 'Demande de reprise reçue',
+                'description' => 'Email envoyé au client après l’envoi d’une demande de reprise.',
+                'defaults' => [],
+                'type' => 'transactional',
+            ],
+            'trade_in_status_changed' => [
+                'label' => 'Suivi d’une reprise',
+                'description' => 'Email envoyé au client lorsqu’une demande de reprise change de statut.',
+                'defaults' => [],
+                'type' => 'transactional',
+            ],
         ];
     }
 

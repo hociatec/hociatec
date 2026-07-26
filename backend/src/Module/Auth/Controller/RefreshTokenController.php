@@ -13,6 +13,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/refresh', name: 'api_auth_refresh', methods: ['POST'])]
@@ -22,11 +24,23 @@ class RefreshTokenController extends AbstractController
         private readonly RefreshTokenService $refreshTokenService,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly AuthCookieService $authCookieService,
+        #[Autowire(service: 'limiter.auth_refresh')]
+        private readonly RateLimiterFactory $refreshLimiter,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
+        $limit = $this->refreshLimiter
+            ->create($request->getClientIp() ?? 'unknown')
+            ->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error(
+                'Trop de requêtes de renouvellement. Veuillez réessayer plus tard.',
+                Response::HTTP_TOO_MANY_REQUESTS,
+            );
+        }
+
         $payload = JsonPayload::decode($request);
         $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
         if (!is_string($refreshToken) || '' === $refreshToken) {

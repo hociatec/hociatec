@@ -64,3 +64,4 @@ export const MyFavoritesPage = lazyPage(
   () => import('@/features/favorites/pages/MyFavoritesPage'),
   'MyFavoritesPage',
 );
+export const MyTradeInsPage = lazyPage(() => import('@/features/tradeIns/pages/MyTradeInsPage'), 'MyTradeInsPage');

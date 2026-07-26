@@ -16,7 +16,7 @@ security:
             security: false
 
         api_login:
-            pattern: ^/api/auth/login
+            pattern: ^/api/auth/login(?:/|$)
             stateless: true
             provider: app_user_provider
             user_checker: App\Module\Auth\Security\UserChecker
@@ -31,35 +31,36 @@ security:
                 interval: '15 minutes'
 
         api_public_auth:
-            pattern: ^/api/(csrf-token|auth/(register|verify|password-reset|refresh|logout))
+            pattern: ^/api/(?:csrf-token|auth/(?:register|verify|password-reset|refresh|logout))(?:/|$)
             security: false
 
         api:
-            pattern: ^/api
+            pattern: ^/api(?:/|$)
             stateless: true
             provider: app_user_provider
+            user_checker: App\Module\Auth\Security\UserChecker
             jwt: ~
 
     access_control:
-        - { path: ^/api/health, roles: PUBLIC_ACCESS }
-        - { path: ^/api/csrf-token, roles: PUBLIC_ACCESS }
-        - { path: ^/api/stripe/webhook, roles: PUBLIC_ACCESS }
+        - { path: ^/api/health(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/csrf-token(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/stripe/webhook(?:/|$), roles: PUBLIC_ACCESS }
         # Nginx restricts this endpoint to local monitoring clients.
-        - { path: ^/metrics, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/logout, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/verify, roles: PUBLIC_ACCESS }
-        - { path: ^/api/auth/password-reset, roles: PUBLIC_ACCESS }
-        - { path: ^/activation, roles: PUBLIC_ACCESS }
-        - { path: ^/api/public, roles: PUBLIC_ACCESS }
-        - { path: ^/api/admin/backups, roles: ROLE_BACKUP_MANAGER }
-        - { path: ^/api/admin/operations, roles: ROLE_OPERATIONS }
-        - { path: ^/api/admin/marketing, roles: ROLE_MARKETING_MANAGER }
-        - { path: ^/api/admin/catalog, roles: ROLE_CATALOG_MANAGER }
-        - { path: ^/api/admin, roles: ROLE_ADMIN }
-        - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/metrics(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/login(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/refresh(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/logout(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/register(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/verify(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/password-reset(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/activation(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/public(?:/|$), roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin/backups(?:/|$), roles: ROLE_BACKUP_MANAGER }
+        - { path: ^/api/admin/operations(?:/|$), roles: ROLE_OPERATIONS }
+        - { path: ^/api/admin/marketing(?:/|$), roles: ROLE_MARKETING_MANAGER }
+        - { path: ^/api/admin/catalog(?:/|$), roles: ROLE_CATALOG_MANAGER }
+        - { path: ^/api/admin(?:/|$), roles: ROLE_ADMIN }
+        - { path: ^/api(?:/|$), roles: ROLE_USER }
 
 when@test:
     security:

@@ -15,10 +15,10 @@ export const AppProviders = () => (
       <ConfirmProvider>
         <PromptProvider>
           <CartProvider>
-            <AccessibilityAnnouncer />
             <MaintenanceGate>
               <AppRoutes />
             </MaintenanceGate>
+            <AccessibilityAnnouncer />
           </CartProvider>
         </PromptProvider>
       </ConfirmProvider>

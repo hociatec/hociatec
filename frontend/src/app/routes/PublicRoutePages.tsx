@@ -76,3 +76,4 @@ export const AppointmentBookingPage = lazyPage(
   () => import('@/features/appointments/pages/AppointmentBookingPage'),
   'AppointmentBookingPage',
 );
+export const TradeInPage = lazyPage(() => import('@/features/tradeIns/pages/TradeInPage'), 'TradeInPage');

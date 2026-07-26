@@ -37,6 +37,7 @@ const adminNavGroups: AdminNavGroup[] = [
       { to: '/admin/payments', label: 'Paiements' },
       { to: '/admin/quotes', label: 'Devis' },
       { to: '/admin/services', label: 'Services' },
+      { to: '/admin/trade-ins', label: 'Reprises matériel' },
     ],
   },
   {

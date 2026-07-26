@@ -18,6 +18,7 @@ const destinations = [
   { icon: <CalendarDays />, title: 'Rendez-vous', to: '/appointments/me' },
   { icon: <GraduationCap />, title: 'Formations', to: '/trainings/me' },
   { icon: <BadgePercent />, title: 'Bons', to: '/vouchers/me' },
+  { icon: <Package />, title: 'Reprises', to: '/reprises' },
 ];
 
 export const DashboardAccessLinks = () => (
