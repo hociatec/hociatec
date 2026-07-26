@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchTradeInMetadata } from './api';
 import type { TradeInMetadataDto } from './types';
 
-const emptyMetadata: TradeInMetadataDto = { categories: [], conditions: [], statuses: [] };
+const emptyMetadata: TradeInMetadataDto = { categories: [], conditions: [], statuses: [], paymentMethods: [], paymentStatuses: [] };
 
 export const useTradeInMetadata = () => {
   const [metadata, setMetadata] = useState<TradeInMetadataDto>(emptyMetadata);

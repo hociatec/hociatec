@@ -19,6 +19,6 @@ final class ListTradeInMetadataController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['categories' => $this->formatter->categories(), 'conditions' => $this->formatter->conditions(), 'statuses' => $this->formatter->statuses()]);
+        return ApiResponse::success(['categories' => $this->formatter->categories(), 'conditions' => $this->formatter->conditions(), 'statuses' => $this->formatter->statuses(), 'paymentMethods' => $this->formatter->paymentMethods(), 'paymentStatuses' => $this->formatter->paymentStatuses()]);
     }
 }

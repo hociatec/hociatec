@@ -30,6 +30,8 @@ type AdminTradeInDetailsModalProps = {
   onDelete: () => void;
   onCloseTradeIn: () => void;
   onDownloadDocument: (document: 'rib' | 'receipt') => void;
+  paymentMethods: { value: string; label: string }[];
+  paymentStatuses: { value: string; label: string }[];
 };
 
 export const AdminTradeInDetailsModal = ({
@@ -57,6 +59,8 @@ export const AdminTradeInDetailsModal = ({
   onDelete,
   onCloseTradeIn,
   onDownloadDocument,
+  paymentMethods,
+  paymentStatuses,
 }: AdminTradeInDetailsModalProps) => (
   <div
     className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -156,8 +160,8 @@ export const AdminTradeInDetailsModal = ({
             <h3 id="trade-in-close-title" className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-900">Clôture de la reprise</h3>
             <div className="space-y-4">
               <label className="register-form__field"><span>Montant final (€)</span><input type="number" min="0.01" step="0.01" value={finalOffer} onChange={(event) => onFinalOfferChange(event.target.value)} /></label>
-              <PaymentMethodFields value={paymentMethod} onChange={onPaymentMethodChange} />
-              <PaymentStatusFields paymentMethod={paymentMethod} value={paymentStatus} onChange={onPaymentStatusChange} />
+              <PaymentMethodFields options={paymentMethods} value={paymentMethod} onChange={onPaymentMethodChange} />
+              <PaymentStatusFields options={paymentStatuses} paymentMethod={paymentMethod} value={paymentStatus} onChange={onPaymentStatusChange} />
               <div className="space-y-4 border-t border-emerald-200 pt-5"><h4 className="text-sm font-semibold text-stone-800">Traçabilité du règlement</h4><label className="register-form__field"><span>Référence de transaction</span><input value={transactionReference} onChange={(event) => onTransactionReferenceChange(event.target.value)} placeholder="Ex. VIR-2026-001" /></label></div>
               <div className="space-y-4 border-t border-emerald-200 pt-5"><h4 className="text-sm font-semibold text-stone-800">Note interne de clôture</h4><label className="register-form__field"><span>Note de clôture</span><textarea rows={3} value={closureNote} onChange={(event) => onClosureNoteChange(event.target.value)} /></label></div>
               <button type="button" className="register-form__submit w-full" disabled={!finalOffer} onClick={onCloseTradeIn}>Clôturer et générer le justificatif</button>
@@ -174,22 +178,22 @@ export const AdminTradeInDetailsModal = ({
   </div>
 );
 
-const PaymentMethodFields = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => (
+const PaymentMethodFields = ({ options, value, onChange }: { options: { value: string; label: string }[]; value: string; onChange: (value: string) => void }) => (
   <fieldset className="space-y-2">
     <legend className="text-sm font-semibold text-stone-700">Mode de règlement</legend>
     <div className="grid gap-2 sm:grid-cols-2">
-      {[['bank_transfer', 'Virement bancaire'], ['cash', 'Espèces'], ['store_credit', 'Avoir client'], ['other', 'Autre']].map(([method, label]) => (
+      {options.map(({ value: method, label }) => (
         <label key={method} className="flex items-center gap-2"><input type="radio" name="trade-in-payment-method" value={method} checked={value === method} onChange={() => onChange(method)} /><span>{label}</span></label>
       ))}
     </div>
   </fieldset>
 );
 
-const PaymentStatusFields = ({ paymentMethod, value, onChange }: { paymentMethod: string; value: string; onChange: (value: string) => void }) => (
+const PaymentStatusFields = ({ options, paymentMethod, value, onChange }: { options: { value: string; label: string }[]; paymentMethod: string; value: string; onChange: (value: string) => void }) => (
   <fieldset className="space-y-2">
     <legend className="text-sm font-semibold text-stone-700">État du règlement</legend>
     <div className="grid gap-2 sm:grid-cols-2">
-      {[['pending', 'Paiement en attente'], ['paid', 'Paiement effectué']].map(([status, label]) => (
+      {options.map(({ value: status, label }) => (
         <label key={status} className="flex items-center gap-2"><input type="radio" name="trade-in-payment-status" value={status} checked={value === status} disabled={paymentMethod === 'store_credit' && status === 'pending'} onChange={() => onChange(status)} /><span>{label}</span></label>
       ))}
     </div>

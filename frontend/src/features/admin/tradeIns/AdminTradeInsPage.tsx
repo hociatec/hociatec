@@ -46,7 +46,7 @@ export const AdminTradeInsPage = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const confirm = useConfirm();
   const toast = useToast();
-  const { statuses } = useTradeInMetadata();
+  const { statuses, paymentMethods, paymentStatuses } = useTradeInMetadata();
 
   const load = async () => {
     setLoading(true);
@@ -223,6 +223,8 @@ export const AdminTradeInsPage = () => {
         onDelete={() => void deleteRequest(selected)}
         onCloseTradeIn={() => void closeTradeIn()}
         onDownloadDocument={(document) => void downloadDocument(document)}
+        paymentMethods={paymentMethods}
+        paymentStatuses={paymentStatuses}
       />}
     </PageContainer>
   );

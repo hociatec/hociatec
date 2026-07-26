@@ -26,6 +26,18 @@ final class TradeInMetadataFormatter
         return array_map(fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => TradeInFormatter::statusLabel($status)], TradeInStatus::cases());
     }
 
+    /** @return list<array{value: string, label: string}> */
+    public function paymentMethods(): array
+    {
+        return $this->options(['bank_transfer' => 'Virement bancaire', 'cash' => 'Espèces', 'store_credit' => 'Avoir client', 'other' => 'Autre']);
+    }
+
+    /** @return list<array{value: string, label: string}> */
+    public function paymentStatuses(): array
+    {
+        return $this->options(['pending' => 'Paiement en attente', 'paid' => 'Paiement effectué']);
+    }
+
     /**
      * @param array<string, string> $values
      *

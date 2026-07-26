@@ -11,7 +11,7 @@ export type TradeInStatus =
   | 'expired';
 
 export interface TradeInMetadataOption { value: string; label: string }
-export interface TradeInMetadataDto { categories: TradeInMetadataOption[]; conditions: TradeInMetadataOption[]; statuses: TradeInMetadataOption[] }
+export interface TradeInMetadataDto { categories: TradeInMetadataOption[]; conditions: TradeInMetadataOption[]; statuses: TradeInMetadataOption[]; paymentMethods: TradeInMetadataOption[]; paymentStatuses: TradeInMetadataOption[] }
 
 export interface TradeInContact { firstName: string; lastName: string; email: string; phone: string }
 export interface TradeInDto {
