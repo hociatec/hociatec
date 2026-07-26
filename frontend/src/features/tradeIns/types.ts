@@ -20,7 +20,9 @@ export interface TradeInDto {
   status: TradeInStatus;
   statusLabel: string;
   allowedNextStatuses: TradeInStatus[];
+  allowedNextStatusDetails: TradeInMetadataOption[];
   category: string;
+  categoryLabel: string;
   productName: string;
   purchasePriceCents: number;
   purchaseYear: number;

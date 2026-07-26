@@ -13,8 +13,8 @@ final class TradeInFormatter
     public static function format(TradeInRequest $request, bool $private = true): array
     {
         $data = [
-            'id' => $request->getId(), 'reference' => $request->getReference(), 'status' => $request->getStatus()->value, 'statusLabel' => self::statusLabel($request->getStatus()), 'allowedNextStatuses' => array_map(static fn (TradeInStatus $status): string => $status->value, self::nextStatuses($request->getStatus())),
-            'category' => $request->getCategory(), 'productName' => $request->getProductName(), 'purchasePriceCents' => $request->getPurchasePriceCents(), 'purchaseYear' => $request->getPurchaseYear(), 'brand' => $request->getBrand(), 'model' => $request->getModel(),
+            'id' => $request->getId(), 'reference' => $request->getReference(), 'status' => $request->getStatus()->value, 'statusLabel' => self::statusLabel($request->getStatus()), 'allowedNextStatuses' => array_map(static fn (TradeInStatus $status): string => $status->value, self::nextStatuses($request->getStatus())), 'allowedNextStatusDetails' => array_map(static fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => self::statusLabel($status)], self::nextStatuses($request->getStatus())),
+            'category' => $request->getCategory(), 'categoryLabel' => self::categoryLabel($request->getCategory()), 'productName' => $request->getProductName(), 'purchasePriceCents' => $request->getPurchasePriceCents(), 'purchaseYear' => $request->getPurchaseYear(), 'brand' => $request->getBrand(), 'model' => $request->getModel(),
             'conditionGrade' => $request->getConditionGrade(), 'conditionLabel' => self::conditionLabel($request->getConditionGrade()), 'functional' => $request->isFunctional(), 'hasAccessories' => $request->hasAccessories(), 'hasProofOfPurchase' => $request->hasProofOfPurchase(),
             'description' => $request->getDescription(), 'catalogProductId' => $request->getCatalogProductId(), 'catalogProductName' => $request->getCatalogProductName(), 'estimatedMinCents' => $request->getEstimatedMinCents(), 'estimatedMaxCents' => $request->getEstimatedMaxCents(),
             'offerCents' => $request->getOfferCents(), 'finalOfferCents' => $request->getFinalOfferCents(), 'paymentMethod' => $request->getPaymentMethod(), 'paymentStatus' => $request->getPaymentStatus(), 'transactionReference' => $request->getTransactionReference(), 'paidAt' => $request->getPaidAt()?->format(DATE_ATOM), 'ribAvailable' => null !== $request->getRibPath(), 'ribOriginalName' => $request->getRibOriginalName(), 'receiptAvailable' => null !== $request->getReceiptPath(), 'voucherCode' => $request->getVoucherCode(), 'closedAt' => $request->getClosedAt()?->format(DATE_ATOM), 'adminNote' => $request->getAdminNote(), 'offerExpiresAt' => $request->getOfferExpiresAt()?->format(DATE_ATOM), 'createdAt' => $request->getCreatedAt()->format(DATE_ATOM),
@@ -51,6 +51,13 @@ final class TradeInFormatter
             'correct' => 'État correct',
             'hors_service' => 'Hors service / pour pièces',
         ][$condition] ?? $condition;
+    }
+
+    public static function categoryLabel(string $category): string
+    {
+        return [
+            'smartphone' => 'Smartphone', 'ordinateur' => 'Ordinateur', 'tablette' => 'Tablette', 'console' => 'Console', 'appareil-photo' => 'Appareil photo', 'audio' => 'Audio', 'electromenager' => 'Électroménager', 'autre' => 'Autre',
+        ][$category] ?? $category;
     }
 
     /** @return list<TradeInStatus> */

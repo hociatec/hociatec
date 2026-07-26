@@ -18,8 +18,8 @@ import {
   adminSetTradeInStatus,
 } from '@/features/tradeIns/api';
 import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/types';
+import { useTradeInMetadata } from '@/features/tradeIns/useTradeInMetadata';
 import { AdminTradeInDetailsModal } from './AdminTradeInDetailsModal';
-import { tradeInStatusLabels, tradeInStatuses } from './tradeInAdmin.constants';
 
 const generateTransactionReference = (): string => {
   const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
@@ -46,6 +46,7 @@ export const AdminTradeInsPage = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const confirm = useConfirm();
   const toast = useToast();
+  const { statuses } = useTradeInMetadata();
 
   const load = async () => {
     setLoading(true);
@@ -172,7 +173,7 @@ export const AdminTradeInsPage = () => {
           <span>Filtrer par statut</span>
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as TradeInStatus | '')}>
             <option value="">Toutes</option>
-            {tradeInStatuses.map((value) => <option key={value} value={value}>{tradeInStatusLabels[value]}</option>)}
+            {statuses.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
         {loading ? <LoadingState>Chargement des demandes…</LoadingState> : (

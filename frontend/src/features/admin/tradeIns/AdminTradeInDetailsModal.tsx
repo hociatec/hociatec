@@ -98,7 +98,7 @@ export const AdminTradeInDetailsModal = ({
         <section aria-labelledby="trade-in-equipment-title" className="rounded-lg border border-brand-100 p-4">
           <h3 id="trade-in-equipment-title" className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-600">Informations sur le matériel</h3>
           <dl className="grid gap-3 sm:grid-cols-2">
-            <InfoItem label="Catégorie" value={selected.category} />
+            <InfoItem label="Catégorie" value={selected.categoryLabel} />
             <InfoItem label="Produit / modèle" value={selected.productName} />
             <InfoItem label="Marque" value={selected.brand ?? 'Non renseignée'} />
             <InfoItem label="Prix payé à l’achat" value={formatEuroCents(selected.purchasePriceCents)} />
@@ -134,10 +134,10 @@ export const AdminTradeInDetailsModal = ({
               <fieldset className="space-y-3">
                 <legend className="text-sm text-stone-600">Choisissez le prochain statut</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {selected.allowedNextStatuses.map((value) => (
+                  {selected.allowedNextStatusDetails.map(({ value, label }) => (
                     <label key={value} className="flex cursor-pointer items-center gap-3 rounded border border-brand-100 p-3 hover:bg-brand-50">
                       <input type="radio" name="trade-in-status" value={value} checked={pendingStatus === value} onChange={() => onStatusChange(value)} />
-                      <span>{value}</span>
+                      <span>{label}</span>
                     </label>
                   ))}
                 </div>
