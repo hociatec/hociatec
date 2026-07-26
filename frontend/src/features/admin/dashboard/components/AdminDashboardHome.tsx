@@ -10,6 +10,7 @@ import {
 } from '@/features/orders/api';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { AdminDashboardNotifications } from './AdminDashboardNotifications';
+import { AdminPaymentsSummary } from './AdminPaymentsSummary';
 
 type AdminDashboardHomeProps = {
   dashboard: AdminDashboardDto | null;
@@ -118,7 +119,7 @@ export const AdminDashboardHome = ({
         </section>
 
         <AdminDashboardNotifications dashboard={dashboard} />
-        <PaymentsSummarySection dashboard={dashboard} />
+        <AdminPaymentsSummary dashboard={dashboard} />
         <OrdersCustomersSection dashboard={dashboard} />
         <PaymentsListsSection dashboard={dashboard} />
         <RecentEventsSection dashboard={dashboard} />
@@ -158,49 +159,6 @@ const PriorityLink = ({
       {helper}
     </Link>
   </div>
-);
-
-const PaymentsSummarySection = ({ dashboard }: { dashboard: AdminDashboardDto }) => (
-  <section className="space-y-4">
-    <div>
-      <h3 className="text-lg font-semibold text-white">Suivi des paiements</h3>
-      <p className="text-sm text-stone-400">
-        Vue rapide des paiements confirmés, en attente et des cas à traiter.
-      </p>
-    </div>
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-      <PriorityLink
-        to="/admin/payments?status=paid"
-        label="Paiements confirmés"
-        value={dashboard.payments.statusCounts.paid ?? 0}
-        helper="Voir les paiements"
-      />
-      <PriorityLink
-        to="/admin/payments?status=open"
-        label="Paiements en attente"
-        value={dashboard.payments.statusCounts.open ?? 0}
-        helper="Sessions ouvertes"
-      />
-      <PriorityLink
-        to="/admin/payments?status=failed"
-        label="Paiements échoués"
-        value={dashboard.payments.statusCounts.failed ?? 0}
-        helper="Analyser les refus"
-      />
-      <PriorityLink
-        to="/admin/payments?status=expired"
-        label="Paiements expirés"
-        value={dashboard.payments.statusCounts.expired ?? 0}
-        helper="Voir les sessions perdues"
-      />
-      <PriorityLink
-        to="/admin/payments"
-        label="Payés sans commande liée"
-        value={dashboard.payments.paidWithoutOrderCount}
-        helper="Contrôler les incohérences"
-      />
-    </div>
-  </section>
 );
 
 const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboardDto }) => (
