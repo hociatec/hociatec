@@ -18,5 +18,10 @@ export interface ApiCreated<T> {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiCreated<T> | ApiError;
 
+export interface ApiMutationResult<T> {
+  data: T;
+  message?: string;
+}
+
 export const isApiOk = <T>(response: ApiResponse<T>): response is ApiSuccess<T> | ApiCreated<T> =>
   response.status === 'success' || response.status === 'created';

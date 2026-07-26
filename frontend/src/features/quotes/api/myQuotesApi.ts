@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import type { DeleteDto, QuoteDto } from '../types/quoteTypes';
-import { extractQuoteApiError, unwrapQuoteApiData } from './quoteApiShared';
+import { extractQuoteApiError, unwrapQuoteApiData, unwrapQuoteApiResult } from './quoteApiShared';
 
 export const fetchMyQuotes = async (): Promise<QuoteDto[]> =>
   unwrapQuoteApiData(
@@ -15,14 +15,14 @@ export const generateMyQuotePdf = async (id: number) =>
       responseType: 'blob',
     })
   ).data as Blob;
-export const deleteMyQuote = async (id: number): Promise<DeleteDto> =>
-  unwrapQuoteApiData(
+export const deleteMyQuote = async (id: number) =>
+  unwrapQuoteApiResult(
     (await httpClient.delete<ApiResponse<DeleteDto>>(`/api/quotes/me/${id}`)).data,
   );
 
 export const acceptMyQuote = async (id: number) => {
   try {
-    return unwrapQuoteApiData(
+    return unwrapQuoteApiResult(
       (await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/accept`)).data,
     );
   } catch (error) {
@@ -31,7 +31,7 @@ export const acceptMyQuote = async (id: number) => {
 };
 export const refuseMyQuote = async (id: number) => {
   try {
-    return unwrapQuoteApiData(
+    return unwrapQuoteApiResult(
       (await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/refuse`)).data,
     );
   } catch (error) {

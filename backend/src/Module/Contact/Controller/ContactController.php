@@ -40,6 +40,6 @@ final class ContactController extends AbstractController
             );
         }
 
-        return ApiResponse::success(['message' => 'Votre message a été envoyé.']);
+        return ApiResponse::success([], JsonResponse::HTTP_OK, 'Votre message a été envoyé.');
     }
 }

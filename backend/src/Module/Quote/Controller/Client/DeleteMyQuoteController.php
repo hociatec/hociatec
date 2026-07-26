@@ -37,6 +37,6 @@ class DeleteMyQuoteController extends AbstractController
 
         $this->workflow->delete($quote);
 
-        return ApiResponse::success(['deleted' => true]);
+        return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le devis a bien été supprimé.');
     }
 }

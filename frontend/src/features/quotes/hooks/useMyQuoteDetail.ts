@@ -45,8 +45,9 @@ export const useMyQuoteDetail = () => {
     if (!quote) return;
     setUpdatingStatus(action);
     try {
-      setQuote(action === 'accept' ? await acceptMyQuote(quote.id) : await refuseMyQuote(quote.id));
-      toast.show(action === 'accept' ? 'Devis accepté.' : 'Devis refusé.', { variant: 'success' });
+      const response = action === 'accept' ? await acceptMyQuote(quote.id) : await refuseMyQuote(quote.id);
+      setQuote(response.data);
+      toast.show(response.message ?? (action === 'accept' ? 'Le devis a bien été accepté.' : 'Le devis a bien été refusé.'), { variant: 'success' });
     } catch (e) {
       toast.show(getHttpErrorMessage(e, 'Impossible de mettre à jour le devis.'), {
         variant: 'error',

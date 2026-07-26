@@ -48,6 +48,6 @@ final class AcceptMyQuoteController extends AbstractController
 
         $this->workflow->setStatus($quote, Quote::STATUS_ACCEPTED);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator), JsonResponse::HTTP_OK, 'Le devis a bien été accepté.');
     }
 }

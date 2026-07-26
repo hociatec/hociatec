@@ -36,6 +36,7 @@ export const ContactPage = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitSuccessMessage, setSubmitSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const onSubmit = async (e: FormEvent) => {
@@ -43,14 +44,16 @@ export const ContactPage = () => {
     setLoading(true);
     setSubmitError(null);
     setSubmitSuccess(false);
+    setSubmitSuccessMessage(null);
     try {
-      await sendContactMessage({ name, email, subject, message });
+      const response = await sendContactMessage({ name, email, subject, message });
       try {
-        toast.show('Merci de nous avoir contactés. Votre demande sera traitée rapidement.', {
+        toast.show(response.message ?? 'Votre message a été envoyé.', {
           variant: 'success',
         });
       } catch {}
       setSubmitSuccess(true);
+      setSubmitSuccessMessage(response.message ?? null);
       setName('');
       setEmail('');
       setSubject('');
@@ -82,7 +85,7 @@ export const ContactPage = () => {
         </div>
         {submitSuccess && (
           <div className="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
-            Merci, votre message a été envoyé. Nous revenons vers vous rapidement.
+            {submitSuccessMessage ?? 'Votre message a été envoyé.'}
           </div>
         )}
         {submitError && (

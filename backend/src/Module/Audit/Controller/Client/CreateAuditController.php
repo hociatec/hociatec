@@ -53,6 +53,6 @@ class CreateAuditController extends AbstractController
         return ApiResponse::created([
             'id' => $audit->getId(),
             'number' => $audit->getNumber(),
-        ]);
+        ], 'Votre demande d’audit a bien été enregistrée.');
     }
 }

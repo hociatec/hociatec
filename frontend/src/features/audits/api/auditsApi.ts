@@ -1,4 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { isApiOk } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 
 export type AuditType = 'performance' | 'security' | 'ux' | 'seo' | 'technical' | 'accessibility';
 export type AuditStatus = 'new' | 'in_progress' | 'review' | 'done';
@@ -52,9 +54,10 @@ export async function createAuditRequest(input: {
   type: AuditType;
   url: string;
   objectives?: string;
-}): Promise<{ id: number; number: string }> {
-  const res = await httpClient.post('/api/audits', input);
-  return res.data.data;
+}): Promise<ApiMutationResult<{ id: number; number: string }>> {
+  const res = await httpClient.post<ApiResponse<{ id: number; number: string }>>('/api/audits', input);
+  if (!isApiOk(res.data)) throw new Error('Réponse API invalide.');
+  return { data: res.data.data, message: res.data.message };
 }
 
 export async function fetchAuditMetadata(): Promise<AuditMetadataDto> {

@@ -48,6 +48,6 @@ final class RefuseMyQuoteController extends AbstractController
 
         $this->workflow->setStatus($quote, Quote::STATUS_REFUSED);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator), JsonResponse::HTTP_OK, 'Le devis a bien été refusé.');
     }
 }

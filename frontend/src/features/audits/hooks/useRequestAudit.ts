@@ -14,8 +14,8 @@ export const useRequestAudit = () => {
     setLoading(true);
     try {
       const result = await createAuditRequest({ type, url, objectives });
-      setCreatedNumber(result.number);
-      toast.show('Votre demande a été enregistrée.', { variant: 'success' });
+      setCreatedNumber(result.data.number);
+      toast.show(result.message ?? 'Votre demande d’audit a bien été enregistrée.', { variant: 'success' });
       setUrl('');
       setObjectives('');
     } catch (error) {

@@ -30,9 +30,9 @@ export const useMyQuotes = () => {
   const confirmDelete = async () => {
     if (!deletingId) return;
     try {
-      await deleteMyQuote(deletingId);
+      const response = await deleteMyQuote(deletingId);
       setItems((list) => list.filter((quote) => quote.id !== deletingId));
-      toast.show('Devis supprimé.', { variant: 'success' });
+      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
     } catch (e) {
       toast.show(getHttpErrorMessage(e, 'Impossible de supprimer le devis.'), { variant: 'error' });
     } finally {

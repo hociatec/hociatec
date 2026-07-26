@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 
 export interface ContactPayload {
   name: string;
@@ -17,11 +17,12 @@ const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   return response.data;
 };
 
-export const sendContactMessage = async (payload: ContactPayload) => {
-  const { data } = await httpClient.post<ApiResponse<{ message: string }>>(
+export const sendContactMessage = async (payload: ContactPayload): Promise<ApiMutationResult<null>> => {
+  const { data } = await httpClient.post<ApiResponse<null>>(
     '/api/public/contact',
     payload,
   );
 
-  return unwrapResponse(data);
+  unwrapResponse(data);
+  return { data: null, message: data.status === 'error' ? undefined : data.message };
 };
