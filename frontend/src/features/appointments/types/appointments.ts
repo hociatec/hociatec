@@ -7,6 +7,7 @@ export interface Prestation {
 
 export interface WorkingDay {
   dayOfWeek: number; // 0 (lundi) .. 6 (dimanche)
+  dayLabel?: string;
   isWorkingDay: boolean;
   startTime: string | null; // HH:mm
   endTime: string | null; // HH:mm

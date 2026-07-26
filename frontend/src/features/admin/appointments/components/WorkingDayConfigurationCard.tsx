@@ -1,15 +1,5 @@
 import type { WorkingDay } from '@/features/appointments/types/appointments';
 
-const DAY_LABELS: Record<number, string> = {
-  0: 'Lundi',
-  1: 'Mardi',
-  2: 'Mercredi',
-  3: 'Jeudi',
-  4: 'Vendredi',
-  5: 'Samedi',
-  6: 'Dimanche',
-};
-
 type WorkingDayConfigurationCardProps = {
   day: WorkingDay;
   updateDay: (dayOfWeek: number, updater: (current: WorkingDay) => WorkingDay) => void;
@@ -34,7 +24,7 @@ export const WorkingDayConfigurationCard = ({
           }))
         }
       />
-      <strong>{DAY_LABELS[day.dayOfWeek]}</strong>
+      <strong>{day.dayLabel ?? `Jour ${day.dayOfWeek + 1}`}</strong>
     </label>
 
     {day.isWorkingDay && (

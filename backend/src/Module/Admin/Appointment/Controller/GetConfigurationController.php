@@ -27,6 +27,7 @@ class GetConfigurationController extends AbstractController
         return ApiResponse::success([
             'days' => array_map(static fn (WorkingDayConfiguration $configuration) => [
                 'dayOfWeek' => $configuration->getDayOfWeek(),
+                'dayLabel' => WorkingDayConfigurationService::DAY_LABELS[$configuration->getDayOfWeek()] ?? '',
                 'isWorkingDay' => $configuration->isWorkingDay(),
                 'startTime' => $configuration->getStartTime()?->format('H:i'),
                 'endTime' => $configuration->getEndTime()?->format('H:i'),

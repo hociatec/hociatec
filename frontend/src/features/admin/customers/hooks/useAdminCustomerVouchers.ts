@@ -115,9 +115,9 @@ export const useAdminCustomerVouchers = () => {
     )
       return;
     try {
-      await deleteVoucher(voucherId);
+      const response = await deleteVoucher(voucherId);
       setVouchers((items) => items.filter((item) => item.id !== voucherId));
-      toast.show('Bon de réduction supprimé.', { variant: 'success' });
+      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', { variant: 'success' });
     } catch (e) {
       toast.show(e instanceof Error ? e.message : 'Impossible de supprimer le bon.', {
         variant: 'error',

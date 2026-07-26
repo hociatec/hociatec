@@ -136,7 +136,7 @@ export const useProductFormController = () => {
     setError(null);
     setMessage(null);
     void deleteProduct(variant.id)
-      .then(() => {
+      .then((response) => {
         const remainingVariants = groupVariants.filter((item) => item.id !== variant.id);
         if (variant.id === currentProductId) {
           const nextVariant = remainingVariants[0] ?? null;
@@ -149,7 +149,7 @@ export const useProductFormController = () => {
         }
 
         setGroupVariants(remainingVariants);
-        setMessage('Variante supprimée.');
+        setMessage(response.message ?? 'La variante a bien été supprimée.');
       })
       .catch((err) => setError(getHttpErrorMessage(err, 'Impossible de supprimer la variante.')))
       .finally(() => setDeletingVariantId(null));
