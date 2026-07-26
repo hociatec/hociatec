@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   createPublicQuote,
-  fetchPublicQuoteServices,
   generateMyQuotePdf,
 } from '@/features/quotes/api/quotesApi';
-import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
-import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
+import type { QuoteDto, QuoteInput } from '@/features/quotes/types/quoteTypes';
+import type { CatalogProduct } from '@/features/catalog/api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
@@ -16,6 +15,7 @@ import {
   calculateQuoteTotals,
   type QuoteItem,
 } from '@/features/quotes/utils/quoteFormUtils';
+import { useQuoteCatalogSearch } from './useQuoteCatalogSearch';
 
 export type QuoteDraft = QuoteInput & {
   items: QuoteItem[];
@@ -37,27 +37,10 @@ export const useCreateQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [productLoading, setProductLoading] = useState(false);
-  const productDebounce = useRef<number | undefined>(undefined);
+  const { searchQuery, setSearchQuery, products, productLoading, allServices, filteredServices } =
+    useQuoteCatalogSearch();
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalCandidate, setRentalCandidate] = useState<CatalogProduct | null>(null);
-
-  const [allServices, setAllServices] = useState<QuoteServiceDto[]>([]);
-  const filteredServices = useMemo(
-    () =>
-      allServices
-        .filter((s) => s.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-        .slice(0, 20),
-    [allServices, searchQuery],
-  );
-
-  useEffect(() => {
-    void fetchPublicQuoteServices()
-      .then(setAllServices)
-      .catch(() => void 0);
-  }, []);
 
   useEffect(() => {
     if (status === 'authenticated' && user) {
@@ -75,23 +58,6 @@ export const useCreateQuote = () => {
       }));
     }
   }, [status, user]);
-
-  useEffect(() => {
-    const q = searchQuery.trim();
-    if (productDebounce.current) {
-      window.clearTimeout(productDebounce.current);
-    }
-    if (q.length < 2) {
-      setProducts([]);
-      return;
-    }
-    setProductLoading(true);
-    productDebounce.current = window.setTimeout(() => {
-      void fetchPublicProducts({ q, perPage: 48, sort: 'relevance' })
-        .then((items) => setProducts(items))
-        .finally(() => setProductLoading(false));
-    }, 300);
-  }, [searchQuery]);
 
   const totals = useMemo(() => calculateQuoteTotals(form), [form]);
 
