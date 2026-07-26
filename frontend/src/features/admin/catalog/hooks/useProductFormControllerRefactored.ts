@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -19,7 +19,7 @@ import {
   emptyProductForm,
   type ProductFormState,
 } from '@/features/admin/catalog/utils/productFormConfig';
-import { formatVariantDetails, slugify } from '@/features/admin/catalog/utils/productFormUtils';
+import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
 import {
   buildProductFormState,
   buildProductPayload,
@@ -27,6 +27,7 @@ import {
 import { useProductGallery } from './useProductGallery';
 import { useProductVariantRows } from './useProductVariantRows';
 import { useProductBrandSelection } from './useProductBrandSelection';
+import { useProductFormFields } from './useProductFormFields';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
@@ -59,6 +60,7 @@ export const useProductFormController = () => {
     handleBrandQueryChange,
     handleBrandSelection,
   } = useProductBrandSelection(brands, form, setForm);
+  const { handleChange } = useProductFormFields(setForm);
 
   useEffect(() => {
     setInitialLoading(true);
@@ -120,35 +122,6 @@ export const useProductFormController = () => {
 
     gallery.hydrate(product.gallery);
     resetVariantRows();
-  };
-
-  const handleFieldChange = (name: keyof ProductFormState, value: string) => {
-    setForm((prev) => {
-      if (name === 'name') {
-        const generatedSlug = slugify(value);
-        const shouldSyncSlug = prev.slug.trim() === '' || prev.slug === slugify(prev.name);
-        return { ...prev, name: value, slug: shouldSyncSlug ? generatedSlug : prev.slug };
-      }
-
-      if (name === 'slug') {
-        return { ...prev, slug: slugify(value) };
-      }
-
-      return { ...prev, [name]: value };
-    });
-  };
-
-  const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value, type, checked } = event.target as HTMLInputElement;
-
-    if (type === 'checkbox') {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-      return;
-    }
-
-    handleFieldChange(name as keyof ProductFormState, value);
   };
 
   const handleGalleryFileChange = gallery.onFileChange;
