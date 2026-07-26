@@ -18,7 +18,6 @@ import {
 import {
   emptyProductForm,
   type ProductFormState,
-  type VariantRowState,
 } from '@/features/admin/catalog/utils/productFormConfig';
 import { formatVariantDetails, slugify } from '@/features/admin/catalog/utils/productFormUtils';
 import {
@@ -26,6 +25,7 @@ import {
   buildProductPayload,
 } from '@/features/admin/catalog/utils/productFormModel';
 import { useProductGallery } from './useProductGallery';
+import { useProductVariantRows } from './useProductVariantRows';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
@@ -42,10 +42,16 @@ export const useProductFormController = () => {
   const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [variantRows, setVariantRows] = useState<VariantRowState[]>([]);
   const [groupVariants, setGroupVariants] = useState<CatalogProduct[]>([]);
   const [currentVariantPosition, setCurrentVariantPosition] = useState(1);
   const gallery = useProductGallery();
+  const {
+    variantRows,
+    addVariantRow,
+    updateVariantRow,
+    removeVariantRow,
+    resetVariantRows,
+  } = useProductVariantRows();
 
   useEffect(() => {
     setInitialLoading(true);
@@ -106,7 +112,7 @@ export const useProductFormController = () => {
     setBrandQuery(productBrand);
 
     gallery.hydrate(product.gallery);
-    setVariantRows([]);
+    resetVariantRows();
   };
 
   const handleFieldChange = (name: keyof ProductFormState, value: string) => {
@@ -178,20 +184,6 @@ export const useProductFormController = () => {
     return brands.filter((brand) => brand.name.toLowerCase().includes(search)).slice(0, 8);
   }, [brandQuery, brands, form.brand]);
 
-  const addVariantRow = () => {
-    setVariantRows((previous) => [...previous, { color: '', storageCapacity: '', stock: '0' }]);
-  };
-
-  const updateVariantRow = (index: number, field: keyof VariantRowState, value: string) => {
-    setVariantRows((previous) =>
-      previous.map((row, rowIndex) => (rowIndex === index ? { ...row, [field]: value } : row)),
-    );
-  };
-
-  const removeVariantRow = (index: number) => {
-    setVariantRows((previous) => previous.filter((_, rowIndex) => rowIndex !== index));
-  };
-
   const handleDeleteVariant = (variant: CatalogProduct) => {
     if (groupVariants.length <= 1 || deletingVariantId !== null) return;
 
@@ -246,7 +238,7 @@ export const useProductFormController = () => {
         if (!isEdit) {
           setForm(emptyProductForm);
           gallery.reset();
-          setVariantRows([]);
+          resetVariantRows();
         }
         setTimeout(() => navigate('/admin/catalog/products'), 800);
       })
