@@ -1,10 +1,11 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { useAdminOrderDetail } from '@/features/admin/orders/hooks/useAdminOrderDetail';
 import { AdminOrderDeliverySection } from '@/features/admin/orders/components/AdminOrderDeliverySection';
 import { AdminOrderHistorySection } from '@/features/admin/orders/components/AdminOrderHistorySection';
 import { AdminOrderItemsSection } from '@/features/admin/orders/components/AdminOrderItemsSection';
 import { AdminOrderPaymentSection } from '@/features/admin/orders/components/AdminOrderPaymentSection';
+import { AdminOrderClientAccess } from '@/features/admin/orders/components/AdminOrderClientAccess';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
@@ -224,30 +225,7 @@ export const AdminOrderDetailPage = () => {
 
           <AdminOrderHistorySection events={events} />
 
-          <section className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-brand-900">Accès client</h2>
-              <p className="mt-1 text-sm text-stone-500">
-                Raccourcis utiles pour ouvrir le client ou vérifier sa vue commande.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-4">
-              {order.userId ? (
-                <Link
-                  className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                  to={`/admin/customers/${order.userId}`}
-                >
-                  Ouvrir la fiche client
-                </Link>
-              ) : null}
-              <Link
-                className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                to={`/orders/${order.id}`}
-              >
-                Ouvrir la vue client de cette commande
-              </Link>
-            </div>
-          </section>
+          <AdminOrderClientAccess orderId={order.id} userId={order.userId} />
         </div>
       )}
     </PageContainer>
