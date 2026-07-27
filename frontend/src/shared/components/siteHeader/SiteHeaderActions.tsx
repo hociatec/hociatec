@@ -2,6 +2,8 @@ import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FlaskConical, LogIn, Mail, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMyBetaProfile } from '@/features/betaTest/api/betaApi';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -23,6 +25,14 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
 
   const isAuthenticated = status === 'authenticated' && Boolean(user);
   const isAdmin = (user?.roles ?? []).includes('ROLE_ADMIN');
+
+  const { data: betaProfile } = useQuery({
+    queryKey: ['betaProfile'],
+    queryFn: fetchMyBetaProfile,
+    enabled: isAuthenticated,
+    retry: false,
+  });
+  const isBetaTester = Boolean(betaProfile);
   const profileActive = isAnyPathActive(pathname, [
     '/mon-espace',
     '/profile',
@@ -58,10 +68,12 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
 
   return (
     <div className="site-header__actions">
-      <Link to="/beta-test" className={linkClass('/beta-test')}>
-        <FlaskConical aria-hidden="true" />
-        Bêta-test
-      </Link>
+      {!isBetaTester && (
+        <Link to="/beta-test" className={linkClass('/beta-test')}>
+          <FlaskConical aria-hidden="true" />
+          Bêta-test
+        </Link>
+      )}
       <Link to="/contact" className={linkClass('/contact')}>
         <Mail aria-hidden="true" />
         Contact

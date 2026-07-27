@@ -6,6 +6,7 @@ namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\DTO\BetaProfileInput;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Service\BetaTesterProfileService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
@@ -20,8 +21,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/beta/profile', methods: ['PUT'])] #[IsGranted('ROLE_USER')]
 final class UpdateMyBetaProfileController extends AbstractController
 {
-    public function __construct(private readonly BetaTesterProfileRepository $profiles, private readonly DoctrinePersistence $persistence, private readonly DtoValidator $validator)
-    {
+    public function __construct(
+        private readonly BetaTesterProfileRepository $profiles,
+        private readonly DoctrinePersistence $persistence,
+        private readonly DtoValidator $validator,
+        private readonly BetaTesterProfileService $profileService,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
@@ -29,23 +34,27 @@ final class UpdateMyBetaProfileController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
-        } $profile = $this->profiles->findOneByUser($user);
-        if (null === $profile) {
-            return ApiResponse::error('Profil bêta introuvable.', 404);
-        } $input = BetaProfileInput::fromArray(JsonPayload::decode($request));
+        }
+        $profile = $this->profiles->findOneByUser($user);
+        $input = BetaProfileInput::fromArray(JsonPayload::decode($request));
         $this->validator->validate($input);
-        $profile->update(
-            $input->availability,
-            $input->motivation,
-            $input->testingExperience,
-            $input->bugDescriptionAbility,
-            $input->technicalKnowledge,
-            $input->accessibilityNeed,
-            $input->assistiveTools,
-            $input->devices,
-            $input->browsers,
-            $input->testingTypes
-        );
+
+        if (null === $profile) {
+            $profile = $this->profileService->create($user, $input);
+        } else {
+            $profile->update(
+                $input->availability,
+                $input->motivation,
+                $input->testingExperience,
+                $input->bugDescriptionAbility,
+                $input->technicalKnowledge,
+                $input->accessibilityNeed,
+                $input->assistiveTools,
+                $input->devices,
+                $input->browsers,
+                $input->testingTypes
+            );
+        }
         $this->persistence->flush();
 
         return ApiResponse::success([], 200, 'Profil bêta mis à jour.');
