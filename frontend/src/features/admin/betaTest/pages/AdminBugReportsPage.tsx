@@ -250,6 +250,7 @@ export const AdminBugReportsPage = () => {
               <button
                 className="p-1 text-stone-500 hover:text-stone-700 rounded-full hover:bg-stone-100"
                 onClick={() => setSelectedReportId(null)}
+                aria-label="Fermer la discussion"
               >
                 <X size={20} />
               </button>

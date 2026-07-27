@@ -12,6 +12,7 @@ import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { MessageSquare, X } from 'lucide-react';
 import { useToast } from '@/shared/components/ui/toast';
+import { SiteLayout } from '@/shared/components/SiteLayout';
 
 export const BetaDashboardPage = () => {
   const queryClient = useQueryClient();
@@ -72,8 +73,9 @@ export const BetaDashboardPage = () => {
   };
 
   return (
-    <PageContainer title="Mon espace bêta">
-      <p className="mb-6 text-stone-600">Suivez vos campagnes et vos signalements depuis cet espace.</p>
+    <SiteLayout headerVariant="light">
+      <PageContainer title="Mon espace bêta">
+        <p className="mb-6 text-stone-600">Suivez vos campagnes et vos signalements depuis cet espace.</p>
       {errorMessage && <FeedbackMessage>{errorMessage}</FeedbackMessage>}
       {profile && (
         <section className="mb-8 rounded-lg border border-stone-200 bg-white p-5">
@@ -142,6 +144,7 @@ export const BetaDashboardPage = () => {
               <button
                 className="p-1 text-stone-500 hover:text-stone-700 rounded-full hover:bg-stone-100"
                 onClick={() => setSelectedReportId(null)}
+                aria-label="Fermer la discussion"
               >
                 <X size={20} />
               </button>
@@ -209,6 +212,7 @@ export const BetaDashboardPage = () => {
           </div>
         </div>
       )}
-    </PageContainer>
+      </PageContainer>
+    </SiteLayout>
   );
 };

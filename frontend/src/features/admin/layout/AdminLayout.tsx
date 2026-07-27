@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   BarChart3,
+  Beaker,
+  Calendar,
   ChevronDown,
   Mail,
   Package,
@@ -59,14 +61,28 @@ const adminNavGroups: AdminNavGroup[] = [
     links: [
       { to: '/admin/customers', label: 'Liste des clients' },
       { to: '/admin/loyalty', label: 'Fidélité' },
+    ],
+  },
+  {
+    id: 'prestations_formations',
+    label: 'Prestations & Formations',
+    icon: Calendar,
+    links: [
       { to: '/admin/appointments/prestations', label: 'Prestations RDV' },
       { to: '/admin/appointments/schedule', label: 'Planning RDV' },
       { to: '/admin/trainings', label: 'Formations' },
       { to: '/admin/trainings/sessions', label: 'Sessions' },
       { to: '/admin/trainings/enrollments', label: 'Inscriptions' },
       { to: '/admin/audits', label: 'Audits' },
-      { to: '/admin/beta-testers', label: 'Bêta-testeurs' },
+    ],
+  },
+  {
+    id: 'beta_program',
+    label: 'Programme Bêta',
+    icon: Beaker,
+    links: [
       { to: '/admin/beta-campaigns', label: 'Campagnes bêta' },
+      { to: '/admin/beta-testers', label: 'Bêta-testeurs' },
       { to: '/admin/beta-reports', label: 'Signalements de bugs' },
     ],
   },

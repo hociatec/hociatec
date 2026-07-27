@@ -68,4 +68,32 @@ class BetaCampaign
     {
         return $this->createdAt;
     }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function setStartsAt(?\DateTimeImmutable $startsAt): self
+    {
+        $this->startsAt = $startsAt;
+
+        return $this;
+    }
+
+    public function setEndsAt(?\DateTimeImmutable $endsAt): self
+    {
+        $this->endsAt = $endsAt;
+
+        return $this;
+    }
 }

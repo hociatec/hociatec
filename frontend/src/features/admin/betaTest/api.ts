@@ -40,3 +40,11 @@ export const fetchBugReportComments = async (id: number) => {
 export const createBugReportComment = async (id: number, content: string) => {
   return unwrap((await httpClient.post<ApiResponse<BugReportCommentDto>>(`/api/beta/reports/${id}/comments`, { content })).data);
 };
+
+export const updateAdminCampaign = async (id: number, payload: { name?: string; description?: string; status?: string }) => {
+  return unwrap((await httpClient.patch<ApiResponse<Record<string, unknown>>>(`/api/admin/beta-campaigns/${id}`, payload)).data);
+};
+
+export const deleteAdminCampaign = async (id: number) => {
+  return unwrap((await httpClient.delete<ApiResponse<Record<string, unknown>>>(`/api/admin/beta-campaigns/${id}`)).data);
+};
