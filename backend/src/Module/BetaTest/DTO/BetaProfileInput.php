@@ -14,6 +14,13 @@ final readonly class BetaProfileInput
     public const BROWSERS = ['chrome', 'firefox', 'edge', 'safari', 'other'];
     public const TEST_TYPES = ['bugs', 'accessibility', 'usability', 'mobile', 'performance', 'features'];
 
+    /**
+     * @param list<string> $availability
+     * @param list<string> $assistiveTools
+     * @param list<string> $devices
+     * @param list<string> $browsers
+     * @param list<string> $testingTypes
+     */
     public function __construct(
         #[Assert\Count(min: 1), Assert\All([new Assert\Choice(choices: ['weekdays', 'evenings', 'weekends', 'flexible'])])]
         public array $availability,

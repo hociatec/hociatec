@@ -29,6 +29,7 @@ class BetaTesterProfile
     #[ORM\Column(length: 30)]
     private string $status = self::STATUS_PENDING;
 
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $availability = [];
     #[ORM\Column(type: 'text')]
@@ -41,12 +42,16 @@ class BetaTesterProfile
     private ?string $technicalKnowledge = null;
     #[ORM\Column(length: 30)]
     private string $accessibilityNeed = 'none';
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $assistiveTools = [];
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $devices = [];
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $browsers = [];
+    /** @var list<string> */
     #[ORM\Column(type: 'json')]
     private array $testingTypes = [];
     #[ORM\Column(type: 'datetime_immutable')]
@@ -58,7 +63,13 @@ class BetaTesterProfile
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    /** @param list<string> $availability @param list<string> $assistiveTools @param list<string> $devices @param list<string> $browsers @param list<string> $testingTypes */
+    /**
+     * @param list<string> $availability
+     * @param list<string> $assistiveTools
+     * @param list<string> $devices
+     * @param list<string> $browsers
+     * @param list<string> $testingTypes
+     */
     public function __construct(User $user, array $availability, string $motivation, string $testingExperience, string $bugDescriptionAbility, ?string $technicalKnowledge, string $accessibilityNeed, array $assistiveTools, array $devices, array $browsers, array $testingTypes, \DateTimeImmutable $consentAt, string $privacyNoticeVersion)
     {
         $this->user = $user;
@@ -100,6 +111,9 @@ class BetaTesterProfile
         return $this;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getAvailability(): array
     {
         return $this->availability;
@@ -130,21 +144,33 @@ class BetaTesterProfile
         return $this->accessibilityNeed;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getAssistiveTools(): array
     {
         return $this->assistiveTools;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getDevices(): array
     {
         return $this->devices;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getBrowsers(): array
     {
         return $this->browsers;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getTestingTypes(): array
     {
         return $this->testingTypes;

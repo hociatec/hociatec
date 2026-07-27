@@ -23,9 +23,13 @@ class BugReport
     #[ORM\Column(length: 20)] private string $severity;
     #[ORM\Column(length: 30)] private string $status = 'submitted';
     #[ORM\Column(length: 500, nullable: true)] private ?string $pageUrl;
+    /** @var list<string> */
     #[ORM\Column(type: 'json')] private array $attachments = [];
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $createdAt;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $updatedAt;
+    /**
+     * @param list<string> $attachments
+     */
     public function __construct(User $reporter, ?BetaCampaign $campaign, string $title, string $description, ?string $expectedBehavior, ?string $actualBehavior, string $severity, ?string $pageUrl, array $attachments = [])
     {
         $this->reporter = $reporter;
@@ -99,6 +103,9 @@ class BugReport
         return $this->pageUrl;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getAttachments(): array
     {
         return $this->attachments;

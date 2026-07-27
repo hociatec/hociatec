@@ -28,6 +28,6 @@ final readonly class BetaAttachmentStorage
             $paths[] = $name;
         }
 
-return $paths;
+        return $paths;
     }
 }

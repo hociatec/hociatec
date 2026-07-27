@@ -26,6 +26,6 @@ final class ListMyBugReportsController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-return ApiResponse::success(['items' => array_map(static fn ($report) => ['id' => $report->getId(), 'title' => $report->getTitle(), 'description' => $report->getDescription(), 'severity' => $report->getSeverity(), 'status' => $report->getStatus(), 'campaign' => $report->getCampaign()?->getName(), 'attachments' => $report->getAttachments(), 'createdAt' => $report->getCreatedAt()->format(DATE_ATOM)], $this->reports->findForUser($user))]);
+        return ApiResponse::success(['items' => array_map(static fn ($report) => ['id' => $report->getId(), 'title' => $report->getTitle(), 'description' => $report->getDescription(), 'severity' => $report->getSeverity(), 'status' => $report->getStatus(), 'campaign' => $report->getCampaign()?->getName(), 'attachments' => $report->getAttachments(), 'createdAt' => $report->getCreatedAt()->format(DATE_ATOM)], $this->reports->findForUser($user))]);
     }
 }

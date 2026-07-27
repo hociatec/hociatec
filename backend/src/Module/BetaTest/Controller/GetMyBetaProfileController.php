@@ -29,6 +29,6 @@ final class GetMyBetaProfileController extends AbstractController
             return ApiResponse::error('Profil bêta introuvable.', 404);
         }
 
-return ApiResponse::success(['profile' => ['id' => $profile->getId(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => $profile->getTestingExperience(), 'bugDescriptionAbility' => $profile->getBugDescriptionAbility(), 'technicalKnowledge' => $profile->getTechnicalKnowledge(), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes()]]);
+        return ApiResponse::success(['profile' => ['id' => $profile->getId(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => $profile->getTestingExperience(), 'bugDescriptionAbility' => $profile->getBugDescriptionAbility(), 'technicalKnowledge' => $profile->getTechnicalKnowledge(), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes()]]);
     }
 }

@@ -31,6 +31,6 @@ final class LeaveBetaProgramController extends AbstractController
             $this->persistence->flush();
         }
 
-return ApiResponse::success([], 200, 'Vos données bêta ont été supprimées.');
+        return ApiResponse::success([], 200, 'Vos données bêta ont été supprimées.');
     }
 }

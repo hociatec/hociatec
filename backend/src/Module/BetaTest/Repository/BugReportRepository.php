@@ -9,6 +9,9 @@ use App\Module\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<BugReport>
+ */
 final class BugReportRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,6 +19,9 @@ final class BugReportRepository extends ServiceEntityRepository
         parent::__construct($registry, BugReport::class);
     }
 
+    /**
+     * @return list<BugReport>
+     */
     public function findForUser(User $user): array
     {
         return $this->findBy(['reporter' => $user], ['createdAt' => 'DESC']);
