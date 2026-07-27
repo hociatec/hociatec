@@ -2,6 +2,7 @@ import {
   BadgePercent,
   CalendarDays,
   FileText,
+  FlaskConical,
   GraduationCap,
   Heart,
   MapPin,
@@ -19,6 +20,7 @@ const destinations = [
   { icon: <GraduationCap />, title: 'Formations', to: '/trainings/me' },
   { icon: <BadgePercent />, title: 'Bons', to: '/vouchers/me' },
   { icon: <Package />, title: 'Reprises', to: '/reprises' },
+  { icon: <FlaskConical />, title: 'Espace Bêta', to: '/beta' },
 ];
 
 export const DashboardAccessLinks = () => (
