@@ -10,6 +10,12 @@ import {
 import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { MessageSquare, Trash2, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 
 export const AdminBugReportsPage = () => {
   const queryClient = useQueryClient();
@@ -240,83 +246,86 @@ export const AdminBugReportsPage = () => {
 
       {/* Discussion Modal */}
       {selectedReportId !== null && activeReport && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl">
-            <header className="p-4 border-b border-stone-200 flex items-center justify-between">
-              <div>
-                <h2 className="font-bold text-lg">Discussion : {activeReport.title}</h2>
-                <span className="text-xs text-stone-500">Par {activeReport.reporter}</span>
+        <Dialog open={selectedReportId !== null} onClose={() => setSelectedReportId(null)} className="relative z-50">
+          <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <DialogPanel className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl">
+              <header className="p-4 border-b border-stone-200 flex items-center justify-between">
+                <div>
+                  <DialogTitle className="font-bold text-lg">Discussion : {activeReport.title}</DialogTitle>
+                  <span className="text-xs text-stone-500">Par {activeReport.reporter}</span>
+                </div>
+                <button
+                  className="p-1 text-stone-500 hover:text-stone-700 rounded-full hover:bg-stone-100"
+                  onClick={() => setSelectedReportId(null)}
+                  aria-label="Fermer la discussion"
+                >
+                  <X size={20} />
+                </button>
+              </header>
+
+              <div className="p-4 bg-stone-50 border-b border-stone-200 max-h-[120px] overflow-y-auto text-sm text-stone-700">
+                <strong>Description initiale :</strong>
+                <p className="mt-1 whitespace-pre-wrap">{activeReport.description}</p>
               </div>
-              <button
-                className="p-1 text-stone-500 hover:text-stone-700 rounded-full hover:bg-stone-100"
-                onClick={() => setSelectedReportId(null)}
-                aria-label="Fermer la discussion"
-              >
-                <X size={20} />
-              </button>
-            </header>
 
-            <div className="p-4 bg-stone-50 border-b border-stone-200 max-h-[120px] overflow-y-auto text-sm text-stone-700">
-              <strong>Description initiale :</strong>
-              <p className="mt-1 whitespace-pre-wrap">{activeReport.description}</p>
-            </div>
-
-            {/* Conversation list */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50/50">
-              {loadingComments ? (
-                <p className="text-center text-stone-500 text-sm">Chargement des messages...</p>
-              ) : comments.length === 0 ? (
-                <p className="text-center text-stone-400 text-sm py-4">Aucun message pour le moment. Engagez la discussion ci-dessous !</p>
-              ) : (
-                comments.map((c) => {
-                  const isAdminMsg = c.author.role === 'admin';
-                  return (
-                    <div
-                      key={c.id}
-                      className={`flex flex-col max-w-[85%] ${
-                        isAdminMsg ? 'ml-auto items-end' : 'mr-auto items-start'
-                      }`}
-                    >
-                      <span className="text-xs text-stone-500 mb-1">
-                        {c.author.firstName} {c.author.lastName} ({isAdminMsg ? 'Admin' : 'Client'})
-                      </span>
+              {/* Conversation list */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50/50">
+                {loadingComments ? (
+                  <p className="text-center text-stone-500 text-sm">Chargement des messages...</p>
+                ) : comments.length === 0 ? (
+                  <p className="text-center text-stone-400 text-sm py-4">Aucun message pour le moment. Engagez la discussion ci-dessous !</p>
+                ) : (
+                  comments.map((c) => {
+                    const isAdminMsg = c.author.role === 'admin';
+                    return (
                       <div
-                        className={`p-3 rounded-lg text-sm ${
-                          isAdminMsg
-                            ? 'bg-brand-700 text-white rounded-br-none'
-                            : 'bg-white border border-stone-200 text-stone-800 rounded-bl-none'
+                        key={c.id}
+                        className={`flex flex-col max-w-[85%] ${
+                          isAdminMsg ? 'ml-auto items-end' : 'mr-auto items-start'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap">{c.content}</p>
+                        <span className="text-xs text-stone-500 mb-1">
+                          {c.author.firstName} {c.author.lastName} ({isAdminMsg ? 'Admin' : 'Client'})
+                        </span>
+                        <div
+                          className={`p-3 rounded-lg text-sm ${
+                            isAdminMsg
+                              ? 'bg-brand-700 text-white rounded-br-none'
+                              : 'bg-white border border-stone-200 text-stone-800 rounded-bl-none'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{c.content}</p>
+                        </div>
+                        <span className="text-[10px] text-stone-400 mt-1">
+                          {new Date(c.createdAt).toLocaleString()}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-stone-400 mt-1">
-                        {new Date(c.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                    );
+                  })
+                )}
+              </div>
 
-            {/* Post comment form */}
-            <form onSubmit={handlePostComment} className="p-4 border-t border-stone-200 flex gap-2">
-              <input
-                type="text"
-                placeholder="Rédiger votre réponse..."
-                className="flex-1 p-3 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-brand-700"
-                value={newCommentText}
-                onChange={(e) => setNewCommentText(e.target.value)}
-              />
-              <button
-                type="submit"
-                disabled={postCommentMutation.isPending || !newCommentText.trim()}
-                className="px-4 py-3 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
-              >
-                {postCommentMutation.isPending ? 'Envoi...' : 'Répondre'}
-              </button>
-            </form>
+              {/* Post comment form */}
+              <form onSubmit={handlePostComment} className="p-4 border-t border-stone-200 flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Rédiger votre réponse..."
+                  className="flex-1 p-3 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-brand-700"
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  disabled={postCommentMutation.isPending || !newCommentText.trim()}
+                  className="px-4 py-3 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+                >
+                  {postCommentMutation.isPending ? 'Envoi...' : 'Répondre'}
+                </button>
+              </form>
+            </DialogPanel>
           </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );
