@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'beta_tester_profiles')]
 #[ORM\UniqueConstraint(name: 'uniq_beta_profile_user', columns: ['user_id'])]
 #[ORM\Index(name: 'idx_beta_profile_status', columns: ['status'])]
-final class BetaTesterProfile
+class BetaTesterProfile
 {
     public const STATUS_PENDING = 'pending';
     public const STATUS_ACCEPTED = 'accepted';
@@ -78,22 +78,107 @@ final class BetaTesterProfile
         $this->updatedAt = $consentAt;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getUser(): User { return $this->user; }
-    public function getStatus(): string { return $this->status; }
-    public function setStatus(string $status): self { $this->status = $status; return $this; }
-    public function getAvailability(): array { return $this->availability; }
-    public function getMotivation(): string { return $this->motivation; }
-    public function getTestingExperience(): string { return $this->testingExperience; }
-    public function getBugDescriptionAbility(): string { return $this->bugDescriptionAbility; }
-    public function getTechnicalKnowledge(): ?string { return $this->technicalKnowledge; }
-    public function getAccessibilityNeed(): string { return $this->accessibilityNeed; }
-    public function getAssistiveTools(): array { return $this->assistiveTools; }
-    public function getDevices(): array { return $this->devices; }
-    public function getBrowsers(): array { return $this->browsers; }
-    public function getTestingTypes(): array { return $this->testingTypes; }
-    public function getConsentAt(): \DateTimeImmutable { return $this->consentAt; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
-    public function updateFromInput(\App\Module\BetaTest\DTO\BetaProfileInput $input): self { $this->availability=$input->availability; $this->motivation=$input->motivation; $this->testingExperience=$input->testingExperience; $this->bugDescriptionAbility=$input->bugDescriptionAbility; $this->technicalKnowledge=$input->technicalKnowledge; $this->accessibilityNeed=$input->accessibilityNeed; $this->assistiveTools=$input->assistiveTools; $this->devices=$input->devices; $this->browsers=$input->browsers; $this->testingTypes=$input->testingTypes; $this->updatedAt=new \DateTimeImmutable(); return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getAvailability(): array
+    {
+        return $this->availability;
+    }
+
+    public function getMotivation(): string
+    {
+        return $this->motivation;
+    }
+
+    public function getTestingExperience(): string
+    {
+        return $this->testingExperience;
+    }
+
+    public function getBugDescriptionAbility(): string
+    {
+        return $this->bugDescriptionAbility;
+    }
+
+    public function getTechnicalKnowledge(): ?string
+    {
+        return $this->technicalKnowledge;
+    }
+
+    public function getAccessibilityNeed(): string
+    {
+        return $this->accessibilityNeed;
+    }
+
+    public function getAssistiveTools(): array
+    {
+        return $this->assistiveTools;
+    }
+
+    public function getDevices(): array
+    {
+        return $this->devices;
+    }
+
+    public function getBrowsers(): array
+    {
+        return $this->browsers;
+    }
+
+    public function getTestingTypes(): array
+    {
+        return $this->testingTypes;
+    }
+
+    public function getConsentAt(): \DateTimeImmutable
+    {
+        return $this->consentAt;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function updateFromInput(\App\Module\BetaTest\DTO\BetaProfileInput $input): self
+    {
+        $this->availability = $input->availability;
+        $this->motivation = $input->motivation;
+        $this->testingExperience = $input->testingExperience;
+        $this->bugDescriptionAbility = $input->bugDescriptionAbility;
+        $this->technicalKnowledge = $input->technicalKnowledge;
+        $this->accessibilityNeed = $input->accessibilityNeed;
+        $this->assistiveTools = $input->assistiveTools;
+        $this->devices = $input->devices;
+        $this->browsers = $input->browsers;
+        $this->testingTypes = $input->testingTypes;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
 }

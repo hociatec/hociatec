@@ -27,13 +27,15 @@ final readonly class BetaProfileInput
         #[Assert\Count(min: 1), Assert\All([new Assert\Choice(choices: self::BROWSERS)])] public array $browsers,
         #[Assert\Count(min: 1), Assert\All([new Assert\Choice(choices: self::TEST_TYPES)])] public array $testingTypes,
         #[Assert\IsTrue(message: 'Le consentement au programme bêta est obligatoire.')] public bool $consent,
-    ) {}
+    ) {
+    }
 
     /** @param array<string,mixed> $payload */
     public static function fromArray(array $payload): self
     {
         $list = static fn (string $key): array => array_values(array_filter($payload[$key] ?? [], 'is_string'));
         $text = static fn (string $key): string => is_string($payload[$key] ?? null) ? trim($payload[$key]) : '';
+
         return new self($list('availability'), $text('motivation'), $text('testingExperience'), $text('bugDescriptionAbility'), '' === $text('technicalKnowledge') ? null : $text('technicalKnowledge'), $text('accessibilityNeed'), $list('assistiveTools'), $list('devices'), $list('browsers'), $list('testingTypes'), true === ($payload['betaConsent'] ?? false));
     }
 }
