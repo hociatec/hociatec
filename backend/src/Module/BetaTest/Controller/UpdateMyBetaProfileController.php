@@ -34,7 +34,18 @@ final class UpdateMyBetaProfileController extends AbstractController
             return ApiResponse::error('Profil bêta introuvable.', 404);
         } $input = BetaProfileInput::fromArray(JsonPayload::decode($request));
         $this->validator->validate($input);
-        $profile->updateFromInput($input);
+        $profile->update(
+            $input->availability,
+            $input->motivation,
+            $input->testingExperience,
+            $input->bugDescriptionAbility,
+            $input->technicalKnowledge,
+            $input->accessibilityNeed,
+            $input->assistiveTools,
+            $input->devices,
+            $input->browsers,
+            $input->testingTypes
+        );
         $this->persistence->flush();
 
         return ApiResponse::success([], 200, 'Profil bêta mis à jour.');

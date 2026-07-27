@@ -1,7 +1,75 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchBetaCampaigns, fetchMyBetaProfile, fetchMyBugReports, type BetaCampaign, type BugReport } from '../api/betaApi';
+import { useQuery } from '@tanstack/react-query';
+import { fetchBetaCampaigns, fetchMyBetaProfile, fetchMyBugReports } from '../api/betaApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
-export const BetaDashboardPage = () => { const [profile,setProfile]=useState<Record<string,unknown>|null>(null); const [campaigns,setCampaigns]=useState<BetaCampaign[]>([]); const [reports,setReports]=useState<BugReport[]>([]); const [error,setError]=useState<string|null>(null); useEffect(()=>{ void Promise.all([fetchMyBetaProfile(),fetchBetaCampaigns(),fetchMyBugReports()]).then(([p,c,r])=>{setProfile(p);setCampaigns(c);setReports(r);}).catch(e=>setError(e instanceof Error?e.message:'Impossible de charger votre espace bêta.')); },[]); return <PageContainer title="Mon espace bêta"><p className="mb-6 text-stone-600">Suivez vos campagnes et vos signalements depuis cet espace.</p>{error&&<FeedbackMessage>{error}</FeedbackMessage>}{profile&&<section className="mb-8 rounded-lg border border-stone-200 bg-white p-5"><h2 className="mb-2 text-xl font-semibold">Votre profil</h2><p>Statut : <strong>{String(profile.status)}</strong></p><Link className="mt-3 inline-flex underline" to="/beta/profile">Modifier mon profil</Link></section>}<section className="mb-8"><div className="mb-3 flex items-center justify-between"><h2 className="text-xl font-semibold">Campagnes disponibles</h2><Link className="underline" to="/beta/reports/new">Nouveau signalement</Link></div>{campaigns.length===0?<p className="text-stone-600">Aucune campagne disponible actuellement.</p>:<div className="grid gap-4 md:grid-cols-2">{campaigns.map(c=><article key={c.id} className="rounded-lg border border-stone-200 bg-white p-5"><h3 className="font-semibold">{c.name}</h3><p className="mt-2 text-sm text-stone-600">{c.description}</p></article>)}</div>}</section><section><h2 className="mb-3 text-xl font-semibold">Mes signalements</h2>{reports.length===0?<p className="text-stone-600">Aucun signalement.</p>:<div className="space-y-3">{reports.map(r=><article key={r.id} className="rounded-lg border border-stone-200 bg-white p-4"><div className="flex justify-between gap-4"><h3 className="font-semibold">{r.title}</h3><span>{r.status}</span></div><p className="mt-2 text-sm text-stone-600">{r.description}</p></article>)}</div>}</section></PageContainer>; };
+export const BetaDashboardPage = () => {
+  const { data: profile, error: profileError } = useQuery<Record<string, unknown>>({
+    queryKey: ['betaProfile'],
+    queryFn: fetchMyBetaProfile,
+  });
+
+  const { data: campaigns = [], error: campaignsError } = useQuery({
+    queryKey: ['betaCampaigns'],
+    queryFn: fetchBetaCampaigns,
+  });
+
+  const { data: reports = [], error: reportsError } = useQuery({
+    queryKey: ['betaReports'],
+    queryFn: fetchMyBugReports,
+  });
+
+  const error = profileError || campaignsError || reportsError;
+  const errorMessage = error instanceof Error ? error.message : error ? 'Impossible de charger votre espace bêta.' : null;
+
+  return (
+    <PageContainer title="Mon espace bêta">
+      <p className="mb-6 text-stone-600">Suivez vos campagnes et vos signalements depuis cet espace.</p>
+      {errorMessage && <FeedbackMessage>{errorMessage}</FeedbackMessage>}
+      {profile && (
+        <section className="mb-8 rounded-lg border border-stone-200 bg-white p-5">
+          <h2 className="mb-2 text-xl font-semibold">Votre profil</h2>
+          <p>Statut : <strong>{String(profile.status)}</strong></p>
+          <Link className="mt-3 inline-flex underline" to="/beta/profile">Modifier mon profil</Link>
+        </section>
+      )}
+      <section className="mb-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Campagnes disponibles</h2>
+          <Link className="underline" to="/beta/reports/new">Nouveau signalement</Link>
+        </div>
+        {campaigns.length === 0 ? (
+          <p className="text-stone-600">Aucune campagne disponible actuellement.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {campaigns.map(c => (
+              <article key={c.id} className="rounded-lg border border-stone-200 bg-white p-5">
+                <h3 className="font-semibold">{c.name}</h3>
+                <p className="mt-2 text-sm text-stone-600">{c.description}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+      <section>
+        <h2 className="mb-3 text-xl font-semibold">Mes signalements</h2>
+        {reports.length === 0 ? (
+          <p className="text-stone-600">Aucun signalement.</p>
+        ) : (
+          <div className="space-y-3">
+            {reports.map(r => (
+              <article key={r.id} className="rounded-lg border border-stone-200 bg-white p-4">
+                <div className="flex justify-between gap-4">
+                  <h3 className="font-semibold">{r.title}</h3>
+                  <span>{r.status}</span>
+                </div>
+                <p className="mt-2 text-sm text-stone-600">{r.description}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </PageContainer>
+  );
+};

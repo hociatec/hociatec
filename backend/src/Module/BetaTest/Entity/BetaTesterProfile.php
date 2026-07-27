@@ -191,18 +191,35 @@ class BetaTesterProfile
         return $this->updatedAt;
     }
 
-    public function updateFromInput(\App\Module\BetaTest\DTO\BetaProfileInput $input): self
-    {
-        $this->availability = $input->availability;
-        $this->motivation = $input->motivation;
-        $this->testingExperience = $input->testingExperience;
-        $this->bugDescriptionAbility = $input->bugDescriptionAbility;
-        $this->technicalKnowledge = $input->technicalKnowledge;
-        $this->accessibilityNeed = $input->accessibilityNeed;
-        $this->assistiveTools = $input->assistiveTools;
-        $this->devices = $input->devices;
-        $this->browsers = $input->browsers;
-        $this->testingTypes = $input->testingTypes;
+    /**
+     * @param list<string> $availability
+     * @param list<string> $assistiveTools
+     * @param list<string> $devices
+     * @param list<string> $browsers
+     * @param list<string> $testingTypes
+     */
+    public function update(
+        array $availability,
+        string $motivation,
+        string $testingExperience,
+        string $bugDescriptionAbility,
+        ?string $technicalKnowledge,
+        string $accessibilityNeed,
+        array $assistiveTools,
+        array $devices,
+        array $browsers,
+        array $testingTypes,
+    ): self {
+        $this->availability = $availability;
+        $this->motivation = $motivation;
+        $this->testingExperience = $testingExperience;
+        $this->bugDescriptionAbility = $bugDescriptionAbility;
+        $this->technicalKnowledge = $technicalKnowledge;
+        $this->accessibilityNeed = $accessibilityNeed;
+        $this->assistiveTools = $assistiveTools;
+        $this->devices = $devices;
+        $this->browsers = $browsers;
+        $this->testingTypes = $testingTypes;
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
