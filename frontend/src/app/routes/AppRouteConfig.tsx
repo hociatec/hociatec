@@ -7,6 +7,7 @@ import {
   ActivationPage,
   AdminBetaTestersPage,
   AdminBetaCampaignsPage,
+  AdminBugReportsPage,
   BetaTestPage,
   BetaDashboardPage,
   BetaBugReportPage,
@@ -322,6 +323,7 @@ export const adminRoutes: AppRouteDefinition = {
     },
     { path: 'beta-testers', element: <AdminBetaTestersPage /> },
     { path: 'beta-campaigns', element: <AdminBetaCampaignsPage /> },
+    { path: 'beta-reports', element: <AdminBugReportsPage /> },
     { path: 'trade-ins', element: <AdminTradeInsPage /> },
   ],
 };

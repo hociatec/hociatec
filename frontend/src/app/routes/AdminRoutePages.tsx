@@ -174,6 +174,10 @@ export const AdminBetaTestersPage = lazyPage(
   'AdminBetaTestersPage',
 );
 export const AdminBetaCampaignsPage = lazyPage(() => import('@/features/admin/betaTest/pages/AdminBetaCampaignsPage'), 'AdminBetaCampaignsPage');
+export const AdminBugReportsPage = lazyPage(
+  () => import('@/features/admin/betaTest/pages/AdminBugReportsPage'),
+  'AdminBugReportsPage',
+);
 export const AdminAuditDetailPage = lazyPage(
   () => import('@/features/admin/audits/pages/AdminAuditDetailPage'),
   'AdminAuditDetailPage',

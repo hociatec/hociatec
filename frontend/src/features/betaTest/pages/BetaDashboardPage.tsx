@@ -1,10 +1,24 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { fetchBetaCampaigns, fetchMyBetaProfile, fetchMyBugReports } from '../api/betaApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchBetaCampaigns,
+  fetchMyBetaProfile,
+  fetchMyBugReports,
+  fetchBugReportComments,
+  createBugReportComment,
+} from '../api/betaApi';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { MessageSquare, X } from 'lucide-react';
+import { useToast } from '@/shared/components/ui/toast';
 
 export const BetaDashboardPage = () => {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [newCommentText, setNewCommentText] = useState('');
+
   const { data: profile, error: profileError } = useQuery<Record<string, unknown>>({
     queryKey: ['betaProfile'],
     queryFn: fetchMyBetaProfile,
@@ -20,8 +34,42 @@ export const BetaDashboardPage = () => {
     queryFn: fetchMyBugReports,
   });
 
+  const { data: comments = [], isLoading: loadingComments } = useQuery({
+    queryKey: ['myBugReportComments', selectedReportId],
+    queryFn: () => fetchBugReportComments(selectedReportId!),
+    enabled: selectedReportId !== null,
+  });
+
+  const postCommentMutation = useMutation({
+    mutationFn: () => createBugReportComment(selectedReportId!, newCommentText),
+    onSuccess: () => {
+      setNewCommentText('');
+      queryClient.invalidateQueries({ queryKey: ['myBugReportComments', selectedReportId] });
+      toast.show('Votre message a bien été envoyé.', { variant: 'success' });
+    },
+    onError: (err) => {
+      toast.show(err instanceof Error ? err.message : 'Erreur lors de l\'envoi.', { variant: 'error' });
+    },
+  });
+
+  const handlePostComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCommentText.trim()) return;
+    postCommentMutation.mutate();
+  };
+
   const error = profileError || campaignsError || reportsError;
   const errorMessage = error instanceof Error ? error.message : error ? 'Impossible de charger votre espace bêta.' : null;
+
+  const activeReport = reports.find(r => r.id === selectedReportId);
+
+  const statusLabels: Record<string, string> = {
+    submitted: 'Soumis',
+    under_review: 'En cours d\'analyse',
+    resolved: 'Corrigé',
+    closed: 'Fermé',
+    rejected: 'Rejeté',
+  };
 
   return (
     <PageContainer title="Mon espace bêta">
@@ -62,14 +110,105 @@ export const BetaDashboardPage = () => {
               <article key={r.id} className="rounded-lg border border-stone-200 bg-white p-4">
                 <div className="flex justify-between gap-4">
                   <h3 className="font-semibold">{r.title}</h3>
-                  <span>{r.status}</span>
+                  <span className="text-xs font-semibold uppercase text-stone-500">
+                    {statusLabels[r.status] || r.status}
+                  </span>
                 </div>
-                <p className="mt-2 text-sm text-stone-600">{r.description}</p>
+                <p className="mt-2 text-sm text-stone-600 mb-4">{r.description}</p>
+                <div className="flex justify-end border-t border-stone-100 pt-3">
+                  <button
+                    className="text-xs text-brand-700 hover:text-brand-800 font-semibold flex items-center gap-1.5"
+                    onClick={() => setSelectedReportId(r.id)}
+                  >
+                    <MessageSquare size={14} />
+                    <span>Échanger avec l'équipe ({r.status === 'resolved' ? 'Corrigé' : 'Ouvrir discussion'})</span>
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {/* Discussion Modal */}
+      {selectedReportId !== null && activeReport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[85vh] flex flex-col shadow-xl">
+            <header className="p-4 border-b border-stone-200 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-lg">Discussion : {activeReport.title}</h2>
+                <span className="text-xs text-stone-500">Statut : {statusLabels[activeReport.status] || activeReport.status}</span>
+              </div>
+              <button
+                className="p-1 text-stone-500 hover:text-stone-700 rounded-full hover:bg-stone-100"
+                onClick={() => setSelectedReportId(null)}
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="p-4 bg-stone-50 border-b border-stone-200 max-h-[120px] overflow-y-auto text-sm text-stone-700">
+              <strong>Votre signalement :</strong>
+              <p className="mt-1 whitespace-pre-wrap">{activeReport.description}</p>
+            </div>
+
+            {/* Conversation list */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-50/50">
+              {loadingComments ? (
+                <p className="text-center text-stone-500 text-sm">Chargement des messages...</p>
+              ) : comments.length === 0 ? (
+                <p className="text-center text-stone-400 text-sm py-4">Pas encore de message. L'équipe technique vous répondra très bientôt ici !</p>
+              ) : (
+                comments.map((c) => {
+                  const isAdminMsg = c.author.role === 'admin';
+                  return (
+                    <div
+                      key={c.id}
+                      className={`flex flex-col max-w-[85%] ${
+                        !isAdminMsg ? 'ml-auto items-end' : 'mr-auto items-start'
+                      }`}
+                    >
+                      <span className="text-xs text-stone-500 mb-1">
+                        {isAdminMsg ? 'Support Hociatec (Admin)' : 'Vous'}
+                      </span>
+                      <div
+                        className={`p-3 rounded-lg text-sm ${
+                          !isAdminMsg
+                            ? 'bg-brand-700 text-white rounded-br-none'
+                            : 'bg-white border border-stone-200 text-stone-800 rounded-bl-none'
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{c.content}</p>
+                      </div>
+                      <span className="text-[10px] text-stone-400 mt-1">
+                        {new Date(c.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Post comment form */}
+            <form onSubmit={handlePostComment} className="p-4 border-t border-stone-200 flex gap-2">
+              <input
+                type="text"
+                placeholder="Écrire un message à l'équipe..."
+                className="flex-1 p-3 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-brand-700"
+                value={newCommentText}
+                onChange={(e) => setNewCommentText(e.target.value)}
+              />
+              <button
+                type="submit"
+                disabled={postCommentMutation.isPending || !newCommentText.trim()}
+                className="px-4 py-3 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg text-sm disabled:opacity-50"
+              >
+                {postCommentMutation.isPending ? 'Envoi...' : 'Envoyer'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 };

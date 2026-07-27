@@ -9,3 +9,24 @@ export const fetchMyBugReports = async () => unwrap((await httpClient.get<ApiRes
 export const updateMyBetaProfile = async (payload: Record<string, unknown>) => unwrap((await httpClient.put<ApiResponse<Record<string, unknown>>>('/api/beta/profile', payload)).data);
 export const leaveBetaProgram = async () => unwrap((await httpClient.delete<ApiResponse<Record<string, unknown>>>('/api/beta/profile')).data);
 export const createBugReport = async (payload: {title:string;description:string;expectedBehavior?:string;actualBehavior?:string;severity:string;campaignId?:number;pageUrl?:string;screenshots?:File[]}) => { const data=new FormData(); Object.entries(payload).forEach(([key,value])=>{if(key!=='screenshots'&&value!==undefined)data.append(key,String(value));}); payload.screenshots?.forEach(file=>data.append('screenshots[]',file)); return unwrap((await httpClient.post<ApiResponse<{id:number}>>('/api/beta/reports', data, {headers:{'Content-Type':'multipart/form-data'}})).data); };
+
+export interface BugReportComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'admin' | 'user';
+  };
+}
+
+export const fetchBugReportComments = async (id: number) => {
+  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportComment[] }>>(`/api/beta/reports/${id}/comments`)).data).items;
+};
+
+export const createBugReportComment = async (id: number, content: string) => {
+  return unwrap((await httpClient.post<ApiResponse<BugReportComment>>(`/api/beta/reports/${id}/comments`, { content })).data);
+};

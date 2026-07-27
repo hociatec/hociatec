@@ -11,3 +11,32 @@ export const exportAdminBetaTesters = async () => { const response=await httpCli
 export const updateAdminBetaTester = async (id:number, status:string) => { await httpClient.patch(`/api/admin/beta-testers/${id}`, { status }); };
 export const deleteAdminBetaTester = async (id:number) => { await httpClient.delete(`/api/admin/beta-testers/${id}`); };
 export const createAdminCampaign = async (payload:{name:string;description:string;status:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };
+
+export interface BugReportCommentDto {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: 'admin' | 'user';
+  };
+}
+
+export const updateAdminBugReportStatus = async (id: number, status: string) => {
+  return unwrap((await httpClient.patch<ApiResponse<{ id: number; status: string }>>(`/api/admin/beta-reports/${id}/status`, { status })).data);
+};
+
+export const deleteAdminBugReport = async (id: number) => {
+  return unwrap((await httpClient.delete<ApiResponse<Record<string, unknown>>>(`/api/admin/beta-reports/${id}`)).data);
+};
+
+export const fetchBugReportComments = async (id: number) => {
+  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportCommentDto[] }>>(`/api/beta/reports/${id}/comments`)).data).items;
+};
+
+export const createBugReportComment = async (id: number, content: string) => {
+  return unwrap((await httpClient.post<ApiResponse<BugReportCommentDto>>(`/api/beta/reports/${id}/comments`, { content })).data);
+};
