@@ -6,13 +6,12 @@ namespace App\Module\BetaTest\Service;
 
 use App\Module\BetaTest\DTO\BetaProfileInput;
 use App\Module\BetaTest\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class BetaTesterProfileService
 {
-    public function __construct(private BetaTesterProfileRepository $profiles, private DoctrinePersistence $persistence)
+    public function __construct(private DoctrinePersistence $persistence)
     {
     }
 

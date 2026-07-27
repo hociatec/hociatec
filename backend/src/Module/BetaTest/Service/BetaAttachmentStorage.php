@@ -13,7 +13,11 @@ final readonly class BetaAttachmentStorage
     {
     }
 
-    /** @param list<UploadedFile> $files @return list<string> */
+    /**
+     * @param list<mixed> $files
+     *
+     * @return list<string>
+     */
     public function store(array $files): array
     {
         $directory = $this->projectDir.'/var/beta-attachments';

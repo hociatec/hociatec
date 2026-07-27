@@ -19,6 +19,9 @@ final class ExportBetaTestersController
     public function __invoke(): Response
     {
         $stream = fopen('php://temp', 'w+');
+        if (false === $stream) {
+            throw new \RuntimeException('Impossible d\'ouvrir le flux de données temporaire.');
+        }
         fputcsv($stream, ['Prénom', 'Nom', 'E-mail', 'Statut', 'Accessibilité', 'Disponibilités', 'Appareils', 'Navigateurs', 'Types de tests', 'Créé le'], ';');
         foreach ($this->profiles->findBy([], ['createdAt' => 'DESC']) as $p) {
             $u = $p->getUser();

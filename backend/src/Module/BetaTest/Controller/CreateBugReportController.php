@@ -6,7 +6,6 @@ namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Entity\BugReport;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
-use App\Module\BetaTest\Repository\BugReportRepository;
 use App\Module\BetaTest\Service\BetaAttachmentStorage;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -22,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/beta/reports', methods: ['POST'])] #[IsGranted('ROLE_USER')]
 final class CreateBugReportController extends AbstractController
 {
-    public function __construct(private readonly BugReportRepository $reports, private readonly BetaCampaignRepository $campaigns, private readonly DoctrinePersistence $persistence, private readonly BetaAttachmentStorage $attachments)
+    public function __construct(private readonly BetaCampaignRepository $campaigns, private readonly DoctrinePersistence $persistence, private readonly BetaAttachmentStorage $attachments)
     {
     }
 

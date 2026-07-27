@@ -40,6 +40,9 @@ final class ListBetaTestersController extends AbstractController
         return ApiResponse::paginated(array_map([$this, 'format'], $pageItems), $pagination->metadata(count($all)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function format(BetaTesterProfile $profile): array
     {
         $user = $profile->getUser();
