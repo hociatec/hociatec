@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Service;
 
+use App\Module\BetaTest\Service\BetaTesterProfileService;
 use App\Module\User\DTO\RegisterUserInput;
 use App\Module\User\Entity\User;
 use App\Module\User\Exception\InvalidBirthDateException;
@@ -19,6 +20,7 @@ class RegisterUserService
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly AccountActivationEmailService $activationEmails,
         private readonly UserPersistence $persistence,
+        private readonly BetaTesterProfileService $betaProfiles,
     ) {
     }
 
@@ -59,9 +61,13 @@ class RegisterUserService
         $user->setIsVerified(false);
 
         try {
-            return $this->persistence->transactional(function () use ($user, $token): User {
+            return $this->persistence->transactional(function () use ($user, $token, $input): User {
                 $this->persistence->save($user);
                 $this->persistence->flush();
+                if (null !== $input->betaProfile) {
+                    $this->betaProfiles->create($user, $input->betaProfile);
+                    $this->persistence->flush();
+                }
                 $this->activationEmails->sendActivationEmail($user, $token);
 
                 return $user;

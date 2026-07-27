@@ -2,7 +2,7 @@ import { SiteLayout } from '@/shared/components/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 
-const PRIVACY_UPDATED_AT = '20 juillet 2026';
+const PRIVACY_UPDATED_AT = '26 juillet 2026';
 
 export const PrivacyPage = () => {
   useDocumentTitle('Politique de confidentialité');
@@ -51,6 +51,11 @@ export const PrivacyPage = () => {
             <li>
               données de consentement relatives aux cookies ou communications, le cas échéant.
             </li>
+            <li>
+              pour le programme bêta: niveau en informatique, situation visuelle déclarée, aides
+              techniques utilisées et motivation; le formulaire propose une option « je préfère ne
+              pas répondre » pour la situation visuelle.
+            </li>
           </ul>
 
           <h2>3. Finalités et bases légales</h2>
@@ -80,6 +85,10 @@ export const PrivacyPage = () => {
             <li>
               communications commerciales: consentement lorsque requis ou intérêt légitime dans les
               limites autorisées.
+            </li>
+            <li>
+              recrutement et suivi des bêta-testeurs: consentement de la personne pour sélectionner
+              les profils, organiser les tests et la recontacter au sujet du programme.
             </li>
           </ul>
 
@@ -127,6 +136,11 @@ export const PrivacyPage = () => {
             <li>
               demandes de contact et support: durée nécessaire au traitement puis à la preuve de
               l’échange;
+            </li>
+            <li>
+              candidatures au programme bêta: durée nécessaire à la sélection et au suivi de la
+              campagne, puis suppression ou anonymisation au plus tard 12 mois après le dernier
+              contact, sauf obligation ou demande contraire;
             </li>
             <li>
               journaux techniques et sécurité: durée limitée nécessaire à la sécurité et au

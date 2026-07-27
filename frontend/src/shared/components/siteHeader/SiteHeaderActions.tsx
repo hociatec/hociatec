@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogIn, Mail, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
+import { FlaskConical, LogIn, Mail, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -58,6 +58,10 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
 
   return (
     <div className="site-header__actions">
+      <Link to="/beta-test" className={linkClass('/beta-test')}>
+        <FlaskConical aria-hidden="true" />
+        Bêta-test
+      </Link>
       <Link to="/contact" className={linkClass('/contact')}>
         <Mail aria-hidden="true" />
         Contact

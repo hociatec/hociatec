@@ -12,6 +12,18 @@ export interface RegisterPayload {
   birthDate: string;
   phoneNumber: string;
   gender: string;
+  isBetaTester?: boolean;
+  betaConsent?: boolean;
+  availability?: string[];
+  motivation?: string;
+  testingExperience?: string;
+  bugDescriptionAbility?: string;
+  technicalKnowledge?: string;
+  accessibilityNeed?: string;
+  assistiveTools?: string[];
+  devices?: string[];
+  browsers?: string[];
+  testingTypes?: string[];
 }
 
 export interface LoginPayload {

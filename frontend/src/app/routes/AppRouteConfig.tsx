@@ -5,6 +5,12 @@ import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import {
   ActivationPage,
+  AdminBetaTestersPage,
+  AdminBetaCampaignsPage,
+  BetaTestPage,
+  BetaDashboardPage,
+  BetaBugReportPage,
+  BetaProfilePage,
   AddressesPage,
   AdminAuditDetailPage,
   AdminAuditsListPage,
@@ -114,6 +120,7 @@ export const publicRoutes: AppRouteDefinition[] = [
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password/:token', element: <ResetPasswordPage /> },
   { path: '/contact', element: <ContactPage /> },
+  { path: '/beta-test', element: <BetaTestPage /> },
   { path: '/legal/cgu', element: <CguPage /> },
   { path: '/legal/cgv', element: <CgvPage /> },
   { path: '/legal/confidentialite', element: <PrivacyPage /> },
@@ -139,6 +146,9 @@ export const publicRoutes: AppRouteDefinition[] = [
 ];
 
 export const protectedRoutes: AppRouteDefinition[] = [
+  { path: '/beta', element: protectedElement(<BetaDashboardPage />) },
+  { path: '/beta/reports/new', element: protectedElement(<BetaBugReportPage />) },
+  { path: '/beta/profile', element: protectedElement(<BetaProfilePage />) },
   { path: '/quotes/me', element: protectedElement(<MyQuotesPage />) },
   { path: '/quotes/me/:quoteId', element: protectedElement(<MyQuoteDetailPage />) },
   { path: '/orders/me', element: protectedElement(<MyOrdersPage />) },
@@ -310,6 +320,8 @@ export const adminRoutes: AppRouteDefinition = {
         { path: ':auditId', element: <AdminAuditDetailPage /> },
       ],
     },
+    { path: 'beta-testers', element: <AdminBetaTestersPage /> },
+    { path: 'beta-campaigns', element: <AdminBetaCampaignsPage /> },
     { path: 'trade-ins', element: <AdminTradeInsPage /> },
   ],
 };

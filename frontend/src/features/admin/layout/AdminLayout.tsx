@@ -65,6 +65,8 @@ const adminNavGroups: AdminNavGroup[] = [
       { to: '/admin/trainings/sessions', label: 'Sessions' },
       { to: '/admin/trainings/enrollments', label: 'Inscriptions' },
       { to: '/admin/audits', label: 'Audits' },
+      { to: '/admin/beta-testers', label: 'Bêta-testeurs' },
+      { to: '/admin/beta-campaigns', label: 'Campagnes bêta' },
     ],
   },
   {

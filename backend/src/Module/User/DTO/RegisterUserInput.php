@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\DTO;
 
+use App\Module\BetaTest\DTO\BetaProfileInput;
 use App\Shared\Normalization\EmailNormalizer;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -12,6 +13,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[Assert\Callback('validatePhoneNumber')]
 class RegisterUserInput
 {
+    #[Assert\Valid]
+    public ?BetaProfileInput $betaProfile = null;
     #[Assert\NotBlank]
     #[Assert\Email]
     #[Assert\Length(max: 180)]
@@ -73,6 +76,9 @@ class RegisterUserInput
         $self->birthDate = trim(self::stringValue($payload, 'birthDate'));
         $self->phoneNumber = trim(self::stringValue($payload, 'phoneNumber'));
         $self->gender = mb_strtolower(trim(self::stringValue($payload, 'gender')));
+        if (true === ($payload['isBetaTester'] ?? false)) {
+            $self->betaProfile = BetaProfileInput::fromArray($payload);
+        }
 
         return $self;
     }
