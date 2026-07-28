@@ -71,6 +71,14 @@ export const HomePage = () => {
               Matériel, interventions, audits et projets sur mesure avec une approche claire,
               durable et adaptée à votre usage.
             </p>
+            <div className="home-hero__actions">
+              <Link to="/devis/nouveau" className="home-button home-button--primary">
+                Demander un devis
+              </Link>
+              <Link to="/catalogue/vente" className="home-button home-button--secondary">
+                Voir le catalogue
+              </Link>
+            </div>
             <div className="home-hero__summary" aria-label="Domaines couverts">
               <span>Matériel</span>
               <span>Services</span>

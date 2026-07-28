@@ -91,6 +91,18 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<User>
+     */
+    public function findAdmins(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('role', '%ROLE_ADMIN%')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return list<array{
      *   id:int,
      *   email:string,

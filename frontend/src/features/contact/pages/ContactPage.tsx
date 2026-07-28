@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
@@ -71,33 +72,37 @@ export const ContactPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <div className="container mx-auto max-w-3xl p-4">
-        <h1 className="text-3xl font-semibold mb-4">Contact</h1>
-        <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <PublicPageShell
+        size="medium"
+        eyebrow="Contact"
+        title="Parlons de votre besoin"
+        description="Une question sur un devis, un audit ou une intervention ? Envoyez-nous votre demande avec les éléments utiles."
+      >
+        <PublicPageSection>
           <p className="text-sm text-gray-700">
-            Une question sur un devis, un audit ou une intervention&nbsp;? Écrivez-nous via ce
-            formulaire ou directement à{' '}
+            Vous pouvez aussi nous écrire directement à{' '}
             <a className="text-brand-700 underline" href={`mailto:${CONTACT_EMAIL}`}>
               {CONTACT_EMAIL}
             </a>
             .
           </p>
-        </div>
-        {submitSuccess && (
-          <div className="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+        </PublicPageSection>
+        {submitSuccess ? (
+          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
             {submitSuccessMessage ?? 'Votre message a été envoyé.'}
           </div>
-        )}
-        {submitError && (
-          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        ) : null}
+        {submitError ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
             {submitError}
           </div>
-        )}
-        <form onSubmit={onSubmit} className="space-y-3">
+        ) : null}
+        <PublicPageSection>
+        <form onSubmit={onSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm mb-1">Nom</label>
+            <label className="mb-1 block text-sm font-semibold text-brand-900">Nom</label>
             <input
-              className="w-full border rounded p-2"
+              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Votre nom complet"
@@ -106,10 +111,10 @@ export const ContactPage = () => {
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Email</label>
+            <label className="mb-1 block text-sm font-semibold text-brand-900">Email</label>
             <input
               type="email"
-              className="w-full border rounded p-2"
+              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Votre adresse email"
@@ -118,9 +123,9 @@ export const ContactPage = () => {
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Sujet</label>
+            <label className="mb-1 block text-sm font-semibold text-brand-900">Sujet</label>
             <input
-              className="w-full border rounded p-2"
+              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Sujet de votre demande"
@@ -129,9 +134,9 @@ export const ContactPage = () => {
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Message</label>
+            <label className="mb-1 block text-sm font-semibold text-brand-900">Message</label>
             <textarea
-              className="w-full border rounded p-2 h-40"
+              className="h-40 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Détaillez votre besoin ou votre question"
@@ -141,12 +146,13 @@ export const ContactPage = () => {
           </div>
           <button
             disabled={loading}
-            className="bg-brand-600 text-white px-4 py-2 rounded disabled:opacity-60"
+            className="inline-flex items-center justify-center rounded-full bg-brand-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Envoi…' : 'Envoyer'}
           </button>
         </form>
-      </div>
+        </PublicPageSection>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

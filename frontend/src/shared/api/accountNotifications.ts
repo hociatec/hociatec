@@ -7,6 +7,29 @@ export interface AccountNotificationsReadStateDto {
   dismissedKeys: string[];
 }
 
+export interface StoredAccountNotificationDto {
+  key: string;
+  label: string;
+  message: string;
+  to: string;
+  type: string;
+  createdAt: string;
+}
+
+export const fetchAccountNotifications = async (): Promise<StoredAccountNotificationDto[]> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: StoredAccountNotificationDto[] }>>(
+    '/api/account-notifications/me',
+  );
+
+  if (isApiOk(data)) {
+    return data.data.items;
+  }
+
+  throw new Error(
+    data.status === 'error' ? data.message : 'Impossible de charger les notifications',
+  );
+};
+
 export const fetchAccountNotificationsReadState =
   async (): Promise<AccountNotificationsReadStateDto> => {
     const { data } = await httpClient.get<

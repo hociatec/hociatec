@@ -3,6 +3,11 @@ import path from 'node:path';
 
 const SITE_URL = 'https://hociatec.fr';
 const DEFAULT_API_BASE_URL = 'https://api.hociatec.fr';
+const FETCH_TIMEOUT_MS = Number(process.env.SITEMAP_FETCH_TIMEOUT_MS ?? 10000);
+const ENABLE_DYNAMIC_SITEMAP =
+  process.env.SITEMAP_DYNAMIC === '1' ||
+  Boolean(process.env.SITEMAP_API_BASE_URL || process.env.VITE_API_BASE_URL);
+const REQUIRE_DYNAMIC_SITEMAP = process.env.SITEMAP_REQUIRE_DYNAMIC === '1';
 
 interface ApiResponse<T> {
   status: 'success' | 'error';
@@ -76,7 +81,9 @@ const escapeXml = (value: string) =>
     .replace(/'/gu, '&apos;');
 
 const toAbsoluteUrl = (pathOrUrl: string) =>
-  pathOrUrl.startsWith('http') ? pathOrUrl : `${SITE_URL}${pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`}`;
+  pathOrUrl.startsWith('http')
+    ? pathOrUrl
+    : `${SITE_URL}${pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`}`;
 
 const toLastmod = (value?: string | null) => {
   if (!value) return undefined;
@@ -87,21 +94,41 @@ const toLastmod = (value?: string | null) => {
   return date.toISOString().slice(0, 10);
 };
 
+const isApiResponse = <T>(payload: ApiResponse<T> | T): payload is ApiResponse<T> =>
+  Boolean(
+    payload &&
+      typeof payload === 'object' &&
+      'status' in payload &&
+      'data' in payload,
+  );
+
 const fetchJson = async <T>(apiBaseUrl: string, pathname: string): Promise<T> => {
-  const response = await fetch(`${apiBaseUrl}${pathname}`, {
-    headers: { Accept: 'application/json' },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} for ${pathname}`);
+  try {
+    const response = await fetch(`${apiBaseUrl}${pathname}`, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} for ${pathname}`);
+    }
+
+    const payload = (await response.json()) as ApiResponse<T> | T;
+    if (isApiResponse(payload)) {
+      if (payload.status !== 'success') {
+        throw new Error(payload.message || `API error for ${pathname}`);
+      }
+
+      return payload.data;
+    }
+
+    return payload;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const payload = (await response.json()) as ApiResponse<T>;
-  if (payload.status !== 'success') {
-    throw new Error(payload.message || `API error for ${pathname}`);
-  }
-
-  return payload.data;
 };
 
 const fetchAllProducts = async (apiBaseUrl: string) => {
@@ -126,13 +153,16 @@ const fetchAllProducts = async (apiBaseUrl: string) => {
 
 const collectDynamicEntries = async (apiBaseUrl: string): Promise<SitemapEntry[]> => {
   const [categories, products, services, trainings] = await Promise.all([
-    fetchJson<{ items: CategoryDto[] }>(apiBaseUrl, '/api/public/catalog/categories')
-      .then((payload) => payload.items),
+    fetchJson<{ items: CategoryDto[] }>(apiBaseUrl, '/api/public/catalog/categories').then(
+      (payload) => payload.items,
+    ),
     fetchAllProducts(apiBaseUrl),
-    fetchJson<{ items: ServiceDto[] }>(apiBaseUrl, '/api/public/services')
-      .then((payload) => payload.items),
-    fetchJson<{ items: TrainingDto[] }>(apiBaseUrl, '/api/public/trainings')
-      .then((payload) => payload.items),
+    fetchJson<{ items: ServiceDto[] }>(apiBaseUrl, '/api/public/services').then(
+      (payload) => payload.items,
+    ),
+    fetchJson<{ items: TrainingDto[] }>(apiBaseUrl, '/api/public/trainings').then(
+      (payload) => payload.items,
+    ),
   ]);
 
   return [
@@ -168,10 +198,7 @@ const renderSitemap = (entries: SitemapEntry[]) => {
 
   const urls = uniqueEntries
     .map((entry) => {
-      const lines = [
-        '  <url>',
-        `    <loc>${escapeXml(toAbsoluteUrl(entry.loc))}</loc>`,
-      ];
+      const lines = ['  <url>', `    <loc>${escapeXml(toAbsoluteUrl(entry.loc))}</loc>`];
 
       if (entry.lastmod) lines.push(`    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`);
       if (entry.changefreq) lines.push(`    <changefreq>${entry.changefreq}</changefreq>`);
@@ -195,13 +222,23 @@ const run = async () => {
   const apiBaseUrl = normalizeBaseUrl(resolveApiBaseUrl());
   let entries = staticEntries;
 
-  try {
-    const dynamicEntries = await collectDynamicEntries(apiBaseUrl);
-    entries = [...staticEntries, ...dynamicEntries];
-    console.log(`Sitemap dynamique: ${dynamicEntries.length} URL(s) API ajoutée(s).`);
-  } catch (error) {
-    console.warn(
-      `Sitemap dynamique indisponible (${error instanceof Error ? error.message : 'erreur inconnue'}). Fallback statique utilisé.`,
+  if (ENABLE_DYNAMIC_SITEMAP) {
+    try {
+      const dynamicEntries = await collectDynamicEntries(apiBaseUrl);
+      entries = [...staticEntries, ...dynamicEntries];
+      console.log(`Sitemap dynamique: ${dynamicEntries.length} URL(s) API ajoutée(s).`);
+    } catch (error) {
+      const message = `Sitemap dynamique indisponible (${error instanceof Error ? error.message : 'erreur inconnue'}).`;
+
+      if (REQUIRE_DYNAMIC_SITEMAP) {
+        throw new Error(message);
+      }
+
+      console.warn(`${message} Fallback statique utilisé.`);
+    }
+  } else {
+    console.log(
+      'Sitemap dynamique désactivé. Définissez SITEMAP_DYNAMIC=1 pour interroger l’API pendant la génération.',
     );
   }
 

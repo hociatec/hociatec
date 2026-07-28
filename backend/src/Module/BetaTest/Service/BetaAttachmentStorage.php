@@ -34,4 +34,33 @@ final readonly class BetaAttachmentStorage
 
         return $paths;
     }
+
+    public function path(string $name): ?string
+    {
+        $safeName = basename($name);
+        if ($safeName !== $name || '' === $safeName) {
+            return null;
+        }
+
+        $path = $this->projectDir.'/var/beta-attachments/'.$safeName;
+
+        return is_file($path) ? $path : null;
+    }
+
+    /**
+     * @param list<mixed> $names
+     */
+    public function deleteMany(array $names): void
+    {
+        foreach ($names as $name) {
+            if (!is_string($name)) {
+                continue;
+            }
+
+            $path = $this->path($name);
+            if (null !== $path) {
+                @unlink($path);
+            }
+        }
+    }
 }

@@ -56,8 +56,31 @@ final class UpdateCampaignController extends AbstractController
             }
         }
 
+        if (array_key_exists('startsAt', $p)) {
+            $campaign->setStartsAt($this->dateFromPayload($p['startsAt']));
+        }
+
+        if (array_key_exists('endsAt', $p)) {
+            $campaign->setEndsAt($this->dateFromPayload($p['endsAt']));
+        }
+
+        if (null !== $campaign->getStartsAt() && null !== $campaign->getEndsAt() && $campaign->getEndsAt() < $campaign->getStartsAt()) {
+            return ApiResponse::error('La date de fin doit être postérieure à la date de début.', 422);
+        }
+
         $this->persistence->flush();
 
         return ApiResponse::success(['id' => $campaign->getId()], 200, 'Campagne mise à jour.');
+    }
+
+    private function dateFromPayload(mixed $value): ?\DateTimeImmutable
+    {
+        if (!is_string($value) || '' === trim($value)) {
+            return null;
+        }
+
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', trim($value));
+
+        return $date instanceof \DateTimeImmutable ? $date : null;
     }
 }

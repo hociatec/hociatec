@@ -19,7 +19,7 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const isBetaTester = new URLSearchParams(window.location.search).get('beta') === '1';
-  const [form, setForm] = useState<FormState>({ email: '', password: '', confirmPassword: '', firstName: '', lastName: '', birthDate: '', phoneNumber: '', gender: '', isBetaTester, betaConsent: false, availability: [], motivation: '', testingExperience: '', bugDescriptionAbility: '', technicalKnowledge: '', accessibilityNeed: '', assistiveTools: [], devices: [], browsers: [], testingTypes: [] });
+  const [form, setForm] = useState<FormState>({ email: '', password: '', confirmPassword: '', firstName: '', lastName: '', birthDate: '', phoneNumber: '', gender: '', isBetaTester, betaConsent: false, availability: [], motivation: '', testingExperience: [], bugDescriptionAbility: [], technicalKnowledge: [], accessibilityNeed: 'none', assistiveTools: [], devices: [], browsers: [], testingTypes: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
@@ -31,7 +31,7 @@ export const RegisterPage = () => {
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => { const target = event.target; setForm((current) => ({ ...current, [target.name]: target instanceof HTMLInputElement && target.type === 'checkbox' ? target.checked : target.value })); };
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setError(null); setErrorDetails([]);
-    const validationError = form.password !== form.confirmPassword ? 'Les mots de passe doivent être identiques.' : !PASSWORD_RULE.test(form.password) ? 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.' : !form.gender ? 'Veuillez sélectionner une option pour le champ sexe.' : isBetaTester && (!form.betaConsent || !form.availability?.length || !form.devices?.length || !form.browsers?.length || !form.testingTypes?.length) ? 'Complétez les choix obligatoires du profil bêta.' : null;
+    const validationError = form.password !== form.confirmPassword ? 'Les mots de passe doivent être identiques.' : !PASSWORD_RULE.test(form.password) ? 'Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.' : !form.gender ? 'Veuillez sélectionner une option pour le champ sexe.' : isBetaTester && (!form.betaConsent || !form.availability?.length || !form.motivation?.trim() || !form.testingExperience?.length || !form.bugDescriptionAbility?.length || !form.technicalKnowledge?.length || !form.assistiveTools?.length || !form.devices?.length || !form.browsers?.length || !form.testingTypes?.length) ? 'Complétez tous les champs obligatoires du profil bêta.' : null;
     if (validationError) { setError(validationError); try { toast.show(validationError, { variant: 'error' }); } catch {} return; }
     setLoading(true);
     try { const response = await registerUser(form); try { toast.show(response.message ?? 'Compte créé.', { variant: 'success' }); } catch {} navigate('/login', { state: { registered: true, registrationMessage: response.message } }); }

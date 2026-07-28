@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\User\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -21,6 +22,7 @@ final class UpdateBugReportStatusController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly DoctrinePersistence $persistence,
+        private readonly UserCommunicationNotifier $notifier,
     ) {
     }
 
@@ -36,15 +38,39 @@ final class UpdateBugReportStatusController extends AbstractController
 
         $allowedStatuses = ['submitted', 'under_review', 'resolved', 'closed', 'rejected'];
         if (!in_array($status, $allowedStatuses, true)) {
-            return ApiResponse::error('Statut invalide.', 422);
+            return ApiResponse::error('État invalide.', 422);
         }
 
+        $previousStatus = $report->getStatus();
         $report->setStatus($status);
         $this->persistence->flush();
+
+        if ($previousStatus !== $status) {
+            $changedAt = new \DateTimeImmutable();
+            $this->notifier->notify(
+                $report->getReporter(),
+                sprintf('beta-report-status:%d:%s:%s', $report->getId(), $status, $changedAt->format('Uu')),
+                'État d’un signalement bêta mis à jour',
+                sprintf('Le signalement « %s » est maintenant à l’état : %s.', $report->getTitle(), $this->statusLabel($status)),
+                '/beta',
+                'beta_report_status',
+            );
+        }
 
         return ApiResponse::success([
             'id' => $report->getId(),
             'status' => $report->getStatus(),
-        ], 200, 'Statut mis à jour.');
+        ], 200, 'État mis à jour.');
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return [
+            'submitted' => 'Soumis',
+            'under_review' => 'En cours d’analyse',
+            'resolved' => 'Corrigé',
+            'closed' => 'Fermé',
+            'rejected' => 'Rejeté',
+        ][$status] ?? $status;
     }
 }

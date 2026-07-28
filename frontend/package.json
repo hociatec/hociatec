@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build && npm run generate:sitemap",
+        "build:dynamic-sitemap": "tsc && vite build && SITEMAP_DYNAMIC=1 npm run generate:sitemap",
         "build:ssg": "tsc && vite build && npm run generate:sitemap && npm run prerender",
         "prerender": "npx esbuild --bundle scripts/prerender.tsx --format=cjs --platform=node --target=node20 --alias:@=src --loader:.css=text --outfile=.ssg/prerender.cjs && node .ssg/prerender.cjs",
         "generate:sitemap": "npx esbuild --bundle scripts/generate-sitemap.ts --format=cjs --platform=node --target=node20 --outfile=.ssg/generate-sitemap.cjs && node .ssg/generate-sitemap.cjs",

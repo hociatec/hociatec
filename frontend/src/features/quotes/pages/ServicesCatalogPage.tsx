@@ -44,7 +44,7 @@ export const ServicesCatalogPage = () => {
             Services Hociatec
           </span>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
-            Catalogue de services
+            Nos services
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">
             Retrouvez l’ensemble des services proposés par Hociatec avec leurs informations

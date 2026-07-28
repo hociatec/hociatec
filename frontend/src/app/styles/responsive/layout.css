@@ -87,7 +87,7 @@
   }
 
   .site-header__link,
-  .site-header__service-trigger,
+  .site-header__menu-trigger,
   .site-header__account-trigger,
   .site-header__logout-button,
   .site-header__admin-button,
@@ -115,7 +115,7 @@
     display: none;
   }
 
-  .site-header__service-panel {
+  .site-header__menu-panel {
     left: auto;
     right: 0;
   }

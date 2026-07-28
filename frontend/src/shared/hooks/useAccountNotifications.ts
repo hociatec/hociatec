@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { fetchMyAppointments } from '@/features/appointments/api/appointmentsApi';
-import { fetchMyAudits } from '@/features/audits/api/auditsApi';
-import { fetchPendingReviews } from '@/features/orders/api';
-import { fetchMyTrainingEnrollments } from '@/features/trainings/api/trainingsApi';
-import { fetchMyVouchers } from '@/features/vouchers/api/vouchersApi';
 import {
   dismissAccountNotification,
+  fetchAccountNotifications,
   fetchAccountNotificationsReadState,
   markAccountNotificationsSeen,
   type AccountNotificationsReadStateDto,
 } from '@/shared/api/accountNotifications';
-import { buildAccountNotifications } from '@/shared/lib/accountNotifications';
 import type { AccountNotificationItem } from '@/shared/types/accountNotifications';
 
 const MAX_VISIBLE_UNREAD_NOTIFICATIONS = 5;
@@ -45,36 +40,13 @@ export const useAccountNotifications = (): UseAccountNotificationsResult => {
     setLoading(true);
     setHasPartialError(false);
 
-    void Promise.allSettled([
-      fetchPendingReviews(),
-      fetchMyAppointments(),
-      fetchMyTrainingEnrollments(),
-      fetchMyAudits(),
-      fetchMyVouchers(),
-    ]).then(
-      ([reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult]) => {
+    void Promise.allSettled([fetchAccountNotifications()]).then(([notificationsResult]) => {
         if (cancelled) return;
 
-        setNotifications(
-          buildAccountNotifications({
-            pendingReviews: reviewsResult.status === 'fulfilled' ? reviewsResult.value : [],
-            appointments:
-              appointmentsResult.status === 'fulfilled'
-                ? (appointmentsResult.value.upcoming ?? [])
-                : [],
-            trainings: trainingsResult.status === 'fulfilled' ? trainingsResult.value : [],
-            audits: auditsResult.status === 'fulfilled' ? auditsResult.value : [],
-            vouchers: vouchersResult.status === 'fulfilled' ? vouchersResult.value : [],
-          }),
-        );
-        setHasPartialError(
-          [reviewsResult, appointmentsResult, trainingsResult, auditsResult, vouchersResult].some(
-            (result) => result.status === 'rejected',
-          ),
-        );
+        setNotifications(notificationsResult.status === 'fulfilled' ? notificationsResult.value : []);
+        setHasPartialError(notificationsResult.status === 'rejected');
         setLoading(false);
-      },
-    );
+      });
 
     return () => {
       cancelled = true;

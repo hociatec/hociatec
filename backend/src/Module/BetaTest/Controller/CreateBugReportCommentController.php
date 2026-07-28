@@ -7,6 +7,8 @@ namespace App\Module\BetaTest\Controller;
 use App\Module\BetaTest\Entity\BugReportComment;
 use App\Module\BetaTest\Repository\BugReportRepository;
 use App\Module\User\Entity\User;
+use App\Module\User\Repository\UserRepository;
+use App\Module\User\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -23,6 +25,8 @@ final class CreateBugReportCommentController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly DoctrinePersistence $persistence,
+        private readonly UserCommunicationNotifier $notifier,
+        private readonly UserRepository $users,
     ) {
     }
 
@@ -53,6 +57,34 @@ final class CreateBugReportCommentController extends AbstractController
         $comment = new BugReportComment($report, $user, $content);
         $this->persistence->persist($comment);
         $this->persistence->flush();
+
+        if ($isAdmin && $report->getReporter()->getId() !== $user->getId()) {
+            $this->notifier->notify(
+                $report->getReporter(),
+                sprintf('beta-report-comment:%d:%d', $report->getId(), $comment->getId()),
+                'Nouveau message sur un signalement bêta',
+                sprintf('Un nouveau message a été ajouté au signalement « %s ».', $report->getTitle()),
+                '/beta',
+                'beta_report_comment',
+            );
+        }
+
+        if (!$isAdmin) {
+            foreach ($this->users->findAdmins() as $admin) {
+                if ($admin->getId() === $user->getId()) {
+                    continue;
+                }
+
+                $this->notifier->notify(
+                    $admin,
+                    sprintf('admin-beta-report-comment:%d:%d:%d', $report->getId(), $comment->getId(), $admin->getId()),
+                    'Nouveau message client sur un signalement bêta',
+                    sprintf('%s a répondu au signalement « %s ».', $user->getFullName(), $report->getTitle()),
+                    '/admin/beta-reports',
+                    'admin_beta_report_comment',
+                );
+            }
+        }
 
         return ApiResponse::created([
             'id' => $comment->getId(),

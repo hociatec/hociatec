@@ -14,9 +14,10 @@ type BetaBugReportDialogProps = {
   open: boolean;
   onClose: () => void;
   campaignId?: number;
+  campaignName?: string;
 };
 
-export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReportDialogProps) => {
+export const BetaBugReportDialog = ({ open, onClose, campaignId, campaignName }: BetaBugReportDialogProps) => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [form, setForm] = useState({
@@ -51,7 +52,7 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReport
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['betaReports'] });
       queryClient.invalidateQueries({ queryKey: ['adminBugReports'] });
-      toast.show('Votre rapport de bug a été transmis avec succès.', { variant: 'success' });
+      toast.show('Votre signalement a été transmis avec succès.', { variant: 'success' });
       closeDialog();
     },
     onError: (err) => {
@@ -84,20 +85,29 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReport
         <DialogPanel className="w-full max-w-lg rounded-xl border border-brand-100 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
           <header className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-              Nouveau rapport
+              Nouveau signalement
             </p>
             <DialogTitle className="text-2xl font-bold text-brand-900">
-              Créer un rapport de bug
+              Créer un signalement
             </DialogTitle>
             <DialogDescription className="text-sm text-stone-600">
-              Renseignez les détails du bug constaté. Le formulaire transmettra votre rapport à l'équipe technique.
+              Renseignez les détails du problème constaté. Le formulaire transmettra votre signalement à l’équipe technique.
             </DialogDescription>
+            {campaignName ? (
+              <div className="rounded-xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+                Campagne liée : <strong>{campaignName}</strong>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+                Signalement général, sans campagne liée.
+              </div>
+            )}
           </header>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4" aria-busy={createMutation.isPending}>
             <div className="space-y-2">
               <label htmlFor="report-dialog-title" className="block text-sm font-medium text-stone-800">
-                Titre du rapport *
+                Titre du signalement *
               </label>
               <input
                 id="report-dialog-title"
@@ -108,7 +118,7 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReport
                   setError(null);
                 }}
                 maxLength={180}
-                placeholder="Ex: Erreur au clic sur la validation du panier"
+                placeholder="Ex : erreur au clic sur la validation du panier"
                 className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                 required
                 disabled={createMutation.isPending}
@@ -127,7 +137,7 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReport
                   setForm({ ...form, description: e.target.value });
                   setError(null);
                 }}
-                placeholder="Décrivez précisément les étapes pour reproduire le bug..."
+                placeholder="Décrivez précisément les étapes pour reproduire le problème..."
                 className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                 required
                 disabled={createMutation.isPending}
@@ -221,7 +231,7 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId }: BetaBugReport
                 disabled={createMutation.isPending}
                 className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Envoi en cours...' : 'Envoyer le rapport'}
+                {createMutation.isPending ? 'Envoi en cours...' : 'Envoyer le signalement'}
               </button>
             </div>
           </form>

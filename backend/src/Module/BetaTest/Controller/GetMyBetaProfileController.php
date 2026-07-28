@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Service\BetaProfileChoices;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,6 +30,6 @@ final class GetMyBetaProfileController extends AbstractController
             return ApiResponse::error('Profil bêta introuvable.', 404);
         }
 
-        return ApiResponse::success(['profile' => ['id' => $profile->getId(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => $profile->getTestingExperience(), 'bugDescriptionAbility' => $profile->getBugDescriptionAbility(), 'technicalKnowledge' => $profile->getTechnicalKnowledge(), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes()]]);
+        return ApiResponse::success(['profile' => ['id' => $profile->getId(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => BetaProfileChoices::parseStoredList($profile->getTestingExperience(), 'testingExperience'), 'bugDescriptionAbility' => BetaProfileChoices::parseStoredList($profile->getBugDescriptionAbility(), 'bugDescriptionAbility'), 'technicalKnowledge' => BetaProfileChoices::parseStoredList($profile->getTechnicalKnowledge(), 'technicalKnowledge'), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes()]]);
     }
 }

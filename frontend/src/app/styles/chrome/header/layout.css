@@ -81,7 +81,7 @@
 }
 
 .site-header__link,
-.site-header__service-trigger,
+.site-header__menu-trigger,
 .site-header__account-trigger,
 .site-header__logout-button,
 .site-header__admin-button {
@@ -110,7 +110,7 @@
 }
 
 .site-header__link svg,
-.site-header__service-trigger svg,
+.site-header__menu-trigger svg,
 .site-header__account-trigger svg,
 .site-header__logout-button svg,
 .site-header__admin-button svg,
@@ -121,7 +121,7 @@
 }
 
 .site-header__link:hover,
-.site-header__service-trigger:hover,
+.site-header__menu-trigger:hover,
 .site-header__account-trigger:hover,
 .site-header__logout-button:hover {
   color: var(--hocia-blue);

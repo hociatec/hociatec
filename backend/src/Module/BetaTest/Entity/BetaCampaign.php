@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'beta_campaigns')]
 class BetaCampaign
 {
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_CLOSED = 'closed';
+
     #[ORM\Id, ORM\GeneratedValue, ORM\Column] private ?int $id = null;
     #[ORM\Column(length: 120)] private string $name;
     #[ORM\Column(type: 'text')] private string $description;
@@ -45,6 +49,26 @@ class BetaCampaign
     public function getStatus(): string
     {
         return $this->status;
+    }
+
+    public function getEffectiveStatus(?\DateTimeImmutable $now = null): string
+    {
+        $now ??= new \DateTimeImmutable();
+
+        if (self::STATUS_ACTIVE === $this->status && null !== $this->endsAt && $this->endsAt < $now) {
+            return self::STATUS_CLOSED;
+        }
+
+        return $this->status;
+    }
+
+    public function isOpenForReports(?\DateTimeImmutable $now = null): bool
+    {
+        $now ??= new \DateTimeImmutable();
+
+        return self::STATUS_ACTIVE === $this->status
+            && (null === $this->startsAt || $this->startsAt <= $now)
+            && (null === $this->endsAt || $this->endsAt >= $now);
     }
 
     public function setStatus(string $status): self

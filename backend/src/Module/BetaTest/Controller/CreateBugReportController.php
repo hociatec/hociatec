@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Entity\BugReport;
+use App\Module\BetaTest\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
+use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Service\BetaAttachmentStorage;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -21,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/beta/reports', methods: ['POST'])] #[IsGranted('ROLE_USER')]
 final class CreateBugReportController extends AbstractController
 {
-    public function __construct(private readonly BetaCampaignRepository $campaigns, private readonly DoctrinePersistence $persistence, private readonly BetaAttachmentStorage $attachments)
+    public function __construct(private readonly BetaCampaignRepository $campaigns, private readonly BetaTesterProfileRepository $profiles, private readonly DoctrinePersistence $persistence, private readonly BetaAttachmentStorage $attachments)
     {
     }
 
@@ -30,12 +32,32 @@ final class CreateBugReportController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
-        } $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : JsonPayload::decode($request);
+        }
+
+        $profile = $this->profiles->findOneByUser($user);
+        if (null === $profile || BetaTesterProfile::STATUS_ACCEPTED !== $profile->getStatus()) {
+            return ApiResponse::error('Votre profil bêta doit être accepté avant d’envoyer un signalement.', 403);
+        }
+
+        $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : JsonPayload::decode($request);
         $title = trim((string) ($payload['title'] ?? ''));
         $description = trim((string) ($payload['description'] ?? ''));
         if ('' === $title || '' === $description) {
             return ApiResponse::error('Le titre et la description sont obligatoires.', 422);
-        } $campaign = isset($payload['campaignId']) ? $this->campaigns->find((int) $payload['campaignId']) : null;
+        }
+
+        $campaign = null;
+        if (isset($payload['campaignId'])) {
+            $campaign = $this->campaigns->find((int) $payload['campaignId']);
+            if (null === $campaign) {
+                return ApiResponse::error('La campagne demandée est introuvable.', 404);
+            }
+
+            if (!$campaign->isOpenForReports()) {
+                return ApiResponse::error('Cette campagne n’est plus ouverte aux signalements.', 422);
+            }
+        }
+
         $files = array_values(array_filter($request->files->all('screenshots'), static fn ($file) => $file instanceof UploadedFile));
         $report = new BugReport($user, $campaign, $title, $description, isset($payload['expectedBehavior']) ? (string) $payload['expectedBehavior'] : null, isset($payload['actualBehavior']) ? (string) $payload['actualBehavior'] : null, in_array($payload['severity'] ?? 'normal', ['low', 'normal', 'high', 'critical'], true) ? (string) $payload['severity'] : 'normal', isset($payload['pageUrl']) ? (string) $payload['pageUrl'] : null, $this->attachments->store($files));
         $this->persistence->persist($report);

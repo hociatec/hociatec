@@ -128,6 +128,11 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
+    App\Module\User\Service\UserCommunicationNotifier:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
     App\Module\Order\Service\StripeApiClient:
         arguments:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'

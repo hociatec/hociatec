@@ -38,6 +38,7 @@ class ProfileController extends AbstractController
             'birthDate' => $user->getBirthDate()->format('Y-m-d'),
             'phoneNumber' => $user->getPhoneNumber(),
             'gender' => $user->getGender(),
+            'communicationPreferences' => $user->getCommunicationPreferences(),
         ]);
     }
 }

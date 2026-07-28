@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageContainer } from '@/shared/components/PageContainer';
-import { fetchMyBetaProfile, updateMyBetaProfile, leaveBetaProgram } from '../api/betaApi';
+import { fetchBetaProfileChoices, fetchMyBetaProfile, updateMyBetaProfile, type BetaProfileChoices } from '../api/betaApi';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 
 type EditableProfile = {
   motivation: string;
-  testingExperience: string;
-  bugDescriptionAbility: string;
-  technicalKnowledge: string;
+  testingExperience: string[];
+  bugDescriptionAbility: string[];
+  technicalKnowledge: string[];
   availability: string[];
   accessibilityNeed: string;
   assistiveTools: string[];
@@ -19,83 +19,65 @@ type EditableProfile = {
   betaConsent: boolean;
 };
 
-const choices = {
-  availability: [
-    ['weekdays', 'En semaine'],
-    ['evenings', 'En soirée'],
-    ['weekends', 'Le week-end'],
-    ['flexible', 'Flexible'],
-  ],
-  assistiveTools: [
-    ['nvda', 'NVDA'],
-    ['jaws', 'JAWS'],
-    ['voiceover', 'VoiceOver'],
-    ['talkback', 'TalkBack'],
-    ['narrator', 'Narrator'],
-    ['magnifier', 'Loupe'],
-    ['keyboard', 'Navigation au clavier'],
-    ['braille', 'Plage braille'],
-    ['other', 'Autre'],
-  ],
-  devices: [
-    ['windows', 'Windows'],
-    ['macos', 'macOS'],
-    ['linux', 'Linux'],
-    ['android', 'Android'],
-    ['ios', 'iPhone/iPad'],
-  ],
-  browsers: [
-    ['chrome', 'Chrome'],
-    ['firefox', 'Firefox'],
-    ['edge', 'Edge'],
-    ['safari', 'Safari'],
-    ['other', 'Autre'],
-  ],
-  testingTypes: [
-    ['bugs', 'Bugs'],
-    ['accessibility', 'Accessibilité'],
-    ['usability', 'Ergonomie'],
-    ['mobile', 'Mobile'],
-    ['performance', 'Performances'],
-    ['features', 'Nouvelles fonctionnalités'],
-  ],
-} as const;
+const listFromProfile = (value: unknown, fallback: string[] = []) => Array.isArray(value)
+  ? value.filter((item): item is string => typeof item === 'string')
+  : fallback;
+
+const normalizeCheckboxSelection = (
+  name: keyof EditableProfile,
+  value: string,
+  checked: boolean,
+  current: string[],
+) => {
+  const next = checked ? [...current, value] : current.filter((item) => item !== value);
+
+  if (name !== 'assistiveTools') {
+    return next;
+  }
+
+  if (checked && value === 'none') {
+    return ['none'];
+  }
+
+  return next.filter((item) => item !== 'none');
+};
 
 export const BetaProfilePage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<EditableProfile | null>(null);
+  const [choices, setChoices] = useState<BetaProfileChoices | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void fetchMyBetaProfile()
-      .then((profile) =>
-        setForm({
-          motivation: String(profile.motivation ?? ''),
-          testingExperience: String(profile.testingExperience ?? ''),
-          bugDescriptionAbility: String(profile.bugDescriptionAbility ?? ''),
-          technicalKnowledge: String(profile.technicalKnowledge ?? ''),
-          availability: Array.isArray(profile.availability)
-            ? (profile.availability as string[])
-            : ['flexible'],
-          accessibilityNeed: String(profile.accessibilityNeed ?? 'none'),
-          assistiveTools: Array.isArray(profile.assistiveTools)
-            ? (profile.assistiveTools as string[])
-            : [],
-          devices: Array.isArray(profile.devices) ? (profile.devices as string[]) : ['windows'],
-          browsers: Array.isArray(profile.browsers) ? (profile.browsers as string[]) : ['chrome'],
-          testingTypes: Array.isArray(profile.testingTypes)
-            ? (profile.testingTypes as string[])
-            : ['bugs'],
-          betaConsent: true,
-        }),
-      )
-      .catch(() => {
-        // En cas de profil non existant, on propose un profil vierge à créer
+    const loadProfile = async () => {
+      try {
+        const profileChoices = await fetchBetaProfileChoices();
+        setChoices(profileChoices);
+
+        try {
+          const profile = await fetchMyBetaProfile();
+          setForm({
+            motivation: String(profile.motivation ?? ''),
+            testingExperience: listFromProfile(profile.testingExperience),
+            bugDescriptionAbility: listFromProfile(profile.bugDescriptionAbility),
+            technicalKnowledge: listFromProfile(profile.technicalKnowledge),
+            availability: listFromProfile(profile.availability, ['flexible']),
+            accessibilityNeed: String(profile.accessibilityNeed ?? 'none'),
+            assistiveTools: listFromProfile(profile.assistiveTools),
+            devices: listFromProfile(profile.devices, ['windows']),
+            browsers: listFromProfile(profile.browsers, ['chrome']),
+            testingTypes: listFromProfile(profile.testingTypes, ['bugs']),
+            betaConsent: true,
+          });
+
+          return;
+        } catch {}
+
         setForm({
           motivation: '',
-          testingExperience: '',
-          bugDescriptionAbility: '',
-          technicalKnowledge: '',
+          testingExperience: [],
+          bugDescriptionAbility: [],
+          technicalKnowledge: [],
           availability: ['flexible'],
           accessibilityNeed: 'none',
           assistiveTools: [],
@@ -104,7 +86,12 @@ export const BetaProfilePage = () => {
           testingTypes: ['bugs'],
           betaConsent: true,
         });
-      });
+      } catch {
+        setError('Impossible de charger les choix du profil bêta.');
+      }
+    };
+
+    void loadProfile();
   }, []);
 
   const save = async (event: FormEvent) => {
@@ -113,9 +100,11 @@ export const BetaProfilePage = () => {
 
     if (
       !form.motivation.trim() ||
-      !form.testingExperience.trim() ||
-      !form.bugDescriptionAbility.trim() ||
+      !form.testingExperience.length ||
+      !form.bugDescriptionAbility.length ||
+      !form.technicalKnowledge.length ||
       !form.availability.length ||
+      !form.assistiveTools.length ||
       !form.devices.length ||
       !form.browsers.length ||
       !form.testingTypes.length
@@ -134,7 +123,7 @@ export const BetaProfilePage = () => {
     }
   };
 
-  if (!form) {
+  if (!form || !choices) {
     return (
       <SiteLayout headerVariant="light">
         <PageContainer title="Mon profil bêta">
@@ -173,54 +162,33 @@ export const BetaProfilePage = () => {
               />
             </label>
 
-            <label className="block text-sm font-semibold text-stone-700">
-              Expérience des tests *
-              <textarea
-                className="mt-1 w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
-                rows={4}
-                value={form.testingExperience}
-                onChange={(e) => setForm({ ...form, testingExperience: e.target.value })}
-                required
-              />
-            </label>
+            <CheckboxGroup
+              name="testingExperience"
+              label="Expérience des tests"
+              options={choices.testingExperience ?? []}
+              form={form}
+              setForm={setForm}
+              required
+            />
 
-            <label className="block text-sm font-semibold text-stone-700">
-              Capacité à décrire un bug *
-              <textarea
-                className="mt-1 w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
-                rows={4}
-                value={form.bugDescriptionAbility}
-                onChange={(e) => setForm({ ...form, bugDescriptionAbility: e.target.value })}
-                required
-                placeholder="Étapes de reproduction, résultat attendu…"
-              />
-            </label>
+            <CheckboxGroup
+              name="bugDescriptionAbility"
+              label="Capacité à décrire un bug"
+              options={choices.bugDescriptionAbility ?? []}
+              form={form}
+              setForm={setForm}
+              required
+            />
 
-            <label className="block text-sm font-semibold text-stone-700">
-              Connaissances techniques <small className="font-normal text-stone-500">(facultatif)</small>
-              <textarea
-                className="mt-1 w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
-                rows={3}
-                value={form.technicalKnowledge}
-                onChange={(e) => setForm({ ...form, technicalKnowledge: e.target.value })}
-              />
-            </label>
+            <CheckboxGroup
+              name="technicalKnowledge"
+              label="Connaissances techniques"
+              options={choices.technicalKnowledge ?? []}
+              form={form}
+              setForm={setForm}
+              required
+            />
 
-            <label className="block text-sm font-semibold text-stone-700">
-              Accessibilité *
-              <select
-                name="accessibilityNeed"
-                value={form.accessibilityNeed}
-                onChange={(e) => setForm({ ...form, accessibilityNeed: e.target.value })}
-                required
-                className="mt-1 w-full rounded-lg border border-stone-300 p-3 text-sm bg-white focus:outline-none focus:border-brand-700"
-              >
-                <option value="">Sélectionnez une option</option>
-                <option value="blind">Non-voyante</option>
-                <option value="low_vision">Malvoyante</option>
-                <option value="none">Aucun besoin particulier</option>
-              </select>
-            </label>
           </div>
 
           <CheckboxGroup
@@ -229,6 +197,7 @@ export const BetaProfilePage = () => {
             options={choices.assistiveTools}
             form={form}
             setForm={setForm}
+            required
           />
 
           <CheckboxGroup
@@ -265,9 +234,10 @@ export const BetaProfilePage = () => {
               checked={form.betaConsent}
               onChange={(e) => setForm({ ...form, betaConsent: e.target.checked })}
               required
+              aria-label="J’accepte de participer au programme bêta et l’utilisation de ces informations à cette fin."
               className="mt-0.5 rounded border-stone-300 text-brand-700 focus:ring-brand-500 h-4 w-4"
             />
-            <span className="text-stone-600">
+            <span aria-hidden="true" className="text-stone-600">
               J’accepte de participer au programme bêta et l’utilisation de ces informations à cette fin.
             </span>
           </label>
@@ -280,17 +250,6 @@ export const BetaProfilePage = () => {
               className="rounded-lg bg-brand-700 px-5 py-2.5 font-semibold text-white hover:bg-brand-800 transition shadow-sm"
             >
               Enregistrer
-            </button>
-            <button
-              type="button"
-              className="rounded-lg border border-red-300 px-5 py-2.5 text-red-700 font-semibold hover:bg-red-50 transition"
-              onClick={() => {
-                if (window.confirm('Supprimer vos données bêta ?')) {
-                  void leaveBetaProgram().then(() => navigate('/'));
-                }
-              }}
-            >
-              Quitter le programme
             </button>
           </div>
         </form>
@@ -309,22 +268,22 @@ const CheckboxGroup = ({
 }: {
   name: keyof EditableProfile;
   label: string;
-  options: readonly (readonly [string, string])[];
+  options: readonly { value: string; label: string }[];
   form: EditableProfile;
   setForm: React.Dispatch<React.SetStateAction<EditableProfile | null>>;
   required?: boolean;
 }) => {
   const current = Array.isArray(form[name]) ? (form[name] as string[]) : [];
   return (
-    <fieldset className="border border-stone-200 rounded-lg p-4 bg-stone-50">
-      <legend className="text-sm font-semibold text-stone-700 px-2">
+    <section className="rounded-lg border border-stone-200 bg-stone-50 p-4">
+      <h2 className="text-sm font-semibold text-stone-700">
         {label} {required ? '*' : ''}
-      </legend>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-        {options.map(([value, text]) => (
+      </h2>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {options.map(({ value, label: text }) => (
           <label
             key={value}
-            className="flex items-center gap-2 text-sm cursor-pointer hover:text-stone-900 select-none"
+            className="grid grid-cols-[1rem_1fr] items-center gap-3 rounded-lg bg-white px-3 py-2 text-sm text-stone-700 cursor-pointer select-none hover:text-stone-950"
           >
             <input
               type="checkbox"
@@ -336,18 +295,22 @@ const CheckboxGroup = ({
                   if (!previous) return null;
                   return {
                     ...previous,
-                    [name]: event.target.checked
-                      ? [...current, value]
-                      : current.filter((item) => item !== value),
+                    [name]: normalizeCheckboxSelection(
+                      name,
+                      value,
+                      event.target.checked,
+                      current,
+                    ),
                   };
                 })
               }
-              className="rounded border-stone-300 text-brand-700 focus:ring-brand-500 h-4 w-4"
+              aria-label={text}
+              className="h-4 w-4 shrink-0 rounded border-stone-300 text-brand-700 focus:ring-brand-500"
             />
-            <span className="text-stone-600">{text}</span>
+            <span aria-hidden="true" className="leading-5">{text}</span>
           </label>
         ))}
       </div>
-    </fieldset>
+    </section>
   );
 };

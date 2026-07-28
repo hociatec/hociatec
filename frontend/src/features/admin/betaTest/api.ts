@@ -1,16 +1,18 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { API_BASE_URL } from '@/shared/config/appConfig';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
-export interface AdminBetaTesterDto { id:number; userId:number; firstName:string; lastName:string; email:string; status:string; accessibilityNeed:string; availability:string[]; devices:string[]; browsers:string[]; testingTypes:string[]; assistiveTools:string[]; motivation:string; testingExperience:string; bugDescriptionAbility:string; technicalKnowledge?:string|null; createdAt:string; }
-export interface AdminCampaignDto { id:number; name:string; description:string; status:string; createdAt:string; }
-export interface AdminBugReportDto { id:number; title:string; description:string; severity:string; status:string; reporter:string; campaign?:string|null; createdAt:string; }
+export interface AdminBetaTesterDto { id:number; userId:number; firstName:string; lastName:string; email:string; status:string; accessibilityNeed:string; availability:string[]; devices:string[]; browsers:string[]; testingTypes:string[]; assistiveTools:string[]; motivation:string; testingExperience:string[]; bugDescriptionAbility:string[]; technicalKnowledge:string[]; createdAt:string; }
+export interface AdminBugReportDto { id:number; title:string; description:string; expectedBehavior?:string|null; actualBehavior?:string|null; severity:string; status:string; pageUrl?:string|null; reporter:string; campaignId?:number|null; campaign?:string|null; attachments:string[]; attachmentUrls:string[]; createdAt:string; }
+export interface AdminCampaignDto { id:number; name:string; description:string; status:string; startsAt?:string|null; endsAt?:string|null; createdAt:string; enrolledCount?:number; reportCount?:number; reports?:AdminBugReportDto[]; }
 const unwrap = <T>(response:ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
+export const resolveBetaAttachmentUrl = (url:string) => new URL(url, API_BASE_URL).toString();
 export const fetchAdminBetaTesters = async (query='') => unwrap((await httpClient.get<ApiResponse<{items:AdminBetaTesterDto[]}>>(`/api/admin/beta-testers?perPage=100${query}`)).data).items;
 export const fetchAdminCampaigns = async () => unwrap((await httpClient.get<ApiResponse<{items:AdminCampaignDto[]}>>('/api/admin/beta-campaigns')).data).items;
 export const fetchAdminBugReports = async () => unwrap((await httpClient.get<ApiResponse<{items:AdminBugReportDto[]}>>('/api/admin/beta-reports')).data).items;
 export const exportAdminBetaTesters = async () => { const response=await httpClient.get('/api/admin/beta-testers/export',{responseType:'blob'}); const url=URL.createObjectURL(response.data); const link=document.createElement('a'); link.href=url; link.download='beta-testeurs.csv'; link.click(); URL.revokeObjectURL(url); };
 export const updateAdminBetaTester = async (id:number, status:string) => { await httpClient.patch(`/api/admin/beta-testers/${id}`, { status }); };
 export const deleteAdminBetaTester = async (id:number) => { await httpClient.delete(`/api/admin/beta-testers/${id}`); };
-export const createAdminCampaign = async (payload:{name:string;description:string;status:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };
+export const createAdminCampaign = async (payload:{name:string;description:string;status:string;startsAt?:string;endsAt?:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };
 
 export interface BugReportCommentDto {
   id: number;
@@ -41,7 +43,7 @@ export const createBugReportComment = async (id: number, content: string) => {
   return unwrap((await httpClient.post<ApiResponse<BugReportCommentDto>>(`/api/beta/reports/${id}/comments`, { content })).data);
 };
 
-export const updateAdminCampaign = async (id: number, payload: { name?: string; description?: string; status?: string }) => {
+export const updateAdminCampaign = async (id: number, payload: { name?: string; description?: string; status?: string; startsAt?:string; endsAt?:string }) => {
   return unwrap((await httpClient.patch<ApiResponse<Record<string, unknown>>>(`/api/admin/beta-campaigns/${id}`, payload)).data);
 };
 

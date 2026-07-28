@@ -29,7 +29,7 @@ final class UpdateBetaTesterController extends AbstractController
             return ApiResponse::error('Profil introuvable.', 404);
         } $status = (string) (JsonPayload::decode($request)['status'] ?? '');
         if (!in_array($status, ['pending', 'accepted', 'paused', 'rejected'], true)) {
-            return ApiResponse::error('Statut invalide.', 422);
+            return ApiResponse::error('État invalide.', 422);
         } $profile->setStatus($status);
         $this->persistence->flush();
 

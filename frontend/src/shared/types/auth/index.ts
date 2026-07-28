@@ -10,4 +10,5 @@ export interface AuthUser {
   phoneNumber: string;
   gender: string;
   roles: string[];
+  communicationPreferences?: string[];
 }

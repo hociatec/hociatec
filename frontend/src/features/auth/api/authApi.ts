@@ -16,9 +16,9 @@ export interface RegisterPayload {
   betaConsent?: boolean;
   availability?: string[];
   motivation?: string;
-  testingExperience?: string;
-  bugDescriptionAbility?: string;
-  technicalKnowledge?: string;
+  testingExperience?: string[];
+  bugDescriptionAbility?: string[];
+  technicalKnowledge?: string[];
   accessibilityNeed?: string;
   assistiveTools?: string[];
   devices?: string[];

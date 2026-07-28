@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { PageContainer } from '../../../shared/components/PageContainer';
 import { SiteLayout } from '../../../shared/components/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import type { AppointmentItem } from '../types/appointments';
 import { useMyAppointments } from '../hooks/useMyAppointments';
@@ -39,24 +39,26 @@ export const MyAppointmentsPage = () => {
         const canCancel = showCancelButton && !isCancelled;
 
         return (
-          <li key={appointment.id} className="rounded-lg border border-brand-200 p-3">
+          <li key={appointment.id} className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
             <div className="flex flex-wrap justify-between gap-3">
-              <strong>{appointment.prestation.name}</strong>
-              <span className="muted">
+              <strong className="text-brand-900">{appointment.prestation.name}</strong>
+              <span className="text-sm text-stone-600">
                 {appointment.prestation.durationMinutes} min ·{' '}
                 {formatEuroCents(appointment.prestation.priceCents)}
               </span>
             </div>
-            <div className="mt-1">
+            <div className="mt-2 text-stone-700">
               {formatOptionalFrenchDateTime(appointment.startAt)} -{' '}
               {formatOptionalFrenchDateTime(appointment.endAt)}
             </div>
-            {appointment.status && <div className="muted mt-1">Statut : {appointment.status}</div>}
+            {appointment.status ? (
+              <div className="mt-1 text-sm text-stone-600">Statut : {appointment.status}</div>
+            ) : null}
             {canCancel && (
               <button
                 onClick={() => void handleCancel(appointment.id)}
                 disabled={cancellingId === appointment.id}
-                className="mt-2 rounded bg-red-600 px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-3 inline-flex rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {cancellingId === appointment.id ? 'Annulation...' : 'Annuler le rendez-vous'}
               </button>
@@ -74,8 +76,13 @@ export const MyAppointmentsPage = () => {
   );
 
   return (
-    <SiteLayout>
-      <PageContainer size="medium" title="Mes rendez-vous">
+    <SiteLayout headerVariant="light">
+      <PublicPageShell
+        size="medium"
+        eyebrow="Mon espace"
+        title="Mes rendez-vous"
+        description="Consultez vos prochains rendez-vous, annulez si nécessaire et retrouvez votre historique."
+      >
         <StableContent
           loading={loading}
           hasContent={upcoming.length > 0 || past.length > 0 || !loading}
@@ -85,19 +92,19 @@ export const MyAppointmentsPage = () => {
 
           {!error && (
             <div className="grid gap-6">
-              <section>
-                <h2>À venir</h2>
+              <PublicPageSection>
+                <h2 className="mb-4 text-xl font-semibold text-brand-900">À venir</h2>
                 {upcoming.length === 0 ? (
-                  <p className="muted">Aucun rendez-vous à venir.</p>
+                  <p className="text-sm text-stone-600">Aucun rendez-vous à venir.</p>
                 ) : (
                   renderList(upcoming, true)
                 )}
-              </section>
+              </PublicPageSection>
 
-              <section>
-                <h2>Passés</h2>
+              <PublicPageSection>
+                <h2 className="mb-4 text-xl font-semibold text-brand-900">Passés</h2>
                 {past.length === 0 ? (
-                  <p className="muted">Aucun rendez-vous passé.</p>
+                  <p className="text-sm text-stone-600">Aucun rendez-vous passé.</p>
                 ) : (
                   <>
                     {renderList(paginatedPast, false)}
@@ -105,18 +112,18 @@ export const MyAppointmentsPage = () => {
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         <button
                           type="button"
-                          className="site-header__link"
+                          className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={pastPage === 1}
                           onClick={() => setPastPage((page) => Math.max(1, page - 1))}
                         >
                           Précédent
                         </button>
-                        <span className="muted">
+                        <span className="text-sm text-stone-600">
                           Page {pastPage} sur {totalPastPages}
                         </span>
                         <button
                           type="button"
-                          className="site-header__link"
+                          className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={pastPage === totalPastPages}
                           onClick={() => setPastPage((page) => Math.min(totalPastPages, page + 1))}
                         >
@@ -126,11 +133,11 @@ export const MyAppointmentsPage = () => {
                     )}
                   </>
                 )}
-              </section>
+              </PublicPageSection>
             </div>
           )}
         </StableContent>
-      </PageContainer>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

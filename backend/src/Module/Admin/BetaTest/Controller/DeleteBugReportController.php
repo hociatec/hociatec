@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Service\BetaAttachmentStorage;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ final class DeleteBugReportController extends AbstractController
 {
     public function __construct(
         private readonly BugReportRepository $reports,
+        private readonly BetaAttachmentStorage $attachments,
         private readonly DoctrinePersistence $persistence,
     ) {
     }
@@ -29,8 +31,10 @@ final class DeleteBugReportController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         }
 
+        $attachmentNames = $report->getAttachments();
         $this->persistence->remove($report);
         $this->persistence->flush();
+        $this->attachments->deleteMany($attachmentNames);
 
         return ApiResponse::success([], 200, 'Rapport supprimé.');
     }

@@ -6,6 +6,7 @@ namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Service\BetaProfileChoices;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,6 +48,6 @@ final class ListBetaTestersController extends AbstractController
     {
         $user = $profile->getUser();
 
-        return ['id' => $profile->getId(), 'userId' => $user->getId(), 'firstName' => $user->getFirstName(), 'lastName' => $user->getLastName(), 'email' => $user->getEmail(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => $profile->getTestingExperience(), 'bugDescriptionAbility' => $profile->getBugDescriptionAbility(), 'technicalKnowledge' => $profile->getTechnicalKnowledge(), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes(), 'consentAt' => $profile->getConsentAt()->format(DATE_ATOM), 'createdAt' => $profile->getCreatedAt()->format(DATE_ATOM)];
+        return ['id' => $profile->getId(), 'userId' => $user->getId(), 'firstName' => $user->getFirstName(), 'lastName' => $user->getLastName(), 'email' => $user->getEmail(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => BetaProfileChoices::parseStoredList($profile->getTestingExperience(), 'testingExperience'), 'bugDescriptionAbility' => BetaProfileChoices::parseStoredList($profile->getBugDescriptionAbility(), 'bugDescriptionAbility'), 'technicalKnowledge' => BetaProfileChoices::parseStoredList($profile->getTechnicalKnowledge(), 'technicalKnowledge'), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes(), 'consentAt' => $profile->getConsentAt()->format(DATE_ATOM), 'createdAt' => $profile->getCreatedAt()->format(DATE_ATOM)];
     }
 }

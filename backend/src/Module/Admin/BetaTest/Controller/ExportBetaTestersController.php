@@ -22,7 +22,7 @@ final class ExportBetaTestersController
         if (false === $stream) {
             throw new \RuntimeException('Impossible d\'ouvrir le flux de données temporaire.');
         }
-        fputcsv($stream, ['Prénom', 'Nom', 'E-mail', 'Statut', 'Accessibilité', 'Disponibilités', 'Appareils', 'Navigateurs', 'Types de tests', 'Créé le'], ';');
+        fputcsv($stream, ['Prénom', 'Nom', 'E-mail', 'État', 'Accessibilité', 'Disponibilités', 'Appareils', 'Navigateurs', 'Types de tests', 'Créé le'], ';');
         foreach ($this->profiles->findBy([], ['createdAt' => 'DESC']) as $p) {
             $u = $p->getUser();
             fputcsv($stream, [$u->getFirstName(), $u->getLastName(), $u->getEmail(), $p->getStatus(), $p->getAccessibilityNeed(), implode(', ', $p->getAvailability()), implode(', ', $p->getDevices()), implode(', ', $p->getBrowsers()), implode(', ', $p->getTestingTypes()), $p->getCreatedAt()->format(DATE_ATOM)], ';');

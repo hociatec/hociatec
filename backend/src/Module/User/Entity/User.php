@@ -64,6 +64,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $accountNotificationsSeenSignature = null;
 
+    /** @var list<string> */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $communicationPreferences = null;
+
     #[ORM\Column(length: 100, nullable: true, unique: true)]
     private ?string $verificationToken = null;
 
@@ -305,6 +309,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $signature = null !== $signature ? trim($signature) : null;
         $this->accountNotificationsSeenSignature = '' !== $signature ? $signature : null;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getCommunicationPreferences(): array
+    {
+        $preferences = is_array($this->communicationPreferences)
+            ? $this->communicationPreferences
+            : ['notification', 'email'];
+
+        return array_values(array_unique(array_filter(
+            $preferences,
+            static fn (mixed $preference): bool => is_string($preference) && in_array($preference, ['notification', 'email', 'phone'], true),
+        )));
+    }
+
+    /**
+     * @param list<string> $preferences
+     */
+    public function setCommunicationPreferences(array $preferences): self
+    {
+        $this->communicationPreferences = array_values(array_unique(array_filter(
+            $preferences,
+            static fn (mixed $preference): bool => is_string($preference) && in_array($preference, ['notification', 'email', 'phone'], true),
+        )));
 
         return $this;
     }

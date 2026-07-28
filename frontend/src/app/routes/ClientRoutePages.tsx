@@ -4,6 +4,10 @@ export const ProfilePage = lazyPage(
   () => import('@/features/profile/pages/ProfilePage'),
   'ProfilePage',
 );
+export const CommunicationPreferencesPage = lazyPage(
+  () => import('@/features/profile/pages/CommunicationPreferencesPage'),
+  'CommunicationPreferencesPage',
+);
 export const ClientDashboardPage = lazyPage(
   () => import('@/features/account/pages/ClientDashboardPage'),
   'ClientDashboardPage',

@@ -1,4 +1,5 @@
 import { SiteLayout } from '@/shared/components/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 
@@ -14,11 +15,14 @@ export const MentionsPage = () => {
   });
 
   return (
-    <SiteLayout>
-      <div className="container mx-auto max-w-3xl px-4 py-10">
-        <h1 className="text-3xl font-semibold mb-6">Mentions légales</h1>
-        <p className="text-sm text-gray-600 mb-6">Dernière mise à jour: {LEGAL_UPDATED_AT}</p>
-
+    <SiteLayout headerVariant="light">
+      <PublicPageShell
+        size="medium"
+        eyebrow="Informations légales"
+        title="Mentions légales"
+        description={`Dernière mise à jour: ${LEGAL_UPDATED_AT}`}
+      >
+        <PublicPageSection>
         <div className="prose prose-stone max-w-none">
           <h2>Éditeur du site</h2>
           <p>
@@ -116,7 +120,8 @@ export const MentionsPage = () => {
             <a href="mailto:contact@hociatec.fr">contact@hociatec.fr</a>.
           </p>
         </div>
-      </div>
+        </PublicPageSection>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

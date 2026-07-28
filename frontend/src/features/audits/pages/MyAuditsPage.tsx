@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useMyAudits } from '../hooks/useMyAudits';
 import { SiteLayout } from '@/shared/components/SiteLayout';
-import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
+import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const MyAuditsPage = () => {
@@ -9,31 +10,41 @@ export const MyAuditsPage = () => {
   const { items, loading, error } = useMyAudits();
 
   return (
-    <SiteLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-semibold mb-4">Mes audits</h1>
-        {loading && <LoadingState>Chargement des audits...</LoadingState>}
-        {error && <ErrorState>{error}</ErrorState>}
-        {!loading && !error && items.length === 0 && <p>Aucun audit trouvé.</p>}
-        <ul className="divide-y">
+    <SiteLayout headerVariant="light">
+      <PublicPageShell
+        eyebrow="Mon espace"
+        title="Mes audits"
+        description="Suivez les demandes d’audit envoyées à Hociatec et consultez leur avancement."
+      >
+        {loading ? <LoadingState>Chargement des audits...</LoadingState> : null}
+        {error ? <ErrorState>{error}</ErrorState> : null}
+        {!loading && !error && items.length === 0 ? <EmptyState>Aucun audit trouvé.</EmptyState> : null}
+        {items.length > 0 ? (
+        <PublicPageSection>
+        <ul className="divide-y divide-brand-100">
           {items.map((a) => (
-            <li key={a.id} className="py-3 flex items-center justify-between">
+            <li key={a.id} className="flex flex-col gap-4 py-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <div className="font-medium">
+                <div className="font-semibold text-brand-900">
                   {a.number} — {a.typeLabel}
                 </div>
-                <div className="text-sm text-gray-600">{a.url}</div>
+                <div className="mt-1 text-sm text-stone-600">{a.url}</div>
               </div>
-              <div className="text-sm">{a.statusLabel}</div>
+              <div className="text-sm font-medium text-stone-700">{a.statusLabel}</div>
               <div>
-                <Link className="underline" to={`/audits/me/${a.id}`}>
+                <Link
+                  className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
+                  to={`/audits/me/${a.id}`}
+                >
                   Détails
                 </Link>
               </div>
             </li>
           ))}
         </ul>
-      </div>
+        </PublicPageSection>
+        ) : null}
+      </PublicPageShell>
     </SiteLayout>
   );
 };
