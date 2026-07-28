@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\BetaTest\Controller;
 
+use App\Module\BetaTest\Entity\BugReport;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Service\BugReportActivityLogger;
+use App\Module\User\Entity\User;
 use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
@@ -23,6 +26,7 @@ final class UpdateBugReportStatusController extends AbstractController
         private readonly BugReportRepository $reports,
         private readonly DoctrinePersistence $persistence,
         private readonly UserCommunicationNotifier $notifier,
+        private readonly BugReportActivityLogger $activityLogger,
     ) {
     }
 
@@ -36,13 +40,17 @@ final class UpdateBugReportStatusController extends AbstractController
         $payload = JsonPayload::decode($request);
         $status = trim((string) ($payload['status'] ?? ''));
 
-        $allowedStatuses = ['submitted', 'under_review', 'resolved', 'closed', 'rejected'];
-        if (!in_array($status, $allowedStatuses, true)) {
+        if (!in_array($status, BugReport::ALLOWED_STATUSES, true)) {
             return ApiResponse::error('État invalide.', 422);
         }
 
+        $admin = $this->getUser();
+        $actor = $admin instanceof User ? $admin : null;
         $previousStatus = $report->getStatus();
         $report->setStatus($status);
+        if ($previousStatus !== $status) {
+            $this->activityLogger->log($report, $actor, 'status_changed', $previousStatus, $status);
+        }
         $this->persistence->flush();
 
         if ($previousStatus !== $status) {
@@ -52,7 +60,7 @@ final class UpdateBugReportStatusController extends AbstractController
                 sprintf('beta-report-status:%d:%s:%s', $report->getId(), $status, $changedAt->format('Uu')),
                 'État d’un signalement bêta mis à jour',
                 sprintf('Titre du signalement : %s. Nouvel état : %s.', $report->getTitle(), $this->statusLabel($status)),
-                '/beta',
+                sprintf('/beta?reportId=%d', $report->getId()),
                 'beta_report_status',
             );
         }
@@ -68,8 +76,10 @@ final class UpdateBugReportStatusController extends AbstractController
         return [
             'submitted' => 'Soumis',
             'under_review' => 'En cours d’analyse',
+            'need_info' => 'Informations nécessaires',
+            'planned' => 'Correction planifiée',
             'resolved' => 'Corrigé',
-            'closed' => 'Fermé',
+            'duplicate' => 'Doublon',
             'rejected' => 'Rejeté',
         ][$status] ?? $status;
     }

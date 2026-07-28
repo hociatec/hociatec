@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   type BetaCampaign,
   fetchBetaCampaigns,
   fetchMyBetaProfile,
+  fetchMyBugReport,
   fetchMyBugReports,
   fetchBugReportComments,
   createBugReportComment,
@@ -60,11 +61,14 @@ const isCampaignOpenForReports = (campaign: BetaCampaign) => {
 export const BetaDashboardPage = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<BetaCampaign | null>(null);
   const [viewedCampaign, setViewedCampaign] = useState<BetaCampaign | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
   const [isCreateReportOpen, setIsCreateReportOpen] = useState(false);
+  const [reportPage, setReportPage] = useState(1);
+  const [commentPage, setCommentPage] = useState(1);
 
   const {
     data: profile,
@@ -82,23 +86,36 @@ export const BetaDashboardPage = () => {
     enabled: Boolean(profile),
   });
 
-  const { data: reports = [], error: reportsError } = useQuery({
-    queryKey: ['betaReports'],
-    queryFn: fetchMyBugReports,
+  const { data: reportsResult, error: reportsError } = useQuery({
+    queryKey: ['betaReports', reportPage],
+    queryFn: () => fetchMyBugReports({ page: reportPage, perPage: 12 }),
     enabled: Boolean(profile),
   });
 
-  const { data: comments = [], isLoading: loadingComments } = useQuery({
-    queryKey: ['myBugReportComments', selectedReportId],
-    queryFn: () => fetchBugReportComments(selectedReportId!),
-    enabled: selectedReportId !== null && Boolean(profile),
+  const reports = reportsResult?.items ?? [];
+  const reportsMeta = reportsResult?.meta ?? null;
+  const requestedReportId = Number(searchParams.get('reportId') ?? 0) || null;
+  const effectiveSelectedReportId = selectedReportId ?? requestedReportId;
+  const { data: selectedReport } = useQuery({
+    queryKey: ['betaReport', effectiveSelectedReportId],
+    queryFn: () => fetchMyBugReport(effectiveSelectedReportId!),
+    enabled: effectiveSelectedReportId !== null && Boolean(profile),
   });
 
+  const { data: commentsResult, isLoading: loadingComments } = useQuery({
+    queryKey: ['myBugReportComments', effectiveSelectedReportId, commentPage],
+    queryFn: () => fetchBugReportComments(effectiveSelectedReportId!, commentPage),
+    enabled: effectiveSelectedReportId !== null && Boolean(profile),
+  });
+  const comments = commentsResult?.items ?? [];
+  const commentsMeta = commentsResult?.meta ?? null;
+
   const postCommentMutation = useMutation({
-    mutationFn: () => createBugReportComment(selectedReportId!, newCommentText),
+    mutationFn: () => createBugReportComment(effectiveSelectedReportId!, newCommentText),
     onSuccess: () => {
       setNewCommentText('');
-      queryClient.invalidateQueries({ queryKey: ['myBugReportComments', selectedReportId] });
+      queryClient.invalidateQueries({ queryKey: ['myBugReportComments', effectiveSelectedReportId] });
+      queryClient.invalidateQueries({ queryKey: ['betaReports'] });
       toast.show('Votre message a bien été envoyé.', { variant: 'success' });
     },
     onError: (err) => {
@@ -120,6 +137,18 @@ export const BetaDashboardPage = () => {
 
   const openCampaignDetails = (campaign: BetaCampaign) => {
     setViewedCampaign(campaign);
+  };
+
+  const openReportFollowUp = (id: number) => {
+    setSelectedReportId(id);
+    setCommentPage(1);
+    setSearchParams({ reportId: String(id) });
+  };
+
+  const closeReportFollowUp = () => {
+    setSelectedReportId(null);
+    setCommentPage(1);
+    setSearchParams({});
   };
 
   if (isLoadingProfile) {
@@ -169,11 +198,11 @@ export const BetaDashboardPage = () => {
   const error = campaignsError || reportsError;
   const errorMessage = error instanceof Error ? error.message : error ? 'Impossible de charger vos données.' : null;
 
-  const activeReport = reports.find((r) => r.id === selectedReportId);
+  const activeReport = reports.find((r) => r.id === effectiveSelectedReportId) ?? selectedReport;
   const profileStatus = typeof profile.status === 'string' ? profile.status : '';
   const canReport = profileStatus === 'accepted';
   const resolvedReports = reports.filter((report) => report.status === 'resolved').length;
-  const openReports = reports.filter((report) => !['resolved', 'closed', 'rejected'].includes(report.status)).length;
+  const openReports = reports.filter((report) => !['resolved', 'duplicate', 'rejected'].includes(report.status)).length;
   const viewedCampaignReports = viewedCampaign
     ? reports.filter((report) => report.campaignId === viewedCampaign.id)
     : [];
@@ -240,6 +269,14 @@ export const BetaDashboardPage = () => {
         </section>
 
         <section className="mb-8">
+          <article className="mb-6 rounded-3xl border border-brand-100 bg-brand-50 p-6">
+            <h2 className="text-xl font-bold text-brand-900">Consignes bêta</h2>
+            <div className="mt-3 grid gap-3 text-sm leading-6 text-stone-700 md:grid-cols-3">
+              <p><span className="font-semibold">Reproduire :</span> indiquez les étapes exactes pour retrouver le problème.</p>
+              <p><span className="font-semibold">Comparer :</span> précisez le résultat attendu et le résultat constaté.</p>
+              <p><span className="font-semibold">Illustrer :</span> ajoutez une capture si elle permet de comprendre plus vite.</p>
+            </div>
+          </article>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-brand-900">Campagnes à tester</h2>
@@ -381,7 +418,7 @@ export const BetaDashboardPage = () => {
                                 className="inline-flex items-center gap-2 rounded-lg border border-brand-100 bg-white px-4 py-2 text-xs font-semibold text-brand-700 transition hover:bg-brand-50"
                                 onClick={() => {
                                   setViewedCampaign(null);
-                                  setSelectedReportId(report.id);
+                                  openReportFollowUp(report.id);
                                 }}
                               >
                                 <MessageSquare size={14} />
@@ -400,8 +437,8 @@ export const BetaDashboardPage = () => {
           </Dialog>
         )}
 
-        {selectedReportId !== null && activeReport && (
-          <Dialog open={selectedReportId !== null} onClose={() => setSelectedReportId(null)} className="relative z-50">
+        {effectiveSelectedReportId !== null && activeReport && (
+          <Dialog open={effectiveSelectedReportId !== null} onClose={closeReportFollowUp} className="relative z-50">
             <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
             <div className="fixed inset-0 flex items-center justify-center px-4 py-6">
               <DialogPanel className="flex max-h-[88vh] w-full max-w-3xl flex-col rounded-xl border border-brand-100 bg-white shadow-2xl">
@@ -423,7 +460,7 @@ export const BetaDashboardPage = () => {
                     <button
                       type="button"
                       className="rounded-full p-1 text-stone-500 transition hover:bg-stone-100 hover:text-stone-700"
-                      onClick={() => setSelectedReportId(null)}
+                      onClick={closeReportFollowUp}
                       aria-label="Fermer le suivi"
                     >
                       <X size={20} />
@@ -437,6 +474,11 @@ export const BetaDashboardPage = () => {
                       État : {formatBetaLabel(activeReport.status, bugReportStatusLabels)}
                     </p>
                   </div>
+                  {activeReport.duplicateOf && (
+                    <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
+                      Rattaché au signalement : {activeReport.duplicateOf.title}
+                    </p>
+                  )}
                 </header>
 
                 <div className="max-h-56 overflow-y-auto border-b border-stone-200 bg-stone-50 p-5 text-sm text-stone-700">
@@ -516,6 +558,27 @@ export const BetaDashboardPage = () => {
                     })
                   )}
                 </div>
+                {commentsMeta && commentsMeta.totalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-stone-200 bg-white px-5 py-3 text-sm text-stone-600">
+                    <button
+                      type="button"
+                      disabled={commentPage <= 1}
+                      onClick={() => setCommentPage((page) => Math.max(1, page - 1))}
+                      className="rounded-lg border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
+                    >
+                      Messages précédents
+                    </button>
+                    <span>Page {commentsMeta.page} sur {commentsMeta.totalPages} · {commentsMeta.total} message{commentsMeta.total > 1 ? 's' : ''}</span>
+                    <button
+                      type="button"
+                      disabled={commentPage >= commentsMeta.totalPages}
+                      onClick={() => setCommentPage((page) => Math.min(commentsMeta.totalPages, page + 1))}
+                      className="rounded-lg border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
+                    >
+                      Messages suivants
+                    </button>
+                  </div>
+                )}
 
                 {/* Post comment form */}
                 <form onSubmit={handlePostComment} className="p-4 border-t border-stone-200 flex gap-2">
@@ -549,6 +612,27 @@ export const BetaDashboardPage = () => {
           campaignId={selectedCampaign?.id}
           campaignName={selectedCampaign?.name}
         />
+        {reportsMeta && reportsMeta.totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              disabled={reportPage <= 1}
+              onClick={() => setReportPage((page) => Math.max(1, page - 1))}
+              className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              Page précédente
+            </button>
+            <span className="text-sm text-stone-600">Page {reportsMeta.page} sur {reportsMeta.totalPages}</span>
+            <button
+              type="button"
+              disabled={reportPage >= reportsMeta.totalPages}
+              onClick={() => setReportPage((page) => Math.min(reportsMeta.totalPages, page + 1))}
+              className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              Page suivante
+            </button>
+          </div>
+        )}
       </PageContainer>
     </SiteLayout>
   );

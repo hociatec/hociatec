@@ -34,16 +34,27 @@ final readonly class AccountNotificationProvider
     /**
      * @return list<array{key: string, label: string, message: string, to: string, type: string, createdAt: string}>
      */
-    public function provideForUser(User $user): array
+    public function provideForUser(User $user, int $limit = 30, int $offset = 0): array
     {
         if (!in_array(CommunicationPreferences::NOTIFICATION, $user->getCommunicationPreferences(), true)) {
             return [];
         }
 
+        $computed = 0 === $offset ? $this->buildComputedNotifications($user) : [];
+
         return [
-            ...array_map($this->formatEvent(...), $this->events->findRecentForUser($user)),
-            ...$this->buildComputedNotifications($user),
+            ...$computed,
+            ...array_map($this->formatEvent(...), $this->events->findRecentForUser($user, max(1, $limit - count($computed)), $offset)),
         ];
+    }
+
+    public function countForUser(User $user): int
+    {
+        if (!in_array(CommunicationPreferences::NOTIFICATION, $user->getCommunicationPreferences(), true)) {
+            return 0;
+        }
+
+        return $this->events->countForUser($user) + count($this->buildComputedNotifications($user));
     }
 
     /**

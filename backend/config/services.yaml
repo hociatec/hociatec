@@ -57,6 +57,9 @@ services:
                 checkout: '@limiter.checkout'
                 contact_public: '@limiter.contact_public'
                 product_share_public: '@limiter.product_share_public'
+                beta_signup: '@limiter.beta_signup'
+                beta_report_create: '@limiter.beta_report_create'
+                beta_report_comment: '@limiter.beta_report_comment'
 
     App\Module\Admin\Backup\Service\MaintenanceModeService:
         arguments:

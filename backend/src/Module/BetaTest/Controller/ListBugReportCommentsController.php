@@ -8,8 +8,10 @@ use App\Module\BetaTest\Repository\BugReportCommentRepository;
 use App\Module\BetaTest\Repository\BugReportRepository;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,7 +25,7 @@ final class ListBugReportCommentsController extends AbstractController
     ) {
     }
 
-    public function __invoke(int $id): JsonResponse
+    public function __invoke(int $id, Request $request): JsonResponse
     {
         $report = $this->reports->find($id);
         if (null === $report) {
@@ -40,10 +42,11 @@ final class ListBugReportCommentsController extends AbstractController
             return ApiResponse::error('Accès refusé.', 403);
         }
 
-        $commentsList = $this->comments->findBy(['bugReport' => $report], ['createdAt' => 'ASC']);
+        $pagination = Pagination::fromRequest($request, 6, 50);
+        $commentsList = $this->comments->findForReportPaginated($report, $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::success([
-            'items' => array_map(static fn ($c) => [
+        return ApiResponse::paginated(
+            array_map(static fn ($c) => [
                 'id' => $c->getId(),
                 'content' => $c->getContent(),
                 'createdAt' => $c->getCreatedAt()->format(DATE_ATOM),
@@ -55,6 +58,7 @@ final class ListBugReportCommentsController extends AbstractController
                     'role' => in_array('ROLE_ADMIN', $c->getAuthor()->getRoles(), true) ? 'admin' : 'user',
                 ],
             ], $commentsList),
-        ]);
+            $pagination->metadata($this->comments->countForReport($report)),
+        );
     }
 }

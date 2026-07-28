@@ -29,6 +29,18 @@ final readonly class BugReportResponseFormatter
             'status' => $report->getStatus(),
             'pageUrl' => $report->getPageUrl(),
             'reporter' => $report->getReporter()->getEmail(),
+            'reporterId' => $report->getReporter()->getId(),
+            'reporterName' => $report->getReporter()->getFullName(),
+            'assignedTo' => null !== $report->getAssignedTo() ? [
+                'id' => $report->getAssignedTo()->getId(),
+                'name' => $report->getAssignedTo()->getFullName(),
+                'email' => $report->getAssignedTo()->getEmail(),
+            ] : null,
+            'duplicateOf' => null !== $report->getDuplicateOf() ? [
+                'id' => $report->getDuplicateOf()->getId(),
+                'title' => $report->getDuplicateOf()->getTitle(),
+            ] : null,
+            'duplicateReason' => $report->getDuplicateReason(),
             'campaignId' => $report->getCampaign()?->getId(),
             'campaign' => $report->getCampaign()?->getName(),
             'attachments' => $attachments,
@@ -37,6 +49,9 @@ final readonly class BugReportResponseFormatter
                 $attachments,
             ),
             'createdAt' => $report->getCreatedAt()->format(DATE_ATOM),
+            'updatedAt' => $report->getUpdatedAt()->format(DATE_ATOM),
+            'lastAdminReplyAt' => $report->getLastAdminReplyAt()?->format(DATE_ATOM),
+            'lastReporterReplyAt' => $report->getLastReporterReplyAt()?->format(DATE_ATOM),
         ];
     }
 }

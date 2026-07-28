@@ -63,6 +63,7 @@ export const AdminBetaCampaignsPage = () => {
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
   const [reportsPage, setReportsPage] = useState(1);
+  const [commentsPage, setCommentsPage] = useState(1);
 
   // Forms states
   const [addForm, setAddForm] = useState(emptyCampaignForm);
@@ -74,11 +75,13 @@ export const AdminBetaCampaignsPage = () => {
     queryFn: fetchAdminCampaigns,
   });
 
-  const { data: comments = [], isLoading: loadingComments } = useQuery({
-    queryKey: ['bugReportComments', selectedReportId],
-    queryFn: () => fetchBugReportComments(selectedReportId!),
+  const { data: commentsResult, isLoading: loadingComments } = useQuery({
+    queryKey: ['bugReportComments', selectedReportId, commentsPage],
+    queryFn: () => fetchBugReportComments(selectedReportId!, commentsPage),
     enabled: selectedReportId !== null,
   });
+  const comments = commentsResult?.items ?? [];
+  const commentsMeta = commentsResult?.meta ?? null;
 
   // Mutations
   const createMutation = useMutation({
@@ -179,6 +182,7 @@ export const AdminBetaCampaignsPage = () => {
   const openDetail = (campaign: AdminCampaignDto) => {
     setSelectedCampaign(campaign);
     setReportsPage(1);
+    setCommentsPage(1);
     setSelectedReportId(null);
     setIsDetailOpen(true);
   };
@@ -596,7 +600,10 @@ export const AdminBetaCampaignsPage = () => {
                             <h3 className="font-semibold text-stone-900">{report.title}</h3>
                             <button
                               type="button"
-                              onClick={() => setSelectedReportId(report.id)}
+                              onClick={() => {
+                                setSelectedReportId(report.id);
+                                setCommentsPage(1);
+                              }}
                               className="inline-flex items-center gap-2 rounded-lg border border-brand-100 px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
                             >
                               <MessageSquare size={16} />
@@ -650,14 +657,14 @@ export const AdminBetaCampaignsPage = () => {
       )}
 
       {selectedReport && (
-        <Dialog open={Boolean(selectedReport)} onClose={() => setSelectedReportId(null)} className="relative z-[60]">
+        <Dialog open={Boolean(selectedReport)} onClose={() => { setSelectedReportId(null); setCommentsPage(1); }} className="relative z-[60]">
           <DialogBackdrop className="fixed inset-0 bg-brand-900/75" />
           <div className="fixed inset-0 flex items-center justify-center p-4">
             <DialogPanel className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-brand-100 bg-white shadow-2xl">
               <header className="border-b border-stone-200 p-4">
                 <button
                   type="button"
-                  onClick={() => setSelectedReportId(null)}
+                  onClick={() => { setSelectedReportId(null); setCommentsPage(1); }}
                   className="mb-4 rounded-lg border border-brand-100 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
                 >
                   Fermer
@@ -703,6 +710,27 @@ export const AdminBetaCampaignsPage = () => {
                   })
                 )}
               </div>
+              {commentsMeta && commentsMeta.totalPages > 1 ? (
+                <div className="flex items-center justify-between border-t border-stone-200 bg-white px-4 py-3 text-sm text-stone-600">
+                  <button
+                    type="button"
+                    disabled={commentsPage <= 1}
+                    onClick={() => setCommentsPage((page) => Math.max(1, page - 1))}
+                    className="rounded-lg border border-brand-100 px-3 py-2 font-semibold transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Messages précédents
+                  </button>
+                  <span>Page {commentsMeta.page} sur {commentsMeta.totalPages}</span>
+                  <button
+                    type="button"
+                    disabled={commentsPage >= commentsMeta.totalPages}
+                    onClick={() => setCommentsPage((page) => Math.min(commentsMeta.totalPages, page + 1))}
+                    className="rounded-lg border border-brand-100 px-3 py-2 font-semibold transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Messages suivants
+                  </button>
+                </div>
+              ) : null}
 
               <form onSubmit={handlePostComment} className="flex gap-2 border-t border-stone-200 p-4">
                 <input

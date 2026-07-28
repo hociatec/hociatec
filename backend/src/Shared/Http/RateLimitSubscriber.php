@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Http;
 
 use Psr\Container\ContainerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
@@ -15,6 +16,7 @@ final readonly class RateLimitSubscriber
 {
     public function __construct(
         private ContainerInterface $limiters,
+        private Security $security,
     ) {
     }
 
@@ -31,7 +33,8 @@ final readonly class RateLimitSubscriber
         }
 
         $request = $event->getRequest();
-        $key = $request->getClientIp() ?? 'unknown';
+        $user = $this->security->getUser();
+        $key = null !== $user ? 'user:'.$user->getUserIdentifier() : 'ip:'.($request->getClientIp() ?? 'unknown');
         $limit = $factory->create($key)->consume($attribute->tokens);
         if ($limit->isAccepted()) {
             return;

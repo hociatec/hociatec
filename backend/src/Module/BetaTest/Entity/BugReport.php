@@ -13,9 +13,40 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_beta_bug_status', columns: ['status'])]
 class BugReport
 {
+    public const STATUS_SUBMITTED = 'submitted';
+    public const STATUS_UNDER_REVIEW = 'under_review';
+    public const STATUS_NEED_INFO = 'need_info';
+    public const STATUS_PLANNED = 'planned';
+    public const STATUS_RESOLVED = 'resolved';
+    public const STATUS_DUPLICATE = 'duplicate';
+    public const STATUS_REJECTED = 'rejected';
+
+    /** @var list<string> */
+    public const ALLOWED_STATUSES = [
+        self::STATUS_SUBMITTED,
+        self::STATUS_UNDER_REVIEW,
+        self::STATUS_NEED_INFO,
+        self::STATUS_PLANNED,
+        self::STATUS_RESOLVED,
+        self::STATUS_DUPLICATE,
+        self::STATUS_REJECTED,
+    ];
+
+    /** @var list<string> */
+    public const CLOSED_STATUSES = [
+        self::STATUS_RESOLVED,
+        self::STATUS_DUPLICATE,
+        self::STATUS_REJECTED,
+    ];
+
     #[ORM\Id, ORM\GeneratedValue, ORM\Column] private ?int $id = null;
     #[ORM\ManyToOne(targetEntity: User::class)] #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')] private User $reporter;
     #[ORM\ManyToOne(targetEntity: BetaCampaign::class)] #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')] private ?BetaCampaign $campaign;
+    #[ORM\ManyToOne(targetEntity: User::class)] #[ORM\JoinColumn(name: 'assigned_to_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')] private ?User $assignedTo = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $assignedAt = null;
+    #[ORM\ManyToOne(targetEntity: self::class)] #[ORM\JoinColumn(name: 'duplicate_of_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')] private ?self $duplicateOf = null;
+    #[ORM\Column(type: 'text', nullable: true)] private ?string $duplicateReason = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $duplicatedAt = null;
     #[ORM\Column(length: 180)] private string $title;
     #[ORM\Column(type: 'text')] private string $description;
     #[ORM\Column(type: 'text', nullable: true)] private ?string $expectedBehavior;
@@ -25,6 +56,8 @@ class BugReport
     #[ORM\Column(length: 500, nullable: true)] private ?string $pageUrl;
     /** @var list<string> */
     #[ORM\Column(type: 'json')] private array $attachments = [];
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $lastAdminReplyAt = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $lastReporterReplyAt = null;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $createdAt;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $updatedAt;
     /**
@@ -98,6 +131,76 @@ class BugReport
         return $this;
     }
 
+    public function getAssignedTo(): ?User
+    {
+        return $this->assignedTo;
+    }
+
+    public function assignTo(?User $user): self
+    {
+        $this->assignedTo = $user;
+        $this->assignedAt = null !== $user ? new \DateTimeImmutable() : null;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function getAssignedAt(): ?\DateTimeImmutable
+    {
+        return $this->assignedAt;
+    }
+
+    public function getDuplicateOf(): ?self
+    {
+        return $this->duplicateOf;
+    }
+
+    public function getDuplicateReason(): ?string
+    {
+        return $this->duplicateReason;
+    }
+
+    public function markDuplicateOf(?self $report, ?string $reason = null): self
+    {
+        $this->duplicateOf = $report;
+        $this->duplicateReason = null !== $reason && '' !== trim($reason) ? trim($reason) : null;
+        $this->duplicatedAt = null !== $report ? new \DateTimeImmutable() : null;
+        if (null !== $report) {
+            $this->status = self::STATUS_DUPLICATE;
+        }
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function getDuplicatedAt(): ?\DateTimeImmutable
+    {
+        return $this->duplicatedAt;
+    }
+
+    public function recordReply(User $author): self
+    {
+        $now = new \DateTimeImmutable();
+        if (in_array('ROLE_ADMIN', $author->getRoles(), true)) {
+            $this->lastAdminReplyAt = $now;
+        } else {
+            $this->lastReporterReplyAt = $now;
+        }
+        $this->updatedAt = $now;
+
+        return $this;
+    }
+
+    public function getLastAdminReplyAt(): ?\DateTimeImmutable
+    {
+        return $this->lastAdminReplyAt;
+    }
+
+    public function getLastReporterReplyAt(): ?\DateTimeImmutable
+    {
+        return $this->lastReporterReplyAt;
+    }
+
     public function getPageUrl(): ?string
     {
         return $this->pageUrl;
@@ -114,5 +217,10 @@ class BugReport
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }

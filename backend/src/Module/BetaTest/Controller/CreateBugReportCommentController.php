@@ -6,11 +6,13 @@ namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Entity\BugReportComment;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Service\BugReportActivityLogger;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
+use App\Shared\Http\RateLimited;
 use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/beta/reports/{id}/comments', name: 'api_beta_reports_comments_create', methods: ['POST'])]
 #[IsGranted('ROLE_USER')]
+#[RateLimited('beta_report_comment')]
 final class CreateBugReportCommentController extends AbstractController
 {
     public function __construct(
@@ -27,6 +30,7 @@ final class CreateBugReportCommentController extends AbstractController
         private readonly DoctrinePersistence $persistence,
         private readonly UserCommunicationNotifier $notifier,
         private readonly UserRepository $users,
+        private readonly BugReportActivityLogger $activityLogger,
     ) {
     }
 
@@ -55,7 +59,9 @@ final class CreateBugReportCommentController extends AbstractController
         }
 
         $comment = new BugReportComment($report, $user, $content);
+        $report->recordReply($user);
         $this->persistence->persist($comment);
+        $this->activityLogger->log($report, $user, 'comment_added', null, null, mb_substr($content, 0, 500));
         $this->persistence->flush();
 
         if ($isAdmin && $report->getReporter()->getId() !== $user->getId()) {
@@ -64,7 +70,7 @@ final class CreateBugReportCommentController extends AbstractController
                 sprintf('beta-report-comment:%d:%d', $report->getId(), $comment->getId()),
                 'Nouveau message sur un signalement bêta',
                 sprintf('Un nouveau message a été ajouté. Titre du signalement : %s.', $report->getTitle()),
-                '/beta',
+                sprintf('/beta?reportId=%d', $report->getId()),
                 'beta_report_comment',
             );
         }
@@ -80,7 +86,7 @@ final class CreateBugReportCommentController extends AbstractController
                     sprintf('admin-beta-report-comment:%d:%d:%d', $report->getId(), $comment->getId(), $admin->getId()),
                     'Nouveau message client sur un signalement bêta',
                     sprintf('%s a répondu. Titre du signalement : %s.', $user->getFullName(), $report->getTitle()),
-                    '/admin/beta-reports',
+                    sprintf('/admin/beta-reports?reportId=%d', $report->getId()),
                     'admin_beta_report_comment',
                 );
             }

@@ -8,8 +8,10 @@ export const betaProfileStatusLabels: Record<string, string> = {
 export const bugReportStatusLabels: Record<string, string> = {
   submitted: 'Soumis',
   under_review: "En cours d’analyse",
+  need_info: 'Informations nécessaires',
+  planned: 'Correction planifiée',
   resolved: 'Corrigé',
-  closed: 'Fermé',
+  duplicate: 'Doublon',
   rejected: 'Rejeté',
 };
 

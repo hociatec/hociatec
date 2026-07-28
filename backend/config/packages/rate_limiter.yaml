@@ -41,3 +41,11 @@ framework:
             policy: 'sliding_window'
             limit: 5
             interval: '1 hour'
+        beta_report_create:
+            policy: 'sliding_window'
+            limit: 12
+            interval: '1 hour'
+        beta_report_comment:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '1 minute'

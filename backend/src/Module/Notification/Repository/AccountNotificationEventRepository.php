@@ -22,9 +22,14 @@ final class AccountNotificationEventRepository extends ServiceEntityRepository
     /**
      * @return list<AccountNotificationEvent>
      */
-    public function findRecentForUser(User $user, int $limit = 30): array
+    public function findRecentForUser(User $user, int $limit = 30, int $offset = 0): array
     {
-        return $this->findBy(['user' => $user], ['createdAt' => 'DESC'], $limit);
+        return $this->findBy(['user' => $user], ['createdAt' => 'DESC'], $limit, $offset);
+    }
+
+    public function countForUser(User $user): int
+    {
+        return $this->count(['user' => $user]);
     }
 
     public function existsForKey(string $key): bool
