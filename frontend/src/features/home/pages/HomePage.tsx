@@ -14,37 +14,16 @@ import {
 const serviceHighlights = [
   {
     title: 'Matériel',
-    text: 'Vente, location et reconditionné avec une sélection fiable.',
+    text: 'Neuf, reconditionné ou en location, selon votre usage.',
   },
   {
     title: 'Interventions',
-    text: 'Installation, configuration, assistance et formation selon le besoin.',
+    text: 'Installation, configuration, assistance et formation.',
   },
   {
     title: 'Projets',
-    text: 'Audits, devis, sites et logiciels cadrés avec une méthode claire.',
+    text: 'Audits, devis, sites et logiciels avec un cadre clair.',
   },
-];
-
-const homeIntroPoints = [
-  {
-    label: 'Conseil avant achat',
-    text: 'Un besoin cadré avant de choisir du matériel ou une prestation.',
-  },
-  {
-    label: 'Solutions durables',
-    text: 'Neuf, location, reprise ou reconditionné selon l usage réel.',
-  },
-  {
-    label: 'Suivi clair',
-    text: 'Commandes, devis, audits et rendez-vous restent faciles à retrouver.',
-  },
-];
-
-const operatingModes = [
-  'Matériel neuf, reconditionné ou en location',
-  'Installation, reprise et valorisation des équipements',
-  'Audits, devis, formations et projets web ou logiciels',
 ];
 
 export const HomePage = () => {
@@ -65,11 +44,10 @@ export const HomePage = () => {
       <div className="home-page">
         <section className="home-hero">
           <div className="home-hero__content">
-            <p className="home-hero__eyebrow">Informatique, services et accompagnement</p>
-            <h1>Hociatec simplifie vos besoins numériques</h1>
+            <h1>Matériel, interventions et projets numériques</h1>
             <p>
-              Matériel, interventions, audits et projets sur mesure avec une approche claire,
-              durable et adaptée à votre usage.
+              Des solutions adaptées à votre usage, avec un interlocuteur pour vous guider de
+              l’idée au suivi.
             </p>
             <div className="home-hero__actions">
               <Link to="/devis/nouveau" className="home-button home-button--primary">
@@ -79,11 +57,10 @@ export const HomePage = () => {
                 Voir le catalogue
               </Link>
             </div>
-            <div className="home-hero__summary" aria-label="Domaines couverts">
-              <span>Matériel</span>
-              <span>Services</span>
-              <span>Audit</span>
-              <span>Sur mesure</span>
+            <div className="home-hero__summary" aria-label="Engagements Hociatec">
+              <span>Conseil humain</span>
+              <span>Solutions durables</span>
+              <span>Suivi clair</span>
             </div>
           </div>
           <div className="home-hero__visual" aria-hidden="true">
@@ -95,30 +72,7 @@ export const HomePage = () => {
           </div>
         </section>
 
-        <section className="home-intro" aria-label="Présentation Hociatec">
-          <div className="home-intro__copy">
-            <p className="home-intro__eyebrow">Présentation</p>
-            <h2>Une réponse informatique complète, sans complexité inutile</h2>
-            <p>
-              Hociatec accompagne les particuliers, indépendants et petites structures pour choisir,
-              installer, maintenir ou faire évoluer leurs outils numériques.
-            </p>
-          </div>
-          <div className="home-intro__panel">
-            <h3>Prise en charge</h3>
-            <ul>
-              {operatingModes.map((mode) => (
-                <li key={mode}>{mode}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
         <section className="home-services" aria-label="Services Hociatec">
-          <div className="home-section-heading">
-            <p>Solutions Hociatec</p>
-            <h2>Trois portes d’entrée selon votre besoin</h2>
-          </div>
           <div className="home-services__grid">
             {serviceHighlights.map((service) => (
               <article key={service.title} className="home-service-card">
@@ -127,15 +81,6 @@ export const HomePage = () => {
               </article>
             ))}
           </div>
-        </section>
-
-        <section className="home-feature-strip" aria-label="Engagements">
-          {homeIntroPoints.map((point) => (
-            <div key={point.label}>
-              <strong>{point.label}</strong>
-              <span>{point.text}</span>
-            </div>
-          ))}
         </section>
 
         <section className="home-products">

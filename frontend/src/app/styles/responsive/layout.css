@@ -126,9 +126,7 @@
   }
 
   .home-hero,
-  .home-intro,
   .home-services,
-  .home-feature-strip,
   .home-products,
   .catalog-detail-layout,
   .catalog-layout {
@@ -149,15 +147,8 @@
   }
 
   .home-services__grid,
-  .home-products__grid,
-  .home-feature-strip,
-  .home-intro {
+  .home-products__grid {
     grid-template-columns: 1fr;
-  }
-
-  .home-feature-strip div + div {
-    border-left: 0;
-    border-top: 1px solid var(--hocia-line);
   }
 
   .register-page {
