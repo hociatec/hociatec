@@ -20,13 +20,12 @@ import {
   ProfilePage,
   RequestAuditPage,
 } from './ClientRoutePages';
-import { BetaBugReportPage, BetaDashboardPage, BetaProfilePage } from './PublicRoutePages';
+import { BetaDashboardPage, BetaProfilePage } from './PublicRoutePages';
 import type { AppRouteDefinition } from './RouteDefinition';
 import { protectedElement } from './RouteDefinition';
 
 export const protectedRoutes: AppRouteDefinition[] = [
   { path: '/beta', element: protectedElement(<BetaDashboardPage />) },
-  { path: '/beta/reports/new', element: protectedElement(<BetaBugReportPage />) },
   { path: '/beta/profile', element: protectedElement(<BetaProfilePage />) },
   { path: '/quotes/me', element: protectedElement(<MyQuotesPage />) },
   { path: '/quotes/me/:quoteId', element: protectedElement(<MyQuoteDetailPage />) },

@@ -1,4 +1,5 @@
 import type { AdminBugReportDashboardDto } from '../../api';
+import { MetricCard } from '@/shared/components/ui/MetricCard';
 
 interface AdminBugReportDashboardStatsProps {
   dashboard: AdminBugReportDashboardDto | undefined;
@@ -17,10 +18,14 @@ export const AdminBugReportDashboardStats = ({ dashboard }: AdminBugReportDashbo
         ['Corrigés récemment', dashboard.stats.recentFixed],
         ['Campagnes actives', dashboard.stats.activeCampaigns],
       ].map(([label, value]) => (
-        <article key={label} className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-brand-900">{value}</p>
-        </article>
+        <MetricCard
+          key={label}
+          label={String(label)}
+          value={value}
+          className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
+          labelClassName="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500"
+          valueClassName="mt-2 text-2xl font-bold text-brand-900"
+        />
       ))}
     </section>
   );

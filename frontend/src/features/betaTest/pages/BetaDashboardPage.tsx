@@ -5,10 +5,10 @@ import { BetaDashboardStats } from '../components/dashboard/BetaDashboardStats';
 import { BetaEmptyProfileState } from '../components/dashboard/BetaEmptyProfileState';
 import { BetaProfileSummary } from '../components/dashboard/BetaProfileSummary';
 import { BetaReportFollowUpDialog } from '../components/dashboard/BetaReportFollowUpDialog';
-import { BetaReportsPagination } from '../components/dashboard/BetaReportsPagination';
 import { useBetaDashboardController } from '../hooks/useBetaDashboardController';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
 export const BetaDashboardPage = () => {
@@ -92,9 +92,9 @@ export const BetaDashboardPage = () => {
           campaignName={dashboard.selectedCampaign?.name}
         />
 
-        <BetaReportsPagination
-          meta={dashboard.reportsMeta}
+        <PaginationControls
           page={dashboard.reportPage}
+          totalPages={dashboard.reportsMeta?.totalPages ?? 1}
           onPageChange={dashboard.setReportPage}
         />
       </PageContainer>

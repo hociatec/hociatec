@@ -27,7 +27,6 @@ export const BetaTestPage = lazyPage(
   'BetaTestPage',
 );
 export const BetaDashboardPage = lazyPage(() => import('@/features/betaTest/pages/BetaDashboardPage'), 'BetaDashboardPage');
-export const BetaBugReportPage = lazyPage(() => import('@/features/betaTest/pages/BetaBugReportPage'), 'BetaBugReportPage');
 export const BetaProfilePage = lazyPage(() => import('@/features/betaTest/pages/BetaProfilePage'), 'BetaProfilePage');
 export const CguPage = lazyPage(() => import('@/features/legal/pages/CguPage'), 'CguPage');
 export const CgvPage = lazyPage(() => import('@/features/legal/pages/CgvPage'), 'CgvPage');

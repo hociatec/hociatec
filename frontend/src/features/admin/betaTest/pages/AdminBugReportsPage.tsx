@@ -20,10 +20,10 @@ import {
 import { AdminBugReportDashboardStats } from '../components/reports/AdminBugReportDashboardStats';
 import { AdminBugReportDetailDialog } from '../components/reports/AdminBugReportDetailDialog';
 import { AdminBugReportFilters } from '../components/reports/AdminBugReportFilters';
-import { AdminBugReportsPagination } from '../components/reports/AdminBugReportsPagination';
 import { AdminBugReportsTable } from '../components/reports/AdminBugReportsTable';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useConfirm } from '@/shared/components/ui/confirm';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { useToast } from '@/shared/components/ui/toast';
 
 export const AdminBugReportsPage = () => {
@@ -244,7 +244,13 @@ export const AdminBugReportsPage = () => {
         />
       )}
 
-      <AdminBugReportsPagination meta={meta} page={page} onPageChange={setPage} />
+      <PaginationControls
+        page={page}
+        total={meta?.total}
+        totalLabel="signalement"
+        totalPages={meta?.totalPages ?? 1}
+        onPageChange={setPage}
+      />
 
       <AdminBugReportDetailDialog
         activities={activities}
