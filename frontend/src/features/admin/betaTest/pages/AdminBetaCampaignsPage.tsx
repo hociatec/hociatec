@@ -253,25 +253,25 @@ export const AdminBetaCampaignsPage = () => {
             </header>
 
             <form onSubmit={handleAddSubmit} className="mt-6 space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-stone-700 mb-1">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-stone-800">
                   Nom de la campagne *
                 </label>
                 <input
                   type="text"
-                  className="w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
+                  className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                   placeholder="Ex: Refonte du panier"
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-700 mb-1">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-stone-800">
                   Description *
                 </label>
                 <textarea
-                  className="w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
+                  className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                   placeholder="Objectifs de la campagne, fonctionnalités à tester..."
                   rows={4}
                   value={addForm.description}
@@ -279,12 +279,12 @@ export const AdminBetaCampaignsPage = () => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-700 mb-1">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-stone-800">
                   Statut initial
                 </label>
                 <select
-                  className="w-full rounded-lg border border-stone-300 p-3 text-sm bg-white focus:outline-none focus:border-brand-700"
+                  className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 bg-white shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                   value={addForm.status}
                   onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
                 >
@@ -293,22 +293,23 @@ export const AdminBetaCampaignsPage = () => {
                   <option value="closed">Clôturée</option>
                 </select>
               </div>
-              <footer className="pt-4 border-t border-stone-150 flex justify-end gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end mt-6">
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 border border-stone-300 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-50 transition"
+                  disabled={createMutation.isPending}
+                  className="inline-flex items-center justify-center rounded-lg border border-brand-100 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg text-sm transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:opacity-50"
                 >
                   {createMutation.isPending ? 'Création...' : 'Créer la campagne'}
                 </button>
-              </footer>
+              </div>
             </form>
           </DialogPanel>
         </div>
@@ -343,36 +344,36 @@ export const AdminBetaCampaignsPage = () => {
               </header>
 
               <form onSubmit={handleEditSubmit} className="mt-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-stone-700 mb-1">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-stone-800">
                     Nom de la campagne *
                   </label>
                   <input
                     type="text"
-                    className="w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
+                    className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-stone-700 mb-1">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-stone-800">
                     Description *
                   </label>
                   <textarea
-                    className="w-full rounded-lg border border-stone-300 p-3 text-sm focus:outline-none focus:border-brand-700"
+                    className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                     rows={4}
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-stone-700 mb-1">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-stone-800">
                     Statut
                   </label>
                   <select
-                    className="w-full rounded-lg border border-stone-300 p-3 text-sm bg-white focus:outline-none focus:border-brand-700"
+                    className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 bg-white shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
                     value={editForm.status}
                     onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                   >
@@ -381,22 +382,23 @@ export const AdminBetaCampaignsPage = () => {
                     <option value="closed">Clôturée</option>
                   </select>
                 </div>
-                <footer className="pt-4 border-t border-stone-150 flex justify-end gap-3">
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end mt-6">
                   <button
                     type="button"
                     onClick={() => setIsEditOpen(false)}
-                    className="px-4 py-2 border border-stone-300 text-stone-700 rounded-lg text-sm font-semibold hover:bg-stone-50 transition"
+                    disabled={updateMutation.isPending}
+                    className="inline-flex items-center justify-center rounded-lg border border-brand-100 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
                     disabled={updateMutation.isPending}
-                    className="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white font-semibold rounded-lg text-sm transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:opacity-50"
                   >
                     {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
                   </button>
-                </footer>
+                </div>
               </form>
             </DialogPanel>
           </div>
