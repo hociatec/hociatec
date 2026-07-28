@@ -6,6 +6,7 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
 use App\Shared\Pdf\AccessiblePdfRenderer;
+use App\Shared\Pdf\PdfHtmlFormatter;
 
 final class OrderInvoicePdfService
 {
@@ -27,8 +28,10 @@ final class OrderInvoicePdfService
     private const RECOVERY_FEE = 'Indemnité forfaitaire pour frais de recouvrement : 40 EUR.';
     private const OPERATION_NATURE = 'Livraison de biens';
 
-    public function __construct(private readonly AccessiblePdfRenderer $renderer)
-    {
+    public function __construct(
+        private readonly AccessiblePdfRenderer $renderer,
+        private readonly PdfHtmlFormatter $formatter,
+    ) {
     }
 
     /**
@@ -280,23 +283,17 @@ HTML;
 
     private function formatMoney(int $cents): string
     {
-        return number_format($cents / 100, 2, ',', ' ').' EUR';
+        return $this->formatter->money($cents);
     }
 
     private function formatDate(?string $date): string
     {
-        if (null === $date || '' === $date) {
-            return '-';
-        }
-
-        $dt = \DateTimeImmutable::createFromFormat('Y-m-d', $date);
-
-        return $dt instanceof \DateTimeImmutable ? $dt->format('d/m/Y') : $date;
+        return $this->formatter->date($date, true);
     }
 
     private function escape(string $value): string
     {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return $this->formatter->escape($value);
     }
 
     private function resolveCustomerName(Order $order): string
@@ -311,9 +308,6 @@ HTML;
 
     private function formatMultilineAddress(string $value): string
     {
-        return implode('', array_map(
-            fn (string $line): string => '<p>'.$this->escape($line).'</p>',
-            preg_split('/\R/u', $value) ?: [$value],
-        ));
+        return $this->formatter->paragraphsFromLines($value);
     }
 }

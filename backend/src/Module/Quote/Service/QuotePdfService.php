@@ -6,6 +6,7 @@ namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
 use App\Shared\Pdf\AccessiblePdfRenderer;
+use App\Shared\Pdf\PdfHtmlFormatter;
 
 class QuotePdfService
 {
@@ -18,8 +19,10 @@ class QuotePdfService
     private const ISSUER_SIREN = '934 814 559';
     private const ISSUER_SIRET = '934 814 559 00019';
 
-    public function __construct(private readonly AccessiblePdfRenderer $renderer)
-    {
+    public function __construct(
+        private readonly AccessiblePdfRenderer $renderer,
+        private readonly PdfHtmlFormatter $formatter,
+    ) {
     }
 
     /** @param array{totalHt: int, totalVat: int, totalTtc: int} $totals */
@@ -35,21 +38,21 @@ class QuotePdfService
     /** @param array{totalHt: int, totalVat: int, totalTtc: int} $totals */
     private function buildHtml(Quote $quote, array $totals): string
     {
-        $quoteNumber = $this->escape($quote->getNumber());
-        $statusLabel = $this->escape(QuoteStatusTranslator::toLabel($quote->getStatus()));
-        $issuedAt = $this->formatDate($quote->getCreatedAt()->format('Y-m-d'));
-        $validFrom = $this->formatDate($quote->getValidFrom()?->format('Y-m-d'));
-        $validUntil = $this->formatDate($quote->getValidUntil()?->format('Y-m-d'));
+        $quoteNumber = $this->formatter->escape($quote->getNumber());
+        $statusLabel = $this->formatter->escape(QuoteStatusTranslator::toLabel($quote->getStatus()));
+        $issuedAt = $this->formatter->date($quote->getCreatedAt()->format('Y-m-d'));
+        $validFrom = $this->formatter->date($quote->getValidFrom()?->format('Y-m-d'));
+        $validUntil = $this->formatter->date($quote->getValidUntil()?->format('Y-m-d'));
         $conditions = $this->formatConditions($quote->getConditions() ?: QuoteService::DEFAULT_CONDITIONS);
 
         $issuerLines = implode('', array_map(
-            static fn (string $line): string => '<p>'.htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</p>',
+            fn (string $line): string => '<p>'.$this->formatter->escape($line).'</p>',
             self::ISSUER_ADDRESS_LINES,
         ));
-        $customerName = $quote->getCustomerName() ? $this->escape($quote->getCustomerName()) : '-';
-        $customerCompany = $quote->getCustomerCompany() ? '<p>'.$this->escape($quote->getCustomerCompany()).'</p>' : '';
+        $customerName = $quote->getCustomerName() ? $this->formatter->escape($quote->getCustomerName()) : '-';
+        $customerCompany = $quote->getCustomerCompany() ? '<p>'.$this->formatter->escape($quote->getCustomerCompany()).'</p>' : '';
         $customerAddress = $quote->getCustomerAddress() ? $this->formatMultilineAddress($quote->getCustomerAddress()) : '';
-        $customerEmail = $quote->getCustomerEmail() ? '<p>Email : '.$this->escape($quote->getCustomerEmail()).'</p>' : '';
+        $customerEmail = $quote->getCustomerEmail() ? '<p>Email : '.$this->formatter->escape($quote->getCustomerEmail()).'</p>' : '';
 
         $rows = '';
         foreach ($quote->getItems() as $item) {
@@ -57,17 +60,17 @@ class QuotePdfService
             $quantity = $item->getQuantity();
             $unit = trim((string) $item->getUnit());
             $quantityLabel = $quantity.('' !== $unit ? ' '.$unit : '');
-            $description = $item->getDescription() ? nl2br($this->escape($item->getDescription())) : '—';
+            $description = $item->getDescription() ? nl2br($this->formatter->escape($item->getDescription())) : '—';
 
             $rows .= sprintf(
                 '<tr><td>%s</td><td>%s</td><td>%s</td><td class="num">%s</td><td class="num">%s %%</td><td class="num">%s</td><td class="num">%s</td></tr>',
-                $this->escape($item->getName()),
+                $this->formatter->escape($item->getName()),
                 $description,
-                $this->escape($quantityLabel),
-                $this->formatMoney($item->getUnitPriceCents()),
+                $this->formatter->escape($quantityLabel),
+                $this->formatter->money($item->getUnitPriceCents()),
                 number_format($item->getVatRateBps() / 100, 2, ',', ' '),
-                $this->formatMoney($item->getDiscountCents()),
-                $this->formatMoney($calculated['ht']),
+                $this->formatter->money($item->getDiscountCents()),
+                $this->formatter->money($calculated['ht']),
             );
         }
 
@@ -231,9 +234,9 @@ class QuotePdfService
       <address>
         <p><strong>Hociatec</strong></p>
         {$issuerLines}
-        <p>Email : {$this->escape(self::ISSUER_EMAIL)}</p>
-        <p>SIREN : {$this->escape(self::ISSUER_SIREN)}</p>
-        <p>SIRET : {$this->escape(self::ISSUER_SIRET)}</p>
+        <p>Email : {$this->formatter->escape(self::ISSUER_EMAIL)}</p>
+        <p>SIREN : {$this->formatter->escape(self::ISSUER_SIREN)}</p>
+        <p>SIRET : {$this->formatter->escape(self::ISSUER_SIRET)}</p>
       </address>
     </section>
 
@@ -274,15 +277,15 @@ class QuotePdfService
         <tbody>
           <tr>
             <th scope="row">Total HT</th>
-            <td class="num">{$this->formatMoney($totals['totalHt'])}</td>
+            <td class="num">{$this->formatter->money($totals['totalHt'])}</td>
           </tr>
           <tr>
             <th scope="row">TVA</th>
-            <td class="num">{$this->formatMoney($totals['totalVat'])}</td>
+            <td class="num">{$this->formatter->money($totals['totalVat'])}</td>
           </tr>
           <tr>
             <th scope="row">Total TTC</th>
-            <td class="num">{$this->formatMoney($totals['totalTtc'])}</td>
+            <td class="num">{$this->formatter->money($totals['totalTtc'])}</td>
           </tr>
         </tbody>
       </table>
@@ -298,51 +301,13 @@ class QuotePdfService
 HTML;
     }
 
-    private function formatMoney(int $amountCents): string
-    {
-        return number_format($amountCents / 100, 2, ',', ' ').' EUR';
-    }
-
-    private function formatDate(?string $value): string
-    {
-        if (null === $value || '' === $value) {
-            return '-';
-        }
-
-        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
-        if (false === $date) {
-            return '-';
-        }
-
-        return $date->format('d/m/Y');
-    }
-
-    private function escape(string $value): string
-    {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
     private function formatConditions(string $value): string
     {
-        $parts = preg_split('/\R+/', trim($value)) ?: [];
-        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => '' !== $part));
-
-        if ([] === $parts) {
-            return '<p>-</p>';
-        }
-
-        return implode('', array_map(fn (string $part): string => '<p>'.$this->escape($part).'</p>', $parts));
+        return $this->formatter->paragraphsFromLines($value, true);
     }
 
     private function formatMultilineAddress(string $value): string
     {
-        $parts = preg_split('/\R+/', trim($value)) ?: [];
-        $parts = array_values(array_filter(array_map('trim', $parts), static fn (string $part): bool => '' !== $part));
-
-        if ([] === $parts) {
-            return '';
-        }
-
-        return implode('', array_map(fn (string $part): string => '<p>'.$this->escape($part).'</p>', $parts));
+        return $this->formatter->paragraphsFromLines($value);
     }
 }

@@ -14,6 +14,7 @@ final class CartService
 {
     public function __construct(
         private readonly CartSessionProvider $cartSessions,
+        private readonly CartItemResolver $cartItems,
         private readonly DoctrinePersistence $persistence,
     ) {
     }
@@ -30,10 +31,10 @@ final class CartService
         }
 
         $cart = $this->viewCart($token);
-        $resolvedRentalMonths = $this->determineRentalMonths($product, $rentalMonths);
-        $existing = $this->resolveExistingItem($cart, $product, $resolvedRentalMonths);
+        $resolvedRentalMonths = $this->cartItems->determineRentalMonths($product, $rentalMonths);
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $resolvedRentalMonths);
 
-        $currentQuantity = $this->getTotalQuantityForProduct($cart, $product);
+        $currentQuantity = $this->cartItems->getTotalQuantityForProduct($cart, $product);
         $this->assertStockAvailability($product, $currentQuantity + $quantity);
 
         if (null === $existing) {
@@ -82,7 +83,7 @@ final class CartService
             throw new \InvalidArgumentException('Panier introuvable.');
         }
 
-        $existing = $this->resolveExistingItem($cart, $product, $rentalMonths);
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $rentalMonths);
 
         if (null !== $existing) {
             $cart->removeItem($existing);
@@ -103,14 +104,14 @@ final class CartService
 
         $cart = $this->viewCart($token);
         $lookupMonths = 'rental' === $product->getSellingType() ? ($currentRentalMonths ?? $rentalMonths) : null;
-        $existing = $this->resolveExistingItem($cart, $product, $lookupMonths);
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $lookupMonths);
         $resolvedRentalMonths = null;
         if ('rental' === $product->getSellingType() && $quantity > 0) {
-            $resolvedRentalMonths = $this->determineRentalMonths($product, $rentalMonths, $existing);
+            $resolvedRentalMonths = $this->cartItems->determineRentalMonths($product, $rentalMonths, $existing);
         }
 
         if ($quantity > 0) {
-            $currentQuantity = $this->getTotalQuantityForProduct($cart, $product, $existing);
+            $currentQuantity = $this->cartItems->getTotalQuantityForProduct($cart, $product, $existing);
             $this->assertStockAvailability($product, $currentQuantity + $quantity);
         }
 
@@ -178,67 +179,10 @@ final class CartService
         return $this->cartSessions->findByToken($token);
     }
 
-    private function determineRentalMonths(Product $product, ?int $requestedMonths, ?CartItem $existingItem = null): ?int
-    {
-        if ('rental' !== $product->getSellingType()) {
-            return null;
-        }
-
-        if (null === $requestedMonths) {
-            $existingMonths = $existingItem?->getRentalMonths();
-
-            if (null === $existingMonths) {
-                throw new \InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
-            }
-
-            return $existingMonths;
-        }
-
-        if ($requestedMonths < 1) {
-            throw new \InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
-        }
-
-        return $requestedMonths;
-    }
-
-    private function resolveExistingItem(CartSession $cart, Product $product, ?int $rentalMonths = null): ?CartItem
-    {
-        if ('rental' !== $product->getSellingType()) {
-            return $cart->getItemForProduct($product);
-        }
-
-        if (null !== $rentalMonths) {
-            return $cart->getItemForProduct($product, $rentalMonths);
-        }
-
-        $items = $cart->getItemsForProduct($product);
-
-        if (\count($items) > 1) {
-            throw new \InvalidArgumentException('Plusieurs durées de location existent pour ce produit. Précisez "currentRentalMonths".');
-        }
-
-        return $items[0] ?? null;
-    }
-
     private function assertStockAvailability(Product $product, int $requestedQuantity): void
     {
         if ($requestedQuantity > $product->getStock()) {
             throw new \InvalidArgumentException('Stock insuffisant pour ce produit.');
         }
-    }
-
-    private function getTotalQuantityForProduct(CartSession $cart, Product $product, ?CartItem $exclude = null): int
-    {
-        $total = 0;
-
-        foreach ($cart->getItemsForProduct($product) as $item) {
-            if (null !== $exclude && $item === $exclude) {
-                continue;
-            }
-
-            $total += $item->getQuantity();
-        }
-
-        return $total;
     }
 }
