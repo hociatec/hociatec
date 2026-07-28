@@ -1,20 +1,24 @@
-import { type ReactNode } from 'react';
-
 import { type OperationsOverviewDto } from '@/features/admin/operations/api';
 import { LoadingState } from '@/shared/components/ui/page-state';
-
-const cardClass = 'rounded-2xl border border-brand-100 bg-white p-5 shadow-sm';
-const secondaryActionClass =
-  'rounded-xl border border-brand-100 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 hover:text-brand-700';
+import {
+  ActionCard,
+  Field,
+  List,
+  operationsCardClass,
+  operationsSecondaryActionClass,
+  StatCard,
+} from './OperationsBaseComponents';
 
 export const operationsUi = {
-  cardClass,
+  cardClass: operationsCardClass,
   inputClass:
     'w-full rounded-xl border border-brand-100 px-3 py-2 text-sm text-brand-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100',
   primaryActionClass:
     'rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50',
-  secondaryActionClass,
+  secondaryActionClass: operationsSecondaryActionClass,
 };
+
+export { ActionCard, Field, List };
 
 export const OperationsHeader = ({
   message,
@@ -39,7 +43,7 @@ export const OperationsHeader = ({
           stock, exports CSV, emails transactionnels et actions groupées sur les commandes.
         </p>
       </div>
-      <button className={secondaryActionClass} type="button" onClick={onRefresh}>
+      <button className={operationsSecondaryActionClass} type="button" onClick={onRefresh}>
         Actualiser
       </button>
     </div>
@@ -110,7 +114,7 @@ export const OperationsPriorities = ({
           </p>
         </div>
         <a
-          className={secondaryActionClass + ' text-center'}
+          className={operationsSecondaryActionClass + ' text-center'}
           href="/admin/catalog/products?stock=low"
         >
           Voir tous les stocks faibles
@@ -152,7 +156,7 @@ export const OperationsPriorities = ({
 );
 
 export const OperationsExports = ({ exportLabels }: { exportLabels: Record<string, string> }) => (
-  <section className={cardClass}>
+  <section className={operationsCardClass}>
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 className="text-lg font-semibold text-brand-900">Exports CSV</h2>
@@ -165,7 +169,7 @@ export const OperationsExports = ({ exportLabels }: { exportLabels: Record<strin
       {['orders', 'customers', 'products', 'quotes', 'refunds', 'support'].map((resource) => (
         <a
           key={resource}
-          className={secondaryActionClass + ' text-center'}
+          className={operationsSecondaryActionClass + ' text-center'}
           href={`/api/admin/operations/exports/${resource}.csv`}
         >
           Export {exportLabels[resource]}
@@ -173,98 +177,4 @@ export const OperationsExports = ({ exportLabels }: { exportLabels: Record<strin
       ))}
     </div>
   </section>
-);
-
-export const StatCard = ({
-  label,
-  value,
-  helper,
-  tone = 'neutral',
-}: {
-  label: string;
-  value: number;
-  helper: string;
-  tone?: 'neutral' | 'warning' | 'danger';
-}) => {
-  const toneClass = {
-    neutral: 'border-brand-100 bg-white text-brand-900',
-    warning: 'border-amber-200 bg-amber-50 text-amber-950',
-    danger: 'border-red-200 bg-red-50 text-red-950',
-  }[tone];
-
-  return (
-    <div className={`rounded-2xl border p-5 shadow-sm ${toneClass}`}>
-      <div className="text-sm font-medium opacity-75">{label}</div>
-      <div className="mt-2 text-3xl font-semibold">{value}</div>
-      <p className="mt-2 text-xs leading-5 opacity-75">{helper}</p>
-    </div>
-  );
-};
-
-export const ActionCard = ({
-  title,
-  description,
-  warning,
-  children,
-}: {
-  title: string;
-  description: string;
-  warning?: string;
-  children: ReactNode;
-}) => (
-  <div className={cardClass}>
-    <div className="mb-4">
-      <h2 className="text-lg font-semibold text-brand-900">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-stone-600">{description}</p>
-      {warning && (
-        <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
-          {warning}
-        </p>
-      )}
-    </div>
-    <div className="space-y-4">{children}</div>
-  </div>
-);
-
-export const Field = ({
-  label,
-  helper,
-  className = '',
-  children,
-}: {
-  label: string;
-  helper?: string;
-  className?: string;
-  children: ReactNode;
-}) => (
-  <label className={`block ${className}`}>
-    <span className="text-sm font-medium text-stone-700">{label}</span>
-    <span className="mt-1 block">{children}</span>
-    {helper && <span className="mt-1 block text-xs leading-5 text-stone-500">{helper}</span>}
-  </label>
-);
-
-export const List = ({
-  title,
-  items,
-}: {
-  title: string;
-  items: Array<{ key: string | number; title: string; meta: string; action?: ReactNode }>;
-}) => (
-  <div className={cardClass}>
-    <h2 className="text-lg font-semibold">{title}</h2>
-    <div className="mt-4 space-y-3">
-      {items.length === 0 ? (
-        <p className="text-sm text-stone-500">Aucun élément.</p>
-      ) : (
-        items.map((item) => (
-          <div key={item.key} className="rounded-xl border border-brand-100 bg-brand-50 p-3">
-            <div className="font-medium text-brand-900">{item.title}</div>
-            <div className="mt-1 text-sm text-stone-500">{item.meta}</div>
-            {item.action && <div className="mt-3">{item.action}</div>}
-          </div>
-        ))
-      )}
-    </div>
-  </div>
 );
