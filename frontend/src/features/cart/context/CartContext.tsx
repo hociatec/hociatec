@@ -1,18 +1,13 @@
 import {
   createContext,
   useCallback,
-  useEffect,
   useMemo,
-  useState,
   type PropsWithChildren,
 } from 'react';
 
-import {
-  CartApiError,
-  fetchCart,
-} from '@/features/cart/api/cartApi';
 import type { Cart, CartActionOptions, CartStatus } from '@/features/cart/types/cart';
-import { clearCartToken, getPersistedCartToken } from '@/shared/lib/httpClient';
+import { isProductInCart as selectIsProductInCart } from './cartSelectors';
+import { useCartLifecycle } from './useCartLifecycle';
 import { useCartActions } from '@/features/cart/hooks/useCartActions';
 
 interface CartContextValue {
@@ -60,11 +55,20 @@ const defaultValue: CartContextValue = {
 export const CartContext = createContext<CartContextValue>(defaultValue);
 
 export const CartProvider = ({ children }: PropsWithChildren) => {
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [status, setStatus] = useState<CartStatus>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [pendingProductIds, setPendingProductIds] = useState<number[]>([]);
-  const [isClearing, setIsClearing] = useState(false);
+  const {
+    cart,
+    error,
+    handleCartError,
+    isClearing,
+    pendingProductIds,
+    refresh,
+    resetAfterCheckout,
+    setCart,
+    setError,
+    setIsClearing,
+    setPendingProductIds,
+    status,
+  } = useCartLifecycle();
 
   const setPending = useCallback((productId: number, pending: boolean) => {
     setPendingProductIds((previous) => {
@@ -78,82 +82,6 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     });
   }, []);
 
-  const handleCartError = useCallback((err: unknown) => {
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Le panier n'a pas pu être mis à jour. Réessayez dans quelques secondes.";
-
-    if (
-      err instanceof CartApiError &&
-      (err.code === 'cart_not_found' || err.code === 'token_missing')
-    ) {
-      clearCartToken();
-      setCart(null);
-    }
-
-    setError(message);
-
-    return message;
-  }, []);
-
-  useEffect(() => {
-    const initializeCart = async () => {
-      const existingToken = getPersistedCartToken();
-
-      if (!existingToken) {
-        setStatus('ready');
-        setCart(null);
-        setError(null);
-        return;
-      }
-
-      setStatus('loading');
-
-      try {
-        const currentCart = await fetchCart();
-        setCart(currentCart);
-        setError(null);
-      } catch (err) {
-        handleCartError(err);
-      } finally {
-        setStatus('ready');
-      }
-    };
-
-    void initializeCart();
-  }, [handleCartError]);
-
-  const refresh = useCallback(async () => {
-    const existingToken = getPersistedCartToken();
-
-    if (!existingToken) {
-      setCart(null);
-      setError(null);
-      setStatus('ready');
-      return;
-    }
-
-    setStatus('loading');
-    try {
-      const currentCart = await fetchCart();
-      setCart(currentCart);
-      setError(null);
-    } catch (err) {
-      handleCartError(err);
-    } finally {
-      setStatus('ready');
-    }
-  }, [handleCartError]);
-
-  const resetAfterCheckout = useCallback(() => {
-    clearCartToken();
-    setPendingProductIds([]);
-    setCart(null);
-    setError(null);
-    setStatus('ready');
-  }, []);
-
   const { addItem, removeItem, setItemQuantity, clear, applyVoucherCode, clearVoucherCode } =
     useCartActions({
       setCart,
@@ -165,26 +93,7 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     });
 
   const isProductInCart = useCallback(
-    (productId: number, options?: CartActionOptions) => {
-      if (!cart) {
-        return false;
-      }
-
-      const wantedMonths = options?.rentalMonths ?? options?.currentRentalMonths;
-
-      return cart.items.some((item) => {
-        if (item.product.id !== productId) {
-          return false;
-        }
-
-        if (item.product.sellingType !== 'rental' || wantedMonths === undefined) {
-          return true;
-        }
-
-        const currentMonths = Math.max(1, item.rentalMonths ?? 1);
-        return currentMonths === Math.max(1, wantedMonths);
-      });
-    },
+    (productId: number, options?: CartActionOptions) => selectIsProductInCart(cart, productId, options),
     [cart],
   );
 

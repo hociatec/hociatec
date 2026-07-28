@@ -136,6 +136,15 @@ services:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
+    App\Module\Notification\Service\AccountNotificationProvider:
+        arguments:
+            $computedProviders:
+                - '@App\Module\Notification\Service\PendingReviewNotificationProvider'
+                - '@App\Module\Notification\Service\AppointmentNotificationProvider'
+                - '@App\Module\Notification\Service\TrainingNotificationProvider'
+                - '@App\Module\Notification\Service\AuditNotificationProvider'
+                - '@App\Module\Notification\Service\VoucherNotificationProvider'
+
     App\Module\Order\Service\StripeApiClient:
         arguments:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'
