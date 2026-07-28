@@ -8,6 +8,7 @@ import {
   fetchBugReportComments,
   createBugReportComment,
 } from '../api/betaApi';
+import { BetaBugReportDialog } from '../components/BetaBugReportDialog';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { MessageSquare, X } from 'lucide-react';
@@ -25,6 +26,7 @@ export const BetaDashboardPage = () => {
   const toast = useToast();
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
+  const [isCreateReportOpen, setIsCreateReportOpen] = useState(false);
 
   const { data: profile, error: profileError } = useQuery<Record<string, unknown>>({
     queryKey: ['betaProfile'],
@@ -93,7 +95,13 @@ export const BetaDashboardPage = () => {
       <section className="mb-8">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Campagnes disponibles</h2>
-          <Link className="underline" to="/beta/reports/new">Nouveau signalement</Link>
+          <button
+            type="button"
+            onClick={() => setIsCreateReportOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 shadow-sm"
+          >
+            <span>Nouveau signalement</span>
+          </button>
         </div>
         {campaigns.length === 0 ? (
           <p className="text-stone-600">Aucune campagne disponible actuellement.</p>
@@ -221,6 +229,8 @@ export const BetaDashboardPage = () => {
           </div>
         </Dialog>
       )}
+      {/* Creation Report Modal */}
+      <BetaBugReportDialog open={isCreateReportOpen} onClose={() => setIsCreateReportOpen(false)} />
       </PageContainer>
     </SiteLayout>
   );
