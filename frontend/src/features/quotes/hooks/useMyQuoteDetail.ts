@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { acceptMyQuote, fetchMyQuote, generateMyQuotePdf, refuseMyQuote } from '../api/quotesApi';
 import type { QuoteDto } from '../types/quoteTypes';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';

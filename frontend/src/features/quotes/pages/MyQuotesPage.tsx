@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { PageContainer } from '@/shared/components/PageContainer';
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';

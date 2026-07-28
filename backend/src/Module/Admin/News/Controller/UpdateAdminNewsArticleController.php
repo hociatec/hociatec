@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Admin\News\Controller;
+
+use App\Module\News\DTO\NewsArticleInput;
+use App\Module\News\Repository\NewsArticleRepository;
+use App\Module\News\Service\NewsArticleWriter;
+use App\Module\News\Service\NewsFormatter;
+use App\Shared\Http\ApiResponse;
+use App\Shared\Http\JsonPayload;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/admin/news/{id}', methods: ['PUT', 'PATCH'], requirements: ['id' => '\d+'])]
+#[IsGranted('ROLE_ADMIN')]
+final readonly class UpdateAdminNewsArticleController
+{
+    public function __construct(private NewsArticleRepository $articles, private NewsArticleWriter $writer, private NewsFormatter $formatter)
+    {
+    }
+
+    public function __invoke(int $id, Request $request): JsonResponse
+    {
+        $article = $this->articles->find($id);
+        if (null === $article) {
+            return ApiResponse::error('Actualité introuvable.', JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $article = $this->writer->update($article, NewsArticleInput::fromArray(JsonPayload::decode($request)));
+        } catch (\Throwable $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        return ApiResponse::success(['article' => $this->formatter->article($article)], JsonResponse::HTTP_OK, 'Actualité mise à jour.');
+    }
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { searchPublicProducts } from '../api';
 import type { CatalogSearchFacets, CatalogSearchMeta } from '../apiTypes';
 import {

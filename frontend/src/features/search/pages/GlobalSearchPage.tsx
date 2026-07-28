@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 
 import { GlobalSearchHeader } from '@/features/search/components/GlobalSearchHeader';
 import {
   EmptySearchResults,
+  NewsSearchResults,
   ProductSearchResults,
   SearchResultSection,
   ServiceSearchResults,
@@ -43,6 +44,7 @@ const SearchSection = ({
 export const GlobalSearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q')?.trim() ?? '';
+  const filter = searchParams.get('type') ?? 'all';
   const [draftQuery, setDraftQuery] = useState(query);
   const search = useGlobalSearch(query, RESULTS_LIMIT);
 
@@ -58,14 +60,30 @@ export const GlobalSearchPage = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextQuery = draftQuery.trim();
-    setSearchParams(nextQuery ? { q: nextQuery } : {});
+    setSearchParams({
+      ...(nextQuery ? { q: nextQuery } : {}),
+      ...(filter !== 'all' ? { type: filter } : {}),
+    });
   };
 
-  const resultsTotal = search.productTotal + search.serviceTotal + search.trainingTotal;
+  const handleFilterChange = (nextFilter: string) => {
+    setSearchParams({
+      ...(query ? { q: query } : {}),
+      ...(nextFilter !== 'all' ? { type: nextFilter } : {}),
+    });
+  };
+
+  const sectionVisible = (type: string, count: number) => (filter === 'all' || filter === type) && count > 0;
+  const resultsTotal =
+    (filter === 'all' || filter === 'products' ? search.productTotal : 0) +
+    (filter === 'all' || filter === 'services' ? search.serviceTotal : 0) +
+    (filter === 'all' || filter === 'trainings' ? search.trainingTotal : 0) +
+    (filter === 'all' || filter === 'news' ? search.newsTotal : 0);
   const productSearchUrl = query
     ? `/catalogue/recherche?q=${encodeURIComponent(query)}`
     : '/catalogue/recherche';
   const trainingSearchUrl = query ? `/formations?q=${encodeURIComponent(query)}` : '/formations';
+  const newsSearchUrl = query ? `/actualites?q=${encodeURIComponent(query)}` : '/actualites';
 
   return (
     <SiteLayout headerVariant="light">
@@ -73,8 +91,10 @@ export const GlobalSearchPage = () => {
         <GlobalSearchHeader
           query={query}
           draftQuery={draftQuery}
+          filter={filter}
           resultsTotal={resultsTotal}
           onDraftQueryChange={setDraftQuery}
+          onFilterChange={handleFilterChange}
           onSubmit={handleSubmit}
         />
         {search.loading ? (
@@ -83,33 +103,53 @@ export const GlobalSearchPage = () => {
           <ErrorState>{search.error}</ErrorState>
         ) : (
           <div className="grid gap-6">
-            <SearchSection
-              title="Produits"
-              count={search.productTotal}
-              viewAllTo={productSearchUrl}
-              emptyLabel="Aucun produit trouvé."
-              resultCount={search.products.length}
-            >
-              <ProductSearchResults products={search.products} />
-            </SearchSection>
-            <SearchSection
-              title="Services"
-              count={search.serviceTotal}
-              viewAllTo="/services"
-              emptyLabel="Aucun service trouvé."
-              resultCount={search.services.length}
-            >
-              <ServiceSearchResults services={search.services} />
-            </SearchSection>
-            <SearchSection
-              title="Formations"
-              count={search.trainingTotal}
-              viewAllTo={trainingSearchUrl}
-              emptyLabel="Aucune formation trouvée."
-              resultCount={search.trainings.length}
-            >
-              <TrainingSearchResults trainings={search.trainings} />
-            </SearchSection>
+            {resultsTotal === 0 ? (
+              <EmptySearchResults label="Aucun résultat trouvé pour cette recherche." />
+            ) : null}
+            {sectionVisible('products', search.productTotal) ? (
+              <SearchSection
+                title="Produits"
+                count={search.productTotal}
+                viewAllTo={productSearchUrl}
+                emptyLabel=""
+                resultCount={search.products.length}
+              >
+                <ProductSearchResults products={search.products} />
+              </SearchSection>
+            ) : null}
+            {sectionVisible('services', search.serviceTotal) ? (
+              <SearchSection
+                title="Services"
+                count={search.serviceTotal}
+                viewAllTo="/services"
+                emptyLabel=""
+                resultCount={search.services.length}
+              >
+                <ServiceSearchResults services={search.services} />
+              </SearchSection>
+            ) : null}
+            {sectionVisible('trainings', search.trainingTotal) ? (
+              <SearchSection
+                title="Formations"
+                count={search.trainingTotal}
+                viewAllTo={trainingSearchUrl}
+                emptyLabel=""
+                resultCount={search.trainings.length}
+              >
+                <TrainingSearchResults trainings={search.trainings} />
+              </SearchSection>
+            ) : null}
+            {sectionVisible('news', search.newsTotal) ? (
+              <SearchSection
+                title="Actualités"
+                count={search.newsTotal}
+                viewAllTo={newsSearchUrl}
+                emptyLabel=""
+                resultCount={search.news.length}
+              >
+                <NewsSearchResults news={search.news} />
+              </SearchSection>
+            ) : null}
           </div>
         )}
       </main>

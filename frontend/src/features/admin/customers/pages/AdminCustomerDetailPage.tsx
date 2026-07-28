@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { PageContainer } from '@/shared/components/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';

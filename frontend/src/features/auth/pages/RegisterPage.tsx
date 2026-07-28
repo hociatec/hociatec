@@ -1,6 +1,6 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { registerUser, type RegisterPayload } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';

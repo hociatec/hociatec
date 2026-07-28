@@ -1,5 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ExternalLink, Instagram, Linkedin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/api/newsApi';
 
 const legalLinks = [
   { to: '/legal/cgu', label: 'CGU' },
@@ -16,7 +19,25 @@ const socialLinks = [
   { href: '#', label: 'Instagram', Icon: Instagram },
 ];
 
-export const SiteFooter = () => (
+export const SiteFooter = () => {
+  const [latestNews, setLatestNews] = useState<NewsArticleDto[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchNewsArticles({ perPage: 3 })
+      .then((result) => {
+        if (!cancelled) setLatestNews(result.items);
+      })
+      .catch(() => {
+        if (!cancelled) setLatestNews([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
   <footer className="site-footer">
     <div className="site-footer__container">
       <div className="site-footer__grid">
@@ -38,9 +59,20 @@ export const SiteFooter = () => (
 
         <div className="site-footer__column">
           <h2>Actualité</h2>
-          <p className="site-footer__tagline">
-            Suivez les nouveautés Hociatec, les arrivages matériel et les prochaines annonces.
-          </p>
+          {latestNews.length > 0 ? (
+            latestNews.map((article) => (
+              <Link key={article.id} to={`/actualites/${article.slug}`} className="site-footer__link">
+                {article.title}
+              </Link>
+            ))
+          ) : (
+            <p className="site-footer__tagline">
+              Suivez les nouveautés Hociatec, les arrivages matériel et les prochaines annonces.
+            </p>
+          )}
+          <Link to="/actualites" className="site-footer__link">
+            Voir les actualités
+          </Link>
         </div>
 
         <div className="site-footer__column site-footer__column--brand">
@@ -60,4 +92,5 @@ export const SiteFooter = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};

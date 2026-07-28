@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 import { createPromotion, fetchPromotion, fetchPromotionAudiences, updatePromotion, type PromotionAudienceDefinition, type PromotionPayload } from '@/features/admin/promotions/api';
 import { PromotionFormFields } from '@/features/admin/promotions/components/PromotionFormFields';

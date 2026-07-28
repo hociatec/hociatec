@@ -1,5 +1,5 @@
 import { CalendarDays, FileText, Mail, ShoppingCart, type LucideIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 const actions: Array<{ to: string; label: string; icon: LucideIcon }> = [
   { to: '/admin/orders', label: 'Traiter les commandes', icon: ShoppingCart },

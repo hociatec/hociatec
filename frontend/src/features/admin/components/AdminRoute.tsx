@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 
 import { useRequireAdmin } from '@/features/admin/hooks/useRequireAdmin';
 import { LoadingState } from '@/shared/components/ui/page-state';

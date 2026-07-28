@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Service;
+namespace App\Module\Notification\Service;
 
-use App\Module\User\DTO\NotificationReadStateInput;
+use App\Module\Notification\DTO\NotificationReadStateInput;
 use App\Module\User\Entity\User;
+use App\Module\User\Service\UserPersistence;
 
 final readonly class AccountNotificationReadStateService
 {
@@ -27,6 +28,7 @@ final readonly class AccountNotificationReadStateService
         $state = $this->decode($user);
         $seenKeys = $input->seenKeys;
         $dismissedKey = $input->dismissedKey;
+        $dismissedKeys = $input->dismissedKeys;
 
         if (is_array($seenKeys)) {
             $state['seenKeys'] = $this->merge($state['seenKeys'], $seenKeys);
@@ -37,7 +39,12 @@ final readonly class AccountNotificationReadStateService
             $state['seenKeys'] = $this->merge($state['seenKeys'], [$dismissedKey]);
         }
 
-        if (null === $seenKeys && null === $dismissedKey) {
+        if (is_array($dismissedKeys)) {
+            $state['dismissedKeys'] = $this->merge($state['dismissedKeys'], $dismissedKeys);
+            $state['seenKeys'] = $this->merge($state['seenKeys'], $dismissedKeys);
+        }
+
+        if (null === $seenKeys && null === $dismissedKey && null === $dismissedKeys) {
             $seenSignature = $input->seenSignature ?? '';
 
             $state['seenKeys'] = $this->merge($state['seenKeys'], preg_split('/\R+/', $seenSignature) ?: []);

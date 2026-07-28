@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { fetchAdminCustomers, type AdminCustomerSummaryDto } from '@/features/admin/customers/api';
 import { PageContainer } from '@/shared/components/PageContainer';

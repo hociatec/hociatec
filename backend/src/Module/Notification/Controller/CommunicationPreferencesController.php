@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Controller;
+namespace App\Module\Notification\Controller;
 
 use App\Module\User\Entity\User;
-use App\Module\User\Service\CommunicationPreferences;
+use App\Module\Notification\Service\CommunicationPreferences;
 use App\Module\User\Service\UserPersistence;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;

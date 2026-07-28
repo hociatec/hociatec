@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { deleteVoucher, fetchVouchers, type Voucher } from '@/features/admin/vouchers/api';
 import { PageContainer } from '@/shared/components/PageContainer';

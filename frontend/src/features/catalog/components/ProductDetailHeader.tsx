@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
 import { RatingStars } from '@/features/catalog/components/RatingStars';

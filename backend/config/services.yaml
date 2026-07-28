@@ -128,7 +128,7 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\User\Service\UserCommunicationNotifier:
+    App\Module\Notification\Service\UserCommunicationNotifier:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'

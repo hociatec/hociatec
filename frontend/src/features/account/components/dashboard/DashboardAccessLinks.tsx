@@ -10,7 +10,7 @@ import {
   Package,
   UserRound,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyBetaProfile } from '@/features/betaTest/api/betaApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';

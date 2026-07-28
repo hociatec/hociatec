@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import type { useMarketingCampaignForm } from '@/features/admin/marketing/hooks/useMarketingCampaignForm';
 import { EmptyState } from '@/shared/components/ui/page-state';

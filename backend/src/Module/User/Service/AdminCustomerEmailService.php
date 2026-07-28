@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Service;
 
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\User\Entity\User;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,7 @@ final class AdminCustomerEmailService
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly LoggerInterface $logger,
+        private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,
     ) {
     }
@@ -28,6 +30,19 @@ final class AdminCustomerEmailService
 
         if ('' === $subject || '' === $message) {
             throw new \InvalidArgumentException('Sujet et message sont obligatoires.');
+        }
+
+        $this->userNotifications->notifyInternal(
+            $user,
+            'admin-customer-message:'.$user->getId().':'.hash('sha256', $subject."\n".$message."\n".microtime(true)),
+            $subject,
+            $message,
+            '/mon-espace',
+            'admin_customer_message',
+        );
+
+        if (!$this->userNotifications->shouldSendEmail($user)) {
+            return;
         }
 
         try {

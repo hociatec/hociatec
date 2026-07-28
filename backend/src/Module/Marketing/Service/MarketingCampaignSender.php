@@ -6,6 +6,7 @@ namespace App\Module\Marketing\Service;
 
 use App\Module\Marketing\Entity\EmailCampaign;
 use App\Module\Marketing\Entity\EmailTemplate;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Mail\DualTransportMailer;
 use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Component\Mime\Address;
@@ -18,6 +19,7 @@ final readonly class MarketingCampaignSender
         private MarketingRecipientContextProvider $contexts,
         private MarketingTemplateRenderer $renderer,
         private DualTransportMailer $mailer,
+        private UserCommunicationNotifier $userNotifications,
         private DoctrinePersistence $persistence,
         private string $mailerFrom,
     ) {
@@ -37,6 +39,10 @@ final readonly class MarketingCampaignSender
         $users = $this->audiences->resolveRecipients($segmentKey, $criteria);
 
         foreach ($users as $user) {
+            if (!$this->userNotifications->shouldSendNewsEmail($user)) {
+                continue;
+            }
+
             $context = $this->contexts->provide($user);
             $renderedSubject = $this->renderer->render($subject, $context, false);
             $renderedHtml = $this->renderer->render($htmlBody, $context, true);

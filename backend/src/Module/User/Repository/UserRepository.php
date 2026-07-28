@@ -103,6 +103,21 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<User>
+     */
+    public function findNewsEmailSubscribers(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.isVerified = :verified')
+            ->andWhere('u.communicationPreferences LIKE :preference')
+            ->setParameter('verified', true)
+            ->setParameter('preference', '%news_email%')
+            ->orderBy('u.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return list<array{
      *   id:int,
      *   email:string,

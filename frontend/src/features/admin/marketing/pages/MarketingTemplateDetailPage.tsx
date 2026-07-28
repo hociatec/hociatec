@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useMarketingTemplateDetail } from '../hooks/useMarketingTemplateDetail';
 import { PageContainer } from '@/shared/components/PageContainer';

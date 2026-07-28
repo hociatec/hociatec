@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router';
 import {
   BarChart3,
   Beaker,
   Calendar,
   ChevronDown,
+  Newspaper,
   Mail,
   Package,
   Settings,
@@ -61,6 +62,15 @@ const adminNavGroups: AdminNavGroup[] = [
     links: [
       { to: '/admin/customers', label: 'Liste des clients' },
       { to: '/admin/loyalty', label: 'Fidélité' },
+    ],
+  },
+  {
+    id: 'news',
+    label: 'Actualités',
+    icon: Newspaper,
+    links: [
+      { to: '/admin/news', label: 'Toutes les actualités' },
+      { to: '/admin/news/new', label: 'Nouvelle actualité' },
     ],
   },
   {

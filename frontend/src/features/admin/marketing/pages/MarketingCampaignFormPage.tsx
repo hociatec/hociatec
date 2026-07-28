@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useMarketingCampaignForm } from '@/features/admin/marketing/hooks/useMarketingCampaignForm';
 import { PageContainer } from '@/shared/components/PageContainer';

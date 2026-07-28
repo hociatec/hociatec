@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import type { FulfillmentOrderDto } from '@/features/admin/operations/api';
 import { ActionCard, operationsUi } from '@/features/admin/operations/components/AdminOperationsWidgets';

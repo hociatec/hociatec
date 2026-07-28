@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
+use App\Module\User\Entity\User;
+use App\Module\User\Repository\UserRepository;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 
 final readonly class QuoteEmailService
 {
@@ -12,6 +15,8 @@ final readonly class QuoteEmailService
         private QuotePersistence $persistence,
         private QuoteCreatedEmailContentProvider $content,
         private QuoteEmailDeliveryService $delivery,
+        private UserRepository $users,
+        private UserCommunicationNotifier $userNotifications,
     ) {
     }
 
@@ -27,7 +32,11 @@ final readonly class QuoteEmailService
             return false;
         }
 
-        $this->sendCreated($quote);
+        $result = $this->sendCreated($quote);
+        if ('notification_only' === $result['transport']) {
+            return false;
+        }
+
         $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
         $this->persistence->flush();
 
@@ -40,6 +49,25 @@ final readonly class QuoteEmailService
         $recipient = trim((string) ($overrideRecipient ?? $quote->getCustomerEmail()));
         if ('' === $recipient || false === filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('' === $recipient ? 'Aucune adresse e-mail destinataire n’est renseignée pour ce devis.' : 'L’adresse e-mail du destinataire est invalide.');
+        }
+
+        $user = $this->users->findOneByEmailInsensitive($recipient);
+        if ($user instanceof User) {
+            $quoteId = $quote->getId();
+            if (null !== $quoteId) {
+                $this->userNotifications->notifyInternal(
+                    $user,
+                    'quote:'.$quoteId.':created',
+                    'Devis disponible',
+                    'Votre devis '.$quote->getNumber().' est disponible.',
+                    '/quotes/me/'.$quoteId,
+                    'quote_created',
+                );
+            }
+
+            if (!$this->userNotifications->shouldSendEmail($user)) {
+                return ['to' => $recipient, 'attachmentIncluded' => false, 'transport' => 'notification_only'];
+            }
         }
 
         return $this->delivery->deliver($quote, $recipient, $this->content->build($quote));

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
 import { SiteLayout } from '@/shared/components/SiteLayout';

@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { type FormEvent, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 
 import {
   createProduct,

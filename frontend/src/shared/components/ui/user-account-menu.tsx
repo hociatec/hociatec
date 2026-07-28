@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { LogOut, UserRound } from 'lucide-react';
 
 interface UserAccountMenuProps {

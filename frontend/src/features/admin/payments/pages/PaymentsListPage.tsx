@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useAdminPaymentsList } from '../hooks/useAdminPaymentsList';
 import { PageContainer } from '@/shared/components/PageContainer';

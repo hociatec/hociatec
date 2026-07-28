@@ -7,6 +7,7 @@ namespace App\Module\TradeIn\Service;
 use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\TradeIn\Entity\TradeInRequest;
 use App\Module\TradeIn\Enum\TradeInStatus;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Mail\DualTransportMailer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Address;
@@ -18,6 +19,7 @@ final readonly class TradeInNotificationEmailService
         private EmailTemplateRenderer $templates,
         private DualTransportMailer $mailer,
         private LoggerInterface $logger,
+        private UserCommunicationNotifier $userNotifications,
         private string $mailerFrom,
         private string $frontendUrl,
     ) {
@@ -44,6 +46,22 @@ final readonly class TradeInNotificationEmailService
     {
         $name = trim($request->getFirstName().' '.$request->getLastName());
         $trackingUrl = rtrim($this->frontendUrl, '/').(null !== $request->getUser() ? '/reprises' : '/reprise');
+        $user = $request->getUser();
+        if (null !== $user) {
+            $this->userNotifications->notifyInternal(
+                $user,
+                'trade-in:'.$request->getReference().':'.$scenario.':'.$request->getStatus()->value,
+                'Reprise mise à jour',
+                'Votre demande de reprise '.$request->getReference().' est à l’état : '.$this->statusLabel($request->getStatus()).'.',
+                '/reprises',
+                $scenario,
+            );
+
+            if (!$this->userNotifications->shouldSendEmail($user)) {
+                return;
+            }
+        }
+
         $context = [
             'customer_name' => $name,
             'trade_in_reference' => $request->getReference(),

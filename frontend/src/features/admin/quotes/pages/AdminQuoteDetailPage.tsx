@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useAdminQuoteDetail } from '../hooks/useAdminQuoteDetail';
 import { PageContainer } from '@/shared/components/PageContainer';

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';

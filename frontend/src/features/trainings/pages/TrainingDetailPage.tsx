@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { TrainingSessionsBooking } from '@/features/trainings/components/TrainingSessionsBooking';
 import { useTrainingDetail } from '@/features/trainings/hooks/useTrainingDetail';

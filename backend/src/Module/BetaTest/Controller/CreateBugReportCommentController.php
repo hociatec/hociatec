@@ -8,7 +8,7 @@ use App\Module\BetaTest\Entity\BugReportComment;
 use App\Module\BetaTest\Repository\BugReportRepository;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
-use App\Module\User\Service\UserCommunicationNotifier;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -63,7 +63,7 @@ final class CreateBugReportCommentController extends AbstractController
                 $report->getReporter(),
                 sprintf('beta-report-comment:%d:%d', $report->getId(), $comment->getId()),
                 'Nouveau message sur un signalement bêta',
-                sprintf('Un nouveau message a été ajouté au signalement « %s ».', $report->getTitle()),
+                sprintf('Un nouveau message a été ajouté. Titre du signalement : %s.', $report->getTitle()),
                 '/beta',
                 'beta_report_comment',
             );
@@ -79,7 +79,7 @@ final class CreateBugReportCommentController extends AbstractController
                     $admin,
                     sprintf('admin-beta-report-comment:%d:%d:%d', $report->getId(), $comment->getId(), $admin->getId()),
                     'Nouveau message client sur un signalement bêta',
-                    sprintf('%s a répondu au signalement « %s ».', $user->getFullName(), $report->getTitle()),
+                    sprintf('%s a répondu. Titre du signalement : %s.', $user->getFullName(), $report->getTitle()),
                     '/admin/beta-reports',
                     'admin_beta_report_comment',
                 );

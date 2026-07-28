@@ -60,6 +60,9 @@ const adminRoutePatterns = [
   /^\/admin\/vouchers\/[^/]+\/edit$/,
   /^\/admin\/audits$/,
   /^\/admin\/audits\/[^/]+$/,
+  /^\/admin\/news$/,
+  /^\/admin\/news\/new$/,
+  /^\/admin\/news\/[^/]+\/edit$/,
 ];
 
 const listSourceFiles = (dir: string): string[] => {

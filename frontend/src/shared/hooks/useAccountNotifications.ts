@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   dismissAccountNotification,
+  dismissAccountNotifications,
   fetchAccountNotifications,
   fetchAccountNotificationsReadState,
   markAccountNotificationsSeen,
@@ -21,6 +22,7 @@ interface UseAccountNotificationsResult {
   loading: boolean;
   markCurrentNotificationsAsSeen: () => boolean;
   notifications: AccountNotificationItem[];
+  onDismissAllNotifications: () => void;
   onDismissNotification: (notificationKey: string) => void;
   onNotificationClick: (notificationKey: string) => void;
   readStateLoading: boolean;
@@ -117,12 +119,12 @@ export const useAccountNotifications = (): UseAccountNotificationsResult => {
 
   const markCurrentNotificationsAsSeen = useCallback(() => {
     if (loading || readStateLoading) return false;
-    const keys = visibleNotifications
+    const keys = availableNotifications
       .filter((notification) => !seenKeys.has(notification.key))
       .map((notification) => notification.key);
     if (keys.length > 0) void markNotificationsAsSeen(keys);
     return true;
-  }, [loading, markNotificationsAsSeen, readStateLoading, seenKeys, visibleNotifications]);
+  }, [availableNotifications, loading, markNotificationsAsSeen, readStateLoading, seenKeys]);
 
   const onNotificationClick = useCallback(
     (notificationKey: string) => void markNotificationsAsSeen([notificationKey]),
@@ -145,11 +147,32 @@ export const useAccountNotifications = (): UseAccountNotificationsResult => {
     }
   }, []);
 
+  const onDismissAllNotifications = useCallback(async () => {
+    const keys = availableNotifications.map((notification) => notification.key);
+    if (keys.length === 0) return;
+
+    setReadState((current) => ({
+      ...current,
+      dismissedKeys: Array.from(new Set([...current.dismissedKeys, ...keys])),
+      seenKeys: Array.from(new Set([...current.seenKeys, ...keys])),
+    }));
+
+    try {
+      setReadState(await dismissAccountNotifications(keys));
+    } catch {
+      setReadState((current) => ({
+        ...current,
+        dismissedKeys: current.dismissedKeys.filter((key) => !keys.includes(key)),
+      }));
+    }
+  }, [availableNotifications]);
+
   return {
     hasPartialError,
     loading,
     markCurrentNotificationsAsSeen,
     notifications: visibleNotifications,
+    onDismissAllNotifications,
     onDismissNotification,
     onNotificationClick,
     readStateLoading,

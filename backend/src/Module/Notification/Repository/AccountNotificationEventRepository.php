@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Repository;
+namespace App\Module\Notification\Repository;
 
-use App\Module\User\Entity\AccountNotificationEvent;
+use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

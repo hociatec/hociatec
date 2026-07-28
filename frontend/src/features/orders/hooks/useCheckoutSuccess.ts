@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useCart } from '@/features/cart/hooks/useCart';
 import { fetchCheckoutSessionStatus } from '../api';
 

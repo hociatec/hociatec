@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
 import { SiteLayout } from '@/shared/components/SiteLayout';

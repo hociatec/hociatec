@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { SiteHeaderActions } from './siteHeader/SiteHeaderActions';
 import { SiteHeaderNavigation } from './siteHeader/SiteHeaderNavigation';

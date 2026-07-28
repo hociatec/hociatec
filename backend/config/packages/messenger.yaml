@@ -18,6 +18,8 @@ framework:
         routing:
             App\Module\Order\Message\OrderCreatedMessage: async
             App\Module\Order\Message\OrderStatusChangedMessage: async
+            App\Module\Notification\Message\UserCommunicationEmailMessage: async
+            App\Module\News\Message\NewsArticlePublishedEmailMessage: async
         buses:
             messenger.bus.default:
                 middleware:

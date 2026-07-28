@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import type { CartItem } from '@/features/cart/types/cart';
 import { formatCartPrice } from '@/features/cart/utils/cartDisplay';

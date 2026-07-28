@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { type AdminCustomerDetailDto } from '@/features/admin/customers/api';
 import { type OrderDto } from '@/features/orders/api';

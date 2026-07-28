@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/api';
 import { PageContainer } from '@/shared/components/PageContainer';

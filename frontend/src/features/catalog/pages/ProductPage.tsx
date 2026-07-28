@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 
 import { ProductDescriptionSection } from '@/features/catalog/components/ProductDescriptionSection';
 import {

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
 import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/api/newsApi';
 import {
   fetchPublicTrainings,
   type TrainingDto,
@@ -26,6 +27,8 @@ interface GlobalSearchState {
   serviceTotal: number;
   trainings: TrainingDto[];
   trainingTotal: number;
+  news: NewsArticleDto[];
+  newsTotal: number;
   loading: boolean;
   error: string | null;
 }
@@ -37,6 +40,8 @@ const initialState: GlobalSearchState = {
   serviceTotal: 0,
   trainings: [],
   trainingTotal: 0,
+  news: [],
+  newsTotal: 0,
   loading: false,
   error: null,
 };
@@ -50,7 +55,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
 
     const loadResults = async () => {
       try {
-        const [productResult, serviceItems, trainingItems] = await Promise.all([
+        const [productResult, serviceItems, trainingItems, newsResult] = await Promise.all([
           searchPublicProducts({
             q: query || undefined,
             page: 1,
@@ -59,6 +64,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
           }),
           fetchPublicQuoteServices(),
           fetchPublicTrainings(),
+          fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit }),
         ]);
 
         if (cancelled) return;
@@ -83,6 +89,8 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
           serviceTotal: filteredServices.length,
           trainings: filteredTrainings.slice(0, limit),
           trainingTotal: filteredTrainings.length,
+          news: newsResult.items,
+          newsTotal: newsResult.meta.total,
           loading: false,
           error: null,
         });

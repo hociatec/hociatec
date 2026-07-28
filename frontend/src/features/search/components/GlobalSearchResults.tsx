@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import type { CatalogProduct } from '@/features/catalog/apiTypes';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
+import type { NewsArticleDto } from '@/features/news/api/newsApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
   type TrainingDto,
@@ -109,6 +110,21 @@ export const TrainingSearchResults = ({ trainings }: { trainings: TrainingDto[] 
         title={training.title}
         description={training.shortDescription}
         price={`${formatEuroCents(training.priceCents)} · ${training.availableFormatDetails.map((format) => format.label).join(', ')}`}
+      />
+    ))}
+  </div>
+);
+
+export const NewsSearchResults = ({ news }: { news: NewsArticleDto[] }) => (
+  <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {news.map((article) => (
+      <SearchCard
+        key={article.id}
+        to={`/actualites/${article.slug}`}
+        label={article.category ?? 'Actualité'}
+        title={article.title}
+        description={article.excerpt}
+        price={article.publishedAt ? `Publié le ${new Intl.DateTimeFormat('fr-FR').format(new Date(article.publishedAt))}` : 'Actualité'}
       />
     ))}
   </div>

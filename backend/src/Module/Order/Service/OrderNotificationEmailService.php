@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Mail\DualTransportMailer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -16,6 +17,7 @@ final class OrderNotificationEmailService
         private readonly OrderNotificationContentProvider $contentProvider,
         private readonly DualTransportMailer $mailer,
         private readonly OrderEventLogger $events,
+        private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,
     ) {
     }
@@ -56,6 +58,11 @@ final class OrderNotificationEmailService
             return false;
         }
 
+        $this->notifyAccount($order, 'order_created');
+        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
+            return false;
+        }
+
         $this->sendScenario($order, 'order_created');
         $order->setOrderCreatedEmailSentAt(new \DateTimeImmutable());
         $this->persistence->flush();
@@ -71,6 +78,11 @@ final class OrderNotificationEmailService
             || null === $order->getInvoicePdfPath()
             || null === $order->getInvoiceXmlPath()
         ) {
+            return false;
+        }
+
+        $this->notifyAccount($order, 'order_invoice_issued');
+        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
             return false;
         }
 
@@ -94,6 +106,11 @@ final class OrderNotificationEmailService
             return false;
         }
 
+        $this->notifyAccount($order, $scenarioKey, $newStatus);
+        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
+            return false;
+        }
+
         $this->sendScenario($order, $scenarioKey, [
             'previous_order_status' => $oldStatus,
             'previous_order_status_label' => $this->formatStatus($oldStatus),
@@ -109,6 +126,52 @@ final class OrderNotificationEmailService
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', ($force ? 'Email client renvoyé: statut ' : 'Email client envoyé: statut ').$this->formatStatus($newStatus).'.');
 
         return true;
+    }
+
+    private function notifyAccount(Order $order, string $scenarioKey, ?string $status = null): void
+    {
+        $orderId = $order->getId();
+        if (null === $orderId) {
+            return;
+        }
+
+        [$title, $message, $type] = match ($scenarioKey) {
+            'order_created' => [
+                'Commande enregistrée',
+                'Votre commande '.$order->getNumber().' a bien été enregistrée.',
+                'order_created',
+            ],
+            'order_invoice_issued' => [
+                'Facture disponible',
+                'La facture de votre commande '.$order->getNumber().' est disponible.',
+                'order_invoice_issued',
+            ],
+            'order_status_delivered' => [
+                'Commande livrée',
+                'Votre commande '.$order->getNumber().' est maintenant livrée.',
+                'order_status_delivered',
+            ],
+            'order_status_cancelled' => [
+                'Commande annulée',
+                'Votre commande '.$order->getNumber().' est maintenant annulée.',
+                'order_status_cancelled',
+            ],
+            default => [
+                'Commande mise à jour',
+                'Votre commande '.$order->getNumber().' a été mise à jour.',
+                'order_update',
+            ],
+        };
+
+        $keyStatus = null !== $status ? ':'.$status : '';
+        $this->userNotifications->notifyInternal(
+            $order->getUser(),
+            'order:'.$orderId.':'.$scenarioKey.$keyStatus,
+            $title,
+            $message,
+            '/orders/'.$orderId,
+            $type,
+        );
     }
 
     /**

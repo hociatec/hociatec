@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 
 import { useAdminCustomerVouchers } from '../hooks/useAdminCustomerVouchers';
 import { PageContainer } from '@/shared/components/PageContainer';

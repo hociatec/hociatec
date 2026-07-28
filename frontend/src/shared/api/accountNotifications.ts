@@ -92,3 +92,19 @@ export const dismissAccountNotification = async (
     data.status === 'error' ? data.message : 'Impossible de supprimer la notification',
   );
 };
+
+export const dismissAccountNotifications = async (
+  dismissedKeys: string[],
+): Promise<AccountNotificationsReadStateDto> => {
+  const { data } = await httpClient.patch<
+    ApiResponse<{ readState: AccountNotificationsReadStateDto }>
+  >('/api/account-notifications/me/read-state', { dismissedKeys });
+
+  if (isApiOk(data)) {
+    return data.data.readState;
+  }
+
+  throw new Error(
+    data.status === 'error' ? data.message : 'Impossible de supprimer les notifications',
+  );
+};

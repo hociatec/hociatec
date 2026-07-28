@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { useVouchers } from '@/features/vouchers/hooks/useVouchers';
 import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';

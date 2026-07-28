@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Navigate, Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router';
 
 import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
@@ -22,6 +22,8 @@ import {
   AdminDashboardPage,
   AdminLayout,
   AdminLoyaltyPage,
+  AdminNewsFormPage,
+  AdminNewsListPage,
   AdminOperationsPage,
   AdminOrderDetailPage,
   AdminQuoteDetailPage,
@@ -63,6 +65,8 @@ import {
   MyTrainingsPage,
   MyTradeInsPage,
   MyVouchersPage,
+  NewsDetailPage,
+  NewsListPage,
   OrderDetailPage,
   OrdersListPage,
   PaymentsListPage,
@@ -137,6 +141,8 @@ export const publicRoutes: AppRouteDefinition[] = [
   },
   { path: '/catalogue/:slug', element: <CategoryPage /> },
   { path: '/recherche', element: <GlobalSearchPage /> },
+  { path: '/actualites', element: <NewsListPage /> },
+  { path: '/actualites/:slug', element: <NewsDetailPage /> },
   { path: '/services', element: <ServicesCatalogPage /> },
   { path: '/services/:serviceId', element: <ServiceDetailPage /> },
   { path: '/formations', element: <TrainingsCatalogPage /> },
@@ -275,6 +281,14 @@ export const adminRoutes: AppRouteDefinition = {
       ],
     },
     { path: 'loyalty', element: <AdminLoyaltyPage /> },
+    {
+      path: 'news',
+      children: [
+        { index: true, element: <AdminNewsListPage /> },
+        { path: 'new', element: <AdminNewsFormPage /> },
+        { path: ':newsId/edit', element: <AdminNewsFormPage /> },
+      ],
+    },
     {
       path: 'marketing',
       children: [

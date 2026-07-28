@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ArrowRight, CircleAlert, CircleCheckBig } from 'lucide-react';
 
 import type { AdminDashboardDto } from '@/features/admin/customers/api';

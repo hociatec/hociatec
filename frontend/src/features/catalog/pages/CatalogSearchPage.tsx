@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { SiteFooter } from '@/shared/components/SiteFooter';
 import { SiteHeader } from '@/shared/components/SiteHeader';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

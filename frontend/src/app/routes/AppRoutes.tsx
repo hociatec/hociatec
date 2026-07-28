@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { adminRoutes, protectedRoutes, publicRoutes, renderRoutes } from './AppRouteConfig';
 

@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { useAuth } from '../hooks/useAuth';

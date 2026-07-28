@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 type ToastVariant = 'success' | 'error' | 'info';
 

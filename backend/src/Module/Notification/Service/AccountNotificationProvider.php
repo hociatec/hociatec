@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Service;
+namespace App\Module\Notification\Service;
 
 use App\Module\Appointment\Entity\Appointment;
 use App\Module\Appointment\Service\AppointmentService;
@@ -12,9 +12,9 @@ use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Module\Rating\Service\PendingReviewResolver;
 use App\Module\Training\Entity\TrainingEnrollment;
 use App\Module\Training\Repository\TrainingEnrollmentRepository;
-use App\Module\User\Entity\AccountNotificationEvent;
+use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\User\Entity\User;
-use App\Module\User\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
 

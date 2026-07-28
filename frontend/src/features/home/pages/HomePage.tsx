@@ -2,7 +2,7 @@ import { SiteLayout } from '../../../shared/components/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
 import {
   ORGANIZATION_SCHEMA,

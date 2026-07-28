@@ -1,5 +1,5 @@
 import { Package } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import type { DashboardAction } from '@/features/account/types/dashboard';
 

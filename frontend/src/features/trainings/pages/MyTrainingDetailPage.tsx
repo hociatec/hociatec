@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 
 import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
 import { trainingEnrollmentStatusClassName } from '../lib/trainingEnrollment';

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useAdminTrainingsOverview } from '../hooks/useAdminTrainingsOverview';
 import { PageContainer } from '@/shared/components/PageContainer';

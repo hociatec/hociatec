@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import type { OrderDto } from '@/features/orders/api';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';

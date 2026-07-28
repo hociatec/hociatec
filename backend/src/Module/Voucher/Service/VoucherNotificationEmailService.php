@@ -6,6 +6,7 @@ namespace App\Module\Voucher\Service;
 
 use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\User\Entity\User;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\Voucher\Entity\Voucher;
 use App\Shared\Http\OvhRoundcubeMailer;
 use Symfony\Component\Mailer\MailerInterface;
@@ -18,6 +19,7 @@ final class VoucherNotificationEmailService
         private readonly EmailTemplateRepository $templates,
         private readonly MailerInterface $mailer,
         private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
+        private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $frontendUrl,
         private readonly string $mailerFrom,
     ) {
@@ -25,6 +27,19 @@ final class VoucherNotificationEmailService
 
     public function sendCustomerVoucher(User $user, Voucher $voucher): void
     {
+        $this->userNotifications->notifyInternal(
+            $user,
+            'voucher:'.$voucher->getId().':customer_offer',
+            'Bon de réduction disponible',
+            'Votre bon de réduction '.$voucher->getCode().' est disponible sur votre compte.',
+            '/vouchers/me',
+            'customer_voucher_offer',
+        );
+
+        if (!$this->userNotifications->shouldSendEmail($user)) {
+            return;
+        }
+
         $template = $this->templates->findActiveOneByScenarioKey('customer_voucher_offer');
         $context = $this->buildContext($user, $voucher);
         $fallback = $this->fallbackTemplate();

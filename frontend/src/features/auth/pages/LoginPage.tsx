@@ -1,7 +1,7 @@
 import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { isAxiosError } from 'axios';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 
 import { useAuth } from '../hooks/useAuth';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';

@@ -4,16 +4,20 @@ import { Search } from 'lucide-react';
 interface GlobalSearchHeaderProps {
   query: string;
   draftQuery: string;
+  filter: string;
   resultsTotal: number;
   onDraftQueryChange: (value: string) => void;
+  onFilterChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
 export const GlobalSearchHeader = ({
   query,
   draftQuery,
+  filter,
   resultsTotal,
   onDraftQueryChange,
+  onFilterChange,
   onSubmit,
 }: GlobalSearchHeaderProps) => (
   <header className="public-directory-page__hero rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
@@ -52,6 +56,28 @@ export const GlobalSearchHeader = ({
         Rechercher
       </button>
     </form>
+    <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrer les résultats">
+      {[
+        ['all', 'Tout'],
+        ['products', 'Produits'],
+        ['services', 'Services'],
+        ['trainings', 'Formations'],
+        ['news', 'Actualités'],
+      ].map(([value, label]) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => onFilterChange(value)}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+            filter === value
+              ? 'border-brand-900 bg-brand-900 text-white'
+              : 'border-brand-200 bg-white text-brand-800 hover:border-brand-500'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
 
     <p className="mt-4 text-sm text-stone-500" aria-live="polite">
       {query

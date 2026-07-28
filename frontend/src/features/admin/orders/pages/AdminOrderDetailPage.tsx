@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import { useAdminOrderDetail } from '@/features/admin/orders/hooks/useAdminOrderDetail';
 import { AdminOrderDeliverySection } from '@/features/admin/orders/components/AdminOrderDeliverySection';

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { useCheckoutSuccess } from '../hooks/useCheckoutSuccess';
 import { SiteLayout } from '@/shared/components/SiteLayout';

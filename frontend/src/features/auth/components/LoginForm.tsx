@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 export type LoginFormState = {
   email: string;

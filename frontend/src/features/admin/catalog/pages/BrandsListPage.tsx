@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';

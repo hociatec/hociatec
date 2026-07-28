@@ -58,6 +58,14 @@ export const GlobalSearchPage = lazyPage(
   () => import('@/features/search/pages/GlobalSearchPage'),
   'GlobalSearchPage',
 );
+export const NewsListPage = lazyPage(
+  () => import('@/features/news/pages/NewsListPage'),
+  'NewsListPage',
+);
+export const NewsDetailPage = lazyPage(
+  () => import('@/features/news/pages/NewsDetailPage'),
+  'NewsDetailPage',
+);
 export const CartPage = lazyPage(() => import('@/features/cart/pages/CartPage'), 'CartPage');
 export const ServicesCatalogPage = lazyPage(
   () => import('@/features/quotes/pages/ServicesCatalogPage'),

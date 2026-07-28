@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Entity;
+namespace App\Module\Notification\Entity;
 
-use App\Module\User\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Repository\AccountNotificationEventRepository;
+use App\Module\User\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AccountNotificationEventRepository::class)]

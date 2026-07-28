@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import type { DatesSetArg, CalendarApi } from '@fullcalendar/core';
 import type FullCalendar from '@fullcalendar/react';
 import { format, startOfDay } from 'date-fns';

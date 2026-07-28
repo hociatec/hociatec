@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import { SiteLayout } from '@/shared/components/SiteLayout';
 import { EmptyState, ErrorState } from '@/shared/components/ui/page-state';

@@ -128,6 +128,14 @@ export const AdminLoyaltyPage = lazyPage(
   () => import('@/features/admin/loyalty/pages/AdminLoyaltyPage'),
   'AdminLoyaltyPage',
 );
+export const AdminNewsListPage = lazyPage(
+  () => import('@/features/admin/news/pages/AdminNewsListPage'),
+  'AdminNewsListPage',
+);
+export const AdminNewsFormPage = lazyPage(
+  () => import('@/features/admin/news/pages/AdminNewsFormPage'),
+  'AdminNewsFormPage',
+);
 export const MarketingCampaignsPage = lazyPage(
   () => import('@/features/admin/marketing/pages/MarketingCampaignsPage'),
   'MarketingCampaignsPage',

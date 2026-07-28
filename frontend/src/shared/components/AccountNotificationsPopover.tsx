@@ -1,9 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { PopoverButton, PopoverPanel } from '@headlessui/react';
 
 import type { AccountNotificationItem } from '@/shared/types/accountNotifications';
+
+const notificationLinkLabel = (notification: AccountNotificationItem): string => {
+  if (notification.type.startsWith('beta_') || notification.to.startsWith('/beta')) {
+    return 'Accéder à l’espace bêta';
+  }
+
+  return 'Consulter';
+};
 
 interface AccountNotificationsPopoverProps {
   buttonLabel: string;
@@ -11,6 +19,7 @@ interface AccountNotificationsPopoverProps {
   loading: boolean;
   markCurrentNotificationsAsSeen: () => boolean;
   notifications: AccountNotificationItem[];
+  onDismissAllNotifications: () => void;
   onDismissNotification: (notificationKey: string) => void;
   onNotificationClick: (notificationKey: string) => void;
   open: boolean;
@@ -24,6 +33,7 @@ export const AccountNotificationsPopover = ({
   loading,
   markCurrentNotificationsAsSeen,
   notifications,
+  onDismissAllNotifications,
   onDismissNotification,
   onNotificationClick,
   open,
@@ -62,30 +72,41 @@ export const AccountNotificationsPopover = ({
         ) : notifications.length === 0 ? (
           <p>Aucune notification prioritaire.</p>
         ) : (
-          notifications.map((notification) => (
-            <div
-              key={notification.key}
-              className={`site-header__notifications-item${
-                seenKeys.has(notification.key) ? '' : ' site-header__notifications-item--unread'
-              }`}
-            >
-              <Link to={notification.to} onClick={() => onNotificationClick(notification.key)}>
-                {notification.label}
-              </Link>
-              <button
-                type="button"
-                className="site-header__notifications-dismiss"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onDismissNotification(notification.key);
-                }}
-              >
-                <Trash2 aria-hidden="true" />
-                Supprimer
+          <>
+            <div className="site-header__notifications-actions">
+              <button type="button" onClick={onDismissAllNotifications}>
+                Tout supprimer
               </button>
             </div>
-          ))
+            {notifications.map((notification) => (
+              <div
+                key={notification.key}
+                className={`site-header__notifications-item${
+                  seenKeys.has(notification.key) ? '' : ' site-header__notifications-item--unread'
+                }`}
+              >
+                <div className="site-header__notifications-content">
+                  <p className="site-header__notifications-title">{notification.label}</p>
+                  <p className="site-header__notifications-message">{notification.message}</p>
+                  <Link to={notification.to} onClick={() => onNotificationClick(notification.key)}>
+                    {notificationLinkLabel(notification)}
+                  </Link>
+                </div>
+                <button
+                  type="button"
+                  className="site-header__notifications-dismiss"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onDismissNotification(notification.key);
+                  }}
+                >
+                  <Trash2 aria-hidden="true" />
+                  Supprimer
+                </button>
+              </div>
+            ))}
+          </>
         )}
         {hasPartialError ? (
           <p className="site-header__notifications-warning">

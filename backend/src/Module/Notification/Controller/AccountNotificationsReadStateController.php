@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Controller;
+namespace App\Module\Notification\Controller;
 
-use App\Module\User\DTO\NotificationReadStateInput;
+use App\Module\Notification\DTO\NotificationReadStateInput;
 use App\Module\User\Entity\User;
-use App\Module\User\Service\AccountNotificationReadStateService;
+use App\Module\Notification\Service\AccountNotificationReadStateService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

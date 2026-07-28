@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Service;
+namespace App\Module\Notification\Service;
 
 final class CommunicationPreferences
 {
     public const NOTIFICATION = 'notification';
     public const EMAIL = 'email';
+    public const NEWS_EMAIL = 'news_email';
     public const PHONE = 'phone';
 
     /** @return list<string> */
     public static function allowed(): array
     {
-        return [self::NOTIFICATION, self::EMAIL, self::PHONE];
+        return [self::NOTIFICATION, self::EMAIL, self::NEWS_EMAIL, self::PHONE];
     }
 
     /** @return list<string> */
@@ -40,6 +41,11 @@ final class CommunicationPreferences
                 'value' => self::EMAIL,
                 'label' => 'E-mail',
                 'description' => 'Envoie les informations importantes à l’adresse e-mail du compte.',
+            ],
+            [
+                'value' => self::NEWS_EMAIL,
+                'label' => 'Actualités par e-mail',
+                'description' => 'Autorise Hociatec à vous envoyer les actualités, annonces et informations éditoriales par e-mail.',
             ],
             [
                 'value' => self::PHONE,

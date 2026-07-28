@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useState } from 'react';
 
 import { resetPassword } from '../api/authApi';

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Module\User\Controller;
+namespace App\Module\Notification\Controller;
 
 use App\Module\User\Entity\User;
-use App\Module\User\Service\AccountNotificationProvider;
+use App\Module\Notification\Service\AccountNotificationProvider;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

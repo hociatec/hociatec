@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BugReportRepository;
-use App\Module\User\Service\UserCommunicationNotifier;
+use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -51,7 +51,7 @@ final class UpdateBugReportStatusController extends AbstractController
                 $report->getReporter(),
                 sprintf('beta-report-status:%d:%s:%s', $report->getId(), $status, $changedAt->format('Uu')),
                 'État d’un signalement bêta mis à jour',
-                sprintf('Le signalement « %s » est maintenant à l’état : %s.', $report->getTitle(), $this->statusLabel($status)),
+                sprintf('Titre du signalement : %s. Nouvel état : %s.', $report->getTitle(), $this->statusLabel($status)),
                 '/beta',
                 'beta_report_status',
             );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import type { TrainingFormat } from '@/features/trainings/api/trainingTypes';
