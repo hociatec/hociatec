@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router';
 
 import { useMarketingTemplatesList } from '../hooks/useMarketingTemplatesList';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';

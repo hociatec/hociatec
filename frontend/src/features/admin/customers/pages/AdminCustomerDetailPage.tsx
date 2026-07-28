@@ -1,6 +1,6 @@
 import { useParams } from 'react-router';
 
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useAdminCustomerDetail } from '@/features/admin/customers/hooks/useAdminCustomerDetail';
 import { CustomerAddressesSection } from '@/features/admin/customers/components/CustomerAddressesSection';

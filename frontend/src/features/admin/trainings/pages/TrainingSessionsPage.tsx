@@ -7,7 +7,7 @@ import {
   fetchAdminTrainingSessions,
   type TrainingSessionDto,
 } from '@/features/trainings/api/trainingsApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';

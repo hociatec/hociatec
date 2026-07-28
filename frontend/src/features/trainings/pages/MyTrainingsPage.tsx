@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useMyTrainingEnrollments } from '../hooks/useMyTrainingEnrollments';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import {
   EmptyState,

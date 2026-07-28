@@ -1,4 +1,4 @@
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState } from '@/shared/components/admin/AdminDataView';
 import { AdminOrdersTable } from '@/features/admin/orders/components/AdminOrdersTable';
 import { OrderStatusDialog } from '@/features/admin/orders/components/OrderStatusDialog';

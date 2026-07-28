@@ -1,6 +1,6 @@
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/feedback/ConfirmDialog';
 import { QuoteEditorGrid } from '@/features/admin/quotes/components/AdminQuoteFormSections';
 import { useAdminQuoteFormController } from '@/features/admin/quotes/hooks/useAdminQuoteFormController';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';

@@ -1,7 +1,7 @@
-import { SiteLayout } from '@/shared/components/SiteLayout';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/feedback/ConfirmDialog';
 import { PublicQuoteSelectionList } from '@/features/quotes/components/PublicQuoteSelectionList';
 import { QuoteCatalogSelector } from '@/features/quotes/components/QuoteCatalogSelector';
 import { QuoteCustomerFields } from '@/features/quotes/components/QuoteCustomerFields';

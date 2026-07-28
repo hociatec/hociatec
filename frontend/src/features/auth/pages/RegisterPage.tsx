@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 
 import { registerUser, type RegisterPayload } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { SiteLayout } from '../../../shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { RegisterIntro } from '@/features/auth/components/RegisterIntro';
 import { RegisterFormFields } from '@/features/auth/components/RegisterFormFields';

@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 
 import { TrainingSessionsBooking } from '@/features/trainings/components/TrainingSessionsBooking';
 import { useTrainingDetail } from '@/features/trainings/hooks/useTrainingDetail';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';

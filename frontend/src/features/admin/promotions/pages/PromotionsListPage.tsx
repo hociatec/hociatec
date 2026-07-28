@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 
 import type { Promotion } from '@/features/admin/promotions/api';
 import { usePromotionsList } from '../hooks/usePromotionsList';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

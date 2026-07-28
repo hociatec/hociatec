@@ -11,7 +11,7 @@ import { useProductPageData } from '@/features/catalog/hooks/useProductPageData'
 import { useProductPageInteractions } from '@/features/catalog/hooks/useProductPageInteractions';
 import { useProductReviews } from '@/features/catalog/hooks/useProductReviews';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

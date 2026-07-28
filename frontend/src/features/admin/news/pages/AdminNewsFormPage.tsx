@@ -7,7 +7,7 @@ import {
   updateAdminNewsArticle,
   type NewsArticlePayload,
 } from '@/features/news/api/newsApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

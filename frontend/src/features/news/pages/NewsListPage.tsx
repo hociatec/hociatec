@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router';
 import { fetchNewsArticles, type NewsArticleDto, type PaginationMeta } from '@/features/news/api/newsApi';
 import { NewsCard } from '@/features/news/components/NewsCard';
 import { NewsPagination } from '@/features/news/components/NewsPagination';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

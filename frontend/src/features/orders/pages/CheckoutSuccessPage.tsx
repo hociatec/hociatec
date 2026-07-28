@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useCheckoutSuccess } from '../hooks/useCheckoutSuccess';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const CheckoutSuccessPage = () => {

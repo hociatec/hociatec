@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';

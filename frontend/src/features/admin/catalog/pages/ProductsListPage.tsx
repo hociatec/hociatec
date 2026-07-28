@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import type { CatalogProduct } from '@/features/catalog/api';
 
 import { useAdminProductsList } from '../hooks/useAdminProductsList';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';

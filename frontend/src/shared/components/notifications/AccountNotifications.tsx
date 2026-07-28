@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Popover } from '@headlessui/react';
 
-import { AccountNotificationsPopover } from '@/shared/components/AccountNotificationsPopover';
+import { AccountNotificationsPopover } from '@/shared/components/notifications/AccountNotificationsPopover';
 import { useAccountNotifications } from '@/shared/hooks/useAccountNotifications';
 
 export const AccountNotifications = () => {

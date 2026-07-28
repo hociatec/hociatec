@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useMarketingTemplateDetail } from '../hooks/useMarketingTemplateDetail';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminMetricCard, AdminMetricGrid } from '@/shared/components/admin/AdminDataView';
 import {
   EmptyState,

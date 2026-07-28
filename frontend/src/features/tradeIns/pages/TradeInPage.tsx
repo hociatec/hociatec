@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { SiteLayout } from '@/shared/components/SiteLayout';
-import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

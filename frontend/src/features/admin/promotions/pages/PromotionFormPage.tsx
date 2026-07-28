@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 
 import { createPromotion, fetchPromotion, fetchPromotionAudiences, updatePromotion, type PromotionAudienceDefinition, type PromotionPayload } from '@/features/admin/promotions/api';
 import { PromotionFormFields } from '@/features/admin/promotions/components/PromotionFormFields';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

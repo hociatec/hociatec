@@ -1,6 +1,6 @@
 import './appointment-booking.css';
-import { SiteLayout } from '../../../shared/components/SiteLayout';
-import { PageContainer } from '../../../shared/components/PageContainer';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';

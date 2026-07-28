@@ -7,8 +7,8 @@ import { AppRoutes } from './routes/AppRoutes';
 import { ConfirmProvider } from '@/shared/components/ui/confirm';
 import { PromptProvider } from '@/shared/components/ui/prompt';
 import { ToastProvider } from '@/shared/components/ui/toast';
-import { AccessibilityAnnouncer } from '@/shared/components/AccessibilityAnnouncer';
-import { MaintenanceGate } from '@/shared/components/MaintenanceGate';
+import { AccessibilityAnnouncer } from '@/shared/components/accessibility/AccessibilityAnnouncer';
+import { MaintenanceGate } from '@/shared/components/system/MaintenanceGate';
 
 export const AppProviders = () => (
   <AuthProvider>

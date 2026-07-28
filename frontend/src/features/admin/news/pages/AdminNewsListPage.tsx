@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 import { deleteAdminNewsArticle, fetchAdminNewsArticles, sendAdminNewsArticleEmail, type NewsArticleDto } from '@/features/news/api/newsApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';

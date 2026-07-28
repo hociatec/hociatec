@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   useAdminAuditsList,

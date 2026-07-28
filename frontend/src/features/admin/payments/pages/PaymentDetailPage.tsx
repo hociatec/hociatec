@@ -7,7 +7,7 @@ import {
   type AdminPaymentLiveStripeDto,
 } from '@/features/orders/api';
 import { PaymentDetailContent } from '@/features/admin/payments/components/PaymentDetailContent';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

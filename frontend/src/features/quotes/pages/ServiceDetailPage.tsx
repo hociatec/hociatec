@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { usePublicServiceDetail } from '../hooks/usePublicServiceDetail';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

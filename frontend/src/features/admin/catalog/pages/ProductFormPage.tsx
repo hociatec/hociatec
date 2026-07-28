@@ -1,4 +1,4 @@
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   ProductGeneralSection,

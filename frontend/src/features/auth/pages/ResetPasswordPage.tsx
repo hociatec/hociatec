@@ -4,8 +4,8 @@ import { useState } from 'react';
 
 import { resetPassword } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import { PageContainer } from '../../../shared/components/PageContainer';
-import { SiteLayout } from '../../../shared/components/SiteLayout';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 

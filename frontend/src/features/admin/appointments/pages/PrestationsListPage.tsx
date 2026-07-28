@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 
 import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
 import type { Prestation } from '@/features/appointments/types/appointments';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';

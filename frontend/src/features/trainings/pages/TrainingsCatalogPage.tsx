@@ -1,4 +1,4 @@
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { TrainingCatalogFilters } from '@/features/trainings/components/TrainingCatalogFilters';
 import { TrainingCatalogGrid } from '@/features/trainings/components/TrainingCatalogGrid';
 import { TrainingCatalogPagination } from '@/features/trainings/components/TrainingCatalogPagination';

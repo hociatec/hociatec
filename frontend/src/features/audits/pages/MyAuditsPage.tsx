@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { useMyAudits } from '../hooks/useMyAudits';
-import { SiteLayout } from '@/shared/components/SiteLayout';
-import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

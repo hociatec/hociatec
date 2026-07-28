@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
-import { PageContainer } from '@/shared/components/PageContainer';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { BetaBugReportDialog } from '../components/BetaBugReportDialog';
 
 export const BetaBugReportPage = () => {

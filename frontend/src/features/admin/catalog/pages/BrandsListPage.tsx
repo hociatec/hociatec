@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 
 import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';

@@ -1,6 +1,6 @@
 import { useMarketingTemplateForm } from '../hooks/useMarketingTemplateForm';
 import { MarketingTemplateEditor } from '../components/MarketingTemplateEditor';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

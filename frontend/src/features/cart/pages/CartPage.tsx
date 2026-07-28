@@ -1,4 +1,4 @@
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useCartPageController } from '@/features/cart/hooks/useCartPageController';

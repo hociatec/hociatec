@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { fetchConfiguration, updateConfiguration } from '@/features/admin/appointments/api';
 import type { WorkingDay } from '@/features/appointments/types/appointments';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';

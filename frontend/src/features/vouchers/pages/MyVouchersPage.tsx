@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { useVouchers } from '@/features/vouchers/hooks/useVouchers';
 import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { StableContent } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

@@ -5,7 +5,7 @@ import {
   updateAdminLoyaltyCustomer,
   type AdminLoyaltyCustomerDto,
 } from '@/features/loyalty/api/loyaltyApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import {
   AdminListState,
   AdminMetricCard,

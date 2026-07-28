@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router';
 
 import { useAdminCustomerVouchers } from '../hooks/useAdminCustomerVouchers';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { AdminCustomerVoucherHistory } from '@/features/admin/customers/components/AdminCustomerVoucherHistory';
 import { AdminCustomerVoucherConfiguration } from '@/features/admin/customers/components/AdminCustomerVoucherConfiguration';

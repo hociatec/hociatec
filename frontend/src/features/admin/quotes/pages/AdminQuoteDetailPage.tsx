@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useAdminQuoteDetail } from '../hooks/useAdminQuoteDetail';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { AdminQuoteDetailItemsTable } from '@/features/admin/quotes/components/AdminQuoteDetailItemsTable';

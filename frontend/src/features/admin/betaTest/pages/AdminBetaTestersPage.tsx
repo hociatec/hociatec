@@ -6,7 +6,7 @@ import {
   deleteAdminBetaTester,
   type AdminBetaTesterDto,
 } from '../api';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';

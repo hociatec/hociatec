@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
-import { SiteFooter } from '@/shared/components/SiteFooter';
-import { SiteHeader } from '@/shared/components/SiteHeader';
+import { SiteFooter } from '@/shared/components/layout/SiteFooter';
+import { SiteHeader } from '@/shared/components/layout/SiteHeader';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';

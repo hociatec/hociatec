@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { isAnyPathActive } from '@/shared/lib/routes';
 
 type AdminNavLink = {

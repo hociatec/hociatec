@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { EmptyState, ErrorState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';

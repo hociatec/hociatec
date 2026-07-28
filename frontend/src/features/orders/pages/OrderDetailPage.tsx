@@ -1,5 +1,5 @@
 import { useOrderDetail } from '@/features/orders/hooks/useOrderDetail';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { OrderInvoiceCard } from '@/features/orders/components/OrderInvoiceCard';

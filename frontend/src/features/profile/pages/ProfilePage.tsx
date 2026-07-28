@@ -1,4 +1,4 @@
-import { SiteLayout } from '../../../shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { ProfileDangerZone } from '../components/ProfileDangerZone';
 import { ProfileInformationCard } from '../components/ProfileInformationCard';

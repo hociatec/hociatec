@@ -1,4 +1,4 @@
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useAdminOperations } from '@/features/admin/operations/hooks/useAdminOperations';
 import { OperationsActionsSection } from '@/features/admin/operations/components/OperationsActionsSection';
 import { OperationsRecentSection } from '@/features/admin/operations/components/OperationsRecentSection';

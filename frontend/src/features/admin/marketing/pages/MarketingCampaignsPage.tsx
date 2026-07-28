@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 
 import { type MarketingCampaign } from '@/features/admin/marketing/api';
 import { useMarketingCampaignsOverview } from '../hooks/useMarketingCampaignsOverview';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import {
   AdminListState,
   AdminMetricCard,

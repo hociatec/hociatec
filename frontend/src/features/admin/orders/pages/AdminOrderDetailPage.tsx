@@ -7,7 +7,7 @@ import { AdminOrderItemsSection } from '@/features/admin/orders/components/Admin
 import { AdminOrderPaymentSection } from '@/features/admin/orders/components/AdminOrderPaymentSection';
 import { AdminOrderClientAccess } from '@/features/admin/orders/components/AdminOrderClientAccess';
 import { AdminOrderSummarySection } from '@/features/admin/orders/components/AdminOrderSummarySection';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 
 export const AdminOrderDetailPage = () => {

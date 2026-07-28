@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';

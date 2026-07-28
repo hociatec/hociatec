@@ -9,7 +9,7 @@ import {
   type CatalogBrand,
   type UpsertBrandPayload,
 } from '@/features/catalog/api';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

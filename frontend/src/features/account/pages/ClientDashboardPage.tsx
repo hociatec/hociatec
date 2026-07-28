@@ -2,7 +2,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DashboardWorkspace } from '@/features/account/components/dashboard/DashboardWorkspace';
 import { DashboardStatusNotice } from '@/features/account/components/dashboard/DashboardPanel';
 import { useClientDashboard } from '@/features/account/hooks/useClientDashboard';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 import '@/features/account/ClientDashboardPage.css';

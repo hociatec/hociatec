@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useAdminTrainingsOverview } from '../hooks/useAdminTrainingsOverview';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

@@ -9,7 +9,7 @@ import {
   createBugReportComment,
   type AdminCampaignDto,
 } from '../api';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { Edit, Eye, MessageSquare, Plus, Trash2, X } from 'lucide-react';

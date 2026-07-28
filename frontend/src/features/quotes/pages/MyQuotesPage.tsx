@@ -1,9 +1,9 @@
 import { Link } from 'react-router';
-import { PageContainer } from '@/shared/components/PageContainer';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/feedback/ConfirmDialog';
 import { EmptyState, FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { useMyQuotes } from '../hooks/useMyQuotes';

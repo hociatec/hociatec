@@ -9,7 +9,7 @@ import {
   type TrainingDto,
   type TrainingFormat,
 } from '@/features/trainings/api/trainingsApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {

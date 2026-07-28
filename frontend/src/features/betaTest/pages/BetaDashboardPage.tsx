@@ -12,11 +12,11 @@ import {
   resolveBetaAttachmentUrl,
 } from '../api/betaApi';
 import { BetaBugReportDialog } from '../components/BetaBugReportDialog';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { FlaskConical, MessageSquare, Pencil, Plus, ShieldCheck, X } from 'lucide-react';
 import { useToast } from '@/shared/components/ui/toast';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import {
   Dialog,
   DialogBackdrop,

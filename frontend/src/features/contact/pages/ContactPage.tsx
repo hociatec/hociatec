@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { SiteLayout } from '@/shared/components/SiteLayout';
-import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';

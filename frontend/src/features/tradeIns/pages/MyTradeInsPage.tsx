@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { SiteLayout } from '@/shared/components/SiteLayout';
-import { PublicPageSection, PublicPageShell } from '@/shared/components/PublicPageShell';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { EmptyState, ErrorState, LoadingState, FeedbackMessage } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatFrenchDate } from '@/shared/lib/formatters';

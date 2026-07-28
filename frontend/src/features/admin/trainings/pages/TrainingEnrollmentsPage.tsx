@@ -8,7 +8,7 @@ import {
   type TrainingEnrollmentDto,
   type TrainingEnrollmentStatus,
 } from '@/features/trainings/api/trainingsApi';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { useMarketingCampaignForm } from '@/features/admin/marketing/hooks/useMarketingCampaignForm';
-import { PageContainer } from '@/shared/components/PageContainer';
+import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { MarketingCampaignFormFields } from '@/features/admin/marketing/components/MarketingCampaignFormFields';

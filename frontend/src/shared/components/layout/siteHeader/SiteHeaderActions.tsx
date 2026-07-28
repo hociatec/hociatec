@@ -5,8 +5,8 @@ import { LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
-import { AccountNotifications } from '../AccountNotifications';
-import { UserAccountMenu } from '../ui/user-account-menu';
+import { AccountNotifications } from '../../notifications/AccountNotifications';
+import { UserAccountMenu } from '../../ui/user-account-menu';
 import { isAnyPathActive, isPathActive } from '@/shared/lib/routes';
 
 interface SiteHeaderActionsProps {

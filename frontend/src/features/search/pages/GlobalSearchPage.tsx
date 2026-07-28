@@ -11,7 +11,7 @@ import {
   TrainingSearchResults,
 } from '@/features/search/components/GlobalSearchResults';
 import { useGlobalSearch } from '@/features/search/hooks/useGlobalSearch';
-import { SiteLayout } from '@/shared/components/SiteLayout';
+import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
