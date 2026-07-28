@@ -57,6 +57,7 @@ final class BugReportRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param array<string, mixed> $filters
      * @return list<BugReport>
      */
     public function findForAdmin(array $filters, int $limit, int $offset): array
@@ -73,6 +74,9 @@ final class BugReportRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     */
     public function countForAdmin(array $filters): int
     {
         return (int) $this->adminQueryBuilder($filters)
@@ -82,6 +86,7 @@ final class BugReportRepository extends ServiceEntityRepository
     }
 
     /**
+     * @param array<string, mixed> $filters
      * @return list<BugReport>
      */
     public function findExportRows(array $filters): array
@@ -115,7 +120,10 @@ final class BugReportRepository extends ServiceEntityRepository
         ];
     }
 
-    /** @return \Doctrine\ORM\QueryBuilder */
+    /**
+     * @param array<string, mixed> $filters
+     * @return \Doctrine\ORM\QueryBuilder
+     */
     private function adminQueryBuilder(array $filters)
     {
         $qb = $this->createQueryBuilder('r');
@@ -126,10 +134,10 @@ final class BugReportRepository extends ServiceEntityRepository
         if (isset($filters['severity']) && '' !== $filters['severity']) {
             $qb->andWhere('r.severity = :severity')->setParameter('severity', $filters['severity']);
         }
-        if (isset($filters['campaignId']) && null !== $filters['campaignId']) {
+        if (isset($filters['campaignId'])) {
             $qb->andWhere('r.campaign = :campaignId')->setParameter('campaignId', $filters['campaignId']);
         }
-        if (isset($filters['assignedTo']) && null !== $filters['assignedTo']) {
+        if (isset($filters['assignedTo'])) {
             $qb->andWhere('r.assignedTo = :assignedTo')->setParameter('assignedTo', $filters['assignedTo']);
         }
         if (isset($filters['search']) && '' !== $filters['search']) {

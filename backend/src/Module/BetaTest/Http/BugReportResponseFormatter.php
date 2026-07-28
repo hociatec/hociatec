@@ -16,7 +16,7 @@ final readonly class BugReportResponseFormatter
         $id = $report->getId();
         $attachments = array_values(array_filter(
             $report->getAttachments(),
-            static fn (mixed $name): bool => is_string($name) && '' !== trim($name),
+            static fn (string $name): bool => '' !== trim($name),
         ));
 
         return [

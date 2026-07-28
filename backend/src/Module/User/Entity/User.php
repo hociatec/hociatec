@@ -324,7 +324,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return array_values(array_unique(array_filter(
             $preferences,
-            static fn (mixed $preference): bool => is_string($preference) && in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
+            static fn (string $preference): bool => in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
         )));
     }
 
@@ -335,7 +335,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->communicationPreferences = array_values(array_unique(array_filter(
             $preferences,
-            static fn (mixed $preference): bool => is_string($preference) && in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
+            static fn (string $preference): bool => in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
         )));
 
         return $this;

@@ -32,7 +32,7 @@ final class CreateCampaignController extends AbstractController
 
         $startsAt = $this->dateFromPayload($p['startsAt'] ?? null) ?? new \DateTimeImmutable('today');
         $endsAt = $this->dateFromPayload($p['endsAt'] ?? null) ?? $startsAt->modify('+30 days');
-        if (null !== $startsAt && null !== $endsAt && $endsAt < $startsAt) {
+        if ($endsAt < $startsAt) {
             return ApiResponse::error('La date de fin doit être postérieure à la date de début.', 422);
         }
 
