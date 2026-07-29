@@ -7,8 +7,8 @@ namespace App\Module\Marketing\Service;
 use App\Module\Marketing\Entity\EmailCampaign;
 use App\Module\Marketing\Entity\EmailTemplate;
 use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Shared\Mail\DualTransportMailer;
 use App\Shared\Persistence\DoctrinePersistence;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -18,7 +18,7 @@ final readonly class MarketingCampaignSender
         private MarketingAudienceProvider $audiences,
         private MarketingRecipientContextProvider $contexts,
         private MarketingTemplateRenderer $renderer,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private UserCommunicationNotifier $userNotifications,
         private DoctrinePersistence $persistence,
         private string $mailerFrom,
@@ -47,20 +47,14 @@ final readonly class MarketingCampaignSender
             $renderedSubject = $this->renderer->render($subject, $context, false);
             $renderedHtml = $this->renderer->render($htmlBody, $context, true);
             $renderedText = $this->renderer->render($textBody ?: strip_tags($htmlBody), $context, false);
-            $fallback = (new Email())
+            $email = (new Email())
                 ->from(new Address($this->mailerFrom, 'Hociatec'))
                 ->to(new Address($user->getEmail(), $user->getFullName()))
                 ->subject($renderedSubject)
                 ->html($renderedHtml)
                 ->text($renderedText);
 
-            $this->mailer->send(
-                $user->getEmail(),
-                $renderedSubject,
-                $renderedText,
-                $fallback,
-                'marketing_campaign',
-            );
+            $this->mailer->send($email);
         }
 
         $campaign = new EmailCampaign(

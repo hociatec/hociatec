@@ -10,6 +10,10 @@ final class TrainingSlotValidator
 {
     public function validate(TrainingSession $session, \DateTimeImmutable $startsAt, \DateTimeImmutable $endsAt): void
     {
+        if ($endsAt <= $startsAt) {
+            throw new \InvalidArgumentException('L heure de fin doit etre posterieure a l heure de debut.');
+        }
+
         if ($startsAt < $session->getStartsAt() || $endsAt > $session->getEndsAt()) {
             throw new \InvalidArgumentException('Le créneau doit être compris dans la période de réservation.');
         }

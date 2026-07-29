@@ -29,7 +29,7 @@ class CartItem
     #[ORM\Column(type: 'integer')]
     private int $quantity;
 
-    #[ORM\Column(type: 'integer', options: ['default' => -1])]
+    #[ORM\Column(name: 'rental_months', type: 'integer', options: ['default' => -1])]
     private int $rentalMonths = -1;
 
     public function __construct(CartSession $cart, Product $product, int $quantity = 1, ?int $rentalMonths = null)

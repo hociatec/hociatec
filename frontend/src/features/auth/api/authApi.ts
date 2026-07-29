@@ -40,6 +40,16 @@ export interface AuthSession {
   refreshTokenExpiresAt?: string;
 }
 
+interface AuthMeAuthenticated extends AuthUser {
+  authenticated: true;
+}
+
+interface AuthMeUnauthenticated {
+  authenticated: false;
+}
+
+type AuthMeResponse = AuthMeAuthenticated | AuthMeUnauthenticated;
+
 export interface PasswordResetPayload {
   password: string;
   confirmPassword: string;
@@ -109,10 +119,17 @@ export const logoutUser = async () => {
   }
 };
 
-export const fetchCurrentUser = async () => {
-  const { data } = await httpClient.get<ApiResponse<AuthUser>>('/api/auth/me');
+export const fetchCurrentUser = async (): Promise<AuthUser | null> => {
+  const { data } = await httpClient.get<ApiResponse<AuthMeResponse>>('/api/auth/me');
+  const payload = unwrapResponse(data);
 
-  return unwrapResponse(data);
+  if (payload.authenticated === false) {
+    return null;
+  }
+
+  const { authenticated: _authenticated, ...user } = payload;
+
+  return user;
 };
 
 export interface UpdateProfilePayload {

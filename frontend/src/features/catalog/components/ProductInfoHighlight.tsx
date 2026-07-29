@@ -7,10 +7,9 @@ interface ProductInfoHighlightProps {
 }
 
 const ProductInfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div>
-    <span>{label} :</span>
-    <strong>{value}</strong>
-  </div>
+  <p>
+    <span>{label} :</span> <strong>{value}</strong>
+  </p>
 );
 
 export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighlightProps) => (

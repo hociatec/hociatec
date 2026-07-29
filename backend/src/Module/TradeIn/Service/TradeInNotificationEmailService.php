@@ -8,8 +8,8 @@ use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\TradeIn\Entity\TradeInRequest;
 use App\Module\TradeIn\Enum\TradeInStatus;
 use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Shared\Mail\DualTransportMailer;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -17,7 +17,7 @@ final readonly class TradeInNotificationEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private LoggerInterface $logger,
         private UserCommunicationNotifier $userNotifications,
         private string $mailerFrom,
@@ -80,8 +80,8 @@ final readonly class TradeInNotificationEmailService
             ->text($content['text']);
 
         try {
-            $this->mailer->send($request->getEmail(), $content['subject'], $content['text'], $email, $scenario);
-        } catch (\Throwable $exception) {
+            $this->mailer->send($email);
+        } catch (\Exception $exception) {
             $this->logger->error('Trade-in notification email failed.', [
                 'scenario' => $scenario,
                 'reference' => $request->getReference(),

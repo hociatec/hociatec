@@ -10,10 +10,8 @@ use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/auth/me', name: 'api_auth_me', methods: ['GET'])]
-#[IsGranted('ROLE_USER')]
 class ProfileController extends AbstractController
 {
     public function __construct(private readonly ShippingAddressRepository $addresses)
@@ -22,11 +20,17 @@ class ProfileController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        /** @var User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return ApiResponse::success([
+                'authenticated' => false,
+            ]);
+        }
+
         $default = $this->addresses->findDefaultForUser($user) ?? $this->addresses->findFirstForUser($user);
 
         return ApiResponse::success([
+            'authenticated' => true,
             'id' => $user->getId(),
             'email' => $user->getEmail(),
             'firstName' => $user->getFirstName(),

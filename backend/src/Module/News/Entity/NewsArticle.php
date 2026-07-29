@@ -34,10 +34,10 @@ class NewsArticle
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $category = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    #[ORM\Column(name: 'is_published', type: 'boolean', options: ['default' => true])]
     private bool $isPublished = true;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(name: 'published_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]

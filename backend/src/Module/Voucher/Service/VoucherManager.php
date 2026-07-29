@@ -7,6 +7,7 @@ namespace App\Module\Voucher\Service;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherRepository;
 use App\Shared\Persistence\DoctrinePersistence;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class VoucherManager
 {
@@ -33,19 +34,22 @@ final class VoucherManager
         $name = trim($data['name']);
         $code = $this->normalizeCode($data['code']);
         $discountType = trim($data['discountType']);
-        $discountValue = (int) $data['discountValue'];
+        $discountValue = $data['discountValue'];
+        $description = $this->normalizeOptionalString($data['description'] ?? null);
+        $startsAt = $data['startsAt'] ?? null;
+        $endsAt = $data['endsAt'] ?? null;
 
-        $this->assertValidData($name, $code, $discountType, $discountValue, null);
+        $this->assertValidData($name, $code, $discountType, $discountValue, $startsAt, $endsAt, null);
 
         $voucher = new Voucher($name, $code, $discountType, $discountValue);
         $voucher
-            ->setDescription(isset($data['description']) ? trim((string) $data['description']) : null)
+            ->setDescription($description)
             ->setIsActive((bool) ($data['isActive'] ?? true))
-            ->setStartsAt($data['startsAt'] ?? null)
-            ->setEndsAt($data['endsAt'] ?? null);
+            ->setStartsAt($startsAt)
+            ->setEndsAt($endsAt);
 
         $this->persistence->persist($voucher);
-        $this->persistence->flush();
+        $this->flushWithDuplicateCodeHandling();
 
         return $voucher;
     }
@@ -67,22 +71,32 @@ final class VoucherManager
         $name = trim($data['name']);
         $code = $this->normalizeCode($data['code']);
         $discountType = trim($data['discountType']);
-        $discountValue = (int) $data['discountValue'];
+        $discountValue = $data['discountValue'];
+        $description = array_key_exists('description', $data)
+            ? $this->normalizeOptionalString($data['description'])
+            : $voucher->getDescription();
+        $isActive = array_key_exists('isActive', $data)
+            ? (bool) $data['isActive']
+            : $voucher->isActive();
+        $startsAt = array_key_exists('startsAt', $data)
+            ? $data['startsAt']
+            : $voucher->getStartsAt();
+        $endsAt = array_key_exists('endsAt', $data)
+            ? $data['endsAt']
+            : $voucher->getEndsAt();
 
-        $this->assertValidData($name, $code, $discountType, $discountValue, $voucher);
+        $this->assertValidData($name, $code, $discountType, $discountValue, $startsAt, $endsAt, $voucher);
 
         $voucher
             ->setName($name)
             ->setCode($code)
-            ->setDescription(isset($data['description']) ? trim((string) $data['description']) : null)
-            ->setDiscountType($discountType)
-            ->setDiscountValue($discountValue)
-            ->setIsActive((bool) ($data['isActive'] ?? true))
-            ->setStartsAt($data['startsAt'] ?? null)
-            ->setEndsAt($data['endsAt'] ?? null);
+            ->setDescription($description)
+            ->changeDiscount($discountType, $discountValue)
+            ->setIsActive($isActive)
+            ->setStartsAt($startsAt)
+            ->setEndsAt($endsAt);
 
-        $this->persistence->persist($voucher);
-        $this->persistence->flush();
+        $this->flushWithDuplicateCodeHandling();
 
         return $voucher;
     }
@@ -98,8 +112,15 @@ final class VoucherManager
         return mb_strtoupper(trim((string) $value));
     }
 
-    private function assertValidData(string $name, string $code, string $discountType, int $discountValue, ?Voucher $current): void
-    {
+    private function assertValidData(
+        string $name,
+        string $code,
+        string $discountType,
+        int $discountValue,
+        ?\DateTimeImmutable $startsAt,
+        ?\DateTimeImmutable $endsAt,
+        ?Voucher $current
+    ): void {
         if ('' === $name || '' === $code || '' === $discountType) {
             throw new \InvalidArgumentException('Champs obligatoires manquants.');
         }
@@ -112,9 +133,37 @@ final class VoucherManager
             throw new \InvalidArgumentException('La valeur de remise doit être supérieure à zéro.');
         }
 
+        if (Voucher::TYPE_PERCENT === $discountType && $discountValue > 100) {
+            throw new \InvalidArgumentException('La remise en pourcentage ne peut pas dépasser 100 %.');
+        }
+
+        if (null !== $startsAt && null !== $endsAt && $startsAt >= $endsAt) {
+            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
+        }
+
         $existing = $this->vouchers->findOneByCode($code);
         if (null !== $existing && (null === $current || $existing->getId() !== $current->getId())) {
             throw new \InvalidArgumentException('Ce code existe déjà.');
+        }
+    }
+
+    private function normalizeOptionalString(mixed $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return '' === $normalized ? null : $normalized;
+    }
+
+    private function flushWithDuplicateCodeHandling(): void
+    {
+        try {
+            $this->persistence->flush();
+        } catch (UniqueConstraintViolationException $exception) {
+            throw new \InvalidArgumentException('Ce code existe déjà.', previous: $exception);
         }
     }
 }

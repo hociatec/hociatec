@@ -32,7 +32,7 @@ final class CartSessionRepository extends ServiceEntityRepository
     public function findOneByUserId(int $userId): ?CartSession
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.user = :uid')
+            ->andWhere('IDENTITY(c.user) = :uid')
             ->setParameter('uid', $userId)
             ->setMaxResults(1)
             ->getQuery()

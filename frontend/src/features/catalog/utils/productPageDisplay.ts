@@ -37,21 +37,15 @@ export const buildProductVariantOptions = (variants: CatalogProduct[]) =>
     .map((variant) => {
       const storage = variant.storageCapacity?.trim() || null;
       const color = variant.color?.trim() || null;
-      const attributes = [storage, color].filter((value): value is string => Boolean(value));
       return {
         id: variant.id,
         slug: variant.slug,
         title: color ?? storage ?? variant.name,
-        subtitle:
-          storage && color
-            ? `${storage} • ${color}`
-            : attributes.length
-              ? attributes.join(' • ')
-              : 'Version disponible',
+        subtitle: storage ? `Stockage : ${storage}` : 'Version disponible',
         storage,
         color,
         priceLabel: `${formatProductPrice(variant.priceCents)}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
-        stockLabel: variant.stock > 0 ? `${variant.stock} en stock` : 'Indisponible',
+        stockLabel: variant.stock > 0 ? `${variant.stock} exemplaire${variant.stock > 1 ? 's' : ''} en stock` : 'Indisponible',
         isAvailable: variant.stock > 0,
       };
     });

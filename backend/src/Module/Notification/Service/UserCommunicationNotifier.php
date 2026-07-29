@@ -8,9 +8,9 @@ use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\Notification\Message\UserCommunicationEmailMessage;
 use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\User\Entity\User;
-use App\Shared\Mail\DualTransportMailer;
 use App\Shared\Persistence\DoctrinePersistence;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -20,7 +20,7 @@ final readonly class UserCommunicationNotifier
     public function __construct(
         private AccountNotificationEventRepository $notifications,
         private DoctrinePersistence $persistence,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private MessageBusInterface $bus,
         private LoggerInterface $logger,
         private string $mailerFrom,
@@ -30,6 +30,10 @@ final readonly class UserCommunicationNotifier
 
     public function notify(User $user, string $key, string $title, string $message, string $targetUrl, string $type): void
     {
+        if ($this->notifications->existsForKey($key)) {
+            return;
+        }
+
         $this->notifyInternal($user, $key, $title, $message, $targetUrl, $type);
 
         if ($this->shouldSendEmail($user)) {
@@ -89,7 +93,15 @@ final readonly class UserCommunicationNotifier
             ->text($text)
             ->html($html);
 
-        $this->mailer->send($user->getEmail(), $title, $text, $email, $type);
+        try {
+            $this->mailer->send($email);
+        } catch (\Exception $exception) {
+            $this->logger->warning('Communication email send failed.', [
+                'userId' => $user->getId(),
+                'type' => $type,
+                'exception' => $exception,
+            ]);
+        }
     }
 
     private function dispatchEmail(User $user, string $title, string $message, string $targetUrl, string $type): void

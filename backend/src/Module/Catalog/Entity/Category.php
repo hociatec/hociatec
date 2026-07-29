@@ -126,11 +126,15 @@ class Category
 
     public function removeProduct(Product $product): self
     {
-        if ($this->products->removeElement($product)) {
-            if ($product->getCategory() === $this) {
-                $product->setCategory(null);
-            }
+        if (!$this->products->contains($product)) {
+            return $this;
         }
+
+        if ($product->getCategory() === $this) {
+            throw new \LogicException('Un produit ne peut pas etre retire d une categorie sans etre rattache a une autre categorie.');
+        }
+
+        $this->products->removeElement($product);
 
         return $this;
     }

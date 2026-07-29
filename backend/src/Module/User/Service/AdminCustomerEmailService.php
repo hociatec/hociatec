@@ -6,7 +6,6 @@ namespace App\Module\User\Service;
 
 use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\User\Entity\User;
-use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -16,7 +15,6 @@ final class AdminCustomerEmailService
 {
     public function __construct(
         private readonly MailerInterface $mailer,
-        private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly LoggerInterface $logger,
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,
@@ -46,18 +44,6 @@ final class AdminCustomerEmailService
         }
 
         try {
-            $this->ovhRoundcubeMailer->send($user->getEmail(), $subject, $message);
-
-            return;
-        } catch (\Throwable $roundcubeException) {
-            $this->logger->warning('Admin customer email Roundcube primary transport failed.', [
-                'customerId' => $user->getId(),
-                'email' => $user->getEmail(),
-                'exception' => $roundcubeException,
-            ]);
-        }
-
-        try {
             $email = (new Email())
                 ->from(new Address($this->mailerFrom, 'Hociatec'))
                 ->to(new Address($user->getEmail(), $user->getFullName()))
@@ -66,14 +52,13 @@ final class AdminCustomerEmailService
                 ->html(nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));
 
             $this->mailer->send($email);
-        } catch (\Throwable $smtpException) {
+        } catch (\Exception $smtpException) {
             $this->logger->error('Admin customer email send failed.', [
                 'customerId' => $user->getId(),
-                'email' => $user->getEmail(),
                 'exception' => $smtpException,
             ]);
 
-            throw new \RuntimeException('Envoi impossible pour le moment. Vérifie la configuration email SMTP ou OVH.');
+            throw new \RuntimeException('Envoi impossible pour le moment. Vérifie la configuration email SMTP.', previous: $smtpException);
         }
     }
 }

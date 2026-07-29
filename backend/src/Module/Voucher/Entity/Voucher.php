@@ -14,6 +14,7 @@ class Voucher
 {
     public const TYPE_PERCENT = 'percent';
     public const TYPE_FIXED_CENTS = 'fixed_cents';
+    private const MAX_PERCENT_DISCOUNT = 100;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -61,10 +62,9 @@ class Voucher
 
     public function __construct(string $name, string $code, string $discountType, int $discountValue)
     {
-        $this->name = $name;
-        $this->code = $code;
-        $this->discountType = $discountType;
-        $this->discountValue = max(0, $discountValue);
+        $this->setName($name);
+        $this->setCode($code);
+        $this->changeDiscount($discountType, $discountValue);
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -82,6 +82,11 @@ class Voucher
 
     public function setName(string $name): self
     {
+        $name = trim($name);
+        if ('' === $name) {
+            throw new \InvalidArgumentException('Le nom du voucher est obligatoire.');
+        }
+
         $this->name = $name;
 
         return $this;
@@ -94,7 +99,12 @@ class Voucher
 
     public function setCode(string $code): self
     {
-        $this->code = mb_strtoupper(trim($code));
+        $code = mb_strtoupper(trim($code));
+        if ('' === $code) {
+            throw new \InvalidArgumentException('Le code du voucher est obligatoire.');
+        }
+
+        $this->code = $code;
 
         return $this;
     }
@@ -106,7 +116,8 @@ class Voucher
 
     public function setDescription(?string $description): self
     {
-        $this->description = $description;
+        $description = null !== $description ? trim($description) : null;
+        $this->description = '' === $description ? null : $description;
 
         return $this;
     }
@@ -118,6 +129,7 @@ class Voucher
 
     public function setDiscountType(string $discountType): self
     {
+        self::assertValidDiscountType($discountType);
         $this->discountType = $discountType;
 
         return $this;
@@ -130,7 +142,18 @@ class Voucher
 
     public function setDiscountValue(int $discountValue): self
     {
-        $this->discountValue = max(0, $discountValue);
+        self::assertValidDiscountValue($this->discountType, $discountValue);
+        $this->discountValue = $discountValue;
+
+        return $this;
+    }
+
+    public function changeDiscount(string $discountType, int $discountValue): self
+    {
+        self::assertValidDiscountType($discountType);
+        self::assertValidDiscountValue($discountType, $discountValue);
+        $this->discountType = $discountType;
+        $this->discountValue = $discountValue;
 
         return $this;
     }
@@ -154,6 +177,7 @@ class Voucher
 
     public function setStartsAt(?\DateTimeImmutable $startsAt): self
     {
+        self::assertValidDateRange($startsAt, $this->endsAt);
         $this->startsAt = $startsAt;
 
         return $this;
@@ -166,6 +190,7 @@ class Voucher
 
     public function setEndsAt(?\DateTimeImmutable $endsAt): self
     {
+        self::assertValidDateRange($this->startsAt, $endsAt);
         $this->endsAt = $endsAt;
 
         return $this;
@@ -221,5 +246,34 @@ class Voucher
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private static function assertValidDiscountType(string $discountType): void
+    {
+        if (!\in_array($discountType, [self::TYPE_PERCENT, self::TYPE_FIXED_CENTS], true)) {
+            throw new \InvalidArgumentException('Type de remise invalide.');
+        }
+    }
+
+    private static function assertValidDiscountValue(string $discountType, int $discountValue): void
+    {
+        if (0 === $discountValue) {
+            return;
+        }
+
+        if ($discountValue <= 0) {
+            throw new \InvalidArgumentException('La valeur de remise doit être supérieure à zéro.');
+        }
+
+        if (self::TYPE_PERCENT === $discountType && $discountValue > self::MAX_PERCENT_DISCOUNT) {
+            throw new \InvalidArgumentException('La remise en pourcentage ne peut pas dépasser 100 %.');
+        }
+    }
+
+    private static function assertValidDateRange(?\DateTimeImmutable $startsAt, ?\DateTimeImmutable $endsAt): void
+    {
+        if (null !== $startsAt && null !== $endsAt && $startsAt >= $endsAt) {
+            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
+        }
     }
 }

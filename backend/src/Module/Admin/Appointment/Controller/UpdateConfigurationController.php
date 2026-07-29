@@ -8,6 +8,7 @@ use App\Module\Admin\Appointment\DTO\WorkingDaysInput;
 use App\Module\Appointment\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Service\WorkingDayPayloadMapper;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,7 +35,7 @@ class UpdateConfigurationController extends AbstractController
             $input = WorkingDaysInput::fromArray($payload);
             $this->validator->validate($input);
             $days = $this->payloadMapper->map($input->toPayload());
-        } catch (\JsonException|\InvalidArgumentException $exception) {
+        } catch (InvalidJsonPayloadException|\JsonException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 

@@ -47,9 +47,12 @@ class PromotionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleResult();
 
-        $lastOrderAt = $result['lastOrderAt'] instanceof \DateTimeImmutable
-            ? $result['lastOrderAt']
-            : ($result['lastOrderAt'] instanceof \DateTimeInterface ? \DateTimeImmutable::createFromInterface($result['lastOrderAt']) : null);
+        $lastOrderAt = match (true) {
+            $result['lastOrderAt'] instanceof \DateTimeImmutable => $result['lastOrderAt'],
+            $result['lastOrderAt'] instanceof \DateTimeInterface => \DateTimeImmutable::createFromInterface($result['lastOrderAt']),
+            is_string($result['lastOrderAt'] ?? null) && '' !== trim($result['lastOrderAt']) => new \DateTimeImmutable($result['lastOrderAt']),
+            default => null,
+        };
 
         return ['ordersCount' => (int) ($result['ordersCount'] ?? 0), 'lastOrderAt' => $lastOrderAt];
     }

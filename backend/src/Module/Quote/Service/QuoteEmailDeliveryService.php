@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Quote\Service;
 
 use App\Module\Quote\Entity\Quote;
-use App\Shared\Http\OvhRoundcubeMailer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -17,7 +16,6 @@ final readonly class QuoteEmailDeliveryService
         private QuoteCalculator $calculator,
         private QuotePdfService $pdfService,
         private MailerInterface $mailer,
-        private OvhRoundcubeMailer $roundcube,
         private LoggerInterface $logger,
         private string $mailerFrom,
     ) {
@@ -31,19 +29,6 @@ final readonly class QuoteEmailDeliveryService
     public function deliver(Quote $quote, string $recipient, array $content): array
     {
         $pdf = $this->generatePdf($quote, $recipient);
-        if (null === $pdf) {
-            try {
-                $this->roundcube->send($recipient, $content['subject'], $content['text']);
-
-                return ['to' => $recipient, 'attachmentIncluded' => false, 'transport' => 'ovh_roundcube'];
-            } catch (\Throwable $exception) {
-                $this->logger->warning('Quote email Roundcube primary transport failed.', [
-                    'quoteId' => $quote->getId(),
-                    'email' => $recipient,
-                    'exception' => $exception,
-                ]);
-            }
-        }
 
         try {
             $this->mailer->send($this->createEmail($quote, $recipient, $content, $pdf));
@@ -53,34 +38,14 @@ final readonly class QuoteEmailDeliveryService
                 'attachmentIncluded' => null !== $pdf,
                 'transport' => 'symfony_mailer',
             ];
-        } catch (\Throwable $exception) {
-            if (null !== $pdf) {
-                try {
-                    $this->roundcube->send($recipient, $content['subject'], $content['text']);
-                    $this->logger->warning('Quote email sent without attachment after SMTP failure.', [
-                        'quoteId' => $quote->getId(),
-                        'email' => $recipient,
-                        'exception' => $exception,
-                    ]);
+        } catch (\Exception $exception) {
+            $this->logger->error('Quote email send failed.', [
+                'quoteId' => $quote->getId(),
+                'email' => $recipient,
+                'exception' => $exception,
+            ]);
 
-                    return ['to' => $recipient, 'attachmentIncluded' => false, 'transport' => 'ovh_roundcube_fallback'];
-                } catch (\Throwable $fallbackException) {
-                    $this->logger->error('Quote email fallback transport failed.', [
-                        'quoteId' => $quote->getId(),
-                        'email' => $recipient,
-                        'exception' => $fallbackException,
-                        'previousException' => $exception,
-                    ]);
-                }
-            } else {
-                $this->logger->error('Quote email send failed.', [
-                    'quoteId' => $quote->getId(),
-                    'email' => $recipient,
-                    'exception' => $exception,
-                ]);
-            }
-
-            throw new \RuntimeException('Envoi impossible pour le moment. Vérifie la configuration email SMTP ou OVH.');
+            throw new \RuntimeException('Envoi impossible pour le moment. Vérifie la configuration email SMTP.', previous: $exception);
         }
     }
 

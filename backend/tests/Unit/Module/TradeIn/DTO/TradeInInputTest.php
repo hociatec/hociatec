@@ -33,4 +33,33 @@ final class TradeInInputTest extends TestCase
         self::assertTrue($input->hasProofOfPurchase);
         self::assertTrue($input->consent);
     }
+
+    public function testItCanCloneContactDetailsWithWithContact(): void
+    {
+        $input = TradeInInput::fromArray([
+            'firstName' => 'Ada',
+            'lastName' => 'Lovelace',
+            'email' => 'ada@example.com',
+            'phone' => '0102030405',
+            'category' => 'ordinateur',
+            'productName' => 'Ordinateur',
+            'purchasePriceCents' => '100000',
+            'purchaseYear' => '2024',
+            'conditionGrade' => 'bon',
+            'functional' => true,
+            'hasAccessories' => false,
+            'hasProofOfPurchase' => false,
+            'description' => 'Description',
+            'consent' => true,
+        ]);
+
+        $updated = $input->withContact('Grace', 'Hopper', 'grace@example.com', '0607080910');
+
+        self::assertSame('Grace', $updated->firstName);
+        self::assertSame('Hopper', $updated->lastName);
+        self::assertSame('grace@example.com', $updated->email);
+        self::assertSame('0607080910', $updated->phone);
+        self::assertSame($input->category, $updated->category);
+        self::assertSame($input->productName, $updated->productName);
+    }
 }

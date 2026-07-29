@@ -1,0 +1,116 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Shared\Pdf;
+
+use App\Shared\Pdf\AccessiblePdfRenderer;
+use App\Shared\Pdf\PdfHtmlFormatter;
+use PHPUnit\Framework\TestCase;
+
+final class PdfInfrastructureTest extends TestCase
+{
+    public function testAccessiblePdfRendererRendersWithFakePythonRuntime(): void
+    {
+        $projectDir = sys_get_temp_dir().'/hociatec-pdf-'.bin2hex(random_bytes(4));
+        mkdir($projectDir.'/bin', 0777, true);
+        file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
+
+        $python = $projectDir.'/fake-python.sh';
+        file_put_contents($python, <<<'SH'
+#!/bin/sh
+if [ "$1" = "-c" ]; then
+  exit 0
+fi
+printf 'PDF-CONTENT' > "$3"
+exit 0
+SH);
+        chmod($python, 0755);
+
+        $renderer = new AccessiblePdfRenderer($projectDir, $python, '/opt/python-packages');
+
+        self::assertSame('PDF-CONTENT', $renderer->render('<h1>Invoice</h1>', 'invoice', 'read error'));
+    }
+
+    public function testAccessiblePdfRendererRejectsMissingRuntimeOrScript(): void
+    {
+        $renderer = new AccessiblePdfRenderer('/tmp/does-not-exist', '/tmp/missing-python', '');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('WeasyPrint n\'est pas installé pour la génération PDF accessible.');
+
+        $renderer->render('<p>x</p>', 'invoice', 'read error');
+    }
+
+    public function testAccessiblePdfRendererRunPropagatesProcessFailureMessage(): void
+    {
+        $projectDir = sys_get_temp_dir().'/hociatec-pdf-fail-'.bin2hex(random_bytes(4));
+        mkdir($projectDir, 0777, true);
+
+        $python = $projectDir.'/fail-python.sh';
+        file_put_contents($python, <<<'SH'
+#!/bin/sh
+echo boom 1>&2
+exit 1
+SH);
+        chmod($python, 0755);
+
+        $renderer = new AccessiblePdfRenderer($projectDir, $python, '');
+        $reflection = new \ReflectionObject($renderer);
+        $method = $reflection->getMethod('run');
+        $method->setAccessible(true);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('boom');
+
+        $method->invoke($renderer, $python, $projectDir.'/script.py', $projectDir.'/in.html', $projectDir.'/out.pdf');
+    }
+
+    public function testAccessiblePdfRendererPrivateHelpersCoverEnvironmentAndBinaryResolutionBranches(): void
+    {
+        $projectDir = sys_get_temp_dir().'/hociatec-pdf-helper-'.bin2hex(random_bytes(4));
+        mkdir($projectDir.'/bin', 0777, true);
+        file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
+
+        $python = $projectDir.'/fake-python.sh';
+        file_put_contents($python, "#!/bin/sh\nif [ \"$1\" = \"-c\" ]; then exit 0; fi\nexit 0\n");
+        chmod($python, 0755);
+
+        $renderer = new AccessiblePdfRenderer($projectDir, $python, '/opt/site-packages');
+        $reflection = new \ReflectionObject($renderer);
+
+        $resolve = $reflection->getMethod('resolvePythonBinary');
+        $resolve->setAccessible(true);
+        self::assertSame($python, $resolve->invoke($renderer));
+
+        $env = $reflection->getMethod('environment');
+        $env->setAccessible(true);
+        $environment = $env->invoke($renderer);
+        self::assertSame('/home/hocine', $environment['HOME']);
+        self::assertStringContainsString('/opt/site-packages', $environment['PYTHONPATH']);
+
+        $canImport = $reflection->getMethod('canImportWeasyPrint');
+        $canImport->setAccessible(true);
+        self::assertFalse($canImport->invoke($renderer, '/path/does/not/exist'));
+
+        $withoutPythonPath = new AccessiblePdfRenderer($projectDir, '/missing-python', '');
+        $env2 = (new \ReflectionObject($withoutPythonPath))->getMethod('environment');
+        $env2->setAccessible(true);
+        self::assertArrayNotHasKey('PYTHONPATH', $env2->invoke($withoutPythonPath));
+    }
+
+    public function testPdfHtmlFormatterCoversMoneyDateEscapeAndParagraphVariants(): void
+    {
+        $formatter = new PdfHtmlFormatter();
+
+        self::assertSame('12,34 EUR', $formatter->money(1234));
+        self::assertSame('-', $formatter->date(null));
+        self::assertSame('29/07/2026', $formatter->date('2026-07-29'));
+        self::assertSame('-', $formatter->date('bad-date'));
+        self::assertSame('bad-date', $formatter->date('bad-date', true));
+        self::assertSame('&lt;b&gt;x&lt;/b&gt;', $formatter->escape('<b>x</b>'));
+        self::assertSame('', $formatter->paragraphsFromLines(" \n "));
+        self::assertSame('<p>-</p>', $formatter->paragraphsFromLines(" \n ", true));
+        self::assertSame('<p>Line 1</p><p>&lt;Line 2&gt;</p>', $formatter->paragraphsFromLines(" Line 1 \n <Line 2> "));
+    }
+}

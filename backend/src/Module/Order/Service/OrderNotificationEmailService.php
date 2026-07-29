@@ -6,7 +6,7 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
 use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Shared\Mail\DualTransportMailer;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -15,7 +15,7 @@ final class OrderNotificationEmailService
     public function __construct(
         private readonly OrderPersistence $persistence,
         private readonly OrderNotificationContentProvider $contentProvider,
-        private readonly DualTransportMailer $mailer,
+        private readonly MailerInterface $mailer,
         private readonly OrderEventLogger $events,
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,
@@ -187,13 +187,7 @@ final class OrderNotificationEmailService
             ->html($content['html'])
             ->text($content['text']);
 
-        $this->mailer->send(
-            $order->getUser()->getEmail(),
-            $content['subject'],
-            $content['text'],
-            $email,
-            'order_notification',
-        );
+        $this->mailer->send($email);
     }
 
     private function hasStatusNotificationAlreadyBeenSent(Order $order, string $newStatus): bool

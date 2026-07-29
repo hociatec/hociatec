@@ -7,11 +7,11 @@ namespace App\Module\Voucher\Service;
 use App\Module\Cart\Entity\CartSession;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Repository\VoucherRepository;
+use App\Module\Voucher\Repository\VoucherLookupInterface;
 
 final class VoucherEngine
 {
-    public function __construct(private readonly VoucherRepository $vouchers)
+    public function __construct(private readonly VoucherLookupInterface $vouchers)
     {
     }
 

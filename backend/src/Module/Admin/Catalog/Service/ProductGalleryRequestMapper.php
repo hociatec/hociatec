@@ -6,6 +6,7 @@ namespace App\Module\Admin\Catalog\Service;
 
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 final class ProductGalleryRequestMapper
 {
@@ -36,7 +37,11 @@ final class ProductGalleryRequestMapper
      */
     public function removals(Request $request): array
     {
-        $values = $request->request->all('removeGallery');
+        try {
+            $values = $request->request->all('removeGallery');
+        } catch (BadRequestException) {
+            $values = [];
+        }
         if ([] === $values) {
             $single = $request->request->get('removeGallery');
             $values = null === $single ? [] : [$single];

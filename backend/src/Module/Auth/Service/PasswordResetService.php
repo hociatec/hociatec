@@ -7,7 +7,7 @@ namespace App\Module\Auth\Service;
 use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
-use App\Shared\Http\OvhRoundcubeMailer;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -19,8 +19,8 @@ class PasswordResetService
         private readonly UserRepository $users,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly MailerInterface $mailer,
-        private readonly OvhRoundcubeMailer $ovhRoundcubeMailer,
         private readonly EmailTemplateRenderer $emailTemplates,
+        private readonly LoggerInterface $logger,
         private readonly string $frontendUrl,
         private readonly string $mailerFrom,
     ) {
@@ -59,24 +59,20 @@ class PasswordResetService
         ]);
 
         try {
-            $this->ovhRoundcubeMailer->send(
-                $user->getEmail(),
-                $content['subject'],
-                $content['text'],
-            );
-        } catch (\Throwable) {
-            try {
-                $emailMessage = (new Email())
-                    ->from(new Address($this->mailerFrom, 'Hociatec'))
-                    ->to(new Address($user->getEmail(), $user->getFullName()))
-                    ->subject($content['subject'])
-                    ->html($content['html'])
-                    ->text($content['text']);
+            $emailMessage = (new Email())
+                ->from(new Address($this->mailerFrom, 'Hociatec'))
+                ->to(new Address($user->getEmail(), $user->getFullName()))
+                ->subject($content['subject'])
+                ->html($content['html'])
+                ->text($content['text']);
 
-                $this->mailer->send($emailMessage);
-            } catch (\Throwable) {
-                // Ne divulgue pas l'état du compte ni les erreurs d'envoi.
-            }
+            $this->mailer->send($emailMessage);
+        } catch (\Exception $exception) {
+            $this->logger->warning('Password reset email send failed.', [
+                'userId' => $user->getId(),
+                'exception' => $exception,
+            ]);
+            // Ne divulgue pas l'état du compte ni les erreurs d'envoi.
         }
     }
 

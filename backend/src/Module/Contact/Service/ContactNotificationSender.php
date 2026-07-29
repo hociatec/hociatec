@@ -6,7 +6,7 @@ namespace App\Module\Contact\Service;
 
 use App\Module\Contact\DTO\ContactInput;
 use App\Module\Marketing\Service\EmailTemplateRenderer;
-use App\Shared\Mail\DualTransportMailer;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -14,7 +14,7 @@ final readonly class ContactNotificationSender
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private string $mailerFrom,
         private string $contactRecipient,
     ) {
@@ -41,13 +41,6 @@ final readonly class ContactNotificationSender
             ->html($content['html'])
             ->text($content['text']);
 
-        $this->mailer->send(
-            $this->contactRecipient,
-            $content['subject'],
-            $content['text'],
-            $email,
-            'contact_admin_notification',
-            $input->email,
-        );
+        $this->mailer->send($email);
     }
 }

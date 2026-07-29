@@ -11,7 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Voucher>
  */
-final class VoucherRepository extends ServiceEntityRepository
+final class VoucherRepository extends ServiceEntityRepository implements VoucherLookupInterface
 {
     public function __construct(ManagerRegistry $registry)
     {

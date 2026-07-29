@@ -26,6 +26,7 @@ final class CartFormatter
     {
         $items = [];
         $totalQuantity = 0;
+        $subtotalPriceCents = 0;
 
         /** @var CartItem $item */
         foreach ($cart->getItems() as $item) {
@@ -39,6 +40,8 @@ final class CartFormatter
                 $linePrice *= $months;
             }
 
+            $subtotalPriceCents += $linePrice;
+
             $items[] = [
                 'id' => $item->getId(),
                 'product' => CatalogFormatter::formatProduct($product),
@@ -50,8 +53,33 @@ final class CartFormatter
             $totalQuantity += $quantity;
         }
 
-        $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
-        $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user);
+        $promotionSummary = [
+            'subtotalPriceCents' => $subtotalPriceCents,
+            'discountAmountCents' => 0,
+            'totalPriceCents' => $subtotalPriceCents,
+            'appliedPromotion' => null,
+            'eligiblePromotions' => [],
+        ];
+
+        try {
+            $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
+        } catch (\Throwable) {
+        }
+
+        $voucherSummary = [
+            'subtotalPriceCents' => $subtotalPriceCents,
+            'discountAmountCents' => 0,
+            'totalPriceCents' => $subtotalPriceCents,
+            'appliedVoucher' => null,
+            'voucherCodeStatus' => 'none',
+            'enteredVoucherCode' => null,
+        ];
+
+        try {
+            $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user);
+        } catch (\Throwable) {
+        }
+
         $summary = (null !== $cart->getVoucherCode() && 'applied' === $voucherSummary['voucherCodeStatus'])
             ? $voucherSummary
             : [

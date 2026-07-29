@@ -66,6 +66,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     try {
       setStatus('loading');
       const currentUser = await fetchCurrentUser();
+      if (!currentUser) {
+        clearAuthToken();
+        setUser(null);
+        setStatus('unauthenticated');
+        return;
+      }
+
       setUser(currentUser);
       setStatus('authenticated');
     } catch (error) {
@@ -77,6 +84,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           await refreshUserSession();
 
           const currentUser = await fetchCurrentUser();
+          if (!currentUser) {
+            clearAuthToken();
+            setUser(null);
+            setStatus('unauthenticated');
+            return;
+          }
+
           setUser(currentUser);
           setStatus('authenticated');
           return;

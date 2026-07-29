@@ -7,9 +7,8 @@ namespace App\Module\User\Service;
 use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\User\Entity\User;
 use App\Module\User\Exception\ActivationEmailDeliveryException;
-use App\Shared\Mail\DualTransportMailer;
-use App\Shared\Mail\MailDeliveryException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -17,7 +16,7 @@ final readonly class AccountActivationEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $emailTemplates,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private LoggerInterface $logger,
         private string $frontendUrl,
         private string $mailerFrom,
@@ -60,14 +59,12 @@ final readonly class AccountActivationEmailService
             ->text($content['text']);
 
         try {
-            $this->mailer->send(
-                $user->getEmail(),
-                $content['subject'],
-                $content['text'],
-                $email,
-                'account_activation',
-            );
-        } catch (MailDeliveryException $exception) {
+            $this->mailer->send($email);
+        } catch (\Exception $exception) {
+            $this->logger->warning('Account activation email send failed.', [
+                'userId' => $user->getId(),
+                'exception' => $exception,
+            ]);
             throw ActivationEmailDeliveryException::deliveryFailed($exception);
         }
     }

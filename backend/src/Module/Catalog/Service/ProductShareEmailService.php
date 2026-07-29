@@ -6,8 +6,8 @@ namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Product;
 use App\Module\Marketing\Service\EmailTemplateRenderer;
-use App\Shared\Mail\DualTransportMailer;
 use App\Shared\Mail\MailDeliveryException;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -15,7 +15,7 @@ final readonly class ProductShareEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private DualTransportMailer $mailer,
+        private MailerInterface $mailer,
         private string $frontendUrl,
         private string $mailerFrom,
     ) {
@@ -54,12 +54,10 @@ final readonly class ProductShareEmailService
             ->html($content['html'])
             ->text($content['text']);
 
-        $this->mailer->send(
-            $recipient,
-            $content['subject'],
-            $content['text'],
-            $email,
-            'product_share',
-        );
+        try {
+            $this->mailer->send($email);
+        } catch (\Exception $exception) {
+            throw MailDeliveryException::failed('product_share', $exception);
+        }
     }
 }

@@ -38,7 +38,7 @@ final class QuoteStatusTranslator
         $normalized = self::normalize($value);
 
         foreach (self::LABELS as $code => $label) {
-            if ($normalized === $code || $normalized === $label) {
+            if ($normalized === $code || $normalized === self::normalize($label)) {
                 return $code;
             }
         }
