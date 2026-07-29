@@ -63,32 +63,11 @@
   line-height: 1.62;
 }
 
-.home-hero__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.35rem;
-}
-
 .home-hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
   margin-top: 1.8rem;
-}
-
-.home-hero__summary span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  border: 1px solid rgba(201, 177, 144, 0.82);
-  border-radius: 999px;
-  padding: 0.45rem 0.72rem;
-  background: rgba(255, 255, 255, 0.66);
-  color: var(--hocia-ink);
-  font-size: 0.82rem;
-  font-weight: 800;
-  box-shadow: 0 10px 24px rgba(78, 45, 20, 0.08);
 }
 
 .home-button {

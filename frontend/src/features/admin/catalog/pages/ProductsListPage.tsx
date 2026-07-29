@@ -9,6 +9,8 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
+import { NumberRangeFilter } from '@/shared/components/filters/NumberRangeFilter';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 
 import '@/features/catalog/pages/CatalogPages.css';
@@ -28,13 +30,23 @@ export const ProductsListPage = () => {
     setFilterCategory,
     stockFilter,
     setStockFilter,
+    featuredFilter,
+    setFeaturedFilter,
+    sellingTypeFilter,
+    setSellingTypeFilter,
+    minPrice,
+    maxPrice,
+    setPriceRange,
+    sort,
+    setSort,
     filteredProducts,
+    hasActiveFilters,
+    page,
+    setPage,
+    meta,
     resetFilters,
     handleDelete,
   } = useAdminProductsList();
-
-  const hasActiveFilters =
-    search.trim() !== '' || filterCategory !== 'all' || stockFilter !== 'all';
 
   return (
     <PageContainer
@@ -44,8 +56,8 @@ export const ProductsListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} affiché
-          {filteredProducts.length > 1 ? 's' : ''}
+          {meta?.total ?? filteredProducts.length} produit{(meta?.total ?? filteredProducts.length) > 1 ? 's' : ''} trouvé
+          {(meta?.total ?? filteredProducts.length) > 1 ? 's' : ''}
         </p>
         <p className="text-sm text-stone-500">
           Recherchez un produit, contrôlez les stocks et ouvrez rapidement les fiches à corriger.
@@ -87,6 +99,39 @@ export const ProductsListPage = () => {
             { value: 'low', label: 'Stock faible (≤ 3)' },
           ]}
           ariaLabel="Stock"
+        />
+        <SelectFilter
+          value={featuredFilter}
+          onChange={(value) => setFeaturedFilter(value as 'all' | 'featured')}
+          options={[
+            { value: 'all', label: 'Tous les produits' },
+            { value: 'featured', label: 'Produits tendance' },
+          ]}
+          ariaLabel="Mise en avant"
+        />
+        <SelectFilter
+          value={sellingTypeFilter}
+          onChange={(value) => setSellingTypeFilter(value as 'all' | 'sale' | 'rental')}
+          options={[
+            { value: 'all', label: 'Vente et location' },
+            { value: 'sale', label: 'Vente uniquement' },
+            { value: 'rental', label: 'Location uniquement' },
+          ]}
+          ariaLabel="Mode de vente"
+        />
+        <NumberRangeFilter min={minPrice} max={maxPrice} onChange={setPriceRange} />
+        <SelectFilter
+          value={sort}
+          onChange={setSort}
+          options={[
+            { value: 'created_desc', label: 'Plus récents' },
+            { value: 'price_asc', label: 'Prix croissant' },
+            { value: 'price_desc', label: 'Prix décroissant' },
+            { value: 'name_desc', label: 'Nom décroissant' },
+            { value: 'stock_desc', label: 'Stock décroissant' },
+            { value: 'stock_asc', label: 'Stock croissant' },
+          ]}
+          ariaLabel="Trier les produits"
         />
       </FilterBar>
 
@@ -172,6 +217,14 @@ export const ProductsListPage = () => {
           </table>
         </AdminTableShell>
       </AdminListState>
+
+      <PaginationControls
+        page={page}
+        total={meta?.total}
+        totalLabel="produit"
+        totalPages={meta?.totalPages ?? 1}
+        onPageChange={setPage}
+      />
     </PageContainer>
   );
 };

@@ -16,9 +16,51 @@ final readonly class ProductQueryService
     /**
      * @return list<Product>
      */
-    public function listForAdmin(): array
+    public function listForAdmin(
+        ?string $categorySlug = null,
+        ?string $search = null,
+        ?bool $onlyFeatured = null,
+        ?string $sellingType = null,
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        ?bool $lowStockOnly = null,
+        ?string $sort = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): array
     {
-        return $this->products->findAllForAdmin();
+        return $this->products->findAllForAdmin(
+            $categorySlug,
+            $search,
+            $onlyFeatured,
+            $sellingType,
+            $minPriceCents,
+            $maxPriceCents,
+            $lowStockOnly,
+            $sort,
+            $limit,
+            $offset,
+        );
+    }
+
+    public function countForAdmin(
+        ?string $categorySlug = null,
+        ?string $search = null,
+        ?bool $onlyFeatured = null,
+        ?string $sellingType = null,
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        ?bool $lowStockOnly = null,
+    ): int {
+        return $this->products->countForAdmin(
+            $categorySlug,
+            $search,
+            $onlyFeatured,
+            $sellingType,
+            $minPriceCents,
+            $maxPriceCents,
+            $lowStockOnly,
+        );
     }
 
     /**

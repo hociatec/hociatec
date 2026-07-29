@@ -40,7 +40,6 @@ export const ProductDetailHeader = ({
   variantOptions,
 }: ProductDetailHeaderProps) => (
   <header className="catalog-detail-header">
-    <span className="catalog-badge">{product.category.name}</span>
     <h1>{productDisplayName}</h1>
     <p className="catalog-detail-summary">
       {product.shortDescription ??

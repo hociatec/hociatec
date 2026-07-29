@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import {
   BarChart3,
@@ -170,6 +170,7 @@ export const AdminLayout = () => {
                 isOpen={openGroups[group.id] ?? false}
                 isLinkActive={isLinkActive}
                 onToggle={() => toggleGroup(group.id)}
+                onClose={() => setOpenGroups((current) => ({ ...current, [group.id]: false }))}
               />
             ))}
           </nav>
@@ -188,18 +189,36 @@ const AdminNavGroupSection = ({
   isLinkActive,
   isOpen,
   onToggle,
+  onClose,
 }: {
   group: AdminNavGroup;
   isCurrent: boolean;
   isLinkActive: (link: AdminNavLink) => boolean;
   isOpen: boolean;
   onToggle: () => void;
+  onClose: () => void;
 }) => {
   const Icon = group.icon;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if ('Escape' !== event.key || !isOpen) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    onClose();
+    triggerRef.current?.focus();
+  };
 
   return (
-    <section className={`admin-shell__nav-group${isCurrent ? ' is-current' : ''}`}>
+    <section
+      className={`admin-shell__nav-group${isCurrent ? ' is-current' : ''}`}
+      onKeyDown={handleKeyDown}
+    >
       <button
+        ref={triggerRef}
         type="button"
         className="admin-shell__nav-trigger"
         aria-expanded={isOpen}

@@ -219,29 +219,30 @@
   color: var(--hocia-ink);
 }
 
-.catalog-highlight-card dl {
+.catalog-highlight-card__info-list {
   margin: 0;
   display: grid;
   gap: 12px;
 }
 
-.catalog-highlight-card dl div {
+.catalog-highlight-card__info-list > div {
   display: grid;
-  gap: 4px;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.45rem;
 }
 
-.catalog-highlight-card dt {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.catalog-highlight-card__info-list span {
+  font-size: 0.95rem;
   color: var(--hocia-muted);
+  font-weight: 700;
 }
 
-.catalog-highlight-card dd {
-  margin: 0;
+.catalog-highlight-card__info-list strong {
   font-size: 1rem;
   color: var(--hocia-ink);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .catalog-detail-actions--secondary {

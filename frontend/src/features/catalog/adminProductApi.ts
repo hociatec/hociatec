@@ -1,7 +1,27 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
-import type { CatalogProduct, UpsertProductPayload } from './apiTypes';
+import type { CatalogProduct, CatalogSort, UpsertProductPayload } from './apiTypes';
+
+export interface AdminProductsPageMeta {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface AdminProductsPageParams {
+  page: number;
+  perPage: number;
+  search?: string;
+  category?: string;
+  featured?: boolean;
+  sellingType?: 'sale' | 'rental';
+  minPrice?: number;
+  maxPrice?: number;
+  stock?: 'low';
+  sort?: CatalogSort;
+}
 
 export const fetchAdminProducts = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
@@ -10,6 +30,18 @@ export const fetchAdminProducts = async () => {
 
   if (data.status === 'success') {
     return data.data.items;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
+};
+
+export const fetchAdminProductsPage = async (params: AdminProductsPageParams) => {
+  const { data } = await httpClient.get<
+    ApiResponse<{ items: CatalogProduct[]; meta: AdminProductsPageMeta }>
+  >('/api/admin/catalog/products', { params });
+
+  if (data.status === 'success') {
+    return data.data;
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));

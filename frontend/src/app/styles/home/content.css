@@ -54,13 +54,6 @@
   box-shadow: var(--hocia-shadow-md);
 }
 
-.home-service-card span {
-  display: block;
-  color: var(--hocia-ink);
-  font-size: 1.08rem;
-  font-weight: 850;
-}
-
 .home-service-card p {
   margin: 0.5rem 0 0;
   color: var(--hocia-muted);

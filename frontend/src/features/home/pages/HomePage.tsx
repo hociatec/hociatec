@@ -14,15 +14,15 @@ import {
 const serviceHighlights = [
   {
     title: 'Matériel',
-    text: 'Neuf, reconditionné ou en location, selon votre usage.',
+    text: 'Une sélection cohérente, du neuf au reconditionné, à l’achat ou en location.',
   },
   {
     title: 'Interventions',
-    text: 'Installation, configuration, assistance et formation.',
+    text: 'Installation, dépannage et configuration pour retrouver un quotidien fluide.',
   },
   {
     title: 'Projets',
-    text: 'Audits, devis, sites et logiciels avec un cadre clair.',
+    text: 'Audit, site ou outil métier : des étapes claires et un résultat utile.',
   },
 ];
 
@@ -44,10 +44,10 @@ export const HomePage = () => {
       <div className="home-page">
         <section className="home-hero">
           <div className="home-hero__content">
-            <h1>Matériel, interventions et projets numériques</h1>
+            <h1>Un numérique fiable, pensé pour durer.</h1>
             <p>
-              Des solutions adaptées à votre usage, avec un interlocuteur pour vous guider de
-              l’idée au suivi.
+              Le bon équipement, des outils bien configurés et des projets qui avancent sans
+              complexité inutile.
             </p>
             <div className="home-hero__actions">
               <Link to="/devis/nouveau" className="home-button home-button--primary">
@@ -57,17 +57,12 @@ export const HomePage = () => {
                 Voir le catalogue
               </Link>
             </div>
-            <div className="home-hero__summary" aria-label="Engagements Hociatec">
-              <span>Conseil humain</span>
-              <span>Solutions durables</span>
-              <span>Suivi clair</span>
-            </div>
           </div>
           <div className="home-hero__visual" aria-hidden="true">
             <img src="/hociatec-hero-workbench.webp" alt="" />
             <div className="home-hero__metric">
-              <strong>Vente · Location · Audit</strong>
-              <span>Un interlocuteur pour avancer plus vite.</span>
+              <strong>Des choix utiles. Des réponses concrètes.</strong>
+              <span>Un accompagnement qui reste compréhensible à chaque étape.</span>
             </div>
           </div>
         </section>
@@ -76,7 +71,6 @@ export const HomePage = () => {
           <div className="home-services__grid">
             {serviceHighlights.map((service) => (
               <article key={service.title} className="home-service-card">
-                <span>{service.title}</span>
                 <p>{service.text}</p>
               </article>
             ))}
@@ -86,12 +80,8 @@ export const HomePage = () => {
         <section className="home-products">
           <div className="home-section-heading home-section-heading--row">
             <div>
-              <p>Catalogue</p>
-              <h2>Produits tendances</h2>
+              <h2>Produits tendance</h2>
             </div>
-            <Link to="/catalogue/vente" className="home-button home-button--secondary">
-              Tous les produits
-            </Link>
           </div>
           {loadingProducts && (
             <p className="home-loading" role="status" aria-live="polite">
