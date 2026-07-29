@@ -6,8 +6,6 @@
 parameters:
     env(STRIPE_WEBHOOK_SECRET): ''
     env(STRIPE_REFUND_WEBHOOK_SECRET): ''
-    env(OVH_WEBMAIL_EMAIL): ''
-    env(OVH_WEBMAIL_PASSWORD): ''
     env(WEASYPRINT_PYTHON): ''
     env(WEASYPRINT_PYTHONPATH): ''
     env(STRIPE_SECRET_KEY): ''
@@ -186,12 +184,6 @@ services:
     App\Module\Marketing\Service\MarketingCampaignSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
-
-    App\Shared\Http\RoundcubeCredentialsProvider:
-        arguments:
-            $ovhEmail: '%env(OVH_WEBMAIL_EMAIL)%'
-            $ovhPassword: '%env(OVH_WEBMAIL_PASSWORD)%'
-            $mailerDsn: '%env(MAILER_DSN)%'
 
     App\Shared\Pdf\AccessiblePdfRenderer:
         arguments:
