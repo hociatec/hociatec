@@ -15,11 +15,6 @@ import {
 
 import { isAnyPathActive, isPathActive } from '@/shared/lib/routes';
 
-const primaryLinks = [
-  { path: '/formations', label: 'Formations', Icon: GraduationCap },
-  { path: '/contact', label: 'Contact', Icon: BriefcaseBusiness },
-] as const;
-
 const catalogLinks = [
   { path: '/catalogue/vente', label: 'Vente', Icon: ShoppingBag },
   { path: '/catalogue/location', label: 'Location', Icon: PackageSearch },
@@ -125,16 +120,22 @@ export const SiteHeaderNavigation = () => {
           ))}
         </div>
       </details>
-      {primaryLinks.map(({ path, label, Icon }) => (
-        <Link
-          key={path}
-          to={path}
-          className={`site-header__link${isPathActive(pathname, path) ? ' site-header__link--active' : ''}`}
-        >
-          <Icon aria-hidden="true" />
-          {label}
-        </Link>
-      ))}
+
+      <Link
+        to="/formations"
+        className={`site-header__link${isPathActive(pathname, '/formations') ? ' site-header__link--active' : ''}`}
+      >
+        <GraduationCap aria-hidden="true" />
+        Formations
+      </Link>
+
+      <Link
+        to="/contact"
+        className={`site-header__link site-header__link--contact${isPathActive(pathname, '/contact') ? ' site-header__link--contact-active' : ''}`}
+      >
+        <BriefcaseBusiness aria-hidden="true" />
+        Contact
+      </Link>
     </nav>
   );
 };

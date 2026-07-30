@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import type { CatalogProduct } from '@/features/catalog/api';
-import { ProductActionToolbar } from '@/features/catalog/components/ProductActionToolbar';
 import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 import { formatEuroCents } from '@/shared/lib/formatters';
@@ -19,31 +18,11 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
     .filter(Boolean)
     .join(' • ');
 
+  const productLink = `/catalogue/produits/${product.slug}`;
+
   return (
     <article className="home-product-card">
-      <header>
-        <h3>
-          <Link to={`/catalogue/produits/${product.slug}`}>{productDisplayName}</Link>
-        </h3>
-        <p className="home-product-card__sku">
-          Référence produit: <span className="font-semibold">{product.sku}</span>
-        </p>
-        <ProductMetaBadges
-          sellingType={product.sellingType}
-          sellingTypeLabel={product.sellingTypeLabel}
-          categoryName={product.category.name}
-        />
-        {compactSpecs.length > 0 && (
-          <p
-            className="catalog-product-card__spec-summary"
-            aria-label="Caractéristiques principales"
-          >
-            {compactSpecs}
-          </p>
-        )}
-      </header>
-
-      <Link to={`/catalogue/produits/${product.slug}`} className="home-product-card__media">
+      <Link to={productLink} className="home-product-card__media">
         {product.imageUrl && !imageFailed ? (
           <img
             src={product.imageUrl}
@@ -55,13 +34,38 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
         )}
       </Link>
 
-      {product.shortDescription && (
-        <p className="home-product-card__description">{product.shortDescription}</p>
-      )}
+      <div className="home-product-card__content">
+        <header className="flex flex-col gap-2">
+          <h3>
+            <Link to={productLink} className="home-product-card__title-link">{productDisplayName}</Link>
+          </h3>
+          <p className="home-product-card__sku">
+            Référence: <span className="font-semibold">{product.sku}</span>
+          </p>
+          <ProductMetaBadges
+            sellingType={product.sellingType}
+            sellingTypeLabel={product.sellingTypeLabel}
+            categoryName={product.category.name}
+          />
+          {compactSpecs.length > 0 && (
+            <p
+              className="catalog-product-card__spec-summary"
+              aria-label="Caractéristiques principales"
+            >
+              {compactSpecs}
+            </p>
+          )}
+        </header>
 
-      <div className="home-product-card__footer">
-        <span>{formatEuroCents(product.priceCents)}</span>
-        <ProductActionToolbar product={product} />
+        {product.shortDescription && (
+          <p className="home-product-card__description">{product.shortDescription}</p>
+        )}
+
+        <div className="home-product-card__footer">
+          <div className="home-product-card__footer-main">
+            <span className="home-product-card__price">{formatEuroCents(product.priceCents)}</span>
+          </div>
+        </div>
       </div>
     </article>
   );

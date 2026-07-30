@@ -90,7 +90,11 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
               {product.priceUnitLabel ?? ''}
             </span>
           </div>
-          {actionSlot ? <div className="catalog-product-card__actions">{actionSlot}</div> : null}
+          {actionSlot ? (
+            <div className="catalog-product-card__actions-container">
+              <div className="catalog-product-card__actions">{actionSlot}</div>
+            </div>
+          ) : null}
         </footer>
       </div>
     </article>

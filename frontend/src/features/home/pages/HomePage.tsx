@@ -4,6 +4,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
 import { Link } from 'react-router';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
+import { Star, ShieldCheck, Users, Award, HeartHandshake } from 'lucide-react';
 import {
   ORGANIZATION_SCHEMA,
   WEBSITE_SCHEMA,
@@ -26,6 +27,34 @@ const serviceHighlights = [
   },
 ];
 
+const stats = [
+  { value: '1500+', label: 'Ordinateurs reconditionnés', icon: ShieldCheck },
+  { value: '10+', label: "Ans d'expérience", icon: Award },
+  { value: '98%', label: 'Clients satisfaits', icon: Users },
+  { value: '24h', label: 'Délai moyen de réponse', icon: HeartHandshake },
+];
+
+const clientReviews = [
+  {
+    name: 'Jean-Pierre M.',
+    role: 'Particulier',
+    rating: 5,
+    comment: 'Un service impeccable et rapide. Mon ordinateur reconditionné fonctionne comme neuf ! Un grand merci pour les conseils avisés.',
+  },
+  {
+    name: 'Sophie L.',
+    role: 'Directrice d’école de formation',
+    rating: 5,
+    comment: "Excellent matériel de formation loué pour nos sessions. Support réactif et professionnel, je recommande les yeux fermés.",
+  },
+  {
+    name: 'Cabinet Bertrand & Associés',
+    role: 'Client Professionnel',
+    rating: 5,
+    comment: 'L’audit et la restructuration de notre réseau ont été menés de main de maître. Simplicité, clarté et efficacité maximales.',
+  },
+];
+
 export const HomePage = () => {
   useDocumentTitle('Le numérique à taille humaine');
   useMetaTags({
@@ -41,8 +70,8 @@ export const HomePage = () => {
 
   return (
     <SiteLayout>
-      <div className="home-page">
-        <section className="home-hero">
+      <div className="home-page overflow-hidden">
+        <section className="home-hero animate-fade-in-up">
           <div className="home-hero__content">
             <h1>Un numérique fiable, pensé pour durer.</h1>
             <p>
@@ -67,7 +96,7 @@ export const HomePage = () => {
           </div>
         </section>
 
-        <section className="home-services" aria-label="Services Hociatec">
+        <section className="home-services animate-fade-in-up delay-100" aria-label="Services Hociatec">
           <div className="home-services__grid">
             {serviceHighlights.map((service) => (
               <article key={service.title} className="home-service-card">
@@ -77,7 +106,27 @@ export const HomePage = () => {
           </div>
         </section>
 
-        <section className="home-products">
+        {/* Stats Section */}
+        <section className="home-stats-section animate-fade-in-up delay-200" aria-label="Quelques chiffres">
+          <div className="home-stats-container">
+            <div className="home-stats-grid">
+              {stats.map((stat) => {
+                const IconComponent = stat.icon;
+                return (
+                  <div key={stat.label} className="home-stat-item">
+                    <div className="home-stat-icon-wrapper">
+                      <IconComponent className="home-stat-icon" aria-hidden="true" />
+                    </div>
+                    <div className="home-stat-value">{stat.value}</div>
+                    <div className="home-stat-label">{stat.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-products animate-fade-in-up delay-300">
           <div className="home-section-heading home-section-heading--row">
             <div>
               <h2>Produits tendance</h2>
@@ -108,6 +157,34 @@ export const HomePage = () => {
               </span>
             </div>
           )}
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="home-testimonials-section animate-fade-in-up delay-400" aria-label="Témoignages clients">
+          <div className="home-testimonials-container">
+            <div className="home-section-heading text-center mx-auto">
+              <h2>Avis de nos clients</h2>
+              <p className="mt-2 text-stone-600">Découvrez les retours d&apos;expérience de ceux qui nous font confiance.</p>
+            </div>
+            <div className="home-testimonials-grid">
+              {clientReviews.map((review) => (
+                <div key={review.name} className="home-testimonial-card">
+                  <div className="home-testimonial-stars">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="home-testimonial-star-filled" aria-hidden="true" />
+                    ))}
+                  </div>
+                  <blockquote className="home-testimonial-comment">
+                    &ldquo;{review.comment}&rdquo;
+                  </blockquote>
+                  <div className="home-testimonial-footer">
+                    <cite className="home-testimonial-author">{review.name}</cite>
+                    <span className="home-testimonial-role">{review.role}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       </div>
     </SiteLayout>
