@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { Image as ImageIcon } from 'lucide-react';
 
 import type { CatalogProduct } from '@/features/catalog/api';
 import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
@@ -30,7 +31,9 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <div className="home-product-card__placeholder">Produit</div>
+          <div className="home-product-card__placeholder">
+            <ImageIcon size={32} className="opacity-40" />
+          </div>
         )}
       </Link>
 

@@ -2,6 +2,7 @@ import '../pages/CatalogPages.css';
 
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { Image as ImageIcon } from 'lucide-react';
 
 import type { CatalogProduct } from '../api';
 import { ProductMetaBadges } from './ProductMetaBadges';
@@ -44,7 +45,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
       ) : (
         <Link to={productLink} className="catalog-product-card__image-link">
           <div className="catalog-product-card__placeholder" aria-hidden="true">
-            <span>Produit</span>
+            <ImageIcon size={32} className="opacity-40" />
           </div>
         </Link>
       )}
