@@ -4,6 +4,7 @@ import { Image as ImageIcon } from 'lucide-react';
 
 import type { CatalogProduct } from '@/features/catalog/api';
 import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
+import { ProductActionToolbar } from '@/features/catalog/components/ProductActionToolbar';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
@@ -23,7 +24,7 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
 
   return (
     <article className="home-product-card">
-      <Link to={productLink} className="home-product-card__media">
+      <div className="home-product-card__media">
         {product.imageUrl && !imageFailed ? (
           <img
             src={product.imageUrl}
@@ -35,7 +36,7 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
             <ImageIcon size={32} className="opacity-40" />
           </div>
         )}
-      </Link>
+      </div>
 
       <div className="home-product-card__content">
         <header className="flex flex-col gap-2">
@@ -67,6 +68,9 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
         <div className="home-product-card__footer">
           <div className="home-product-card__footer-main">
             <span className="home-product-card__price">{formatEuroCents(product.priceCents)}</span>
+          </div>
+          <div className="home-product-card__actions-container">
+            <ProductActionToolbar product={product} />
           </div>
         </div>
       </div>

@@ -139,6 +139,14 @@
   font-weight: 900;
 }
 
+.home-product-card__actions-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .home-loading,
 .home-alert,
 .home-empty {

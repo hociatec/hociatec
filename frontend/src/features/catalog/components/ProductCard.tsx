@@ -33,22 +33,20 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
 
   return (
     <article className="catalog-product-card">
-      {product.imageUrl && !imageFailed ? (
-        <Link to={productLink} className="catalog-product-card__image-link">
+      <div className="catalog-product-card__image-link">
+        {product.imageUrl && !imageFailed ? (
           <img
             src={product.imageUrl}
             alt={product.imageAlt ?? productDisplayName}
             className="catalog-product-card__image"
             onError={() => setImageFailed(true)}
           />
-        </Link>
-      ) : (
-        <Link to={productLink} className="catalog-product-card__image-link">
+        ) : (
           <div className="catalog-product-card__placeholder" aria-hidden="true">
             <ImageIcon size={32} className="opacity-40" />
           </div>
-        </Link>
-      )}
+        )}
+      </div>
       <div className="catalog-product-card__content">
         <header className="catalog-product-card__header">
           <span className="catalog-product-card__sku">{product.sku}</span>
