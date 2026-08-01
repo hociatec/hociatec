@@ -35,6 +35,7 @@ final class AppointmentServicesTest extends TestCase
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
         $this->persistence = new DoctrinePersistence($this->entityManager);
     }
 
@@ -151,6 +152,7 @@ final class AppointmentServicesTest extends TestCase
 
         $service = new AppointmentService(
             $appointments,
+            $workingDays,
             new AvailabilityService($workingDays, $appointments),
             new AppointmentStatusManager($this->persistence),
             $this->persistence,
@@ -175,6 +177,7 @@ final class AppointmentServicesTest extends TestCase
     {
         $service = new AppointmentService(
             $this->createMock(AppointmentRepository::class),
+            $this->createMock(WorkingDayConfigurationRepository::class),
             new AvailabilityService(
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $this->createMock(AppointmentRepository::class),
@@ -203,6 +206,7 @@ final class AppointmentServicesTest extends TestCase
 
         $service = new AppointmentService(
             $appointments,
+            $this->createMock(WorkingDayConfigurationRepository::class),
             new AvailabilityService(
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $appointments,
@@ -220,6 +224,7 @@ final class AppointmentServicesTest extends TestCase
     {
         $service = new AppointmentService(
             $this->createMock(AppointmentRepository::class),
+            $this->createMock(WorkingDayConfigurationRepository::class),
             new AvailabilityService(
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $this->createMock(AppointmentRepository::class),

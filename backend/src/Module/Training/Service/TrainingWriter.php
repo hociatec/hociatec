@@ -8,9 +8,12 @@ use App\Module\Training\DTO\TrainingInput;
 use App\Module\Training\Entity\Training;
 use App\Module\Training\Entity\TrainingRoadmapItem;
 use App\Shared\Persistence\DoctrinePersistence;
+use App\Shared\Service\Slugifier;
 
 final class TrainingWriter
 {
+    use Slugifier;
+
     public function __construct(private readonly DoctrinePersistence $persistence)
     {
     }
@@ -56,12 +59,7 @@ final class TrainingWriter
 
     public function slugify(string $value): string
     {
-        $value = trim(mb_strtolower($value));
-        $value = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value;
-        $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?: '';
-        $value = trim($value, '-');
-
-        return '' !== $value ? $value : 'formation';
+        return $this->slugifyValue($value, 'formation');
     }
 
     private function nullableString(mixed $value): ?string

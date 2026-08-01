@@ -7,7 +7,11 @@ namespace App\Tests\Unit\Module\Misc;
 use App\Kernel;
 use App\Module\Admin\Backup\Controller\SystemStatusController;
 use App\Module\Admin\Backup\Service\MaintenanceModeService;
+use App\Module\System\Controller\MetricsController;
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 final class KernelAndBackupLightTest extends TestCase
 {
@@ -15,7 +19,7 @@ final class KernelAndBackupLightTest extends TestCase
     {
         $kernel = new Kernel('test', true);
         $kernel->boot();
-        self::assertNotNull($kernel->getContainer());
+        self::assertTrue($kernel->getContainer()->has('service_container'));
         $kernel->shutdown();
 
         $directory = sys_get_temp_dir().'/hociatec-maintenance-'.bin2hex(random_bytes(4));
@@ -26,5 +30,30 @@ final class KernelAndBackupLightTest extends TestCase
         self::assertFalse($payload['data']['maintenance']['enabled']);
 
         @rmdir($directory);
+    }
+
+    public function testMetricsControllerRequiresLocalhostOrToken(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects(self::never())->method('executeQuery');
+
+        $denied = (new MetricsController($connection, 'secret'))(
+            Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10'])
+        );
+
+        self::assertSame(Response::HTTP_FORBIDDEN, $denied->getStatusCode());
+    }
+
+    public function testMetricsControllerAcceptsConfiguredToken(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->method('executeQuery')->willThrowException(new \RuntimeException('db down'));
+
+        $request = Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10']);
+        $request->headers->set('X-Metrics-Token', 'secret');
+        $response = (new MetricsController($connection, 'secret'))($request);
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        self::assertStringContainsString('hociatec_database_up 0', (string) $response->getContent());
     }
 }

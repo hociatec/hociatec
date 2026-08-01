@@ -11,6 +11,7 @@ use App\Module\News\Service\NewsFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
+use App\Shared\Http\RateLimited;
 use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,6 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/public/news/{slug}/comments', name: 'api_public_news_comments_create', methods: ['POST'])]
 #[IsGranted('ROLE_USER')]
+#[RateLimited('public_api')]
 final class CreateNewsCommentController extends AbstractController
 {
     public function __construct(

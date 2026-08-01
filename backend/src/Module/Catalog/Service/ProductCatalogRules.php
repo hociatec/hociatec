@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Repository\ProductRepository;
+use App\Shared\Service\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class ProductCatalogRules
 {
+    use Slugifier;
+
     public function __construct(
         private ProductRepository $productRepository,
         private ValidatorInterface $validator,
@@ -105,13 +108,7 @@ final readonly class ProductCatalogRules
 
     public function slugify(string $value): string
     {
-        $value = trim($value);
-        $value = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value;
-        $value = strtolower($value);
-        $value = preg_replace('/[^a-z0-9]+/i', '-', $value) ?? $value;
-        $value = trim($value, '-');
-
-        return '' !== $value ? $value : 'produit';
+        return $this->slugifyValue($value, 'produit');
     }
 
     private function assertUniqueSlug(string $slug, ?int $excludeId): void

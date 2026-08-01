@@ -24,6 +24,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         private readonly ProductRepository $productRepository,
         private readonly QuoteNumberGenerator $numberGenerator,
         private readonly QuoteCalculator $calculator,
+        private readonly ?\DateTimeImmutable $today = null,
     ) {
     }
 
@@ -107,13 +108,13 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         if (null !== $payload->validFrom) {
             $quote->setValidFrom(self::dateOrNull($payload->validFrom));
         } elseif (!$clearItems && null === $quote->getValidFrom()) {
-            $quote->setValidFrom(new \DateTimeImmutable('today'));
+            $quote->setValidFrom($this->today());
         }
 
         if (null !== $payload->validUntil) {
             $quote->setValidUntil(self::dateOrNull($payload->validUntil));
         } elseif (!$clearItems && null === $quote->getValidUntil()) {
-            $baseDate = $quote->getValidFrom() ?? new \DateTimeImmutable('today');
+            $baseDate = $quote->getValidFrom() ?? $this->today();
             $quote->setValidUntil($baseDate->modify('+30 days'));
         }
 
@@ -209,5 +210,10 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         }
 
         return $date->setTime(0, 0);
+    }
+
+    private function today(): \DateTimeImmutable
+    {
+        return ($this->today ?? new \DateTimeImmutable('today'))->setTime(0, 0);
     }
 }

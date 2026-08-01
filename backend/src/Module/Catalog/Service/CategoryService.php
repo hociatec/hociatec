@@ -6,11 +6,14 @@ namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Repository\CategoryRepository;
+use App\Shared\Service\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class CategoryService
 {
+    use Slugifier;
+
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
         private readonly CatalogPersistence $persistence,
@@ -161,12 +164,6 @@ final class CategoryService
 
     private function slugify(string $value): string
     {
-        $value = trim($value);
-        $value = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value;
-        $value = strtolower($value);
-        $value = preg_replace('/[^a-z0-9]+/i', '-', $value) ?? $value;
-        $value = trim($value, '-');
-
-        return '' !== $value ? $value : 'categorie';
+        return $this->slugifyValue($value, 'categorie');
     }
 }
