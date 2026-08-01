@@ -4,7 +4,18 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
 import { Link } from 'react-router';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
-import { Star, ShieldCheck, Users, Award, HeartHandshake } from 'lucide-react';
+import {
+  ArrowRight,
+  Briefcase,
+  CheckCircle2,
+  Globe,
+  GraduationCap,
+  HeartHandshake,
+  Monitor,
+  ShieldCheck,
+  Users,
+  Wrench,
+} from 'lucide-react';
 import {
   ORGANIZATION_SCHEMA,
   WEBSITE_SCHEMA,
@@ -12,55 +23,81 @@ import {
   LOCAL_BUSINESS_SCHEMA,
 } from '@/shared/config/seoConfig';
 
-const serviceHighlights = [
+const heroServices = [
   {
-    title: 'Matériel',
-    text: 'Une sélection cohérente, du neuf au reconditionné, à l’achat ou en location.',
+    title: 'Vente de matériel informatique',
+    Icon: Monitor,
   },
   {
-    title: 'Interventions',
-    text: 'Installation, dépannage et configuration pour retrouver un quotidien fluide.',
+    title: "Réparation d'ordinateurs",
+    Icon: Wrench,
   },
   {
-    title: 'Projets',
-    text: 'Audit, site ou outil métier : des étapes claires et un résultat utile.',
+    title: 'Informatique professionnelle',
+    Icon: Briefcase,
+  },
+  {
+    title: 'Création de sites web',
+    Icon: Globe,
+  },
+  {
+    title: 'Maintenance informatique',
+    Icon: ShieldCheck,
+  },
+  {
+    title: 'Formation numérique',
+    Icon: GraduationCap,
   },
 ];
 
-const stats = [
-  { value: '1500+', label: 'Ordinateurs reconditionnés', icon: ShieldCheck },
-  { value: '10+', label: "Ans d'expérience", icon: Award },
-  { value: '98%', label: 'Clients satisfaits', icon: Users },
-  { value: '24h', label: 'Délai moyen de réponse', icon: HeartHandshake },
+const audienceSections = [
+  {
+    title: 'Pour les particuliers',
+    description:
+      "Des solutions simples pour s'équiper, réparer un appareil et être accompagné au quotidien.",
+    ctaLabel: 'Voir les services',
+    ctaTo: '/services',
+    items: [
+      'Vente de matériel informatique',
+      "Réparation d'ordinateurs",
+      'Ordinateurs reconditionnés',
+      'Formation numérique',
+      'Assistance informatique',
+    ],
+  },
+  {
+    title: 'Pour les professionnels',
+    description:
+      "Un accompagnement structuré pour fiabiliser le parc, gagner du temps et faire évoluer vos outils.",
+    ctaLabel: 'Demander un devis',
+    ctaTo: '/devis/nouveau',
+    items: [
+      'Maintenance informatique',
+      'Gestion de parc informatique',
+      'Développement de sites web',
+      'Solutions numériques',
+      'Accompagnement informatique',
+    ],
+  },
 ];
 
-const clientReviews = [
-  {
-    name: 'Jean-Pierre M.',
-    role: 'Particulier',
-    rating: 5,
-    comment: 'Un service impeccable et rapide. Mon ordinateur reconditionné fonctionne comme neuf ! Un grand merci pour les conseils avisés.',
-  },
-  {
-    name: 'Sophie L.',
-    role: 'Directrice d’école de formation',
-    rating: 5,
-    comment: "Excellent matériel de formation loué pour nos sessions. Support réactif et professionnel, je recommande les yeux fermés.",
-  },
-  {
-    name: 'Cabinet Bertrand & Associés',
-    role: 'Client Professionnel',
-    rating: 5,
-    comment: 'L’audit et la restructuration de notre réseau ont été menés de main de maître. Simplicité, clarté et efficacité maximales.',
-  },
+const trustItems = [
+  'Produits garantis',
+  'Accompagnement personnalisé',
+  'Conseils avant achat',
+  'Service de proximité',
+  'Disponibilité',
+  'Solutions adaptées aux besoins',
+  'Suivi client',
+  'Solutions durables',
 ];
 
 export const HomePage = () => {
-  useDocumentTitle('Le numérique à taille humaine');
+  useDocumentTitle('Informatique, réparation et services numériques');
   useMetaTags({
-    title: 'Hociatec — Le numérique à taille humaine',
+    title: 'Hociatec — Informatique, réparation et services numériques',
     description:
-      'Vente/location de matériel, formation, conception, audits. Une approche accessible, durable et pensée pour vous.',
+      "Vente de matériel informatique, réparation d'ordinateurs, maintenance informatique, création de site internet, assistance informatique et formation numérique.",
     type: 'website',
     canonicalUrl: SITE_URL,
     structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
@@ -73,55 +110,116 @@ export const HomePage = () => {
       <div className="home-page overflow-hidden">
         <section className="home-hero animate-fade-in-up">
           <div className="home-hero__content">
-            <h1>Un numérique fiable, pensé pour durer.</h1>
+            <p className="home-hero__eyebrow">Informatique, réparation et accompagnement numérique</p>
+            <h1>Matériel informatique, réparation, maintenance et création web.</h1>
             <p>
-              Le bon équipement, des outils bien configurés et des projets qui avancent sans
-              complexité inutile.
+              Hociatec accompagne les particuliers et les professionnels avec des solutions
+              informatiques utiles, durables et compréhensibles dès le premier échange.
             </p>
+            <ul className="home-hero__service-list" aria-label="Services principaux">
+              {heroServices.map(({ title, Icon }) => (
+                <li key={title}>
+                  <Icon aria-hidden="true" />
+                  <span>{title}</span>
+                </li>
+              ))}
+            </ul>
             <div className="home-hero__actions">
               <Link to="/devis/nouveau" className="home-button home-button--primary">
                 Demander un devis
               </Link>
-              <Link to="/catalogue/vente" className="home-button home-button--secondary">
-                Voir le catalogue
+              <Link to="/contact" className="home-button home-button--secondary">
+                Nous contacter
+              </Link>
+              <Link to="/services" className="home-button home-button--ghost">
+                Découvrir nos services
               </Link>
             </div>
           </div>
           <div className="home-hero__visual" aria-hidden="true">
             <img src="/hociatec-hero-workbench.webp" alt="" />
             <div className="home-hero__metric">
-              <strong>Des choix utiles. Des réponses concrètes.</strong>
-              <span>Un accompagnement qui reste compréhensible à chaque étape.</span>
+              <strong>Des réponses concrètes pour chaque besoin.</strong>
+              <span>
+                Vente, réparation, assistance informatique, maintenance et création de site
+                internet au même endroit.
+              </span>
             </div>
           </div>
         </section>
 
-        <section className="home-services animate-fade-in-up delay-100" aria-label="Services Hociatec">
-          <div className="home-services__grid">
-            {serviceHighlights.map((service) => (
-              <article key={service.title} className="home-service-card">
-                <p>{service.text}</p>
+        <section className="home-services animate-fade-in-up delay-100" aria-label="Parcours Hociatec">
+          <div className="home-section-heading">
+            <p>Des services pensés selon votre profil</p>
+            <h2>Identifiez rapidement le bon accompagnement</h2>
+          </div>
+          <div className="home-services__grid home-services__grid--audiences">
+            {audienceSections.map((section) => (
+              <article key={section.title} className="home-service-card home-service-card--audience">
+                <div className="home-service-card__body">
+                  <h3>{section.title}</h3>
+                  <p>{section.description}</p>
+                  <ul className="home-service-card__list">
+                    {section.items.map((item) => (
+                      <li key={item}>
+                        <CheckCircle2 aria-hidden="true" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Link to={section.ctaTo} className="home-service-card__link">
+                  {section.ctaLabel}
+                  <ArrowRight aria-hidden="true" />
+                </Link>
               </article>
             ))}
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="home-stats-section animate-fade-in-up delay-200" aria-label="Quelques chiffres">
-          <div className="home-stats-container">
-            <div className="home-stats-grid">
-              {stats.map((stat) => {
-                const IconComponent = stat.icon;
-                return (
-                  <div key={stat.label} className="home-stat-item">
-                    <div className="home-stat-icon-wrapper">
-                      <IconComponent className="home-stat-icon" aria-hidden="true" />
-                    </div>
-                    <div className="home-stat-value">{stat.value}</div>
-                    <div className="home-stat-label">{stat.label}</div>
-                  </div>
-                );
-              })}
+        <section className="home-trust animate-fade-in-up delay-200" aria-label="Éléments de réassurance">
+          <div className="home-trust__panel">
+            <div className="home-section-heading">
+              <p>Des repères simples et transparents</p>
+              <h2>Des engagements qui rassurent sans surpromesse</h2>
+            </div>
+            <div className="home-trust__grid">
+              {trustItems.map((item) => (
+                <div key={item} className="home-trust__item">
+                  <ShieldCheck aria-hidden="true" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="histoire" className="home-story animate-fade-in-up delay-300">
+          <div className="home-story__content">
+            <div className="home-section-heading">
+              <p>Notre histoire</p>
+              <h2>Un accompagnement humain avant, pendant et après l’intervention</h2>
+            </div>
+            <p>
+              Hociatec mise sur la clarté, l’écoute et des conseils adaptés à chaque situation. Le
+              besoin est compris avant de proposer un matériel, une réparation, une maintenance ou
+              une solution numérique.
+            </p>
+            <div className="home-story__points">
+              <div className="home-story__point">
+                <Users aria-hidden="true" />
+                <div>
+                  <strong>Conseils adaptés</strong>
+                  <span>Chaque demande est traitée selon l’usage, le budget et les contraintes réelles.</span>
+                </div>
+              </div>
+              <div className="home-story__point">
+                <HeartHandshake aria-hidden="true" />
+                <div>
+                  <strong>Suivi personnalisé</strong>
+                  <span>Un interlocuteur reste disponible pour répondre et ajuster si nécessaire.</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -129,8 +227,13 @@ export const HomePage = () => {
         <section className="home-products animate-fade-in-up delay-300">
           <div className="home-section-heading home-section-heading--row">
             <div>
-              <h2>Produits tendance</h2>
+              <p>Une sélection mise en avant par Hociatec</p>
+              <h2>Produits recommandés</h2>
             </div>
+            <Link to="/catalogue/vente" className="home-products__link">
+              Voir le catalogue
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
           {loadingProducts && (
             <p className="home-loading" role="status" aria-live="polite">
@@ -152,39 +255,9 @@ export const HomePage = () => {
           {!loadingProducts && !errorProducts && products.length === 0 && (
             <div className="home-empty">
               <p>Aucun produit mis en avant pour le moment</p>
-              <span>
-                Les produits tendances réapparaîtront ici dès que le catalogue sera réalimenté.
-              </span>
+              <span>Les produits recommandés réapparaîtront ici dès que le catalogue sera mis à jour.</span>
             </div>
           )}
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="home-testimonials-section animate-fade-in-up delay-400" aria-label="Témoignages clients">
-          <div className="home-testimonials-container">
-            <div className="home-section-heading text-center mx-auto">
-              <h2>Avis de nos clients</h2>
-              <p className="mt-2 text-stone-600">Découvrez les retours d&apos;expérience de ceux qui nous font confiance.</p>
-            </div>
-            <div className="home-testimonials-grid">
-              {clientReviews.map((review) => (
-                <div key={review.name} className="home-testimonial-card">
-                  <div className="home-testimonial-stars">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="home-testimonial-star-filled" aria-hidden="true" />
-                    ))}
-                  </div>
-                  <blockquote className="home-testimonial-comment">
-                    &ldquo;{review.comment}&rdquo;
-                  </blockquote>
-                  <div className="home-testimonial-footer">
-                    <cite className="home-testimonial-author">{review.name}</cite>
-                    <span className="home-testimonial-role">{review.role}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
       </div>
     </SiteLayout>

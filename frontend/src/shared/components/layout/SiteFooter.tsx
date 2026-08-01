@@ -1,8 +1,6 @@
 import { Link } from 'react-router';
-import { ExternalLink, Instagram, Linkedin } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
-import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/api/newsApi';
+import { Clock3, Mail, MapPin } from 'lucide-react';
+import { CONTACT_EMAIL } from '@/shared/config/seoConfig';
 
 const legalLinks = [
   { to: '/legal/cgu', label: 'CGU' },
@@ -11,86 +9,90 @@ const legalLinks = [
   { to: '/legal/mentions-legales', label: 'Mentions légales' },
 ];
 
-const socialLinks = [
-  { href: 'https://www.facebook.com/hociatec', label: 'Facebook' },
-  { href: '#', label: 'LinkedIn', Icon: Linkedin },
-  { href: '#', label: 'TikTok' },
-  { href: '#', label: 'X' },
-  { href: '#', label: 'Instagram', Icon: Instagram },
+const openingHours = [
+  { key: 'lundi', label: 'Lundi', hours: '09h00 - 20h00' },
+  { key: 'mardi', label: 'Mardi', hours: '09h00 - 20h00' },
+  { key: 'mercredi', label: 'Mercredi', hours: '09h00 - 20h00' },
+  { key: 'jeudi', label: 'Jeudi', hours: '09h00 - 20h00' },
+  { key: 'vendredi', label: 'Vendredi', hours: '09h00 - 20h00' },
+  { key: 'samedi', label: 'Samedi', hours: '09h00 - 17h00' },
+  { key: 'dimanche', label: 'Dimanche', hours: 'Fermé' },
 ];
 
 export const SiteFooter = () => {
-  const [latestNews, setLatestNews] = useState<NewsArticleDto[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetchNewsArticles({ perPage: 3 })
-      .then((result) => {
-        if (!cancelled) setLatestNews(result.items);
-      })
-      .catch(() => {
-        if (!cancelled) setLatestNews([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const currentDayKey = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    timeZone: 'Europe/Paris',
+  })
+    .format(new Date())
+    .toLowerCase();
 
   return (
-  <footer className="site-footer">
-    <div className="site-footer__container">
-      <div className="site-footer__grid">
-        <nav className="site-footer__column" aria-label="Réseaux sociaux">
-          <h2>Réseaux sociaux</h2>
-          {socialLinks.map(({ href, label, Icon }) => (
-            <a
-              key={label}
-              href={href}
-              className="site-footer__link"
-              target={href === '#' ? undefined : '_blank'}
-              rel={href === '#' ? undefined : 'noreferrer'}
-            >
-              {Icon ? <Icon aria-hidden="true" /> : <ExternalLink aria-hidden="true" />}
-              {label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="site-footer__column">
-          <h2>Actualité</h2>
-          {latestNews.length > 0 ? (
-            latestNews.map((article) => (
-              <Link key={article.id} to={`/actualites/${article.slug}`} className="site-footer__link">
-                {article.title}
-              </Link>
-            ))
-          ) : (
+    <footer className="site-footer">
+      <div className="site-footer__container">
+        <div className="site-footer__grid">
+          <div className="site-footer__column site-footer__column--brand">
+            <span className="site-footer__brand">Hociatec</span>
             <p className="site-footer__tagline">
-              Suivez les nouveautés Hociatec, les arrivages matériel et les prochaines annonces.
+              Vente de matériel informatique, réparation d&apos;ordinateurs, maintenance
+              informatique, création de sites web et formation numérique.
             </p>
-          )}
-          <Link to="/actualites" className="site-footer__link">
-            Voir les actualités
-          </Link>
-        </div>
+            <div className="site-footer__contact-list">
+              <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__link">
+                <Mail aria-hidden="true" />
+                {CONTACT_EMAIL}
+              </a>
+              <span className="site-footer__link site-footer__link--static">
+                <MapPin aria-hidden="true" />
+                Asnières-sur-Seine et alentours
+              </span>
+            </div>
+          </div>
 
-        <div className="site-footer__column site-footer__column--brand">
-          <h2>Informations légales</h2>
-          <nav className="site-footer__legal-links">
+          <nav className="site-footer__column" aria-label="À propos">
+            <h2>À propos</h2>
+            <a href="/#histoire" className="site-footer__link">
+              Notre histoire
+            </a>
+            <Link to="/contact" className="site-footer__link">
+              Contact
+            </Link>
+          </nav>
+
+          <div className="site-footer__column">
+            <h2>
+              <Clock3 aria-hidden="true" />
+              Horaires d&apos;ouverture
+            </h2>
+            <div className="site-footer__hours" aria-label="Horaires d'ouverture">
+              {openingHours.map((entry) => (
+                <div
+                  key={entry.key}
+                  className={`site-footer__hours-row${entry.key === currentDayKey ? ' is-current' : ''}`}
+                >
+                  <span>{entry.label}</span>
+                  <strong>{entry.hours}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="site-footer__column">
+            <h2>Informations légales</h2>
+            <nav className="site-footer__legal-links">
             {legalLinks.map((link) => (
               <Link key={link.to} to={link.to} className="site-footer__link">
                 {link.label}
               </Link>
             ))}
-          </nav>
+            </nav>
+          </div>
+        </div>
+
+        <div className="site-footer__bottom">
+          <p>© {new Date().getFullYear()} Hociatec. Tous droits réservés.</p>
         </div>
       </div>
-
-      <div className="site-footer__bottom">
-        <p>© {new Date().getFullYear()} Hociatec. Tous droits réservés.</p>
-      </div>
-    </div>
-  </footer>
+    </footer>
   );
 };
