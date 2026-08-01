@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
+import {
+  PublicFormField,
+  PublicSubmitButton,
+  PublicTextInput,
+  PublicTextarea,
+} from '@/shared/components/forms/PublicForm';
+import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
@@ -11,7 +18,7 @@ import { sendContactMessage } from '../api/contactApi';
 export const ContactPage = () => {
   useDocumentTitle('Contact');
   useMetaTags({
-    title: 'Contact — hociatec',
+    title: 'Contact',
     description: 'Contactez-nous pour vos projets, devis, rendez-vous et audits.',
     type: 'website',
     canonicalUrl: `${SITE_URL}/contact`,
@@ -31,6 +38,10 @@ export const ContactPage = () => {
     },
   });
   const toast = useToast();
+  const nameId = useId();
+  const emailId = useId();
+  const subjectId = useId();
+  const messageId = useId();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -88,69 +99,59 @@ export const ContactPage = () => {
           </p>
         </PublicPageSection>
         {submitSuccess ? (
-          <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+          <FeedbackMessage variant="success">
             {submitSuccessMessage ?? 'Votre message a été envoyé.'}
-          </div>
+          </FeedbackMessage>
         ) : null}
-        {submitError ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
-            {submitError}
-          </div>
-        ) : null}
+        {submitError ? <FeedbackMessage>{submitError}</FeedbackMessage> : null}
         <PublicPageSection>
-        <form onSubmit={onSubmit} className="space-y-5">
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-brand-900">Nom</label>
-            <input
-              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Votre nom complet"
-              required
-              maxLength={100}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-brand-900">Email</label>
-            <input
-              type="email"
-              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Votre adresse email"
-              required
-              maxLength={180}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-brand-900">Sujet</label>
-            <input
-              className="w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Sujet de votre demande"
-              required
-              maxLength={150}
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-semibold text-brand-900">Message</label>
-            <textarea
-              className="h-40 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-brand-900 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Détaillez votre besoin ou votre question"
-              required
-              maxLength={5000}
-            />
-          </div>
-          <button
-            disabled={loading}
-            className="inline-flex items-center justify-center rounded-full bg-brand-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Envoi…' : 'Envoyer'}
-          </button>
-        </form>
+          <form onSubmit={onSubmit} className="space-y-5">
+            <PublicFormField label="Nom">
+              <PublicTextInput
+                id={nameId}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Votre nom complet"
+                required
+                maxLength={100}
+              />
+            </PublicFormField>
+            <PublicFormField label="Email">
+              <PublicTextInput
+                id={emailId}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Votre adresse email"
+                required
+                maxLength={180}
+              />
+            </PublicFormField>
+            <PublicFormField label="Sujet">
+              <PublicTextInput
+                id={subjectId}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Sujet de votre demande"
+                required
+                maxLength={150}
+              />
+            </PublicFormField>
+            <PublicFormField label="Message">
+              <PublicTextarea
+                id={messageId}
+                className="h-40"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Détaillez votre besoin ou votre question"
+                required
+                maxLength={5000}
+              />
+            </PublicFormField>
+            <PublicSubmitButton disabled={loading}>
+              {loading ? 'Envoi…' : 'Envoyer'}
+            </PublicSubmitButton>
+          </form>
         </PublicPageSection>
       </PublicPageShell>
     </SiteLayout>

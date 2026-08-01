@@ -116,8 +116,8 @@
   }
 
   .site-header__menu-panel {
-    left: auto;
-    right: 0;
+    left: 0.625rem;
+    right: 0.625rem;
   }
 
   .site-header__notifications-panel {
@@ -132,7 +132,7 @@
   .home-products,
   .catalog-detail-layout,
   .catalog-layout {
-    width: min(100% - 2rem, 1240px);
+    width: min(100% - 1.25rem, 1240px);
   }
 
   .home-hero {
@@ -151,6 +151,17 @@
   .home-services__grid,
   .home-products__grid {
     grid-template-columns: 1fr;
+  }
+
+  .public-directory-page {
+    width: min(100% - 1.25rem, 1120px);
+    padding-block: 1.5rem 3rem;
+  }
+
+  .public-directory-page__hero,
+  .public-directory-page__panel {
+    border-radius: 1.25rem;
+    padding: 1rem;
   }
 
   .register-page {

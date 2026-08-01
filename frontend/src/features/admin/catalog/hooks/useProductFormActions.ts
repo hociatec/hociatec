@@ -1,0 +1,135 @@
+import type { Dispatch, FormEvent, SetStateAction } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
+
+import { createProduct, deleteProduct, updateProduct, type CatalogBrand, type CatalogProduct, type UpsertProductPayload } from '@/features/catalog/api';
+import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
+import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
+import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+
+type UseProductFormActionsParams = {
+  isEdit: boolean;
+  productId?: string;
+  form: ProductFormState;
+  brands: CatalogBrand[];
+  variantRows: VariantRowState[];
+  groupVariants: CatalogProduct[];
+  currentProductId: number | null;
+  galleryFiles: Array<File | null>;
+  galleryToRemove: number[];
+  resetForm: () => void;
+  onError: (message: string | null) => void;
+  onMessage: (message: string | null) => void;
+  setGroupVariants: Dispatch<SetStateAction<CatalogProduct[]>>;
+};
+
+export const useProductFormActions = ({
+  isEdit,
+  productId,
+  form,
+  brands,
+  variantRows,
+  groupVariants,
+  currentProductId,
+  galleryFiles,
+  galleryToRemove,
+  resetForm,
+  onError,
+  onMessage,
+  setGroupVariants,
+}: UseProductFormActionsParams) => {
+  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [deletingVariantId, setDeletingVariantId] = useState<number | null>(null);
+
+  const handleDeleteVariant = (variant: CatalogProduct) => {
+    if (groupVariants.length <= 1 || deletingVariantId !== null) return;
+    if (!window.confirm(`Supprimer la variante ${formatVariantDetails(variant)} ?`)) return;
+
+    setDeletingVariantId(variant.id);
+    onError(null);
+    onMessage(null);
+
+    void deleteProduct(variant.id)
+      .then((response) => {
+        const remainingVariants = groupVariants.filter((item) => item.id !== variant.id);
+        if (variant.id === currentProductId) {
+          const nextVariant = remainingVariants[0] ?? null;
+          void navigate(
+            nextVariant
+              ? `/admin/catalog/products/${nextVariant.id}/edit`
+              : '/admin/catalog/products',
+          );
+          return;
+        }
+
+        setGroupVariants(remainingVariants);
+        onMessage(response.message ?? 'La variante a bien été supprimée.');
+      })
+      .catch((error) => onError(getHttpErrorMessage(error, 'Impossible de supprimer la variante.')))
+      .finally(() => setDeletingVariantId(null));
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+
+    const result = buildProductPayload({
+      form,
+      brands,
+      variantRows,
+      groupVariants,
+      currentProductId,
+      galleryFiles,
+      galleryToRemove,
+    });
+
+    if (result.error) {
+      onError(result.error);
+      return;
+    }
+
+    if (!result.payload) {
+      onError('Le formulaire produit est incomplet.');
+      return;
+    }
+
+    const payload: UpsertProductPayload = result.payload;
+    setSaving(true);
+    onError(null);
+    onMessage(null);
+
+    const action = isEdit && productId
+      ? updateProduct(Number(productId), payload)
+      : createProduct(payload);
+
+    void action
+      .then(() => {
+        onMessage(isEdit ? 'Produit mis à jour.' : 'Produit créé.');
+        if (!isEdit) {
+          resetForm();
+        }
+        setTimeout(() => navigate('/admin/catalog/products'), 800);
+      })
+      .catch((error) => onError(getHttpErrorMessage(error, "Impossible d'enregistrer le produit.")))
+      .finally(() => setSaving(false));
+  };
+
+  const navigateToProductList = () => navigate('/admin/catalog/products');
+
+  const navigateToVariant = (variantId: number) => {
+    onError(null);
+    onMessage(null);
+    void navigate(`/admin/catalog/products/${variantId}/edit`);
+  };
+
+  return {
+    deletingVariantId,
+    handleDeleteVariant,
+    handleSubmit,
+    navigateToProductList,
+    navigateToVariant,
+    saving,
+  };
+};

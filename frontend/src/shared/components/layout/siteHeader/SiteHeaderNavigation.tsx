@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router';
+import { useLocation, Link } from 'react-router';
 import {
   BriefcaseBusiness,
   CalendarDays,
@@ -30,7 +30,6 @@ const serviceLinks = [
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const catalogSummaryRef = useRef<HTMLElement | null>(null);
@@ -77,17 +76,15 @@ export const SiteHeaderNavigation = () => {
         </summary>
         <div className="site-header__menu-panel">
           {catalogLinks.map(({ path, label, Icon }) => (
-            <button
+            <Link
               key={path}
-              type="button"
-              onClick={() => {
-                setCatalogOpen(false);
-                navigate(path);
-              }}
+              to={path}
+              className={isPathActive(pathname, path) ? 'is-active' : undefined}
+              onClick={() => setCatalogOpen(false)}
             >
               <Icon aria-hidden="true" />
               <span>{label}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </details>
@@ -106,17 +103,15 @@ export const SiteHeaderNavigation = () => {
         </summary>
         <div className="site-header__menu-panel">
           {serviceLinks.map(({ path, label, Icon }) => (
-            <button
+            <Link
               key={path}
-              type="button"
-              onClick={() => {
-                setServicesOpen(false);
-                navigate(path);
-              }}
+              to={path}
+              className={isPathActive(pathname, path) ? 'is-active' : undefined}
+              onClick={() => setServicesOpen(false)}
             >
               <Icon aria-hidden="true" />
               <span>{label}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </details>

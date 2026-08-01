@@ -47,6 +47,25 @@ textarea {
   border: 0;
 }
 
+.skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  z-index: 200;
+  transform: translateY(-160%);
+  border-radius: 999px;
+  background: var(--hocia-ink);
+  color: #ffffff;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 :where(button, [role='button'], a, input, select, textarea):disabled,
 :where(button, [role='button'], input, select, textarea)[aria-disabled='true'] {
   cursor: not-allowed;

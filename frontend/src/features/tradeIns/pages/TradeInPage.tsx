@@ -11,10 +11,18 @@ import { PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { SITE_URL } from '@/shared/config/seoConfig';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const TradeInPage = () => {
   useDocumentTitle('Faire reprendre un matériel');
+  useMetaTags({
+    title: 'Reprise matériel',
+    description:
+      'Décrivez votre matériel pour obtenir une estimation indicative puis une offre définitive après contrôle.',
+    canonicalUrl: `${SITE_URL}/reprise`,
+  });
   const { user, status } = useAuth();
   const { categories, conditions } = useTradeInMetadata();
   const [form, setForm] = useState<TradeInInput>(emptyTradeInForm);

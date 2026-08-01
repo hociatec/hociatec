@@ -1,0 +1,194 @@
+import { renderLegalSections, type LegalSectionContent } from './legalPageContent';
+
+export const PRIVACY_UPDATED_AT = '26 juillet 2026';
+
+const privacySections: LegalSectionContent[] = [
+  {
+    title: '1. Responsable de traitement',
+    body: (
+      <>
+        <p>
+          Le responsable des traitements de données personnelles réalisés via le site
+          <strong> hociatec.fr</strong> est <strong>Hociatec</strong>, SARL immatriculée au RCS de
+          Nanterre sous le numéro SIREN 934 814 559, dont le siège social est situé au 2 allée
+          Anatoli Vaisser, 92600 Asnières-sur-Seine, France.
+        </p>
+        <p>
+          Contact pour toute demande relative aux données personnelles:
+          <a href="mailto:contact@hociatec.fr"> contact@hociatec.fr</a>.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: '2. Données collectées',
+    body: (
+      <>
+        <p>Selon les fonctionnalités utilisées, Hociatec peut collecter notamment:</p>
+        <ul>
+          <li>données d’identification: nom, prénom, civilité, date de naissance si nécessaire;</li>
+          <li>données de contact: email, téléphone, adresse postale;</li>
+          <li>données de compte: identifiants, statut d’activation, rôles, historique de connexion;</li>
+          <li>données de commande, panier, devis, facturation, paiement et livraison;</li>
+          <li>données relatives aux rendez-vous, audits, demandes de support et messages;</li>
+          <li>données techniques: adresse IP, journaux de sécurité, informations de navigation strictement nécessaires;</li>
+          <li>données de consentement relatives aux cookies ou communications, le cas échéant.</li>
+          <li>pour le programme bêta: niveau en informatique, situation visuelle déclarée, aides techniques utilisées et motivation; le formulaire propose une option « je préfère ne pas répondre » pour la situation visuelle.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: '3. Finalités et bases légales',
+    body: (
+      <>
+        <p>Les données sont traitées pour les finalités suivantes:</p>
+        <ul>
+          <li>création et gestion du compte client: exécution du contrat ou mesures précontractuelles;</li>
+          <li>gestion des commandes, devis, locations, paiements, livraisons et factures: exécution du contrat;</li>
+          <li>réponse aux demandes de contact, support, rendez-vous et audits: intérêt légitime ou mesures précontractuelles;</li>
+          <li>respect des obligations comptables, fiscales et légales: obligation légale;</li>
+          <li>sécurisation du site, prévention de la fraude et gestion des incidents: intérêt légitime;</li>
+          <li>amélioration du service et mesure d’audience non intrusive: intérêt légitime ou consentement selon les outils utilisés;</li>
+          <li>communications commerciales: consentement lorsque requis ou intérêt légitime dans les limites autorisées.</li>
+          <li>recrutement et suivi des bêta-testeurs: consentement de la personne pour sélectionner les profils, organiser les tests et la recontacter au sujet du programme.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: '4. Caractère obligatoire des données',
+    body: (
+      <p>
+        Certaines données sont nécessaires pour créer un compte, traiter une commande, établir un
+        devis, planifier un rendez-vous ou répondre à une demande. Lorsqu’une donnée est
+        obligatoire, l’absence de réponse peut empêcher l’accès au service concerné.
+      </p>
+    ),
+  },
+  {
+    title: '5. Destinataires',
+    body: (
+      <>
+        <p>
+          Les données sont destinées aux personnes habilitées de Hociatec. Elles peuvent
+          également être transmises, uniquement lorsque nécessaire, à des prestataires techniques,
+          hébergeurs, prestataires de paiement, transporteurs, outils de messagerie, conseils,
+          autorités administratives ou judiciaires.
+        </p>
+        <p>
+          Les prestataires agissant pour le compte de Hociatec sont tenus à des obligations de
+          confidentialité et de sécurité.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: '6. Paiement',
+    body: (
+      <p>
+        Les paiements en ligne peuvent être traités par un prestataire spécialisé, notamment
+        Stripe. Hociatec ne conserve pas les numéros complets de carte bancaire. Les informations
+        de paiement sont traitées par le prestataire selon ses propres standards de sécurité.
+      </p>
+    ),
+  },
+  {
+    title: '7. Durées de conservation',
+    body: (
+      <>
+        <p>Les données sont conservées pendant des durées proportionnées aux finalités:</p>
+        <ul>
+          <li>compte client: pendant la durée d’utilisation du compte, puis archivage si nécessaire;</li>
+          <li>commandes, factures et pièces comptables: durée légale applicable, généralement jusqu’à 10 ans;</li>
+          <li>devis et échanges précontractuels: durée nécessaire au suivi commercial, puis archivage limité;</li>
+          <li>demandes de contact et support: durée nécessaire au traitement puis à la preuve de l’échange;</li>
+          <li>candidatures au programme bêta: durée nécessaire à la sélection et au suivi de la campagne, puis suppression ou anonymisation au plus tard 12 mois après le dernier contact, sauf obligation ou demande contraire;</li>
+          <li>journaux techniques et sécurité: durée limitée nécessaire à la sécurité et au diagnostic;</li>
+          <li>cookies soumis à consentement: durée conforme aux règles applicables et aux choix de l’utilisateur.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: '8. Transferts hors Union européenne',
+    body: (
+      <p>
+        Hociatec privilégie des prestataires situés dans l’Union européenne. Si certains
+        prestataires impliquent un transfert de données hors Union européenne, Hociatec veille à
+        ce que des garanties appropriées soient mises en place conformément au RGPD.
+      </p>
+    ),
+  },
+  {
+    title: '9. Sécurité',
+    body: (
+      <p>
+        Hociatec met en œuvre des mesures techniques et organisationnelles destinées à protéger
+        les données contre l’accès non autorisé, la perte, l’altération ou la divulgation.
+        Aucune mesure de sécurité n’étant absolue, les utilisateurs sont invités à protéger leurs
+        identifiants et à signaler toute anomalie.
+      </p>
+    ),
+  },
+  {
+    title: '10. Droits des personnes',
+    body: (
+      <>
+        <p>
+          Conformément à la réglementation applicable, les personnes concernées disposent de droits
+          d’accès, de rectification, d’effacement, d’opposition, de limitation, de portabilité
+          lorsque applicable, ainsi que du droit de retirer leur consentement à tout moment pour
+          les traitements fondés sur celui-ci.
+        </p>
+        <p>
+          Pour exercer ces droits, écrivez à
+          <a href="mailto:contact@hociatec.fr"> contact@hociatec.fr</a> en précisant votre demande
+          et en joignant, si nécessaire, tout élément permettant de vérifier votre identité.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: '11. Réclamation auprès de la CNIL',
+    body: (
+      <p>
+        Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une
+        réclamation auprès de la CNIL:{' '}
+        <a href="https://www.cnil.fr" rel="noreferrer" target="_blank">
+          www.cnil.fr
+        </a>
+        .
+      </p>
+    ),
+  },
+  {
+    title: '12. Cookies',
+    body: (
+      <>
+        <p>
+          Le site utilise des cookies techniques nécessaires au fonctionnement, à la sécurité, à
+          la session utilisateur, au panier ou à l’authentification. Ces cookies ne nécessitent
+          pas de consentement lorsqu’ils sont strictement nécessaires.
+        </p>
+        <p>
+          Les cookies de mesure d’audience, publicitaires ou liés à des services tiers, lorsqu’ils
+          ne sont pas strictement nécessaires, doivent faire l’objet d’un consentement préalable.
+          L’utilisateur peut modifier ses choix via le mécanisme de gestion du consentement
+          lorsqu’il est proposé sur le site.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: '13. Mise à jour',
+    body: (
+      <p>
+        La présente politique peut être mise à jour pour tenir compte de l’évolution du site, des
+        traitements ou de la réglementation. La date de mise à jour indique la version applicable.
+      </p>
+    ),
+  },
+];
+
+export const privacyContent = renderLegalSections(privacySections);

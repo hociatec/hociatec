@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { DEFAULT_SEO, SITE_URL } from '../config/seoConfig';
+import { formatDocumentTitle } from './useDocumentTitle';
 
 export interface MetaTagsOptions {
   title?: string;
@@ -88,6 +89,8 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
     };
 
     ensureCanonical();
+
+    document.title = formatDocumentTitle(resolved.title);
 
     upsertMeta('name', 'description', resolved.description);
     upsertMeta('name', 'robots', resolved.robots);

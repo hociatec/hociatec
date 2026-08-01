@@ -29,6 +29,9 @@ export const ProductGallery = ({
               src={slide.url}
               alt={slide.alt}
               className={`catalog-slider__image${index === activeSlide ? ' is-active' : ''}`}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={index === 0 ? 'high' : 'low'}
               onError={() => onImageError(slide.url)}
             />
           ))}

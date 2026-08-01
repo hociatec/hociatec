@@ -29,6 +29,7 @@
   top: calc(100% + 10px);
   left: 0;
   min-width: 245px;
+  max-width: min(320px, calc(100vw - 1rem));
   padding: 0.45rem;
   border: 1px solid var(--hocia-line);
   border-radius: var(--hocia-radius);
@@ -38,7 +39,7 @@
   gap: 0.2rem;
 }
 
-.site-header__menu-panel button {
+.site-header__menu-panel a {
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -51,9 +52,11 @@
   cursor: pointer;
   text-align: left;
   font-weight: 700;
+  text-decoration: none;
 }
 
-.site-header__menu-panel button:hover {
+.site-header__menu-panel a:hover,
+.site-header__menu-panel a.is-active {
   background: var(--hocia-surface-blue);
   color: var(--hocia-orange-dark);
 }
@@ -62,4 +65,21 @@
   width: 18px;
   height: 18px;
   color: var(--hocia-blue);
+}
+
+@media (max-width: 760px) {
+  .site-header__menu-panel {
+    position: fixed;
+    top: auto;
+    left: 0.625rem;
+    right: 0.625rem;
+    min-width: 0;
+    max-width: none;
+    bottom: auto;
+  }
+
+  .site-header__menu-panel a {
+    min-height: 46px;
+    padding: 0.8rem 0.85rem;
+  }
 }

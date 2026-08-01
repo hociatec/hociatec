@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 
 import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
@@ -38,21 +39,12 @@ export const ServicesCatalogPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <div className="public-directory-page mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-12">
-        <header className="public-directory-page__hero rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
-          <span className="inline-flex w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
-            Services Hociatec
-          </span>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
-            Nos services
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">
-            Retrouvez l’ensemble des services proposés par Hociatec avec leurs informations
-            essentielles, leur durée estimée et leur base tarifaire.
-          </p>
-        </header>
-
-        <section className="public-directory-page__panel rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
+      <PublicPageShell
+        eyebrow="Services Hociatec"
+        title="Nos services"
+        description="Retrouvez l’ensemble des services proposés par Hociatec avec leurs informations essentielles, leur durée estimée et leur base tarifaire."
+      >
+        <PublicPageSection className="public-directory-page__panel p-8">
           {loading ? (
             <LoadingState>Chargement des services...</LoadingState>
           ) : error ? (
@@ -65,10 +57,11 @@ export const ServicesCatalogPage = () => {
                 {paginatedServices.map((service) => (
                   <article
                     key={service.id}
-                    className="flex h-full flex-col rounded-xl border border-brand-100 bg-brand-50 p-5"
+                    className="flex h-full flex-col rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:p-5"
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '280px' }}
                   >
                     <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
                         <h3 className="text-lg font-semibold text-brand-900">{service.title}</h3>
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700 shadow-sm">
                           {service.unit?.trim() || 'Prix fixe'}
@@ -86,7 +79,7 @@ export const ServicesCatalogPage = () => {
                           {service.durationLabel || 'Sur étude'}
                         </strong>
                       </div>
-                      <div className="flex items-end justify-between gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
                             Base tarifaire
@@ -97,7 +90,7 @@ export const ServicesCatalogPage = () => {
                         </div>
                         <Link
                           to={`/services/${service.id}`}
-                          className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800"
+                          className="inline-flex items-center justify-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 sm:w-auto"
                         >
                           Voir le détail
                         </Link>
@@ -155,8 +148,8 @@ export const ServicesCatalogPage = () => {
               )}
             </div>
           )}
-        </section>
-      </div>
+        </PublicPageSection>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

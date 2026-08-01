@@ -1,19 +1,34 @@
 import './appointment-booking.css';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
-import { PageContainer } from '@/shared/components/layout/PageContainer';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
-import FullCalendar from '@fullcalendar/react';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import frLocale from '@fullcalendar/core/locales/fr';
-import { format } from 'date-fns';
-
-import { fr } from 'date-fns/locale';
 import { useAppointmentBooking } from '../hooks/useAppointmentBooking';
 import { AppointmentBookingModal } from '@/features/appointments/components/AppointmentBookingModal';
+import {
+  AppointmentStepOne,
+  AppointmentStepThree,
+  AppointmentStepTwo,
+} from '@/features/appointments/components/AppointmentBookingSections';
+import { SITE_URL } from '@/shared/config/seoConfig';
+
+const stepLabels = {
+  1: 'Choix de la prestation',
+  2: 'Choix du jour',
+  3: 'Choix du créneau',
+} as const;
 
 export const AppointmentBookingPage = () => {
   useDocumentTitle('Prendre un rendez-vous');
+  useMetaTags({
+    title: 'Prendre un rendez-vous',
+    description:
+      'Choisissez une prestation Hociatec, sélectionnez un jour disponible puis confirmez votre créneau.',
+    canonicalUrl: `${SITE_URL}/appointments/book`,
+  });
   const {
     step,
     setStep,
@@ -45,136 +60,76 @@ export const AppointmentBookingPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <PageContainer size="medium" title="Prendre un rendez-vous">
-        <div className="progress-bar">Étape {step} sur 3</div>
-
-        {/* Étape 1 — Choix de la prestation */}
-        {step === 1 && (
-          <div className="register-form-card">
-            <h2>Étape 1 — Choisissez une prestation</h2>
-            {prestationsError && (
-              <div className="booking__alert" role="alert">
-                {prestationsError}
-              </div>
-            )}
-            {!prestationsError && prestations.length === 0 && (
-              <p className="booking__empty">Aucune prestation disponible pour le moment.</p>
-            )}
-            {prestations.map((p) => (
-              <label key={p.id} className="booking__checkbox">
-                <input
-                  type="radio"
-                  name="prestation"
-                  checked={selectedPrestation?.id === p.id}
-                  onChange={() => setSelectedPrestation(p)}
-                />
-                {p.name} — {p.priceCents / 100} € ({p.durationMinutes} min)
-              </label>
-            ))}
-            <div className="booking__actions">
-              <button
-                disabled={!selectedPrestation}
-                onClick={() => setStep(2)}
-                className="register-form__submit"
-              >
-                Suivant
-              </button>
-            </div>
+      <PublicPageShell
+        size="medium"
+        eyebrow="Rendez-vous Hociatec"
+        title="Prendre un rendez-vous"
+        description="Choisissez une prestation, sélectionnez un jour disponible puis confirmez votre créneau."
+      >
+        <PublicPageSection className="space-y-6 p-5 sm:p-6">
+          <div className="progress-bar" aria-live="polite">
+            Étape {step} sur 3 · {stepLabels[step as keyof typeof stepLabels]}
           </div>
-        )}
 
-        {/* Étape 2 — Choix du jour */}
-        {step === 2 && (
-          <div className="register-form-card">
-            <h2>Étape 2 — Choisissez un jour</h2>
-
-            {/* Barre de navigation bien libellée */}
-            <div className="calendar-nav">
-              <button onClick={goPrevYear}>⟨ Année précédente</button>
-              <button onClick={goPrevMonth}>← Mois précédent</button>
-              <button onClick={goToday}>Aujourd’hui</button>
-              <button onClick={goNextMonth}>Mois suivant →</button>
-              <button onClick={goNextYear}>Année suivante ⟩</button>
-            </div>
-
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              locales={[frLocale]}
-              locale="fr"
-              height="auto"
-              dateClick={handleDateClick}
-              datesSet={handleDatesSet}
-              events={events}
+          {step === 1 && (
+            <AppointmentStepOne
+              prestations={prestations}
+              prestationsError={prestationsError}
+              selectedPrestation={selectedPrestation}
+              setSelectedPrestation={setSelectedPrestation}
+              onNext={() => setStep(2)}
             />
+          )}
 
-            <div className="booking__actions">
-              <button onClick={() => setStep(1)} className="register-form__back">
-                ← Étape précédente
-              </button>
-            </div>
-          </div>
-        )}
+          {step === 2 && (
+            <AppointmentStepTwo
+              calendarRef={calendarRef}
+              events={events}
+              handleDatesSet={handleDatesSet}
+              handleDateClick={handleDateClick}
+              goPrevMonth={goPrevMonth}
+              goNextMonth={goNextMonth}
+              goPrevYear={goPrevYear}
+              goNextYear={goNextYear}
+              goToday={goToday}
+              onBack={() => setStep(1)}
+              plugins={[dayGridPlugin, interactionPlugin]}
+              locale="fr"
+              locales={[frLocale]}
+            />
+          )}
 
-        {/* Étape 3 — Choix du créneau */}
-        {step === 3 && (
-          <div className="register-form-card">
-            <h2>
-              Étape 3 — Choisissez un créneau <br />
-              <small>
-                {selectedDate && format(selectedDate, 'EEEE dd MMMM yyyy', { locale: fr })}
-              </small>
-            </h2>
+          {step === 3 && (
+            <AppointmentStepThree
+              daySlots={daySlots}
+              selectedDate={selectedDate}
+              selectedSlot={selectedSlot}
+              setSelectedSlot={setSelectedSlot}
+              onBack={() => setStep(2)}
+            />
+          )}
 
-            {daySlots.length === 0 && <p>Aucun créneau disponible ce jour-là.</p>}
-
-            <div className="slot-list">
-              {daySlots.map((slot, i) => {
-                const s = new Date(slot.start);
-                const e = new Date(slot.end);
-                const active = selectedSlot?.start === slot.start && selectedSlot?.end === slot.end;
-                return (
-                  <button
-                    key={i}
-                    className={`slot-card ${active ? 'active' : ''}`}
-                    onClick={() => setSelectedSlot(slot)}
-                  >
-                    {format(s, 'HH:mm')} - {format(e, 'HH:mm')}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="booking__actions">
-              <button onClick={() => setStep(2)} className="register-form__back">
-                ← Revenir au calendrier
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* --- Modale moderne --- */}
-        {modalOpen && (
-          <AppointmentBookingModal
-            booking={booking}
-            modalMode={modalMode}
-            selectedPrestation={selectedPrestation}
-            selectedSlot={selectedSlot}
-            onClose={() => {
-              setModalOpen(false);
-              if (modalMode === 'success') {
-                setStep(1);
-                setSelectedPrestation(null);
-                setSelectedSlot(null);
-                setSelectedDate(null);
-                setSlots([]);
-              }
-            }}
-            onConfirm={() => void handleBooking()}
-          />
-        )}
-      </PageContainer>
+          {modalOpen && (
+            <AppointmentBookingModal
+              booking={booking}
+              modalMode={modalMode}
+              selectedPrestation={selectedPrestation}
+              selectedSlot={selectedSlot}
+              onClose={() => {
+                setModalOpen(false);
+                if (modalMode === 'success') {
+                  setStep(1);
+                  setSelectedPrestation(null);
+                  setSelectedSlot(null);
+                  setSelectedDate(null);
+                  setSlots([]);
+                }
+              }}
+              onConfirm={() => void handleBooking()}
+            />
+          )}
+        </PublicPageSection>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

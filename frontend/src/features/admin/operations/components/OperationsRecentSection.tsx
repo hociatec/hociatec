@@ -6,10 +6,14 @@ import {
   type StockMovementDto,
   type SupportRequestDto,
 } from '@/features/admin/operations/api';
-import { List, operationsUi } from '@/features/admin/operations/components/AdminOperationsWidgets';
+import { List } from '@/features/admin/operations/components/AdminOperationsWidgets';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { type SupportReplies } from './operationsTypes';
-const { inputClass, secondaryActionClass } = operationsUi;
+import {
+  RefundRequestAction,
+  StockThresholdAction,
+  SupportRequestAction,
+} from './OperationsRecentActions';
 
 export const OperationsRecentSection = ({
   emails,
@@ -57,53 +61,13 @@ export const OperationsRecentSection = ({
           title: `#${item.id} · ${item.subject}`,
           meta: `${item.customer.name} · ${item.statusLabel} · ${formatFrenchDateTime(item.updatedAt)}`,
           action: (
-            <div className="space-y-2">
-              <select
-                className={inputClass}
-                value={item.status}
-                onChange={(e) => updateSupportStatus(item.id, e.target.value)}
-              >
-                <option value="new">Nouveau</option>
-                <option value="in_progress">En cours</option>
-                <option value="waiting_customer">En attente client</option>
-                <option value="resolved">Résolu</option>
-                <option value="refused">Refusé</option>
-              </select>
-              <input
-                className={inputClass}
-                placeholder="Sujet réponse client"
-                value={supportReplies[item.id]?.subject ?? `Réponse SAV #${item.id}`}
-                onChange={(e) =>
-                  setSupportReplies((p) => ({
-                    ...p,
-                    [item.id]: { subject: e.target.value, message: p[item.id]?.message ?? '' },
-                  }))
-                }
-              />
-              <textarea
-                className={inputClass}
-                rows={2}
-                placeholder="Message à envoyer au client"
-                value={supportReplies[item.id]?.message ?? ''}
-                onChange={(e) =>
-                  setSupportReplies((p) => ({
-                    ...p,
-                    [item.id]: {
-                      subject: p[item.id]?.subject ?? `Réponse SAV #${item.id}`,
-                      message: e.target.value,
-                    },
-                  }))
-                }
-              />
-              <button
-                className={secondaryActionClass}
-                type="button"
-                onClick={() => submitSupportReply(item.id)}
-                disabled={!supportReplies[item.id]?.message}
-              >
-                Répondre au client
-              </button>
-            </div>
+            <SupportRequestAction
+              item={item}
+              supportReplies={supportReplies}
+              setSupportReplies={setSupportReplies}
+              submitSupportReply={submitSupportReply}
+              updateSupportStatus={updateSupportStatus}
+            />
           ),
         }))}
       />
@@ -114,42 +78,13 @@ export const OperationsRecentSection = ({
           title: `#${item.id} · ${item.order.number} · ${formatEuroCents(item.amountCents)}`,
           meta: `${item.status} · ${item.reason || 'Sans motif'} · ${formatFrenchDateTime(item.updatedAt)}`,
           action: (
-            <div className="space-y-2">
-              <select
-                className={inputClass}
-                value={item.status}
-                onChange={(e) => updateRefundStatus(item.id, e.target.value)}
-              >
-                <option value="requested">Demandé</option>
-                <option value="approved">Approuvé</option>
-                <option value="rejected">Refusé</option>
-                <option value="processed">Traité</option>
-              </select>
-              <input
-                className={inputClass}
-                placeholder="Tape REMBOURSER pour déclencher Stripe"
-                value={refundConfirmations[item.id] ?? ''}
-                onChange={(e) =>
-                  setRefundConfirmations((p) => ({ ...p, [item.id]: e.target.value }))
-                }
-                disabled={Boolean(item.stripeRefundId) || item.status === 'processed'}
-              />
-              <button
-                className={secondaryActionClass}
-                type="button"
-                onClick={() => submitStripeRefund(item.id)}
-                disabled={
-                  (refundConfirmations[item.id] ?? '') !== 'REMBOURSER' ||
-                  Boolean(item.stripeRefundId) ||
-                  item.status === 'processed'
-                }
-              >
-                Déclencher remboursement Stripe
-              </button>
-              {item.stripeRefundId && (
-                <p className="text-xs text-emerald-700">Stripe : {item.stripeRefundId}</p>
-              )}
-            </div>
+            <RefundRequestAction
+              item={item}
+              refundConfirmations={refundConfirmations}
+              setRefundConfirmations={setRefundConfirmations}
+              submitStripeRefund={submitStripeRefund}
+              updateRefundStatus={updateRefundStatus}
+            />
           ),
         }))}
       />
@@ -160,25 +95,12 @@ export const OperationsRecentSection = ({
           title: `${item.product.sku} · ${item.product.name}`,
           meta: `${item.delta > 0 ? '+' : ''}${item.delta} · ${item.stockBefore} → ${item.stockAfter} · ${formatFrenchDateTime(item.createdAt)}`,
           action: (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                className={inputClass}
-                inputMode="numeric"
-                placeholder="Nouveau seuil stock faible"
-                value={stockThresholds[item.product.id] ?? ''}
-                onChange={(e) =>
-                  setStockThresholds((p) => ({ ...p, [item.product.id]: e.target.value }))
-                }
-              />
-              <button
-                className={secondaryActionClass}
-                type="button"
-                onClick={() => submitStockThreshold(item.product.id)}
-                disabled={!stockThresholds[item.product.id]}
-              >
-                Modifier seuil
-              </button>
-            </div>
+            <StockThresholdAction
+              item={item}
+              stockThresholds={stockThresholds}
+              setStockThresholds={setStockThresholds}
+              submitStockThreshold={submitStockThreshold}
+            />
           ),
         }))}
       />

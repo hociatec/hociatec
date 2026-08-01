@@ -9,8 +9,13 @@ interface SiteLayoutProps extends PropsWithChildren {
 
 export const SiteLayout = ({ children, headerVariant = 'transparent' }: SiteLayoutProps) => (
   <div className="site-layout">
+    <a href="#main-content" className="skip-link">
+      Aller au contenu principal
+    </a>
     <SiteHeader variant={headerVariant} />
-    <div className="site-layout__content">{children}</div>
+    <div id="main-content" className="site-layout__content" tabIndex={-1}>
+      {children}
+    </div>
     <SiteFooter />
   </div>
 );

@@ -1,4 +1,5 @@
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { TrainingCatalogFilters } from '@/features/trainings/components/TrainingCatalogFilters';
 import { TrainingCatalogGrid } from '@/features/trainings/components/TrainingCatalogGrid';
 import { TrainingCatalogPagination } from '@/features/trainings/components/TrainingCatalogPagination';
@@ -6,6 +7,7 @@ import { useTrainingCatalogController } from '@/features/trainings/hooks/useTrai
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 
 export const TrainingsCatalogPage = () => {
   useDocumentTitle('Formations');
@@ -18,42 +20,43 @@ export const TrainingsCatalogPage = () => {
 
   return (
     <SiteLayout headerVariant="light">
-      <main className="public-directory-page mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
-        <header className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
-          <span className="inline-flex w-fit rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-orange-800">Formations Hociatec</span>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">Formations accompagnées</h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route pratique.</p>
-        </header>
+      <PublicPageShell
+        eyebrow="Formations Hociatec"
+        title="Formations accompagnées"
+        description="Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route pratique."
+      >
         {controller.loading ? (
-          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">Chargement des formations...</div>
+          <LoadingState>Chargement des formations...</LoadingState>
         ) : controller.error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-700">{controller.error}</div>
+          <ErrorState>{controller.error}</ErrorState>
         ) : controller.trainings.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-brand-100 bg-white p-8 text-center text-stone-600">Aucune formation publiée pour le moment.</div>
+          <EmptyState>Aucune formation publiée pour le moment.</EmptyState>
         ) : (
           <>
-            <TrainingCatalogFilters
-              resultSummary={controller.resultSummary}
-              category={controller.category}
-              format={controller.format}
-              sort={controller.sort}
-              minPrice={controller.minPrice}
-              maxPrice={controller.maxPrice}
-              minDuration={controller.minDuration}
-              maxDuration={controller.maxDuration}
-              categoryOptions={controller.categoryOptions}
-              formatOptions={controller.formatOptions}
-              priceHint={controller.priceHint}
-              durationHint={controller.durationHint}
-              updateParam={controller.updateParam}
-              updateRange={controller.updateRange}
-              resetFilters={controller.resetFilters}
-            />
+            <PublicPageSection className="p-4 sm:p-6">
+              <TrainingCatalogFilters
+                resultSummary={controller.resultSummary}
+                category={controller.category}
+                format={controller.format}
+                sort={controller.sort}
+                minPrice={controller.minPrice}
+                maxPrice={controller.maxPrice}
+                minDuration={controller.minDuration}
+                maxDuration={controller.maxDuration}
+                categoryOptions={controller.categoryOptions}
+                formatOptions={controller.formatOptions}
+                priceHint={controller.priceHint}
+                durationHint={controller.durationHint}
+                updateParam={controller.updateParam}
+                updateRange={controller.updateRange}
+                resetFilters={controller.resetFilters}
+              />
+            </PublicPageSection>
             <TrainingCatalogGrid trainings={controller.paginatedTrainings} categoryName={controller.categoryName} />
             <TrainingCatalogPagination currentPage={controller.currentPage} totalPages={controller.totalPages} updatePage={(nextPage) => controller.updateParam('page', String(nextPage))} />
           </>
         )}
-      </main>
+      </PublicPageShell>
     </SiteLayout>
   );
 };

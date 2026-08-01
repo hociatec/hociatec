@@ -21,6 +21,9 @@ export const SiteHeader = ({
           className="site-header__brand-logo"
           width={180}
           height={180}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
       </Link>
       <SiteHeaderNavigation />

@@ -88,16 +88,15 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
           </button>
         </form>
       )}
-      <button
-        type="button"
+      <Link
+        to="/panier"
         className={linkClass('/panier', 'site-header__cart-button')}
-        onClick={() => navigate('/panier')}
         aria-label={`Mon panier (${cart?.totalQuantity ?? 0})`}
       >
         <ShoppingCart aria-hidden="true" />
         <span>Panier</span>
         <span className="site-header__badge">{cart?.totalQuantity ?? 0}</span>
-      </button>
+      </Link>
       {isAuthenticated ? (
         <>
           {isAdmin && (
