@@ -25,16 +25,16 @@ class RefreshToken
     #[ORM\Column(length: 64, unique: true)]
     private string $selector;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: 'token_hash', length: 255)]
     private string $tokenHash;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'expires_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $expiresAt;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(name: 'revoked_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $revokedAt = null;
 
     public function __construct(User $user, string $selector, string $tokenHash, \DateTimeImmutable $expiresAt)

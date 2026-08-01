@@ -290,6 +290,37 @@ final class VoucherNotificationEmailServiceTest extends TestCase
         $service->sendCustomerVoucher($user, $voucher);
     }
 
+    public function testSendCustomerVoucherRejectsFutureAndExpiredVouchers(): void
+    {
+        $templates = $this->createMock(EmailTemplateRepository::class);
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::never())->method('send');
+        $service = new VoucherNotificationEmailService(
+            $templates,
+            $mailer,
+            $this->notifier(),
+            $this->createMock(LoggerInterface::class),
+            'https://front.example.test',
+            'noreply@example.com',
+        );
+
+        $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
+
+        try {
+            $service->sendCustomerVoucher($user, $this->voucher('FUTURE')->setStartsAt(new \DateTimeImmutable('+1 day')));
+            self::fail('Expected future voucher exception.');
+        } catch (\DomainException $exception) {
+            self::assertSame('Impossible de notifier un voucher qui n\'est pas encore disponible.', $exception->getMessage());
+        }
+
+        try {
+            $service->sendCustomerVoucher($user, $this->voucher('EXPIRED')->setEndsAt(new \DateTimeImmutable('-1 day')));
+            self::fail('Expected expired voucher exception.');
+        } catch (\DomainException $exception) {
+            self::assertSame('Impossible de notifier un voucher expiré.', $exception->getMessage());
+        }
+    }
+
     private function voucher(string $code): Voucher
     {
         $voucher = new Voucher('Voucher', $code, Voucher::TYPE_FIXED_CENTS, 1000);

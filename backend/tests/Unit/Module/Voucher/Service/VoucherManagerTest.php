@@ -20,6 +20,31 @@ use PHPUnit\Framework\TestCase;
 
 final class VoucherManagerTest extends TestCase
 {
+    public function testCreateNormalizesOptionalFieldsAndDeleteRemovesVoucher(): void
+    {
+        $repository = $this->repository();
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Voucher::class));
+        $entityManager->expects(self::exactly(2))->method('flush');
+        $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Voucher::class));
+        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+
+        $voucher = $manager->create([
+            'name' => ' Voucher ',
+            'code' => ' code ',
+            'description' => '   ',
+            'discountType' => Voucher::TYPE_FIXED_CENTS,
+            'discountValue' => 500,
+        ]);
+
+        self::assertSame('Voucher', $voucher->getName());
+        self::assertSame('CODE', $voucher->getCode());
+        self::assertNull($voucher->getDescription());
+        self::assertTrue($voucher->isActive());
+
+        $manager->delete($voucher);
+    }
+
     public function testUpdatePreservesOptionalFieldsWhenTheyAreAbsent(): void
     {
         $repository = $this->repository();
@@ -105,6 +130,90 @@ final class VoucherManagerTest extends TestCase
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('La date de fin doit être postérieure à la date de début.', $exception->getMessage());
         }
+    }
+
+    public function testManagerRejectsRequiredInvalidTypeInvalidValueAndExistingCode(): void
+    {
+        $repository = $this->repository();
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+
+        foreach ([
+            [
+                'data' => [
+                    'name' => ' ',
+                    'code' => 'CODE',
+                    'discountType' => Voucher::TYPE_FIXED_CENTS,
+                    'discountValue' => 500,
+                ],
+                'message' => 'Champs obligatoires manquants.',
+            ],
+            [
+                'data' => [
+                    'name' => 'Voucher',
+                    'code' => 'CODE',
+                    'discountType' => 'bogus',
+                    'discountValue' => 500,
+                ],
+                'message' => 'Type de remise invalide.',
+            ],
+            [
+                'data' => [
+                    'name' => 'Voucher',
+                    'code' => 'CODE',
+                    'discountType' => Voucher::TYPE_FIXED_CENTS,
+                    'discountValue' => 0,
+                ],
+                'message' => 'La valeur de remise doit être supérieure à zéro.',
+            ],
+        ] as $case) {
+            try {
+                $manager->create($case['data']);
+                self::fail('Expected validation exception.');
+            } catch (\InvalidArgumentException $exception) {
+                self::assertSame($case['message'], $exception->getMessage());
+            }
+        }
+
+        $repository->save(new Voucher('Existing', 'DUPLICATE', Voucher::TYPE_FIXED_CENTS, 500), true);
+
+        try {
+            $manager->create([
+                'name' => 'Voucher',
+                'code' => 'duplicate',
+                'description' => 'Existing code',
+                'discountType' => Voucher::TYPE_FIXED_CENTS,
+                'discountValue' => 500,
+            ]);
+            self::fail('Expected duplicate code exception.');
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame('Ce code existe déjà.', $exception->getMessage());
+        }
+    }
+
+    public function testUpdateAcceptsCurrentVoucherCodeWhenRepositoryFindsSameEntity(): void
+    {
+        $repository = $this->repository();
+        $voucher = new Voucher('Existing', 'SAME', Voucher::TYPE_FIXED_CENTS, 500);
+        $repository->save($voucher, true);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('flush');
+        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+
+        $updated = $manager->update($voucher, [
+            'name' => 'Updated',
+            'code' => 'same',
+            'description' => ' Updated description ',
+            'discountType' => Voucher::TYPE_FIXED_CENTS,
+            'discountValue' => 600,
+            'isActive' => false,
+        ]);
+
+        self::assertSame($voucher, $updated);
+        self::assertSame('SAME', $updated->getCode());
+        self::assertSame('Updated description', $updated->getDescription());
+        self::assertFalse($updated->isActive());
     }
 
     public function testManagerConvertsSqlUniqueViolationToReadableMessage(): void

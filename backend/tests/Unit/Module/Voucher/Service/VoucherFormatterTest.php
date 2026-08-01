@@ -10,6 +10,20 @@ use PHPUnit\Framework\TestCase;
 
 final class VoucherFormatterTest extends TestCase
 {
+    public function testFormatterCannotBeConstructedPublicly(): void
+    {
+        $reflection = new \ReflectionClass(VoucherFormatter::class);
+        $formatter = $reflection->newInstanceWithoutConstructor();
+        $constructor = $reflection->getConstructor();
+
+        self::assertNotNull($constructor);
+        self::assertFalse($constructor->isPublic());
+
+        $constructor->invoke($formatter);
+
+        self::assertInstanceOf(VoucherFormatter::class, $formatter);
+    }
+
     public function testItFormatsVoucher(): void
     {
         $voucher = new Voucher('Gift', 'gift-10', Voucher::TYPE_FIXED_CENTS, 1000);

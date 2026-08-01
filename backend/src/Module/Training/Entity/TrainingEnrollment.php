@@ -42,10 +42,10 @@ class TrainingEnrollment
     #[ORM\Column(type: 'integer')]
     private int $priceCents;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'scheduled_starts_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $scheduledStartsAt;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'scheduled_ends_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $scheduledEndsAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
