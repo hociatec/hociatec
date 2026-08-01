@@ -216,6 +216,7 @@ final class QuoteServiceTest extends TestCase
             $productRepository,
             $this->numberGenerator($number),
             new QuoteCalculator(),
+            new \DateTimeImmutable('2026-07-29'),
         );
     }
 

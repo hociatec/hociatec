@@ -37,6 +37,30 @@ final class VoucherFormatterTest extends TestCase
         self::assertIsString($formatted['updatedAt']);
     }
 
+    public function testItFormatsCartVoucherWithoutRecipientOrAuditFields(): void
+    {
+        $voucher = new Voucher('Gift', 'gift-10', Voucher::TYPE_FIXED_CENTS, 1000);
+        $this->setEntityId($voucher, 88);
+        $voucher
+            ->setDescription('Desc')
+            ->setRecipientUserId(42)
+            ->setRecipientEmail('ada@example.com')
+            ->setSentAt(new \DateTimeImmutable('now'));
+
+        $formatted = VoucherFormatter::formatCartVoucher($voucher, 750);
+
+        self::assertSame([
+            'id',
+            'name',
+            'code',
+            'description',
+            'discountType',
+            'discountValue',
+            'discountAmountCents',
+        ], array_keys($formatted));
+        self::assertSame(750, $formatted['discountAmountCents']);
+    }
+
     private function setEntityId(object $entity, int $id): void
     {
         $reflection = new \ReflectionObject($entity);

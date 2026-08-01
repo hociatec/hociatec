@@ -240,6 +240,56 @@ final class VoucherNotificationEmailServiceTest extends TestCase
         }
     }
 
+    public function testSendCustomerVoucherKeepsUserIdVoucherValidAfterEmailChange(): void
+    {
+        $templates = $this->createMock(EmailTemplateRepository::class);
+        $templates->method('findActiveOneByScenarioKey')->willReturn(null);
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::once())->method('send');
+        $service = new VoucherNotificationEmailService(
+            $templates,
+            $mailer,
+            $this->notifier(),
+            $this->createMock(LoggerInterface::class),
+            'https://front.example.test',
+            'noreply@example.com',
+        );
+
+        $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
+        $voucher = $this->voucher('PRIVATE')
+            ->setRecipientUserId($user->getId())
+            ->setRecipientEmail('previous@example.com');
+
+        $service->sendCustomerVoucher($user, $voucher);
+
+        self::assertTrue($this->notificationRepository($this->entityManager())->existsForKey('voucher:55:customer_offer'));
+    }
+
+    public function testSendCustomerVoucherRejectsVoucherWhenUserIdConstraintDoesNotMatch(): void
+    {
+        $templates = $this->createMock(EmailTemplateRepository::class);
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::never())->method('send');
+        $service = new VoucherNotificationEmailService(
+            $templates,
+            $mailer,
+            $this->notifier(),
+            $this->createMock(LoggerInterface::class),
+            'https://front.example.test',
+            'noreply@example.com',
+        );
+
+        $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
+        $voucher = $this->voucher('PRIVATE')
+            ->setRecipientUserId(99)
+            ->setRecipientEmail('ada@example.com');
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Impossible de notifier un voucher attribué à un autre destinataire.');
+
+        $service->sendCustomerVoucher($user, $voucher);
+    }
+
     private function voucher(string $code): Voucher
     {
         $voucher = new Voucher('Voucher', $code, Voucher::TYPE_FIXED_CENTS, 1000);

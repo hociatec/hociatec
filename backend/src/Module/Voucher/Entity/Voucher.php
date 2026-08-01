@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Entity;
 
+use App\Module\User\Entity\User;
 use App\Module\Voucher\Repository\VoucherRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -99,7 +100,7 @@ class Voucher
 
     public function setCode(string $code): self
     {
-        $code = mb_strtoupper(trim($code));
+        $code = self::normalizeCode($code);
         if ('' === $code) {
             throw new \InvalidArgumentException('Le code du voucher est obligatoire.');
         }
@@ -215,9 +216,60 @@ class Voucher
 
     public function setRecipientEmail(?string $recipientEmail): self
     {
-        $this->recipientEmail = $recipientEmail;
+        $recipientEmail = null !== $recipientEmail ? trim($recipientEmail) : null;
+        $this->recipientEmail = '' === $recipientEmail ? null : $recipientEmail;
 
         return $this;
+    }
+
+    public static function normalizeCode(?string $code): string
+    {
+        return mb_strtoupper(trim((string) $code));
+    }
+
+    public function hasStartedAt(\DateTimeImmutable $now): bool
+    {
+        return null === $this->startsAt || $this->startsAt <= $now;
+    }
+
+    public function isExpiredAt(\DateTimeImmutable $now): bool
+    {
+        return null !== $this->endsAt && $this->endsAt < $now;
+    }
+
+    public function hasRecipientConstraint(): bool
+    {
+        return null !== $this->recipientUserId || null !== $this->recipientEmail;
+    }
+
+    public function matchesRecipient(?User $user): bool
+    {
+        if (!$this->hasRecipientConstraint()) {
+            return true;
+        }
+
+        if (null === $user) {
+            return false;
+        }
+
+        if (null !== $this->recipientUserId) {
+            return $this->recipientUserId === $user->getId();
+        }
+
+        return null !== $this->recipientEmail && 0 === strcasecmp($this->recipientEmail, $user->getEmail());
+    }
+
+    public function canBeUsedBy(?User $user, \DateTimeImmutable $now): bool
+    {
+        return $this->isActive()
+            && $this->hasStartedAt($now)
+            && !$this->isExpiredAt($now)
+            && $this->matchesRecipient($user);
+    }
+
+    public function canBeNotifiedTo(User $user, \DateTimeImmutable $now): bool
+    {
+        return $this->canBeUsedBy($user, $now);
     }
 
     public function getSentAt(): ?\DateTimeImmutable

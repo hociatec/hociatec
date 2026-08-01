@@ -8,11 +8,14 @@ use App\Module\Cart\Entity\CartSession;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherLookupInterface;
+use Psr\Clock\ClockInterface;
 
 final class VoucherEngine
 {
-    public function __construct(private readonly VoucherLookupInterface $vouchers)
-    {
+    public function __construct(
+        private readonly VoucherLookupInterface $vouchers,
+        private readonly ?ClockInterface $clock = null,
+    ) {
     }
 
     /**
@@ -30,9 +33,19 @@ final class VoucherEngine
         $subtotal = 0;
 
         foreach ($cart->getItems() as $item) {
+            if ($item->getQuantity() <= 0) {
+                throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
+            }
+
             $linePrice = $item->getProduct()->getPriceCents() * $item->getQuantity();
             if ('rental' === $item->getProduct()->getSellingType()) {
-                $linePrice *= max(1, $item->getRentalMonths() ?? 1);
+                $storedRentalMonths = $item->getStoredRentalMonths();
+                if (0 === $storedRentalMonths || $storedRentalMonths < -1) {
+                    throw new \InvalidArgumentException('La duree de location doit etre superieure ou egale a 1 mois.');
+                }
+
+                $rentalMonths = $item->getRentalMonths() ?? 1;
+                $linePrice *= $rentalMonths;
             }
 
             $subtotal += $linePrice;
@@ -53,8 +66,12 @@ final class VoucherEngine
      */
     public function calculateForSubtotal(int $subtotalPriceCents, ?User $user, ?string $voucherCode = null): array
     {
-        $now = new \DateTimeImmutable();
-        $enteredVoucherCode = is_string($voucherCode) ? trim($voucherCode) : '';
+        if ($subtotalPriceCents < 0) {
+            throw new \InvalidArgumentException('Le sous-total ne peut pas etre negatif.');
+        }
+
+        $now = $this->clock?->now() ?? new \DateTimeImmutable();
+        $enteredVoucherCode = Voucher::normalizeCode($voucherCode);
         $status = 'none';
         $appliedVoucher = null;
         $discountAmount = 0;
@@ -66,10 +83,7 @@ final class VoucherEngine
                 if ($this->isVoucherEligible($voucher, $subtotalPriceCents, $now, $user)) {
                     $discountAmount = $this->computeDiscountAmount($voucher, $subtotalPriceCents);
                     if ($discountAmount > 0) {
-                        $appliedVoucher = [
-                            ...VoucherFormatter::formatVoucher($voucher),
-                            'discountAmountCents' => $discountAmount,
-                        ];
+                        $appliedVoucher = VoucherFormatter::formatCartVoucher($voucher, $discountAmount);
                         $status = 'applied';
                     } else {
                         $status = 'ineligible';
@@ -86,7 +100,7 @@ final class VoucherEngine
             'totalPriceCents' => max(0, $subtotalPriceCents - $discountAmount),
             'appliedVoucher' => $appliedVoucher,
             'voucherCodeStatus' => $status,
-            'enteredVoucherCode' => '' !== $enteredVoucherCode ? mb_strtoupper($enteredVoucherCode) : null,
+            'enteredVoucherCode' => '' !== $enteredVoucherCode ? $enteredVoucherCode : null,
         ];
     }
 
@@ -107,39 +121,10 @@ final class VoucherEngine
 
     private function isVoucherEligible(Voucher $voucher, int $subtotalPriceCents, \DateTimeImmutable $now, ?User $user): bool
     {
-        if (!$voucher->isActive()) {
-            return false;
-        }
-
-        if (null !== $voucher->getStartsAt() && $voucher->getStartsAt() > $now) {
-            return false;
-        }
-
-        if (null !== $voucher->getEndsAt() && $voucher->getEndsAt() < $now) {
-            return false;
-        }
-
-        if (!$this->isRecipientEligible($voucher, $user)) {
+        if (!$voucher->canBeUsedBy($user, $now)) {
             return false;
         }
 
         return $subtotalPriceCents > 0;
-    }
-
-    private function isRecipientEligible(Voucher $voucher, ?User $user): bool
-    {
-        if (null === $voucher->getRecipientUserId() && null === $voucher->getRecipientEmail()) {
-            return true;
-        }
-
-        if (null === $user) {
-            return false;
-        }
-
-        if (null !== $voucher->getRecipientUserId() && $voucher->getRecipientUserId() === $user->getId()) {
-            return true;
-        }
-
-        return null !== $voucher->getRecipientEmail() && mb_strtolower($voucher->getRecipientEmail()) === mb_strtolower($user->getEmail());
     }
 }

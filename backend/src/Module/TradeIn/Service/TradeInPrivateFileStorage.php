@@ -63,11 +63,7 @@ final readonly class TradeInPrivateFileStorage
 
     public function read(string $relativePath): string
     {
-        $root = realpath($this->projectDir.'/var/private/trade-ins');
-        $path = realpath($this->projectDir.'/'.$relativePath);
-        if (false === $root || false === $path || !str_starts_with($path, $root.'/')) {
-            throw new \RuntimeException('Document privé introuvable.');
-        }
+        $path = $this->resolvePrivateDocumentPath($relativePath);
 
         $contents = file_get_contents($path);
         if (false === $contents) {
@@ -75,5 +71,22 @@ final readonly class TradeInPrivateFileStorage
         }
 
         return $contents;
+    }
+
+    private function resolvePrivateDocumentPath(string $relativePath): string
+    {
+        $root = realpath($this->projectDir.'/var/private/trade-ins');
+        $path = realpath($this->projectDir.'/'.$relativePath);
+        if (false === $root || false === $path || !is_file($path)) {
+            throw new \RuntimeException('Document privé introuvable.');
+        }
+
+        $normalizedRoot = rtrim(str_replace('\\', '/', $root), '/');
+        $normalizedPath = str_replace('\\', '/', $path);
+        if (!str_starts_with($normalizedPath, $normalizedRoot.'/')) {
+            throw new \RuntimeException('Document privé introuvable.');
+        }
+
+        return $path;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Voucher\Entity;
 
+use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
 use PHPUnit\Framework\TestCase;
 
@@ -94,5 +95,47 @@ final class VoucherTest extends TestCase
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('La date de fin doit être postérieure à la date de début.', $exception->getMessage());
         }
+    }
+
+    public function testRecipientMatchingUsesUserIdAsStableAccountAnchorWhenDefined(): void
+    {
+        $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $this->setId($user, 42);
+
+        self::assertTrue((new Voucher('Public', 'PUBLIC', Voucher::TYPE_FIXED_CENTS, 1000))->matchesRecipient(null));
+        self::assertFalse((new Voucher('Private', 'PRIVATE', Voucher::TYPE_FIXED_CENTS, 1000))->setRecipientUserId(42)->matchesRecipient(null));
+        self::assertTrue((new Voucher('User', 'USER', Voucher::TYPE_FIXED_CENTS, 1000))->setRecipientUserId(42)->matchesRecipient($user));
+        self::assertTrue((new Voucher('Mail', 'MAIL', Voucher::TYPE_FIXED_CENTS, 1000))->setRecipientEmail('ADA@EXAMPLE.COM')->matchesRecipient($user));
+        self::assertTrue(
+            (new Voucher('Both', 'BOTH', Voucher::TYPE_FIXED_CENTS, 1000))
+                ->setRecipientUserId(42)
+                ->setRecipientEmail('ada@example.com')
+                ->matchesRecipient($user)
+        );
+        self::assertTrue(
+            (new Voucher('Changed mail', 'CHANGEDMAIL', Voucher::TYPE_FIXED_CENTS, 1000))
+                ->setRecipientUserId(42)
+                ->setRecipientEmail('other@example.com')
+                ->matchesRecipient($user)
+        );
+        self::assertFalse(
+            (new Voucher('Bad user', 'BADUSER', Voucher::TYPE_FIXED_CENTS, 1000))
+                ->setRecipientUserId(99)
+                ->setRecipientEmail('ada@example.com')
+                ->matchesRecipient($user)
+        );
+
+        self::assertTrue(
+            (new Voucher('Notify', 'NOTIFY', Voucher::TYPE_FIXED_CENTS, 1000))
+                ->setRecipientUserId(42)
+                ->setRecipientEmail('previous@example.com')
+                ->canBeNotifiedTo($user, new \DateTimeImmutable('2026-08-01 12:00:00'))
+        );
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $reflection = new \ReflectionObject($entity);
+        $reflection->getProperty('id')->setValue($entity, $id);
     }
 }

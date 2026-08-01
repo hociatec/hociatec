@@ -34,4 +34,20 @@ final class VoucherFormatter
             'updatedAt' => $voucher->getUpdatedAt()->format(DATE_ATOM),
         ];
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function formatCartVoucher(Voucher $voucher, int $discountAmountCents): array
+    {
+        return [
+            'id' => $voucher->getId(),
+            'name' => $voucher->getName(),
+            'code' => $voucher->getCode(),
+            'description' => $voucher->getDescription(),
+            'discountType' => $voucher->getDiscountType(),
+            'discountValue' => $voucher->getDiscountValue(),
+            'discountAmountCents' => $discountAmountCents,
+        ];
+    }
 }

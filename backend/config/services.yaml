@@ -10,6 +10,7 @@ parameters:
     env(WEASYPRINT_PYTHONPATH): ''
     env(STRIPE_SECRET_KEY): ''
     env(BACKUP_ENCRYPTION_KEY_FILE): '/etc/hociatec/backup.key'
+    env(METRICS_TOKEN): ''
 
 services:
     # default configuration for services in *this* file
@@ -79,6 +80,10 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
+
+    App\Module\System\Controller\MetricsController:
+        arguments:
+            $metricsToken: '%env(METRICS_TOKEN)%'
 
     App\Module\TradeIn\Service\TradeInPrivateFileStorage:
         arguments:

@@ -20,7 +20,7 @@ final readonly class DatabaseBackupDumper
         if (null !== $database['port']) {
             array_splice($command, 4, 0, ['-P'.$database['port']]);
         }
-        $process = proc_open(
+        $process = @proc_open(
             $command,
             [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
@@ -53,7 +53,21 @@ final readonly class DatabaseBackupDumper
 
     public function isAvailable(): bool
     {
-        return '' !== trim((string) shell_exec('command -v mysqldump 2>/dev/null'));
+        $process = @proc_open(
+            ['mysqldump', '--version'],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            $this->projectDir,
+            ['PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'],
+        );
+        if (!is_resource($process)) {
+            return false;
+        }
+
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        return 0 === proc_close($process);
     }
 
     /** @return array{user: string, password: string, host: string, port: int|null, name: string} */

@@ -93,8 +93,23 @@ final class LoyaltyService
     public function convertPointsToVoucher(User $user, int $points): Voucher
     {
         return $this->persistence->transactional(
-            fn (): Voucher => $this->convertPointsToVoucherInTransaction($user, $points),
+            fn (): Voucher => $this->convertPointsToVoucherInTransaction($this->lockUser($user), $points),
         );
+    }
+
+    private function lockUser(User $user): User
+    {
+        $userId = $user->getId();
+        if (null === $userId) {
+            return $user;
+        }
+
+        $locked = $this->persistence->findForUpdate(User::class, $userId);
+        if (!$locked instanceof User) {
+            throw new \InvalidArgumentException('Client introuvable.');
+        }
+
+        return $locked;
     }
 
     private function convertPointsToVoucherInTransaction(User $user, int $points): Voucher

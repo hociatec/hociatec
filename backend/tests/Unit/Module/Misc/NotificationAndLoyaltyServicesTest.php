@@ -127,6 +127,14 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $user = $this->user();
         $this->setId($user, 9);
         $user->setLoyaltyPointsBalance(2000);
+        $accentedLockedUser = new User('client@example.com', 'Client', 'Elephant !!!', new \DateTimeImmutable('1990-01-01'), '0102030405', 'other');
+        $this->setId($accentedLockedUser, 19);
+        $accentedLockedUser->setLoyaltyPointsBalance(100);
+        $entityManager->method('find')->willReturnCallback(static fn (string $class, int $id, int $lockMode): ?User => match ($id) {
+            9 => $user,
+            19 => $accentedLockedUser,
+            default => null,
+        });
         $order = new Order('ORD-1', $user);
         $order->setTotalPriceCents(12345);
         self::assertSame(1230, $service->calculateEarnedPoints($order));

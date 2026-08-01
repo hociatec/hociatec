@@ -13,6 +13,7 @@ use App\Module\Voucher\Entity\Voucher;
 use App\Module\Voucher\Repository\VoucherLookupInterface;
 use App\Module\Voucher\Service\VoucherEngine;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 final class VoucherEngineTest extends TestCase
 {
@@ -52,6 +53,15 @@ final class VoucherEngineTest extends TestCase
                 'PERCENT20' => $this->voucher('Percent', 'PERCENT20', Voucher::TYPE_PERCENT, 20),
                 'USERONLY' => $this->voucher('User only', 'USERONLY', Voucher::TYPE_FIXED_CENTS, 2500)->setRecipientUserId(42),
                 'MAILONLY' => $this->voucher('Mail only', 'MAILONLY', Voucher::TYPE_FIXED_CENTS, 3000)->setRecipientEmail('ada@example.com'),
+                'BOTHOK' => $this->voucher('Both ok', 'BOTHOK', Voucher::TYPE_FIXED_CENTS, 3500)
+                    ->setRecipientUserId(42)
+                    ->setRecipientEmail('ada@example.com'),
+                'CHANGEDMAIL' => $this->voucher('Changed mail', 'CHANGEDMAIL', Voucher::TYPE_FIXED_CENTS, 3500)
+                    ->setRecipientUserId(42)
+                    ->setRecipientEmail('other@example.com'),
+                'BADUSER' => $this->voucher('Bad user', 'BADUSER', Voucher::TYPE_FIXED_CENTS, 3500)
+                    ->setRecipientUserId(99)
+                    ->setRecipientEmail('ada@example.com'),
                 'OTHERUSER' => $this->voucher('Other', 'OTHERUSER', Voucher::TYPE_FIXED_CENTS, 5000)->setRecipientUserId(99),
                 default => null,
             };
@@ -72,6 +82,15 @@ final class VoucherEngineTest extends TestCase
         $mailOnly = $engine->calculateForSubtotal(20000, $user, 'MAILONLY');
         self::assertSame('applied', $mailOnly['voucherCodeStatus']);
         self::assertSame(3000, $mailOnly['discountAmountCents']);
+
+        $bothOk = $engine->calculateForSubtotal(20000, $user, 'BOTHOK');
+        self::assertSame('applied', $bothOk['voucherCodeStatus']);
+        self::assertSame(3500, $bothOk['discountAmountCents']);
+
+        $changedMail = $engine->calculateForSubtotal(20000, $user, 'CHANGEDMAIL');
+        self::assertSame('applied', $changedMail['voucherCodeStatus']);
+        self::assertSame(3500, $changedMail['discountAmountCents']);
+        self::assertSame('ineligible', $engine->calculateForSubtotal(20000, $user, 'BADUSER')['voucherCodeStatus']);
 
         $otherUser = $engine->calculateForSubtotal(20000, $user, 'OTHERUSER');
         self::assertSame('ineligible', $otherUser['voucherCodeStatus']);
@@ -101,6 +120,11 @@ final class VoucherEngineTest extends TestCase
         self::assertSame(30000, $summary['totalPriceCents']);
         self::assertSame('applied', $summary['voucherCodeStatus']);
         self::assertSame('VOUCHER10', $summary['enteredVoucherCode']);
+        self::assertArrayNotHasKey('recipientUserId', $summary['appliedVoucher']);
+        self::assertArrayNotHasKey('recipientEmail', $summary['appliedVoucher']);
+        self::assertArrayNotHasKey('sentAt', $summary['appliedVoucher']);
+        self::assertArrayNotHasKey('createdAt', $summary['appliedVoucher']);
+        self::assertArrayNotHasKey('updatedAt', $summary['appliedVoucher']);
     }
 
     public function testCalculateCartSummaryPrefersExplicitVoucherCodeAndHandlesRecipientAndZeroSubtotalBranches(): void
@@ -154,6 +178,72 @@ final class VoucherEngineTest extends TestCase
         self::assertSame(0, $zeroSubtotal);
     }
 
+    public function testCalculateForSubtotalRejectsNegativeSubtotal(): void
+    {
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Le sous-total ne peut pas etre negatif.');
+
+        $engine->calculateForSubtotal(-1, null, 'CODE');
+    }
+
+    public function testVoucherDateBoundariesAreInclusive(): void
+    {
+        $now = new \DateTimeImmutable('2026-08-01 12:00:00');
+        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository->method('findOneByCode')->willReturnCallback(function (string $code) use ($now): ?Voucher {
+            return match ($code) {
+                'STARTS_NOW' => $this->voucher('Starts now', 'STARTS_NOW', Voucher::TYPE_FIXED_CENTS, 1000)
+                    ->setStartsAt($now)
+                    ->setEndsAt($now->modify('+1 hour')),
+                'ENDS_NOW' => $this->voucher('Ends now', 'ENDS_NOW', Voucher::TYPE_FIXED_CENTS, 1000)
+                    ->setStartsAt($now->modify('-1 hour'))
+                    ->setEndsAt($now),
+                default => null,
+            };
+        });
+        $engine = new VoucherEngine($repository, new MockClock($now));
+
+        self::assertSame('applied', $engine->calculateForSubtotal(10000, null, 'STARTS_NOW')['voucherCodeStatus']);
+        self::assertSame('applied', $engine->calculateForSubtotal(10000, null, 'ENDS_NOW')['voucherCodeStatus']);
+    }
+
+    public function testCalculateCartSummaryRejectsInvalidPersistedCartValues(): void
+    {
+        $category = new Category('Phones', 'phones');
+        $product = new Product('Phone', 'phone', 'PH-1', 'Sale', 10000, 5, $category);
+        $cart = new CartSession('cart-token');
+        $item = new CartItem($cart, $product, 1);
+        $this->setPrivateProperty($item, 'quantity', 0);
+        $cart->addItem($item);
+
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('La quantite doit etre superieure ou egale a 1.');
+
+        $engine->calculateCartSummary($cart, null);
+    }
+
+    public function testCalculateCartSummaryRejectsInvalidPersistedRentalMonths(): void
+    {
+        $category = new Category('Phones', 'phones');
+        $product = new Product('Rental', 'rental', 'RE-1', 'Rental', 5000, 5, $category);
+        $product->setSellingType('rental');
+        $cart = new CartSession('cart-token');
+        $item = new CartItem($cart, $product, 1, 1);
+        $this->setPrivateProperty($item, 'rentalMonths', 0);
+        $cart->addItem($item);
+
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('La duree de location doit etre superieure ou egale a 1 mois.');
+
+        $engine->calculateCartSummary($cart, null);
+    }
+
     private function voucher(string $name, string $code, string $type, int $value): Voucher
     {
         $voucher = new Voucher($name, $code, $type, $value);
@@ -165,8 +255,13 @@ final class VoucherEngineTest extends TestCase
 
     private function setEntityId(object $entity, int $id): void
     {
+        $this->setPrivateProperty($entity, 'id', $id);
+    }
+
+    private function setPrivateProperty(object $entity, string $propertyName, mixed $value): void
+    {
         $reflection = new \ReflectionObject($entity);
-        $property = $reflection->getProperty('id');
-        $property->setValue($entity, $id);
+        $property = $reflection->getProperty($propertyName);
+        $property->setValue($entity, $value);
     }
 }

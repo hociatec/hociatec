@@ -101,6 +101,11 @@ class CartItem
         return $this->rentalMonths > 0 ? $this->rentalMonths : null;
     }
 
+    public function getStoredRentalMonths(): int
+    {
+        return $this->rentalMonths;
+    }
+
     public function setRentalMonths(?int $rentalMonths): self
     {
         if (null === $rentalMonths) {

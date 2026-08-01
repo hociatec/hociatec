@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Repository;
 
 use App\Module\Appointment\Entity\WorkingDayConfiguration;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,6 +22,16 @@ class WorkingDayConfigurationRepository extends ServiceEntityRepository
     public function findOneByDay(int $dayOfWeek): ?WorkingDayConfiguration
     {
         return $this->findOneBy(['dayOfWeek' => $dayOfWeek]);
+    }
+
+    public function findOneByDayForUpdate(int $dayOfWeek): ?WorkingDayConfiguration
+    {
+        return $this->createQueryBuilder('w')
+            ->andWhere('w.dayOfWeek = :dayOfWeek')
+            ->setParameter('dayOfWeek', $dayOfWeek)
+            ->getQuery()
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->getOneOrNullResult();
     }
 
     /**

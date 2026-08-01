@@ -16,8 +16,14 @@ final class PdfInfrastructureTest extends TestCase
         mkdir($projectDir.'/bin', 0777, true);
         file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
 
-        $python = $projectDir.'/fake-python.sh';
-        file_put_contents($python, <<<'SH'
+        $python = $projectDir.'/fake-python'.('Windows' === PHP_OS_FAMILY ? '.bat' : '.sh');
+        file_put_contents($python, 'Windows' === PHP_OS_FAMILY ? <<<'BAT'
+@echo off
+if "%~1"=="-c" exit /B 0
+<nul set /p dummy="PDF-CONTENT" > "%~3"
+exit /B 0
+BAT
+            : <<<'SH'
 #!/bin/sh
 if [ "$1" = "-c" ]; then
   exit 0
@@ -47,8 +53,13 @@ SH);
         $projectDir = sys_get_temp_dir().'/hociatec-pdf-fail-'.bin2hex(random_bytes(4));
         mkdir($projectDir, 0777, true);
 
-        $python = $projectDir.'/fail-python.sh';
-        file_put_contents($python, <<<'SH'
+        $python = $projectDir.'/fail-python'.('Windows' === PHP_OS_FAMILY ? '.bat' : '.sh');
+        file_put_contents($python, 'Windows' === PHP_OS_FAMILY ? <<<'BAT'
+@echo off
+echo boom 1>&2
+exit /B 1
+BAT
+            : <<<'SH'
 #!/bin/sh
 echo boom 1>&2
 exit 1
@@ -72,8 +83,13 @@ SH);
         mkdir($projectDir.'/bin', 0777, true);
         file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
 
-        $python = $projectDir.'/fake-python.sh';
-        file_put_contents($python, "#!/bin/sh\nif [ \"$1\" = \"-c\" ]; then exit 0; fi\nexit 0\n");
+        $python = $projectDir.'/fake-python'.('Windows' === PHP_OS_FAMILY ? '.bat' : '.sh');
+        file_put_contents(
+            $python,
+            'Windows' === PHP_OS_FAMILY
+                ? "@echo off\r\nif \"%~1\"==\"-c\" exit /B 0\r\nexit /B 0\r\n"
+                : "#!/bin/sh\nif [ \"$1\" = \"-c\" ]; then exit 0; fi\nexit 0\n"
+        );
         chmod($python, 0755);
 
         $renderer = new AccessiblePdfRenderer($projectDir, $python, '/opt/site-packages');

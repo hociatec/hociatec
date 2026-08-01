@@ -37,7 +37,7 @@ final readonly class AppointmentNotificationProvider implements ComputedAccountN
 
     private function nextAppointment(User $user, \DateTimeImmutable $now): ?Appointment
     {
-        $upcoming = $this->appointments->getAppointmentsForUser($user)['upcoming'];
+        $upcoming = $this->appointments->getAppointmentsForUser($user, $now)['upcoming'];
         usort($upcoming, static fn (Appointment $left, Appointment $right): int => $left->getStartAt() <=> $right->getStartAt());
 
         foreach ($upcoming as $appointment) {

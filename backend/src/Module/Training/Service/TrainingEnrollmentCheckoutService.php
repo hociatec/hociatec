@@ -28,6 +28,11 @@ final readonly class TrainingEnrollmentCheckoutService
 
     public function enroll(User $user, int $sessionId, string $startsAt): TrainingEnrollmentCheckoutResult
     {
+        return $this->persistence->transactional(fn (): TrainingEnrollmentCheckoutResult => $this->enrollInTransaction($user, $sessionId, $startsAt));
+    }
+
+    private function enrollInTransaction(User $user, int $sessionId, string $startsAt): TrainingEnrollmentCheckoutResult
+    {
         $session = $this->findSession($sessionId);
         $scheduledStartsAt = $this->parseStart($startsAt);
         $scheduledEndsAt = $scheduledStartsAt->modify('+'.max(1, $session->getTraining()->getDurationMinutes()).' minutes');
@@ -77,7 +82,7 @@ final readonly class TrainingEnrollmentCheckoutService
 
     private function findSession(int $sessionId): TrainingSession
     {
-        $session = $sessionId > 0 ? $this->sessions->find($sessionId) : null;
+        $session = $sessionId > 0 ? $this->sessions->findForUpdate($sessionId) : null;
         if (!$session instanceof TrainingSession || !$session->getTraining()->isActive() || 'scheduled' !== $session->getStatus()) {
             throw new TrainingSessionUnavailableException('Session introuvable.');
         }

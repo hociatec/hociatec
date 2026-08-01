@@ -213,6 +213,7 @@ final class ComputedNotificationProvidersTest extends TestCase
     {
         return new AppointmentService(
             $appointmentRepository,
+            $this->createMock(WorkingDayConfigurationRepository::class),
             new AvailabilityService(
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $appointmentRepository,

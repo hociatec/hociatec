@@ -8,6 +8,7 @@ use App\Module\Marketing\Repository\EmailTemplateRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Entity\Voucher;
+use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -22,6 +23,7 @@ final class VoucherNotificationEmailService
         private readonly LoggerInterface $logger,
         private readonly string $frontendUrl,
         private readonly string $mailerFrom,
+        private readonly ?ClockInterface $clock = null,
     ) {
     }
 
@@ -167,26 +169,22 @@ final class VoucherNotificationEmailService
 
     private function assertVoucherCanBeNotified(User $user, Voucher $voucher): void
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock?->now() ?? new \DateTimeImmutable();
 
         if (!$voucher->isActive()) {
             throw new \DomainException('Impossible de notifier un voucher inactif.');
         }
 
-        if (null !== $voucher->getStartsAt() && $voucher->getStartsAt() > $now) {
+        if (!$voucher->hasStartedAt($now)) {
             throw new \DomainException('Impossible de notifier un voucher qui n\'est pas encore disponible.');
         }
 
-        if (null !== $voucher->getEndsAt() && $voucher->getEndsAt() < $now) {
+        if ($voucher->isExpiredAt($now)) {
             throw new \DomainException('Impossible de notifier un voucher expiré.');
         }
 
-        if (null !== $voucher->getRecipientUserId() && $voucher->getRecipientUserId() !== $user->getId()) {
-            throw new \DomainException('Impossible de notifier un voucher attribué à un autre utilisateur.');
-        }
-
-        if (null !== $voucher->getRecipientEmail() && 0 !== strcasecmp($voucher->getRecipientEmail(), $user->getEmail())) {
-            throw new \DomainException('Impossible de notifier un voucher attribué à une autre adresse e-mail.');
+        if (!$voucher->matchesRecipient($user)) {
+            throw new \DomainException('Impossible de notifier un voucher attribué à un autre destinataire.');
         }
     }
 }

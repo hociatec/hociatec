@@ -109,7 +109,7 @@ final class VoucherManager
 
     private function normalizeCode(?string $value): string
     {
-        return mb_strtoupper(trim((string) $value));
+        return Voucher::normalizeCode($value);
     }
 
     private function assertValidData(

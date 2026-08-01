@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
+use App\Shared\Service\Slugifier;
 
 final class InvoiceDownloadNameBuilder
 {
+    use Slugifier;
+
     public function build(Order $order): string
     {
         $datePart = $order->getInvoicedAt()?->format('Y-m-d') ?? $order->getCreatedAt()->format('Y-m-d');
@@ -19,12 +22,6 @@ final class InvoiceDownloadNameBuilder
 
     private function normalize(string $value): string
     {
-        $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-        $normalized = false !== $ascii ? $ascii : $value;
-        $normalized = strtolower($normalized);
-        $normalized = (string) preg_replace('/[^a-z0-9]+/', '-', $normalized);
-        $normalized = trim($normalized, '-');
-
-        return '' !== $normalized ? $normalized : 'client';
+        return $this->slugifyValue($value, 'client');
     }
 }

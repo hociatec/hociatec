@@ -7,6 +7,7 @@ namespace App\Module\Training\Repository;
 use App\Module\Training\Entity\Training;
 use App\Module\Training\Entity\TrainingSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TrainingSession> */
@@ -30,5 +31,12 @@ class TrainingSessionRepository extends ServiceEntityRepository
             ->orderBy('s.startsAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findForUpdate(int $id): ?TrainingSession
+    {
+        $session = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $session instanceof TrainingSession ? $session : null;
     }
 }
