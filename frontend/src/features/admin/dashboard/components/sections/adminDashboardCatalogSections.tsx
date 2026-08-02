@@ -4,17 +4,17 @@ import type { AdminDashboardSection } from './adminDashboardSectionTypes';
 export const adminDashboardCatalogSections: AdminDashboardSection[] = [
   {
     id: 'prestations',
-    title: 'Rendez-vous et prestations',
-    subtitle: 'Prestations réservables, durées, tarifs et créneaux de rendez-vous.',
+    title: 'Rendez-vous',
+    subtitle: 'Motifs réservables, durées, tarifs et créneaux de rendez-vous.',
     links: [
       {
-        to: '/admin/appointments/prestations',
-        title: 'Prestations de rendez-vous',
+        to: '/admin/appointments/motifs',
+        title: 'Motifs de rendez-vous',
         icon: adminDashboardIcons.layers,
       },
       {
-        to: '/admin/appointments/prestations/new',
-        title: 'Ajouter une prestation',
+        to: '/admin/appointments/motifs/new',
+        title: 'Ajouter un motif',
         icon: adminDashboardIcons.plus,
       },
       {
@@ -75,11 +75,6 @@ export const adminDashboardCatalogSections: AdminDashboardSection[] = [
         to: '/admin/services/new',
         title: 'Nouveau service',
         icon: adminDashboardIcons.plus,
-      },
-      {
-        to: '/services',
-        title: 'Voir la page services',
-        icon: adminDashboardIcons.arrowRight,
       },
     ],
   },

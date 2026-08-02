@@ -86,10 +86,10 @@ export const adminRoutes: AppRouteDefinition = {
     {
       path: 'appointments',
       children: [
-        { index: true, element: <Navigate to="prestations" replace /> },
-        { path: 'prestations', element: <PrestationsListPage /> },
-        { path: 'prestations/new', element: <PrestationFormPage /> },
-        { path: 'prestations/:prestationId/edit', element: <PrestationFormPage /> },
+        { index: true, element: <Navigate to="motifs" replace /> },
+        { path: 'motifs', element: <PrestationsListPage /> },
+        { path: 'motifs/new', element: <PrestationFormPage /> },
+        { path: 'motifs/:prestationId/edit', element: <PrestationFormPage /> },
         { path: 'schedule', element: <SchedulePage /> },
       ],
     },

@@ -357,6 +357,30 @@
   box-shadow: var(--hocia-shadow-md);
 }
 
+.home-service-card--featured {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(221, 209, 194, 0.92);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(250, 246, 240, 0.96));
+  box-shadow:
+    0 18px 42px rgba(44, 31, 16, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.home-service-card--featured:hover {
+  transform: translateY(-6px);
+  border-color: rgba(243, 154, 32, 0.42);
+  box-shadow:
+    0 24px 54px rgba(44, 31, 16, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
 .home-service-card--audience {
   display: flex;
   flex-direction: column;
@@ -367,6 +391,12 @@
 .home-service-card__body {
   display: grid;
   gap: 1rem;
+}
+
+.home-service-card--featured .home-service-card__body {
+  flex: 1;
+  padding: 1.35rem 1.35rem 1.35rem;
+  align-content: start;
 }
 
 .home-service-card__body h3 {
@@ -380,6 +410,124 @@
   margin: 0;
   color: var(--hocia-ink-soft);
   line-height: 1.7;
+}
+
+.home-service-card__meta,
+.home-service-card__duration {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.home-service-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(243, 154, 32, 0.14);
+  color: var(--hocia-orange-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(243, 154, 32, 0.14);
+}
+
+.home-service-card__meta strong {
+  color: var(--hocia-ink);
+  font-size: 1.24rem;
+  font-weight: 900;
+}
+
+.home-service-card__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: 1.75rem;
+  border-bottom: 1px solid rgba(221, 209, 194, 0.86);
+  background:
+    radial-gradient(circle at top left, rgba(243, 154, 32, 0.2), transparent 9rem),
+    radial-gradient(circle at bottom right, rgba(14, 165, 183, 0.18), transparent 10rem),
+    linear-gradient(135deg, rgba(255, 248, 239, 0.98), rgba(244, 250, 255, 0.94));
+}
+
+.home-service-card__media img {
+  width: 100%;
+  max-width: 250px;
+  max-height: 190px;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 28px rgba(70, 53, 34, 0.12));
+}
+
+.home-service-card__media-fallback {
+  width: 100%;
+  max-width: 220px;
+  height: 170px;
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(135deg, rgba(243, 154, 32, 0.22), rgba(157, 92, 246, 0.18)),
+    #fff;
+}
+
+.home-service-card__duration {
+  justify-content: flex-start;
+  color: var(--hocia-muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.home-service-card__title {
+  font-size: 1.32rem;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+
+.home-service-card__description {
+  color: var(--hocia-ink-soft);
+  font-size: 0.96rem;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  min-height: 6.8rem;
+}
+
+.home-service-card__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(228, 220, 210, 0.8);
+}
+
+.home-service-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: #19212b;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+  box-shadow: 0 10px 18px rgba(25, 33, 43, 0.16);
+}
+
+.home-service-card__cta:hover {
+  transform: translateY(-1px);
+  background: #0f1720;
 }
 
 .home-service-card__list {
@@ -415,11 +563,6 @@
   color: var(--hocia-blue-dark);
   font-weight: 800;
   text-decoration: none;
-}
-
-.home-service-card__link {
-  margin-top: auto;
-  padding-top: 1.4rem;
 }
 
 .home-service-card__link svg,

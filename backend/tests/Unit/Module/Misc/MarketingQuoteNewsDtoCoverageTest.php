@@ -112,7 +112,7 @@ final class MarketingQuoteNewsDtoCoverageTest extends TestCase
             'vatRateBps' => 2000,
         ], $item->toPayload());
 
-        $serviceForm = new QuoteServiceFormData('Title', 'Desc', 'hour', 2, 'hour', 1000, 2000, true, false);
+        $serviceForm = new QuoteServiceFormData('Title', 'Desc', 'hour', 2, 'hour', 1000, 2000, true, null, null, null, true, false);
         self::assertSame('Title', $serviceForm->title);
         self::assertSame(1000, $serviceForm->priceCents);
 

@@ -12,8 +12,8 @@ Endpoints (Admin)
 
 Services catalog (Admin)
 - GET `/api/admin/quotes/services` list
-- POST `/api/admin/quotes/services` create (FormData: title, description?, unit?, price, vatRate)
-- POST `/api/admin/quotes/services/{id}` update (FormData)
+- POST `/api/admin/quotes/services` create (FormData: title, description?, unit?, price, vatRate, isFeaturedHome?, image?, imageUrl?, imageAlt?)
+- POST `/api/admin/quotes/services/{id}` update (FormData: mêmes champs, partiels autorisés)
 - DELETE `/api/admin/quotes/services/{id}` delete
 
 Public

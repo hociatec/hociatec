@@ -6,10 +6,13 @@ namespace App\Module\Quote\Entity;
 
 use App\Module\Quote\Repository\ServiceRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
 #[ORM\Table(name: 'quote_services')]
 #[ORM\HasLifecycleCallbacks]
+#[Vich\Uploadable]
 class Service
 {
     #[ORM\Id]
@@ -25,6 +28,24 @@ class Service
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $unit = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isFeaturedHome = false;
+
+    #[Vich\UploadableField(mapping: 'service_images', fileNameProperty: 'imageName', size: 'imageSize')]
+    private ?File $imageFile = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageName = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $imageSize = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageAlt = null;
+
+    #[ORM\Column(length: 2048, nullable: true)]
+    private ?string $imageExternalUrl = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $durationValue = null;
@@ -93,6 +114,82 @@ class Service
     public function setUnit(?string $unit): self
     {
         $this->unit = $unit;
+
+        return $this;
+    }
+
+    public function isFeaturedHome(): bool
+    {
+        return $this->isFeaturedHome;
+    }
+
+    public function setIsFeaturedHome(bool $isFeaturedHome): self
+    {
+        $this->isFeaturedHome = $isFeaturedHome;
+
+        return $this;
+    }
+
+    public function setImageFile(?File $imageFile): self
+    {
+        $this->imageFile = $imageFile;
+
+        if (null !== $imageFile) {
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+
+        return $this;
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->imageName;
+    }
+
+    public function setImageName(?string $imageName): self
+    {
+        $this->imageName = $imageName;
+
+        return $this;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->imageSize;
+    }
+
+    public function setImageSize(?int $imageSize): self
+    {
+        $this->imageSize = $imageSize;
+
+        return $this;
+    }
+
+    public function getImageAlt(): ?string
+    {
+        return $this->imageAlt;
+    }
+
+    public function setImageAlt(?string $imageAlt): self
+    {
+        $this->imageAlt = $imageAlt;
+
+        return $this;
+    }
+
+    public function getImageExternalUrl(): ?string
+    {
+        return $this->imageExternalUrl;
+    }
+
+    public function setImageExternalUrl(?string $imageExternalUrl): self
+    {
+        $this->imageExternalUrl = $imageExternalUrl;
 
         return $this;
     }

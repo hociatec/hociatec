@@ -1,25 +1,9 @@
 import { Link } from 'react-router';
-import {
-  ArrowRight,
-  Briefcase,
-  CheckCircle2,
-  Globe,
-  GraduationCap,
-  HeartHandshake,
-  Monitor,
-  ShieldCheck,
-  Users,
-  Wrench,
-} from 'lucide-react';
+import { ArrowRight, Clock3, CheckCircle2, HeartHandshake, ShieldCheck, Users } from 'lucide-react';
 
-export const heroServices = [
-  { title: 'Vente de matériel informatique', Icon: Monitor },
-  { title: "Réparation d'ordinateurs", Icon: Wrench },
-  { title: 'Informatique professionnelle', Icon: Briefcase },
-  { title: 'Création de sites web', Icon: Globe },
-  { title: 'Maintenance informatique', Icon: ShieldCheck },
-  { title: 'Formation numérique', Icon: GraduationCap },
-];
+import { formatEuroCents } from '@/shared/lib/formatters';
+import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
+import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 
 export const audienceSections = [
   {
@@ -66,20 +50,12 @@ export const trustItems = [
 export const HomeHeroSection = () => (
   <section className="home-hero animate-fade-in-up">
     <div className="home-hero__content">
-      <p className="home-hero__eyebrow">Informatique, réparation et accompagnement numérique</p>
-      <h1>Matériel informatique, réparation, maintenance et création web.</h1>
+      <p className="home-hero__eyebrow">Hociatec</p>
+      <h1>Services informatiques, assistance et solutions web</h1>
       <p>
-        Hociatec accompagne les particuliers et les professionnels avec des solutions
-        informatiques utiles, durables et compréhensibles dès le premier échange.
+        Découvrez les services actuellement mis en avant et accédez rapidement au bon parcours
+        selon votre besoin.
       </p>
-      <ul className="home-hero__service-list" aria-label="Services principaux">
-        {heroServices.map(({ title, Icon }) => (
-          <li key={title}>
-            <Icon aria-hidden="true" />
-            <span>{title}</span>
-          </li>
-        ))}
-      </ul>
       <div className="home-hero__actions">
         <Link to="/devis/nouveau" className="home-button home-button--primary">
           Demander un devis
@@ -101,11 +77,8 @@ export const HomeHeroSection = () => (
         fetchPriority="high"
       />
       <div className="home-hero__metric">
-        <strong>Des réponses concrètes pour chaque besoin.</strong>
-        <span>
-          Vente, réparation, assistance informatique, maintenance et création de site internet au
-          même endroit.
-        </span>
+        <strong>6 services peuvent être mis en avant sur l'accueil.</strong>
+        <span>Le contenu affiché se pilote directement depuis l'administration.</span>
       </div>
     </div>
   </section>
@@ -196,14 +169,54 @@ export const HomeStorySection = () => (
 );
 
 export const HomeProductsHeading = () => (
-  <div className="home-section-heading home-section-heading--row">
-    <div>
-      <p>Une sélection mise en avant par Hociatec</p>
-      <h2>Produits recommandés</h2>
-    </div>
-    <Link to="/catalogue/vente" className="home-products__link">
-      Voir le catalogue
-      <ArrowRight aria-hidden="true" />
-    </Link>
+  <div className="home-section-heading">
+    <h2>Produits recommandés</h2>
   </div>
 );
+
+export const HomeServicesHeading = () => (
+  <div className="home-section-heading">
+    <h2>Services mis en avant</h2>
+  </div>
+);
+
+export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto }) => {
+  const illustration = resolveServiceIllustration(service);
+
+  return (
+    <article className="home-service-card home-service-card--featured">
+      <div className="home-service-card__media">
+        {illustration ? (
+          <img
+            src={illustration.imageUrl}
+            alt={illustration.imageAlt || service.title}
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <div className="home-service-card__media-fallback" aria-hidden="true" />
+        )}
+      </div>
+      <div className="home-service-card__body">
+        <div className="home-service-card__meta">
+          <span>{service.unit?.trim() || 'Prix fixe'}</span>
+          <strong>{formatEuroCents(service.priceCents)}</strong>
+        </div>
+        <h3 className="home-service-card__title">{service.title}</h3>
+        <p className="home-service-card__description">
+          {service.description?.trim() || 'Plus de détails disponibles dans la fiche du service.'}
+        </p>
+        <div className="home-service-card__footer">
+          <div className="home-service-card__duration">
+            <Clock3 aria-hidden="true" />
+            <span>{service.durationLabel || 'Sur étude'}</span>
+          </div>
+          <Link to={`/services/${service.id}`} className="home-service-card__cta">
+            Voir le détail
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+};

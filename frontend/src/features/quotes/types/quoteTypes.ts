@@ -51,6 +51,9 @@ export interface QuoteServiceDto {
   title: string;
   description: string | null;
   unit: string | null;
+  isFeaturedHome: boolean;
+  imageUrl?: string | null;
+  imageAlt?: string | null;
   durationValue: number | null;
   durationUnit: 'hour' | 'day' | null;
   durationLabel: string | null;
@@ -117,6 +120,10 @@ export interface QuoteServiceInput {
   title: string;
   description?: string;
   unit?: string;
+  isFeaturedHome?: boolean;
+  image?: File | null;
+  imageUrl?: string;
+  imageAlt?: string;
   durationValue?: number | '';
   durationUnit?: 'hour' | 'day' | '';
   price: number;

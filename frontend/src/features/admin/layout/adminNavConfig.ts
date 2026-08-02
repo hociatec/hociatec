@@ -7,6 +7,7 @@ import {
   Settings,
   ShoppingCart,
   Users,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,8 +33,26 @@ export const adminNavGroups: AdminNavGroup[] = [
       { to: '/admin/orders', label: 'Commandes' },
       { to: '/admin/payments', label: 'Paiements' },
       { to: '/admin/quotes', label: 'Devis' },
-      { to: '/admin/services', label: 'Services' },
       { to: '/admin/trade-ins', label: 'Reprises matériel' },
+    ],
+  },
+  {
+    id: 'services',
+    label: 'Services',
+    icon: Wrench,
+    links: [
+      { to: '/admin/services', label: 'Lister les services' },
+      { to: '/admin/services/new', label: 'Nouveau service' },
+    ],
+  },
+  {
+    id: 'appointments',
+    label: 'Rendez-vous',
+    icon: Calendar,
+    links: [
+      { to: '/admin/appointments/motifs', label: 'Motifs de rendez-vous' },
+      { to: '/admin/appointments/motifs/new', label: 'Nouveau motif' },
+      { to: '/admin/appointments/schedule', label: 'Planning RDV' },
     ],
   },
   {
@@ -67,17 +86,20 @@ export const adminNavGroups: AdminNavGroup[] = [
     ],
   },
   {
-    id: 'prestations_formations',
-    label: 'Prestations & Formations',
+    id: 'trainings',
+    label: 'Formations',
     icon: Calendar,
     links: [
-      { to: '/admin/appointments/prestations', label: 'Prestations RDV' },
-      { to: '/admin/appointments/schedule', label: 'Planning RDV' },
-      { to: '/admin/trainings', label: 'Formations' },
+      { to: '/admin/trainings', label: 'Catalogue formations' },
       { to: '/admin/trainings/sessions', label: 'Sessions' },
       { to: '/admin/trainings/enrollments', label: 'Inscriptions' },
-      { to: '/admin/audits', label: 'Audits' },
     ],
+  },
+  {
+    id: 'audits',
+    label: 'Audits',
+    icon: Calendar,
+    links: [{ to: '/admin/audits', label: 'Demandes d’audit' }],
   },
   {
     id: 'beta_program',

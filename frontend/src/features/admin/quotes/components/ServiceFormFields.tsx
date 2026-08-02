@@ -4,6 +4,11 @@ export type ServiceFormState = {
   title: string;
   description: string;
   unit: string;
+  isFeaturedHome: boolean;
+  imageUrl: string;
+  imageAlt: string;
+  imageFile: File | null;
+  currentImageUrl: string;
   durationValue: string;
   durationUnit: 'hour' | 'day';
   price: string;
@@ -21,6 +26,20 @@ export const ServiceFormFields = ({ form, setForm }: ServiceFormFieldsProps) => 
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }));
     };
+
+  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, isFeaturedHome: event.target.checked }));
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextFile = event.target.files?.[0] ?? null;
+    setForm((prev) => ({ ...prev, imageFile: nextFile }));
+  };
+
+  const previewUrl =
+    form.imageFile !== null
+      ? URL.createObjectURL(form.imageFile)
+      : form.imageUrl.trim() || form.currentImageUrl.trim();
 
   return (
     <>
@@ -54,6 +73,52 @@ export const ServiceFormFields = ({ form, setForm }: ServiceFormFieldsProps) => 
           placeholder="Unité de facturation"
         />
       </label>
+      <label className="booking__checkbox">
+        <input
+          type="checkbox"
+          checked={form.isFeaturedHome}
+          onChange={handleCheckboxChange}
+        />
+        Mettre en avant sur la page d'accueil
+      </label>
+      <label className="register-form__field">
+        <span className="register-form__label">Image d'illustration (fichier)</span>
+        <input
+          className="register-form__input"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+      </label>
+      <label className="register-form__field">
+        <span className="register-form__label">Ou URL d'illustration</span>
+        <input
+          className="register-form__input"
+          type="url"
+          placeholder="https://..."
+          value={form.imageUrl}
+          onChange={handleChange('imageUrl')}
+        />
+      </label>
+      <label className="register-form__field">
+        <span className="register-form__label">Texte alternatif de l'image</span>
+        <input
+          className="register-form__input"
+          placeholder="Description courte de l'illustration"
+          value={form.imageAlt}
+          onChange={handleChange('imageAlt')}
+        />
+      </label>
+      {previewUrl ? (
+        <div className="register-form__field">
+          <span className="register-form__label">Aperçu</span>
+          <img
+            src={previewUrl}
+            alt={form.imageAlt || form.title || 'Illustration du service'}
+            className="h-48 w-full rounded-2xl border border-stone-200 bg-stone-50 object-contain p-4"
+          />
+        </div>
+      ) : null}
       <div className="grid gap-4 md:grid-cols-[1fr_180px]">
         <label className="register-form__field">
           <span className="register-form__label">Durée estimée</span>

@@ -32,8 +32,8 @@ export const PrestationFormPage = () => {
 
   useDocumentTitle(
     isEdit
-      ? 'Admin - Modifier une prestation de rendez-vous'
-      : 'Admin - Nouvelle prestation de rendez-vous',
+      ? 'Admin - Modifier un motif de rendez-vous'
+      : 'Admin - Nouveau motif de rendez-vous',
   );
 
   const [form, setForm] = useState<PrestationFormState>(emptyForm);
@@ -108,7 +108,7 @@ export const PrestationFormPage = () => {
       }
 
       setTimeout(() => {
-        navigate('/admin/appointments/prestations');
+        navigate('/admin/appointments/motifs');
       }, 600);
     } catch (err) {
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la prestation"));
@@ -120,22 +120,20 @@ export const PrestationFormPage = () => {
   return (
     <PageContainer
       size="admin"
-      title={
-        isEdit ? 'Modifier une prestation de rendez-vous' : 'Nouvelle prestation de rendez-vous'
-      }
+      title={isEdit ? 'Modifier un motif de rendez-vous' : 'Nouveau motif de rendez-vous'}
       headerActions={
         <button
           type="button"
           className="catalog-admin-actions__edit"
-          onClick={() => navigate('/admin/appointments/prestations')}
+          onClick={() => navigate('/admin/appointments/motifs')}
         >
           Retour à la liste
         </button>
       }
     >
       <p className="mb-4 text-sm text-stone-600">
-        Cette fiche sert à la réservation de rendez-vous. Pour gérer le catalogue de services
-        autonome de l’entreprise, utilisez{' '}
+        Cette fiche sert uniquement à proposer un motif lors de la réservation d’un rendez-vous.
+        Pour gérer le catalogue de services autonome de l’entreprise, utilisez{' '}
         <Link to="/admin/services" className="font-semibold underline">
           Services
         </Link>

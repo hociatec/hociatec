@@ -28,6 +28,9 @@ final class QuoteFormatter
             'title' => $service->getTitle(),
             'description' => $service->getDescription(),
             'unit' => $service->getUnit(),
+            'isFeaturedHome' => $service->isFeaturedHome(),
+            'imageUrl' => self::formatServiceImageUrl($service),
+            'imageAlt' => $service->getImageAlt(),
             'durationValue' => $durationValue,
             'durationUnit' => $durationUnit,
             'durationLabel' => self::formatServiceDurationLabel($durationValue, $durationUnit),
@@ -108,6 +111,19 @@ final class QuoteFormatter
                 'ttc' => $line['ttc'],
             ],
         ];
+    }
+
+    private static function formatServiceImageUrl(QuoteServiceEntity $service): ?string
+    {
+        if (null !== $service->getImageName() && '' !== trim($service->getImageName())) {
+            return sprintf('/uploads/services/%s', ltrim($service->getImageName(), '/'));
+        }
+
+        if (null !== $service->getImageExternalUrl() && '' !== trim($service->getImageExternalUrl())) {
+            return trim($service->getImageExternalUrl());
+        }
+
+        return null;
     }
 
     private static function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string

@@ -12,7 +12,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const PrestationsListPage = () => {
-  useDocumentTitle('Admin - Prestations de rendez-vous');
+  useDocumentTitle('Admin - Motifs de rendez-vous');
 
   const [prestations, setPrestations] = useState<Prestation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,18 +68,18 @@ export const PrestationsListPage = () => {
   return (
     <PageContainer
       size="admin"
-      title="Prestations de rendez-vous"
+      title="Motifs de rendez-vous"
       headerActions={
-        <PrimaryLink to="/admin/appointments/prestations/new">Ajouter une prestation</PrimaryLink>
+        <PrimaryLink to="/admin/appointments/motifs/new">Ajouter un motif</PrimaryLink>
       }
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {prestations.length} prestation{prestations.length > 1 ? 's' : ''} au catalogue.
+          {prestations.length} motif{prestations.length > 1 ? 's' : ''} au catalogue.
         </p>
         <p className="text-sm text-stone-500">
-          Ces prestations sont utilisées uniquement pour la prise de rendez-vous et la planification
-          des interventions.
+          Ces motifs sont utilisés uniquement pour la prise de rendez-vous et la planification des
+          interventions.
         </p>
         <p className="text-sm text-brand-700">
           Pour le catalogue de services global, utilisez{' '}
@@ -96,8 +96,8 @@ export const PrestationsListPage = () => {
       <AdminListState
         loading={loading}
         isEmpty={prestations.length === 0}
-        loadingLabel="Chargement des prestations..."
-        emptyLabel="Aucune prestation enregistrée."
+        loadingLabel="Chargement des motifs..."
+        emptyLabel="Aucun motif enregistré."
       >
         <AdminTableShell>
           <table className="catalog-admin-table">
@@ -118,7 +118,7 @@ export const PrestationsListPage = () => {
                   <td>
                     <div className="catalog-admin-actions">
                       <Link
-                        to={`/admin/appointments/prestations/${prestation.id}/edit`}
+                        to={`/admin/appointments/motifs/${prestation.id}/edit`}
                         className="catalog-admin-actions__edit"
                         aria-label={`Modifier la prestation ${prestation.name}`}
                       >

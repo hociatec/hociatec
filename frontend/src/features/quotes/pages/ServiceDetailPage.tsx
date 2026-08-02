@@ -7,9 +7,11 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 export const ServiceDetailPage = () => {
   const { serviceId, service, loading, error } = usePublicServiceDetail();
+  const illustration = service ? resolveServiceIllustration(service) : null;
 
   useDocumentTitle(service ? service.title : 'Service');
 
@@ -39,6 +41,17 @@ export const ServiceDetailPage = () => {
           <ErrorState>{error || 'Service introuvable.'}</ErrorState>
         ) : (
           <article className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
+            {illustration ? (
+              <div className="mb-8 flex min-h-[240px] items-center justify-center rounded-3xl bg-[linear-gradient(135deg,rgba(255,247,236,0.95),rgba(245,250,255,0.92))] p-8">
+                <img
+                  src={illustration.imageUrl}
+                  alt={illustration.imageAlt || service.title}
+                  className="max-h-[220px] w-full max-w-[320px] object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ) : null}
             <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
               Service Hociatec
             </span>

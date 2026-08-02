@@ -3,9 +3,9 @@ export const CONTACT_EMAIL = 'contact@hociatec.fr';
 
 export const DEFAULT_SEO = {
   siteName: 'Hociatec',
-  title: 'Hociatec — Le numérique à taille humaine',
+  title: 'Hociatec — Informatique, réparation et services numériques',
   description:
-    'Vente, location, reprise, formation et audits numériques. Hociatec accompagne particuliers et professionnels avec des solutions durables et accessibles.',
+    "Vente de matériel informatique, réparation d'ordinateurs, maintenance informatique, création de site internet, assistance informatique et formation numérique.",
   locale: 'fr_FR',
   twitterCard: 'summary_large_image' as const,
   robots: 'index,follow',

@@ -99,8 +99,17 @@ export const fetchAdminQuoteService = async (id: number) =>
 
 const toServiceFormData = (payload: Partial<QuoteServiceInput>) => {
   const form = new FormData();
-  for (const [key, value] of Object.entries(payload))
+  for (const [key, value] of Object.entries(payload)) {
+    if (value instanceof File) {
+      form.append(key, value);
+      continue;
+    }
+    if (typeof value === 'boolean') {
+      form.append(key, value ? '1' : '0');
+      continue;
+    }
     if (value !== undefined && value !== null && value !== '') form.append(key, String(value));
+  }
   return form;
 };
 

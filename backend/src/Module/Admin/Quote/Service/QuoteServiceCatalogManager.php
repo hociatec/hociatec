@@ -53,6 +53,14 @@ final readonly class QuoteServiceCatalogManager
     private function apply(Service $service, QuoteServiceFormData $data): void
     {
         $service->setTitle($data->title)->setDescription($data->description);
+        $service->setIsFeaturedHome($data->isFeaturedHome);
+        $service->setImageAlt($data->imageAlt);
+        if (null !== $data->imageFile) {
+            $service->setImageFile($data->imageFile);
+            $service->setImageExternalUrl(null);
+        } else {
+            $service->setImageExternalUrl($data->imageUrl);
+        }
         if ($data->updatesBillingMode && null !== $data->billingMode) {
             $service->setUnit($data->billingMode);
         }

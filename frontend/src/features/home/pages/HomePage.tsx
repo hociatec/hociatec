@@ -2,6 +2,7 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
+import { useHomeFeaturedServices } from '@/features/home/hooks/useHomeFeaturedServices';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
 import {
   ORGANIZATION_SCHEMA,
@@ -10,11 +11,9 @@ import {
   LOCAL_BUSINESS_SCHEMA,
 } from '@/shared/config/seoConfig';
 import {
-  HomeAudienceSection,
-  HomeHeroSection,
+  HomeFeaturedServiceCard,
   HomeProductsHeading,
-  HomeStorySection,
-  HomeTrustSection,
+  HomeServicesHeading,
 } from '@/features/home/homeContent';
 
 export const HomePage = () => {
@@ -28,15 +27,36 @@ export const HomePage = () => {
     structuredData: [ORGANIZATION_SCHEMA, WEBSITE_SCHEMA, LOCAL_BUSINESS_SCHEMA],
   });
 
-  const { products, loading: loadingProducts, error: errorProducts } = useHomeFeaturedProducts();
+  const { services, loading: loadingServices, error: errorServices } = useHomeFeaturedServices();
+  const {
+    products,
+    loading: loadingProducts,
+    error: errorProducts,
+  } = useHomeFeaturedProducts();
 
   return (
     <SiteLayout>
       <div className="home-page overflow-hidden">
-        <HomeHeroSection />
-        <HomeAudienceSection />
-        <HomeTrustSection />
-        <HomeStorySection />
+        <section className="home-products animate-fade-in-up delay-300">
+          <HomeServicesHeading />
+          {loadingServices && (
+            <p className="home-loading" role="status" aria-live="polite">
+              Chargement des services...
+            </p>
+          )}
+          {errorServices && (
+            <div className="home-alert" role="alert">
+              {errorServices}
+            </div>
+          )}
+          {!loadingServices && !errorServices && services.length > 0 && (
+            <div className="home-products__grid">
+              {services.map((service) => (
+                <HomeFeaturedServiceCard key={service.id} service={service} />
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="home-products animate-fade-in-up delay-300">
           <HomeProductsHeading />

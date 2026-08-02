@@ -9,6 +9,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 const SERVICES_PER_PAGE = 7;
 
@@ -57,10 +58,21 @@ export const ServicesCatalogPage = () => {
                 {paginatedServices.map((service) => (
                   <article
                     key={service.id}
-                    className="flex h-full flex-col rounded-2xl border border-brand-100 bg-brand-50 p-4 sm:p-5"
+                    className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '280px' }}
                   >
-                    <div className="space-y-3">
+                    {resolveServiceIllustration(service) ? (
+                      <div className="flex min-h-[190px] items-center justify-center bg-[linear-gradient(135deg,rgba(255,247,236,0.95),rgba(245,250,255,0.9))] p-6">
+                        <img
+                          src={resolveServiceIllustration(service)?.imageUrl}
+                          alt={resolveServiceIllustration(service)?.imageAlt || service.title}
+                          className="max-h-[140px] w-full max-w-[180px] object-contain"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    ) : null}
+                    <div className="space-y-3 p-4 sm:p-5">
                       <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
                         <h3 className="text-lg font-semibold text-brand-900">{service.title}</h3>
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700 shadow-sm">

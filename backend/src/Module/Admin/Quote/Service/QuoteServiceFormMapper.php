@@ -6,6 +6,7 @@ namespace App\Module\Admin\Quote\Service;
 
 use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Entity\Service;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
 final class QuoteServiceFormMapper
@@ -42,6 +43,10 @@ final class QuoteServiceFormMapper
             $request->request->has('vatRate') || null === $service
                 ? $this->vatToBps($request->request->get('vatRate'))
                 : null,
+            $this->boolean($request->request->get('isFeaturedHome', $service?->isFeaturedHome() ?? false)),
+            $this->imageFile($request->files->get('image')),
+            $this->optionalString($request->request->get('imageUrl', $service?->getImageExternalUrl())),
+            $this->optionalString($request->request->get('imageAlt', $service?->getImageAlt())),
             null === $service || $request->request->has('unit'),
             $updatesDuration,
         );
@@ -100,6 +105,20 @@ final class QuoteServiceFormMapper
 
     private function optionalString(mixed $value): ?string
     {
-        return is_string($value) && '' !== $value ? $value : null;
+        return is_string($value) && '' !== trim($value) ? trim($value) : null;
+    }
+
+    private function boolean(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return in_array((string) $value, ['1', 'true', 'on', 'yes'], true);
+    }
+
+    private function imageFile(mixed $value): ?UploadedFile
+    {
+        return $value instanceof UploadedFile ? $value : null;
     }
 }

@@ -16,6 +16,10 @@ type ServicePayload = {
   title: string;
   description: string;
   unit: string;
+  isFeaturedHome: boolean;
+  image?: File | null;
+  imageUrl?: string;
+  imageAlt?: string;
   durationValue: number | '';
   durationUnit: 'hour' | 'day' | '';
   price: number;
@@ -26,6 +30,11 @@ const emptyForm: ServiceFormState = {
   title: '',
   description: '',
   unit: 'prix fixe',
+  isFeaturedHome: false,
+  imageUrl: '',
+  imageAlt: '',
+  imageFile: null,
+  currentImageUrl: '',
   durationValue: '',
   durationUnit: 'hour',
   price: '0',
@@ -58,6 +67,11 @@ export const ServiceFormPage = () => {
           title: svc?.title ?? '',
           description: svc?.description ?? '',
           unit: svc?.unit ?? 'prix fixe',
+          isFeaturedHome: svc?.isFeaturedHome ?? false,
+          imageUrl: svc?.imageUrl ?? '',
+          imageAlt: svc?.imageAlt ?? '',
+          imageFile: null,
+          currentImageUrl: svc?.imageUrl ?? '',
           durationValue: svc?.durationValue ? String(svc.durationValue) : '',
           durationUnit: svc?.durationUnit === 'day' ? 'day' : 'hour',
           price: svc ? (svc.priceCents / 100).toFixed(2) : '0',
@@ -116,6 +130,10 @@ export const ServiceFormPage = () => {
       title,
       description,
       unit,
+      isFeaturedHome: form.isFeaturedHome,
+      image: form.imageFile,
+      imageUrl: form.imageUrl.trim(),
+      imageAlt: form.imageAlt.trim(),
       durationValue: parsedDurationValue,
       durationUnit: parsedDurationUnit,
       price,

@@ -31,25 +31,7 @@ export const SiteFooter = () => {
     <footer className="site-footer">
       <div className="site-footer__container">
         <div className="site-footer__grid">
-          <div className="site-footer__column site-footer__column--brand">
-            <span className="site-footer__brand">Hociatec</span>
-            <p className="site-footer__tagline">
-              Vente de matériel informatique, réparation d&apos;ordinateurs, maintenance
-              informatique, création de sites web et formation numérique.
-            </p>
-            <div className="site-footer__contact-list">
-              <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__link">
-                <Mail aria-hidden="true" />
-                {CONTACT_EMAIL}
-              </a>
-              <span className="site-footer__link site-footer__link--static">
-                <MapPin aria-hidden="true" />
-                Asnières-sur-Seine et alentours
-              </span>
-            </div>
-          </div>
-
-          <nav className="site-footer__column" aria-label="À propos">
+          <div className="site-footer__column" aria-label="À propos">
             <h2>À propos</h2>
             <a href="/#histoire" className="site-footer__link">
               Notre histoire
@@ -57,7 +39,19 @@ export const SiteFooter = () => {
             <Link to="/contact" className="site-footer__link">
               Contact
             </Link>
-          </nav>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__link">
+              <Mail aria-hidden="true" />
+              {CONTACT_EMAIL}
+            </a>
+            <span className="site-footer__link site-footer__link--static">
+              <MapPin aria-hidden="true" />
+              Interventions partout en France
+            </span>
+            <span className="site-footer__link site-footer__link--static">
+              <MapPin aria-hidden="true" />
+              Intervention sous 2 heures en Ile-de-France
+            </span>
+          </div>
 
           <div className="site-footer__column">
             <h2>

@@ -79,7 +79,14 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $repository = $this->createMock(ServiceRepository::class);
         $service = new Service('Audit', 12000, 2000);
         $this->setId($service, 12);
-        $service->setDescription('Desc')->setUnit('heure')->setDurationValue(2)->setDurationUnit('hour');
+        $service
+            ->setDescription('Desc')
+            ->setUnit('heure')
+            ->setDurationValue(2)
+            ->setDurationUnit('hour')
+            ->setIsFeaturedHome(true)
+            ->setImageExternalUrl('https://example.com/audit.svg')
+            ->setImageAlt('Illustration audit');
 
         $repository->expects(self::exactly(6))
             ->method('find')
@@ -118,9 +125,15 @@ final class AdminQuoteControllerBatchTest extends TestCase
             'durationUnit' => 'day',
             'price' => '250',
             'vatRate' => '20',
+            'isFeaturedHome' => '1',
+            'imageUrl' => 'https://example.com/installation.svg',
+            'imageAlt' => 'Illustration installation',
         ]))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Installation', $createdPayload['data']['title']);
         self::assertSame('2 jours', $createdPayload['data']['durationLabel']);
+        self::assertTrue($createdPayload['data']['isFeaturedHome']);
+        self::assertSame('https://example.com/installation.svg', $createdPayload['data']['imageUrl']);
+        self::assertSame('Illustration installation', $createdPayload['data']['imageAlt']);
 
         $update = new UpdateServiceController($repository, $forms, $catalog);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(new Request([], ['title' => 'x']), 404)->getStatusCode());
@@ -135,9 +148,12 @@ final class AdminQuoteControllerBatchTest extends TestCase
             'durationUnit' => 'day',
             'price' => '300',
             'vatRate' => '5.5',
+            'isFeaturedHome' => '1',
         ]), 12)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Audit premium', $updatedPayload['data']['title']);
         self::assertSame(550.0, $updatedPayload['data']['vatRate'] * 100);
+        self::assertTrue($updatedPayload['data']['isFeaturedHome']);
+        self::assertSame('https://example.com/audit.svg', $updatedPayload['data']['imageUrl']);
 
         $failingEntityManager = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager->expects(self::once())->method('persist')->willThrowException(new \RuntimeException('db down'));
@@ -206,7 +222,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $manager = new QuoteServiceCatalogManager(new DoctrinePersistence($this->createMock(EntityManagerInterface::class)));
 
         try {
-            $manager->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, true, false));
+            $manager->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, false, null, null, null, true, false));
             self::fail('Expected invalid billing mode exception.');
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Mode de facturation invalide.', $exception->getMessage());
@@ -215,7 +231,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         try {
             $manager->update(
                 new Service('Audit', 1000, 2000),
-                new QuoteServiceFormData('Audit', null, 'hour', 2, null, 1000, null, true, true)
+                new QuoteServiceFormData('Audit', null, 'hour', 2, null, 1000, null, false, null, null, null, true, true)
             );
             self::fail('Expected invalid duration exception.');
         } catch (\InvalidArgumentException $exception) {
@@ -225,7 +241,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         try {
             $manager->update(
                 new Service('Audit', 1000, 2000),
-                new QuoteServiceFormData('Audit', null, null, null, null, -1, null, false, false)
+                new QuoteServiceFormData('Audit', null, null, null, null, -1, null, false, null, null, null, false, false)
             );
             self::fail('Expected invalid price exception.');
         } catch (\InvalidArgumentException $exception) {
@@ -253,6 +269,9 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertNull($created->durationUnit);
         self::assertSame(1250, $created->priceCents);
         self::assertSame(0, $created->vatRateBps);
+        self::assertFalse($created->isFeaturedHome);
+        self::assertNull($created->imageUrl);
+        self::assertNull($created->imageAlt);
         self::assertTrue($created->updatesBillingMode);
         self::assertTrue($created->updatesDuration);
 
@@ -269,14 +288,20 @@ final class AdminQuoteControllerBatchTest extends TestCase
             'durationUnit' => 'hour',
             'price' => 'oops',
             'vatRate' => '5,5',
+            'isFeaturedHome' => '1',
+            'imageUrl' => ' https://example.com/premium.svg ',
+            'imageAlt' => ' Premium alt ',
         ]), $service);
         self::assertSame('Premium', $updated->title);
-        self::assertSame('  ', $updated->description);
+        self::assertNull($updated->description);
         self::assertNull($updated->billingMode);
         self::assertNull($updated->durationValue);
         self::assertSame('hour', $updated->durationUnit);
         self::assertSame(-1, $updated->priceCents);
         self::assertSame(550, $updated->vatRateBps);
+        self::assertTrue($updated->isFeaturedHome);
+        self::assertSame('https://example.com/premium.svg', $updated->imageUrl);
+        self::assertSame('Premium alt', $updated->imageAlt);
         self::assertTrue($updated->updatesBillingMode);
         self::assertTrue($updated->updatesDuration);
 

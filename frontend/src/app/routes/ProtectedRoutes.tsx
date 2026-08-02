@@ -47,6 +47,6 @@ export const protectedRoutes: AppRouteDefinition[] = [
   { path: '/audits/me/:auditId', element: protectedElement(<MyAuditDetailPage />) },
   {
     path: '/appointments/admin',
-    element: protectedElement(<Navigate to="/admin/appointments/prestations" replace />),
+    element: protectedElement(<Navigate to="/admin/appointments/motifs" replace />),
   },
 ];

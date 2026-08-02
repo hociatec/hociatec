@@ -49,6 +49,7 @@ export const ServicesListPage = () => {
               <tr>
                 <th scope="col">Titre</th>
                 <th scope="col">Mode de facturation</th>
+                <th scope="col">Accueil</th>
                 <th scope="col">Durée</th>
                 <th scope="col">Prix</th>
                 <th scope="col">TVA</th>
@@ -65,6 +66,7 @@ export const ServicesListPage = () => {
                     </div>
                   </th>
                   <td>{s.unit?.trim() || 'Prix fixe'}</td>
+                  <td>{s.isFeaturedHome ? 'Mis en avant' : '—'}</td>
                   <td>{formatServiceDuration(s)}</td>
                   <td>{formatEuroCents(s.priceCents)}</td>
                   <td>{s.vatRate?.toFixed(2) ?? '0'}%</td>
