@@ -79,6 +79,36 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], array_values(array_unique($violations)));
     }
 
+    public function testSourceDoesNotCheckRolesManually(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            if (str_ends_with($path, 'User.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (["in_array('ROLE_", 'in_array("ROLE_', 'getRoles(), true)'] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testExternalServiceExceptionMessageIsNotExposedDirectly(): void
+    {
+        $subscriber = file_get_contents(__DIR__.'/../../../src/Infrastructure/Http/ApiExceptionSubscriber.php');
+        self::assertIsString($subscriber);
+
+        self::assertStringNotContainsString('ExternalServiceException => [$exception->getMessage()', $subscriber);
+        self::assertStringContainsString('PublicApiException => [$exception->publicMessage()', $subscriber);
+    }
+
     public function testApplicationModulesDoNotUseGenericManagerServices(): void
     {
         $violations = [];
@@ -93,8 +123,15 @@ final class ModuleBoundaryTest extends TestCase
 
     public function testSourceDoesNotCatchThrowableOrBaseException(): void
     {
+        $allowed = [
+            'src/Module/Outbox/Application/OutboxDispatcher.php',
+        ];
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            if (in_array($this->relativePath($path), $allowed, true)) {
+                continue;
+            }
+
             $source = file_get_contents($path);
             self::assertIsString($source);
 

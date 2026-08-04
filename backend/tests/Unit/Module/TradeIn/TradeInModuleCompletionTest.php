@@ -112,7 +112,7 @@ final class TradeInModuleCompletionTest extends TestCase
         $list->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $list()->getStatusCode());
 
-        $download = new DownloadMyTradeInReceiptController($repository, new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy());
+        $download = new DownloadMyTradeInReceiptController($repository, new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy(), new \App\Infrastructure\Http\AttachmentResponseFactory());
         $download->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $download((int) $request->getId())->getStatusCode());
 
@@ -135,7 +135,7 @@ final class TradeInModuleCompletionTest extends TestCase
         $em->persist($request);
         $em->flush();
 
-        $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy());
+        $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy(), new \App\Infrastructure\Http\AttachmentResponseFactory());
         $download->setContainer($this->controllerContainer($user));
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);

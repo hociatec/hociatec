@@ -103,7 +103,7 @@ final class StripeApiClient
 
         if ($statusCode < 200 || $statusCode >= 300) {
             $message = (string) (($decoded['error']['message'] ?? null) ?: 'Stripe a refusé la requête.');
-            throw new ExternalServiceException($message);
+            throw new ExternalServiceException($message, 'Le service de paiement a refusé la requête.');
         }
 
         return $decoded;

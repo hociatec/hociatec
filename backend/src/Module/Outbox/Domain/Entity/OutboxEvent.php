@@ -16,6 +16,7 @@ class OutboxEvent
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_PROCESSED = 'processed';
     public const STATUS_FAILED = 'failed';
+    public const STATUS_DEAD = 'dead';
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
     private ?int $id = null;
@@ -79,6 +80,18 @@ class OutboxEvent
         return $this->payload;
     }
 
+    public function getRequestId(): ?string
+    {
+        $metadata = $this->payload['_meta'] ?? null;
+        if (!\is_array($metadata)) {
+            return null;
+        }
+
+        $requestId = $metadata['requestId'] ?? null;
+
+        return \is_string($requestId) && '' !== $requestId ? $requestId : null;
+    }
+
     public function getStatus(): string
     {
         return $this->status;
@@ -102,6 +115,7 @@ class OutboxEvent
     public function markProcessing(): self
     {
         $this->status = self::STATUS_PROCESSING;
+        $this->availableAt = new \DateTimeImmutable();
         ++$this->attempts;
 
         return $this;
@@ -121,6 +135,14 @@ class OutboxEvent
         $this->status = self::STATUS_FAILED;
         $this->lastError = mb_substr($message, 0, 2000);
         $this->availableAt = $availableAt;
+
+        return $this;
+    }
+
+    public function markDead(string $message): self
+    {
+        $this->status = self::STATUS_DEAD;
+        $this->lastError = mb_substr($message, 0, 2000);
 
         return $this;
     }

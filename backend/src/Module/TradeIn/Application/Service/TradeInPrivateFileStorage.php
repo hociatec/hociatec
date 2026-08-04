@@ -47,6 +47,10 @@ final readonly class TradeInPrivateFileStorage
 
     public function storeReceipt(string $pdf): string
     {
+        if (!str_starts_with($pdf, '%PDF-')) {
+            throw new \InvalidArgumentException('Le justificatif généré n’est pas un PDF valide.');
+        }
+
         $relativePath = 'var/private/trade-ins/'.bin2hex(random_bytes(24)).'.pdf';
         $absolutePath = $this->projectDir.'/'.$relativePath;
         $directory = dirname($absolutePath);

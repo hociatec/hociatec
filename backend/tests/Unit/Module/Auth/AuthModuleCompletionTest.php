@@ -128,6 +128,7 @@ final class AuthModuleCompletionTest extends TestCase
         $passwordReset = new PasswordResetService(
             $this->userRepository($em),
             new DoctrineUnitOfWork($em),
+            new \App\Infrastructure\Persistence\DoctrineTransactionManager($em),
             $passwords,
             new Outbox(new DoctrineUnitOfWork($em)),
         );

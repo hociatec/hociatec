@@ -32,6 +32,8 @@ use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
 use App\Module\BetaTest\Application\Service\BugReportActivityLogger;
 use App\Module\BetaTest\Application\Service\BugReportCommentWriter;
 use App\Module\BetaTest\Application\Service\BugReportWriter;
+use App\Module\BetaTest\Infrastructure\Http\BetaCampaignResponseFormatter;
+use App\Module\BetaTest\Infrastructure\Http\BetaProfileResponseFormatter;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
@@ -72,13 +74,13 @@ final class BetaTestModuleCompletionTest extends TestCase
         $persistence = new DoctrineUnitOfWork($em);
 
         $profileService = new BetaTesterProfileService($persistence);
-        $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence));
+        $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence), new BetaCampaignResponseFormatter());
         $list->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $list()->getStatusCode());
         $list->setContainer($this->container($user));
         self::assertSame([], json_decode((string) $list()->getContent(), true, 512, JSON_THROW_ON_ERROR)['data']['items']);
 
-        $get = new GetMyBetaProfileController($profiles);
+        $get = new GetMyBetaProfileController($profiles, new BetaProfileResponseFormatter());
         $get->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $get()->getStatusCode());
         $get->setContainer($this->container($user));

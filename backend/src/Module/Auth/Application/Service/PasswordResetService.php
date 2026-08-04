@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Service;
 
+use App\Infrastructure\Application\TransactionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Domain\Entity\User;
@@ -15,6 +16,7 @@ class PasswordResetService
     public function __construct(
         private readonly UserRepository $users,
         private readonly DoctrineUnitOfWork $unitOfWork,
+        private readonly TransactionManager $transactions,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,
     ) {
@@ -34,12 +36,13 @@ class PasswordResetService
             ->setPasswordResetToken($token)
             ->setPasswordResetTokenExpiresAt($expiresAt);
 
-        $this->outbox->record('auth.password_reset.'.hash('sha256', $token), 'auth.password_reset_email_requested', [
-            'email' => $user->getEmail(),
-            'token' => $token,
-        ]);
-        $this->users->save($user);
-        $this->unitOfWork->commit();
+        $this->transactions->transactional(function () use ($user, $token): void {
+            $this->users->save($user);
+            $this->outbox->record('auth.password_reset.'.hash('sha256', $token), 'auth.password_reset_email_requested', [
+                'email' => $user->getEmail(),
+                'token' => $token,
+            ]);
+        });
     }
 
     public function reset(string $token, string $plainPassword): void

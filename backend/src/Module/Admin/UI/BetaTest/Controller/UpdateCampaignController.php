@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Infrastructure\Http\ApiValidationException;
 use App\Infrastructure\Http\JsonPayload;
+use App\Infrastructure\Validation\DtoValidator;
+use App\Module\Admin\Application\BetaTest\DTO\UpdateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Service\UpdateBetaCampaignHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +24,7 @@ final class UpdateCampaignController extends AbstractController
     public function __construct(
         private readonly BetaCampaignRepository $campaigns,
         private readonly UpdateBetaCampaignHandler $updateCampaign,
+        private readonly DtoValidator $validator,
     ) {
     }
 
@@ -32,7 +36,11 @@ final class UpdateCampaignController extends AbstractController
         }
 
         try {
-            $this->updateCampaign->update($campaign, JsonPayload::decode($request));
+            $input = UpdateBetaCampaignInput::fromArray(JsonPayload::decode($request));
+            $this->validator->validate($input);
+            $this->updateCampaign->update($campaign, $input);
+        } catch (ApiValidationException $exception) {
+            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
         }

@@ -9,10 +9,15 @@ use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Application\OutboxDispatcher;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Application\OutboxEventStore;
+use App\Module\Outbox\Application\OutboxMetrics;
+use App\Infrastructure\Http\RequestIdSubscriber;
+use App\Infrastructure\Application\TransactionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 final class OutboxTest extends TestCase
 {
@@ -30,12 +35,27 @@ final class OutboxTest extends TestCase
         self::assertSame(['orderId' => 1], $event->getPayload());
     }
 
+    public function testOutboxCorrelatesEventsWithCurrentRequestId(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('persist');
+        $request = Request::create('/');
+        $request->attributes->set(RequestIdSubscriber::ATTRIBUTE, 'req-123');
+        $requestStack = new RequestStack();
+        $requestStack->push($request);
+
+        $event = (new Outbox(new DoctrineUnitOfWork($entityManager), $requestStack))->record('key-request', 'test.event', ['id' => 1]);
+
+        self::assertSame('req-123', $event->getRequestId());
+        self::assertSame('req-123', $event->getPayload()['_meta']['requestId']);
+    }
+
     public function testDispatcherMarksHandledEventsAsProcessed(): void
     {
         $event = new OutboxEvent('key-1', 'test.event', ['id' => 1]);
         $repository = $this->repository([$event]);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::exactly(2))->method('flush');
+        $entityManager->expects(self::once())->method('flush');
 
         $handler = new class implements OutboxEventHandler {
             public int $calls = 0;
@@ -51,7 +71,7 @@ final class OutboxTest extends TestCase
             }
         };
 
-        $processed = (new OutboxDispatcher($repository, new DoctrineUnitOfWork($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+        $processed = (new OutboxDispatcher($repository, new DoctrineUnitOfWork($entityManager), $this->transactions(), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
 
         self::assertSame(1, $processed);
         self::assertSame(1, $handler->calls);
@@ -63,7 +83,7 @@ final class OutboxTest extends TestCase
     {
         $event = new OutboxEvent('key-2', 'test.event', ['id' => 2]);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::exactly(2))->method('flush');
+        $entityManager->expects(self::once())->method('flush');
 
         $handler = new class implements OutboxEventHandler {
             public function supports(OutboxEvent $event): bool
@@ -77,11 +97,49 @@ final class OutboxTest extends TestCase
             }
         };
 
-        (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+        (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), $this->transactions(), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
 
         self::assertSame(OutboxEvent::STATUS_FAILED, $event->getStatus());
         self::assertSame('temporary failure', $event->getLastError());
         self::assertSame(1, $event->getAttempts());
+    }
+
+    public function testDispatcherDeadLettersEventsWithoutHandler(): void
+    {
+        $event = new OutboxEvent('key-3', 'unknown.event', ['id' => 3]);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('flush');
+
+        $processed = (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), $this->transactions(), [], $this->createMock(LoggerInterface::class)))->dispatchDue();
+
+        self::assertSame(0, $processed);
+        self::assertSame(OutboxEvent::STATUS_DEAD, $event->getStatus());
+        self::assertStringContainsString('No outbox handler', (string) $event->getLastError());
+    }
+
+    public function testDispatcherCatchesThrowableFailures(): void
+    {
+        $event = new OutboxEvent('key-4', 'test.event', ['id' => 4]);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('flush');
+
+        $handler = new class implements OutboxEventHandler {
+            public function supports(OutboxEvent $event): bool
+            {
+                return true;
+            }
+
+            public function handle(OutboxEvent $event): void
+            {
+                throw new \TypeError('bad payload');
+            }
+        };
+
+        $processed = (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), $this->transactions(), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+
+        self::assertSame(1, $processed);
+        self::assertSame(OutboxEvent::STATUS_FAILED, $event->getStatus());
+        self::assertSame('bad payload', $event->getLastError());
     }
 
     /** @param list<OutboxEvent> $events */
@@ -93,12 +151,32 @@ final class OutboxTest extends TestCase
             {
             }
 
-            public function findDue(int $limit): array
+            public function findDueForUpdate(int $limit): array
             {
                 return $this->events;
+            }
+
+            public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int
+            {
+                return 0;
+            }
+
+            public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics
+            {
+                return new OutboxMetrics(0, null, 0, 0, 0);
             }
         };
 
         return $repository;
+    }
+
+    private function transactions(): TransactionManager
+    {
+        return new class implements TransactionManager {
+            public function transactional(\Closure $operation): mixed
+            {
+                return $operation();
+            }
+        };
     }
 }

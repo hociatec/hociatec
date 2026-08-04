@@ -55,6 +55,10 @@ final class TrivialClassesCoverageTest extends TestCase
 
         $external = new ExternalServiceException('downstream failed');
         self::assertSame(Response::HTTP_BAD_GATEWAY, $external->getStatusCode());
+        self::assertSame('Service externe momentanément indisponible.', $external->publicMessage());
+
+        $publicExternal = new ExternalServiceException('raw provider detail', 'Message public.');
+        self::assertSame('Message public.', $publicExternal->publicMessage());
 
         $invalidJson = new InvalidJsonPayloadException('bad json');
         self::assertSame(Response::HTTP_BAD_REQUEST, $invalidJson->getStatusCode());

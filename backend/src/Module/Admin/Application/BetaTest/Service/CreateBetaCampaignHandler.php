@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\BetaTest\Service;
 
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 
 final readonly class CreateBetaCampaignHandler
@@ -15,10 +16,9 @@ final readonly class CreateBetaCampaignHandler
     ) {
     }
 
-    /** @param array<string, mixed> $payload */
-    public function create(array $payload): BetaCampaign
+    public function create(CreateBetaCampaignInput $input): BetaCampaign
     {
-        $campaign = $this->payloadMapper->create($payload);
+        $campaign = $this->payloadMapper->create($input);
         $this->persistence->persist($campaign);
         $this->persistence->commit();
 

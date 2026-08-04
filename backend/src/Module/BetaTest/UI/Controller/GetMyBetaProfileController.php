@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\BetaTest\Application\Service\BetaProfileChoices;
+use App\Module\BetaTest\Infrastructure\Http\BetaProfileResponseFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,8 +16,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/beta/profile', methods: ['GET'])] #[IsGranted('ROLE_USER')]
 final class GetMyBetaProfileController extends AbstractController
 {
-    public function __construct(private readonly BetaTesterProfileRepository $profiles)
-    {
+    public function __construct(
+        private readonly BetaTesterProfileRepository $profiles,
+        private readonly BetaProfileResponseFormatter $formatter,
+    ) {
     }
 
     public function __invoke(): JsonResponse
@@ -25,11 +27,13 @@ final class GetMyBetaProfileController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
-        } $profile = $this->profiles->findOneByUser($user);
+        }
+
+        $profile = $this->profiles->findOneByUser($user);
         if (null === $profile) {
             return ApiResponse::error('Profil bêta introuvable.', 404);
         }
 
-        return ApiResponse::success(['profile' => ['id' => $profile->getId(), 'status' => $profile->getStatus(), 'availability' => $profile->getAvailability(), 'motivation' => $profile->getMotivation(), 'testingExperience' => BetaProfileChoices::parseStoredList($profile->getTestingExperience(), 'testingExperience'), 'bugDescriptionAbility' => BetaProfileChoices::parseStoredList($profile->getBugDescriptionAbility(), 'bugDescriptionAbility'), 'technicalKnowledge' => BetaProfileChoices::parseStoredList($profile->getTechnicalKnowledge(), 'technicalKnowledge'), 'accessibilityNeed' => $profile->getAccessibilityNeed(), 'assistiveTools' => $profile->getAssistiveTools(), 'devices' => $profile->getDevices(), 'browsers' => $profile->getBrowsers(), 'testingTypes' => $profile->getTestingTypes()]]);
+        return ApiResponse::success(['profile' => $this->formatter->format($profile)]);
     }
 }

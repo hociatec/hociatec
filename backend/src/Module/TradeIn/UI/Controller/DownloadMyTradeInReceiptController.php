@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
+use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -22,6 +22,7 @@ final class DownloadMyTradeInReceiptController extends AbstractController
         private readonly TradeInRequestRepository $requests,
         private readonly TradeInPrivateFileStorage $files,
         private readonly TradeInAccessPolicy $accessPolicy,
+        private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
@@ -39,9 +40,6 @@ final class DownloadMyTradeInReceiptController extends AbstractController
             throw $this->createNotFoundException('Justificatif indisponible.');
         }
 
-        $response = new Response($this->files->read($receiptPath), Response::HTTP_OK, ['Content-Type' => 'application/pdf', 'X-Content-Type-Options' => 'nosniff']);
-        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'justificatif-reprise-'.$request->getReference().'.pdf'));
-
-        return $response;
+        return $this->attachments->create($this->files->read($receiptPath), 'justificatif-reprise-'.$request->getReference().'.pdf', 'application/pdf');
     }
 }

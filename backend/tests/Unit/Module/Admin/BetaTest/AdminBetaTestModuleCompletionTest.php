@@ -39,6 +39,8 @@ use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportActivity;
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository;
@@ -66,6 +68,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Validator\Validation;
 
 final class AdminBetaTestModuleCompletionTest extends TestCase
 {
@@ -92,7 +95,8 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $markBugReportDuplicate = new MarkBugReportDuplicateHandler($persistence, $activity, $notifier);
         $deleteBugReport = new DeleteBugReportHandler($persistence, $storage);
 
-        $createCampaign = new CreateCampaignController($createCampaignHandler);
+        $validator = $this->validator();
+        $createCampaign = new CreateCampaignController($createCampaignHandler, $validator);
         self::assertSame(422, $createCampaign($this->jsonRequest(['name' => '', 'description' => 'Desc']))->getStatusCode());
         self::assertSame(422, $createCampaign($this->jsonRequest(['name' => 'Bad dates', 'description' => 'Desc', 'startsAt' => '2026-08-10', 'endsAt' => '2026-08-01']))->getStatusCode());
         $createdCampaign = $createCampaign($this->jsonRequest(['name' => 'Created', 'description' => 'Desc', 'startsAt' => 'bad', 'status' => 'weird']));
@@ -102,7 +106,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $listCampaigns = new ListCampaignsController($this->campaigns($em), $this->profiles($em), $this->reports($em), $formatter, $closeElapsedCampaigns);
         self::assertSame(200, $listCampaigns()->getStatusCode());
 
-        $updateCampaign = new UpdateCampaignController($this->campaigns($em), $updateCampaignHandler);
+        $updateCampaign = new UpdateCampaignController($this->campaigns($em), $updateCampaignHandler, $validator);
         self::assertSame(404, $updateCampaign(999, $this->jsonRequest(['name' => 'Nope'], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['name' => ''], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['description' => ''], 'PATCH'))->getStatusCode());
@@ -261,6 +265,11 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
     private function users(EntityManager $em): UserRepository
     {
         return new UserRepository($this->registry($em));
+    }
+
+    private function validator(): DtoValidator
+    {
+        return new DtoValidator(Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(), new ConstraintViolationFormatter());
     }
 
     /** @param array<string,mixed> $payload */

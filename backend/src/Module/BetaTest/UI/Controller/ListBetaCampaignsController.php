@@ -7,6 +7,7 @@ namespace App\Module\BetaTest\UI\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Module\BetaTest\Application\Service\BetaCampaignProvider;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Module\BetaTest\Infrastructure\Http\BetaCampaignResponseFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,7 @@ final class ListBetaCampaignsController extends AbstractController
     public function __construct(
         private readonly BetaTesterProfileRepository $profiles,
         private readonly BetaCampaignProvider $campaigns,
+        private readonly BetaCampaignResponseFormatter $formatter,
     ) {
     }
 
@@ -38,6 +40,6 @@ final class ListBetaCampaignsController extends AbstractController
         $now = new \DateTimeImmutable();
         $campaigns = $this->campaigns->openCampaigns();
 
-        return ApiResponse::success(['items' => array_map(static fn ($campaign) => ['id' => $campaign->getId(), 'name' => $campaign->getName(), 'description' => $campaign->getDescription(), 'status' => $campaign->getEffectiveStatus($now), 'startsAt' => $campaign->getStartsAt()?->format(DATE_ATOM), 'endsAt' => $campaign->getEndsAt()?->format(DATE_ATOM)], $campaigns)]);
+        return ApiResponse::success(['items' => array_map(fn ($campaign) => $this->formatter->format($campaign, $now), $campaigns)]);
     }
 }

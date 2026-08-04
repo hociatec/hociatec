@@ -26,6 +26,6 @@ final readonly class BugReportAccessPolicy
 
     public function isAdmin(User $user): bool
     {
-        return in_array('ROLE_ADMIN', $user->getRoles(), true);
+        return $user->isAdmin();
     }
 }

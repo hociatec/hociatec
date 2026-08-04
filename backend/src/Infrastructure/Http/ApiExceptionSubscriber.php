@@ -70,7 +70,6 @@ final readonly class ApiExceptionSubscriber
 
         return match (true) {
             $exception instanceof AccessDeniedException => ['Accès refusé.', JsonResponse::HTTP_FORBIDDEN, []],
-            $exception instanceof ExternalServiceException => [$exception->getMessage(), $exception->getStatusCode(), []],
             $exception instanceof UniqueConstraintViolationException => ['Une ressource avec ces informations existe déjà.', JsonResponse::HTTP_CONFLICT, []],
             $exception instanceof PublicApiException => [$exception->publicMessage(), $exception->getStatusCode(), []],
             $exception instanceof ApiProblemException => [$exception->getMessage(), $exception->getStatusCode(), []],

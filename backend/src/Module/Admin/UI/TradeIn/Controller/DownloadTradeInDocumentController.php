@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
+use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -16,8 +16,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class DownloadTradeInDocumentController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepository $requests, private readonly TradeInPrivateFileStorage $files)
-    {
+    public function __construct(
+        private readonly TradeInRequestRepository $requests,
+        private readonly TradeInPrivateFileStorage $files,
+        private readonly AttachmentResponseFactory $attachments,
+    ) {
     }
 
     public function __invoke(int $id, string $document): Response
@@ -31,9 +34,6 @@ final class DownloadTradeInDocumentController extends AbstractController
             throw $this->createNotFoundException('Document indisponible.');
         }
 
-        $response = new Response($this->files->read($path), Response::HTTP_OK, ['Content-Type' => 'application/pdf', 'X-Content-Type-Options' => 'nosniff']);
-        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'receipt' === $document ? 'justificatif-reprise.pdf' : 'rib-demandeur.pdf'));
-
-        return $response;
+        return $this->attachments->create($this->files->read($path), 'receipt' === $document ? 'justificatif-reprise.pdf' : 'rib-demandeur.pdf', 'application/pdf');
     }
 }

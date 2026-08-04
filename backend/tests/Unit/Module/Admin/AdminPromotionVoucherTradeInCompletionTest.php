@@ -175,7 +175,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_OK, $offer((int) $underReview->getId(), $this->jsonRequest(['offerCents' => 1500, 'offerExpiresAt' => '2026-08-10', 'adminNote' => 'Note'], 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_CONFLICT, $offer((int) $accepted->getId(), $this->jsonRequest(['offerCents' => 1500], 'PUT'))->getStatusCode());
 
-        $download = new DownloadTradeInDocumentController($repository, new TradeInPrivateFileStorage($this->projectDir()));
+        $download = new DownloadTradeInDocumentController($repository, new TradeInPrivateFileStorage($this->projectDir()), new \App\Infrastructure\Http\AttachmentResponseFactory());
         self::assertSame(Response::HTTP_OK, $download((int) $inspected->getId(), 'rib')->getStatusCode());
         try {
             $download(999, 'rib');

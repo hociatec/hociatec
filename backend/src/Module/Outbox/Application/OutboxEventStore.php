@@ -9,5 +9,9 @@ use App\Module\Outbox\Domain\Entity\OutboxEvent;
 interface OutboxEventStore
 {
     /** @return list<OutboxEvent> */
-    public function findDue(int $limit): array;
+    public function findDueForUpdate(int $limit): array;
+
+    public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics;
+
+    public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int;
 }
