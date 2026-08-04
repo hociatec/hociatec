@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\BetaTest\Controller;
 
+use App\Module\Admin\BetaTest\Service\AdminBetaCampaignManager;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
 use App\Shared\Http\ApiResponse;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,7 +18,7 @@ final class DeleteCampaignController extends AbstractController
 {
     public function __construct(
         private readonly BetaCampaignRepository $campaigns,
-        private readonly DoctrinePersistence $persistence,
+        private readonly AdminBetaCampaignManager $campaignManager,
     ) {
     }
 
@@ -29,8 +29,7 @@ final class DeleteCampaignController extends AbstractController
             return ApiResponse::error('Campagne non trouvée.', 404);
         }
 
-        $this->persistence->remove($campaign);
-        $this->persistence->flush();
+        $this->campaignManager->delete($campaign);
 
         return ApiResponse::success([], 200, 'Campagne supprimée.');
     }

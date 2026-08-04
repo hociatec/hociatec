@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\BetaTest\Controller;
 
+use App\Module\Admin\BetaTest\Service\AdminBugReportManager;
 use App\Module\BetaTest\Repository\BugReportRepository;
-use App\Module\BetaTest\Service\BugReportActivityLogger;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,8 +23,7 @@ final class AssignBugReportController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly UserRepository $users,
-        private readonly DoctrinePersistence $persistence,
-        private readonly BugReportActivityLogger $activityLogger,
+        private readonly AdminBugReportManager $reportManager,
     ) {
     }
 
@@ -41,16 +39,17 @@ final class AssignBugReportController extends AbstractController
         $assignedTo = null;
         if (null !== $assignedToId) {
             $assignedTo = $this->users->find($assignedToId);
-            if (!$assignedTo instanceof User || !in_array('ROLE_ADMIN', $assignedTo->getRoles(), true)) {
+            if (!$assignedTo instanceof User) {
                 return ApiResponse::error('Administrateur introuvable.', 404);
             }
         }
 
-        $previous = $report->getAssignedTo()?->getEmail();
-        $report->assignTo($assignedTo);
         $actor = $this->getUser();
-        $this->activityLogger->log($report, $actor instanceof User ? $actor : null, 'assignment_changed', $previous, $assignedTo?->getEmail());
-        $this->persistence->flush();
+        try {
+            $this->reportManager->assign($report, $assignedTo, $actor instanceof User ? $actor : null);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), 404);
+        }
 
         return ApiResponse::success(['id' => $report->getId()], 200, 'Responsable mis à jour.');
     }

@@ -197,7 +197,7 @@ final class AppointmentModuleCompletionTest extends TestCase
             ['dayOfWeek' => 6, 'isWorkingDay' => false],
         ]], 'PUT'))->getStatusCode());
 
-        $delete = new AdminDeletePrestationController($this->prestations());
+        $delete = new AdminDeletePrestationController($this->prestations(), new PrestationService($this->prestations(), new PrestationPersistence($this->entityManager()), Validation::createValidator()));
         self::assertSame(404, $delete(999)->getStatusCode());
         $createdId = (int) $this->payload($create($this->jsonRequest(['name' => 'Temporary', 'durationMinutes' => 15, 'price' => 5])))['data']['id'];
         self::assertSame(200, $delete($createdId)->getStatusCode());

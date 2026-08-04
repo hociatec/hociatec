@@ -20,6 +20,7 @@ use App\Module\User\Exception\InvalidProfilePasswordException;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Repository\ShippingAddressRepository;
 use App\Module\User\Repository\UserRepository;
+use App\Module\User\Service\DeleteAccountService;
 use App\Module\User\Service\RegisterUserService;
 use App\Module\User\Service\UpdateProfileService;
 use App\Module\User\Service\UserProfileFormatter;
@@ -173,7 +174,7 @@ final class UserRemainingControllersTest extends TestCase
         $delete = new class($repo, $logger, $user) extends DeleteAccountController {
             public function __construct(UserRepository $repo, LoggerInterface $logger, private User $user)
             {
-                parent::__construct($repo, $logger);
+                parent::__construct(new DeleteAccountService($repo), $logger);
             }
             protected function getUser(): ?User { return $this->user; }
         };

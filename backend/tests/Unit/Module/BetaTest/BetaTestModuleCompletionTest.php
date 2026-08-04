@@ -19,14 +19,19 @@ use App\Module\BetaTest\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Entity\BugReport;
 use App\Module\BetaTest\Entity\BugReportActivity;
 use App\Module\BetaTest\Entity\BugReportComment;
+use App\Module\BetaTest\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Repository\BugReportCommentRepository;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Service\BetaAttachmentStorage;
+use App\Module\BetaTest\Service\BetaCampaignProvider;
 use App\Module\BetaTest\Service\BetaTesterProfileService;
 use App\Module\BetaTest\Service\BugReportActivityLogger;
+use App\Module\BetaTest\Service\BugReportCommentWriter;
+use App\Module\BetaTest\Service\BugReportWriter;
 use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
@@ -66,7 +71,8 @@ final class BetaTestModuleCompletionTest extends TestCase
         $campaigns = $this->campaigns($em);
         $persistence = new DoctrinePersistence($em);
 
-        $list = new ListBetaCampaignsController($campaigns, $profiles, $persistence);
+        $profileService = new BetaTesterProfileService($persistence);
+        $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence));
         $list->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $list()->getStatusCode());
         $list->setContainer($this->container($user));
@@ -78,7 +84,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $get->setContainer($this->container($user));
         self::assertSame(Response::HTTP_NOT_FOUND, $get()->getStatusCode());
 
-        $update = new UpdateMyBetaProfileController($profiles, $persistence, $this->validator(2), new BetaTesterProfileService($persistence));
+        $update = new UpdateMyBetaProfileController($profiles, $this->validator(2), $profileService);
         $update->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $update(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         $update->setContainer($this->container($user));
@@ -100,7 +106,7 @@ final class BetaTestModuleCompletionTest extends TestCase
 
         self::assertSame(Response::HTTP_OK, $update(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(['motivation' => 'Updated']), JSON_THROW_ON_ERROR)))->getStatusCode());
 
-        $leave = new LeaveBetaProgramController($profiles, $persistence);
+        $leave = new LeaveBetaProgramController($profiles, $profileService);
         $leave->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $leave()->getStatusCode());
         $leave->setContainer($this->container($user));
@@ -119,6 +125,8 @@ final class BetaTestModuleCompletionTest extends TestCase
         $reports = $this->reports($em);
         $comments = $this->comments($em);
         $formatter = new BugReportResponseFormatter();
+        $accessPolicy = new BugReportAccessPolicy();
+        $commentFormatter = new BugReportCommentFormatter($accessPolicy);
         $persistence = new DoctrinePersistence($em);
         $notifier = $this->notifier($em);
         $activity = new BugReportActivityLogger($persistence);
@@ -138,7 +146,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $list->setContainer($this->container($user));
         self::assertSame(Response::HTTP_OK, $list(Request::create('/?page=1&perPage=5'))->getStatusCode());
 
-        $show = new ShowBugReportController($reports, $formatter);
+        $show = new ShowBugReportController($reports, $formatter, $accessPolicy);
         $show->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $show((int) $report->getId())->getStatusCode());
         $show->setContainer($this->container($user));
@@ -147,7 +155,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $show->setContainer($this->container($this->user('other@example.com')));
         self::assertSame(Response::HTTP_FORBIDDEN, $show((int) $report->getId())->getStatusCode());
 
-        $commentList = new ListBugReportCommentsController($reports, $comments);
+        $commentList = new ListBugReportCommentsController($reports, $comments, $accessPolicy, $commentFormatter);
         $commentList->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $commentList((int) $report->getId(), Request::create('/'))->getStatusCode());
         $commentList->setContainer($this->container($user));
@@ -156,7 +164,8 @@ final class BetaTestModuleCompletionTest extends TestCase
         $commentList->setContainer($this->container($this->user('comment-other@example.com')));
         self::assertSame(Response::HTTP_FORBIDDEN, $commentList((int) $report->getId(), Request::create('/'))->getStatusCode());
 
-        $createComment = new CreateBugReportCommentController($reports, $persistence, $notifier, $this->users($em), $activity);
+        $commentWriter = new BugReportCommentWriter($persistence, $activity, $notifier, $this->users($em), $accessPolicy);
+        $createComment = new CreateBugReportCommentController($reports, $accessPolicy, $commentWriter, $commentFormatter);
         $createComment->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"No auth"}'))->getStatusCode());
         $createComment->setContainer($this->container($user));
@@ -168,7 +177,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $createComment->setContainer($this->container($admin));
         self::assertSame(Response::HTTP_CREATED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"Admin"}'))->getStatusCode());
 
-        $download = new DownloadBugReportAttachmentController($reports, $storage);
+        $download = new DownloadBugReportAttachmentController($reports, $storage, $accessPolicy);
         $download->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $download((int) $report->getId(), 'screen.png')->getStatusCode());
         $download->setContainer($this->container($user));
@@ -180,7 +189,8 @@ final class BetaTestModuleCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, $download((int) $report->getId(), 'ghost.png')->getStatusCode());
         self::assertSame(Response::HTTP_OK, $download((int) $report->getId(), 'screen.png')->getStatusCode());
 
-        $create = new CreateBugReportController($this->campaigns($em), $this->profiles($em), $persistence, $storage, $activity, $this->users($em), $notifier);
+        $reportWriter = new BugReportWriter($persistence, $storage, $activity, $this->users($em), $notifier);
+        $create = new CreateBugReportController($this->campaigns($em), $this->profiles($em), $reportWriter);
         $create->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $create(Request::create('/', 'POST', [], [], [], [], '{"title":"Bug","description":"Desc"}'))->getStatusCode());
         $create->setContainer($this->container($this->user('no-profile@example.com')));

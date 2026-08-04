@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Controller;
 
+use App\Module\BetaTest\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\Repository\BugReportCommentRepository;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Security\BugReportAccessPolicy;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\Pagination;
@@ -22,6 +24,8 @@ final class ListBugReportCommentsController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly BugReportCommentRepository $comments,
+        private readonly BugReportAccessPolicy $accessPolicy,
+        private readonly BugReportCommentFormatter $formatter,
     ) {
     }
 
@@ -37,8 +41,7 @@ final class ListBugReportCommentsController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true);
-        if (!$isAdmin && $report->getReporter()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canView($user, $report)) {
             return ApiResponse::error('Accès refusé.', 403);
         }
 
@@ -46,18 +49,7 @@ final class ListBugReportCommentsController extends AbstractController
         $commentsList = $this->comments->findForReportPaginated($report, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(static fn ($c) => [
-                'id' => $c->getId(),
-                'content' => $c->getContent(),
-                'createdAt' => $c->getCreatedAt()->format(DATE_ATOM),
-                'author' => [
-                    'id' => $c->getAuthor()->getId(),
-                    'firstName' => $c->getAuthor()->getFirstName(),
-                    'lastName' => $c->getAuthor()->getLastName(),
-                    'email' => $c->getAuthor()->getEmail(),
-                    'role' => in_array('ROLE_ADMIN', $c->getAuthor()->getRoles(), true) ? 'admin' : 'user',
-                ],
-            ], $commentsList),
+            array_map(fn ($comment): array => $this->formatter->format($comment), $commentsList),
             $pagination->metadata($this->comments->countForReport($report)),
         );
     }

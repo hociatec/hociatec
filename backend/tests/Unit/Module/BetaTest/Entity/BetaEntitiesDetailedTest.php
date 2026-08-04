@@ -127,9 +127,9 @@ final class BetaEntitiesDetailedTest extends TestCase
         self::assertNull($bug->getDuplicateReason());
         self::assertNull($bug->getDuplicatedAt());
 
-        $bug->recordReply($admin);
+        $bug->recordAdminReply();
         self::assertInstanceOf(\DateTimeImmutable::class, $bug->getLastAdminReplyAt());
-        $bug->recordReply($reporter);
+        $bug->recordReporterReply();
         self::assertInstanceOf(\DateTimeImmutable::class, $bug->getLastReporterReplyAt());
 
         self::assertSame($reporter, $bug->getReporter());

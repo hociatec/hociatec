@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Service\BetaAttachmentStorage;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -22,6 +23,7 @@ final class DownloadBugReportAttachmentController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly BetaAttachmentStorage $attachments,
+        private readonly BugReportAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -37,8 +39,7 @@ final class DownloadBugReportAttachmentController extends AbstractController
             return ApiResponse::error('Signalement introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true);
-        if (!$isAdmin && $report->getReporter() !== $user) {
+        if (!$this->accessPolicy->canDownloadAttachment($user, $report)) {
             return ApiResponse::error('Accès refusé.', Response::HTTP_FORBIDDEN);
         }
 

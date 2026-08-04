@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Notification\Controller;
 
 use App\Module\User\Entity\User;
+use App\Module\Notification\Exception\NotificationOperationException;
 use App\Module\Notification\Service\CommunicationPreferences;
-use App\Module\User\Service\UserPersistence;
+use App\Module\Notification\Service\CommunicationPreferenceUpdater;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CommunicationPreferencesController extends AbstractController
 {
-    public function __construct(private readonly UserPersistence $persistence)
+    public function __construct(private readonly CommunicationPreferenceUpdater $updater)
     {
     }
 
@@ -33,15 +34,15 @@ final class CommunicationPreferencesController extends AbstractController
     public function update(Request $request): JsonResponse
     {
         $payload = JsonPayload::decode($request);
-        $preferences = CommunicationPreferences::normalize($payload['preferences'] ?? []);
-
-        if ([] === $preferences) {
-            return ApiResponse::error('Sélectionnez au moins un moyen de communication.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
         $user = $this->currentUser();
-        $user->setCommunicationPreferences($preferences);
-        $this->persistence->flush();
+
+        try {
+            $this->updater->update($user, is_array($payload['preferences'] ?? null) ? $payload['preferences'] : []);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (NotificationOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
+        }
 
         return ApiResponse::success($this->payload($user), JsonResponse::HTTP_OK, 'Préférences enregistrées.');
     }

@@ -15,6 +15,7 @@ use App\Module\News\Repository\NewsArticleRepository;
 use App\Module\News\Repository\NewsArticleViewRepository;
 use App\Module\News\Repository\NewsCommentRepository;
 use App\Module\News\Service\NewsArticleViewTracker;
+use App\Module\News\Service\NewsCommentWriter;
 use App\Module\News\Service\NewsFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -103,7 +104,7 @@ final class NewsPublicModuleTest extends TestCase
         [$published, , , $user] = $this->seedNews();
         $articles = $this->repository(NewsArticleRepository::class);
         $formatter = new NewsFormatter($this->repository(NewsArticleViewRepository::class));
-        $controller = new CreateNewsCommentController($articles, new DoctrinePersistence($this->entityManager()), $formatter);
+        $controller = new CreateNewsCommentController($articles, new NewsCommentWriter(new DoctrinePersistence($this->entityManager())), $formatter);
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller('missing', new Request([], [], [], [], [], [], '{"content":"Bonjour"}'))->getStatusCode());
 

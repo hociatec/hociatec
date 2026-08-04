@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Controller;
 
 use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
+use App\Module\User\Service\DeleteAccountService;
 use App\Shared\Http\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteAccountController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
+        private readonly DeleteAccountService $deleter,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -29,7 +29,7 @@ class DeleteAccountController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $this->userRepository->remove($user, true);
+            $this->deleter->delete($user);
         } catch (\RuntimeException $exception) {
             $this->logger->error('Unable to delete user account.', [
                 'userId' => $user->getId(),

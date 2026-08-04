@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Controller;
 
-use App\Module\BetaTest\Entity\BugReport;
 use App\Module\BetaTest\Entity\BetaTesterProfile;
+use App\Module\BetaTest\Exception\BetaTestOperationException;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
-use App\Module\BetaTest\Service\BetaAttachmentStorage;
-use App\Module\BetaTest\Service\BugReportActivityLogger;
-use App\Module\Notification\Service\UserCommunicationNotifier;
+use App\Module\BetaTest\Service\BugReportWriter;
 use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Http\RateLimited;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,11 +27,7 @@ final class CreateBugReportController extends AbstractController
     public function __construct(
         private readonly BetaCampaignRepository $campaigns,
         private readonly BetaTesterProfileRepository $profiles,
-        private readonly DoctrinePersistence $persistence,
-        private readonly BetaAttachmentStorage $attachments,
-        private readonly BugReportActivityLogger $activityLogger,
-        private readonly UserRepository $users,
-        private readonly UserCommunicationNotifier $notifier,
+        private readonly BugReportWriter $writer,
     )
     {
     }
@@ -53,12 +45,6 @@ final class CreateBugReportController extends AbstractController
         }
 
         $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : JsonPayload::decode($request);
-        $title = trim((string) ($payload['title'] ?? ''));
-        $description = trim((string) ($payload['description'] ?? ''));
-        if ('' === $title || '' === $description) {
-            return ApiResponse::error('Le titre et la description sont obligatoires.', 422);
-        }
-
         $campaign = null;
         if (isset($payload['campaignId'])) {
             $campaign = $this->campaigns->find((int) $payload['campaignId']);
@@ -72,21 +58,12 @@ final class CreateBugReportController extends AbstractController
         }
 
         $files = array_values(array_filter($request->files->all('screenshots'), static fn ($file) => $file instanceof UploadedFile));
-        $report = new BugReport($user, $campaign, $title, $description, isset($payload['expectedBehavior']) ? (string) $payload['expectedBehavior'] : null, isset($payload['actualBehavior']) ? (string) $payload['actualBehavior'] : null, in_array($payload['severity'] ?? 'normal', ['low', 'normal', 'high', 'critical'], true) ? (string) $payload['severity'] : 'normal', isset($payload['pageUrl']) ? (string) $payload['pageUrl'] : null, $this->attachments->store($files));
-        $report->recordReply($user);
-        $this->persistence->persist($report);
-        $this->activityLogger->log($report, $user, 'report_created', null, null, $title);
-        $this->persistence->flush();
-
-        foreach ($this->users->findAdmins() as $admin) {
-            $this->notifier->notify(
-                $admin,
-                sprintf('admin-beta-report-created:%d:%d', $report->getId(), $admin->getId()),
-                'Nouveau signalement bêta',
-                sprintf('%s a envoyé un signalement. Titre : %s.', $user->getFullName(), $report->getTitle()),
-                sprintf('/admin/beta-reports?reportId=%d', $report->getId()),
-                'admin_beta_report_created',
-            );
+        try {
+            $report = $this->writer->create($user, $campaign, $payload, $files);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), 422);
+        } catch (BetaTestOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::created(['id' => $report->getId()], 'Votre signalement a bien été envoyé.');

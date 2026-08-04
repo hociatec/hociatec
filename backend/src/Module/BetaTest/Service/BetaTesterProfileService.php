@@ -22,4 +22,38 @@ final readonly class BetaTesterProfileService
 
         return $profile;
     }
+
+    public function save(User $user, ?BetaTesterProfile $profile, BetaProfileInput $input): BetaTesterProfile
+    {
+        if (null === $profile) {
+            $profile = $this->create($user, $input);
+        } else {
+            $profile->update(
+                $input->availability,
+                $input->motivation,
+                $input->testingExperience,
+                $input->bugDescriptionAbility,
+                $input->technicalKnowledge,
+                $input->accessibilityNeed,
+                $input->assistiveTools,
+                $input->devices,
+                $input->browsers,
+                $input->testingTypes
+            );
+        }
+
+        $this->persistence->flush();
+
+        return $profile;
+    }
+
+    public function delete(?BetaTesterProfile $profile): void
+    {
+        if (null === $profile) {
+            return;
+        }
+
+        $this->persistence->remove($profile);
+        $this->persistence->flush();
+    }
 }

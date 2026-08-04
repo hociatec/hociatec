@@ -10,7 +10,6 @@ use App\Module\BetaTest\Service\BetaTesterProfileService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
-use App\Shared\Persistence\DoctrinePersistence;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +22,6 @@ final class UpdateMyBetaProfileController extends AbstractController
 {
     public function __construct(
         private readonly BetaTesterProfileRepository $profiles,
-        private readonly DoctrinePersistence $persistence,
         private readonly DtoValidator $validator,
         private readonly BetaTesterProfileService $profileService,
     ) {
@@ -38,24 +36,7 @@ final class UpdateMyBetaProfileController extends AbstractController
         $profile = $this->profiles->findOneByUser($user);
         $input = BetaProfileInput::fromArray(JsonPayload::decode($request));
         $this->validator->validate($input);
-
-        if (null === $profile) {
-            $profile = $this->profileService->create($user, $input);
-        } else {
-            $profile->update(
-                $input->availability,
-                $input->motivation,
-                $input->testingExperience,
-                $input->bugDescriptionAbility,
-                $input->technicalKnowledge,
-                $input->accessibilityNeed,
-                $input->assistiveTools,
-                $input->devices,
-                $input->browsers,
-                $input->testingTypes
-            );
-        }
-        $this->persistence->flush();
+        $this->profileService->save($user, $profile, $input);
 
         return ApiResponse::success([], 200, 'Profil bêta mis à jour.');
     }

@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\BetaTest\Controller;
 
-use App\Module\BetaTest\Entity\BugReport;
+use App\Module\Admin\BetaTest\Service\AdminBugReportManager;
 use App\Module\BetaTest\Repository\BugReportRepository;
-use App\Module\BetaTest\Service\BugReportActivityLogger;
-use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,9 +21,7 @@ final class MarkBugReportDuplicateController extends AbstractController
 {
     public function __construct(
         private readonly BugReportRepository $reports,
-        private readonly DoctrinePersistence $persistence,
-        private readonly BugReportActivityLogger $activityLogger,
-        private readonly UserCommunicationNotifier $notifier,
+        private readonly AdminBugReportManager $reportManager,
     ) {
     }
 
@@ -39,30 +34,17 @@ final class MarkBugReportDuplicateController extends AbstractController
 
         $payload = JsonPayload::decode($request);
         $duplicateOfId = (int) ($payload['duplicateOfId'] ?? 0);
-        if ($duplicateOfId <= 0 || $duplicateOfId === $id) {
-            return ApiResponse::error('Sélectionnez un autre signalement de référence.', 422);
-        }
-
-        $duplicateOf = $this->reports->find($duplicateOfId);
-        if (!$duplicateOf instanceof BugReport) {
-            return ApiResponse::error('Signalement de référence introuvable.', 404);
-        }
-
         $reason = trim((string) ($payload['reason'] ?? ''));
-        $previous = $report->getDuplicateOf()?->getId();
-        $report->markDuplicateOf($duplicateOf, $reason);
         $actor = $this->getUser();
-        $this->activityLogger->log($report, $actor instanceof User ? $actor : null, 'marked_duplicate', null !== $previous ? (string) $previous : null, (string) $duplicateOfId, $reason);
-        $this->persistence->flush();
 
-        $this->notifier->notify(
-            $report->getReporter(),
-            sprintf('beta-report-duplicate:%d:%d', $report->getId(), $duplicateOfId),
-            'Signalement bêta marqué comme doublon',
-            sprintf('Le signalement « %s » est rattaché au signalement « %s ».', $report->getTitle(), $duplicateOf->getTitle()),
-            sprintf('/beta?reportId=%d', $report->getId()),
-            'beta_report_status',
-        );
+        try {
+            $duplicateOf = $this->reportManager->referenceReport($duplicateOfId, $id);
+            $this->reportManager->markDuplicate($report, $duplicateOf, $reason, $actor instanceof User ? $actor : null);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), 422);
+        } catch (\RuntimeException $exception) {
+            return ApiResponse::error($exception->getMessage(), 404);
+        }
 
         return ApiResponse::success(['id' => $report->getId()], 200, 'Signalement marqué comme doublon.');
     }

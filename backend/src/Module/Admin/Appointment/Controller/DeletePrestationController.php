@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Appointment\Controller;
 
 use App\Module\Appointment\Repository\PrestationRepository;
+use App\Module\Appointment\Service\PrestationService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class DeletePrestationController extends AbstractController
 {
-    public function __construct(private readonly PrestationRepository $prestationRepository)
+    public function __construct(
+        private readonly PrestationRepository $prestationRepository,
+        private readonly PrestationService $prestationService,
+    )
     {
     }
 
@@ -28,7 +32,7 @@ class DeletePrestationController extends AbstractController
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->prestationRepository->remove($prestation, true);
+        $this->prestationService->delete($prestation);
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La prestation a bien été supprimée.');
     }

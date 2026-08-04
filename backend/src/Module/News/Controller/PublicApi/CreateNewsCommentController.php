@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Module\News\Controller\PublicApi;
 
 use App\Module\News\DTO\CreateNewsCommentInput;
-use App\Module\News\Entity\NewsComment;
+use App\Module\News\Exception\NewsOperationException;
 use App\Module\News\Repository\NewsArticleRepository;
+use App\Module\News\Service\NewsCommentWriter;
 use App\Module\News\Service\NewsFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Http\RateLimited;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ final class CreateNewsCommentController extends AbstractController
 {
     public function __construct(
         private readonly NewsArticleRepository $articles,
-        private readonly DoctrinePersistence $persistence,
+        private readonly NewsCommentWriter $writer,
         private readonly NewsFormatter $formatter,
     ) {
     }
@@ -44,13 +44,13 @@ final class CreateNewsCommentController extends AbstractController
         }
 
         $input = CreateNewsCommentInput::fromArray(JsonPayload::decode($request));
-        if (mb_strlen($input->content) < 3 || mb_strlen($input->content) > 1200) {
-            return ApiResponse::error('Le commentaire doit contenir entre 3 et 1200 caractères.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        try {
+            $comment = $this->writer->create($article, $user, $input->content);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (NewsOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
-
-        $comment = new NewsComment($article, $user, $input->content);
-        $this->persistence->persist($comment);
-        $this->persistence->flush();
 
         return ApiResponse::created(['comment' => $this->formatter->comment($comment)], 'Commentaire publié.');
     }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Operations\Service;
 
+use App\Shared\Application\TransactionManager;
 use Doctrine\ORM\EntityManagerInterface;
 
 /** Persistence boundary for operational workflows. */
-final readonly class OperationsPersistence
+final readonly class OperationsPersistence implements TransactionManager
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

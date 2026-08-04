@@ -6,6 +6,7 @@ namespace App\Module\BetaTest\Controller;
 
 use App\Module\BetaTest\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Security\BugReportAccessPolicy;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,7 @@ final class ShowBugReportController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly BugReportResponseFormatter $formatter,
+        private readonly BugReportAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -35,8 +37,7 @@ final class ShowBugReportController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true);
-        if (!$isAdmin && $report->getReporter()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canView($user, $report)) {
             return ApiResponse::error('Accès refusé.', 403);
         }
 

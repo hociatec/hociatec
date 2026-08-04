@@ -37,14 +37,16 @@ final class AppointmentControllerBatchTest extends TestCase
         $showDeleteRepository->expects(self::exactly(4))
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $prestation, null, $prestation);
-        $showDeleteRepository->expects(self::once())->method('remove')->with($prestation, true);
+        $deleteEntityManager = $this->createMock(EntityManagerInterface::class);
+        $deleteEntityManager->expects(self::once())->method('remove')->with($prestation);
+        $deleteEntityManager->expects(self::once())->method('flush');
 
         $show = new ShowPrestationController($showDeleteRepository);
         self::assertSame(Response::HTTP_NOT_FOUND, $show(404)->getStatusCode());
         $showPayload = json_decode((string) $show(4)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Diagnostic', $showPayload['data']['name']);
 
-        $delete = new DeletePrestationController($showDeleteRepository);
+        $delete = new DeletePrestationController($showDeleteRepository, new PrestationService($showDeleteRepository, new PrestationPersistence($deleteEntityManager), Validation::createValidator()));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete(4)->getStatusCode());
 

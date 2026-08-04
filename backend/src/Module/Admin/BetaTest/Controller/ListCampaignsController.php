@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\BetaTest\Controller;
 
+use App\Module\Admin\BetaTest\Service\AdminBetaCampaignManager;
 use App\Module\BetaTest\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Repository\BugReportRepository;
 use App\Shared\Http\ApiResponse;
-use App\Shared\Persistence\DoctrinePersistence;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -24,27 +24,15 @@ final class ListCampaignsController extends AbstractController
         private readonly BetaTesterProfileRepository $profiles,
         private readonly BugReportRepository $reports,
         private readonly BugReportResponseFormatter $reportFormatter,
-        private readonly DoctrinePersistence $persistence,
-    )
-    {
+        private readonly AdminBetaCampaignManager $campaignManager,
+    ) {
     }
 
     public function __invoke(): JsonResponse
     {
         $now = new \DateTimeImmutable();
         $campaigns = $this->campaigns->findBy([], ['createdAt' => 'DESC']);
-        $hasClosedCampaign = false;
-
-        foreach ($campaigns as $campaign) {
-            if ('closed' === $campaign->getEffectiveStatus($now) && 'closed' !== $campaign->getStatus()) {
-                $campaign->setStatus('closed');
-                $hasClosedCampaign = true;
-            }
-        }
-
-        if ($hasClosedCampaign) {
-            $this->persistence->flush();
-        }
+        $this->campaignManager->closeElapsedCampaigns($campaigns, $now);
 
         $acceptedProfilesCount = $this->profiles->count(['status' => BetaTesterProfile::STATUS_ACCEPTED]);
 

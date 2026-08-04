@@ -178,14 +178,19 @@ class BugReport
         return $this->duplicatedAt;
     }
 
-    public function recordReply(User $author): self
+    public function recordAdminReply(): self
     {
         $now = new \DateTimeImmutable();
-        if (in_array('ROLE_ADMIN', $author->getRoles(), true)) {
-            $this->lastAdminReplyAt = $now;
-        } else {
-            $this->lastReporterReplyAt = $now;
-        }
+        $this->lastAdminReplyAt = $now;
+        $this->updatedAt = $now;
+
+        return $this;
+    }
+
+    public function recordReporterReply(): self
+    {
+        $now = new \DateTimeImmutable();
+        $this->lastReporterReplyAt = $now;
         $this->updatedAt = $now;
 
         return $this;

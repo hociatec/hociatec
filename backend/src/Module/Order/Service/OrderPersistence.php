@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\Order;
+use App\Shared\Application\TransactionManager;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class OrderPersistence
+final readonly class OrderPersistence implements TransactionManager
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

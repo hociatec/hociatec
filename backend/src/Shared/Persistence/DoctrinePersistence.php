@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\Persistence;
 
+use App\Shared\Application\TransactionManager;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
 /** Infrastructure boundary for unit-of-work operations. */
-final readonly class DoctrinePersistence
+final readonly class DoctrinePersistence implements TransactionManager
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

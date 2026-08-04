@@ -6,6 +6,7 @@ namespace App\Module\User\Controller\Address;
 
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\ShippingAddressRepository;
+use App\Module\User\Service\DeleteShippingAddressService;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class DeleteAddressController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses)
+    public function __construct(
+        private readonly ShippingAddressRepository $addresses,
+        private readonly DeleteShippingAddressService $deleter,
+    )
     {
     }
 
@@ -29,7 +33,7 @@ class DeleteAddressController extends AbstractController
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $this->addresses->remove($address, true);
+        $this->deleter->delete($address);
 
         return ApiResponse::success(['message' => 'Adresse supprimée']);
     }

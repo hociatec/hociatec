@@ -21,6 +21,7 @@ use App\Module\User\Controller\Address\SetDefaultAddressController;
 use App\Module\User\Entity\ShippingAddress;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\ShippingAddressRepository;
+use App\Module\User\Service\DeleteShippingAddressService;
 use App\Shared\Http\CsrfTokenController;
 use App\Shared\Http\CsrfTokenService;
 use PHPUnit\Framework\TestCase;
@@ -77,7 +78,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $deleteRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
         $deleteRepo->expects(self::once())->method('remove')->with($address, true);
         $deleteController = new class($deleteRepo, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses); }
+            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses, new DeleteShippingAddressService($addresses)); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());

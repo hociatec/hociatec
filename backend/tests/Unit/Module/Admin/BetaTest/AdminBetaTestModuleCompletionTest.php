@@ -20,6 +20,9 @@ use App\Module\Admin\BetaTest\Controller\MarkBugReportDuplicateController;
 use App\Module\Admin\BetaTest\Controller\UpdateBetaTesterController;
 use App\Module\Admin\BetaTest\Controller\UpdateBugReportStatusController;
 use App\Module\Admin\BetaTest\Controller\UpdateCampaignController;
+use App\Module\Admin\BetaTest\Service\AdminBetaCampaignManager;
+use App\Module\Admin\BetaTest\Service\AdminBetaTesterManager;
+use App\Module\Admin\BetaTest\Service\AdminBugReportManager;
 use App\Module\BetaTest\Entity\BetaCampaign;
 use App\Module\BetaTest\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Entity\BugReport;
@@ -30,6 +33,7 @@ use App\Module\BetaTest\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Repository\BugReportActivityRepository;
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Module\BetaTest\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Service\BetaAttachmentStorage;
 use App\Module\BetaTest\Service\BugReportActivityLogger;
 use App\Module\Notification\Entity\AccountNotificationEvent;
@@ -63,25 +67,30 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $formatter = new BugReportResponseFormatter();
         $activity = new BugReportActivityLogger($persistence);
         $notifier = $this->notifier($em);
+        $storage = new BetaAttachmentStorage($this->projectDir());
+        $accessPolicy = new BugReportAccessPolicy();
+        $campaignManager = new AdminBetaCampaignManager($persistence);
+        $testerManager = new AdminBetaTesterManager($persistence);
+        $reportManager = new AdminBugReportManager($persistence, $activity, $notifier, $storage, $this->reports($em), $accessPolicy);
 
-        $createCampaign = new CreateCampaignController($persistence);
+        $createCampaign = new CreateCampaignController($campaignManager);
         self::assertSame(422, $createCampaign($this->jsonRequest(['name' => '', 'description' => 'Desc']))->getStatusCode());
         self::assertSame(422, $createCampaign($this->jsonRequest(['name' => 'Bad dates', 'description' => 'Desc', 'startsAt' => '2026-08-10', 'endsAt' => '2026-08-01']))->getStatusCode());
         $createdCampaign = $createCampaign($this->jsonRequest(['name' => 'Created', 'description' => 'Desc', 'startsAt' => 'bad', 'status' => 'weird']));
         self::assertSame(201, $createdCampaign->getStatusCode());
         $createdCampaignId = (int) json_decode((string) $createdCampaign->getContent(), true, 512, JSON_THROW_ON_ERROR)['data']['id'];
 
-        $listCampaigns = new ListCampaignsController($this->campaigns($em), $this->profiles($em), $this->reports($em), $formatter, $persistence);
+        $listCampaigns = new ListCampaignsController($this->campaigns($em), $this->profiles($em), $this->reports($em), $formatter, $campaignManager);
         self::assertSame(200, $listCampaigns()->getStatusCode());
 
-        $updateCampaign = new UpdateCampaignController($this->campaigns($em), $persistence);
+        $updateCampaign = new UpdateCampaignController($this->campaigns($em), $campaignManager);
         self::assertSame(404, $updateCampaign(999, $this->jsonRequest(['name' => 'Nope'], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['name' => ''], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['description' => ''], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['startsAt' => '2026-08-10', 'endsAt' => '2026-08-01'], 'PATCH'))->getStatusCode());
         self::assertSame(200, $updateCampaign((int) $campaign->getId(), $this->jsonRequest(['name' => 'Updated', 'description' => 'Updated desc', 'status' => 'active', 'startsAt' => '', 'endsAt' => ''], 'PATCH'))->getStatusCode());
 
-        $deleteCampaign = new DeleteCampaignController($this->campaigns($em), $persistence);
+        $deleteCampaign = new DeleteCampaignController($this->campaigns($em), $campaignManager);
         self::assertSame(404, $deleteCampaign(999)->getStatusCode());
         self::assertSame(200, $deleteCampaign($createdCampaignId)->getStatusCode());
 
@@ -98,7 +107,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $em->persist($deleteProfileUser);
         $em->persist($deleteProfile);
         $em->flush();
-        $updateTester = new UpdateBetaTesterController($this->profiles($em), $persistence);
+        $updateTester = new UpdateBetaTesterController($this->profiles($em), $testerManager);
         self::assertSame(404, $updateTester(999, $this->jsonRequest(['status' => 'accepted'], 'PATCH'))->getStatusCode());
         self::assertSame(422, $updateTester((int) $profile->getId(), $this->jsonRequest(['status' => 'bad'], 'PATCH'))->getStatusCode());
         self::assertSame(200, $updateTester((int) $profile->getId(), $this->jsonRequest(['status' => 'paused'], 'PATCH'))->getStatusCode());
@@ -114,21 +123,21 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $csv = (string) ob_get_clean();
         self::assertStringContainsString('Titre', $csv);
 
-        $assign = new AssignBugReportController($reports, $this->users($em), $persistence, $activity);
+        $assign = new AssignBugReportController($reports, $this->users($em), $reportManager);
         $assign->setContainer($this->container($admin));
         self::assertSame(404, $assign(999, $this->jsonRequest(['assignedToId' => $admin->getId()], 'PATCH'))->getStatusCode());
         self::assertSame(404, $assign((int) $report->getId(), $this->jsonRequest(['assignedToId' => $reporter->getId()], 'PATCH'))->getStatusCode());
         self::assertSame(200, $assign((int) $report->getId(), $this->jsonRequest(['assignedToId' => $admin->getId()], 'PATCH'))->getStatusCode());
         self::assertSame(200, $assign((int) $report->getId(), $this->jsonRequest(['assignedToId' => ''], 'PATCH'))->getStatusCode());
 
-        $status = new UpdateBugReportStatusController($reports, $persistence, $notifier, $activity);
+        $status = new UpdateBugReportStatusController($reports, $reportManager);
         $status->setContainer($this->container($admin));
         self::assertSame(404, $status(999, $this->jsonRequest(['status' => BugReport::STATUS_RESOLVED], 'PATCH'))->getStatusCode());
         self::assertSame(422, $status((int) $report->getId(), $this->jsonRequest(['status' => 'bad'], 'PATCH'))->getStatusCode());
         self::assertSame(200, $status((int) $report->getId(), $this->jsonRequest(['status' => BugReport::STATUS_SUBMITTED], 'PATCH'))->getStatusCode());
         self::assertSame(200, $status((int) $report->getId(), $this->jsonRequest(['status' => BugReport::STATUS_RESOLVED], 'PATCH'))->getStatusCode());
 
-        $markDuplicate = new MarkBugReportDuplicateController($reports, $persistence, $activity, $notifier);
+        $markDuplicate = new MarkBugReportDuplicateController($reports, $reportManager);
         $markDuplicate->setContainer($this->container($admin));
         self::assertSame(404, $markDuplicate(999, $this->jsonRequest(['duplicateOfId' => $duplicate->getId()], 'PATCH'))->getStatusCode());
         self::assertSame(422, $markDuplicate((int) $report->getId(), $this->jsonRequest(['duplicateOfId' => $report->getId()], 'PATCH'))->getStatusCode());
@@ -139,13 +148,12 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         self::assertSame(404, $activities(999)->getStatusCode());
         self::assertSame(200, $activities((int) $report->getId())->getStatusCode());
 
-        $deleteTester = new DeleteBetaTesterController($this->profiles($em), $persistence);
+        $deleteTester = new DeleteBetaTesterController($this->profiles($em), $testerManager);
         self::assertSame(404, $deleteTester(999)->getStatusCode());
         self::assertSame(200, $deleteTester((int) $deleteProfile->getId())->getStatusCode());
 
-        $storage = new BetaAttachmentStorage($this->projectDir());
         file_put_contents($this->projectDir().'/var/beta-attachments/screen.png', 'image');
-        $deleteReport = new DeleteBugReportController($reports, $storage, $persistence);
+        $deleteReport = new DeleteBugReportController($reports, $reportManager);
         self::assertSame(404, $deleteReport(999)->getStatusCode());
         self::assertSame(200, $deleteReport((int) $report->getId())->getStatusCode());
     }
