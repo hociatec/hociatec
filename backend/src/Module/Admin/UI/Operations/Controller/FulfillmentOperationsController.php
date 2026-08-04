@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Service\FulfillmentOperationsService;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +36,7 @@ final class FulfillmentOperationsController extends AbstractController
     public function ship(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
             $this->validator->validate($input);
             $order = $this->fulfillment->ship($id, $input, $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {

@@ -38,7 +38,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     {
         return null !== $this->createQueryBuilder('u')
             ->select('1')
-            ->andWhere('LOWER(u.email) = LOWER(:email)')
+            ->andWhere('LOWER(u.identity.email) = LOWER(:email)')
             ->setParameter('email', $email)
             ->getQuery()
             ->getOneOrNullResult();
@@ -47,7 +47,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findOneByEmailInsensitive(string $email): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('LOWER(u.email) = LOWER(:email)')
+            ->andWhere('LOWER(u.identity.email) = LOWER(:email)')
             ->setParameter('email', $email)
             ->getQuery()
             ->getOneOrNullResult();
@@ -57,7 +57,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     {
         return null !== $this->createQueryBuilder('u')
             ->select('1')
-            ->andWhere('LOWER(u.email) = LOWER(:email)')
+            ->andWhere('LOWER(u.identity.email) = LOWER(:email)')
             ->andWhere('u.id != :userId')
             ->setParameter('email', $email)
             ->setParameter('userId', $userId)
@@ -74,7 +74,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findOneByVerificationTokens(string $hashedToken, string $legacyToken): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.verificationToken = :hashedToken OR u.verificationToken = :legacyToken')
+            ->andWhere('u.security.verificationToken = :hashedToken OR u.security.verificationToken = :legacyToken')
             ->setParameter('hashedToken', $hashedToken)
             ->setParameter('legacyToken', $legacyToken)
             ->setMaxResults(1)
@@ -85,7 +85,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findOneByPasswordResetToken(string $token): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.passwordResetToken = :token')
+            ->andWhere('u.security.passwordResetToken = :token')
             ->setParameter('token', $token)
             ->getQuery()
             ->getOneOrNullResult();
@@ -97,7 +97,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findAdmins(): array
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.roles LIKE :role')
+            ->andWhere('u.security.roles LIKE :role')
             ->setParameter('role', '%ROLE_ADMIN%')
             ->getQuery()
             ->getResult();
@@ -109,8 +109,8 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findNewsEmailSubscribers(): array
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.isVerified = :verified')
-            ->andWhere('u.communicationPreferences LIKE :preference')
+            ->andWhere('u.security.isVerified = :verified')
+            ->andWhere('u.communication.communicationPreferences LIKE :preference')
             ->setParameter('verified', true)
             ->setParameter('preference', '%news_email%')
             ->orderBy('u.createdAt', 'DESC')
@@ -124,7 +124,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     public function findLoyaltyCustomers(string $search, int $limit, int $offset): array
     {
         $qb = $this->createQueryBuilder('u')
-            ->orderBy('u.loyaltyPointsBalance', 'DESC')
+            ->orderBy('u.administration.loyaltyPointsBalance', 'DESC')
             ->addOrderBy('u.createdAt', 'DESC')
             ->setMaxResults(max(1, min(100, $limit)))
             ->setFirstResult(max(0, $offset));
@@ -132,7 +132,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
         $normalizedSearch = trim($search);
         if ('' !== $normalizedSearch) {
             $qb
-                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->andWhere('LOWER(u.identity.email) LIKE LOWER(:search) OR LOWER(u.identity.firstName) LIKE LOWER(:search) OR LOWER(u.identity.lastName) LIKE LOWER(:search)')
                 ->setParameter('search', '%'.$normalizedSearch.'%');
         }
 
@@ -146,7 +146,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
         $normalizedSearch = trim($search);
         if ('' !== $normalizedSearch) {
             $qb
-                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->andWhere('LOWER(u.identity.email) LIKE LOWER(:search) OR LOWER(u.identity.firstName) LIKE LOWER(:search) OR LOWER(u.identity.lastName) LIKE LOWER(:search)')
                 ->setParameter('search', '%'.$normalizedSearch.'%');
         }
 
@@ -173,12 +173,12 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
         $qb = $this->createQueryBuilder('u')
             ->select(
                 'u.id AS id',
-                'u.email AS email',
-                'u.firstName AS firstName',
-                'u.lastName AS lastName',
-                'u.phoneNumber AS phoneNumber',
-                'u.isVerified AS isVerified',
-                'u.adminTags AS adminTags',
+                'u.identity.email AS email',
+                'u.identity.firstName AS firstName',
+                'u.identity.lastName AS lastName',
+                'u.identity.phoneNumber AS phoneNumber',
+                'u.security.isVerified AS isVerified',
+                'u.administration.adminTags AS adminTags',
                 'u.createdAt AS createdAt',
                 'COUNT(o.id) AS ordersCount',
                 'COALESCE(SUM(o.payment.totalPriceCents), 0) AS totalSpentCents',
@@ -192,11 +192,11 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
             $qb
                 ->andWhere(
                     $qb->expr()->orX(
-                        'LOWER(u.email) LIKE LOWER(:search)',
-                        'LOWER(u.firstName) LIKE LOWER(:search)',
-                        'LOWER(u.lastName) LIKE LOWER(:search)',
-                        'LOWER(CONCAT(u.firstName, \' \', u.lastName)) LIKE LOWER(:search)',
-                        'LOWER(u.phoneNumber) LIKE LOWER(:search)',
+                        'LOWER(u.identity.email) LIKE LOWER(:search)',
+                        'LOWER(u.identity.firstName) LIKE LOWER(:search)',
+                        'LOWER(u.identity.lastName) LIKE LOWER(:search)',
+                        'LOWER(CONCAT(u.identity.firstName, \' \', u.identity.lastName)) LIKE LOWER(:search)',
+                        'LOWER(u.identity.phoneNumber) LIKE LOWER(:search)',
                         'LOWER(o.number) LIKE LOWER(:search)'
                     )
                 )
@@ -207,7 +207,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
             'highest_spent' => $qb->orderBy('totalSpentCents', 'DESC')->addOrderBy('lastOrderAt', 'DESC'),
             'most_orders' => $qb->orderBy('ordersCount', 'DESC')->addOrderBy('lastOrderAt', 'DESC'),
             'newest_account' => $qb->orderBy('u.createdAt', 'DESC'),
-            'name_asc' => $qb->orderBy('u.lastName', 'ASC')->addOrderBy('u.firstName', 'ASC'),
+            'name_asc' => $qb->orderBy('u.identity.lastName', 'ASC')->addOrderBy('u.identity.firstName', 'ASC'),
             default => $qb->orderBy('lastOrderAt', 'DESC')->addOrderBy('u.createdAt', 'DESC'),
         };
 
@@ -249,11 +249,11 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
             $qb
                 ->andWhere(
                     $qb->expr()->orX(
-                        'LOWER(u.email) LIKE LOWER(:search)',
-                        'LOWER(u.firstName) LIKE LOWER(:search)',
-                        'LOWER(u.lastName) LIKE LOWER(:search)',
-                        'LOWER(CONCAT(u.firstName, \' \', u.lastName)) LIKE LOWER(:search)',
-                        'LOWER(u.phoneNumber) LIKE LOWER(:search)',
+                        'LOWER(u.identity.email) LIKE LOWER(:search)',
+                        'LOWER(u.identity.firstName) LIKE LOWER(:search)',
+                        'LOWER(u.identity.lastName) LIKE LOWER(:search)',
+                        'LOWER(CONCAT(u.identity.firstName, \' \', u.identity.lastName)) LIKE LOWER(:search)',
+                        'LOWER(u.identity.phoneNumber) LIKE LOWER(:search)',
                         'LOWER(o.number) LIKE LOWER(:search)',
                     )
                 )

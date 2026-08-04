@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

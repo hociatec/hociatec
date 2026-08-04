@@ -8,7 +8,7 @@ use App\Module\User\UI\Controller\Address\CreateAddressController;
 use App\Module\User\UI\Controller\Address\UpdateAddressController;
 use App\Module\User\UI\Controller\DeleteAccountController;
 use App\Module\User\UI\Controller\RegisterController;
-use App\Module\User\Application\Service\RegistrationRateLimiter;
+use App\Module\User\Application\Workflow\RegistrationRateLimiter;
 use App\Module\User\UI\Controller\UpdateProfileController;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
@@ -22,14 +22,14 @@ use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
-use App\Module\User\Application\Service\DeleteAccountService;
-use App\Module\User\Application\Service\RegisterUserService;
-use App\Module\User\Application\Service\UpdateProfileService;
-use App\Module\User\Application\Service\UserPersistence;
+use App\Module\User\Application\Workflow\DeleteAccountService;
+use App\Module\User\Application\Workflow\RegisterUserService;
+use App\Module\User\Application\Workflow\UpdateProfileService;
+use App\Module\User\Application\Persistence\UserPersistence;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -61,10 +61,10 @@ final class UserRemainingControllersTest extends TestCase
         $repo->expects(self::exactly(2))->method('findOneForUser')->willReturnOnConsecutiveCalls(null, $address);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(3))->method('flush');
-        $writer = new \App\Module\User\Application\Service\ShippingAddressWriter($repo, new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($entityManager));
+        $writer = new \App\Module\User\Application\Writer\ShippingAddressWriter($repo, new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($entityManager));
 
         $create = new class($writer, $validator, $user) extends CreateAddressController {
-            public function __construct(\App\Module\User\Application\Service\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
+            public function __construct(\App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
             {
                 parent::__construct($writer, $validator);
             }
@@ -89,7 +89,7 @@ final class UserRemainingControllersTest extends TestCase
         self::assertSame(201, $createdB->getStatusCode());
 
         $update = new class($repo, $writer, $validator, $user) extends UpdateAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
             {
                 parent::__construct($addresses, $writer, $validator);
             }
@@ -212,7 +212,7 @@ final class UserRemainingControllersTest extends TestCase
             'limit' => 1,
             'interval' => '1 hour',
         ], new InMemoryStorage());
-        $factory->create((new \App\Infrastructure\Http\RateLimitKeyFactory())->forRequest(
+        $factory->create((new \App\Shared\Infrastructure\Http\RateLimitKeyFactory())->forRequest(
             Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
             'new@example.com',
         ))->consume(1);
@@ -250,7 +250,7 @@ final class UserRemainingControllersTest extends TestCase
             $validator,
             $warnLogger,
             $profiles,
-            new RegistrationRateLimiter(new \App\Infrastructure\Http\RateLimitKeyFactory(), $factory),
+            new RegistrationRateLimiter(new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $factory),
         );
         self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(409, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.2'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());

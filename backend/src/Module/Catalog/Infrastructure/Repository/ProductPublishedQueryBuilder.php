@@ -27,14 +27,14 @@ trait ProductPublishedQueryBuilder
             ->addSelect('c', 'b')
             ->join('p.category', 'c')
             ->leftJoin('p.brandReference', 'b')
-            ->andWhere('p.isPublished = :published')
+            ->andWhere('p.publication.isPublished = :published')
             ->andWhere('c.isVisible = :visible')
             ->setParameter('published', true)
             ->setParameter('visible', true);
 
         if (true === $onlyFeatured) {
             $qb
-                ->andWhere('p.isFeaturedHome = :featured')
+                ->andWhere('p.publication.isFeaturedHome = :featured')
                 ->setParameter('featured', true);
         }
 

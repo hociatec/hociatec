@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Quote\DTO\QuoteEmailInput;
-use App\Module\Quote\Application\Service\QuoteEmailService;
-use App\Module\Quote\Application\Service\QuoteStatusTranslator;
-use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
+use App\Module\Quote\Application\Workflow\QuoteEmailService;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -52,7 +52,7 @@ class SendQuoteEmailController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

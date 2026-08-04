@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;

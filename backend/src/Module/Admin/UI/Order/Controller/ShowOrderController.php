@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Order\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Service\OrderIssueInspector;
+use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,7 +71,7 @@ final class ShowOrderController extends AbstractController
      */
     private function formatPayment(int $orderId): ?array
     {
-        $payment = $this->payments->findOneBy(['orderId' => $orderId]);
+        $payment = $this->payments->findOneByOrderId($orderId);
         if (!$payment instanceof OrderCheckoutSession) {
             return null;
         }

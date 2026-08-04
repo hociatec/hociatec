@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\TradeIn\Service;
 
 use App\Module\TradeIn\Application\DTO\TradeInInput;
-use App\Module\TradeIn\Application\Service\TradeInEstimator;
+use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use PHPUnit\Framework\TestCase;
 
 final class TradeInEstimatorTest extends TestCase

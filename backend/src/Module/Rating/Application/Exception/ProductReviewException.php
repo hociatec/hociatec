@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Application\Exception;
 
-use App\Infrastructure\Http\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemException;
 
 class ProductReviewException extends \RuntimeException implements ApiProblemException
 {

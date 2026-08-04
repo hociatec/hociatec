@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Service\CreateBetaCampaignHandler;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +27,7 @@ final class CreateCampaignController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, CreateBetaCampaignInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CreateBetaCampaignInput::class);
             $this->validator->validate($input);
             $campaign = $this->createCampaign->create($input);
         } catch (ApiValidationException $exception) {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Catalog\Application\DTO\ShareProductInput;
-use App\Module\Catalog\Application\Service\ProductQueryService;
-use App\Module\Catalog\Application\Service\ProductShareEmailService;
+use App\Module\Catalog\Application\Workflow\ProductQueryService;
+use App\Module\Catalog\Application\Workflow\ProductShareEmailService;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -33,7 +33,7 @@ final readonly class ShareProductEmailController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $input = ShareProductInput::fromPayload(\App\Infrastructure\Http\JsonRequestInput::payload($request));
+        $input = ShareProductInput::fromPayload(\App\Shared\Infrastructure\Http\JsonRequestInput::payload($request));
         $this->dtoValidator->validate($input);
 
         try {

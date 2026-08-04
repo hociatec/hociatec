@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\User\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\User\DTO\CustomerEmailInput;
-use App\Module\User\Application\Service\AdminCustomerEmailService;
+use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +36,7 @@ final class SendCustomerEmailController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

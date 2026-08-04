@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

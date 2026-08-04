@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Notification\Infrastructure\MessageHandler;
 
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
-use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Http\Pagination;
-use App\Module\Loyalty\Application\Service\LoyaltyService;
+use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,7 +49,7 @@ final class AdminLoyaltyController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

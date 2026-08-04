@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Module\BetaTest\Application\Service\BugReportWriter;
+use App\Module\BetaTest\Application\Writer\BugReportWriter;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,7 +42,7 @@ final class CreateBugReportController extends AbstractController
             return ApiResponse::error('Votre profil bêta doit être accepté avant d’envoyer un signalement.', 403);
         }
 
-        $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $campaign = null;
         if (isset($payload['campaignId'])) {
             $campaign = $this->campaigns->find((int) $payload['campaignId']);

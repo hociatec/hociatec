@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\Infrastructure\EventSubscriber;
 
-use App\Module\Loyalty\Application\Service\LoyaltyService;
+use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Common\EventSubscriber;

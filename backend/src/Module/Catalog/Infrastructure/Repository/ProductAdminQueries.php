@@ -89,7 +89,7 @@ trait ProductAdminQueries
             ->leftJoin('p.brandReference', 'b');
 
         if (true === $onlyFeatured) {
-            $qb->andWhere('p.isFeaturedHome = :featured')->setParameter('featured', true);
+            $qb->andWhere('p.publication.isFeaturedHome = :featured')->setParameter('featured', true);
         }
 
         if (null !== $categorySlug && '' !== $categorySlug) {
@@ -97,19 +97,19 @@ trait ProductAdminQueries
         }
 
         if (null !== $sellingType && \in_array($sellingType, ['sale', 'rental'], true)) {
-            $qb->andWhere('p.sellingType = :adminSellingType')->setParameter('adminSellingType', $sellingType);
+            $qb->andWhere('p.pricing.sellingType = :adminSellingType')->setParameter('adminSellingType', $sellingType);
         }
 
         if (null !== $minPriceCents && $minPriceCents >= 0) {
-            $qb->andWhere('p.priceCents >= :adminMinPrice')->setParameter('adminMinPrice', $minPriceCents);
+            $qb->andWhere('p.pricing.priceCents >= :adminMinPrice')->setParameter('adminMinPrice', $minPriceCents);
         }
 
         if (null !== $maxPriceCents && $maxPriceCents >= 0) {
-            $qb->andWhere('p.priceCents <= :adminMaxPrice')->setParameter('adminMaxPrice', $maxPriceCents);
+            $qb->andWhere('p.pricing.priceCents <= :adminMaxPrice')->setParameter('adminMaxPrice', $maxPriceCents);
         }
 
         if (true === $lowStockOnly) {
-            $qb->andWhere('p.stock <= p.lowStockThreshold');
+            $qb->andWhere('p.inventory.stock <= p.inventory.lowStockThreshold');
         }
 
         $this->applySearchFilter($qb, $search, $sort, null !== $sort);

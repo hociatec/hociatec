@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\Pagination;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Infrastructure\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportCommentRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

@@ -9,7 +9,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Favorite\UI\Controller\AddFavoriteController;
 use App\Module\Favorite\Domain\Entity\Favorite;
-use App\Module\Favorite\Application\Service\FavoriteService;
+use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;

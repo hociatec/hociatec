@@ -6,8 +6,8 @@ namespace App\Tests\Unit\Module\Notification\Service;
 
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Service\CommunicationPreferences;
-use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;

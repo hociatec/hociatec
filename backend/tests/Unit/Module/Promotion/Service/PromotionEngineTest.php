@@ -10,7 +10,7 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
-use App\Module\Promotion\Application\Service\PromotionEngine;
+use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

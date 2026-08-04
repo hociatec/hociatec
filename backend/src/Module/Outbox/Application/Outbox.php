@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Outbox\Application;
 
-use App\Infrastructure\Http\RequestIdSubscriber;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class Outbox

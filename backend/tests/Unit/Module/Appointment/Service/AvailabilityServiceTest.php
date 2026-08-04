@@ -9,7 +9,7 @@ use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Service\AvailabilityService;
+use App\Module\Appointment\Application\Workflow\AvailabilityService;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

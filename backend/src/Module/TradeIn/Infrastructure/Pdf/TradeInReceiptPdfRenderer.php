@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Infrastructure\Pdf;
 
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
 
 final readonly class TradeInReceiptPdfRenderer implements TradeInReceiptRenderer
 {

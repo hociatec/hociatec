@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Pdf;
 
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Pdf\PdfHtmlFormatter;
 use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
 use App\Module\Order\Domain\Entity\Order;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 
 final class OrderInvoicePdfService implements OrderInvoicePdfRenderer
 {

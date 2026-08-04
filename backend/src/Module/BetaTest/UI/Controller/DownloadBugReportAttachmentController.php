@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\BetaTest\Application\Service\BetaAttachmentStorage;
+use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;

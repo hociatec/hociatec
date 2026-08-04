@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Voucher\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
+use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

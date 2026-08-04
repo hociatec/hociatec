@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Catalog\Service;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Catalog\Application\Service\ProductQueryService;
+use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use PHPUnit\Framework\TestCase;
 
 final class ProductQueryServiceTest extends TestCase

@@ -8,15 +8,15 @@ use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
 use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Rating\UI\Controller\ListPendingReviewsController;
-use App\Module\Rating\Application\Service\PendingReviewResolver;
+use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\Training\UI\Controller\Admin\DeleteTrainingCategoryController;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
-use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -107,7 +107,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         try {
             $create(new Request(content: '{"name":'));
             self::fail('Expected invalid JSON payload exception.');
-        } catch (\App\Infrastructure\Http\InvalidJsonPayloadException) {
+        } catch (\App\Shared\Infrastructure\Http\InvalidJsonPayloadException) {
             self::assertTrue(true);
         }
         $createPayload = json_decode((string) $create(new Request(content: json_encode([

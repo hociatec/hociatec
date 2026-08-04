@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Infrastructure\Security;
 
-use App\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationFailureEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Events;
 use Symfony\Component\HttpFoundation\Request;

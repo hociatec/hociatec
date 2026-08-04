@@ -6,10 +6,10 @@ namespace App\Tests\Unit\Module\Voucher\Service;
 
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\CreateVoucherHandler;
-use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
-use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
-use App\Module\Voucher\Application\Service\VoucherPayload;
+use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
+use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
+use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
+use App\Module\Voucher\Application\Mapper\VoucherPayload;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;

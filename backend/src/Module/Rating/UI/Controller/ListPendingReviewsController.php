@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Rating\Application\Service\PendingReviewResolver;
+use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

@@ -29,29 +29,29 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteEmailService;
-use App\Module\Quote\Application\Service\QuoteNumberGenerator;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\Workflow\QuoteEmailService;
+use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Application\Service\QuotePersistence;
-use App\Module\Quote\Application\Service\QuoteService;
-use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Workflow\QuoteService;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Outbox\Application\Outbox;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -152,7 +152,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $sentResponse = $send($this->jsonRequest(['to' => 'external-client@example.test']), (string) $quoteId);
         self::assertSame(Response::HTTP_OK, $sentResponse->getStatusCode(), (string) $sentResponse->getContent());
 
-        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService(), new \App\Infrastructure\Http\AttachmentResponseFactory());
+        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         self::assertSame(Response::HTTP_NOT_FOUND, $pdf(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $pdf($quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_IMPLEMENTED, (new GeneratePdfController($quoteRepository, $calculator, new class extends QuotePdfService {
@@ -164,7 +164,7 @@ final class AdminQuoteCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf down');
             }
-        }, new \App\Infrastructure\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
+        }, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
 
         self::assertSame(Response::HTTP_NOT_FOUND, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))($quoteId)->getStatusCode());
@@ -173,7 +173,7 @@ final class AdminQuoteCompletionTest extends TestCase
 
         $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
             $serviceRepository,
-            new \App\Module\Quote\Application\Service\QuotePersistence($em),
+            new \App\Module\Quote\Application\Persistence\QuotePersistence($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Http;
 
-use App\Infrastructure\Http\ApiExceptionSubscriber;
-use App\Infrastructure\Http\CsrfExempt;
-use App\Infrastructure\Http\RateLimitSubscriber;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Http\CsrfProtectionSubscriber;
-use App\Infrastructure\Http\CsrfTokenService;
-use App\Infrastructure\Http\RequestIdProcessor;
-use App\Infrastructure\Http\RequestIdSubscriber;
-use App\Infrastructure\Http\SecurityHeadersSubscriber;
+use App\Shared\Infrastructure\Http\ApiExceptionSubscriber;
+use App\Shared\Infrastructure\Http\CsrfExempt;
+use App\Shared\Infrastructure\Http\RateLimitSubscriber;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\CsrfProtectionSubscriber;
+use App\Shared\Infrastructure\Http\CsrfTokenService;
+use App\Shared\Infrastructure\Http\RequestIdProcessor;
+use App\Shared\Infrastructure\Http\RequestIdSubscriber;
+use App\Shared\Infrastructure\Http\SecurityHeadersSubscriber;
 use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;

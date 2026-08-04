@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Infrastructure\Http;
 
-use App\Module\Cart\Application\Service\CartMergeService;
+use App\Module\Cart\Application\Workflow\CartMergeService;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;

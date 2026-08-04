@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\BetaTest\Service\ChangeBetaTesterStatusHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +30,7 @@ final class UpdateBetaTesterController extends AbstractController
             return ApiResponse::error('Profil introuvable.', 404);
         }
 
-        $status = (string) (\App\Infrastructure\Http\JsonRequestInput::payload($request)['status'] ?? '');
+        $status = (string) (\App\Shared\Infrastructure\Http\JsonRequestInput::payload($request)['status'] ?? '');
         try {
             $this->changeTesterStatus->change($profile, $status);
         } catch (\InvalidArgumentException $exception) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\System\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Outbox;
 
-use App\Infrastructure\Http\RequestIdSubscriber;
+use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Application\OutboxAlert;
 use App\Module\Outbox\Application\OutboxAlertNotifier;

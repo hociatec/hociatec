@@ -7,9 +7,9 @@ namespace App\Module\Cart\Application\Projection;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Promotion\Application\Service\PromotionEngine;
+use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Application\Service\VoucherEngine;
+use App\Module\Voucher\Application\Calculator\VoucherEngine;
 
 final class CartFormatter
 {

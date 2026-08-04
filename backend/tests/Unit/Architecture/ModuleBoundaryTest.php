@@ -112,7 +112,7 @@ final class ModuleBoundaryTest extends TestCase
 
     public function testExternalServiceExceptionMessageIsNotExposedDirectly(): void
     {
-        $subscriber = file_get_contents(__DIR__.'/../../../src/Infrastructure/Http/ApiExceptionSubscriber.php');
+        $subscriber = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/ApiExceptionSubscriber.php');
         self::assertIsString($subscriber);
 
         self::assertStringNotContainsString('ExternalServiceException => [$exception->getMessage()', $subscriber);
@@ -134,6 +134,7 @@ final class ModuleBoundaryTest extends TestCase
     public function testSharedConceptsDoNotLiveInRootInfrastructure(): void
     {
         $forbiddenPaths = [
+            __DIR__.'/../../../src/Infrastructure',
             __DIR__.'/../../../src/Infrastructure/Application',
             __DIR__.'/../../../src/Infrastructure/ValueObject',
             __DIR__.'/../../../src/Infrastructure/Persistence/DoctrineTransactionManager.php',
@@ -166,7 +167,7 @@ final class ModuleBoundaryTest extends TestCase
     {
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
-            if (str_contains($path, '/Application/Service/') && str_ends_with($path, 'PdfService.php')) {
+            if (str_contains($path, '/Application/') && str_ends_with($path, 'PdfService.php')) {
                 $violations[] = $this->relativePath($path);
             }
         }
@@ -178,8 +179,45 @@ final class ModuleBoundaryTest extends TestCase
     {
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
-            if (str_contains($path, '/Application/Service/') && str_ends_with($path, 'Formatter.php')) {
+            if (str_contains($path, '/Application/') && !str_contains($path, '/Projection/') && str_ends_with($path, 'Formatter.php')) {
                 $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApplicationLayerDoesNotUseGenericServiceBucketInMainModules(): void
+    {
+        $allowedPrefixes = [
+            'src/Module/Admin/Application/Backup/Service/',
+            'src/Module/Admin/Application/BetaTest/Service/',
+            'src/Module/Admin/Application/Catalog/Service/',
+            'src/Module/Admin/Application/Marketing/Service/',
+            'src/Module/Admin/Application/Operations/Service/',
+            'src/Module/Admin/Application/Payment/Service/',
+            'src/Module/Admin/Application/Quote/Service/',
+            'src/Module/Admin/Application/TradeIn/Service/',
+            'src/Module/Admin/Application/User/Service/',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/Application/Service/')) {
+                continue;
+            }
+
+            $allowed = false;
+            foreach ($allowedPrefixes as $prefix) {
+                if (str_starts_with($relativePath, $prefix)) {
+                    $allowed = true;
+                    break;
+                }
+            }
+
+            if (!$allowed) {
+                $violations[] = $relativePath;
             }
         }
 
@@ -420,7 +458,7 @@ final class ModuleBoundaryTest extends TestCase
     public function testAttachmentResponsesDoNotBuildContentDispositionManually(): void
     {
         $allowed = [
-            'src/Infrastructure/Http/AttachmentResponseFactory.php',
+            'src/Shared/Infrastructure/Http/AttachmentResponseFactory.php',
         ];
         $violations = [];
 

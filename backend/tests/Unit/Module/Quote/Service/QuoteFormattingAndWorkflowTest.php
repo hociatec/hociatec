@@ -13,8 +13,8 @@ use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Service\QuotePersistence;
-use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -94,7 +94,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         $order = $this->createOrder();
         $quote->setConvertedOrder($order);
 
-        $payload = QuoteFormatter::formatQuote($quote, new \App\Module\Quote\Application\Service\QuoteCalculator());
+        $payload = QuoteFormatter::formatQuote($quote, new \App\Module\Quote\Application\Calculator\QuoteCalculator());
 
         self::assertSame(50, $payload['id']);
         self::assertSame('Q-2026-050', $payload['number']);

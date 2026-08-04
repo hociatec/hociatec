@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Audit\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Audit\DTO\AuditStatusInput;
-use App\Module\Audit\Application\Service\AuditEventLogger;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +33,7 @@ class UpdateAuditStatusController extends AbstractController
         if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = AuditStatusInput::fromArray($payload);
         $this->validator->validate($input);
         $status = $input->status;

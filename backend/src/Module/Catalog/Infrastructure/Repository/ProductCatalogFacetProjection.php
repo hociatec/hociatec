@@ -56,7 +56,7 @@ trait ProductCatalogFacetProjection
     {
         $row = $qb
             ->resetDQLPart('orderBy')
-            ->select('MIN(p.priceCents) AS minPrice, MAX(p.priceCents) AS maxPrice')
+            ->select('MIN(p.pricing.priceCents) AS minPrice, MAX(p.pricing.priceCents) AS maxPrice')
             ->getQuery()
             ->getOneOrNullResult();
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,7 +42,7 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
             return ApiResponse::error('Inscription introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $status = (string) ($payload['status'] ?? '');
         if (!in_array($status, self::ALLOWED, true)) {
             return ApiResponse::error('Statut invalide.', Response::HTTP_BAD_REQUEST);

@@ -36,20 +36,14 @@ class Product
     #[ORM\Column(type: 'text')]
     private string $description;
 
-    #[ORM\Column(type: 'integer')]
-    private int $priceCents;
+    #[ORM\Embedded(class: ProductPricing::class, columnPrefix: false)]
+    private ProductPricing $pricing;
 
-    #[ORM\Column(type: 'integer')]
-    private int $stock;
+    #[ORM\Embedded(class: ProductInventory::class, columnPrefix: false)]
+    private ProductInventory $inventory;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 3])]
-    private int $lowStockThreshold = 3;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $isPublished = true;
-
-    #[ORM\Column(type: 'boolean')]
-    private bool $isFeaturedHome = false;
+    #[ORM\Embedded(class: ProductPublication::class, columnPrefix: false)]
+    private ProductPublication $publication;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
@@ -71,26 +65,8 @@ class Product
     #[ORM\JoinColumn(name: 'brand_id', nullable: true, onDelete: 'SET NULL')]
     private ?Brand $brandReference = null;
 
-    #[ORM\Column(length: 120, nullable: true)]
-    private ?string $variantGroup = null;
-
-    #[ORM\Column(type: 'smallint', options: ['default' => 1])]
-    private int $variantPosition = 1;
-
-    #[ORM\Column(type: 'smallint', nullable: true)]
-    private ?int $releaseYear = null;
-
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $storageCapacity = null;
-
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $memoryRam = null;
-
-    #[ORM\Column(length: 60, nullable: true)]
-    private ?string $color = null;
-
-    #[ORM\Column(length: 10, options: ['default' => 'sale'])]
-    private string $sellingType = 'sale'; // 'sale' or 'rental'
+    #[ORM\Embedded(class: ProductCharacteristics::class, columnPrefix: false)]
+    private ProductCharacteristics $characteristics;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $reviewsCount = 0;
@@ -117,8 +93,10 @@ class Product
         $this->slug = $slug;
         $this->sku = $sku;
         $this->description = $description;
-        $this->priceCents = $priceCents;
-        $this->stock = $stock;
+        $this->pricing = new ProductPricing($priceCents);
+        $this->inventory = new ProductInventory($stock);
+        $this->publication = new ProductPublication();
+        $this->characteristics = new ProductCharacteristics();
         $this->category = $category;
 
         $now = new \DateTimeImmutable();
@@ -193,28 +171,24 @@ class Product
 
     public function getPriceCents(): int
     {
-        return $this->priceCents;
+        return $this->pricing->priceCents();
     }
 
     public function setPriceCents(int $priceCents): self
     {
-        $this->priceCents = $priceCents;
+        $this->pricing->changePrice($priceCents);
 
         return $this;
     }
 
     public function getSellingType(): string
     {
-        return $this->sellingType;
+        return $this->pricing->sellingType();
     }
 
     public function setSellingType(string $type): self
     {
-        $type = strtolower($type);
-        if (!in_array($type, ['sale', 'rental'], true)) {
-            throw new \InvalidArgumentException('Type de vente/location invalide.');
-        }
-        $this->sellingType = $type;
+        $this->pricing->changeSellingType($type);
 
         return $this;
     }
@@ -243,132 +217,120 @@ class Product
 
     public function getVariantGroup(): ?string
     {
-        return $this->variantGroup;
+        return $this->characteristics->variantGroup();
     }
 
     public function setVariantGroup(?string $variantGroup): self
     {
-        $normalized = null !== $variantGroup ? trim($variantGroup) : null;
-        $this->variantGroup = '' !== $normalized ? $normalized : null;
+        $this->characteristics->changeVariantGroup($variantGroup);
 
         return $this;
     }
 
     public function getVariantPosition(): int
     {
-        return $this->variantPosition;
+        return $this->characteristics->variantPosition();
     }
 
     public function setVariantPosition(int $variantPosition): self
     {
-        if ($variantPosition < 1) {
-            throw new \InvalidArgumentException('Position de variante invalide.');
-        }
-
-        $this->variantPosition = $variantPosition;
+        $this->characteristics->changeVariantPosition($variantPosition);
 
         return $this;
     }
 
     public function getReleaseYear(): ?int
     {
-        return $this->releaseYear;
+        return $this->characteristics->releaseYear();
     }
 
     public function setReleaseYear(?int $releaseYear): self
     {
-        if (null !== $releaseYear && ($releaseYear < 2000 || $releaseYear > 2100)) {
-            throw new \InvalidArgumentException('Année de modèle invalide.');
-        }
-
-        $this->releaseYear = $releaseYear;
+        $this->characteristics->changeReleaseYear($releaseYear);
 
         return $this;
     }
 
     public function getStorageCapacity(): ?string
     {
-        return $this->storageCapacity;
+        return $this->characteristics->storageCapacity();
     }
 
     public function setStorageCapacity(?string $storageCapacity): self
     {
-        $normalized = null !== $storageCapacity ? trim($storageCapacity) : null;
-        $this->storageCapacity = '' !== $normalized ? $normalized : null;
+        $this->characteristics->changeStorageCapacity($storageCapacity);
 
         return $this;
     }
 
     public function getMemoryRam(): ?string
     {
-        return $this->memoryRam;
+        return $this->characteristics->memoryRam();
     }
 
     public function setMemoryRam(?string $memoryRam): self
     {
-        $normalized = null !== $memoryRam ? trim($memoryRam) : null;
-        $this->memoryRam = '' !== $normalized ? $normalized : null;
+        $this->characteristics->changeMemoryRam($memoryRam);
 
         return $this;
     }
 
     public function getColor(): ?string
     {
-        return $this->color;
+        return $this->characteristics->color();
     }
 
     public function setColor(?string $color): self
     {
-        $normalized = null !== $color ? trim($color) : null;
-        $this->color = '' !== $normalized ? $normalized : null;
+        $this->characteristics->changeColor($color);
 
         return $this;
     }
 
     public function getStock(): int
     {
-        return $this->stock;
+        return $this->inventory->stock();
     }
 
     public function setStock(int $stock): self
     {
-        $this->stock = $stock;
+        $this->inventory->changeStock($stock);
 
         return $this;
     }
 
     public function getLowStockThreshold(): int
     {
-        return $this->lowStockThreshold;
+        return $this->inventory->lowStockThreshold();
     }
 
     public function setLowStockThreshold(int $lowStockThreshold): self
     {
-        $this->lowStockThreshold = max(0, $lowStockThreshold);
+        $this->inventory->changeLowStockThreshold($lowStockThreshold);
 
         return $this;
     }
 
     public function isPublished(): bool
     {
-        return $this->isPublished;
+        return $this->publication->isPublished();
     }
 
     public function setIsPublished(bool $isPublished): self
     {
-        $this->isPublished = $isPublished;
+        $this->publication->changePublished($isPublished);
 
         return $this;
     }
 
     public function isFeaturedHome(): bool
     {
-        return $this->isFeaturedHome;
+        return $this->publication->isFeaturedHome();
     }
 
     public function setIsFeaturedHome(bool $isFeaturedHome): self
     {
-        $this->isFeaturedHome = $isFeaturedHome;
+        $this->publication->changeFeaturedHome($isFeaturedHome);
 
         return $this;
     }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\AttachmentResponseFactory;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Port\QuotePdfRenderer;
-use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;

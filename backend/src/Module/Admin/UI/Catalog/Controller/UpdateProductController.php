@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Application\Catalog\Service\ProductFormRequestMapper;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Application\Service\ProductService;
+use App\Module\Catalog\Application\Workflow\ProductService;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

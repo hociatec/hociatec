@@ -22,12 +22,46 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
 
     public function findOneByStripeSessionId(string $stripeSessionId): ?OrderCheckoutSession
     {
-        return $this->findOneBy(['stripeSessionId' => $stripeSessionId]);
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.payment.stripeSessionId = :stripeSessionId')
+            ->setParameter('stripeSessionId', $stripeSessionId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findOneByStripePaymentIntentId(string $stripePaymentIntentId): ?OrderCheckoutSession
     {
-        return $this->findOneBy(['stripePaymentIntentId' => $stripePaymentIntentId]);
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.payment.stripePaymentIntentId = :stripePaymentIntentId')
+            ->setParameter('stripePaymentIntentId', $stripePaymentIntentId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneByOrderId(int $orderId): ?OrderCheckoutSession
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.lifecycle.orderId = :orderId')
+            ->setParameter('orderId', $orderId)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @return list<OrderCheckoutSession>
+     */
+    public function findRecentByOrderId(int $orderId, int $limit = 5): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.lifecycle.orderId = :orderId')
+            ->setParameter('orderId', $orderId)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
     }
 
     public function findOneByToken(string $token): ?OrderCheckoutSession
@@ -40,7 +74,7 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
         return $this->createQueryBuilder('s')
             ->andWhere('s.user = :user')
             ->andWhere('s.cartToken = :cartToken')
-            ->andWhere('s.status = :status')
+            ->andWhere('s.lifecycle.status = :status')
             ->setParameter('user', $user)
             ->setParameter('cartToken', $cartToken)
             ->setParameter('status', OrderCheckoutSession::STATUS_OPEN)
@@ -54,8 +88,8 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.user = :user')
-            ->andWhere('s.orderId = :orderId')
-            ->andWhere('s.status = :status')
+            ->andWhere('s.lifecycle.orderId = :orderId')
+            ->andWhere('s.lifecycle.status = :status')
             ->setParameter('user', $user)
             ->setParameter('orderId', $orderId)
             ->setParameter('status', OrderCheckoutSession::STATUS_OPEN)
@@ -71,8 +105,8 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
     public function getStatusCounts(): array
     {
         $rows = $this->createQueryBuilder('s')
-            ->select('s.status AS status', 'COUNT(s.id) AS total')
-            ->groupBy('s.status')
+            ->select('s.lifecycle.status AS status', 'COUNT(s.id) AS total')
+            ->groupBy('s.lifecycle.status')
             ->getQuery()
             ->getArrayResult();
 
@@ -97,8 +131,8 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
     {
         return (int) $this->createQueryBuilder('s')
             ->select('COUNT(s.id)')
-            ->andWhere('s.status = :status')
-            ->andWhere('s.orderId IS NULL')
+            ->andWhere('s.lifecycle.status = :status')
+            ->andWhere('s.lifecycle.orderId IS NULL')
             ->setParameter('status', OrderCheckoutSession::STATUS_PAID)
             ->getQuery()
             ->getSingleScalarResult();
@@ -126,7 +160,7 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
     {
         /** @var list<OrderCheckoutSession> $items */
         $items = $this->createQueryBuilder('s')
-            ->andWhere('s.status IN (:statuses) OR (s.status = :paidStatus AND s.orderId IS NULL)')
+            ->andWhere('s.lifecycle.status IN (:statuses) OR (s.lifecycle.status = :paidStatus AND s.lifecycle.orderId IS NULL)')
             ->setParameter('statuses', [
                 OrderCheckoutSession::STATUS_FAILED,
                 OrderCheckoutSession::STATUS_EXPIRED,
@@ -147,7 +181,7 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
     {
         /** @var list<OrderCheckoutSession> $items */
         $items = $this->createQueryBuilder('s')
-            ->andWhere('s.status = :status')
+            ->andWhere('s.lifecycle.status = :status')
             ->setParameter('status', OrderCheckoutSession::STATUS_OPEN)
             ->orderBy('s.createdAt', 'DESC')
             ->setMaxResults($limit)

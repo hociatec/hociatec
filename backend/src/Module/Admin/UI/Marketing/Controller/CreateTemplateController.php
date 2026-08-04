@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Marketing\Service\EmailTemplateWriter;
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Infrastructure\Http\EmailTemplateResponseFormatter;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

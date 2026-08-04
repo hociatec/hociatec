@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\Pagination;
-use App\Module\Notification\Application\Service\AccountNotificationProvider;
+use App\Module\Notification\Application\Provider\AccountNotificationProvider;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

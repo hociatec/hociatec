@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Application\Service\TrainingEnrollmentCheckoutService;
+use App\Module\Training\Application\Workflow\TrainingEnrollmentCheckoutService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ final class CreateTrainingEnrollmentController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $result = $this->checkout->enroll(
                 $this->currentUser(),
                 (int) ($payload['sessionId'] ?? 0),

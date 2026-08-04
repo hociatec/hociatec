@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
-use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
+use App\Module\Appointment\UI\Response\PublicAppointmentResponseMapper;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,22 +16,16 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimited('public_api')]
 class PublicWorkingDayController extends AbstractController
 {
-    public function __construct(private readonly WorkingDayConfigurationService $configurationService)
-    {
+    public function __construct(
+        private readonly WorkingDayConfigurationService $configurationService,
+        private readonly PublicAppointmentResponseMapper $responses,
+    ) {
     }
 
     public function __invoke(): JsonResponse
     {
         $configurations = $this->configurationService->list();
 
-        return ApiResponse::success([
-            'days' => array_map(static fn (WorkingDayConfiguration $configuration) => [
-                'dayOfWeek' => $configuration->getDayOfWeek(),
-                'isWorkingDay' => $configuration->isWorkingDay(),
-                'startTime' => $configuration->getStartTime()?->format('H:i'),
-                'endTime' => $configuration->getEndTime()?->format('H:i'),
-                'breaks' => $configuration->getBreaks(),
-            ], $configurations),
-        ]);
+        return ApiResponse::success($this->responses->workingDays($configurations));
     }
 }

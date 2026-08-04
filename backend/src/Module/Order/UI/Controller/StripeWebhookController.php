@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\CsrfExempt;
-use App\Module\Order\Application\Service\StripeWebhookService;
+use App\Module\Order\Application\Workflow\StripeWebhookService;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\CsrfExempt;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

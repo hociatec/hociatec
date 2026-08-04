@@ -10,9 +10,9 @@ use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
-use App\Module\Promotion\Application\Service\PromotionEngine;
+use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherEngine;
+use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 

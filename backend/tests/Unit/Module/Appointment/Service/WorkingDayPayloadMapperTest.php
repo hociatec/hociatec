@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Appointment\Service;
 
-use App\Module\Appointment\Application\Service\WorkingDayPayloadMapper;
+use App\Module\Appointment\Application\Mapper\WorkingDayPayloadMapper;
 use PHPUnit\Framework\TestCase;
 
 final class WorkingDayPayloadMapperTest extends TestCase

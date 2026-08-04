@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Audit\Application\DTO\CreateAuditRequestDto;
-use App\Module\Audit\Application\Service\AuditEventLogger;
-use App\Module\Audit\Application\Service\CreateAuditRequestService;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
+use App\Module\Audit\Application\Workflow\CreateAuditRequestService;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +32,7 @@ class CreateAuditController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $dto = new CreateAuditRequestDto();
         $dto->type = (string) ($payload['type'] ?? '');
         $dto->url = trim((string) ($payload['url'] ?? ''));

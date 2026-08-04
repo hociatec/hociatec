@@ -39,18 +39,18 @@ use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportActivity;
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Application\Service\BetaAttachmentStorage;
-use App\Module\BetaTest\Application\Service\BugReportActivityLogger;
+use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
+use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -119,7 +119,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
 
         $listTesters = new ListBetaTestersController($this->profiles($em));
         self::assertSame(200, $listTesters(Request::create('/?search=reporter&status=accepted&accessibility=none'))->getStatusCode());
-        $testersExport = (new ExportBetaTestersController($this->profiles($em), new \App\Infrastructure\Http\AttachmentResponseFactory()))();
+        $testersExport = (new ExportBetaTestersController($this->profiles($em), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory()))();
         self::assertSame(200, $testersExport->getStatusCode());
         self::assertStringContainsString('beta-testeurs.csv', (string) $testersExport->headers->get('Content-Disposition'));
 
@@ -138,7 +138,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $reports = $this->reports($em);
         self::assertSame(200, (new BugReportDashboardController($reports, $this->campaigns($em), $this->users($em)))()->getStatusCode());
         self::assertSame(200, (new ListBugReportsController($reports, $formatter))(Request::create('/?status=submitted&severity=high&search=bug&campaignId='.$campaign->getId().'&assignedTo='.$admin->getId()))->getStatusCode());
-        $export = (new ExportBugReportsController($reports, new \App\Infrastructure\Http\AttachmentResponseFactory()))(Request::create('/?status=submitted'));
+        $export = (new ExportBugReportsController($reports, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory()))(Request::create('/?status=submitted'));
         self::assertInstanceOf(StreamedResponse::class, $export);
         self::assertSame(200, $export->getStatusCode());
         ob_start();

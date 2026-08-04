@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Quote\Service;
 
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use PHPUnit\Framework\TestCase;
 
 final class QuoteCalculatorTest extends TestCase

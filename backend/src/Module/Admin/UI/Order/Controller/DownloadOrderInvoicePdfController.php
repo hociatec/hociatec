@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Order\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\AttachmentResponseFactory;
-use App\Module\Order\Application\Service\InvoiceDownloadNameBuilder;
-use App\Module\Order\Application\Service\OrderInvoiceDocumentService;
+use App\Module\Order\Application\Factory\InvoiceDownloadNameBuilder;
+use App\Module\Order\Application\Workflow\OrderInvoiceDocumentService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth\Controller;
 
 use App\Module\Auth\UI\Controller\ProfileController;
+use App\Module\Auth\UI\Response\AuthProfileResponseMapper;
+use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
@@ -19,7 +21,7 @@ final class ProfileControllerTest extends TestCase
         $repository->expects(self::never())->method('findDefaultForUser');
         $repository->expects(self::never())->method('findFirstForUser');
 
-        $controller = new class($repository) extends ProfileController {
+        $controller = new class(new AuthProfileResponseMapper(new UserProfileFormatter($repository))) extends ProfileController {
             protected function getUser(): ?UserInterface
             {
                 return null;
@@ -61,10 +63,10 @@ final class ProfileControllerTest extends TestCase
             ->with($user)
             ->willReturn($address);
 
-        $controller = new class($repository, $user) extends ProfileController {
-            public function __construct(ShippingAddressRepository $addresses, private readonly User $user)
+        $controller = new class(new AuthProfileResponseMapper(new UserProfileFormatter($repository)), $user) extends ProfileController {
+            public function __construct(AuthProfileResponseMapper $profiles, private readonly User $user)
             {
-                parent::__construct($addresses);
+                parent::__construct($profiles);
             }
 
             protected function getUser(): ?UserInterface

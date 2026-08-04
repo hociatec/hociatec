@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Handler;
 
-use App\Module\Catalog\Application\Service\ProductCatalogRules;
-use App\Module\Catalog\Application\Service\ProductDiscountApplicator;
-use App\Module\Catalog\Application\Service\ProductGalleryUpdater;
-use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
-use App\Module\Catalog\Application\Service\ProductVariantService;
+use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
+use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Module\Catalog\Application\Writer\ProductAttributeWriter;
+use App\Module\Catalog\Application\Writer\ProductDiscountApplicator;
+use App\Module\Catalog\Application\Writer\ProductGalleryUpdater;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\Pagination;
-use App\Infrastructure\Http\RateLimited;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

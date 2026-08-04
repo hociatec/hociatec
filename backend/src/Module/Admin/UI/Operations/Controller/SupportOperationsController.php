@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Operations\DTO\SupportCreateInput;
 use App\Module\Admin\Application\Operations\DTO\SupportReplyInput;
 use App\Module\Admin\Application\Operations\DTO\SupportUpdateInput;
@@ -15,6 +12,9 @@ use App\Module\Admin\Application\Operations\Service\SupportOperationsService;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,7 +39,7 @@ final readonly class SupportOperationsController
     public function create(Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportCreateInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, SupportCreateInput::class);
             $this->validator->validate($input);
             $item = $this->support->create(new SupportCreateData($input->customerId, $input->subject, $input->reason, $input->message, $input->internalNotes, $input->orderId));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -55,7 +55,7 @@ final readonly class SupportOperationsController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportUpdateInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, SupportUpdateInput::class);
             $this->validator->validate($input);
             $item = $this->support->update($id, new SupportUpdateData($input->status, $input->internalNotes, $input->subject));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -71,7 +71,7 @@ final readonly class SupportOperationsController
     public function reply(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportReplyInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, SupportReplyInput::class);
             $this->validator->validate($input);
             $item = $this->support->reply($id, new SupportReplyData($input->message, $input->subject, $input->status));
         } catch (OperationsResourceNotFoundException $exception) {

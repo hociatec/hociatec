@@ -14,10 +14,11 @@ use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Service\PrestationPersistence;
-use App\Module\Appointment\Application\Service\PrestationService;
-use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistence;
-use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
+use App\Module\Appointment\Application\Persistence\PrestationPersistence;
+use App\Module\Appointment\Application\Workflow\PrestationService;
+use App\Module\Appointment\Application\Persistence\WorkingDayConfigurationPersistence;
+use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
+use App\Module\Appointment\UI\Response\PublicAppointmentResponseMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,7 +62,7 @@ final class AppointmentControllerBatchTest extends TestCase
         $listPayload = json_decode((string) (new ListPrestationController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(1500, $listPayload['data']['items'][0]['priceCents']);
 
-        $publicPayload = json_decode((string) (new PublicPrestationController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $publicPayload = json_decode((string) (new PublicPrestationController($service, new PublicAppointmentResponseMapper()))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(45, $publicPayload['data']['items'][0]['durationMinutes']);
     }
 
@@ -89,7 +90,7 @@ final class AppointmentControllerBatchTest extends TestCase
         $adminPayload = json_decode((string) (new GetConfigurationController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Lundi', $adminPayload['data']['days'][0]['dayLabel']);
 
-        $publicPayload = json_decode((string) (new PublicWorkingDayController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $publicPayload = json_decode((string) (new PublicWorkingDayController($service, new PublicAppointmentResponseMapper()))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('09:00', $publicPayload['data']['days'][0]['startTime']);
 
         self::assertSame([$monday], $service->list());

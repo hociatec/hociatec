@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Factory;
 
+use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
-use App\Module\Catalog\Application\Service\ProductCatalogRules;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class ProductVariantFactory

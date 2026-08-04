@@ -8,7 +8,7 @@ use App\Module\Appointment\Application\DTO\CreateAppointmentInput;
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Application\DTO\WorkingDayData;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
-use App\Module\BetaTest\Application\Service\BetaProfileChoices;
+use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;

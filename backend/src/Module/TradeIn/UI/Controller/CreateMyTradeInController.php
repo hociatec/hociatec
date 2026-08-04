@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
-use App\Module\TradeIn\Application\Service\TradeInService;
+use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,7 +32,7 @@ final class CreateMyTradeInController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $payload = $request->request->all();
-        $input = TradeInInput::fromArray([] !== $payload ? $payload : \App\Infrastructure\Http\JsonRequestInput::payload($request))->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
+        $input = TradeInInput::fromArray([] !== $payload ? $payload : \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request))->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
         $rib = $request->files->get('rib');
         if (!$rib instanceof UploadedFile) {
             return ApiResponse::error('Le RIB du demandeur doit être fourni au format PDF.', Response::HTTP_UNPROCESSABLE_ENTITY);

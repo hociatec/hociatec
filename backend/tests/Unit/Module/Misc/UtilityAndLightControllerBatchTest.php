@@ -6,11 +6,11 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Admin\Application\Dashboard\Provider\DashboardCustomersProvider;
 use App\Module\BetaTest\UI\Controller\GetBetaProfileOptionsController;
-use App\Module\Marketing\Application\Service\MarketingTemplateRenderer;
-use App\Module\User\Application\Service\VerificationTokenHasher;
-use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
+use App\Module\User\Application\Workflow\VerificationTokenHasher;
+use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validation;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\Admin\Application\Operations\Service\AdminOperationsExporter;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;

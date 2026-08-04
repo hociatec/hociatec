@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
-use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +30,7 @@ class SaveTrainingCategoryController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $name = trim((string) ($payload['name'] ?? ''));
         if ('' === $name) {
             return ApiResponse::error('Le nom est requis.', Response::HTTP_BAD_REQUEST);

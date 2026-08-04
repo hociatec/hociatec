@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\User\Domain\Entity;
 
-use App\Domain\Normalization\EmailNormalizer;
 use App\Module\User\Domain\Security\SecurityUserIdentity;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -19,64 +18,17 @@ class User implements SecurityUserIdentity
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
-    private string $email;
+    #[ORM\Embedded(class: UserIdentity::class, columnPrefix: false)]
+    private UserIdentity $identity;
 
-    /** @var list<string> */
-    #[ORM\Column(type: 'json')]
-    private array $roles = [];
+    #[ORM\Embedded(class: AccountSecurity::class, columnPrefix: false)]
+    private AccountSecurity $security;
 
-    #[ORM\Column]
-    private string $password;
+    #[ORM\Embedded(class: UserAdministrationState::class, columnPrefix: false)]
+    private UserAdministrationState $administration;
 
-    #[ORM\Column(length: 50)]
-    private string $firstName;
-
-    #[ORM\Column(length: 50)]
-    private string $lastName;
-
-    // Address fields removed; managed via ShippingAddress entity
-
-    #[ORM\Column(type: 'date_immutable')]
-    private \DateTimeImmutable $birthDate;
-
-    #[ORM\Column(length: 20)]
-    private string $phoneNumber;
-
-    #[ORM\Column(length: 10)]
-    private string $gender;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $isVerified = false;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $adminNotes = null;
-
-    /** @var list<string> */
-    #[ORM\Column(type: 'json')]
-    private array $adminTags = [];
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $loyaltyPointsBalance = 0;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $accountNotificationsSeenSignature = null;
-
-    /** @var list<string> */
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $communicationPreferences = null;
-
-    #[ORM\Column(length: 100, nullable: true, unique: true)]
-    private ?string $verificationToken = null;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $verificationTokenExpiresAt = null;
-
-    #[ORM\Column(length: 100, nullable: true, unique: true)]
-    private ?string $passwordResetToken = null;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $passwordResetTokenExpiresAt = null;
+    #[ORM\Embedded(class: UserCommunicationState::class, columnPrefix: false)]
+    private UserCommunicationState $communication;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -92,13 +44,10 @@ class User implements SecurityUserIdentity
         string $phoneNumber,
         string $gender,
     ) {
-        $this->email = EmailNormalizer::normalize($email);
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->birthDate = $birthDate;
-        $this->phoneNumber = $phoneNumber;
-        $this->gender = $gender;
-        $this->roles = ['ROLE_USER'];
+        $this->identity = new UserIdentity($email, $firstName, $lastName, $birthDate, $phoneNumber, $gender);
+        $this->security = new AccountSecurity();
+        $this->administration = new UserAdministrationState();
+        $this->communication = new UserCommunicationState();
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -111,24 +60,21 @@ class User implements SecurityUserIdentity
 
     public function getEmail(): string
     {
-        return $this->email;
+        return $this->identity->email();
     }
 
     public function getUserIdentifier(): string
     {
-        if ('' === $this->email) {
+        if ('' === $this->identity->email()) {
             throw new \LogicException('A persisted user must have an email address.');
         }
 
-        return $this->email;
+        return $this->identity->email();
     }
 
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
-
-        return array_values(array_unique($roles));
+        return $this->security->roles();
     }
 
     public function hasRole(string $role): bool
@@ -144,19 +90,19 @@ class User implements SecurityUserIdentity
     /** @param list<string> $roles */
     public function setRoles(array $roles): self
     {
-        $this->roles = $roles;
+        $this->security->changeRoles($roles);
 
         return $this;
     }
 
     public function getPassword(): string
     {
-        return $this->password;
+        return $this->security->password();
     }
 
     public function setPassword(string $hashedPassword): self
     {
-        $this->password = $hashedPassword;
+        $this->security->changePassword($hashedPassword);
 
         return $this;
     }
@@ -167,31 +113,31 @@ class User implements SecurityUserIdentity
 
     public function getFirstName(): string
     {
-        return $this->firstName;
+        return $this->identity->firstName();
     }
 
     public function setFirstName(string $firstName): self
     {
-        $this->firstName = $firstName;
+        $this->identity->changeFirstName($firstName);
 
         return $this;
     }
 
     public function getLastName(): string
     {
-        return $this->lastName;
+        return $this->identity->lastName();
     }
 
     public function setLastName(string $lastName): self
     {
-        $this->lastName = $lastName;
+        $this->identity->changeLastName($lastName);
 
         return $this;
     }
 
     public function setEmail(string $email): self
     {
-        $this->email = EmailNormalizer::normalize($email);
+        $this->identity->changeEmail($email);
 
         return $this;
     }
@@ -200,60 +146,60 @@ class User implements SecurityUserIdentity
 
     public function getBirthDate(): \DateTimeImmutable
     {
-        return $this->birthDate;
+        return $this->identity->birthDate();
     }
 
     public function setBirthDate(\DateTimeImmutable $birthDate): self
     {
-        $this->birthDate = $birthDate;
+        $this->identity->changeBirthDate($birthDate);
 
         return $this;
     }
 
     public function getPhoneNumber(): string
     {
-        return $this->phoneNumber;
+        return $this->identity->phoneNumber();
     }
 
     public function setPhoneNumber(string $phoneNumber): self
     {
-        $this->phoneNumber = $phoneNumber;
+        $this->identity->changePhoneNumber($phoneNumber);
 
         return $this;
     }
 
     public function getGender(): string
     {
-        return $this->gender;
+        return $this->identity->gender();
     }
 
     public function setGender(string $gender): self
     {
-        $this->gender = $gender;
+        $this->identity->changeGender($gender);
 
         return $this;
     }
 
     public function isVerified(): bool
     {
-        return $this->isVerified;
+        return $this->security->isVerified();
     }
 
     public function setIsVerified(bool $isVerified): self
     {
-        $this->isVerified = $isVerified;
+        $this->security->changeVerified($isVerified);
 
         return $this;
     }
 
     public function getAdminNotes(): ?string
     {
-        return $this->adminNotes;
+        return $this->administration->adminNotes();
     }
 
     public function setAdminNotes(?string $adminNotes): self
     {
-        $this->adminNotes = null !== $adminNotes ? trim($adminNotes) : null;
+        $this->administration->changeAdminNotes($adminNotes);
 
         return $this;
     }
@@ -263,10 +209,7 @@ class User implements SecurityUserIdentity
      */
     public function getAdminTags(): array
     {
-        return array_values(array_filter(
-            array_map(static fn (mixed $tag): string => trim((string) $tag), $this->adminTags),
-            static fn (string $tag): bool => '' !== $tag,
-        ));
+        return $this->administration->adminTags();
     }
 
     /**
@@ -274,49 +217,38 @@ class User implements SecurityUserIdentity
      */
     public function setAdminTags(array $adminTags): self
     {
-        $normalized = [];
-        foreach ($adminTags as $tag) {
-            $value = trim((string) $tag);
-            if ('' === $value) {
-                continue;
-            }
-
-            $normalized[] = $value;
-        }
-
-        $this->adminTags = array_values(array_unique($normalized));
+        $this->administration->changeAdminTags($adminTags);
 
         return $this;
     }
 
     public function getLoyaltyPointsBalance(): int
     {
-        return $this->loyaltyPointsBalance;
+        return $this->administration->loyaltyPointsBalance();
     }
 
     public function setLoyaltyPointsBalance(int $loyaltyPointsBalance): self
     {
-        $this->loyaltyPointsBalance = max(0, $loyaltyPointsBalance);
+        $this->administration->changeLoyaltyPointsBalance($loyaltyPointsBalance);
 
         return $this;
     }
 
     public function addLoyaltyPoints(int $points): self
     {
-        $this->loyaltyPointsBalance = max(0, $this->loyaltyPointsBalance + $points);
+        $this->administration->addLoyaltyPoints($points);
 
         return $this;
     }
 
     public function getAccountNotificationsSeenSignature(): ?string
     {
-        return $this->accountNotificationsSeenSignature;
+        return $this->communication->accountNotificationsSeenSignature();
     }
 
     public function setAccountNotificationsSeenSignature(?string $signature): self
     {
-        $signature = null !== $signature ? trim($signature) : null;
-        $this->accountNotificationsSeenSignature = '' !== $signature ? $signature : null;
+        $this->communication->changeAccountNotificationsSeenSignature($signature);
 
         return $this;
     }
@@ -326,14 +258,7 @@ class User implements SecurityUserIdentity
      */
     public function getCommunicationPreferences(): array
     {
-        $preferences = is_array($this->communicationPreferences)
-            ? $this->communicationPreferences
-            : ['notification', 'email'];
-
-        return array_values(array_unique(array_filter(
-            $preferences,
-            static fn (string $preference): bool => in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
-        )));
+        return $this->communication->communicationPreferences();
     }
 
     /**
@@ -341,63 +266,60 @@ class User implements SecurityUserIdentity
      */
     public function setCommunicationPreferences(array $preferences): self
     {
-        $this->communicationPreferences = array_values(array_unique(array_filter(
-            $preferences,
-            static fn (string $preference): bool => in_array($preference, ['notification', 'email', 'news_email', 'phone'], true),
-        )));
+        $this->communication->changeCommunicationPreferences($preferences);
 
         return $this;
     }
 
     public function getVerificationToken(): ?string
     {
-        return $this->verificationToken;
+        return $this->security->verificationToken();
     }
 
     public function setVerificationToken(?string $verificationToken): self
     {
-        $this->verificationToken = $verificationToken;
+        $this->security->changeVerificationToken($verificationToken);
 
         return $this;
     }
 
     public function getVerificationTokenExpiresAt(): ?\DateTimeImmutable
     {
-        return $this->verificationTokenExpiresAt;
+        return $this->security->verificationTokenExpiresAt();
     }
 
     public function setVerificationTokenExpiresAt(?\DateTimeImmutable $expiresAt): self
     {
-        $this->verificationTokenExpiresAt = $expiresAt;
+        $this->security->changeVerificationTokenExpiresAt($expiresAt);
 
         return $this;
     }
 
     public function getFullName(): string
     {
-        return sprintf('%s %s', $this->firstName, $this->lastName);
+        return $this->identity->fullName();
     }
 
     public function getPasswordResetToken(): ?string
     {
-        return $this->passwordResetToken;
+        return $this->security->passwordResetToken();
     }
 
     public function setPasswordResetToken(?string $passwordResetToken): self
     {
-        $this->passwordResetToken = $passwordResetToken;
+        $this->security->changePasswordResetToken($passwordResetToken);
 
         return $this;
     }
 
     public function getPasswordResetTokenExpiresAt(): ?\DateTimeImmutable
     {
-        return $this->passwordResetTokenExpiresAt;
+        return $this->security->passwordResetTokenExpiresAt();
     }
 
     public function setPasswordResetTokenExpiresAt(?\DateTimeImmutable $passwordResetTokenExpiresAt): self
     {
-        $this->passwordResetTokenExpiresAt = $passwordResetTokenExpiresAt;
+        $this->security->changePasswordResetTokenExpiresAt($passwordResetTokenExpiresAt);
 
         return $this;
     }

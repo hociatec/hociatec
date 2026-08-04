@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Backup\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Backup\Service\BackupStatusProvider;
 use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
 use App\Module\Admin\Application\Backup\Service\RunBackupHandler;
 use App\Module\Admin\Application\Backup\Service\UpdateBackupSettingsHandler;
 use App\Module\Admin\Application\DTO\BackupSettingsInput;
 use App\Module\Admin\Application\DTO\MaintenanceInput;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,7 +41,7 @@ final class AdminBackupController
     public function settings(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = BackupSettingsInput::fromArray($payload);
             $this->validator->validate($input);
 
@@ -67,7 +67,7 @@ final class AdminBackupController
     public function maintenance(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = MaintenanceInput::fromArray($payload);
             $this->validator->validate($input);
 

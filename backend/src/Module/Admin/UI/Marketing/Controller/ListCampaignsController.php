@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\Pagination;
 use App\Module\Marketing\Infrastructure\Http\EmailCampaignResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

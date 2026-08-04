@@ -13,16 +13,16 @@ final readonly class MarketingRequestMapper
 {
     public function template(Request $request): MarketingTemplateInput
     {
-        return \App\Infrastructure\Http\JsonRequestInput::decode($request, MarketingTemplateInput::class);
+        return \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, MarketingTemplateInput::class);
     }
 
     public function audience(Request $request): MarketingAudienceInput
     {
-        return \App\Infrastructure\Http\JsonRequestInput::decode($request, MarketingAudienceInput::class);
+        return \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, MarketingAudienceInput::class);
     }
 
     public function campaign(Request $request): MarketingCampaignInput
     {
-        return \App\Infrastructure\Http\JsonRequestInput::decode($request, MarketingCampaignInput::class);
+        return \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, MarketingCampaignInput::class);
     }
 }

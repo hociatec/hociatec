@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Quote\DTO\QuoteProductItemInput;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,7 +40,7 @@ class AddProductItemController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $input = QuoteProductItemInput::fromArray($payload);
         $this->validator->validate($input);
         $product = $this->productRepository->find($input->productId);

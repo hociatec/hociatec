@@ -9,20 +9,20 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
-use App\Module\Favorite\Application\Service\FavoriteService;
+use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Application\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\UI\Controller\Address\DeleteAddressController;
 use App\Module\User\UI\Controller\Address\ListMyAddressesController;
 use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
-use App\Infrastructure\Http\CsrfTokenController;
-use App\Infrastructure\Http\CsrfTokenService;
+use App\Shared\Infrastructure\Http\CsrfTokenController;
+use App\Shared\Infrastructure\Http\CsrfTokenService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -76,12 +76,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $deleteRepo = $this->createMock(ShippingAddressRepository::class);
         $deleteRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
         $deleteRepo->expects(self::once())->method('delete')->with($address);
-        $deleteWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
+        $deleteWriter = new \App\Module\User\Application\Writer\ShippingAddressWriter(
             $deleteRepo,
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $deleteController = new class($deleteRepo, $deleteWriter, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());
@@ -90,12 +90,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $defaultRepo = $this->createMock(ShippingAddressRepository::class);
         $defaultRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
         $defaultRepo->expects(self::once())->method('setDefault')->with($user, $address);
-        $defaultWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
+        $defaultWriter = new \App\Module\User\Application\Writer\ShippingAddressWriter(
             $defaultRepo,
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $defaultController = new class($defaultRepo, $defaultWriter, $user) extends SetDefaultAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $defaultController(7)->getStatusCode());

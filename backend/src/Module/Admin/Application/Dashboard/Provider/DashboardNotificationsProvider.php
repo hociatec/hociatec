@@ -7,9 +7,9 @@ namespace App\Module\Admin\Application\Dashboard\Provider;
 use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Domain\Entity\Quote;
 
 final readonly class DashboardNotificationsProvider

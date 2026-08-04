@@ -22,7 +22,7 @@ use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
-use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Promotion\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Promotion\Application\Service\DeletePromotionHandler;
+use App\Module\Promotion\Application\Handler\DeletePromotionHandler;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

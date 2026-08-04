@@ -23,7 +23,7 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
         $qb = $this->entityManager->createQueryBuilder()
             ->select('DISTINCT u')
             ->from(User::class, 'u')
-            ->andWhere('u.isVerified = :verified')
+            ->andWhere('u.security.isVerified = :verified')
             ->setParameter('verified', true)
             ->orderBy('u.createdAt', 'DESC');
 

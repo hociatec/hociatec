@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Auth\Infrastructure\Security\UserChecker;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
-use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
+use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
 use App\Module\User\Domain\Entity\ShippingAddress;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Module\Loyalty\Application\Service\LoyaltyService;
+use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +41,7 @@ final class MyLoyaltyController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $points = (int) ($payload['points'] ?? 0);
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {

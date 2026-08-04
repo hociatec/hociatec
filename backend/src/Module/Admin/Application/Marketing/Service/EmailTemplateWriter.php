@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Marketing\Service;
 
 use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
-use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
+use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 

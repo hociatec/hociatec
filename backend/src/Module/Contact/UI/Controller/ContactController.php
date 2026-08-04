@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Contact\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Contact\Application\DTO\ContactInput;
-use App\Module\Contact\Application\Service\ContactSubmissionService;
+use App\Module\Contact\Application\Workflow\ContactSubmissionService;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +27,7 @@ final class ContactController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = ContactInput::fromArray($payload);
         $this->dtoValidator->validate($input);
 

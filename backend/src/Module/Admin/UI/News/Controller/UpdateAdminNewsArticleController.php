@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\News\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\News\Application\Projection\NewsFormatter;
-use App\Module\News\Application\Service\NewsArticleWriter;
+use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -32,7 +32,7 @@ final readonly class UpdateAdminNewsArticleController
         }
 
         try {
-            $article = $this->writer->update($article, \App\Infrastructure\Http\JsonRequestInput::decode($request, NewsArticleInput::class));
+            $article = $this->writer->update($article, \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, NewsArticleInput::class));
         } catch (InvalidJsonPayloadException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         } catch (NewsOperationException $exception) {

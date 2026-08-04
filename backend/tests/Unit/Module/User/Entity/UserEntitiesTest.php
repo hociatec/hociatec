@@ -106,8 +106,11 @@ final class UserEntitiesTest extends TestCase
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
         $reflection = new \ReflectionObject($user);
-        $email = $reflection->getProperty('email');
-        $email->setValue($user, '');
+        $identity = $reflection->getProperty('identity')->getValue($user);
+        self::assertIsObject($identity);
+
+        $email = new \ReflectionProperty($identity, 'email');
+        $email->setValue($identity, '');
 
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('A persisted user must have an email address.');

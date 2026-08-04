@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\CsrfExempt;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Projection\UserProfileFormatter;
-use App\Module\User\Application\Service\RegisterUserService;
-use App\Module\User\Application\Service\RegistrationRateLimiter;
+use App\Module\User\Application\Workflow\RegisterUserService;
+use App\Module\User\Application\Workflow\RegistrationRateLimiter;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\CsrfExempt;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,7 +35,7 @@ class RegisterController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $email = is_string($payload['email'] ?? null) ? $payload['email'] : null;
         if (!$this->rateLimiter->isAccepted($request, $email)) {
             return ApiResponse::error(

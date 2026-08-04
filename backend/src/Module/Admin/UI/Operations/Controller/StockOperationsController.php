@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Operations\DTO\StockMovementInput;
 use App\Module\Admin\Application\Operations\DTO\UpdateLowStockThresholdInput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Service\StockOperationsService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,7 +39,7 @@ final class StockOperationsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = StockMovementInput::fromArray($payload);
             $this->validator->validate($input);
             $item = $this->stock->create(
@@ -64,7 +64,7 @@ final class StockOperationsController extends AbstractController
     public function updateThreshold(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, UpdateLowStockThresholdInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, UpdateLowStockThresholdInput::class);
             $this->validator->validate($input);
             $product = $this->stock->updateThreshold($id, $input->threshold);
         } catch (OperationsResourceNotFoundException $exception) {

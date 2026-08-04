@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
-use App\Module\Catalog\Application\Service\GroupedLowStockCounter;
+use App\Module\Catalog\Application\Workflow\GroupedLowStockCounter;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Domain\Entity\RefundRequest;

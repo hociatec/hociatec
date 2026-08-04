@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
-use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
+use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +33,7 @@ final class UpdateMyBetaProfileController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
         $profile = $this->profiles->findOneByUser($user);
-        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, BetaProfileInput::class);
+        $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, BetaProfileInput::class);
         $this->validator->validate($input);
         $this->profileService->save($user, $profile, $input);
 

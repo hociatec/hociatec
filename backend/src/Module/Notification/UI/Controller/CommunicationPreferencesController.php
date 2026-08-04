@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Notification\Application\Service\CommunicationPreferences;
-use App\Module\Notification\Application\Service\CommunicationPreferenceUpdater;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
+use App\Module\Notification\Application\Writer\CommunicationPreferenceUpdater;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +32,7 @@ final class CommunicationPreferencesController extends AbstractController
     #[Route('', name: 'api_auth_communication_preferences_update', methods: ['PUT'])]
     public function update(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $user = $this->currentUser();
 
         try {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Promotion\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
-use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +37,7 @@ final class UpdatePromotionController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

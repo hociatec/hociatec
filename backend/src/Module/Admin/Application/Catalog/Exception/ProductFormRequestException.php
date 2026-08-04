@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Catalog\Exception;
 
-use App\Infrastructure\Http\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemException;
 
 final class ProductFormRequestException extends \RuntimeException implements ApiProblemException
 {

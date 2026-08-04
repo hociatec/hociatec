@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
-use App\Module\TradeIn\Application\Service\TradeInClosureService;
+use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ final class CloseTradeInController extends AbstractController
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, TradeInClosureInput::class);
+        $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, TradeInClosureInput::class);
         $this->validator->validate($input, message: 'Les informations de clôture sont invalides.');
         try {
             $this->closure->close($tradeIn, $input);

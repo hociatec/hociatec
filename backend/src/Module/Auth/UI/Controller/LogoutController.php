@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Auth\Application\Service\RefreshTokenService;
+use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

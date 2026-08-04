@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\Pagination;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

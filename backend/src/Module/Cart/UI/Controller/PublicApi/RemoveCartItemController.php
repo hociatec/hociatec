@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
 use App\Module\Cart\Application\Projection\CartFormatter;
-use App\Module\Cart\Application\Service\CartService;
+use App\Module\Cart\Application\Workflow\CartService;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

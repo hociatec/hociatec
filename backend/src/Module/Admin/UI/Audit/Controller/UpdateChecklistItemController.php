@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Audit\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Audit\DTO\ChecklistItemInput;
-use App\Module\Audit\Application\Service\AuditEventLogger;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,7 +43,7 @@ class UpdateChecklistItemController extends AbstractController
             return ApiResponse::error('Association invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = ChecklistItemInput::fromArray($payload);
         $this->validator->validate($input);
         $isCompliant = $input->isCompliant;

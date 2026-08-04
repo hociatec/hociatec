@@ -28,29 +28,29 @@ trait ProductCatalogFilterQueries
 
         if (null !== $sellingType && in_array($sellingType, ['sale', 'rental'], true)) {
             $qb
-                ->andWhere('p.sellingType = :stype')
+                ->andWhere('p.pricing.sellingType = :stype')
                 ->setParameter('stype', $sellingType);
         }
 
         $this->applyExactLowerFilter($qb, 'b.name', 'brand', $brand);
-        $this->applyExactLowerFilter($qb, 'p.storageCapacity', 'storageCapacity', $storageCapacity);
-        $this->applyExactLowerFilter($qb, 'p.memoryRam', 'memoryRam', $memoryRam);
-        $this->applyExactLowerFilter($qb, 'p.color', 'color', $color);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.storageCapacity', 'storageCapacity', $storageCapacity);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.memoryRam', 'memoryRam', $memoryRam);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.color', 'color', $color);
 
         if (null !== $minPriceCents && $minPriceCents >= 0) {
             $qb
-                ->andWhere('p.priceCents >= :minPriceCents')
+                ->andWhere('p.pricing.priceCents >= :minPriceCents')
                 ->setParameter('minPriceCents', $minPriceCents);
         }
 
         if (null !== $maxPriceCents && $maxPriceCents >= 0) {
             $qb
-                ->andWhere('p.priceCents <= :maxPriceCents')
+                ->andWhere('p.pricing.priceCents <= :maxPriceCents')
                 ->setParameter('maxPriceCents', $maxPriceCents);
         }
 
         if (true === $inStockOnly) {
-            $qb->andWhere('p.stock > 0');
+            $qb->andWhere('p.inventory.stock > 0');
         }
     }
 
@@ -94,13 +94,13 @@ trait ProductCatalogFilterQueries
             'relevance' => null !== $search && '' !== trim($search)
                 ? $qb->orderBy('relevanceScore', 'DESC')->addOrderBy('p.name', 'ASC')
                 : $qb->orderBy('p.name', 'ASC'),
-            'price_asc' => $qb->orderBy('p.priceCents', 'ASC')->addOrderBy('p.name', 'ASC'),
-            'price_desc' => $qb->orderBy('p.priceCents', 'DESC')->addOrderBy('p.name', 'ASC'),
-            'release_year_desc' => $qb->orderBy('p.releaseYear', 'DESC')->addOrderBy('p.name', 'ASC'),
-            'release_year_asc' => $qb->orderBy('p.releaseYear', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'price_asc' => $qb->orderBy('p.pricing.priceCents', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'price_desc' => $qb->orderBy('p.pricing.priceCents', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'release_year_desc' => $qb->orderBy('p.characteristics.releaseYear', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'release_year_asc' => $qb->orderBy('p.characteristics.releaseYear', 'ASC')->addOrderBy('p.name', 'ASC'),
             'name_desc' => $qb->orderBy('p.name', 'DESC'),
-            'stock_desc' => $qb->orderBy('p.stock', 'DESC')->addOrderBy('p.name', 'ASC'),
-            'stock_asc' => $qb->orderBy('p.stock', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'stock_desc' => $qb->orderBy('p.inventory.stock', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'stock_asc' => $qb->orderBy('p.inventory.stock', 'ASC')->addOrderBy('p.name', 'ASC'),
             'created_desc' => $qb->orderBy('p.createdAt', 'DESC')->addOrderBy('p.name', 'ASC'),
             default => $qb->orderBy('p.name', 'ASC'),
         };

@@ -125,9 +125,9 @@ trait ProductPublicQueries
         return [
             'brands' => $this->collectFacetCounts(clone $base, 'b.name', 'brandName'),
             'categories' => $this->collectFacetCounts(clone $base, 'c.name', 'categoryName', 'c.slug'),
-            'storageCapacities' => $this->collectFacetCounts(clone $base, 'p.storageCapacity', 'storageCapacity'),
-            'memoryRams' => $this->collectFacetCounts(clone $base, 'p.memoryRam', 'memoryRam'),
-            'colors' => $this->collectFacetCounts(clone $base, 'p.color', 'color'),
+            'storageCapacities' => $this->collectFacetCounts(clone $base, 'p.characteristics.storageCapacity', 'storageCapacity'),
+            'memoryRams' => $this->collectFacetCounts(clone $base, 'p.characteristics.memoryRam', 'memoryRam'),
+            'colors' => $this->collectFacetCounts(clone $base, 'p.characteristics.color', 'color'),
             'price' => $this->collectPriceBounds(clone $base),
         ];
     }
@@ -139,7 +139,7 @@ trait ProductPublicQueries
             ->join('p.category', 'c')
             ->leftJoin('p.brandReference', 'b')
             ->andWhere('p.slug = :slug')
-            ->andWhere('p.isPublished = :published')
+            ->andWhere('p.publication.isPublished = :published')
             ->andWhere('c.isVisible = :visible')
             ->setParameter('slug', $slug)
             ->setParameter('published', true)

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Appointment\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
+use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

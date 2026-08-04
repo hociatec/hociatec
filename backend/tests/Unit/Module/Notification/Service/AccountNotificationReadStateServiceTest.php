@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Notification\Service;
 
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
-use App\Module\Notification\Application\Service\AccountNotificationReadStateService;
+use App\Module\Notification\Application\Workflow\AccountNotificationReadStateService;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Service\UserPersistence;
+use App\Module\User\Application\Persistence\UserPersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

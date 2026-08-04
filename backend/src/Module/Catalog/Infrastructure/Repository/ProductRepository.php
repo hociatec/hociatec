@@ -48,9 +48,9 @@ class ProductRepository extends ServiceEntityRepository implements ProductCatalo
     public function findByVariantGroupOrdered(string $variantGroup): array
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.variantGroup = :variantGroup')
+            ->andWhere('p.characteristics.variantGroup = :variantGroup')
             ->setParameter('variantGroup', $variantGroup)
-            ->orderBy('p.variantPosition', 'ASC')
+            ->orderBy('p.characteristics.variantPosition', 'ASC')
             ->addOrderBy('p.id', 'ASC')
             ->getQuery()
             ->getResult();

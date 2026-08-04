@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Notification\Service;
 
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
-use App\Module\Notification\Application\Service\PendingReviewNotificationProvider;
+use App\Module\Notification\Application\Provider\PendingReviewNotificationProvider;
 use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
-use App\Module\Rating\Application\Service\PendingReviewResolver;
+use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

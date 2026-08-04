@@ -40,60 +40,18 @@ class OrderCheckoutSession
     #[ORM\Column(type: 'integer')]
     private int $shippingAddressId;
 
-    #[ORM\Column(length: 255, unique: true)]
-    private string $stripeSessionId;
+    #[ORM\Embedded(class: CheckoutPaymentState::class, columnPrefix: false)]
+    private CheckoutPaymentState $payment;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $stripePaymentIntentId = null;
-
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $stripePaymentStatus = null;
-
-    #[ORM\Column(length: 80, nullable: true)]
-    private ?string $lastStripeEventType = null;
-
-    #[ORM\Column(length: 120, nullable: true)]
-    private ?string $failureCode = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $failureMessage = null;
-
-    #[ORM\Column(type: 'text')]
-    private string $checkoutUrl;
-
-    #[ORM\Column(length: 20)]
-    private string $status = self::STATUS_OPEN;
-
-    #[ORM\Column(length: 3)]
-    private string $currencyCode = 'EUR';
-
-    #[ORM\Column(type: 'integer')]
-    private int $subtotalPriceCents = 0;
-
-    #[ORM\Column(type: 'integer')]
-    private int $discountAmountCents = 0;
-
-    #[ORM\Column(type: 'integer')]
-    private int $totalPriceCents = 0;
-
-    #[ORM\Column(length: 140, nullable: true)]
-    private ?string $appliedPromotionName = null;
-
-    #[ORM\Column(length: 140, nullable: true)]
-    private ?string $appliedPromotionSlug = null;
+    #[ORM\Embedded(class: CheckoutPricingSnapshot::class, columnPrefix: false)]
+    private CheckoutPricingSnapshot $pricing;
 
     /** @var array<int, array<string, mixed>> */
     #[ORM\Column(type: 'json')]
     private array $itemsPayload = [];
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $orderId = null;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $completedAt = null;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $expiresAt = null;
+    #[ORM\Embedded(class: CheckoutLifecycleState::class, columnPrefix: false)]
+    private CheckoutLifecycleState $lifecycle;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -107,8 +65,9 @@ class OrderCheckoutSession
         $this->user = $user;
         $this->cartToken = $cartToken;
         $this->shippingAddressId = $shippingAddressId;
-        $this->stripeSessionId = $stripeSessionId;
-        $this->checkoutUrl = $checkoutUrl;
+        $this->payment = new CheckoutPaymentState($stripeSessionId, $checkoutUrl);
+        $this->pricing = new CheckoutPricingSnapshot();
+        $this->lifecycle = new CheckoutLifecycleState();
         $this->customerEmail = $user->getEmail();
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -154,154 +113,154 @@ class OrderCheckoutSession
 
     public function getStripeSessionId(): string
     {
-        return $this->stripeSessionId;
+        return $this->payment->stripeSessionId();
     }
 
     public function getStripePaymentIntentId(): ?string
     {
-        return $this->stripePaymentIntentId;
+        return $this->payment->stripePaymentIntentId();
     }
 
     public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
     {
-        $this->stripePaymentIntentId = $stripePaymentIntentId;
+        $this->payment->changeStripePaymentIntentId($stripePaymentIntentId);
 
         return $this;
     }
 
     public function getStripePaymentStatus(): ?string
     {
-        return $this->stripePaymentStatus;
+        return $this->payment->stripePaymentStatus();
     }
 
     public function setStripePaymentStatus(?string $stripePaymentStatus): self
     {
-        $this->stripePaymentStatus = $stripePaymentStatus;
+        $this->payment->changeStripePaymentStatus($stripePaymentStatus);
 
         return $this;
     }
 
     public function getLastStripeEventType(): ?string
     {
-        return $this->lastStripeEventType;
+        return $this->payment->lastStripeEventType();
     }
 
     public function setLastStripeEventType(?string $lastStripeEventType): self
     {
-        $this->lastStripeEventType = $lastStripeEventType;
+        $this->payment->changeLastStripeEventType($lastStripeEventType);
 
         return $this;
     }
 
     public function getFailureCode(): ?string
     {
-        return $this->failureCode;
+        return $this->payment->failureCode();
     }
 
     public function setFailureCode(?string $failureCode): self
     {
-        $this->failureCode = $failureCode;
+        $this->payment->changeFailureCode($failureCode);
 
         return $this;
     }
 
     public function getFailureMessage(): ?string
     {
-        return $this->failureMessage;
+        return $this->payment->failureMessage();
     }
 
     public function setFailureMessage(?string $failureMessage): self
     {
-        $this->failureMessage = $failureMessage;
+        $this->payment->changeFailureMessage($failureMessage);
 
         return $this;
     }
 
     public function getCheckoutUrl(): string
     {
-        return $this->checkoutUrl;
+        return $this->payment->checkoutUrl();
     }
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->lifecycle->status();
     }
 
     public function setStatus(string $status): self
     {
-        $this->status = $status;
+        $this->lifecycle->changeStatus($status);
 
         return $this;
     }
 
     public function getCurrencyCode(): string
     {
-        return $this->currencyCode;
+        return $this->pricing->currencyCode();
     }
 
     public function setCurrencyCode(string $currencyCode): self
     {
-        $this->currencyCode = $currencyCode;
+        $this->pricing->changeCurrencyCode($currencyCode);
 
         return $this;
     }
 
     public function getSubtotalPriceCents(): int
     {
-        return $this->subtotalPriceCents;
+        return $this->pricing->subtotalPriceCents();
     }
 
     public function setSubtotalPriceCents(int $subtotalPriceCents): self
     {
-        $this->subtotalPriceCents = $subtotalPriceCents;
+        $this->pricing->changeSubtotalPriceCents($subtotalPriceCents);
 
         return $this;
     }
 
     public function getDiscountAmountCents(): int
     {
-        return $this->discountAmountCents;
+        return $this->pricing->discountAmountCents();
     }
 
     public function setDiscountAmountCents(int $discountAmountCents): self
     {
-        $this->discountAmountCents = $discountAmountCents;
+        $this->pricing->changeDiscountAmountCents($discountAmountCents);
 
         return $this;
     }
 
     public function getTotalPriceCents(): int
     {
-        return $this->totalPriceCents;
+        return $this->pricing->totalPriceCents();
     }
 
     public function setTotalPriceCents(int $totalPriceCents): self
     {
-        $this->totalPriceCents = $totalPriceCents;
+        $this->pricing->changeTotalPriceCents($totalPriceCents);
 
         return $this;
     }
 
     public function getAppliedPromotionName(): ?string
     {
-        return $this->appliedPromotionName;
+        return $this->pricing->appliedPromotionName();
     }
 
     public function setAppliedPromotionName(?string $appliedPromotionName): self
     {
-        $this->appliedPromotionName = $appliedPromotionName;
+        $this->pricing->changeAppliedPromotionName($appliedPromotionName);
 
         return $this;
     }
 
     public function getAppliedPromotionSlug(): ?string
     {
-        return $this->appliedPromotionSlug;
+        return $this->pricing->appliedPromotionSlug();
     }
 
     public function setAppliedPromotionSlug(?string $appliedPromotionSlug): self
     {
-        $this->appliedPromotionSlug = $appliedPromotionSlug;
+        $this->pricing->changeAppliedPromotionSlug($appliedPromotionSlug);
 
         return $this;
     }
@@ -322,29 +281,29 @@ class OrderCheckoutSession
 
     public function getOrderId(): ?int
     {
-        return $this->orderId;
+        return $this->lifecycle->orderId();
     }
 
     public function setOrderId(?int $orderId): self
     {
-        $this->orderId = $orderId;
+        $this->lifecycle->changeOrderId($orderId);
 
         return $this;
     }
 
     public function getCompletedAt(): ?\DateTimeImmutable
     {
-        return $this->completedAt;
+        return $this->lifecycle->completedAt();
     }
 
     public function getExpiresAt(): ?\DateTimeImmutable
     {
-        return $this->expiresAt;
+        return $this->lifecycle->expiresAt();
     }
 
     public function setExpiresAt(?\DateTimeImmutable $expiresAt): self
     {
-        $this->expiresAt = $expiresAt;
+        $this->lifecycle->changeExpiresAt($expiresAt);
 
         return $this;
     }
@@ -356,13 +315,8 @@ class OrderCheckoutSession
 
     public function markPaid(?string $paymentIntentId = null, ?string $paymentStatus = null, ?string $eventType = null): self
     {
-        $this->status = self::STATUS_PAID;
-        $this->stripePaymentIntentId = $paymentIntentId;
-        $this->stripePaymentStatus = $paymentStatus;
-        $this->lastStripeEventType = $eventType;
-        $this->failureCode = null;
-        $this->failureMessage = null;
-        $this->completedAt = new \DateTimeImmutable();
+        $this->lifecycle->markPaid(new \DateTimeImmutable());
+        $this->payment->markPaid($paymentIntentId, $paymentStatus, $eventType);
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
@@ -370,8 +324,8 @@ class OrderCheckoutSession
 
     public function markExpired(?string $eventType = null): self
     {
-        $this->status = self::STATUS_EXPIRED;
-        $this->lastStripeEventType = $eventType;
+        $this->lifecycle->markExpired();
+        $this->payment->markExpired($eventType);
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
@@ -379,12 +333,8 @@ class OrderCheckoutSession
 
     public function markFailed(?string $paymentIntentId = null, ?string $paymentStatus = null, ?string $eventType = null, ?string $failureCode = null, ?string $failureMessage = null): self
     {
-        $this->status = self::STATUS_FAILED;
-        $this->stripePaymentIntentId = $paymentIntentId ?? $this->stripePaymentIntentId;
-        $this->stripePaymentStatus = $paymentStatus;
-        $this->lastStripeEventType = $eventType;
-        $this->failureCode = $failureCode;
-        $this->failureMessage = $failureMessage;
+        $this->lifecycle->markFailed();
+        $this->payment->markFailed($paymentIntentId, $paymentStatus, $eventType, $failureCode, $failureMessage);
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
@@ -392,7 +342,8 @@ class OrderCheckoutSession
 
     public function isPendingFulfillment(): bool
     {
-        return self::STATUS_OPEN === $this->status || (self::STATUS_PAID === $this->status && null === $this->orderId);
+        return self::STATUS_OPEN === $this->lifecycle->status()
+            || (self::STATUS_PAID === $this->lifecycle->status() && null === $this->lifecycle->orderId());
     }
 
     #[ORM\PreUpdate]

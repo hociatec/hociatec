@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\BetaTest\Application\Service\BetaProfileChoices;
+use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

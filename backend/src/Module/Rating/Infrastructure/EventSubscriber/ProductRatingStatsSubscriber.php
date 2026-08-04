@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Rating\Infrastructure\EventSubscriber;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Rating\Application\Service\ProductReviewStatsUpdater;
+use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\PostFlushEventArgs;

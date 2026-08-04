@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Order\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Service\OrderDeliveryUpdater;
+use App\Module\Order\Application\Writer\OrderDeliveryUpdater;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +41,7 @@ final class UpdateOrderDeliveryController extends AbstractController
 
         try {
             $actor = $this->getUser();
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
             $this->validator->validate($input);
             $order = $this->delivery->update(
                 $order,

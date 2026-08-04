@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\TradeIn\Application\Projection\TradeInMetadataFormatter;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
-use App\Infrastructure\Http\ExternalServiceException;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\RefundCreateData;
@@ -13,13 +12,14 @@ use App\Module\Order\Application\DTO\RefundUpdateData;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
-use App\Module\Order\Application\Service\OrderEventLogger;
-use App\Module\Order\Application\Service\StripeApiClient;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Http\ExternalServiceException;
 
 final readonly class RefundOperationsService
 {
@@ -158,7 +158,7 @@ final readonly class RefundOperationsService
 
     private function findPaymentIntent(Order $order): ?string
     {
-        foreach ($this->payments->findBy(['orderId' => $order->getId()], ['createdAt' => 'DESC'], 5) as $payment) {
+        foreach ($this->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
             $paymentIntentId = $payment->getStripePaymentIntentId();
             if (null !== $paymentIntentId && '' !== $paymentIntentId) {
                 return $paymentIntentId;

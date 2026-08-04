@@ -8,15 +8,15 @@ use App\Module\Admin\UI\Promotion\Controller\CreatePromotionController;
 use App\Module\Admin\UI\Promotion\Controller\GetPromotionController;
 use App\Module\Admin\UI\Promotion\Controller\ListPromotionsController;
 use App\Module\Admin\UI\Quote\Controller\DeleteServiceController;
-use App\Module\Promotion\Application\Service\CreatePromotionHandler;
-use App\Module\Promotion\Application\Service\PromotionDataApplier;
+use App\Module\Promotion\Application\Handler\CreatePromotionHandler;
+use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,7 +83,7 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
 
         $controller = new DeleteServiceController($services, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
             $services,
-            new \App\Module\Quote\Application\Service\QuotePersistence($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+            new \App\Module\Quote\Application\Persistence\QuotePersistence($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(7)->getStatusCode());

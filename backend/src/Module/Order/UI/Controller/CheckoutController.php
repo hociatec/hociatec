@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Order\Application\DTO\CheckoutInput;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Service\CartCheckoutService;
+use App\Module\Order\Application\Workflow\CartCheckoutService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,7 +40,7 @@ final class CheckoutController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = CheckoutInput::fromArray($payload);
             $this->dtoValidator->validate($input);
             $result = $this->checkout->checkout(

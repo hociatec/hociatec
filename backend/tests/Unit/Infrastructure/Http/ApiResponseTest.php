@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Http;
 
-use App\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 

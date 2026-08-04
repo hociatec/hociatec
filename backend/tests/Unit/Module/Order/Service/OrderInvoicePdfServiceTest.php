@@ -7,8 +7,8 @@ namespace App\Tests\Unit\Module\Order\Service;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Pdf\OrderInvoicePdfService;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class OrderInvoicePdfServiceTest extends TestCase

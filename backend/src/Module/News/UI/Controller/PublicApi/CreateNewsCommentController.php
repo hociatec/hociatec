@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\News\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
 use App\Module\News\Application\DTO\CreateNewsCommentInput;
 use App\Module\News\Application\Projection\NewsFormatter;
-use App\Module\News\Application\Service\NewsCommentWriter;
+use App\Module\News\Application\Writer\NewsCommentWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,7 +42,7 @@ final class CreateNewsCommentController extends AbstractController
             return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, CreateNewsCommentInput::class);
+        $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CreateNewsCommentInput::class);
         try {
             $comment = $this->writer->create($article, $user, $input->content);
         } catch (\InvalidArgumentException $exception) {

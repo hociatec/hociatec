@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Audit\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

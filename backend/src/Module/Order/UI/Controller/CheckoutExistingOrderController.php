@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Order\Application\DTO\CheckoutInput;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Service\StripeCheckoutService;
+use App\Module\Order\Application\Workflow\StripeCheckoutService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -64,7 +64,7 @@ final class CheckoutExistingOrderController extends AbstractController
         }
 
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, CheckoutInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CheckoutInput::class);
             $this->dtoValidator->validate($input);
         } catch (ApiValidationException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);

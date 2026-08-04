@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Infrastructure\Pdf;
 
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Port\QuotePdfRenderer;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteService;
-use App\Module\Quote\Application\Service\QuoteStatusTranslator;
+use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 
 class QuotePdfService implements QuotePdfRenderer
 {

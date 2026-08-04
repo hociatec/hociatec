@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Pdf;
 
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class PdfInfrastructureTest extends TestCase

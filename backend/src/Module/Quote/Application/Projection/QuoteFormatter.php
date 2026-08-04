@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Quote\Application\Projection;
 
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteStatusTranslator;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;

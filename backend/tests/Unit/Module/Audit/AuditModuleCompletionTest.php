@@ -20,16 +20,16 @@ use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
-use App\Module\Audit\Application\Service\AuditEventLogger;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
-use App\Module\Audit\Application\Service\AuditPersistence;
-use App\Module\Audit\Application\Service\AuditTemplateProvider;
-use App\Module\Audit\Application\Service\CreateAuditRequestService;
+use App\Module\Audit\Application\Persistence\AuditPersistence;
+use App\Module\Audit\Application\Provider\AuditTemplateProvider;
+use App\Module\Audit\Application\Workflow\CreateAuditRequestService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
-use App\Infrastructure\Validation\ConstraintViolationFormatter;
-use App\Infrastructure\Validation\DtoValidator;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -114,7 +114,7 @@ final class AuditModuleCompletionTest extends TestCase
             'objectives' => 'Audit UX',
         ]))->getStatusCode());
 
-        $pdf = new GeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
+        $pdf = new GeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
         $pdf->setContainer($this->container($user));
         $detailedPdf = $pdf->detailed((int) $audit->getId());
         self::assertSame(200, $detailedPdf->getStatusCode());
@@ -135,7 +135,7 @@ final class AuditModuleCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf unavailable');
             }
-        }, $this->eventLogger(), new \App\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
+        }, $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
         $unavailablePdf->setContainer($this->container($user));
         self::assertSame(501, $unavailablePdf->detailed((int) $audit->getId())->getStatusCode());
         self::assertSame(501, $unavailablePdf->summary((int) $audit->getId())->getStatusCode());
@@ -186,7 +186,7 @@ final class AuditModuleCompletionTest extends TestCase
         self::assertSame(200, $checklist((int) $audit->getId(), (int) $item->getId(), $this->jsonRequest(['isCompliant' => true, 'comment' => 'OK']))->getStatusCode());
         self::assertSame(200, $checklist((int) $audit->getId(), (int) $item->getId(), $this->jsonRequest(['isCompliant' => true, 'comment' => 'OK']))->getStatusCode());
 
-        $pdf = new AdminGeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Infrastructure\Http\AttachmentResponseFactory());
+        $pdf = new AdminGeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $pdf->setContainer($this->container($admin));
         self::assertSame(404, $pdf->detailed(999)->getStatusCode());
         self::assertSame(200, $pdf->detailed((int) $audit->getId())->getStatusCode());
@@ -203,7 +203,7 @@ final class AuditModuleCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf unavailable');
             }
-        }, $this->eventLogger(), new \App\Infrastructure\Http\AttachmentResponseFactory());
+        }, $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $unavailablePdf->setContainer($this->container($admin));
         self::assertSame(501, $unavailablePdf->detailed((int) $audit->getId())->getStatusCode());
         self::assertSame(501, $unavailablePdf->summary((int) $audit->getId())->getStatusCode());

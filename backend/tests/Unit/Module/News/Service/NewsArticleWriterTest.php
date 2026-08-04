@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\News\Service;
 use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
-use App\Module\News\Application\Service\NewsArticleWriter;
+use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;

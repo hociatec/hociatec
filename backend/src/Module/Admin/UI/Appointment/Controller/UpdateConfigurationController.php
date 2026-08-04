@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Appointment\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Appointment\DTO\WorkingDaysInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
-use App\Module\Appointment\Application\Service\WorkingDayPayloadMapper;
+use App\Module\Appointment\Application\Mapper\WorkingDayPayloadMapper;
+use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +32,7 @@ class UpdateConfigurationController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = WorkingDaysInput::fromArray($payload);
             $this->validator->validate($input);
             $days = $this->payloadMapper->map($input->toPayload());

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Infrastructure\Security;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Auth\Application\Service\RefreshTokenService;
+use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

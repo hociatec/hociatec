@@ -145,7 +145,7 @@ final class BugReportRepository extends ServiceEntityRepository
         }
         if (isset($filters['search']) && '' !== $filters['search']) {
             $qb->leftJoin('r.reporter', 'searchReporter')
-                ->andWhere('LOWER(r.title) LIKE :search OR LOWER(r.description) LIKE :search OR LOWER(searchReporter.email) LIKE :search')
+                ->andWhere('LOWER(r.title) LIKE :search OR LOWER(r.description) LIKE :search OR LOWER(searchReporter.identity.email) LIKE :search')
                 ->setParameter('search', '%'.mb_strtolower((string) $filters['search']).'%');
         }
 

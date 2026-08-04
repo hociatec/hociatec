@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Favorite\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Favorite\Application\Service\FavoriteService;
+use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

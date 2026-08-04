@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Infrastructure\Http;
 
-use App\Module\BetaTest\Application\Service\BetaProfileChoices;
+use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 
 final readonly class BetaProfileResponseFormatter

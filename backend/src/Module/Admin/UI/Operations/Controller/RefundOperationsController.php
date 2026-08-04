@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Operations\DTO\RefundCreateInput;
 use App\Module\Admin\Application\Operations\DTO\RefundProcessInput;
 use App\Module\Admin\Application\Operations\DTO\RefundUpdateInput;
@@ -16,6 +13,9 @@ use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +41,7 @@ final class RefundOperationsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundCreateInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, RefundCreateInput::class);
             $this->validator->validate($input);
             $item = $this->refunds->create(new RefundCreateData($input->orderId, $input->amountCents, $input->reason, $input->internalNotes, $input->paymentId, $input->currencyCode), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
@@ -57,7 +57,7 @@ final class RefundOperationsController extends AbstractController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundUpdateInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, RefundUpdateInput::class);
             $this->validator->validate($input);
             $item = $this->refunds->update($id, new RefundUpdateData($input->status, $input->stripeRefundId, $input->internalNotes));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -73,7 +73,7 @@ final class RefundOperationsController extends AbstractController
     public function processStripe(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundProcessInput::class);
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, RefundProcessInput::class);
             $this->validator->validate($input);
             $result = $this->refunds->processStripe($id, new RefundProcessData($input->confirmation, $input->paymentIntentId), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {

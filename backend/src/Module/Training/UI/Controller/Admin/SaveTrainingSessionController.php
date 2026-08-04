@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Training\Application\DTO\TrainingSessionInput;
 use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,7 +35,7 @@ class SaveTrainingSessionController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = TrainingSessionInput::fromArray($payload);
         $this->validator->validate($input);
         if ($input->endsAt <= $input->startsAt) {

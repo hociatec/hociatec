@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\BetaTest\Service\CloseElapsedBetaCampaignsHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

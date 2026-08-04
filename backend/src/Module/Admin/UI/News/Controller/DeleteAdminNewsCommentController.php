@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\News\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\News\Application\Service\NewsArticleWriter;
+use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;

@@ -8,12 +8,12 @@ use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Catalog\Application\Service\ProductCatalogRules;
-use App\Module\Catalog\Application\Service\ProductDiscountApplicator;
-use App\Module\Catalog\Application\Service\ProductGalleryUpdater;
-use App\Module\Catalog\Application\Service\ProductService;
-use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
-use App\Module\Catalog\Application\Service\ProductVariantService;
+use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\Writer\ProductDiscountApplicator;
+use App\Module\Catalog\Application\Writer\ProductGalleryUpdater;
+use App\Module\Catalog\Application\Workflow\ProductService;
+use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
+use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -139,7 +139,7 @@ final class ProductServiceTest extends TestCase
             ->setDiscountEnabled(true)
             ->setDiscountType('percent')
             ->setDiscountValue(10);
-        $this->setProperty($product, 'variantPosition', 0);
+        $this->setEmbeddedProperty($product, 'characteristics', 'variantPosition', 0);
 
         $persisted = [];
 
@@ -283,5 +283,15 @@ final class ProductServiceTest extends TestCase
     {
         $reflection = new \ReflectionObject($entity);
         $reflection->getProperty($property)->setValue($entity, $value);
+    }
+
+    private function setEmbeddedProperty(object $entity, string $embeddedProperty, string $property, mixed $value): void
+    {
+        $reflection = new \ReflectionObject($entity);
+        $embedded = $reflection->getProperty($embeddedProperty)->getValue($entity);
+        self::assertIsObject($embedded);
+
+        $embeddedReflection = new \ReflectionObject($embedded);
+        $embeddedReflection->getProperty($property)->setValue($embedded, $value);
     }
 }

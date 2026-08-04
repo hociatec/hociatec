@@ -15,6 +15,8 @@ interface OrderCheckoutSessionRepositoryPort
 
     public function findOneByToken(string $token): ?OrderCheckoutSession;
 
+    public function findOneByOrderId(int $orderId): ?OrderCheckoutSession;
+
     public function findReusableOpenSessionForCart(User $user, string $cartToken): ?OrderCheckoutSession;
 
     public function findReusableOpenSessionForOrder(User $user, int $orderId): ?OrderCheckoutSession;
@@ -32,6 +34,9 @@ interface OrderCheckoutSessionRepositoryPort
 
     /** @return list<OrderCheckoutSession> */
     public function findRecentOpen(int $limit = 20): array;
+
+    /** @return list<OrderCheckoutSession> */
+    public function findRecentByOrderId(int $orderId, int $limit = 5): array;
 
     /**
      * @param array<string, mixed>       $criteria

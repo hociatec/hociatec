@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\Infrastructure\MessageHandler;
 
 use App\Module\Order\Application\Message\OrderCreatedMessage;
-use App\Module\Order\Application\Service\OrderEventLogger;
-use App\Module\Order\Application\Service\OrderInvoiceDocumentService;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Module\Order\Application\Workflow\OrderInvoiceDocumentService;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;

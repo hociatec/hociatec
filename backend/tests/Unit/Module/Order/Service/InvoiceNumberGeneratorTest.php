@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Order\Service;
 
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Order\Application\Service\InvoiceNumberGenerator;
+use App\Module\Order\Application\Factory\InvoiceNumberGenerator;
 use PHPUnit\Framework\TestCase;
 
 final class InvoiceNumberGeneratorTest extends TestCase

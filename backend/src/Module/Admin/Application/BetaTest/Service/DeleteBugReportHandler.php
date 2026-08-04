@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Module\BetaTest\Application\Service\BetaAttachmentStorage;
+use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Notification\Service;
 
-use App\Module\Notification\Application\Service\CommunicationPreferences;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use PHPUnit\Framework\TestCase;
 
 final class CommunicationPreferencesTest extends TestCase

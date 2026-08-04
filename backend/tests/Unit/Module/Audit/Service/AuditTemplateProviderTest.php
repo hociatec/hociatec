@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Audit\Service;
 
 use App\Module\Audit\Domain\Entity\AuditType;
-use App\Module\Audit\Application\Service\AuditTemplateProvider;
+use App\Module\Audit\Application\Provider\AuditTemplateProvider;
 use PHPUnit\Framework\TestCase;
 
 final class AuditTemplateProviderTest extends TestCase

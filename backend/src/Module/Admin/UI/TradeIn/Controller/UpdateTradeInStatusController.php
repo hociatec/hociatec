@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInStatusInput;
-use App\Module\TradeIn\Application\Service\TradeInService;
+use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ final class UpdateTradeInStatusController extends AbstractController
         if (null === $tradeIn) {
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, TradeInStatusInput::class);
+        $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, TradeInStatusInput::class);
         $this->validator->validate($input);
         $status = TradeInStatus::tryFrom($input->status);
         if (null === $status) {

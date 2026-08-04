@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\ShippingAddressInput;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
-use App\Module\User\Application\Service\ShippingAddressWriter;
+use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ class CreateAddressController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
 
         $input = ShippingAddressInput::fromArray($payload);
         $this->dtoValidator->validate($input);

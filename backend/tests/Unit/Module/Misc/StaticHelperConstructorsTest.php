@@ -12,7 +12,7 @@ use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
-use App\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

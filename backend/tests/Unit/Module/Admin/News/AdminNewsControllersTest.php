@@ -17,7 +17,7 @@ use App\Module\News\Domain\Entity\NewsComment;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
 use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
-use App\Module\News\Application\Service\NewsArticleWriter;
+use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;

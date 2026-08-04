@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Rating\Application\Exception\ProductReviewException;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
-use App\Module\Rating\Application\Service\ProductRatingService;
+use App\Module\Rating\Application\Workflow\ProductRatingService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,7 +55,7 @@ class CreateProductReviewController extends AbstractController
             return ApiResponse::error('Article introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $score = isset($payload['score']) ? (int) $payload['score'] : 0;
         $comment = isset($payload['comment']) ? (string) $payload['comment'] : null;
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Catalog\Application\Service\CategoryService;
+use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

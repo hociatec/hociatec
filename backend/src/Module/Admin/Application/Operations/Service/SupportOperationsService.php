@@ -15,7 +15,7 @@ use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
 use App\Module\Support\Domain\Enum\SupportStatus;
 use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Module\User\Application\Service\AdminCustomerEmailService;
+use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class SupportOperationsService

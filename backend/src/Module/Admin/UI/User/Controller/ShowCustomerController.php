@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\User\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
@@ -12,6 +11,7 @@ use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

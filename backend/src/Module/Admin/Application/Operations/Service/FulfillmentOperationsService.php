@@ -8,7 +8,7 @@ use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFound
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\Order\Application\Service\OrderEventLogger;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Outbox;
 
-use App\Module\Auth\Application\Service\PasswordResetEmailService;
+use App\Module\Auth\Application\Workflow\PasswordResetEmailService;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\User\Application\Port\UserRepositoryPort;

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Application\Projection\AppointmentFormatter;
-use App\Module\Appointment\Application\Service\AppointmentService;
+use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,7 +50,7 @@ final class UpdateAppointmentStatusController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+            $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }

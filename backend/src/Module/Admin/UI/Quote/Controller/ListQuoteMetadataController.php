@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Quote\Application\Service\QuoteStatusTranslator;
+use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Enum\ServiceBillingMode;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

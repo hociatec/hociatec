@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\BetaTest\Service\BugReportReferenceProvider;
 use App\Module\Admin\Application\BetaTest\Service\MarkBugReportDuplicateHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +33,7 @@ final class MarkBugReportDuplicateController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $duplicateOfId = (int) ($payload['duplicateOfId'] ?? 0);
         $reason = trim((string) ($payload['reason'] ?? ''));
         $actor = $this->getUser();

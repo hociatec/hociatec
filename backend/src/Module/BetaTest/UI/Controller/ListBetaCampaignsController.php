@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\BetaTest\Application\Service\BetaCampaignProvider;
+use App\Module\BetaTest\Application\Provider\BetaCampaignProvider;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Http\BetaCampaignResponseFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

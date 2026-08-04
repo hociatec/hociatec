@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\TradeIn\Service;
 
-use App\Module\TradeIn\Application\Service\TradeInPersistence;
+use App\Module\TradeIn\Application\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 

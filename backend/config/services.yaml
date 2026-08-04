@@ -31,7 +31,7 @@ services:
         exclude:
             - '../src/DataFixtures/'
 
-    App\Infrastructure\Http\RequestIdProcessor:
+    App\Shared\Infrastructure\Http\RequestIdProcessor:
         tags: ['monolog.processor']
 
     App\Module\Auth\Infrastructure\Http\AuthCookieService:
@@ -42,20 +42,20 @@ services:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Auth\Application\Service\PasswordResetService:
+    App\Module\Auth\Application\Workflow\PasswordResetService:
         arguments:
             $outbox: '@App\Module\Outbox\Application\Outbox'
 
-    App\Module\Auth\Application\Service\PasswordResetEmailService:
+    App\Module\Auth\Application\Workflow\PasswordResetEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Infrastructure\Http\CsrfTokenService:
+    App\Shared\Infrastructure\Http\CsrfTokenService:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Infrastructure\Http\ApiErrorSanitizerSubscriber:
+    App\Shared\Infrastructure\Http\ApiErrorSanitizerSubscriber:
         arguments:
             $environment: '%kernel.environment%'
 
@@ -114,7 +114,7 @@ services:
     App\Shared\Application\TransactionManager:
         alias: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
 
-    App\Infrastructure\Http\RateLimitSubscriber:
+    App\Shared\Infrastructure\Http\RateLimitSubscriber:
         arguments:
             $limiters: !service_locator
                 public_api: '@limiter.public_api'
@@ -150,7 +150,7 @@ services:
         arguments:
             $metricsToken: '%env(METRICS_TOKEN)%'
 
-    App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage:
+    App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
@@ -162,100 +162,100 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\User\Application\Service\AccountActivationEmailService:
+    App\Module\User\Application\Workflow\AccountActivationEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Contact\Application\Service\ContactNotificationSender:
+    App\Module\Contact\Application\Notification\ContactNotificationSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
             $contactRecipient: '%env(CONTACT_RECIPIENT)%'
 
-    App\Module\Contact\Application\Service\ContactAcknowledgementSender:
+    App\Module\Contact\Application\Notification\ContactAcknowledgementSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\TradeIn\Application\Service\TradeInNotificationEmailService:
+    App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Catalog\Application\Service\ProductShareEmailService:
+    App\Module\Catalog\Application\Workflow\ProductShareEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Training\Application\Service\TrainingEnrollmentCheckoutService:
+    App\Module\Training\Application\Workflow\TrainingEnrollmentCheckoutService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Voucher\Application\Service\VoucherNotificationEmailService:
-        arguments:
-            $frontendUrl: '%env(APP_FRONTEND_URL)%'
-            $mailerFrom: '%env(MAILER_FROM)%'
-
-    App\Module\User\Application\Service\AdminCustomerEmailService:
-        arguments:
-            $mailerFrom: '%env(MAILER_FROM)%'
-
-    App\Module\Notification\Application\Service\UserCommunicationNotifier:
+    App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Notification\Application\Service\AccountNotificationProvider:
+    App\Module\User\Application\Workflow\AdminCustomerEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Notification\Application\Notification\UserCommunicationNotifier:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Notification\Application\Provider\AccountNotificationProvider:
         arguments:
             $computedProviders:
-                - '@App\Module\Notification\Application\Service\PendingReviewNotificationProvider'
-                - '@App\Module\Notification\Application\Service\AppointmentNotificationProvider'
-                - '@App\Module\Notification\Application\Service\TrainingNotificationProvider'
-                - '@App\Module\Notification\Application\Service\AuditNotificationProvider'
-                - '@App\Module\Notification\Application\Service\VoucherNotificationProvider'
+                - '@App\Module\Notification\Application\Provider\PendingReviewNotificationProvider'
+                - '@App\Module\Notification\Application\Provider\AppointmentNotificationProvider'
+                - '@App\Module\Notification\Application\Provider\TrainingNotificationProvider'
+                - '@App\Module\Notification\Application\Provider\AuditNotificationProvider'
+                - '@App\Module\Notification\Application\Provider\VoucherNotificationProvider'
 
-    App\Module\Order\Application\Service\StripeApiClient:
+    App\Module\Order\Application\Workflow\StripeApiClient:
         arguments:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'
 
-    App\Module\Order\Application\Service\CartHostedCheckoutCreator:
+    App\Module\Order\Application\Workflow\CartHostedCheckoutCreator:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Order\Application\Service\OrderHostedCheckoutCreator:
+    App\Module\Order\Application\Workflow\OrderHostedCheckoutCreator:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Order\Application\Service\OrderNotificationEmailService:
+    App\Module\Order\Application\Workflow\OrderNotificationEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Order\Application\Service\OrderNotificationContentProvider:
+    App\Module\Order\Application\Provider\OrderNotificationContentProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Quote\Application\Service\QuoteCreatedEmailContentProvider:
+    App\Module\Quote\Application\Provider\QuoteCreatedEmailContentProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Quote\Application\Service\QuoteEmailDeliveryService:
+    App\Module\Quote\Application\Workflow\QuoteEmailDeliveryService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Order\Application\Service\StripeWebhookVerifier:
+    App\Module\Order\Application\Mapper\StripeWebhookVerifier:
         arguments:
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
             $refundWebhookSecret: '%env(STRIPE_REFUND_WEBHOOK_SECRET)%'
 
-    App\Module\Marketing\Application\Service\MarketingRecipientContextProvider:
+    App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Marketing\Application\Service\MarketingCampaignSender:
+    App\Module\Marketing\Application\Notification\MarketingCampaignSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Infrastructure\Pdf\AccessiblePdfRenderer:
+    App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $configuredPython: '%env(WEASYPRINT_PYTHON)%'

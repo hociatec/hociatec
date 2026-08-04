@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\DTO;
 
-use App\Module\BetaTest\Application\Service\BetaProfileChoices;
+use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class BetaProfileInput

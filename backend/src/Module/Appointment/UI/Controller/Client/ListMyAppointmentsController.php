@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\UI\Controller\Client;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\Appointment\Application\Service\AppointmentService;
+use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

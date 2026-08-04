@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Handler;
 
-use App\Infrastructure\Http\ExternalServiceException;
-use App\Module\Order\Application\Service\StripeApiClient;
+use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
+use App\Shared\Infrastructure\Http\ExternalServiceException;
 
 final readonly class StripeCheckoutSessionExpirer
 {

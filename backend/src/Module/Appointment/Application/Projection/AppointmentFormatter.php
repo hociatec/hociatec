@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Projection;
 
-use App\Module\Appointment\Application\Service\AppointmentStatusWorkflow;
+use App\Module\Appointment\Application\Workflow\AppointmentStatusWorkflow;
 use App\Module\Appointment\Domain\Entity\Appointment;
 
 final class AppointmentFormatter

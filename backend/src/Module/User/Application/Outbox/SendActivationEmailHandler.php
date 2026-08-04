@@ -7,7 +7,7 @@ namespace App\Module\User\Application\Outbox;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Module\User\Application\Service\AccountActivationEmailService;
+use App\Module\User\Application\Workflow\AccountActivationEmailService;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class SendActivationEmailHandler implements OutboxEventHandler

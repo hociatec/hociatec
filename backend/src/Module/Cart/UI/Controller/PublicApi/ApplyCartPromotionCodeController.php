@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\UI\Controller\PublicApi;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Cart\Application\DTO\ApplyCartVoucherInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
-use App\Module\Cart\Application\Service\CartVoucherService;
+use App\Module\Cart\Application\Workflow\CartVoucherService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $input = ApplyCartVoucherInput::fromArray($payload);
         $this->validator->validate($input);
 

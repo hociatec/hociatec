@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\RateLimited;
-use App\Module\BetaTest\Application\Service\BugReportCommentWriter;
+use App\Module\BetaTest\Application\Writer\BugReportCommentWriter;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\Infrastructure\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,7 +47,7 @@ final class CreateBugReportCommentController extends AbstractController
             return ApiResponse::error('Accès refusé.', 403);
         }
 
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
 
         try {
             $comment = $this->writer->create($report, $user, (string) ($payload['content'] ?? ''));

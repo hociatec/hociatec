@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Marketing\Infrastructure\Http\EmailTemplateResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

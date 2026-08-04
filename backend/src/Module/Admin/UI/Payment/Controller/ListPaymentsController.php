@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Payment\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
-use App\Module\Order\Application\Service\StripeCheckoutSessionSyncService;
+use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,11 +41,11 @@ final class ListPaymentsController extends AbstractController
             ->orderBy('p.createdAt', 'DESC');
 
         if (is_string($status) && '' !== $status && 'all' !== $status) {
-            $qb->andWhere('p.status = :status')->setParameter('status', $status);
+            $qb->andWhere('p.lifecycle.status = :status')->setParameter('status', $status);
         }
 
         if ('' !== $query) {
-            $qb->andWhere('p.customerEmail LIKE :q OR p.customerFullName LIKE :q OR p.stripeSessionId LIKE :q OR p.stripePaymentIntentId LIKE :q')
+            $qb->andWhere('p.customerEmail LIKE :q OR p.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
                 ->setParameter('q', '%'.$query.'%');
         }
 

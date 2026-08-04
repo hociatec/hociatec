@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\Infrastructure\MessageHandler;
 
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
-use App\Module\Order\Application\Service\OrderEventLogger;
-use App\Module\Order\Application\Service\OrderNotificationEmailService;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;

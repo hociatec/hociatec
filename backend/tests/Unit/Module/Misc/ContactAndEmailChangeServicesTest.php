@@ -7,8 +7,8 @@ namespace App\Tests\Unit\Module\Misc;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\User\Application\Service\ChangeProfileEmailService;
-use App\Module\User\Application\Service\ProfileCurrentPasswordVerifier;
+use App\Module\User\Application\Workflow\ChangeProfileEmailService;
+use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 

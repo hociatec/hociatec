@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Quote\DTO\QuotePayloadInput;
+use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteEmailService;
-use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
+use App\Module\Quote\Application\Workflow\QuoteEmailService;
+use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +33,7 @@ class CreateQuoteController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = QuotePayloadInput::fromArray($payload);
         $this->validator->validate($input);
 

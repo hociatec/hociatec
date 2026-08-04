@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Payment\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Admin\Application\Payment\Service\StripePaymentDetailsProvider;
-use App\Module\Order\Application\Service\StripeCheckoutSessionSyncService;
+use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

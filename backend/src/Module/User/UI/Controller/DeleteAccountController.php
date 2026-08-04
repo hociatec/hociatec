@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
-use App\Module\User\Application\Service\DeleteAccountService;
+use App\Module\User\Application\Workflow\DeleteAccountService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

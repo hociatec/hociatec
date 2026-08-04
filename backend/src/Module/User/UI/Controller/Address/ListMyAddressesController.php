@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
-use App\Infrastructure\Http\ApiResponse;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

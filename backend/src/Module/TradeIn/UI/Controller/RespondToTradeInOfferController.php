@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Infrastructure\Http\ApiResponse;
-use App\Module\TradeIn\Application\Service\TradeInService;
+use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

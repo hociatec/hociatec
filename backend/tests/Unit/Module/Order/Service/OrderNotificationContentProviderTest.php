@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Order\Service;
 
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\Order\Application\Service\OrderNotificationContentProvider;
+use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
