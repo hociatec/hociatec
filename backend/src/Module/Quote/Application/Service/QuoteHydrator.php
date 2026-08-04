@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Quote\Application\Service;
+
+use App\Module\Quote\Application\DTO\QuotePayload;
+use App\Module\Quote\Domain\Entity\Quote;
+
+final readonly class QuoteHydrator
+{
+    public function __construct(
+        private QuotePersistence $persistence,
+        private QuoteItemFactory $items,
+        private ?\DateTimeImmutable $today = null,
+    ) {
+    }
+
+    public function hydrate(Quote $quote, QuotePayload $payload, bool $clearItems = false): void
+    {
+        $quote->setCustomerName(QuoteValueNormalizer::strOrNull($payload->customer['name'] ?? null));
+        $quote->setCustomerEmail(QuoteValueNormalizer::strOrNull($payload->customer['email'] ?? null));
+        $quote->setCustomerCompany(QuoteValueNormalizer::strOrNull($payload->customer['company'] ?? null));
+        $quote->setCustomerAddress(QuoteValueNormalizer::strOrNull($payload->customer['address'] ?? null));
+
+        $status = QuoteStatusTranslator::toCode($payload->status);
+        $quote->setStatus('' !== $status ? $status : Quote::STATUS_DRAFT);
+        $quote->setGlobalDiscountCents($payload->discount->cents());
+        $quote->setShippingCents($payload->shipping->cents());
+
+        if (null !== $payload->conditions || !$clearItems) {
+            $quote->setConditions(QuoteValueNormalizer::strOrNull($payload->conditions) ?? QuoteService::DEFAULT_CONDITIONS);
+        }
+
+        $this->hydrateValidity($quote, $payload, $clearItems);
+        $this->replaceItems($quote, $payload, $clearItems);
+    }
+
+    private function hydrateValidity(Quote $quote, QuotePayload $payload, bool $clearItems): void
+    {
+        if (null !== $payload->validFrom) {
+            $quote->setValidFrom(QuoteValueNormalizer::dateOrNull($payload->validFrom));
+        } elseif (!$clearItems && null === $quote->getValidFrom()) {
+            $quote->setValidFrom($this->today());
+        }
+
+        if (null !== $payload->validUntil) {
+            $quote->setValidUntil(QuoteValueNormalizer::dateOrNull($payload->validUntil));
+        } elseif (!$clearItems && null === $quote->getValidUntil()) {
+            $baseDate = $quote->getValidFrom() ?? $this->today();
+            $quote->setValidUntil($baseDate->modify('+30 days'));
+        }
+    }
+
+    private function replaceItems(Quote $quote, QuotePayload $payload, bool $clearItems): void
+    {
+        if ($clearItems) {
+            foreach ($quote->getItems() as $existing) {
+                $quote->removeItem($existing);
+                $this->persistence->removeItem($existing);
+            }
+        }
+
+        foreach ($payload->items as $raw) {
+            $this->persistence->addItem($quote, $this->items->fromPayload($raw));
+        }
+    }
+
+    private function today(): \DateTimeImmutable
+    {
+        return ($this->today ?? new \DateTimeImmutable('today'))->setTime(0, 0);
+    }
+}

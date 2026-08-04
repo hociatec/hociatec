@@ -6,9 +6,9 @@ namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
@@ -16,7 +16,7 @@ use App\Shared\Application\TransactionManager;
 final readonly class StockOperationsService
 {
     public function __construct(
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private StockMovementRepository $movements,
         private OperationsPersistence $persistence,
         private TransactionManager $transactions,

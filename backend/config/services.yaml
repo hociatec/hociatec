@@ -68,6 +68,9 @@ services:
     App\Module\Marketing\Application\Port\MarketingRecipientContextQuery:
         alias: App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery
 
+    App\Module\Catalog\Application\Port\ProductCatalogRepository:
+        alias: App\Module\Catalog\Infrastructure\Repository\ProductRepository
+
     App\Module\Outbox\Application\OutboxAlertNotifier:
         alias: App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier
 

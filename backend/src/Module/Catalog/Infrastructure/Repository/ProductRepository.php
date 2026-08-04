@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -13,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Product>
  */
-class ProductRepository extends ServiceEntityRepository
+class ProductRepository extends ServiceEntityRepository implements ProductCatalogRepository
 {
     use ProductAdminQueries;
     use ProductCatalogFacetProjection;
@@ -30,6 +31,13 @@ class ProductRepository extends ServiceEntityRepository
     public function findForUpdate(int $id): ?Product
     {
         $product = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $product instanceof Product ? $product : null;
+    }
+
+    public function findProduct(int $id): ?Product
+    {
+        $product = $this->find($id);
 
         return $product instanceof Product ? $product : null;
     }

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class ProductVariantBatchCreator
 {
     public function __construct(
         private ProductVariantService $variants,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private DoctrineUnitOfWork $persistence,
     ) {
     }

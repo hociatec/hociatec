@@ -9,12 +9,12 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Quote\Application\DTO\QuoteItemPayload;
 use App\Module\Quote\Application\DTO\QuotePayload;
-use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuoteNumberGenerator;
 use App\Module\Quote\Application\Service\QuotePersistence;
 use App\Module\Quote\Application\Service\QuoteService;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -209,7 +209,7 @@ final class QuoteServiceTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
 
         $productRepository = $this->createMock(ProductRepository::class);
-        $productRepository->method('find')->willReturn($product);
+        $productRepository->method('findProduct')->willReturn($product);
 
         return new QuoteService(
             new QuotePersistence($entityManager),

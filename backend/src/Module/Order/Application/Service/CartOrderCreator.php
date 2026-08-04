@@ -6,7 +6,7 @@ namespace App\Module\Order\Application\Service;
 
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Promotion\Application\Service\PromotionEngine;
@@ -27,7 +27,7 @@ final readonly class CartOrderCreator
         private PromotionEngine $promotionEngine,
         private VoucherEngine $voucherEngine,
         private CartSessionRepository $carts,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
     ) {
     }
 

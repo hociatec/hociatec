@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
@@ -19,7 +19,7 @@ final readonly class OperationsOverviewProvider
     public function __construct(
         private SupportRequestRepository $supportRequests,
         private RefundRequestRepository $refunds,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private StockMovementRepository $stockMovements,
         private AdminOperationsFormatter $formatter,
     ) {

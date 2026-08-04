@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -15,7 +15,7 @@ final class BrandService
 {
     public function __construct(
         private readonly BrandRepository $brandRepository,
-        private readonly ProductRepository $productRepository,
+        private readonly ProductCatalogRepository $productRepository,
         private readonly CatalogPersistence $persistence,
         private readonly ValidatorInterface $validator,
     ) {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Service;
 
 use App\Infrastructure\Text\Slugifier;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -14,7 +14,7 @@ final readonly class ProductCatalogRules
     use Slugifier;
 
     public function __construct(
-        private ProductRepository $productRepository,
+        private ProductCatalogRepository $productRepository,
         private ValidatorInterface $validator,
     ) {
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
@@ -22,7 +22,7 @@ final readonly class CheckoutSessionOrderCreator
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
         private OrderRepository $orders,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private CartSessionRepository $carts,
     ) {
     }

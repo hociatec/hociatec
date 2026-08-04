@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Service\InvoiceNumberGenerator;
 use App\Module\Order\Application\Service\OrderEventLogger;
@@ -26,7 +26,7 @@ final readonly class QuoteToOrderConverter
     public function __construct(
         private QuoteRepository $quotes,
         private UserRepository $users,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private QuoteCalculator $quoteCalculator,
         private OrderNumberGenerator $orderNumbers,
         private InvoiceNumberGenerator $invoiceNumbers,
@@ -120,7 +120,7 @@ final readonly class QuoteToOrderConverter
             ->setTotalPriceCents((int) $totals['totalTtc']);
 
         foreach ($quote->getItems() as $quoteItem) {
-            $product = null !== $quoteItem->getProductId() ? $this->products->find($quoteItem->getProductId()) : null;
+            $product = null !== $quoteItem->getProductId() ? $this->products->findProduct($quoteItem->getProductId()) : null;
             $item = new OrderItem(
                 $quoteItem->getName(),
                 $product instanceof Product ? $product->getSku() : 'DEVIS-'.$quote->getNumber(),

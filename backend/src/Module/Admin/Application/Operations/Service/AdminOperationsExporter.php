@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
@@ -16,7 +16,7 @@ final readonly class AdminOperationsExporter
     public function __construct(
         private OrderRepository $orders,
         private UserRepository $users,
-        private ProductRepository $products,
+        private ProductCatalogRepository $products,
         private QuoteRepository $quotes,
         private RefundRequestRepository $refunds,
         private SupportRequestRepository $supportRequests,

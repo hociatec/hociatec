@@ -14,7 +14,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Order
 {
-    use OrderInvoiceTrait;
+    use OrderBillingTrait;
+    use OrderEmailStateTrait;
+    use OrderInvoiceDocumentsTrait;
+    use OrderInvoiceStateTrait;
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';

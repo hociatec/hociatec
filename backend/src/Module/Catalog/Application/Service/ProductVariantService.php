@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
+use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 
 final readonly class ProductVariantService
 {
     public function __construct(
-        private ProductRepository $productRepository,
+        private ProductCatalogRepository $productRepository,
         private ProductCatalogRules $rules,
     ) {
     }
