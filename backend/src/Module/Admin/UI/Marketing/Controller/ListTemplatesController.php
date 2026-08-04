@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
+use App\Module\Marketing\Infrastructure\Http\EmailTemplateResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,8 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_MARKETING_MANAGER')]
 final class ListTemplatesController extends AbstractController
 {
-    public function __construct(private readonly EmailTemplateRepository $templates)
-    {
+    public function __construct(
+        private readonly EmailTemplateRepository $templates,
+        private readonly EmailTemplateResponseFormatter $formatter,
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
@@ -27,18 +30,7 @@ final class ListTemplatesController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                static fn ($template) => [
-                    'id' => $template->getId(),
-                    'name' => $template->getName(),
-                    'slug' => $template->getSlug(),
-                    'scenarioKey' => $template->getScenarioKey(),
-                    'subjectTemplate' => $template->getSubjectTemplate(),
-                    'htmlBody' => $template->getHtmlBody(),
-                    'textBody' => $template->getTextBody(),
-                    'isActive' => $template->isActive(),
-                    'createdAt' => $template->getCreatedAt()->format(DATE_ATOM),
-                    'updatedAt' => $template->getUpdatedAt()->format(DATE_ATOM),
-                ],
+                fn ($template) => $this->formatter->format($template),
                 $this->templates->findBy([], ['updatedAt' => 'DESC'], $pagination->perPage, $pagination->offset()),
             ),
             $pagination->metadata($this->templates->count([])),

@@ -6,9 +6,9 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
-use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
-use App\Module\Admin\Application\Marketing\Service\UpdateEmailTemplateHandler;
-use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
+use App\Module\Admin\Application\Marketing\Service\EmailTemplateWriter;
+use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
+use App\Module\Marketing\Infrastructure\Http\EmailTemplateResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,10 +22,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly UpdateEmailTemplateHandler $updateTemplate,
         private readonly EmailTemplateRepository $templates,
-        private readonly EmailTemplateScenarioProvider $scenarioProvider,
+        private readonly EmailTemplateWriter $writer,
         private readonly DtoValidator $validator,
+        private readonly MarketingRequestMapper $requests,
+        private readonly EmailTemplateResponseFormatter $formatter,
     ) {
     }
 
@@ -36,41 +37,15 @@ final class UpdateTemplateController extends AbstractController
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
-        $input = MarketingTemplateInput::fromArray($payload);
+        $input = $this->requests->template($request);
         $this->validator->validate($input);
 
-        if (!isset($this->scenarioProvider->getTemplateScenarioDefinitions()[$input->scenarioKey])) {
-            return ApiResponse::error('Scénario de template invalide.');
+        try {
+            $template = $this->writer->update($template, $input);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage());
         }
 
-        $existing = $this->templates->findOneBySlug($input->slug);
-        if (null !== $existing && $existing->getId() !== $template->getId()) {
-            return ApiResponse::error('Ce slug de template est déjà utilisé.');
-        }
-
-        $template
-            ->setName($input->name)
-            ->setSlug($input->slug)
-            ->setScenarioKey($input->scenarioKey)
-            ->setSubjectTemplate($input->subjectTemplate)
-            ->setHtmlBody($input->htmlBody)
-            ->setTextBody($input->textBody)
-            ->setIsActive($input->isActive);
-
-        $this->updateTemplate->update($template);
-
-        return ApiResponse::success([
-            'template' => [
-                'id' => $template->getId(),
-                'name' => $template->getName(),
-                'slug' => $template->getSlug(),
-                'scenarioKey' => $template->getScenarioKey(),
-                'subjectTemplate' => $template->getSubjectTemplate(),
-                'htmlBody' => $template->getHtmlBody(),
-                'textBody' => $template->getTextBody(),
-                'isActive' => $template->isActive(),
-            ],
-        ], JsonResponse::HTTP_OK, 'Le modèle d’e-mail a bien été mis à jour.');
+        return ApiResponse::success(['template' => $this->formatter->format($template)], JsonResponse::HTTP_OK, 'Le modèle d’e-mail a bien été mis à jour.');
     }
 }

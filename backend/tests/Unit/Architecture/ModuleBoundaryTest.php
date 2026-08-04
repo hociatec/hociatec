@@ -113,8 +113,23 @@ final class ModuleBoundaryTest extends TestCase
     {
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
-            if (str_contains($path, '/Application/') && str_ends_with($path, 'Manager.php')) {
+            if (str_ends_with($path, 'Manager.php')) {
                 $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testCleanedMarketingControllersDoNotDecodeJsonInline(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module/Admin/UI/Marketing/Controller') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'JsonPayload::decode')) {
+                $violations[] = $this->relativePath($path).': JsonPayload::decode';
             }
         }
 

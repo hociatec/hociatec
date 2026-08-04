@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
-use App\Module\Admin\Application\Marketing\DTO\MarketingAudienceInput;
+use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Application\Service\MarketingCampaignService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,13 +21,13 @@ final class PreviewAudienceController extends AbstractController
     public function __construct(
         private readonly MarketingCampaignService $campaignService,
         private readonly DtoValidator $validator,
+        private readonly MarketingRequestMapper $requests,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
-        $input = MarketingAudienceInput::fromArray($payload);
+        $input = $this->requests->audience($request);
         $this->validator->validate($input);
 
         return ApiResponse::success([

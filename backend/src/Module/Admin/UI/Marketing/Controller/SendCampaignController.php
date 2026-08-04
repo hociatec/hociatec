@@ -6,8 +6,9 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
-use App\Module\Admin\Application\Marketing\DTO\MarketingCampaignInput;
+use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Application\Service\MarketingCampaignService;
+use App\Module\Marketing\Infrastructure\Http\EmailCampaignResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,13 +25,14 @@ final class SendCampaignController extends AbstractController
         private readonly MarketingCampaignService $campaignService,
         private readonly EmailTemplateRepository $templates,
         private readonly DtoValidator $validator,
+        private readonly MarketingRequestMapper $requests,
+        private readonly EmailCampaignResponseFormatter $formatter,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
-        $input = MarketingCampaignInput::fromArray($payload);
+        $input = $this->requests->campaign($request);
         $this->validator->validate($input);
 
         $template = $input->templateId ? $this->templates->find($input->templateId) : null;
@@ -45,13 +47,6 @@ final class SendCampaignController extends AbstractController
             $actor?->getEmail(),
         );
 
-        return ApiResponse::created([
-            'campaign' => [
-                'id' => $campaign->getId(),
-                'name' => $campaign->getName(),
-                'recipientsCount' => $campaign->getRecipientsCount(),
-                'sentAt' => $campaign->getSentAt()->format(DATE_ATOM),
-            ],
-        ]);
+        return ApiResponse::created(['campaign' => $this->formatter->summary($campaign)]);
     }
 }
