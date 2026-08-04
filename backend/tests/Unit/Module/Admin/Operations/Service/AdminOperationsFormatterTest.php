@@ -155,10 +155,10 @@ final class AdminOperationsFormatterTest extends TestCase
         $entityManager->persist($event);
         $entityManager->flush();
 
-        $formatter = new AdminOperationsFormatter(
+        $formatter = new AdminOperationsFormatter(new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter(
             $this->repository(OrderRepository::class, $entityManager),
             $this->repository(OrderEventRepository::class, $entityManager),
-        );
+        ));
 
         return [$formatter, $user, $product, $order, $support, $refund, $movement, $event];
     }

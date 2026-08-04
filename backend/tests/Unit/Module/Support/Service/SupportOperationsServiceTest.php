@@ -170,7 +170,7 @@ final class SupportOperationsServiceTest extends TestCase
             $this->repository(OrderRepository::class),
             $this->customerEmailService(),
             new OperationsPersistence($entityManager),
-            new AdminOperationsFormatter($this->repository(OrderRepository::class), $this->repository(OrderEventRepository::class)),
+            new AdminOperationsFormatter(new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->repository(OrderRepository::class), $this->repository(OrderEventRepository::class))),
         );
     }
 

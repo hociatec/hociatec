@@ -155,7 +155,13 @@ final class ModuleBoundaryTest extends TestCase
     {
         $violations = [];
         foreach ($this->directories(__DIR__.'/../../../src/Module') as $path) {
-            if (str_ends_with($path, '/Application/Dto') || str_contains($path, '/Application/Dto/')) {
+            $relativePath = $this->relativePath($path);
+            if (
+                str_contains($relativePath, '/Application/Dto')
+                || str_contains($relativePath, '/Application/Input')
+                || str_contains($relativePath, '/Application/Command')
+                || str_contains($relativePath, '/Application/Query')
+            ) {
                 $violations[] = $this->relativePath($path);
             }
         }
@@ -200,6 +206,24 @@ final class ModuleBoundaryTest extends TestCase
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
             if (str_contains($path, '/Application/') && !str_contains($path, '/Projection/') && str_ends_with($path, 'Formatter.php')) {
                 $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testLargeProjectionFormattersStaySplitByConcern(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Application/') || !str_contains($path, '/Projection/') || !str_ends_with($path, 'Formatter.php')) {
+                continue;
+            }
+
+            $lines = file($path);
+            self::assertIsArray($lines);
+            if (count($lines) > 180) {
+                $violations[] = $this->relativePath($path).': '.count($lines).' lines';
             }
         }
 
@@ -272,6 +296,46 @@ final class ModuleBoundaryTest extends TestCase
         }
 
         self::assertSame([], $violations);
+    }
+
+    public function testLargeAggregateRepositoriesKeepQueryConcernsSplit(): void
+    {
+        $limits = [
+            __DIR__.'/../../../src/Module/User/Infrastructure/Repository/UserRepository.php' => 180,
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderRepository.php' => 140,
+        ];
+        $requiredHelpers = [
+            __DIR__.'/../../../src/Module/User/Infrastructure/Repository/UserAdminCustomerQueries.php',
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderAdminQueries.php',
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderOperationsMetricsQueries.php',
+        ];
+        $violations = [];
+
+        foreach ($limits as $path => $limit) {
+            $lines = file($path);
+            self::assertIsArray($lines);
+            if (count($lines) > $limit) {
+                $violations[] = $this->relativePath($path).': '.count($lines).' lines';
+            }
+        }
+
+        foreach ($requiredHelpers as $path) {
+            if (!file_exists($path)) {
+                $violations[] = $this->relativePath($path).': missing query helper';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testArchitectureNamingConventionDocumentsSuffixes(): void
+    {
+        $doc = file_get_contents(__DIR__.'/../../../docs/architecture-naming.md');
+        self::assertIsString($doc);
+
+        foreach (['DTO', 'Command', 'Query', 'ResponseMapper', 'Handler', 'Provider', 'Projection', 'Calculator', 'Policy', 'Workflow', 'Mapper', 'Gateway', 'Repository', 'Service', 'Manager'] as $suffix) {
+            self::assertStringContainsString($suffix, $doc);
+        }
     }
 
     public function testCleanedMarketingControllersDoNotDecodeJsonInline(): void

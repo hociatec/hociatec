@@ -54,8 +54,14 @@ final class SystemControllersTest extends TestCase
         );
 
         self::assertSame(Response::HTTP_OK, $local->getStatusCode());
+        self::assertStringContainsString('hociatec_metrics_endpoint_up 1', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_observability_pipeline_info{format="prometheus",logs="json",request_id="enabled"} 1', (string) $local->getContent());
         self::assertStringContainsString('hociatec_database_up 1', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_pending_events 3', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_outbox_oldest_pending_age_seconds 42', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_outbox_failed_events 1', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_outbox_stale_processing_events 2', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_outbox_dead_events 4', (string) $local->getContent());
 
         $failingConnection = $this->createMock(Connection::class);
         $failingConnection->expects(self::once())->method('executeQuery')->willThrowException(new DbalException('db down'));

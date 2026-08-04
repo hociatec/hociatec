@@ -178,7 +178,7 @@ final class AdminOperationsControllersTest extends TestCase
 
     private function formatter(): AdminOperationsFormatter
     {
-        return new AdminOperationsFormatter($this->orders(), $this->orderEvents());
+        return new AdminOperationsFormatter(new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->orders(), $this->orderEvents()));
     }
 
     private function registry(): ManagerRegistry
