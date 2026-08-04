@@ -18,7 +18,7 @@ final readonly class RefreshTokenPersistence
         $this->entityManager->persist($token);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

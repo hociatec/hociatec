@@ -29,13 +29,9 @@ class PrestationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function remove(Prestation $prestation, bool $flush = false): void
+    public function remove(Prestation $prestation): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($prestation);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 }

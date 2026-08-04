@@ -19,7 +19,7 @@ final readonly class UpdatePromotionHandler
     public function update(Promotion $promotion, PromotionInput $input): Promotion
     {
         $this->dataApplier->apply($promotion, $input);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $promotion;
     }

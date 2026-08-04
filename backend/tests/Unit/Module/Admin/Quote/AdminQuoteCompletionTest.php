@@ -171,7 +171,10 @@ final class AdminQuoteCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, (new DeleteQuoteController($quoteRepository, $quoteService))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DeleteQuoteController($quoteRepository, $quoteService))($quoteId)->getStatusCode());
 
-        $deleteService = new DeleteServiceController($serviceRepository);
+        $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
+            $serviceRepository,
+            new \App\Module\Quote\Application\Service\QuotePersistence($em),
+        ));
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());
     }

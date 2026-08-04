@@ -41,7 +41,7 @@ final readonly class CheckoutSessionOrderCreator
 
                 $this->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
-                $this->persistence->flush();
+                $this->persistence->commit();
                 if (null === $order->getId()) {
                     throw new \InvalidArgumentException('Commande invalide.');
                 }
@@ -49,7 +49,7 @@ final readonly class CheckoutSessionOrderCreator
                 $this->markCartConverted($checkout, $order->getId());
                 $checkout->setOrderId($order->getId());
                 $this->persistence->persist($checkout);
-                $this->persistence->flush();
+                $this->persistence->commit();
 
                 return $order;
             },
@@ -128,7 +128,7 @@ final readonly class CheckoutSessionOrderCreator
         if ($cart instanceof CartSession && !$cart->isConverted()) {
             $cart->markConverted($orderId);
             $this->persistence->persist($cart);
-            $this->persistence->flush();
+            $this->persistence->commit();
         }
     }
 }

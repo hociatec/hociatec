@@ -41,6 +41,5 @@ class ServiceRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($service);
-        $entityManager->flush();
     }
 }

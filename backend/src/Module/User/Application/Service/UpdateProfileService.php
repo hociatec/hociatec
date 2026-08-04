@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
@@ -17,6 +18,7 @@ class UpdateProfileService
 {
     public function __construct(
         private readonly UserRepository $userRepository,
+        private readonly DoctrineUnitOfWork $unitOfWork,
         private readonly UpdatePersonalInformationService $personalInformation,
         private readonly ChangeProfileEmailService $emailChanger,
         private readonly ChangeProfilePasswordService $passwordChanger,
@@ -41,7 +43,8 @@ class UpdateProfileService
         $this->passwordChanger->change($user, $input->newPassword, $input->currentPassword);
 
         try {
-            $this->userRepository->save($user, true);
+            $this->userRepository->save($user);
+            $this->unitOfWork->commit();
         } catch (UniqueConstraintViolationException $exception) {
             if (!UserUniqueConstraintViolationDetector::isEmail($exception)) {
                 throw $exception;

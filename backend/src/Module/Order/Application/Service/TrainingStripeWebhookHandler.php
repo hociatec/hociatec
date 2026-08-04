@@ -46,7 +46,7 @@ final class TrainingStripeWebhookHandler
             $enrollment->setStatus(TrainingEnrollment::STATUS_CANCELLED);
         }
 
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return ['type' => $type, 'sessionId' => $enrollment->getStripeSessionId()];
     }

@@ -18,7 +18,7 @@ final readonly class WorkingDayConfigurationPersistence
         $this->entityManager->persist($configuration);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

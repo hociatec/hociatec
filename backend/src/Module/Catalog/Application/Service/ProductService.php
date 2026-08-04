@@ -110,7 +110,7 @@ final class ProductService
                 $variantDefinitions,
             );
 
-            $this->persistence->flush();
+            $this->persistence->commit();
             $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer le produit.', $exception);
@@ -205,7 +205,7 @@ final class ProductService
                 $variantDefinitions,
             );
 
-            $this->persistence->flush();
+            $this->persistence->commit();
             $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour le produit.', $exception);
@@ -218,7 +218,7 @@ final class ProductService
     {
         try {
             $this->persistence->remove($product);
-            $this->persistence->flush();
+            $this->persistence->commit();
             $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer le produit.', $exception);

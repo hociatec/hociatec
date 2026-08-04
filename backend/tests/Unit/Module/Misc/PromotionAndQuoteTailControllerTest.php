@@ -81,7 +81,10 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
         $services->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $serviceEntity);
         $services->expects(self::once())->method('delete')->with($serviceEntity);
 
-        $controller = new DeleteServiceController($services);
+        $controller = new DeleteServiceController($services, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
+            $services,
+            new \App\Module\Quote\Application\Service\QuotePersistence($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+        ));
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(7)->getStatusCode());
     }

@@ -128,7 +128,7 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         $prestationRepository->expects(self::once())->method('createQueryBuilder')->with('p')->willReturn($this->queryBuilderReturning([$prestation]));
         $prestationRepository->expects(self::once())->method('getEntityManager')->willReturn($this->entityManagerForRemoval($prestation));
         self::assertSame([$prestation], $prestationRepository->findAllOrderedByName());
-        $prestationRepository->remove($prestation, true);
+        $prestationRepository->remove($prestation);
 
         $emailTemplateRepository = $this->getMockBuilder(EmailTemplateRepository::class)
             ->setConstructorArgs([$this->registry(EmailTemplate::class)])
@@ -211,22 +211,22 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         $order = new Order('ORD-1', $user);
 
         (new WorkingDayConfigurationPersistence($entityManager))->save(new WorkingDayConfiguration(1, true));
-        (new WorkingDayConfigurationPersistence($entityManager))->flush();
+        (new WorkingDayConfigurationPersistence($entityManager))->commit();
         (new RefreshTokenPersistence($entityManager))->save(new RefreshToken($user, 'selector', 'hashed', new \DateTimeImmutable('+1 day')));
-        (new RefreshTokenPersistence($entityManager))->flush();
+        (new RefreshTokenPersistence($entityManager))->commit();
         (new RatingPersistence($entityManager))->persist(new \stdClass());
-        (new RatingPersistence($entityManager))->flush();
+        (new RatingPersistence($entityManager))->commit();
         (new TradeInPersistence($entityManager))->save($this->tradeInRequest($user));
         (new TradeInPersistence($entityManager))->remove($this->tradeInRequest($user));
-        (new OrderPersistence($entityManager))->flush();
+        (new OrderPersistence($entityManager))->commit();
         (new OrderPersistence($entityManager))->save($order);
         (new PrestationPersistence($entityManager))->save(new Prestation('Diag', 30, 1000));
-        (new PrestationPersistence($entityManager))->flush();
+        (new PrestationPersistence($entityManager))->commit();
         (new PrestationPersistence($entityManager))->delete(new Prestation('Diag', 30, 1000));
         (new StripeWebhookEventPersistence($entityManager))->save(new StripeWebhookEvent('evt_1', 'checkout.session.completed', '{}'));
-        (new StripeWebhookEventPersistence($entityManager))->flush();
+        (new StripeWebhookEventPersistence($entityManager))->commit();
         (new OperationsPersistence($entityManager))->persist(new \stdClass());
-        (new OperationsPersistence($entityManager))->flush();
+        (new OperationsPersistence($entityManager))->commit();
     }
 
     private function repository(string $repositoryClass, string $entityClass): object
@@ -263,7 +263,6 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($entity);
-        $entityManager->expects(self::once())->method('flush');
 
         return $entityManager;
     }

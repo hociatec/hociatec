@@ -16,6 +16,6 @@ final readonly class DeleteVoucherHandler
     public function delete(Voucher $voucher): void
     {
         $this->persistence->remove($voucher);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

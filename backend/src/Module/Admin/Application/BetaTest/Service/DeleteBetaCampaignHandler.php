@@ -16,6 +16,6 @@ final readonly class DeleteBetaCampaignHandler
     public function delete(BetaCampaign $campaign): void
     {
         $this->persistence->remove($campaign);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

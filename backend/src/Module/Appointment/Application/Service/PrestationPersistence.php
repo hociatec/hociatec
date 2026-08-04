@@ -18,7 +18,7 @@ final readonly class PrestationPersistence
         $this->entityManager->persist($prestation);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

@@ -19,14 +19,10 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    public function save(User $user, bool $flush = false): void
+    public function save(User $user): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($user);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 
     public function existsByEmail(string $email): bool
@@ -60,14 +56,10 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function remove(User $user, bool $flush = false): void
+    public function remove(User $user): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($user);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 
     public function findOneByVerificationTokens(string $hashedToken, string $legacyToken): ?User

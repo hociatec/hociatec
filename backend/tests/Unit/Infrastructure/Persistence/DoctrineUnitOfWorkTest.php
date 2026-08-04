@@ -28,7 +28,7 @@ final class DoctrineUnitOfWorkTest extends TestCase
 
         $persistence->persist($entity);
         $persistence->remove($entity);
-        $persistence->flush();
+        $persistence->commit();
         self::assertSame($queryBuilder, $persistence->queryBuilder());
         $persistence->clear();
     }

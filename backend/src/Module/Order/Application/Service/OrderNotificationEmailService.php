@@ -65,7 +65,7 @@ final class OrderNotificationEmailService
 
         $this->sendScenario($order, 'order_created');
         $order->setOrderCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->events->log($order, null, 'email_sent', $force ? 'Email client renvoyé: commande enregistrée.' : 'Email client envoyé: commande enregistrée.');
 
         return true;
@@ -88,7 +88,7 @@ final class OrderNotificationEmailService
 
         $this->sendScenario($order, 'order_invoice_issued');
         $order->setInvoiceEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', $force ? 'Email client renvoyé: facture disponible.' : 'Email client envoyé: facture disponible.');
 
         return true;
@@ -122,7 +122,7 @@ final class OrderNotificationEmailService
             Order::STATUS_CANCELLED => $order->setStatusCancelledEmailSentAt($sentAt),
         };
 
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', ($force ? 'Email client renvoyé: statut ' : 'Email client envoyé: statut ').$this->formatStatus($newStatus).'.');
 
         return true;

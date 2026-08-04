@@ -91,7 +91,8 @@ final class AppointmentModuleCompletionTest extends TestCase
         self::assertSame([$cancelled, $future, $old], $this->appointments()->findForUser($user));
         self::assertSame([$cancelled], $this->appointments()->findForUser($user, Appointment::STATUS_CANCELLED));
 
-        $this->prestations()->remove($prestation, true);
+        $this->prestations()->remove($prestation);
+        $this->entityManager()->flush();
         self::assertSame([], $this->prestations()->findAllOrderedByName());
     }
 

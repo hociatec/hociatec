@@ -23,7 +23,7 @@ final readonly class UserPersistence
         $this->entityManager->remove($user);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

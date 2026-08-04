@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Service;
 
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
@@ -13,6 +14,7 @@ class PasswordResetService
 {
     public function __construct(
         private readonly UserRepository $users,
+        private readonly DoctrineUnitOfWork $unitOfWork,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,
     ) {
@@ -32,11 +34,12 @@ class PasswordResetService
             ->setPasswordResetToken($token)
             ->setPasswordResetTokenExpiresAt($expiresAt);
 
-        $this->users->save($user, true);
         $this->outbox->record('auth.password_reset.'.hash('sha256', $token), 'auth.password_reset_email_requested', [
             'email' => $user->getEmail(),
             'token' => $token,
         ]);
+        $this->users->save($user);
+        $this->unitOfWork->commit();
     }
 
     public function reset(string $token, string $plainPassword): void
@@ -51,7 +54,8 @@ class PasswordResetService
             $user
                 ->setPasswordResetToken(null)
                 ->setPasswordResetTokenExpiresAt(null);
-            $this->users->save($user, true);
+            $this->users->save($user);
+            $this->unitOfWork->commit();
 
             throw new \RuntimeException('Le lien de réinitialisation a expiré.');
         }
@@ -61,6 +65,7 @@ class PasswordResetService
             ->setPasswordResetToken(null)
             ->setPasswordResetTokenExpiresAt(null);
 
-        $this->users->save($user, true);
+        $this->users->save($user);
+        $this->unitOfWork->commit();
     }
 }

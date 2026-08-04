@@ -16,6 +16,6 @@ final readonly class DeleteBetaTesterHandler
     public function delete(BetaTesterProfile $profile): void
     {
         $this->persistence->remove($profile);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

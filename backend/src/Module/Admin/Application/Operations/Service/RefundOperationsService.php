@@ -56,7 +56,7 @@ final readonly class RefundOperationsService
             ->setCurrencyCode($data->currencyCode);
 
         $this->persistence->persist($refund);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $this->formatter->refund($refund);
     }
@@ -77,7 +77,7 @@ final readonly class RefundOperationsService
         if (null !== $data->internalNotes) {
             $refund->setInternalNotes($data->internalNotes);
         }
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $this->formatter->refund($refund);
     }
@@ -113,7 +113,7 @@ final readonly class RefundOperationsService
                 throw new \InvalidArgumentException('Ce remboursement est déjà en cours ou a déjà été traité.');
             }
             $locked->setStatus(RefundRequest::STATUS_PROCESSING);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $locked;
         });
@@ -128,13 +128,13 @@ final readonly class RefundOperationsService
             ]);
         } catch (ExternalServiceException|\JsonException $exception) {
             $refund->setStatus($previousStatus);
-            $this->persistence->flush();
+            $this->persistence->commit();
             throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);
         }
 
         $stripeRefundId = is_string($stripeRefund['id'] ?? null) ? $stripeRefund['id'] : null;
         $refund->setStripeRefundId($stripeRefundId)->setStatus(RefundRequest::STATUS_PROCESSED);
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->events->log(
             $refund->getOrder(),
             $actor,

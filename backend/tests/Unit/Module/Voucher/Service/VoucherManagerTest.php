@@ -23,6 +23,8 @@ use PHPUnit\Framework\TestCase;
 
 final class VoucherManagerTest extends TestCase
 {
+    private EntityManager $entityManager;
+
     public function testCreateNormalizesOptionalFieldsAndDeleteRemovesVoucher(): void
     {
         $repository = $this->repository();
@@ -180,7 +182,8 @@ final class VoucherManagerTest extends TestCase
             }
         }
 
-        $repository->save(new Voucher('Existing', 'DUPLICATE', Voucher::TYPE_FIXED_CENTS, 500), true);
+        $repository->save(new Voucher('Existing', 'DUPLICATE', Voucher::TYPE_FIXED_CENTS, 500));
+        $this->entityManager->flush();
 
         try {
             $manager->create([
@@ -200,7 +203,8 @@ final class VoucherManagerTest extends TestCase
     {
         $repository = $this->repository();
         $voucher = new Voucher('Existing', 'SAME', Voucher::TYPE_FIXED_CENTS, 500);
-        $repository->save($voucher, true);
+        $repository->save($voucher);
+        $this->entityManager->flush();
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
@@ -248,12 +252,12 @@ final class VoucherManagerTest extends TestCase
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../../src'], true);
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
-        $entityManager = new EntityManager($connection, $config);
-        $schemaTool = new SchemaTool($entityManager);
-        $schemaTool->createSchema([$entityManager->getClassMetadata(Voucher::class)]);
+        $this->entityManager = new EntityManager($connection, $config);
+        $schemaTool = new SchemaTool($this->entityManager);
+        $schemaTool->createSchema([$this->entityManager->getClassMetadata(Voucher::class)]);
 
         $registry = $this->createMock(ManagerRegistry::class);
-        $registry->method('getManagerForClass')->willReturn($entityManager);
+        $registry->method('getManagerForClass')->willReturn($this->entityManager);
 
         return new VoucherRepository($registry);
     }

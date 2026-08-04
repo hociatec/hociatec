@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +19,7 @@ class DeleteServiceController extends AbstractController
 {
     public function __construct(
         private readonly ServiceRepository $serviceRepository,
+        private readonly DeleteQuoteServiceHandler $deleteService,
     ) {
     }
 
@@ -28,7 +30,7 @@ class DeleteServiceController extends AbstractController
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->serviceRepository->delete($service);
+        $this->deleteService->delete($service);
 
         return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le service a bien été supprimé.');
     }

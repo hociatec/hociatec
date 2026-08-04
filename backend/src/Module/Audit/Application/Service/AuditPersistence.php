@@ -18,7 +18,7 @@ final readonly class AuditPersistence
         $this->entityManager->persist($audit);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

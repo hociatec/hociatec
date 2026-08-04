@@ -26,7 +26,7 @@ final readonly class TradeInService
             $request->setRib($stored['path'], $stored['originalName'], $stored['size'], $stored['sha256']);
         }
         $this->persistence->save($request);
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->notifications->sendCreated($request);
 
         return $request;
@@ -38,7 +38,7 @@ final readonly class TradeInService
         $this->assertTransition($request->getStatus(), $status);
         $request->setStatus($status);
         $this->persistence->save($request);
-        $this->persistence->flush();
+        $this->persistence->commit();
         if ($previous !== $status) {
             $this->notifications->sendStatusChanged($request);
         }
@@ -49,7 +49,7 @@ final readonly class TradeInService
         $this->assertTransition($request->getStatus(), TradeInStatus::OFFER_SENT);
         $request->setOffer($offerCents, $expiresAt)->setAdminNote($note)->setStatus(TradeInStatus::OFFER_SENT);
         $this->persistence->save($request);
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->notifications->sendStatusChanged($request);
     }
 

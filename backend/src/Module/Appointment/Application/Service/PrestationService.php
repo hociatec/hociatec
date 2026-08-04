@@ -35,7 +35,7 @@ final class PrestationService
 
         try {
             $this->persistence->save($prestation);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible d\'enregistrer la prestation.', $exception);
         }
@@ -53,7 +53,7 @@ final class PrestationService
             ->setPriceCents($priceCents);
 
         try {
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible de mettre à jour la prestation.', $exception);
         }
@@ -65,7 +65,7 @@ final class PrestationService
     {
         try {
             $this->persistence->delete($prestation);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible de supprimer la prestation.', $exception);
         }

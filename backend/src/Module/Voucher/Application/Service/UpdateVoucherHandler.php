@@ -39,7 +39,7 @@ final readonly class UpdateVoucherHandler
     private function flushWithDuplicateCodeHandling(): void
     {
         try {
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (UniqueConstraintViolationException $exception) {
             throw new \InvalidArgumentException('Ce code existe déjà.', previous: $exception);
         }

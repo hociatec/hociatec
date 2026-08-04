@@ -51,7 +51,7 @@ final readonly class FulfillmentOperationsService
         if (null === $order->getDeliveryShippedAt()) {
             $order->setDeliveryShippedAt(new \DateTimeImmutable());
         }
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         $this->events->log(
             $order,

@@ -56,7 +56,7 @@ final readonly class StockOperationsService
             $movement = new StockMovement($product, $after - $before, $before, $after, $reason, $actor);
             $movement->setNote($note);
             $this->persistence->persist($movement);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $this->formatter->stockMovement($movement);
         });
@@ -78,7 +78,7 @@ final readonly class StockOperationsService
             }
 
             $product->setLowStockThreshold($threshold);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $this->formatter->lowStockProduct($product);
         });

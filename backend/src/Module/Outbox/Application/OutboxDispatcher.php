@@ -42,7 +42,7 @@ final readonly class OutboxDispatcher
         }
 
         $event->retry()->markProcessing();
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         try {
             $handler->handle($event);
@@ -56,7 +56,7 @@ final readonly class OutboxDispatcher
             ]);
         }
 
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     private function handlerFor(OutboxEvent $event): ?OutboxEventHandler

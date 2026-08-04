@@ -28,7 +28,7 @@ final readonly class NewsArticleWriter
 
         try {
             $this->persistence->persist($article);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             if ($article->isPublished()) {
                 $this->dispatchPublishedEmails($article);
@@ -46,7 +46,7 @@ final readonly class NewsArticleWriter
         $this->apply($article, $input);
 
         try {
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             if (!$wasPublished && $article->isPublished()) {
                 $this->dispatchPublishedEmails($article);
@@ -62,7 +62,7 @@ final readonly class NewsArticleWriter
     {
         try {
             $this->persistence->remove($entity);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw NewsOperationException::failed('Impossible de supprimer l’actualité.', $exception);
         }

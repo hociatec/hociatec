@@ -30,7 +30,7 @@ final readonly class QuotePersistence
         $this->entityManager->remove($item);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

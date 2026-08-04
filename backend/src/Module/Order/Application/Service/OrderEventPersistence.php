@@ -18,7 +18,7 @@ final readonly class OrderEventPersistence
         $this->entityManager->persist($event);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

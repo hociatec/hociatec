@@ -56,7 +56,7 @@ final readonly class TradeInClosureService
                 ]);
                 $voucher->setRecipientUserId($request->getUser()?->getId())->setRecipientEmail($request->getEmail());
                 $this->unitOfWork->persist($voucher);
-                $this->unitOfWork->flush();
+                $this->unitOfWork->commit();
                 $request->setVoucherCode($voucher->getCode());
             }
             $paymentStatus = 'store_credit' === $input->paymentMethod ? 'paid' : $input->paymentStatus;
@@ -66,7 +66,7 @@ final readonly class TradeInClosureService
             $receipt = $this->renderReceipt($this->receiptHtml($request, $input));
             $request->setReceiptPath($this->files->storeReceipt($receipt));
             $this->persistence->save($request);
-            $this->persistence->flush();
+            $this->persistence->commit();
         });
 
         if ($voucher instanceof Voucher && null !== $request->getUser()) {
@@ -74,7 +74,7 @@ final readonly class TradeInClosureService
                 $this->voucherNotifications->sendCustomerVoucher($request->getUser(), $voucher);
                 $voucher->setSentAt(new \DateTimeImmutable());
                 $this->unitOfWork->persist($voucher);
-                $this->unitOfWork->flush();
+                $this->unitOfWork->commit();
             } catch (\RuntimeException $exception) {
                 $this->logger->error('Impossible d’envoyer l’avoir de reprise.', ['reference' => $request->getReference(), 'exception' => $exception]);
             }

@@ -34,7 +34,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $quote = new Quote($this->numberGenerator->generate());
         try {
             $this->persistence->save($quote);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
         }
@@ -48,7 +48,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $this->hydrateQuote($quote, $payload);
         try {
             $this->persistence->save($quote);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
         }
@@ -60,7 +60,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         $this->hydrateQuote($quote, $payload, true);
         try {
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de mettre à jour le devis.', $exception);
         }
@@ -199,7 +199,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         try {
             $this->persistence->delete($quote);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de supprimer le devis.', $exception);
         }

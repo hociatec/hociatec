@@ -49,14 +49,10 @@ final class VoucherRepository extends ServiceEntityRepository implements Voucher
             ->getOneOrNullResult();
     }
 
-    public function save(Voucher $voucher, bool $flush = false): void
+    public function save(Voucher $voucher): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($voucher);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 
     /**

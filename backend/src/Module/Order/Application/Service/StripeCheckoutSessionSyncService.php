@@ -44,7 +44,7 @@ final class StripeCheckoutSessionSyncService
 
             $checkout->markExpired('checkout.session.expired');
             $this->persistence->persist($checkout);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return;
         }
@@ -62,7 +62,7 @@ final class StripeCheckoutSessionSyncService
         } catch (ExternalServiceException|\JsonException) {
             $checkout->setStripePaymentIntentId($paymentIntentId);
             $this->persistence->persist($checkout);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return;
         }
@@ -91,7 +91,7 @@ final class StripeCheckoutSessionSyncService
         }
 
         $this->persistence->persist($checkout);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     public function syncRecentOpenPayments(int $limit = 20): void

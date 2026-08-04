@@ -49,7 +49,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
         $persistence->save($user);
-        $persistence->flush();
+        $persistence->commit();
     }
 
     public function testDoctrineTransactionManagerDelegatesTransaction(): void

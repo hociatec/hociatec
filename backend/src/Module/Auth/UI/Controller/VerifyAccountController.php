@@ -6,8 +6,7 @@ namespace App\Module\Auth\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimitKeyFactory;
-use App\Module\User\Application\Service\VerificationTokenHasher;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Service\AccountVerificationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class VerifyAccountController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly AccountVerificationService $verification,
         private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.activation_verify')]
         private readonly RateLimiterFactory $activationVerifyLimiter,
@@ -28,38 +27,17 @@ class VerifyAccountController extends AbstractController
 
     public function __invoke(string $token, Request $request): JsonResponse
     {
-        if (!VerificationTokenHasher::isValidRawToken($token)) {
-            return ApiResponse::error('Lien d\'activation invalide.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
         $limiter = $this->activationVerifyLimiter->create($this->rateLimitKeys->forRequest($request, $token));
         $limit = $limiter->consume(1);
         if (!$limit->isAccepted()) {
             return ApiResponse::error('Trop de tentatives, réessayez plus tard.', JsonResponse::HTTP_TOO_MANY_REQUESTS);
         }
 
-        $user = $this->users->findOneByVerificationTokens(
-            VerificationTokenHasher::hash($token),
-            $token,
-        );
-        if (null === $user) {
-            return ApiResponse::error('Lien d\'activation invalide.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $now = new \DateTimeImmutable();
-        $expiresAt = $user->getVerificationTokenExpiresAt();
-        if ($user->isVerified()) {
-            return ApiResponse::success(['message' => 'Votre compte est déjà activé.']);
-        }
-        if (null !== $expiresAt && $expiresAt < $now) {
-            return ApiResponse::error('Le lien d\'activation a expiré.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $user->setIsVerified(true);
-        $user->setVerificationToken(null);
-        $user->setVerificationTokenExpiresAt($now);
-        $this->users->save($user, true);
-
-        return ApiResponse::success(['message' => 'Votre compte a été activé avec succès.']);
+        return match ($this->verification->verify($token)) {
+            AccountVerificationService::ALREADY_VERIFIED => ApiResponse::success(['message' => 'Votre compte est déjà activé.']),
+            AccountVerificationService::EXPIRED => ApiResponse::error('Le lien d\'activation a expiré.', JsonResponse::HTTP_BAD_REQUEST),
+            AccountVerificationService::VERIFIED => ApiResponse::success(['message' => 'Votre compte a été activé avec succès.']),
+            default => ApiResponse::error('Lien d\'activation invalide.', JsonResponse::HTTP_BAD_REQUEST),
+        };
     }
 }

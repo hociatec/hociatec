@@ -36,7 +36,7 @@ final readonly class BulkOrderStatusService
                     ++$updated;
                 }
             }
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $updated;
         });

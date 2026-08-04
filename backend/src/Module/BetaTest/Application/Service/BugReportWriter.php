@@ -52,7 +52,7 @@ final readonly class BugReportWriter
         try {
             $this->persistence->persist($report);
             $this->activityLogger->log($report, $user, 'report_created', null, null, $title);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw BetaTestOperationException::failed('Impossible d’enregistrer le signalement bêta.', $exception);
         }

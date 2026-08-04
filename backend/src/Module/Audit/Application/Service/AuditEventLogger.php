@@ -25,12 +25,12 @@ class AuditEventLogger
             $actor?->getFullName() ?? $actor?->getEmail()
         );
         $this->persistence->persist($event);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     public function save(object $entity): void
     {
         $this->persistence->persist($entity);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

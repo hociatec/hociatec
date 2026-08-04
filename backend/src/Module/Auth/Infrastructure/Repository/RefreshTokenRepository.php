@@ -20,24 +20,16 @@ class RefreshTokenRepository extends ServiceEntityRepository
         parent::__construct($registry, RefreshToken::class);
     }
 
-    public function save(RefreshToken $refreshToken, bool $flush = false): void
+    public function save(RefreshToken $refreshToken): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($refreshToken);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 
-    public function remove(RefreshToken $refreshToken, bool $flush = false): void
+    public function remove(RefreshToken $refreshToken): void
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($refreshToken);
-
-        if ($flush) {
-            $entityManager->flush();
-        }
     }
 
     public function findOneBySelector(string $selector): ?RefreshToken
@@ -56,16 +48,12 @@ class RefreshTokenRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function revokeAllForUser(User $user, bool $flush = false): void
+    public function revokeAllForUser(User $user): void
     {
         $tokens = $this->findBy(['user' => $user, 'revokedAt' => null]);
 
         foreach ($tokens as $token) {
             $token->revoke();
-        }
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
         }
     }
 

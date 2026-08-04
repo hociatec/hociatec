@@ -25,7 +25,7 @@ final readonly class DoctrineUnitOfWork
         $this->entityManager->remove($entity);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

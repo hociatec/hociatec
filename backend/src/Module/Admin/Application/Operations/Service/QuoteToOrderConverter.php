@@ -50,7 +50,7 @@ final readonly class QuoteToOrderConverter
         $this->persistence->persist($order);
         $quote->setConvertedOrder($order);
         $quote->setStatus(Quote::STATUS_ACCEPTED);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         [$emailSent, $emailError] = $this->sendNotification($order);
 

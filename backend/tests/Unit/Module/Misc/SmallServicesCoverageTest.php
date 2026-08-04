@@ -82,7 +82,7 @@ final class SmallServicesCoverageTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $persistence->save($quote);
-        $persistence->flush();
+        $persistence->commit();
         $persistence->delete($quote);
 
         $entityManager2 = $this->createMock(EntityManagerInterface::class);

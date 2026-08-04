@@ -38,7 +38,7 @@ final class CartMergeService
             $this->persistence->persist($userCart);
             // Remove the old cart shell
             $this->persistence->remove($tokenCart);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $userCart;
         }
@@ -51,7 +51,7 @@ final class CartMergeService
             $tokenCart->setUser($user);
             $tokenCart->touch();
             $this->persistence->persist($tokenCart);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $tokenCart;
         }
@@ -73,7 +73,7 @@ final class CartMergeService
         $cart = new CartSession($token);
         $cart->setUser($user);
         $this->persistence->persist($cart);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $cart;
     }

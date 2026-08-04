@@ -19,27 +19,21 @@ class ShippingAddressRepository extends ServiceEntityRepository
         parent::__construct($registry, ShippingAddress::class);
     }
 
-    public function save(ShippingAddress $address, bool $flush = false): void
+    public function save(ShippingAddress $address): void
     {
         $em = $this->getEntityManager();
         $em->persist($address);
-        if ($flush) {
-            $em->flush();
-        }
     }
 
-    public function remove(ShippingAddress $address, bool $flush = false): void
+    public function remove(ShippingAddress $address): void
     {
         $em = $this->getEntityManager();
         $em->remove($address);
-        if ($flush) {
-            $em->flush();
-        }
     }
 
     public function delete(ShippingAddress $address): void
     {
-        $this->remove($address, true);
+        $this->remove($address);
     }
 
     /** @return list<ShippingAddress> */
@@ -98,6 +92,5 @@ class ShippingAddressRepository extends ServiceEntityRepository
         // set the one
         $address->setIsDefault(true);
         $em->persist($address);
-        $em->flush();
     }
 }

@@ -101,14 +101,18 @@ final class AuthModuleCompletionTest extends TestCase
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttled(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
 
         $expired = new RefreshToken($user, 'expired', hash('sha256', 'secret'), new \DateTimeImmutable('-1 hour'));
-        $repository->save($expired, true);
+        $repository->save($expired);
+        $em->flush();
         self::assertNull($service->rotate('expired.secret'));
 
         $manual = new RefreshToken($user, 'manual', hash('sha256', 'secret'), new \DateTimeImmutable('+1 hour'));
-        $repository->save($manual, true);
-        $repository->revokeAllForUser($user, true);
+        $repository->save($manual);
+        $em->flush();
+        $repository->revokeAllForUser($user);
+        $em->flush();
         self::assertTrue($manual->isRevoked());
-        $repository->remove($manual, true);
+        $repository->remove($manual);
+        $em->flush();
         self::assertNull($repository->findOneBySelector('manual'));
     }
 
@@ -123,6 +127,7 @@ final class AuthModuleCompletionTest extends TestCase
         $passwords->method('hashPassword')->willReturn('new-hash');
         $passwordReset = new PasswordResetService(
             $this->userRepository($em),
+            new DoctrineUnitOfWork($em),
             $passwords,
             new Outbox(new DoctrineUnitOfWork($em)),
         );
@@ -158,7 +163,7 @@ final class AuthModuleCompletionTest extends TestCase
         $em->persist($verifyUser);
         $em->flush();
 
-        $verify = new VerifyAccountController($this->userRepository($em), new \App\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
+        $verify = new VerifyAccountController(new \App\Module\User\Application\Service\AccountVerificationService($this->userRepository($em), new DoctrineUnitOfWork($em)), new \App\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $verify('bad', Request::create('/'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $verify($rawToken, Request::create('/'))->getStatusCode());
         self::assertTrue($verifyUser->isVerified());
@@ -180,7 +185,7 @@ final class AuthModuleCompletionTest extends TestCase
         $em->persist($expired);
         $em->flush();
         self::assertSame(Response::HTTP_BAD_REQUEST, $verify($expiredToken, Request::create('/'))->getStatusCode());
-        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, (new VerifyAccountController($this->userRepository($em), new \App\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0)))($rawToken, Request::create('/', server: ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, (new VerifyAccountController(new \App\Module\User\Application\Service\AccountVerificationService($this->userRepository($em), new DoctrineUnitOfWork($em)), new \App\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0)))($rawToken, Request::create('/', server: ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
     }
 
     public function testAuthenticationHandlers(): void

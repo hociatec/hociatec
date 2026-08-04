@@ -55,7 +55,7 @@ class ProductRatingService
         }
 
         $this->persistence->persist($rating);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         $this->statsUpdater->refresh($product);
 

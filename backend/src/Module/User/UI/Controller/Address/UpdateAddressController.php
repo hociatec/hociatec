@@ -8,6 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\ShippingAddressInput;
 use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Service\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,7 @@ class UpdateAddressController extends AbstractController
 {
     public function __construct(
         private readonly ShippingAddressRepository $addresses,
+        private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
     ) {
     }
@@ -51,7 +53,7 @@ class UpdateAddressController extends AbstractController
             ->setCompanyVatNumber($input->companyVatNumber)
             ->setPurchaseOrderNumber($input->purchaseOrderNumber);
 
-        $this->addresses->save($address, true);
+        $this->writer->save($address);
 
         return ApiResponse::success(['address' => ShippingAddressFormatter::toArray($address)]);
     }

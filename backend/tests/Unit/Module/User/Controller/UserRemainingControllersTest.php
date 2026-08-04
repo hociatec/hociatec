@@ -59,11 +59,14 @@ final class UserRemainingControllersTest extends TestCase
         $repo->expects(self::exactly(2))->method('setDefault')->with($user, self::isInstanceOf(ShippingAddress::class));
         $address = new ShippingAddress($user, 'Home', '1 rue', '75001', 'Paris');
         $repo->expects(self::exactly(2))->method('findOneForUser')->willReturnOnConsecutiveCalls(null, $address);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::exactly(3))->method('flush');
+        $writer = new \App\Module\User\Application\Service\ShippingAddressWriter($repo, new \App\Infrastructure\Persistence\DoctrineUnitOfWork($entityManager));
 
-        $create = new class($repo, $validator, $user) extends CreateAddressController {
-            public function __construct(ShippingAddressRepository $addresses, DtoValidator $validator, private User $user)
+        $create = new class($writer, $validator, $user) extends CreateAddressController {
+            public function __construct(\App\Module\User\Application\Service\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
             {
-                parent::__construct($addresses, $validator);
+                parent::__construct($writer, $validator);
             }
             protected function getUser(): ?User { return $this->user; }
         };
@@ -85,10 +88,10 @@ final class UserRemainingControllersTest extends TestCase
         ], JSON_THROW_ON_ERROR)));
         self::assertSame(201, $createdB->getStatusCode());
 
-        $update = new class($repo, $validator, $user) extends UpdateAddressController {
-            public function __construct(ShippingAddressRepository $addresses, DtoValidator $validator, private User $user)
+        $update = new class($repo, $writer, $validator, $user) extends UpdateAddressController {
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
             {
-                parent::__construct($addresses, $validator);
+                parent::__construct($addresses, $writer, $validator);
             }
             protected function getUser(): ?User { return $this->user; }
         };

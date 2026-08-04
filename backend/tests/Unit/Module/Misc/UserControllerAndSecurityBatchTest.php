@@ -76,8 +76,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $deleteRepo = $this->createMock(ShippingAddressRepository::class);
         $deleteRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
         $deleteRepo->expects(self::once())->method('delete')->with($address);
-        $deleteController = new class($deleteRepo, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses); }
+        $deleteWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
+            $deleteRepo,
+            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+        );
+        $deleteController = new class($deleteRepo, $deleteWriter, $user) extends DeleteAddressController {
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());
@@ -86,8 +90,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $defaultRepo = $this->createMock(ShippingAddressRepository::class);
         $defaultRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
         $defaultRepo->expects(self::once())->method('setDefault')->with($user, $address);
-        $defaultController = new class($defaultRepo, $user) extends SetDefaultAddressController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses); }
+        $defaultWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
+            $defaultRepo,
+            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+        );
+        $defaultController = new class($defaultRepo, $defaultWriter, $user) extends SetDefaultAddressController {
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $defaultController(7)->getStatusCode());

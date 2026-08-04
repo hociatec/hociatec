@@ -8,11 +8,9 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
+use App\Module\Admin\Application\User\Service\CreateCustomerVoucherHandler as CreateCustomerVoucherForCustomerHandler;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherFormatter;
-use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,9 +24,7 @@ final class CreateCustomerVoucherController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $users,
-        private readonly CreateVoucherHandler $createVoucher,
-        private readonly VoucherNotificationEmailService $notifications,
-        private readonly VoucherRepository $vouchers,
+        private readonly CreateCustomerVoucherForCustomerHandler $createVoucher,
         private readonly DtoValidator $validator,
     ) {
     }
@@ -49,7 +45,7 @@ final class CreateCustomerVoucherController extends AbstractController
         try {
             $input = CustomerVoucherInput::fromArray($payload);
             $this->validator->validate($input);
-            $voucher = $this->createVoucher->create([
+            $created = $this->createVoucher->create($user, $input, [
                 'name' => $input->name,
                 'code' => $this->normalizeCode($input->code ?? $this->generateCode($user->getLastName())),
                 'description' => $input->description,
@@ -63,22 +59,9 @@ final class CreateCustomerVoucherController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
-        $emailSent = false;
-        $voucher
-            ->setRecipientUserId($user->getId())
-            ->setRecipientEmail($user->getEmail());
-
-        if ($input->sendEmail) {
-            $this->notifications->sendCustomerVoucher($user, $voucher);
-            $voucher->setSentAt(new \DateTimeImmutable());
-            $emailSent = true;
-        }
-
-        $this->vouchers->save($voucher, true);
-
         return ApiResponse::created([
-            'voucher' => VoucherFormatter::formatVoucher($voucher),
-            'emailSent' => $emailSent,
+            'voucher' => VoucherFormatter::formatVoucher($created->voucher),
+            'emailSent' => $created->emailSent,
         ]);
     }
 

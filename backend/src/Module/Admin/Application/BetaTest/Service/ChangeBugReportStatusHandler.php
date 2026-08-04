@@ -31,7 +31,7 @@ final readonly class ChangeBugReportStatusHandler
         if ($previousStatus !== $status) {
             $this->activityLogger->log($report, $actor, 'status_changed', $previousStatus, $status);
         }
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         if ($previousStatus !== $status) {
             $changedAt = new \DateTimeImmutable();

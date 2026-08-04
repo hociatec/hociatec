@@ -33,7 +33,7 @@ final readonly class BetaCampaignProvider
         }
 
         if ($hasClosedCampaign) {
-            $this->persistence->flush();
+            $this->persistence->commit();
         }
 
         return array_values(array_filter($allActiveCampaigns, static fn (BetaCampaign $campaign): bool => $campaign->isOpenForReports($now)));

@@ -24,7 +24,7 @@ final readonly class CreateQuoteServiceHandler
         $this->formApplier->apply($service, $data);
         try {
             $this->persistence->persist($service);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de créer le service.', $exception);
         }

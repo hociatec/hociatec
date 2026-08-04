@@ -23,7 +23,7 @@ final readonly class FavoritePersistence
         $this->entityManager->remove($favorite);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Admin\Application\User\Service;
+
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
+use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+
+final readonly class CreateCustomerVoucherHandler
+{
+    public function __construct(
+        private CreateVoucherHandler $createVoucher,
+        private VoucherNotificationEmailService $notifications,
+        private VoucherRepository $vouchers,
+        private DoctrineUnitOfWork $unitOfWork,
+    ) {
+    }
+
+    /**
+     * @param array{
+     *   name:string,
+     *   code:string,
+     *   description?:?string,
+     *   discountType:string,
+     *   discountValue:int,
+     *   isActive?:bool,
+     *   startsAt?:?\DateTimeImmutable,
+     *   endsAt?:?\DateTimeImmutable
+     * } $data
+     */
+    public function create(User $user, CustomerVoucherInput $input, array $data): CreatedCustomerVoucher
+    {
+        $voucher = $this->createVoucher->create($data);
+        $emailSent = false;
+
+        $voucher
+            ->setRecipientUserId($user->getId())
+            ->setRecipientEmail($user->getEmail());
+
+        if ($input->sendEmail) {
+            $this->notifications->sendCustomerVoucher($user, $voucher);
+            $voucher->setSentAt(new \DateTimeImmutable());
+            $emailSent = true;
+        }
+
+        $this->vouchers->save($voucher);
+        $this->unitOfWork->commit();
+
+        return new CreatedCustomerVoucher($voucher, $emailSent);
+    }
+}
+
+final readonly class CreatedCustomerVoucher
+{
+    public function __construct(public Voucher $voucher, public bool $emailSent)
+    {
+    }
+}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\UI\Controller\Address;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\User\Application\Service\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class SetDefaultAddressController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses)
+    public function __construct(private readonly ShippingAddressRepository $addresses, private readonly ShippingAddressWriter $writer)
     {
     }
 
@@ -29,7 +30,7 @@ class SetDefaultAddressController extends AbstractController
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $this->addresses->setDefault($user, $address);
+        $this->writer->setDefault($user, $address);
 
         return ApiResponse::success(['message' => 'Adresse définie par défaut']);
     }

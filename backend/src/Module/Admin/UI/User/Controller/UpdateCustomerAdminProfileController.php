@@ -8,6 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\User\DTO\CustomerAdminProfileInput;
+use App\Module\Admin\Application\User\Service\UpdateCustomerAdminProfileHandler;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,8 +20,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class UpdateCustomerAdminProfileController extends AbstractController
 {
-    public function __construct(private readonly UserRepository $users, private readonly DtoValidator $validator)
-    {
+    public function __construct(
+        private readonly UserRepository $users,
+        private readonly UpdateCustomerAdminProfileHandler $updateProfile,
+        private readonly DtoValidator $validator,
+    ) {
     }
 
     public function __invoke(int $userId, Request $request): JsonResponse
@@ -39,11 +43,7 @@ final class UpdateCustomerAdminProfileController extends AbstractController
         $input = CustomerAdminProfileInput::fromArray($payload);
         $this->validator->validate($input);
 
-        $user
-            ->setAdminNotes('' !== $input->adminNotes ? $input->adminNotes : null)
-            ->setAdminTags($input->adminTags);
-
-        $this->users->save($user, true);
+        $this->updateProfile->update($user, $input);
 
         return ApiResponse::success([
             'customer' => [

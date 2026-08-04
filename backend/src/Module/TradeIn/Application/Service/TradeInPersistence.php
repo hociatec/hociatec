@@ -23,7 +23,7 @@ final readonly class TradeInPersistence
         $this->entityManager->remove($request);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

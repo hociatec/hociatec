@@ -42,6 +42,5 @@ final class TradeInRequestRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $entityManager->remove($request);
-        $entityManager->flush();
     }
 }

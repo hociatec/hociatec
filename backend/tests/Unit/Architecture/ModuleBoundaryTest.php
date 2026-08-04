@@ -58,6 +58,27 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testRepositoriesDoNotExposeImplicitFlushBooleans(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['bool $flush', ', true)'] as $forbidden) {
+                if (!str_contains($source, $forbidden)) {
+                    continue;
+                }
+
+                if (preg_match('/->(?:save|remove|revokeAllForUser)\([^;]*,\s*true\)/s', $source) || str_contains($source, 'bool $flush')) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], array_values(array_unique($violations)));
+    }
+
     public function testApplicationModulesDoNotUseGenericManagerServices(): void
     {
         $violations = [];

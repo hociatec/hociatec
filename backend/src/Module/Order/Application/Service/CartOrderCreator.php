@@ -81,14 +81,14 @@ final readonly class CartOrderCreator
 
                 $this->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
-                $this->persistence->flush();
+                $this->persistence->commit();
 
                 if (null === $order->getId()) {
                     throw new \InvalidArgumentException('Commande invalide.');
                 }
                 $lockedCart->markConverted($order->getId());
                 $this->persistence->persist($lockedCart);
-                $this->persistence->flush();
+                $this->persistence->commit();
 
                 return $order;
             },

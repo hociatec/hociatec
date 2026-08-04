@@ -69,7 +69,7 @@ final readonly class MarketingCampaignSender
             $template,
         );
         $this->persistence->persist($campaign);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $campaign;
     }

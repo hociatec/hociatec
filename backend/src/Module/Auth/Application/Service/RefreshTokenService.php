@@ -30,9 +30,9 @@ final class RefreshTokenService
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
 
             $this->persistence->save($refreshToken);
-            $this->persistence->flush();
+            $this->persistence->commit();
             $this->refreshTokenRepository->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return [
                 'refreshToken' => $plainToken,
@@ -67,7 +67,7 @@ final class RefreshTokenService
             $storedToken->revoke();
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
             $this->persistence->save($refreshToken);
-            $this->persistence->flush();
+            $this->persistence->commit();
             $this->refreshTokenRepository->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
 
             return [
@@ -96,7 +96,7 @@ final class RefreshTokenService
         }
 
         $storedToken->revoke();
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     /** @return array{0: string, 1: string}|null */

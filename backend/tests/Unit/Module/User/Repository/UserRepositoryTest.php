@@ -111,12 +111,13 @@ final class UserRepositoryTest extends TestCase
         self::assertSame(1, $repository->countAdminCustomerRows('Ada'));
     }
 
-    public function testSaveAndRemoveOptionallyFlush(): void
+    public function testSaveAndRemovePrepareUnitOfWork(): void
     {
         $repository = $this->repository();
         $user = $this->user('save@example.com', 'Save', 'User');
 
-        $repository->save($user, true);
+        $repository->save($user);
+        $this->entityManager->flush();
         self::assertNotNull($user->getId());
 
         $id = $user->getId();
@@ -124,7 +125,8 @@ final class UserRepositoryTest extends TestCase
         $managed = $this->entityManager->find(User::class, $id);
         self::assertInstanceOf(User::class, $managed);
 
-        $repository->remove($managed, true);
+        $repository->remove($managed);
+        $this->entityManager->flush();
         self::assertNull($this->entityManager->find(User::class, $id));
     }
 

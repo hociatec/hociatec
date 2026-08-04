@@ -200,6 +200,6 @@ final class OrderStripeWebhookHandler
     private function save(object $entity): void
     {
         $this->persistence->persist($entity);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

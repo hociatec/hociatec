@@ -48,7 +48,7 @@ final class CartService
         try {
             $cart->touch();
             $this->persistence->persist($cart);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return $cart;
         } catch (UniqueConstraintViolationException $exception) {
@@ -90,7 +90,7 @@ final class CartService
             $this->persistence->remove($existing);
             $cart->touch();
             $this->persistence->persist($cart);
-            $this->persistence->flush();
+            $this->persistence->commit();
         }
 
         return $cart;
@@ -153,7 +153,7 @@ final class CartService
 
         $cart->touch();
         $this->persistence->persist($cart);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $cart;
     }
@@ -169,7 +169,7 @@ final class CartService
 
         $cart->touch();
         $this->persistence->persist($cart);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $cart;
     }

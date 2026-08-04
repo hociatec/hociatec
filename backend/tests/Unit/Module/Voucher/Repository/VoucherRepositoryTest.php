@@ -42,7 +42,8 @@ final class VoucherRepositoryTest extends TestCase
 
         $repository = $this->repository();
         $repository->save($active);
-        $repository->save($expired, true);
+        $repository->save($expired);
+        $this->entityManager->flush();
 
         self::assertCount(1, $repository->findActiveForDate(new \DateTimeImmutable('2026-07-29T00:00:00+00:00')));
         self::assertSame('ACTIVE', $repository->findOneByCode(' active ') ?->getCode());

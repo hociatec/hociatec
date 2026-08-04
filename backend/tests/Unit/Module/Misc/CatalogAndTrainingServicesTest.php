@@ -33,7 +33,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with($entity);
 
         $persistence->save($entity);
-        $persistence->flush();
+        $persistence->commit();
         $persistence->delete($entity);
     }
 

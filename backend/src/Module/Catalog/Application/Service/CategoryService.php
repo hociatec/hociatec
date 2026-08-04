@@ -57,7 +57,7 @@ final class CategoryService
 
         try {
             $this->persistence->save($category);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la catégorie.', $exception);
         }
@@ -84,7 +84,7 @@ final class CategoryService
             ->setIsVisible($isVisible);
 
         try {
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour la catégorie.', $exception);
         }
@@ -100,7 +100,7 @@ final class CategoryService
 
         try {
             $this->persistence->delete($category);
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la catégorie.', $exception);
         }

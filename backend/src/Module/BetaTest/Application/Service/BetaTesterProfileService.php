@@ -42,7 +42,7 @@ final readonly class BetaTesterProfileService
             );
         }
 
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return $profile;
     }
@@ -54,6 +54,6 @@ final readonly class BetaTesterProfileService
         }
 
         $this->persistence->remove($profile);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

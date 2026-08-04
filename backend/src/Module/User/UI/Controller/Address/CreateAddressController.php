@@ -8,9 +8,9 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\ShippingAddressInput;
 use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Service\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CreateAddressController extends AbstractController
 {
     public function __construct(
-        private readonly ShippingAddressRepository $addresses,
+        private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
     ) {
     }
@@ -42,13 +42,8 @@ class CreateAddressController extends AbstractController
             ->setCompanySiren($input->companySiren)
             ->setCompanyVatNumber($input->companyVatNumber)
             ->setPurchaseOrderNumber($input->purchaseOrderNumber);
-        $this->addresses->save($address, true);
-
-        // set default if requested or first address
         $isDefault = isset($payload['isDefault']) ? (bool) $payload['isDefault'] : false;
-        if ($isDefault || null === $this->addresses->findDefaultForUser($user)) {
-            $this->addresses->setDefault($user, $address);
-        }
+        $this->writer->saveWithDefaultPolicy($user, $address, $isDefault);
 
         return ApiResponse::created(['address' => ShippingAddressFormatter::toArray($address)]);
     }

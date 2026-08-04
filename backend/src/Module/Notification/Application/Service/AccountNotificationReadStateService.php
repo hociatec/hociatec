@@ -54,7 +54,7 @@ final readonly class AccountNotificationReadStateService
         $formatted = $this->format($state);
         try {
             $user->setAccountNotificationsSeenSignature(json_encode($formatted, JSON_THROW_ON_ERROR));
-            $this->persistence->flush();
+            $this->persistence->commit();
         } catch (\JsonException|\RuntimeException $exception) {
             throw NotificationOperationException::failed('Impossible de mettre à jour l’état de lecture des notifications.', $exception);
         }

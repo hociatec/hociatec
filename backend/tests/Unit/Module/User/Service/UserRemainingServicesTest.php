@@ -145,13 +145,14 @@ final class UserRemainingServicesTest extends TestCase
 
         $service = new UpdateProfileService(
             $userRepository,
+            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
         );
 
         $userRepository->expects(self::once())->method('existsByEmailExcludingUser')->with('new@example.com', 9)->willReturn(false);
-        $userRepository->expects(self::once())->method('save')->with($user, true);
+        $userRepository->expects(self::once())->method('save')->with($user);
 
         $updated = $service->update($user, $input);
         self::assertSame($user, $updated);
@@ -171,6 +172,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository2->method('save')->willThrowException($this->uniqueConstraint('uniq_users_email'));
         $service2 = new UpdateProfileService(
             $userRepository2,
+            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository2, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -189,6 +191,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository3->method('save')->willThrowException($nonEmail);
         $service3 = new UpdateProfileService(
             $userRepository3,
+            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository3, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),

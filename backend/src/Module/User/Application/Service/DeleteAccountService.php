@@ -29,7 +29,7 @@ final readonly class DeleteAccountService
         $this->transactions->transactional(function () use ($user): void {
             $this->refreshTokens->revokeAllForUser($user);
             $this->persistence->remove($user);
-            $this->persistence->flush();
+            $this->persistence->commit();
         });
     }
 }

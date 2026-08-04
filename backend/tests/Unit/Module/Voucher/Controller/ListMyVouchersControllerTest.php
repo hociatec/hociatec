@@ -41,7 +41,8 @@ final class ListMyVouchersControllerTest extends TestCase
             ->setRecipientUserId(7);
 
         $repository->save($mine);
-        $repository->save($other, true);
+        $repository->save($other);
+        $this->entityManager()->flush();
 
         $token = $this->createMock(TokenInterface::class);
         $token->method('getUser')->willReturn($user);

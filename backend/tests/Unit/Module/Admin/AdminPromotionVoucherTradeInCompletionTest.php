@@ -195,7 +195,10 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_CONFLICT, $closure((int) $submitted->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid'], 'POST'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $closure((int) $inspected->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid', 'transactionReference' => 'TX'], 'POST'))->getStatusCode());
 
-        $delete = new DeleteTradeInController($repository);
+        $delete = new DeleteTradeInController($repository, new \App\Module\Admin\Application\TradeIn\Service\DeleteTradeInRequestHandler(
+            $repository,
+            new \App\Module\TradeIn\Application\Service\TradeInPersistence($em),
+        ));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete((int) $submitted->getId())->getStatusCode());
     }

@@ -41,7 +41,7 @@ final readonly class OrderDeliveryUpdater
         $this->applyStatusDates($order, $status);
 
         $this->persistence->persist($order);
-        $this->persistence->flush();
+        $this->persistence->commit();
         $this->events->log($order, $actor, 'delivery_updated', $this->changeMessage($before, $order));
 
         return $order;

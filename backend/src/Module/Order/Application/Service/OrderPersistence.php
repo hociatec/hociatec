@@ -13,7 +13,7 @@ final readonly class OrderPersistence
     {
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

@@ -32,6 +32,6 @@ final readonly class NewsArticleViewTracker
             $view->markViewed();
         }
 
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 }

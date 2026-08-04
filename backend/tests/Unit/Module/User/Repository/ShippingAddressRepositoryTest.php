@@ -40,7 +40,8 @@ final class ShippingAddressRepositoryTest extends TestCase
 
         $repository->save($home);
         $repository->save($office);
-        $repository->save($otherAddress, true);
+        $repository->save($otherAddress);
+        $entityManager->flush();
 
         self::assertCount(2, $repository->findAllForUser($user));
         self::assertSame($home->getId(), $repository->findDefaultForUser($user)?->getId());
@@ -49,13 +50,15 @@ final class ShippingAddressRepositoryTest extends TestCase
         self::assertNull($repository->findOneForUser((int) $otherAddress->getId(), $user));
 
         $repository->setDefault($user, $office);
+        $entityManager->flush();
         $entityManager->refresh($home);
         $entityManager->refresh($office);
         self::assertFalse($home->isDefault());
         self::assertTrue($office->isDefault());
 
         $homeId = $home->getId();
-        $repository->remove($home, true);
+        $repository->remove($home);
+        $entityManager->flush();
         self::assertNull($entityManager->find(ShippingAddress::class, $homeId));
     }
 

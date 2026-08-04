@@ -17,7 +17,7 @@ final readonly class CatalogPersistence
         $this->entityManager->persist($entity);
     }
 
-    public function flush(): void
+    public function commit(): void
     {
         $this->entityManager->flush();
     }

@@ -105,9 +105,13 @@ final class AdminUserControllersTest extends TestCase
 
         $users = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find', 'save'])->getMock();
         $users->expects(self::exactly(4))->method('find')->with(42)->willReturnOnConsecutiveCalls(null, $user, $user, $user);
-        $users->expects(self::exactly(2))->method('save')->with($user, true);
+        $users->expects(self::exactly(2))->method('save')->with($user);
 
-        $controller = new UpdateCustomerAdminProfileController($users, $this->validator(2));
+        $controller = new UpdateCustomerAdminProfileController(
+            $users,
+            new \App\Module\Admin\Application\User\Service\UpdateCustomerAdminProfileHandler($users, new DoctrineUnitOfWork($this->entityManager([User::class]))),
+            $this->validator(2),
+        );
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(42, Request::create('/', 'PATCH'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $controller(42, Request::create('/', 'PATCH', [], [], [], [], '{'))->getStatusCode());
@@ -174,12 +178,16 @@ final class AdminUserControllersTest extends TestCase
         $entityManager = $this->entityManager([Voucher::class]);
         $voucherRepository = $this->voucherRepository($entityManager);
         $manager = new CreateVoucherHandler(new DoctrineUnitOfWork($entityManager), new VoucherPayload($voucherRepository));
-
-        $controller = new CreateCustomerVoucherController(
-            $users,
+        $customerVoucherHandler = new \App\Module\Admin\Application\User\Service\CreateCustomerVoucherHandler(
             $manager,
             $this->voucherNotifications(),
             $voucherRepository,
+            new DoctrineUnitOfWork($entityManager),
+        );
+
+        $controller = new CreateCustomerVoucherController(
+            $users,
+            $customerVoucherHandler,
             $this->validator(3),
         );
 

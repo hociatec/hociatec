@@ -62,7 +62,7 @@ final readonly class TrainingEnrollmentCheckoutService
         if ($created) {
             $this->persistence->persist($enrollment);
         }
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         if ($enrollment->getPriceCents() <= 0) {
             $enrollment
@@ -70,14 +70,14 @@ final readonly class TrainingEnrollmentCheckoutService
                 ->setPaidAt(null)
                 ->setStripeSessionId(null)
                 ->setStripePaymentIntentId(null);
-            $this->persistence->flush();
+            $this->persistence->commit();
 
             return new TrainingEnrollmentCheckoutResult($enrollment, $created);
         }
 
         $stripeSession = $this->stripe->createCheckoutSession($this->checkoutPayload($enrollment, $user, $session));
         $enrollment->setStripeSessionId((string) $stripeSession['id']);
-        $this->persistence->flush();
+        $this->persistence->commit();
 
         return new TrainingEnrollmentCheckoutResult($enrollment, $created, (string) $stripeSession['url']);
     }

@@ -19,7 +19,7 @@ final readonly class QuoteWorkflowService
     public function delete(Quote $quote): void
     {
         $this->persistence->delete($quote);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     public function setStatus(Quote $quote, string $status): void
@@ -29,7 +29,7 @@ final readonly class QuoteWorkflowService
             $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
         }
 
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     public function addProductItem(Quote $quote, Product $product, QuoteItemAddition $input): void
@@ -55,13 +55,13 @@ final readonly class QuoteWorkflowService
         }
 
         $this->persistence->addItem($quote, $item);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     public function save(Quote $quote): void
     {
         $this->persistence->save($quote);
-        $this->persistence->flush();
+        $this->persistence->commit();
     }
 
     private function stringOrNull(mixed $value): ?string
