@@ -9,6 +9,7 @@ use App\Module\Auth\Service\PasswordResetService;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\CsrfExempt;
 use App\Shared\Http\InvalidJsonPayloadException;
+use App\Shared\Http\RateLimitKeyFactory;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -24,6 +25,7 @@ class RequestPasswordResetController extends AbstractController
     public function __construct(
         private readonly PasswordResetService $passwordResetService,
         private readonly DtoValidator $validator,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.password_reset_request')]
         private readonly RateLimiterFactory $limiter,
     ) {
@@ -41,7 +43,7 @@ class RequestPasswordResetController extends AbstractController
         $this->validator->validate($input);
 
         $limit = $this->limiter
-            ->create($request->getClientIp() ?? 'unknown')
+            ->create($this->rateLimitKeys->forRequest($request, $input->email))
             ->consume(1);
 
         if (!$limit->isAccepted()) {

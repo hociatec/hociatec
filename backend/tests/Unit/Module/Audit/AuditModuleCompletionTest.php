@@ -94,7 +94,7 @@ final class AuditModuleCompletionTest extends TestCase
         $listPayload = $this->payload($list());
         self::assertSame('AUD-CLIENT-1', $listPayload['data']['items'][0]['number']);
 
-        $show = new ShowMyAuditController($this->auditRequests(), $this->auditEvents(), $metadata);
+        $show = new ShowMyAuditController($this->auditRequests(), $this->auditEvents(), $metadata, new \App\Module\Audit\Security\AuditAccessPolicy());
         $show->setContainer($this->container($user));
         $showPayload = $this->payload($show((int) $audit->getId()));
         self::assertSame('title', $showPayload['data']['items'][0]['key']);
@@ -114,7 +114,7 @@ final class AuditModuleCompletionTest extends TestCase
             'objectives' => 'Audit UX',
         ]))->getStatusCode());
 
-        $pdf = new GeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger());
+        $pdf = new GeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Shared\Http\AttachmentResponseFactory(), new \App\Module\Audit\Security\AuditAccessPolicy());
         $pdf->setContainer($this->container($user));
         $detailedPdf = $pdf->detailed((int) $audit->getId());
         self::assertSame(200, $detailedPdf->getStatusCode());
@@ -135,7 +135,7 @@ final class AuditModuleCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf unavailable');
             }
-        }, $this->eventLogger());
+        }, $this->eventLogger(), new \App\Shared\Http\AttachmentResponseFactory(), new \App\Module\Audit\Security\AuditAccessPolicy());
         $unavailablePdf->setContainer($this->container($user));
         self::assertSame(501, $unavailablePdf->detailed((int) $audit->getId())->getStatusCode());
         self::assertSame(501, $unavailablePdf->summary((int) $audit->getId())->getStatusCode());
@@ -186,7 +186,7 @@ final class AuditModuleCompletionTest extends TestCase
         self::assertSame(200, $checklist((int) $audit->getId(), (int) $item->getId(), $this->jsonRequest(['isCompliant' => true, 'comment' => 'OK']))->getStatusCode());
         self::assertSame(200, $checklist((int) $audit->getId(), (int) $item->getId(), $this->jsonRequest(['isCompliant' => true, 'comment' => 'OK']))->getStatusCode());
 
-        $pdf = new AdminGeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger());
+        $pdf = new AdminGeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Shared\Http\AttachmentResponseFactory());
         $pdf->setContainer($this->container($admin));
         self::assertSame(404, $pdf->detailed(999)->getStatusCode());
         self::assertSame(200, $pdf->detailed((int) $audit->getId())->getStatusCode());
@@ -203,7 +203,7 @@ final class AuditModuleCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf unavailable');
             }
-        }, $this->eventLogger());
+        }, $this->eventLogger(), new \App\Shared\Http\AttachmentResponseFactory());
         $unavailablePdf->setContainer($this->container($admin));
         self::assertSame(501, $unavailablePdf->detailed((int) $audit->getId())->getStatusCode());
         self::assertSame(501, $unavailablePdf->summary((int) $audit->getId())->getStatusCode());

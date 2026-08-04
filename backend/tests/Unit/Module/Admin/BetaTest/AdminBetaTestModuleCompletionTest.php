@@ -67,7 +67,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $formatter = new BugReportResponseFormatter();
         $activity = new BugReportActivityLogger($persistence);
         $notifier = $this->notifier($em);
-        $storage = new BetaAttachmentStorage($this->projectDir());
+        $storage = new BetaAttachmentStorage($this->projectDir(), $this->createMock(LoggerInterface::class));
         $accessPolicy = new BugReportAccessPolicy();
         $campaignManager = new AdminBetaCampaignManager($persistence);
         $testerManager = new AdminBetaTesterManager($persistence);
@@ -96,7 +96,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
 
         $listTesters = new ListBetaTestersController($this->profiles($em));
         self::assertSame(200, $listTesters(Request::create('/?search=reporter&status=accepted&accessibility=none'))->getStatusCode());
-        $testersExport = (new ExportBetaTestersController($this->profiles($em)))();
+        $testersExport = (new ExportBetaTestersController($this->profiles($em), new \App\Shared\Http\AttachmentResponseFactory()))();
         self::assertSame(200, $testersExport->getStatusCode());
         self::assertStringContainsString('beta-testeurs.csv', (string) $testersExport->headers->get('Content-Disposition'));
 
@@ -115,7 +115,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $reports = $this->reports($em);
         self::assertSame(200, (new BugReportDashboardController($reports, $this->campaigns($em), $this->users($em)))()->getStatusCode());
         self::assertSame(200, (new ListBugReportsController($reports, $formatter))(Request::create('/?status=submitted&severity=high&search=bug&campaignId='.$campaign->getId().'&assignedTo='.$admin->getId()))->getStatusCode());
-        $export = (new ExportBugReportsController($reports))(Request::create('/?status=submitted'));
+        $export = (new ExportBugReportsController($reports, new \App\Shared\Http\AttachmentResponseFactory()))(Request::create('/?status=submitted'));
         self::assertInstanceOf(StreamedResponse::class, $export);
         self::assertSame(200, $export->getStatusCode());
         ob_start();

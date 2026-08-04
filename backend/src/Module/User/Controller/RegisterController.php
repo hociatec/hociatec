@@ -12,6 +12,7 @@ use App\Module\User\Service\RegisterUserService;
 use App\Module\User\Service\UserProfileFormatter;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\CsrfExempt;
+use App\Shared\Http\RateLimitKeyFactory;
 use App\Shared\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +31,7 @@ class RegisterController extends AbstractController
         private readonly DtoValidator $dtoValidator,
         private readonly LoggerInterface $logger,
         private readonly UserProfileFormatter $profiles,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.auth_register')]
         private readonly RateLimiterFactory $registrationLimiter,
     ) {
@@ -37,8 +39,10 @@ class RegisterController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
+        $payload = \App\Shared\Http\JsonPayload::decode($request);
+        $email = is_string($payload['email'] ?? null) ? $payload['email'] : null;
         $limit = $this->registrationLimiter
-            ->create($request->getClientIp() ?? 'unknown')
+            ->create($this->rateLimitKeys->forRequest($request, $email))
             ->consume(1);
         if (!$limit->isAccepted()) {
             return ApiResponse::error(
@@ -47,7 +51,6 @@ class RegisterController extends AbstractController
             );
         }
 
-        $payload = \App\Shared\Http\JsonPayload::decode($request);
         $input = RegisterUserInput::fromArray($payload);
         $this->dtoValidator->validate($input);
 

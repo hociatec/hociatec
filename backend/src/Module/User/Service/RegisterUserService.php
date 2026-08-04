@@ -10,6 +10,7 @@ use App\Module\User\Entity\User;
 use App\Module\User\Exception\InvalidBirthDateException;
 use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Repository\UserRepository;
+use App\Shared\Outbox\Outbox;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -18,7 +19,7 @@ class RegisterUserService
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly AccountActivationEmailService $activationEmails,
+        private readonly Outbox $outbox,
         private readonly UserPersistence $persistence,
         private readonly BetaTesterProfileService $betaProfiles,
     ) {
@@ -68,7 +69,10 @@ class RegisterUserService
                     $this->betaProfiles->create($user, $input->betaProfile);
                     $this->persistence->flush();
                 }
-                $this->activationEmails->sendActivationEmail($user, $token);
+                $this->outbox->record('user.activation.'.$user->getId().'.'.$user->getVerificationToken(), 'user.activation_email_requested', [
+                    'userId' => $user->getId(),
+                    'token' => $token,
+                ]);
 
                 return $user;
             });

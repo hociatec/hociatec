@@ -122,7 +122,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
         $quoteController = new class($quotes, $workflow, $user) extends DeleteMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user) { parent::__construct($quotes, $workflow); }
+            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user) { parent::__construct($quotes, $workflow, new \App\Module\Quote\Security\QuoteAccessPolicy()); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $quoteController(9)->getStatusCode());

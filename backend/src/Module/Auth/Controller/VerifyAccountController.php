@@ -7,6 +7,7 @@ namespace App\Module\Auth\Controller;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Service\VerificationTokenHasher;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\RateLimitKeyFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,6 +20,7 @@ class VerifyAccountController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $users,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.activation_verify')]
         private readonly RateLimiterFactory $activationVerifyLimiter,
     ) {
@@ -30,8 +32,7 @@ class VerifyAccountController extends AbstractController
             return ApiResponse::error('Lien d\'activation invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Rate limit to avoid brute force token probing
-        $limiter = $this->activationVerifyLimiter->create($request->getClientIp() ?? 'unknown');
+        $limiter = $this->activationVerifyLimiter->create($this->rateLimitKeys->forRequest($request, $token));
         $limit = $limiter->consume(1);
         if (!$limit->isAccepted()) {
             return ApiResponse::error('Trop de tentatives, réessayez plus tard.', JsonResponse::HTTP_TOO_MANY_REQUESTS);

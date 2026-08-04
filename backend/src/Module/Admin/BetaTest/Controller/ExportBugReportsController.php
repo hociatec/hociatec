@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BugReportRepository;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -15,7 +16,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ExportBugReportsController extends AbstractController
 {
-    public function __construct(private readonly BugReportRepository $reports)
+    public function __construct(
+        private readonly BugReportRepository $reports,
+        private readonly AttachmentResponseFactory $attachments,
+    )
     {
     }
 
@@ -51,9 +55,6 @@ final class ExportBugReportsController extends AbstractController
             }
             fclose($handle);
         });
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="signalements-beta.csv"');
-
-        return $response;
+        return $this->attachments->applyHeaders($response, 'signalements-beta.csv', 'text/csv; charset=UTF-8');
     }
 }

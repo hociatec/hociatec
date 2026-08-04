@@ -119,7 +119,7 @@ final class BetaTestModuleCompletionTest extends TestCase
     {
         $em = $this->entityManager();
         [$user, $admin, $campaign, $report] = $this->persistBugGraph($em);
-        $storage = new BetaAttachmentStorage($this->projectDir());
+        $storage = new BetaAttachmentStorage($this->projectDir(), $this->createMock(\Psr\Log\LoggerInterface::class));
         file_put_contents($this->projectDir().'/var/beta-attachments/screen.png', 'image');
 
         $reports = $this->reports($em);

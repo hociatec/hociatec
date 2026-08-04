@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Operations\Controller;
 
 use App\Module\Admin\Operations\Service\AdminOperationsExporter;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -13,7 +14,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_OPERATIONS')]
 final readonly class OperationsExportController
 {
-    public function __construct(private AdminOperationsExporter $exporter)
+    public function __construct(
+        private AdminOperationsExporter $exporter,
+        private AttachmentResponseFactory $attachments,
+    )
     {
     }
 
@@ -31,9 +35,6 @@ final readonly class OperationsExportController
             }
             fclose($output);
         });
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$resource.'.csv"');
-
-        return $response;
+        return $this->attachments->applyHeaders($response, $resource.'.csv', 'text/csv; charset=UTF-8');
     }
 }

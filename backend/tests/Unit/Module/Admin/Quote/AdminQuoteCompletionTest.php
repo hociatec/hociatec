@@ -152,7 +152,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $sentResponse = $send($this->jsonRequest(['to' => 'external-client@example.test']), (string) $quoteId);
         self::assertSame(Response::HTTP_OK, $sentResponse->getStatusCode(), (string) $sentResponse->getContent());
 
-        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService());
+        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService(), new \App\Shared\Http\AttachmentResponseFactory());
         self::assertSame(Response::HTTP_NOT_FOUND, $pdf(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $pdf($quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_IMPLEMENTED, (new GeneratePdfController($quoteRepository, $calculator, new class extends QuotePdfService {
@@ -164,7 +164,7 @@ final class AdminQuoteCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf down');
             }
-        }))($quoteId)->getStatusCode());
+        }, new \App\Shared\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
 
         self::assertSame(Response::HTTP_NOT_FOUND, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))($quoteId)->getStatusCode());

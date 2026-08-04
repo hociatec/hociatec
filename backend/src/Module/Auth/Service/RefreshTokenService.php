@@ -7,7 +7,7 @@ namespace App\Module\Auth\Service;
 use App\Module\Auth\Entity\RefreshToken;
 use App\Module\Auth\Repository\RefreshTokenRepository;
 use App\Module\User\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Shared\Application\TransactionManager;
 
 final class RefreshTokenService
 {
@@ -17,7 +17,7 @@ final class RefreshTokenService
     public function __construct(
         private readonly RefreshTokenRepository $refreshTokenRepository,
         private readonly RefreshTokenPersistence $persistence,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly TransactionManager $transactions,
     ) {
     }
 
@@ -26,17 +26,19 @@ final class RefreshTokenService
      */
     public function issueForUser(User $user): array
     {
-        [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
+        return $this->transactions->transactional(function () use ($user): array {
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
 
-        $this->persistence->save($refreshToken);
-        $this->persistence->flush();
-        $this->refreshTokenRepository->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
-        $this->persistence->flush();
+            $this->persistence->save($refreshToken);
+            $this->persistence->flush();
+            $this->refreshTokenRepository->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
+            $this->persistence->flush();
 
-        return [
-            'refreshToken' => $plainToken,
-            'expiresAt' => $expiresAt->format(DATE_ATOM),
-        ];
+            return [
+                'refreshToken' => $plainToken,
+                'expiresAt' => $expiresAt->format(DATE_ATOM),
+            ];
+        });
     }
 
     /**
@@ -50,7 +52,7 @@ final class RefreshTokenService
         }
         [$selector, $secret] = $parts;
 
-        return $this->entityManager->wrapInTransaction(function () use ($selector, $secret): ?array {
+        return $this->transactions->transactional(function () use ($selector, $secret): ?array {
             $storedToken = $this->refreshTokenRepository->findOneBySelectorForUpdate($selector);
             if (null === $storedToken || $storedToken->isRevoked() || $storedToken->isExpired()) {
                 return null;
@@ -65,7 +67,7 @@ final class RefreshTokenService
             $storedToken->revoke();
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
             $this->persistence->save($refreshToken);
-            $this->entityManager->flush();
+            $this->persistence->flush();
             $this->refreshTokenRepository->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
 
             return [

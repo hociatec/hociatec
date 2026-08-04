@@ -6,6 +6,7 @@ namespace App\Module\Quote\Controller\Client;
 
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Repository\QuoteRepository;
+use App\Module\Quote\Security\QuoteAccessPolicy;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteWorkflowService;
@@ -25,6 +26,7 @@ final class RefuseMyQuoteController extends AbstractController
         private readonly QuoteRepository $quotes,
         private readonly QuoteCalculator $calculator,
         private readonly QuoteWorkflowService $workflow,
+        private readonly QuoteAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -34,7 +36,7 @@ final class RefuseMyQuoteController extends AbstractController
         $user = $this->getUser();
         $quote = $this->quotes->find($id);
 
-        if (null === $quote || strtolower((string) $quote->getCustomerEmail()) !== strtolower($user->getEmail())) {
+        if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 

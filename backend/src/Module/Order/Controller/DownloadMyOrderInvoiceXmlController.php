@@ -11,6 +11,7 @@ use App\Module\Order\Service\InvoiceDownloadNameBuilder;
 use App\Module\Order\Service\OrderInvoiceDocumentService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -25,6 +26,7 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
         private readonly OrderInvoiceDocumentService $documents,
         private readonly InvoiceDownloadNameBuilder $nameBuilder,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
@@ -51,11 +53,6 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
             return ApiResponse::error('Génération de facture électronique indisponible.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
-        $filename = sprintf('%s.xml', $this->nameBuilder->build($order));
-        $response = new Response($xml);
-        $response->headers->set('Content-Type', 'application/xml; charset=UTF-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
-
-        return $response;
+        return $this->attachments->create($xml, sprintf('%s.xml', $this->nameBuilder->build($order)), 'application/xml; charset=UTF-8');
     }
 }

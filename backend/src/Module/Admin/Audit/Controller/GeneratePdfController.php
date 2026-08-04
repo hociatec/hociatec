@@ -8,6 +8,7 @@ use App\Module\Audit\Repository\AuditRequestRepository;
 use App\Module\Audit\Service\AuditEventLogger;
 use App\Module\Audit\Service\AuditPdfService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -20,6 +21,7 @@ class GeneratePdfController extends AbstractController
         private readonly AuditRequestRepository $audits,
         private readonly AuditPdfService $pdf,
         private readonly AuditEventLogger $events,
+        private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
@@ -40,12 +42,7 @@ class GeneratePdfController extends AbstractController
         $actor = $this->getUser();
         $this->events->log($audit, $actor, 'pdf_generated', 'Rapport détaillé');
 
-        $filename = sprintf('%s-rapport.pdf', $audit->getNumber());
-        $response = new Response($bin);
-        $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
-
-        return $response;
+        return $this->attachments->create($bin, sprintf('%s-rapport.pdf', $audit->getNumber()), 'application/pdf');
     }
 
     #[Route('/api/admin/audits/{id}/pdf-summary', name: 'api_admin_audits_generate_pdf_summary', methods: ['POST'])]
@@ -65,11 +62,6 @@ class GeneratePdfController extends AbstractController
         $actor = $this->getUser();
         $this->events->log($audit, $actor, 'pdf_generated', 'Synthèse PDF');
 
-        $filename = sprintf('%s-synthese.pdf', $audit->getNumber());
-        $response = new Response($bin);
-        $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
-
-        return $response;
+        return $this->attachments->create($bin, sprintf('%s-synthese.pdf', $audit->getNumber()), 'application/pdf');
     }
 }

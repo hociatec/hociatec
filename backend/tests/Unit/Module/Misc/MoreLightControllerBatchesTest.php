@@ -58,7 +58,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $controller = new class($quotes, new QuoteCalculator(), $user) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator);
+                parent::__construct($quotes, $calculator, new \App\Module\Quote\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -73,7 +73,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $otherUserController = new class($quotes, new QuoteCalculator(), $this->user('grace@example.com')) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator);
+                parent::__construct($quotes, $calculator, new \App\Module\Quote\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User

@@ -91,7 +91,7 @@ final class AdminOperationsControllersTest extends TestCase
             $this->quotes(),
             $this->refunds(),
             $this->supportRequests(),
-        ));
+        ), new \App\Shared\Http\AttachmentResponseFactory());
         $ordersCsv = $this->streamedContent($export('orders'));
         self::assertStringContainsString('id;numero;client;email;statut;total_centimes;date', $ordersCsv);
         self::assertStringContainsString('ORD-OPS-1', $ordersCsv);

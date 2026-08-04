@@ -9,6 +9,7 @@ use App\Module\Auth\Service\RefreshTokenService;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\CsrfExempt;
 use App\Shared\Http\JsonPayload;
+use App\Shared\Http\RateLimitKeyFactory;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -26,6 +27,7 @@ class RefreshTokenController extends AbstractController
         private readonly RefreshTokenService $refreshTokenService,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly AuthCookieService $authCookieService,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.auth_refresh')]
         private readonly RateLimiterFactory $refreshLimiter,
     ) {
@@ -33,20 +35,20 @@ class RefreshTokenController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
+        $payload = JsonPayload::decode($request);
+        $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
+        if (!is_string($refreshToken) || '' === $refreshToken) {
+            $refreshToken = (string) ($payload['refreshToken'] ?? '');
+        }
+
         $limit = $this->refreshLimiter
-            ->create($request->getClientIp() ?? 'unknown')
+            ->create($this->rateLimitKeys->forRequest($request, $this->refreshTokenSelector($refreshToken)))
             ->consume(1);
         if (!$limit->isAccepted()) {
             return ApiResponse::error(
                 'Trop de requêtes de renouvellement. Veuillez réessayer plus tard.',
                 Response::HTTP_TOO_MANY_REQUESTS,
             );
-        }
-
-        $payload = JsonPayload::decode($request);
-        $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
-        if (!is_string($refreshToken) || '' === $refreshToken) {
-            $refreshToken = (string) ($payload['refreshToken'] ?? '');
         }
 
         if ('' === $refreshToken) {
@@ -73,5 +75,12 @@ class RefreshTokenController extends AbstractController
         );
 
         return $response;
+    }
+
+    private function refreshTokenSelector(string $refreshToken): ?string
+    {
+        $selector = explode('.', $refreshToken, 2)[0] ?? '';
+
+        return '' !== $selector ? $selector : null;
     }
 }

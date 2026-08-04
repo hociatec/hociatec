@@ -187,7 +187,10 @@ final class UserRemainingControllersTest extends TestCase
             'limit' => 1,
             'interval' => '1 hour',
         ], new InMemoryStorage());
-        $factory->create('127.0.0.1')->consume(1);
+        $factory->create((new \App\Shared\Http\RateLimitKeyFactory())->forRequest(
+            Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
+            'new@example.com',
+        ))->consume(1);
 
         $addressRepository = $this->getMockBuilder(ShippingAddressRepository::class)
             ->disableOriginalConstructor()
@@ -217,8 +220,8 @@ final class UserRemainingControllersTest extends TestCase
         $warnLogger = $this->createMock(LoggerInterface::class);
         $warnLogger->expects(self::once())->method('warning');
 
-        $register = new RegisterController($registerService, $validator, $warnLogger, $profiles, $factory);
-        self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], '{}'))->getStatusCode());
+        $register = new RegisterController($registerService, $validator, $warnLogger, $profiles, new \App\Shared\Http\RateLimitKeyFactory(), $factory);
+        self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(409, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.2'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(422, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.3'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(503, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.4'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());

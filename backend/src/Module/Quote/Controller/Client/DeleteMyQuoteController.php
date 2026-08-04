@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\Controller\Client;
 
 use App\Module\Quote\Repository\QuoteRepository;
+use App\Module\Quote\Security\QuoteAccessPolicy;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -21,6 +22,7 @@ class DeleteMyQuoteController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quotes,
         private readonly QuoteWorkflowService $workflow,
+        private readonly QuoteAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -28,10 +30,8 @@ class DeleteMyQuoteController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $email = $user->getEmail();
-
         $quote = $this->quotes->find($id);
-        if (null === $quote || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
+        if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 

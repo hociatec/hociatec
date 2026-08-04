@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\BetaTest\Controller;
 
 use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -12,7 +13,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/admin/beta-testers/export', methods: ['GET'])] #[IsGranted('ROLE_ADMIN')]
 final class ExportBetaTestersController
 {
-    public function __construct(private readonly BetaTesterProfileRepository $profiles)
+    public function __construct(
+        private readonly BetaTesterProfileRepository $profiles,
+        private readonly AttachmentResponseFactory $attachments,
+    )
     {
     }
 
@@ -30,6 +34,6 @@ final class ExportBetaTestersController
         $content = stream_get_contents($stream);
         fclose($stream);
 
-        return new Response($content, 200, ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => 'attachment; filename="beta-testeurs.csv"']);
+        return $this->attachments->create(is_string($content) ? $content : '', 'beta-testeurs.csv', 'text/csv; charset=UTF-8');
     }
 }

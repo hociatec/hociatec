@@ -19,6 +19,7 @@ use App\Module\User\Entity\User;
 use App\Module\User\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Exception\InvalidBirthDateException;
 use App\Module\User\Exception\UserAlreadyExistsException;
+use App\Module\User\Outbox\SendActivationEmailHandler;
 use App\Module\User\Repository\ShippingAddressRepository;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Service\AccountActivationEmailService;
@@ -31,6 +32,7 @@ use App\Module\User\Service\UpdatePersonalInformationService;
 use App\Module\User\Service\UpdateProfileService;
 use App\Module\User\Service\UserPersistence;
 use App\Module\User\Service\UserProfileFormatter;
+use App\Shared\Outbox\Entity\OutboxEvent;
 use App\Shared\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\DriverManager;
@@ -330,6 +332,28 @@ final class UserRemainingServicesTest extends TestCase
         }
     }
 
+    public function testSendActivationEmailHandlerProcessesOutboxEvent(): void
+    {
+        $user = $this->user('activation-handler@example.com');
+        $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
+        $repository->expects(self::once())->method('find')->with(42)->willReturn($user);
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(Email::class));
+        $emails = new AccountActivationEmailService(
+            new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
+            $mailer,
+            $this->createMock(LoggerInterface::class),
+            'https://front.example.test',
+            'noreply@example.com',
+        );
+
+        $handler = new SendActivationEmailHandler($repository, $emails);
+        $event = new OutboxEvent('activation-42', 'user.activation_email_requested', ['userId' => 42, 'token' => 'raw-token']);
+
+        self::assertTrue($handler->supports($event));
+        $handler->handle($event);
+    }
+
     public function testRegisterUserServiceCoversFailuresSuccessAndBetaProfileBranch(): void
     {
         $userRepository = $this->createMock(UserRepository::class);
@@ -342,15 +366,7 @@ final class UserRemainingServicesTest extends TestCase
         $persistence = new UserPersistence($entityManager);
         $betaProfiles = new BetaTesterProfileService(new DoctrinePersistence($entityManager));
 
-        $activationEmails = new AccountActivationEmailService(
-            new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
-            $this->createMock(MailerInterface::class),
-            $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
-            'noreply@example.com',
-        );
-
-        $service = new RegisterUserService($userRepository, $hasher, $activationEmails, $persistence, $betaProfiles);
+        $service = new RegisterUserService($userRepository, $hasher, new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager)), $persistence, $betaProfiles);
 
         $existsInput = RegisterUserInput::fromArray([
             'email' => 'ada@example.com',
@@ -435,17 +451,10 @@ final class UserRemainingServicesTest extends TestCase
         $entityManager2 = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
         $entityManager2->method('wrapInTransaction')->willThrowException($this->uniqueConstraint('duplicate users.email'));
         $entityManager2->method('persist');
-        $activationEmails2 = new AccountActivationEmailService(
-            new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
-            $this->createMock(MailerInterface::class),
-            $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
-            'noreply@example.com',
-        );
         $dupService = new RegisterUserService(
             $userRepository,
             $hasher,
-            $activationEmails2,
+            new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager2)),
             new UserPersistence($entityManager2),
             new BetaTesterProfileService(new DoctrinePersistence($entityManager2)),
         );
@@ -472,7 +481,7 @@ final class UserRemainingServicesTest extends TestCase
         $rawUniqueService = new RegisterUserService(
             $userRepository,
             $hasher,
-            $activationEmails2,
+            new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager3)),
             new UserPersistence($entityManager3),
             new BetaTesterProfileService(new DoctrinePersistence($entityManager3)),
         );

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Quote\Controller\Client;
 
 use App\Module\Quote\Repository\QuoteRepository;
+use App\Module\Quote\Security\QuoteAccessPolicy;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuotePdfService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,6 +24,8 @@ class GenerateMyQuotePdfController extends AbstractController
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteCalculator $calculator,
         private readonly QuotePdfService $pdfService,
+        private readonly AttachmentResponseFactory $attachments,
+        private readonly QuoteAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -29,10 +33,8 @@ class GenerateMyQuotePdfController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $email = $user->getEmail();
-
         $quote = $this->quoteRepository->find($id);
-        if (null === $quote || (string) strtolower((string) $quote->getCustomerEmail()) !== strtolower((string) $email)) {
+        if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
@@ -47,11 +49,6 @@ class GenerateMyQuotePdfController extends AbstractController
             );
         }
 
-        $filename = sprintf('%s.pdf', $quote->getNumber());
-        $response = new Response($pdf);
-        $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
-
-        return $response;
+        return $this->attachments->create($pdf, sprintf('%s.pdf', $quote->getNumber()), 'application/pdf');
     }
 }

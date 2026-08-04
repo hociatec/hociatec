@@ -6,6 +6,7 @@ namespace App\Module\Audit\Controller\Client;
 
 use App\Module\Audit\Repository\AuditEventRepository;
 use App\Module\Audit\Repository\AuditRequestRepository;
+use App\Module\Audit\Security\AuditAccessPolicy;
 use App\Module\Audit\Service\AuditMetadataFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -23,6 +24,7 @@ class ShowMyAuditController extends AbstractController
         private readonly AuditRequestRepository $repository,
         private readonly AuditEventRepository $events,
         private readonly AuditMetadataFormatter $metadata,
+        private readonly AuditAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -31,7 +33,7 @@ class ShowMyAuditController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $audit = $this->repository->find($id);
-        if (null === $audit || $audit->getClient()->getId() !== $user->getId()) {
+        if (null === $audit || !$this->accessPolicy->canView($user, $audit)) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
 

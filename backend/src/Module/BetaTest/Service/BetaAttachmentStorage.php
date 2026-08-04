@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Service;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class BetaAttachmentStorage
 {
-    public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir)
-    {
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')]
+        private string $projectDir,
+        private LoggerInterface $logger,
+    ) {
     }
 
     /**
@@ -58,8 +62,8 @@ final readonly class BetaAttachmentStorage
             }
 
             $path = $this->path($name);
-            if (null !== $path) {
-                @unlink($path);
+            if (null !== $path && !unlink($path)) {
+                $this->logger->warning('Beta attachment cleanup failed.', ['path' => $path]);
             }
         }
     }

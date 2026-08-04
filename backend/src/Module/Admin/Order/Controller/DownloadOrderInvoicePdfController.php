@@ -9,6 +9,7 @@ use App\Module\Order\Repository\OrderRepository;
 use App\Module\Order\Service\InvoiceDownloadNameBuilder;
 use App\Module\Order\Service\OrderInvoiceDocumentService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,6 +23,7 @@ final class DownloadOrderInvoicePdfController extends AbstractController
         private readonly OrderRepository $orders,
         private readonly OrderInvoiceDocumentService $documents,
         private readonly InvoiceDownloadNameBuilder $nameBuilder,
+        private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
@@ -42,11 +44,6 @@ final class DownloadOrderInvoicePdfController extends AbstractController
             return ApiResponse::error('Génération de facture PDF indisponible.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
-        $filename = sprintf('%s.pdf', $this->nameBuilder->build($order));
-        $response = new Response($pdf);
-        $response->headers->set('Content-Type', 'application/pdf');
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
-
-        return $response;
+        return $this->attachments->create($pdf, sprintf('%s.pdf', $this->nameBuilder->build($order)), 'application/pdf');
     }
 }

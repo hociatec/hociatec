@@ -57,6 +57,9 @@ services:
     App\Shared\Outbox\OutboxEventStore:
         alias: App\Shared\Outbox\Repository\OutboxEventRepository
 
+    App\Shared\Application\TransactionManager:
+        alias: App\Shared\Persistence\DoctrinePersistence
+
     App\Shared\Http\RateLimitSubscriber:
         arguments:
             $limiters: !service_locator

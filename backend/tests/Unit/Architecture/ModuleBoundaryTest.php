@@ -78,10 +78,84 @@ final class ModuleBoundaryTest extends TestCase
             $source = file_get_contents($path);
             self::assertIsString($source);
 
-            foreach (['getRoles(', "isGranted('ROLE_", '->getUser()->getId() !==', '->getUser()->getId() ===', '->getUser() !==', '->getUser() ==='] as $forbidden) {
+            foreach (['getRoles(', "isGranted('ROLE_", '->getUser()->getId() !==', '->getUser()->getId() ===', '->getClient()->getId() !==', 'getCustomerEmail()) !==', '->getUser() !==', '->getUser() ==='] as $forbidden) {
                 if (str_contains($source, $forbidden)) {
                     $violations[] = $this->relativePath($path).': '.$forbidden;
                 }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testCartTokensAreNeverAcceptedFromQueryString(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (["query->get('cartToken'", 'query->get("cartToken"', "request->query->get('cartToken'", 'request->query->get("cartToken"'] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testExternalProcessesUseSymfonyProcessAndNoErrorSuppression(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['proc_open(', '@proc_open', '@unlink'] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testPdfRuntimeConfigurationIsNotTiedToAUnixUser(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['/home/hocine', '/home/ubuntu/.local/lib/python', 'site-packages'] as $forbidden) {
+                if (str_contains($source, $forbidden) && !str_ends_with($path, 'AccessiblePdfRenderer.php')) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testAttachmentResponsesDoNotBuildContentDispositionManually(): void
+    {
+        $allowed = [
+            'src/Shared/Http/AttachmentResponseFactory.php',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            if (in_array($this->relativePath($path), $allowed, true)) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'attachment; filename=')) {
+                $violations[] = $this->relativePath($path).': attachment; filename=';
             }
         }
 

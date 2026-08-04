@@ -82,7 +82,7 @@ final class AuthModuleCompletionTest extends TestCase
         $issued = $service->issueForUser($user);
         $jwt = $this->createMock(JWTTokenManagerInterface::class);
         $jwt->expects(self::exactly(2))->method('create')->with($user)->willReturn('jwt-token');
-        $controller = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), $this->limiter(10));
+        $controller = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(10));
 
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $controller(Request::create('/', 'POST', [], [], [], [], '{"refreshToken":""}'))->getStatusCode());
         $refreshed = $controller(Request::create('/', 'POST', [], [], [], [], json_encode(['refreshToken' => $issued['refreshToken']], JSON_THROW_ON_ERROR)));
@@ -95,8 +95,8 @@ final class AuthModuleCompletionTest extends TestCase
         self::assertSame(Response::HTTP_OK, $logoutResponse->getStatusCode());
         $logout(Request::create('/', 'POST'));
 
-        $throttled = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), $this->limiter(0));
-        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttled(Request::create('/', 'POST', [], [], [], [], '{}'))->getStatusCode());
+        $throttled = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(0));
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttled(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
 
         $expired = new RefreshToken($user, 'expired', hash('sha256', 'secret'), new \DateTimeImmutable('-1 hour'));
         $repository->save($expired, true);
@@ -131,13 +131,13 @@ final class AuthModuleCompletionTest extends TestCase
             'noreply@example.com',
         );
 
-        $requestController = new RequestPasswordResetController($passwordReset, $this->validator(1), $this->limiter(10));
+        $requestController = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $requestController(Request::create('/', 'POST', [], [], [], [], '{'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $requestController(Request::create('/', 'POST', [], [], [], [], '{"email":"reset@example.com"}'))->getStatusCode());
         self::assertNotNull($user->getPasswordResetToken());
         $passwordReset->request('missing@example.com');
 
-        $resetController = new ResetPasswordController($passwordReset, $this->validator(3), $this->limiter(10));
+        $resetController = new ResetPasswordController($passwordReset, $this->validator(3), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController('bad', Request::create('/', 'POST', [], [], [], [], '{"password":"new"}'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('b', 64), Request::create('/', 'POST', [], [], [], [], '{'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('d', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
@@ -150,9 +150,9 @@ final class AuthModuleCompletionTest extends TestCase
         $em->flush();
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('e', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
 
-        $throttledRequest = new RequestPasswordResetController($passwordReset, $this->validator(1), $this->limiter(0));
+        $throttledRequest = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(0));
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttledRequest(Request::create('/', 'POST', [], [], [], [], '{"email":"reset@example.com"}'))->getStatusCode());
-        $throttledReset = new ResetPasswordController($passwordReset, $this->validator(2), $this->limiter(1));
+        $throttledReset = new ResetPasswordController($passwordReset, $this->validator(2), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(1));
         self::assertSame(Response::HTTP_BAD_REQUEST, $throttledReset(str_repeat('f', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttledReset(str_repeat('f', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
 
@@ -162,7 +162,7 @@ final class AuthModuleCompletionTest extends TestCase
         $em->persist($verifyUser);
         $em->flush();
 
-        $verify = new VerifyAccountController($this->userRepository($em), $this->limiter(10));
+        $verify = new VerifyAccountController($this->userRepository($em), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $verify('bad', Request::create('/'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $verify($rawToken, Request::create('/'))->getStatusCode());
         self::assertTrue($verifyUser->isVerified());
@@ -184,7 +184,7 @@ final class AuthModuleCompletionTest extends TestCase
         $em->persist($expired);
         $em->flush();
         self::assertSame(Response::HTTP_BAD_REQUEST, $verify($expiredToken, Request::create('/'))->getStatusCode());
-        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, (new VerifyAccountController($this->userRepository($em), $this->limiter(0)))($rawToken, Request::create('/'))->getStatusCode());
+        self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, (new VerifyAccountController($this->userRepository($em), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(0)))($rawToken, Request::create('/', server: ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
     }
 
     public function testAuthenticationHandlers(): void
@@ -220,7 +220,7 @@ final class AuthModuleCompletionTest extends TestCase
 
     private function refreshService(EntityManager $em): RefreshTokenService
     {
-        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), $em);
+        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), new \App\Shared\Persistence\DoctrinePersistence($em));
     }
 
     private function limiter(int $limit): RateLimiterFactory
@@ -228,7 +228,12 @@ final class AuthModuleCompletionTest extends TestCase
         $storage = new InMemoryStorage();
         $factory = new RateLimiterFactory(['id' => 'test_limiter', 'policy' => 'fixed_window', 'limit' => max(1, $limit), 'interval' => '1 minute'], $storage);
         if ($limit <= 0) {
-            $factory->create('127.0.0.1')->consume(1);
+            $keys = new \App\Shared\Http\RateLimitKeyFactory();
+            $request = Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']);
+            $factory->create($keys->forRequest($request))->consume(1);
+            $factory->create($keys->forRequest($request, 'reset@example.com'))->consume(1);
+            $factory->create($keys->forRequest($request, str_repeat('f', 64)))->consume(1);
+            $factory->create($keys->forRequest($request, str_repeat('a', 64)))->consume(1);
         }
 
         return $factory;
