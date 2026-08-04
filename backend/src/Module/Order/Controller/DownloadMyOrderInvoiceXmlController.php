@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\InvoiceDownloadNameBuilder;
 use App\Module\Order\Service\OrderInvoiceDocumentService;
 use App\Module\User\Entity\User;
@@ -23,6 +24,7 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
         private readonly OrderRepository $orders,
         private readonly OrderInvoiceDocumentService $documents,
         private readonly InvoiceDownloadNameBuilder $nameBuilder,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -35,7 +37,7 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
-        if ($order->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canDownloadInvoice($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

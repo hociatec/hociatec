@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Controller;
 
 use App\Module\TradeIn\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Service\TradeInPrivateFileStorage;
 use App\Module\User\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class DownloadMyTradeInReceiptController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepository $requests, private readonly TradeInPrivateFileStorage $files)
+    public function __construct(
+        private readonly TradeInRequestRepository $requests,
+        private readonly TradeInPrivateFileStorage $files,
+        private readonly TradeInAccessPolicy $accessPolicy,
+    )
     {
     }
 
@@ -26,7 +31,7 @@ final class DownloadMyTradeInReceiptController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $request = $this->requests->find($id);
-        if (null === $request || null === $request->getUser() || $request->getUser()->getId() !== $user->getId() || null === $request->getReceiptPath()) {
+        if (null === $request || !$this->accessPolicy->canDownloadReceipt($user, $request)) {
             throw $this->createNotFoundException('Justificatif indisponible.');
         }
 

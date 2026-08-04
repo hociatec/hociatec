@@ -6,10 +6,15 @@ namespace App\Shared\Http;
 
 use Symfony\Component\HttpFoundation\Response;
 
-final class ExternalServiceException extends \RuntimeException implements ApiProblemException
+final class ExternalServiceException extends \RuntimeException implements PublicApiException
 {
     public function getStatusCode(): int
     {
         return Response::HTTP_BAD_GATEWAY;
+    }
+
+    public function publicMessage(): string
+    {
+        return $this->getMessage();
     }
 }

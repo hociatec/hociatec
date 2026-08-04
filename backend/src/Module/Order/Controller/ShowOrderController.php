@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Controller;
 
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Rating\Repository\ProductRatingRepository;
 use App\Module\User\Entity\User;
@@ -22,6 +23,7 @@ class ShowOrderController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly ProductRatingRepository $ratings,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -34,7 +36,7 @@ class ShowOrderController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
-        if ($order->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canView($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

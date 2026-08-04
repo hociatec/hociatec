@@ -23,6 +23,7 @@ use App\Module\TradeIn\DTO\TradeInInput;
 use App\Module\TradeIn\Entity\TradeInRequest;
 use App\Module\TradeIn\Enum\TradeInStatus;
 use App\Module\TradeIn\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Service\TradeInClosureService;
 use App\Module\TradeIn\Service\TradeInEstimator;
 use App\Module\TradeIn\Service\TradeInNotificationEmailService;
@@ -109,7 +110,7 @@ final class TradeInModuleCompletionTest extends TestCase
         $list->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $list()->getStatusCode());
 
-        $download = new DownloadMyTradeInReceiptController($repository, new TradeInPrivateFileStorage($this->projectDir()));
+        $download = new DownloadMyTradeInReceiptController($repository, new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy());
         $download->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $download((int) $request->getId())->getStatusCode());
 
@@ -132,7 +133,7 @@ final class TradeInModuleCompletionTest extends TestCase
         $em->persist($request);
         $em->flush();
 
-        $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()));
+        $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy());
         $download->setContainer($this->controllerContainer($user));
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);

@@ -51,10 +51,11 @@ final class ApiResponse
     /**
      * @param array<string, mixed>|list<string> $details
      */
-    public static function error(string $message, int $status = JsonResponse::HTTP_BAD_REQUEST, array $details = []): JsonResponse
+    public static function error(string $message, int $status = JsonResponse::HTTP_BAD_REQUEST, array $details = [], ?string $code = null): JsonResponse
     {
         return new JsonResponse([
             'status' => 'error',
+            'code' => $code ?? self::defaultErrorCode($status),
             'message' => $message,
             'details' => $details,
         ], $status);
@@ -63,5 +64,19 @@ final class ApiResponse
     public static function internalError(string $message = 'Une erreur interne est survenue.'): JsonResponse
     {
         return self::error($message, JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    private static function defaultErrorCode(int $status): string
+    {
+        return match ($status) {
+            JsonResponse::HTTP_BAD_REQUEST => 'BAD_REQUEST',
+            JsonResponse::HTTP_UNAUTHORIZED => 'UNAUTHORIZED',
+            JsonResponse::HTTP_FORBIDDEN => 'FORBIDDEN',
+            JsonResponse::HTTP_NOT_FOUND => 'NOT_FOUND',
+            JsonResponse::HTTP_CONFLICT => 'CONFLICT',
+            JsonResponse::HTTP_UNPROCESSABLE_ENTITY => 'UNPROCESSABLE_ENTITY',
+            JsonResponse::HTTP_TOO_MANY_REQUESTS => 'TOO_MANY_REQUESTS',
+            default => $status >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
+        };
     }
 }

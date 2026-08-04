@@ -67,9 +67,13 @@ final class ApiResponseTest extends TestCase
         self::assertSame(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $response->getStatusCode());
         self::assertSame([
             'status' => 'error',
+            'code' => 'UNPROCESSABLE_ENTITY',
             'message' => 'Broken',
             'details' => ['field' => 'name'],
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
+
+        $coded = ApiResponse::error('Invalid RIB.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, [], 'TRADE_IN_INVALID_RIB');
+        self::assertSame('TRADE_IN_INVALID_RIB', json_decode((string) $coded->getContent(), true, 512, JSON_THROW_ON_ERROR)['code']);
     }
 
     public function testInternalErrorUsesDefaultMessageAndStatus(): void
@@ -79,6 +83,7 @@ final class ApiResponseTest extends TestCase
         self::assertSame(JsonResponse::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
         self::assertSame([
             'status' => 'error',
+            'code' => 'INTERNAL_ERROR',
             'message' => 'Une erreur interne est survenue.',
             'details' => [],
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));

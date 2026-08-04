@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Service\StripeWebhookService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\CsrfExempt;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/stripe/webhook', name: 'api_stripe_webhook', methods: ['POST'])]
+#[CsrfExempt]
 final class StripeWebhookController extends AbstractController
 {
     public function __construct(

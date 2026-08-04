@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Shared\Http;
 
+use App\Shared\Http\ApiExceptionSubscriber;
+use App\Shared\Http\CsrfExempt;
 use App\Shared\Http\RateLimitSubscriber;
 use App\Shared\Http\RateLimited;
 use App\Shared\Http\CsrfProtectionSubscriber;
@@ -21,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -28,6 +31,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Psr\Log\LoggerInterface;
 
 final class HttpInfrastructureTest extends TestCase
 {
@@ -107,6 +111,9 @@ final class HttpInfrastructureTest extends TestCase
 
         self::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
         self::assertSame('DENY', $response->headers->get('X-Frame-Options'));
+        self::assertSame('same-origin', $response->headers->get('Cross-Origin-Resource-Policy'));
+        self::assertSame('same-origin', $response->headers->get('Cross-Origin-Opener-Policy'));
+        self::assertSame('none', $response->headers->get('X-Permitted-Cross-Domain-Policies'));
         self::assertSame('max-age=31536000; includeSubDomains', $response->headers->get('Strict-Transport-Security'));
 
         $nonApiResponse = new Response();
@@ -128,6 +135,19 @@ final class HttpInfrastructureTest extends TestCase
         self::assertSame(Response::HTTP_FORBIDDEN, $event->getResponse()?->getStatusCode());
     }
 
+    public function testCsrfProtectionAllowsExplicitControllerExemption(): void
+    {
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $subscriber = new CsrfProtectionSubscriber(new CsrfTokenService('test'));
+        $request = Request::create('/api/example', 'POST');
+        $request->attributes->set('_controller', CsrfExemptTestController::class.'::__invoke');
+
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+        $subscriber->onKernelRequest($event);
+
+        self::assertFalse($event->hasResponse());
+    }
+
     public function testRateLimitedAttributeValidatesTokenCount(): void
     {
         $attribute = new RateLimited('public_api', 2);
@@ -137,6 +157,38 @@ final class HttpInfrastructureTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('The number of consumed tokens must be positive.');
         new RateLimited('public_api', 0);
+    }
+
+    public function testApiExceptionSubscriberSanitizesGenericExceptionMessages(): void
+    {
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $subscriber = new ApiExceptionSubscriber($this->createMock(LoggerInterface::class));
+
+        $domainEvent = new ExceptionEvent(
+            $kernel,
+            Request::create('/api/orders', 'POST'),
+            HttpKernelInterface::MAIN_REQUEST,
+            new \DomainException('internal domain detail /home/app')
+        );
+        $subscriber($domainEvent);
+
+        self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $domainEvent->getResponse()?->getStatusCode());
+        $domainPayload = json_decode((string) $domainEvent->getResponse()?->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Requête impossible.', $domainPayload['message']);
+        self::assertStringNotContainsString('/home/app', (string) $domainEvent->getResponse()?->getContent());
+
+        $invalidArgumentEvent = new ExceptionEvent(
+            $kernel,
+            Request::create('/api/orders', 'POST'),
+            HttpKernelInterface::MAIN_REQUEST,
+            new \InvalidArgumentException('internal invalid detail SQLSTATE')
+        );
+        $subscriber($invalidArgumentEvent);
+
+        self::assertSame(Response::HTTP_BAD_REQUEST, $invalidArgumentEvent->getResponse()?->getStatusCode());
+        $invalidArgumentPayload = json_decode((string) $invalidArgumentEvent->getResponse()?->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Requête invalide.', $invalidArgumentPayload['message']);
+        self::assertStringNotContainsString('SQLSTATE', (string) $invalidArgumentEvent->getResponse()?->getContent());
     }
 
     public function testAccountNotificationFormatterNormalizesInternalTargets(): void
@@ -242,5 +294,13 @@ final class HttpInfrastructureTest extends TestCase
     {
         $reflection = new \ReflectionObject($entity);
         $reflection->getProperty('id')->setValue($entity, $id);
+    }
+}
+
+#[CsrfExempt]
+final class CsrfExemptTestController
+{
+    public function __invoke(): void
+    {
     }
 }

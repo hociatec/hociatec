@@ -11,6 +11,7 @@ use App\Module\User\Exception\UserAlreadyExistsException;
 use App\Module\User\Service\RegisterUserService;
 use App\Module\User\Service\UserProfileFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\CsrfExempt;
 use App\Shared\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/register', name: 'api_auth_register', methods: ['POST'])]
+#[CsrfExempt]
 class RegisterController extends AbstractController
 {
     public function __construct(

@@ -7,6 +7,7 @@ namespace App\Module\Auth\Controller;
 use App\Module\Auth\DTO\RequestPasswordResetInput;
 use App\Module\Auth\Service\PasswordResetService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\CsrfExempt;
 use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/password-reset/request', name: 'api_auth_password_reset_request', methods: ['POST'])]
+#[CsrfExempt]
 class RequestPasswordResetController extends AbstractController
 {
     public function __construct(

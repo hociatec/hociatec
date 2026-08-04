@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Rating\Controller;
 
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Rating\Exception\ProductReviewException;
 use App\Module\Rating\Service\ProductRatingService;
 use App\Module\Rating\Service\ProductReviewFormatter;
@@ -24,6 +25,7 @@ class CreateProductReviewController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly ProductRatingService $reviews,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -37,7 +39,7 @@ class CreateProductReviewController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($order->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canView($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

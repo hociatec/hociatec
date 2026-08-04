@@ -14,6 +14,7 @@ use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderItem;
 use App\Module\Order\Repository\OrderItemRepository;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Rating\Controller\CreateProductReviewController;
 use App\Module\Rating\Controller\ListProductReviewsController;
 use App\Module\Rating\Entity\ProductRating;
@@ -154,7 +155,7 @@ final class RatingServicesAndControllersTest extends TestCase
         $controller = new class($this->repository(OrderRepository::class), $this->ratingService(), $user) extends CreateProductReviewController {
             public function __construct(OrderRepository $orders, ProductRatingService $reviews, private readonly User $user)
             {
-                parent::__construct($orders, $reviews);
+                parent::__construct($orders, $reviews, new OrderAccessPolicy());
             }
 
             protected function getUser(): User

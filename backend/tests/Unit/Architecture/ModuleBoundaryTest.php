@@ -63,6 +63,31 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testControllersDoNotImplementOwnershipRulesInline(): void
+    {
+        $allowed = [
+            'src/Module/Auth/Controller/ProfileController.php',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php') || in_array($this->relativePath($path), $allowed, true)) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['getRoles(', "isGranted('ROLE_", '->getUser()->getId() !==', '->getUser()->getId() ===', '->getUser() !==', '->getUser() ==='] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     /** @return list<string> */
     private function phpFiles(string $directory): array
     {
@@ -82,6 +107,9 @@ final class ModuleBoundaryTest extends TestCase
 
     private function relativePath(string $path): string
     {
-        return str_replace(dirname(__DIR__, 3).'/', '', $path);
+        $root = realpath(__DIR__.'/../../../');
+        $realPath = realpath($path);
+
+        return is_string($root) && is_string($realPath) ? str_replace($root.'/', '', $realPath) : $path;
     }
 }

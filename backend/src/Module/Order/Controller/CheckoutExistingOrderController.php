@@ -7,6 +7,7 @@ namespace App\Module\Order\Controller;
 use App\Module\Order\DTO\CheckoutInput;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\StripeCheckoutService;
 use App\Module\User\Entity\User;
@@ -34,6 +35,7 @@ final class CheckoutExistingOrderController extends AbstractController
         private readonly ShippingAddressRepository $addresses,
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly DtoValidator $dtoValidator,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -46,7 +48,7 @@ final class CheckoutExistingOrderController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
-        if ($order->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canCheckout($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

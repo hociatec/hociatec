@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Controller\Client;
 
 use App\Module\Appointment\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Repository\AppointmentRepository;
+use App\Module\Appointment\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\Appointment\Service\AppointmentService;
 use App\Module\User\Entity\User;
@@ -28,6 +29,7 @@ final class UpdateAppointmentStatusController extends AbstractController
         private readonly AppointmentService $appointmentService,
         private readonly AppointmentFormatter $appointmentFormatter,
         private readonly DtoValidator $dtoValidator,
+        private readonly AppointmentAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -42,7 +44,7 @@ final class UpdateAppointmentStatusController extends AbstractController
             return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if ($appointment->getUser()->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
+        if (!$this->accessPolicy->canChangeStatus($user, $appointment)) {
             return ApiResponse::error('Vous n\'êtes pas autorisé à modifier ce rendez-vous.', Response::HTTP_FORBIDDEN);
         }
 

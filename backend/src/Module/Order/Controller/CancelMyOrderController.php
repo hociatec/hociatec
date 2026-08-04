@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderWorkflowService;
 use App\Module\User\Entity\User;
@@ -23,6 +24,7 @@ class CancelMyOrderController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orders,
         private readonly OrderWorkflowService $workflow,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -35,7 +37,7 @@ class CancelMyOrderController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
-        if ($order->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canCancel($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 

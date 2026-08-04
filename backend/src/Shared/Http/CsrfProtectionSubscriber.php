@@ -17,15 +17,6 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
         '/api/auth/login',
     ];
 
-    /** @var list<string> */
-    private const EXCLUDED_ROUTES = [
-        'api_auth_password_reset_confirm',
-        'api_auth_password_reset_request',
-        'api_auth_refresh',
-        'api_auth_register',
-        'api_stripe_webhook',
-    ];
-
     public function __construct(private readonly CsrfTokenService $csrfTokenService)
     {
     }
@@ -67,8 +58,7 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
                 return false;
             }
 
-            $route = $request->attributes->get('_route');
-            if (is_string($route) && in_array($route, self::EXCLUDED_ROUTES, true)) {
+            if ($this->isControllerExempt($request)) {
                 return false;
             }
 
@@ -76,5 +66,32 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
         }
 
         return false;
+    }
+
+    private function isControllerExempt(Request $request): bool
+    {
+        $controller = $request->attributes->get('_controller');
+        if (!is_string($controller)) {
+            return false;
+        }
+
+        [$class, $method] = str_contains($controller, '::')
+            ? explode('::', $controller, 2)
+            : [$controller, '__invoke'];
+
+        if (!class_exists($class)) {
+            return false;
+        }
+
+        $reflectionClass = new \ReflectionClass($class);
+        if ([] !== $reflectionClass->getAttributes(CsrfExempt::class)) {
+            return true;
+        }
+
+        if (!$reflectionClass->hasMethod($method)) {
+            return false;
+        }
+
+        return [] !== $reflectionClass->getMethod($method)->getAttributes(CsrfExempt::class);
     }
 }

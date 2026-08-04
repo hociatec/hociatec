@@ -6,6 +6,7 @@ namespace App\Module\Order\Controller;
 
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\OrderFormatter;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
@@ -22,6 +23,7 @@ final class CheckoutSessionStatusController extends AbstractController
     public function __construct(
         private readonly OrderCheckoutSessionRepository $checkoutSessions,
         private readonly OrderRepository $orders,
+        private readonly OrderAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -34,7 +36,7 @@ final class CheckoutSessionStatusController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
-        if ($checkout->getUser()->getId() !== $user->getId()) {
+        if (!$this->accessPolicy->canViewCheckoutSession($user, $checkout)) {
             return ApiResponse::error('Session de paiement introuvable.', Response::HTTP_NOT_FOUND);
         }
 

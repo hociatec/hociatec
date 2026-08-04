@@ -22,6 +22,7 @@ use App\Module\Appointment\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
+use App\Module\Appointment\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\Appointment\Service\AppointmentService;
 use App\Module\Appointment\Service\AppointmentStatusManager;
@@ -132,7 +133,7 @@ final class AppointmentModuleCompletionTest extends TestCase
         $listPayload = $this->payload($list());
         self::assertSame($appointmentId, $listPayload['data']['upcoming'][0]['id']);
 
-        $update = new UpdateAppointmentStatusController($this->appointments(), $service, $formatter, $this->validator());
+        $update = new UpdateAppointmentStatusController($this->appointments(), $service, $formatter, $this->validator(), new AppointmentAccessPolicy());
         $update->setContainer($this->container($user));
         self::assertSame(404, $update(999, $this->jsonRequest(['status' => Appointment::STATUS_CANCELLED], 'PATCH'))->getStatusCode());
         self::assertSame(400, $update($appointmentId, Request::create('/', 'PATCH', server: [], content: '{bad'))->getStatusCode());
@@ -339,6 +340,10 @@ final class AppointmentModuleCompletionTest extends TestCase
 
     private function container(User $user, bool $isAdmin = false): Container
     {
+        if ($isAdmin) {
+            $user->setRoles(['ROLE_ADMIN']);
+        }
+
         $tokenStorage = new TokenStorage();
         $tokenStorage->setToken(new UsernamePasswordToken($user, 'main', $user->getRoles()));
         $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);

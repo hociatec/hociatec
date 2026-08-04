@@ -7,6 +7,7 @@ namespace App\Module\Auth\Controller;
 use App\Module\Auth\Http\AuthCookieService;
 use App\Module\Auth\Service\RefreshTokenService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\CsrfExempt;
 use App\Shared\Http\JsonPayload;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/refresh', name: 'api_auth_refresh', methods: ['POST'])]
+#[CsrfExempt]
 class RefreshTokenController extends AbstractController
 {
     public function __construct(

@@ -12,6 +12,7 @@ use App\Module\Favorite\Service\FavoriteService;
 use App\Module\Order\Controller\CancelMyOrderController;
 use App\Module\Order\Entity\Order;
 use App\Module\Order\Repository\OrderRepository;
+use App\Module\Order\Security\OrderAccessPolicy;
 use App\Module\Order\Service\OrderPersistence;
 use App\Module\Order\Service\OrderWorkflowService;
 use App\Module\Quote\Controller\PublicApi\ListServicesController;
@@ -108,7 +109,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $controller = new class($orders, $workflow, $owner) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow);
+                parent::__construct($orders, $workflow, new OrderAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -122,7 +123,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $otherUserController = new class($orders, $workflow, $actor) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow);
+                parent::__construct($orders, $workflow, new OrderAccessPolicy());
             }
 
             public function getUser(): ?User
