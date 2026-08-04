@@ -3,6 +3,7 @@ import { ArrowRight, Clock3 } from 'lucide-react';
 
 import { formatEuroCents } from '@/shared/lib/formatters';
 import type { NewsArticleDto } from '@/features/news/api/newsApi';
+import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 
@@ -93,7 +94,7 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
         <dl className="home-service-card__facts">
           <div>
             <dt>Mode de facturation</dt>
-            <dd>{service.unit?.trim() || 'Prix fixe'}</dd>
+            <dd>{formatServiceBillingMode(service.unit)}</dd>
           </div>
           <div>
             <dt>Prix HT</dt>

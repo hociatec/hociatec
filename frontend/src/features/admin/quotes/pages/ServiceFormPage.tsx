@@ -47,6 +47,16 @@ const fallbackBillingModeOptions: QuoteMetadataOption[] = [
   { value: 'prix fixe', label: 'Prix fixe' },
 ];
 
+const normalizeBillingMode = (value?: string | null) => {
+  const normalized = value?.trim().toLowerCase();
+
+  if (!normalized) {
+    return 'prix fixe';
+  }
+
+  return normalized === 'heure' ? 'horaire' : normalized;
+};
+
 export const ServiceFormPage = () => {
   const params = useParams<{ serviceId?: string }>();
   const parsedServiceId = params.serviceId ? Number.parseInt(params.serviceId, 10) : NaN;
@@ -85,7 +95,7 @@ export const ServiceFormPage = () => {
         setForm({
           title: svc?.title ?? '',
           description: svc?.description ?? '',
-          unit: svc?.unit ?? 'prix fixe',
+          unit: normalizeBillingMode(svc?.unit),
           isFeaturedHome: svc?.isFeaturedHome ?? false,
           imageUrl: svc?.imageUrl ?? '',
           imageAlt: svc?.imageAlt ?? '',
@@ -130,7 +140,7 @@ export const ServiceFormPage = () => {
     }
 
     const description = form.description.trim();
-    const unit = form.unit.trim().toLowerCase();
+    const unit = normalizeBillingMode(form.unit);
     const durationValue = form.durationValue.trim();
 
     if (durationValue !== '') {

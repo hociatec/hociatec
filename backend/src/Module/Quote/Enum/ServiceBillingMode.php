@@ -7,7 +7,7 @@ namespace App\Module\Quote\Enum;
 enum ServiceBillingMode: string
 {
     case FIXED_PRICE = 'prix fixe';
-    case HOUR = 'heure';
+    case HOUR = 'horaire';
     case DAY = 'jour';
     case INTERVENTION = 'intervention';
     case AUDIT = 'audit';
@@ -18,7 +18,7 @@ enum ServiceBillingMode: string
     {
         return match ($this) {
             self::FIXED_PRICE => 'Prix fixe',
-            self::HOUR => 'À l’heure',
+            self::HOUR => 'Horaire',
             self::DAY => 'À la journée',
             self::INTERVENTION => 'Par intervention',
             self::AUDIT => 'Audit',
@@ -44,6 +44,12 @@ enum ServiceBillingMode: string
             return self::FIXED_PRICE;
         }
 
-        return self::tryFrom(mb_strtolower(trim($value)));
+        $normalized = mb_strtolower(trim($value));
+
+        if ('heure' === $normalized) {
+            return self::HOUR;
+        }
+
+        return self::tryFrom($normalized);
     }
 }

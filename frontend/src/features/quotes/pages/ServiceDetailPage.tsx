@@ -7,6 +7,7 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 export const ServiceDetailPage = () => {
@@ -75,7 +76,7 @@ export const ServiceDetailPage = () => {
                   Mode de facturation
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-brand-900">
-                  {service.unit?.trim() || 'Prix fixe'}
+                  {formatServiceBillingMode(service.unit)}
                 </p>
               </div>
               <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5">

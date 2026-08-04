@@ -8,6 +8,7 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
 
 export const ServicesListPage = () => {
   useDocumentTitle('Admin - Services');
@@ -65,7 +66,7 @@ export const ServicesListPage = () => {
                       <span className="muted">{s.description ?? ''}</span>
                     </div>
                   </th>
-                  <td>{s.unit?.trim() || 'Prix fixe'}</td>
+                  <td>{formatServiceBillingMode(s.unit)}</td>
                   <td>{s.isFeaturedHome ? 'Mis en avant' : '—'}</td>
                   <td>{formatServiceDuration(s)}</td>
                   <td>{formatEuroCents(s.priceCents)}</td>

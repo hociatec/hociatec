@@ -81,7 +81,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $this->setId($service, 12);
         $service
             ->setDescription('Desc')
-            ->setUnit('heure')
+            ->setUnit('horaire')
             ->setDurationValue(2)
             ->setDurationUnit('hour')
             ->setIsFeaturedHome(true)
@@ -264,7 +264,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         ]));
         self::assertSame('Audit', $created->title);
         self::assertNull($created->description);
-        self::assertSame('heure', $created->billingMode);
+        self::assertSame('horaire', $created->billingMode);
         self::assertNull($created->durationValue);
         self::assertNull($created->durationUnit);
         self::assertSame(1250, $created->priceCents);

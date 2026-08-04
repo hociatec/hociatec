@@ -10,6 +10,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 const SERVICES_PER_PAGE = 7;
@@ -95,7 +96,7 @@ export const ServicesCatalogPage = () => {
                         <dl className="home-service-card__facts">
                           <div>
                             <dt>Mode de facturation</dt>
-                            <dd>{service.unit?.trim() || 'Prix fixe'}</dd>
+                            <dd>{formatServiceBillingMode(service.unit)}</dd>
                           </div>
                           <div>
                             <dt>Prix HT</dt>
