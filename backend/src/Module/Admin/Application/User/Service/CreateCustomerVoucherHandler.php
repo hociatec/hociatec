@@ -7,9 +7,9 @@ namespace App\Module\Admin\Application\User\Service;
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CreateCustomerVoucherHandler
@@ -17,7 +17,7 @@ final readonly class CreateCustomerVoucherHandler
     public function __construct(
         private CreateVoucherHandler $createVoucher,
         private VoucherNotificationEmailService $notifications,
-        private VoucherRepository $vouchers,
+        private VoucherRepositoryPort $vouchers,
         private DoctrineUnitOfWork $unitOfWork,
     ) {
     }

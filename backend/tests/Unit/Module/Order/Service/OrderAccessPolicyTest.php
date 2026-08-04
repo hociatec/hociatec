@@ -20,6 +20,7 @@ final class OrderAccessPolicyTest extends TestCase
 
         self::assertTrue($policy->canView($owner, $order));
         self::assertFalse($policy->canView($other, $order));
+        self::assertFalse($policy->canDownloadInvoice($other, $order));
         self::assertTrue($policy->canCheckout($owner, $order));
         self::assertTrue($policy->canCancel($owner, $order));
         self::assertTrue($policy->canDownloadInvoice($owner, $order));

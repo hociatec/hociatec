@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Application\Mapper;
 
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 
 final readonly class VoucherPayload
 {
-    public function __construct(private VoucherRepository $vouchers)
+    public function __construct(private VoucherRepositoryPort $vouchers)
     {
     }
 

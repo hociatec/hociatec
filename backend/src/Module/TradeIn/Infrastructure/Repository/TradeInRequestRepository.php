@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Infrastructure\Repository;
 
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
@@ -11,7 +12,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TradeInRequest> */
-final class TradeInRequestRepository extends ServiceEntityRepository
+final class TradeInRequestRepository extends ServiceEntityRepository implements TradeInRequestRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

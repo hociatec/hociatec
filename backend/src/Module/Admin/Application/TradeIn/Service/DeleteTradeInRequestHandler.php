@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\TradeIn\Service;
 
 use App\Module\TradeIn\Application\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 
 final readonly class DeleteTradeInRequestHandler
 {
     public function __construct(
-        private TradeInRequestRepository $requests,
+        private TradeInRequestRepositoryPort $requests,
         private TradeInPersistence $persistence,
     ) {
     }

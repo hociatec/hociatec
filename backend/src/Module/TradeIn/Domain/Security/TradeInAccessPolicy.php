@@ -11,8 +11,16 @@ final readonly class TradeInAccessPolicy
 {
     public function canDownloadReceipt(User $user, TradeInRequest $request): bool
     {
-        return null !== $request->getUser()
-            && $request->getUser()->getId() === $user->getId()
+        $owner = $request->getUser();
+        if (null === $owner) {
+            return false;
+        }
+
+        $userId = $user->getId();
+        $ownerId = $owner->getId();
+        $sameUser = null !== $userId && null !== $ownerId ? $ownerId === $userId : $owner === $user;
+
+        return $sameUser
             && null !== $request->getReceiptPath();
     }
 }

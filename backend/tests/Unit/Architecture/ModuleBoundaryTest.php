@@ -175,6 +175,25 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testPdfRendererFacadesStaySmall(): void
+    {
+        $limits = [
+            __DIR__.'/../../../src/Module/Quote/Infrastructure/Pdf/QuotePdfService.php' => 80,
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Pdf/OrderInvoicePdfService.php' => 80,
+        ];
+        $violations = [];
+
+        foreach ($limits as $path => $limit) {
+            $lines = file($path);
+            self::assertIsArray($lines);
+            if (count($lines) > $limit) {
+                $violations[] = $this->relativePath($path).': '.count($lines).' lines';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testApplicationFormattersLiveInProjectionNamespaces(): void
     {
         $violations = [];
@@ -218,6 +237,37 @@ final class ModuleBoundaryTest extends TestCase
 
             if (!$allowed) {
                 $violations[] = $relativePath;
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApplicationLayerUsesPortsForMainAggregateRepositories(): void
+    {
+        $forbiddenImports = [
+            'App\\Module\\Catalog\\Infrastructure\\Repository\\ProductRepository',
+            'App\\Module\\Order\\Infrastructure\\Repository\\OrderRepository',
+            'App\\Module\\Quote\\Infrastructure\\Repository\\QuoteRepository',
+            'App\\Module\\TradeIn\\Infrastructure\\Repository\\TradeInRequestRepository',
+            'App\\Module\\User\\Infrastructure\\Repository\\UserRepository',
+            'App\\Module\\Voucher\\Infrastructure\\Repository\\VoucherRepository',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/Application/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach ($forbiddenImports as $forbiddenImport) {
+                if (str_contains($source, 'use '.$forbiddenImport.';')) {
+                    $violations[] = $relativePath.': '.$forbiddenImport;
+                }
             }
         }
 

@@ -150,6 +150,36 @@ final class OutboxTest extends TestCase
         self::assertSame('bad payload', $event->getLastError());
     }
 
+    public function testDispatcherDeadLettersEventsAfterMaximumAttempts(): void
+    {
+        $event = new OutboxEvent('key-max-attempts', 'test.event', ['id' => 5]);
+        for ($i = 0; $i < 4; ++$i) {
+            $event->markProcessing()->markFailed('previous failure', new \DateTimeImmutable());
+        }
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('flush');
+
+        $handler = new class implements OutboxEventHandler {
+            public function supports(OutboxEvent $event): bool
+            {
+                return true;
+            }
+
+            public function handle(OutboxEvent $event): void
+            {
+                throw new \RuntimeException('permanent failure');
+            }
+        };
+
+        $processed = (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), $this->transactions(), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+
+        self::assertSame(1, $processed);
+        self::assertSame(5, $event->getAttempts());
+        self::assertSame(OutboxEvent::STATUS_DEAD, $event->getStatus());
+        self::assertSame('permanent failure', $event->getLastError());
+    }
+
     public function testDispatcherRecoversStaleProcessingEventsBeforeDispatch(): void
     {
         $repository = new class implements OutboxEventStore {

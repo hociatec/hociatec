@@ -12,6 +12,8 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 final readonly class OutboxDispatcher
 {
+    private const MAX_ATTEMPTS = 5;
+
     /** @param iterable<OutboxEventHandler> $handlers */
     public function __construct(
         private OutboxEventStore $events,
@@ -79,7 +81,12 @@ final readonly class OutboxDispatcher
             $handler->handle($event);
             $event->markProcessed();
         } catch (\Throwable $exception) {
-            $event->markFailed($this->failureMessage($exception), new \DateTimeImmutable(sprintf('+%d minutes', min(60, max(1, $event->getAttempts() * 5)))));
+            $failureMessage = $this->failureMessage($exception);
+            if ($event->getAttempts() >= self::MAX_ATTEMPTS) {
+                $event->markDead($failureMessage);
+            } else {
+                $event->markFailed($failureMessage, new \DateTimeImmutable(sprintf('+%d minutes', min(60, max(1, $event->getAttempts() * 5)))));
+            }
             $this->logger->error('Outbox event handling failed.', [
                 'eventId' => $event->getId(),
                 'type' => $event->getType(),

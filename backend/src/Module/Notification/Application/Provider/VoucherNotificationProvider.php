@@ -7,13 +7,13 @@ namespace App\Module\Notification\Application\Provider;
 use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 
 final readonly class VoucherNotificationProvider implements ComputedAccountNotificationProviderInterface
 {
     public function __construct(
-        private VoucherRepository $vouchers,
+        private VoucherRepositoryPort $vouchers,
         private AccountNotificationFormatter $formatter,
     ) {
     }

@@ -11,6 +11,13 @@ final readonly class AuditAccessPolicy
 {
     public function canView(User $user, AuditRequest $audit): bool
     {
-        return $audit->getClient()->getId() === $user->getId();
+        $userId = $user->getId();
+        $clientId = $audit->getClient()->getId();
+
+        if (null !== $userId && null !== $clientId) {
+            return $clientId === $userId;
+        }
+
+        return $audit->getClient() === $user;
     }
 }

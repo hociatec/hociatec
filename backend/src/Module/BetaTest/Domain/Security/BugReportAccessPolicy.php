@@ -11,7 +11,14 @@ final readonly class BugReportAccessPolicy
 {
     public function canView(User $user, BugReport $report): bool
     {
-        return $report->getReporter()->getId() === $user->getId();
+        $userId = $user->getId();
+        $reporterId = $report->getReporter()->getId();
+
+        if (null !== $userId && null !== $reporterId) {
+            return $reporterId === $userId;
+        }
+
+        return $report->getReporter() === $user;
     }
 
     public function canComment(User $user, BugReport $report): bool
