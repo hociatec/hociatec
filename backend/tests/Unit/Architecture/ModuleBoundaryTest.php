@@ -282,6 +282,44 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testDomainDoesNotDependOnHttpFoundation(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Domain/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'Symfony\\Component\\HttpFoundation')) {
+                $violations[] = $this->relativePath($path).': Symfony\\Component\\HttpFoundation';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testDomainEntitiesDoNotDependOnSymfonySecurityContracts(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Domain/Entity/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'Symfony\\Component\\Security\\Core\\User')) {
+                $violations[] = $this->relativePath($path).': Symfony\\Component\\Security\\Core\\User';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testApplicationAndUiDependOnDocumentPortsInsteadOfPdfInfrastructure(): void
     {
         $violations = [];

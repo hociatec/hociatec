@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Module\User\Domain\Entity;
 
 use App\Domain\Normalization\EmailNormalizer;
+use App\Module\User\Domain\Security\SecurityUserIdentity;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'UNIQ_USERS_EMAIL', columns: ['email'])]
 #[ORM\HasLifecycleCallbacks]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements SecurityUserIdentity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

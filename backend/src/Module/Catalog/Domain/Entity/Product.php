@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Domain\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
 #[ORM\Entity]
@@ -57,7 +56,7 @@ class Product
     private Category $category;
 
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'imageName', size: 'imageSize')]
-    private ?File $imageFile = null;
+    private ?object $imageFile = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageName = null;
@@ -390,7 +389,7 @@ class Product
         return $this;
     }
 
-    public function setImageFile(?File $imageFile): self
+    public function setImageFile(?object $imageFile): self
     {
         $this->imageFile = $imageFile;
 
@@ -401,7 +400,7 @@ class Product
         return $this;
     }
 
-    public function getImageFile(): ?File
+    public function getImageFile(): ?object
     {
         return $this->imageFile;
     }

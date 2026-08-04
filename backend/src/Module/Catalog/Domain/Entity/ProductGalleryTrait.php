@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Domain\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
 trait ProductGalleryTrait
 {
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage2Name', size: 'galleryImage2Size')]
-    private ?File $galleryImage2File = null;
+    private ?object $galleryImage2File = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $galleryImage2Name = null;
@@ -20,7 +19,7 @@ trait ProductGalleryTrait
     private ?int $galleryImage2Size = null;
 
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage3Name', size: 'galleryImage3Size')]
-    private ?File $galleryImage3File = null;
+    private ?object $galleryImage3File = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $galleryImage3Name = null;
@@ -29,7 +28,7 @@ trait ProductGalleryTrait
     private ?int $galleryImage3Size = null;
 
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage4Name', size: 'galleryImage4Size')]
-    private ?File $galleryImage4File = null;
+    private ?object $galleryImage4File = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $galleryImage4Name = null;
@@ -37,7 +36,7 @@ trait ProductGalleryTrait
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $galleryImage4Size = null;
 
-    public function getGalleryImage2File(): ?File
+    public function getGalleryImage2File(): ?object
     {
         return $this->galleryImage2File;
     }
@@ -66,7 +65,7 @@ trait ProductGalleryTrait
         return $this;
     }
 
-    public function getGalleryImage3File(): ?File
+    public function getGalleryImage3File(): ?object
     {
         return $this->galleryImage3File;
     }
@@ -95,7 +94,7 @@ trait ProductGalleryTrait
         return $this;
     }
 
-    public function getGalleryImage4File(): ?File
+    public function getGalleryImage4File(): ?object
     {
         return $this->galleryImage4File;
     }
@@ -127,7 +126,7 @@ trait ProductGalleryTrait
     /**
      * @param 0|1|2|3 $position
      */
-    public function setGalleryImageFile(int $position, ?File $file): self
+    public function setGalleryImageFile(int $position, ?object $file): self
     {
         if (0 === $position) {
             return $this->setImageFile($file);

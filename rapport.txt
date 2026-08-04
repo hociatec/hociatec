@@ -28,12 +28,3 @@ Les usages applicatifs principaux de ProductRepository passent maintenant par le
 Les repositories sont bien rangés côté Infrastructure, mais l’application dépend encore fortement de repositories Doctrine concrets.
 Constat actuel : 156 imports de repositories Infrastructure depuis Application/Admin Application.
 Pour atteindre 10/10, les agrégats majeurs doivent passer par des ports applicatifs ou des interfaces de repositories côté Domain/Application.
-
-8. Sécurité applicative
-Note actuelle : 8,5/10
-
-Les garde-fous principaux sont présents : erreurs publiques, CSRF, rate limiting, request ID, headers, download factory, policies.
-Reste à traiter :
-- 72 références Doctrine/Symfony existent encore dans Domain.
-- User dépend encore directement d’interfaces Symfony Security.
-Ce choix est pragmatique, mais ce n’est pas un domaine totalement indépendant.
