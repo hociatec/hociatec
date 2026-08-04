@@ -52,7 +52,7 @@ class SendQuoteEmailController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -64,7 +64,7 @@ class SendQuoteEmailController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $this->logger->error('Unexpected quote email send failure.', [
                 'quoteId' => $quote->getId(),
                 'quoteNumber' => $quote->getNumber(),

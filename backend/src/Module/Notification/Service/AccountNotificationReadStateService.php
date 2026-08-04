@@ -69,7 +69,7 @@ final readonly class AccountNotificationReadStateService
 
         try {
             $decoded = json_decode($rawState, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return [
                 'seenKeys' => $this->normalize(preg_split('/\R+/', $rawState) ?: []),
                 'dismissedKeys' => [],

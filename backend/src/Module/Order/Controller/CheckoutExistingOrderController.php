@@ -66,7 +66,7 @@ final class CheckoutExistingOrderController extends AbstractController
             $this->dtoValidator->validate($input);
         } catch (ApiValidationException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload de checkout invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -83,7 +83,7 @@ final class CheckoutExistingOrderController extends AbstractController
             $checkout = $this->stripeCheckout->createHostedCheckoutForOrder($user, $order, $shipping);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
         }
 

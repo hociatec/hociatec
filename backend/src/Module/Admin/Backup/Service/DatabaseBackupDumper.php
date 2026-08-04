@@ -105,7 +105,7 @@ final readonly class DatabaseBackupDumper
 
         try {
             $process->run();
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return false;
         }
 

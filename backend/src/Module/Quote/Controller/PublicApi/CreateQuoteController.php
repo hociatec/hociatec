@@ -36,7 +36,7 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($payload));
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de créer le devis.');
         }
 

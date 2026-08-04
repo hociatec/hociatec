@@ -98,7 +98,7 @@ final readonly class TrainingEnrollmentCheckoutService
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             throw new \InvalidArgumentException('Créneau invalide.', previous: $exception);
         }
     }

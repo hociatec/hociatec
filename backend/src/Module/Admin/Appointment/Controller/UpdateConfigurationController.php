@@ -41,7 +41,7 @@ class UpdateConfigurationController extends AbstractController
 
         try {
             $configurations = $this->configurationService->update($days);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Impossible de mettre a jour la configuration.', Response::HTTP_BAD_REQUEST);
         }
 

@@ -37,7 +37,7 @@ class UpdatePrestationController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -53,7 +53,7 @@ class UpdatePrestationController extends AbstractController
             $prestation = $this->prestationService->update($prestation, $input->name, $input->durationMinutes, $priceCents);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de mettre à jour la prestation.');
         }
 

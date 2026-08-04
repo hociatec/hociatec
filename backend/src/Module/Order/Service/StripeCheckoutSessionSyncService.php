@@ -25,7 +25,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $session = $this->stripe->retrieveCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return;
         }
 
@@ -58,7 +58,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             $checkout->setStripePaymentIntentId($paymentIntentId);
             $this->persistence->persist($checkout);
             $this->persistence->flush();
@@ -133,7 +133,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Throwable) {
+        } catch (\Exception) {
             // The admin sync should still save the local failure even if Stripe already closed the session.
         }
     }

@@ -38,7 +38,7 @@ final class DownloadOrderInvoiceXmlController extends AbstractController
 
         try {
             $xml = $this->documents->getXml($order);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Génération de facture électronique indisponible.', Response::HTTP_NOT_IMPLEMENTED);
         }
 

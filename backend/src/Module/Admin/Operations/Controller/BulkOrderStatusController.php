@@ -33,7 +33,7 @@ final readonly class BulkOrderStatusController
             $updated = $this->bulkStatus->update($input->orderIds, $input->status);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 

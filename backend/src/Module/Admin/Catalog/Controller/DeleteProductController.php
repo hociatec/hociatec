@@ -33,7 +33,7 @@ class DeleteProductController extends AbstractController
 
         try {
             $this->productService->delete($product);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de supprimer le produit.');
         }
 

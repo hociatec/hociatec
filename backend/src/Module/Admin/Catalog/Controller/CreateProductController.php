@@ -32,7 +32,7 @@ final readonly class CreateProductController
             $product = $this->products->create(...$data->createArguments());
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error(
                 'Impossible de créer le produit.',
                 Response::HTTP_BAD_REQUEST,

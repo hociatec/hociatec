@@ -116,7 +116,7 @@ final readonly class BackupManager
             $this->files->applyRetention($this->states->settings($state['settings'] ?? [])['retentionCount']);
 
             return $this->getStatus();
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $this->files->delete($path);
             $this->files->delete($temporaryPath);
             $run['status'] = 'failed';

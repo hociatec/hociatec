@@ -34,14 +34,14 @@ class CreateAppointmentController extends AbstractController
     {
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $input = CreateAppointmentInput::fromArray($payload);
             $this->dtoValidator->validate($input);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error('Donnees de rendez-vous invalides.', Response::HTTP_UNPROCESSABLE_ENTITY, [$exception->getMessage()]);
         }
 
@@ -62,7 +62,7 @@ class CreateAppointmentController extends AbstractController
 
         try {
             $appointment = $this->appointmentService->book($user, $prestation, $startAt);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error(
                 'Impossible de reserver ce creneau.',
                 Response::HTTP_BAD_REQUEST,

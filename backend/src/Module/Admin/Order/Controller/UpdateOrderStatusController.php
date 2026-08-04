@@ -47,7 +47,7 @@ final class UpdateOrderStatusController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 

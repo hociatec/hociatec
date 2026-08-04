@@ -27,7 +27,7 @@ class CreatePrestationController extends AbstractController
     {
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -47,7 +47,7 @@ class CreatePrestationController extends AbstractController
             $prestation = $this->prestationService->create($name, $durationMinutes, $priceCents);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible d\'enregistrer la prestation.');
         }
 

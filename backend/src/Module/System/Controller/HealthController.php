@@ -46,7 +46,7 @@ final class HealthController extends AbstractController
             $this->connection->executeQuery('SELECT 1')->fetchOne();
 
             return true;
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return false;
         }
     }

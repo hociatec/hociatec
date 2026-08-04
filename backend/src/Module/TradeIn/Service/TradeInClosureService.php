@@ -72,7 +72,7 @@ final readonly class TradeInClosureService
                 $voucher->setSentAt(new \DateTimeImmutable());
                 $this->doctrine->persist($voucher);
                 $this->doctrine->flush();
-            } catch (\Throwable $exception) {
+            } catch (\Exception $exception) {
                 $this->logger->error('Impossible d’envoyer l’avoir de reprise.', ['reference' => $request->getReference(), 'exception' => $exception]);
             }
         }

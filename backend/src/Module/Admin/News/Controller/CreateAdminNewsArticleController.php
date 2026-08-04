@@ -26,7 +26,7 @@ final readonly class CreateAdminNewsArticleController
     {
         try {
             $article = $this->writer->create(NewsArticleInput::fromArray(JsonPayload::decode($request)));
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
 

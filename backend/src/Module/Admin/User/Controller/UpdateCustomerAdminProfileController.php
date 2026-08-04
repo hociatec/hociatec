@@ -31,7 +31,7 @@ final class UpdateCustomerAdminProfileController extends AbstractController
 
         try {
             $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload JSON invalide.');
         }
 

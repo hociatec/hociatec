@@ -170,7 +170,7 @@ final class OrderStripeWebhookHandler
     {
         try {
             $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return [null, null, null];
         }
 
@@ -191,7 +191,7 @@ final class OrderStripeWebhookHandler
     {
         try {
             $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Throwable) {
+        } catch (\Exception) {
             // Stripe may already have completed or expired the session.
         }
     }

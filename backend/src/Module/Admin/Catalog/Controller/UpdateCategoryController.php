@@ -38,7 +38,7 @@ class UpdateCategoryController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -49,7 +49,7 @@ class UpdateCategoryController extends AbstractController
             $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de mettre à jour la catégorie.');
         }
 

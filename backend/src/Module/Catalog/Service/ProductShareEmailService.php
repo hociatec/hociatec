@@ -27,7 +27,7 @@ final readonly class ProductShareEmailService
             $this->deliver($product, $recipient);
         } catch (MailDeliveryException $exception) {
             throw $exception;
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             throw MailDeliveryException::failed('product_share', $exception);
         }
     }

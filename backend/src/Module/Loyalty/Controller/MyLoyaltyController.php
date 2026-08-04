@@ -44,7 +44,7 @@ final class MyLoyaltyController extends AbstractController
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Impossible de convertir ce solde.', Response::HTTP_BAD_REQUEST);
         }
 

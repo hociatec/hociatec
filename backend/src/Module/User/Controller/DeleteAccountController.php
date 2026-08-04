@@ -30,7 +30,7 @@ class DeleteAccountController extends AbstractController
 
         try {
             $this->userRepository->remove($user, true);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $this->logger->error('Unable to delete user account.', [
                 'userId' => $user->getId(),
                 'exception' => $exception,

@@ -37,7 +37,7 @@ final class UpdateVoucherController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -68,7 +68,7 @@ final class UpdateVoucherController extends AbstractController
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return null;
         }
     }

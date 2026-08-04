@@ -37,7 +37,7 @@ final class GenerateOrderPdfHandler
         try {
             $this->documents->ensureGenerated($order);
             $this->events->log($order, null, 'invoice_generated', 'Facture PDF/XML générée par traitement différé.');
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $this->events->log($order, null, 'invoice_generation_failed', 'Échec génération facture: '.$exception->getMessage());
             throw $exception;
         }

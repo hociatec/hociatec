@@ -40,7 +40,7 @@ final readonly class UpdateProductController
             $product = $this->products->update(...$data->updateArguments($product));
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error(
                 'Impossible de mettre à jour le produit.',
                 Response::HTTP_BAD_REQUEST,

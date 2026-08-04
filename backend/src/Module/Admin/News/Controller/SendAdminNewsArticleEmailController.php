@@ -28,7 +28,7 @@ final readonly class SendAdminNewsArticleEmailController
 
         try {
             $this->writer->sendPublishedEmails($article);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
 

@@ -33,7 +33,7 @@ class DeleteCategoryController extends AbstractController
 
         try {
             $this->categoryService->delete($category);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de supprimer la catégorie.');
         }
 

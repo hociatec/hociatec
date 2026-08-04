@@ -38,7 +38,7 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($input->toPayload()));
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de créer le devis.');
         }
 
@@ -46,7 +46,7 @@ class CreateQuoteController extends AbstractController
 
         try {
             $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $data['emailNotificationSent'] = false;
             $data['emailNotificationError'] = 'Notification email indisponible.';
         }

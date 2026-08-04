@@ -36,7 +36,7 @@ final class SendOrderEmailHandler
 
         try {
             $sent = $this->notifications->sendOrderCreatedIfNeeded($order);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $this->events->log($order, null, 'email_failed', 'Échec email commande enregistrée: '.$exception->getMessage());
             throw $exception;
         }

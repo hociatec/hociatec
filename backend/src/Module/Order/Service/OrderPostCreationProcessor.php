@@ -41,7 +41,7 @@ final readonly class OrderPostCreationProcessor
             $this->invoiceDocuments->ensureGenerated($order);
             $this->events->log($order, $user, 'invoice_generated', 'Facture PDF/XML générée.');
             $this->notifications->sendOrderCreatedIfNeeded($order);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $context = $afterStripePayment ? 'post-paiement' : 'post-commande';
             $this->events->log(
                 $order,

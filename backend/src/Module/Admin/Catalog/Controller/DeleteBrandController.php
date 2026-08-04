@@ -33,7 +33,7 @@ class DeleteBrandController extends AbstractController
 
         try {
             $this->brandService->delete($brand);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::internalError('Impossible de supprimer la marque.');
         }
 

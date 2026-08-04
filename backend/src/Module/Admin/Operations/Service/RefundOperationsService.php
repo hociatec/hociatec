@@ -123,7 +123,7 @@ final readonly class RefundOperationsService
                 'metadata[refund_request_id]' => (string) $refund->getId(),
                 'metadata[order_number]' => $refund->getOrder()->getNumber(),
             ]);
-        } catch (\Throwable $exception) {
+        } catch (\Exception $exception) {
             $refund->setStatus($previousStatus);
             $this->persistence->flush();
             throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);

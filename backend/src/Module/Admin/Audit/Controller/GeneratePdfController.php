@@ -32,7 +32,7 @@ class GeneratePdfController extends AbstractController
         }
         try {
             $bin = $this->pdf->renderDetailed($audit);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
@@ -57,7 +57,7 @@ class GeneratePdfController extends AbstractController
         }
         try {
             $bin = $this->pdf->renderSummary($audit);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return ApiResponse::error('Génération PDF indisponible: installer dompdf/dompdf.', Response::HTTP_NOT_IMPLEMENTED);
         }
 
