@@ -4,22 +4,41 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Http\ExternalServiceException;
+use App\Module\Order\Application\Handler\StripeCheckoutSessionExpirer;
+use App\Module\Order\Application\Handler\StripePaymentIntentFailedHandler;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Resolver\StripeCheckoutSessionResolver;
+use App\Module\Order\Application\Resolver\StripePaymentFailureResolver;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class OrderStripeWebhookHandler
 {
+    private StripePaymentFailureResolver $failureResolver;
+
+    private StripeCheckoutSessionExpirer $sessionExpirer;
+
+    private StripeCheckoutSessionResolver $checkoutResolver;
+
+    private StripePaymentIntentFailedHandler $paymentIntentFailedHandler;
+
     public function __construct(
         private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private readonly OrderRepositoryPort $orders,
         private readonly OrderService $orderCreator,
         private readonly StripeApiClient $stripe,
         private readonly DoctrineUnitOfWork $persistence,
+        ?StripePaymentFailureResolver $failureResolver = null,
+        ?StripeCheckoutSessionExpirer $sessionExpirer = null,
+        ?StripeCheckoutSessionResolver $checkoutResolver = null,
+        ?StripePaymentIntentFailedHandler $paymentIntentFailedHandler = null,
     ) {
+        $this->failureResolver = $failureResolver ?? new StripePaymentFailureResolver($this->stripe);
+        $this->sessionExpirer = $sessionExpirer ?? new StripeCheckoutSessionExpirer($this->stripe);
+        $this->checkoutResolver = $checkoutResolver ?? new StripeCheckoutSessionResolver($this->checkoutSessions);
+        $this->paymentIntentFailedHandler = $paymentIntentFailedHandler ?? new StripePaymentIntentFailedHandler($this->checkoutResolver, $this->failureResolver, $this->sessionExpirer, $this->persistence);
     }
 
     /**
@@ -55,42 +74,7 @@ final class OrderStripeWebhookHandler
      */
     public function handlePaymentIntentFailed(array $object, string $type): array
     {
-        $paymentIntentId = is_string($object['id'] ?? null) ? $object['id'] : null;
-        if (null === $paymentIntentId) {
-            throw new \RuntimeException('PaymentIntent Stripe introuvable.');
-        }
-
-        $checkout = $this->checkoutSessions->findOneByStripePaymentIntentId($paymentIntentId);
-        if (null === $checkout) {
-            $localToken = is_string($object['metadata']['local_checkout_token'] ?? null)
-                ? $object['metadata']['local_checkout_token']
-                : null;
-            $checkout = null !== $localToken
-                ? $this->checkoutSessions->findOneByToken($localToken)
-                : null;
-        }
-
-        if (!$checkout instanceof OrderCheckoutSession) {
-            return ['type' => $type, 'sessionId' => null];
-        }
-
-        $paymentStatus = is_string($object['status'] ?? null)
-            ? $object['status']
-            : 'requires_payment_method';
-        $failureCode = is_string($object['last_payment_error']['decline_code'] ?? null)
-            ? $object['last_payment_error']['decline_code']
-            : (is_string($object['last_payment_error']['code'] ?? null)
-                ? $object['last_payment_error']['code']
-                : null);
-        $failureMessage = is_string($object['last_payment_error']['message'] ?? null)
-            ? $object['last_payment_error']['message']
-            : null;
-
-        $checkout->markFailed($paymentIntentId, $paymentStatus, $type, $failureCode, $failureMessage);
-        $this->expireCheckoutSession($checkout);
-        $this->save($checkout);
-
-        return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
+        return $this->paymentIntentFailedHandler->handle($object, $type);
     }
 
     /**
@@ -146,7 +130,7 @@ final class OrderStripeWebhookHandler
                 ? $object['payment_status']
                 : 'unpaid';
             [$failureCode, $failureMessage, $livePaymentStatus] = null !== $paymentIntentId
-                ? $this->fetchPaymentIntentFailure($paymentIntentId)
+                ? $this->failureResolver->fetch($paymentIntentId)
                 : [null, null, null];
 
             $checkout->markFailed(
@@ -156,45 +140,12 @@ final class OrderStripeWebhookHandler
                 $failureCode,
                 $failureMessage,
             );
-            $this->expireCheckoutSession($checkout);
+            $this->sessionExpirer->expire($checkout);
         }
 
         $this->save($checkout);
 
         return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
-    }
-
-    /**
-     * @return array{0:string|null,1:string|null,2:string|null}
-     */
-    private function fetchPaymentIntentFailure(string $paymentIntentId): array
-    {
-        try {
-            $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (ExternalServiceException|\JsonException) {
-            return [null, null, null];
-        }
-
-        $paymentStatus = is_string($paymentIntent['status'] ?? null) ? $paymentIntent['status'] : null;
-        $failureCode = is_string($paymentIntent['last_payment_error']['decline_code'] ?? null)
-            ? $paymentIntent['last_payment_error']['decline_code']
-            : (is_string($paymentIntent['last_payment_error']['code'] ?? null)
-                ? $paymentIntent['last_payment_error']['code']
-                : null);
-        $failureMessage = is_string($paymentIntent['last_payment_error']['message'] ?? null)
-            ? $paymentIntent['last_payment_error']['message']
-            : null;
-
-        return [$failureCode, $failureMessage, $paymentStatus];
-    }
-
-    private function expireCheckoutSession(OrderCheckoutSession $checkout): void
-    {
-        try {
-            $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
-        } catch (ExternalServiceException|\JsonException) {
-            // Stripe may already have completed or expired the session.
-        }
     }
 
     private function save(object $entity): void

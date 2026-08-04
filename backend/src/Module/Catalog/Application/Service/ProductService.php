@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
+use App\Module\Catalog\Application\Handler\ProductWriteHandler;
+use App\Module\Catalog\Application\Writer\ProductAttributeWriter;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -15,16 +16,21 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class ProductService
 {
+    private ProductWriteHandler $writer;
+
     public function __construct(
-        private readonly DoctrineUnitOfWork $persistence,
-        private readonly ProductCatalogRules $rules,
-        private readonly ProductVariantService $variants,
-        private readonly ProductVariantBatchCreator $variantBatch,
-        private readonly ProductGalleryUpdater $gallery,
-        private readonly ProductDiscountApplicator $discounts,
+        DoctrineUnitOfWork $persistence,
+        ProductCatalogRules $rules,
+        ProductVariantService $variants,
+        ProductVariantBatchCreator $variantBatch,
+        ProductGalleryUpdater $gallery,
+        ProductDiscountApplicator $discounts,
         #[Autowire(service: 'app.catalog_cache')]
-        private readonly CacheItemPoolInterface $catalogCache,
+        CacheItemPoolInterface $catalogCache,
+        ProductAttributeWriter $attributes = new ProductAttributeWriter(),
+        ?ProductWriteHandler $writer = null,
     ) {
+        $this->writer = $writer ?? new ProductWriteHandler($persistence, $rules, $variants, $variantBatch, $gallery, $discounts, $catalogCache, $attributes);
     }
 
     /**
@@ -58,65 +64,7 @@ final class ProductService
         ?\DateTimeImmutable $discountStartsAt = null,
         ?\DateTimeImmutable $discountEndsAt = null,
     ): Product {
-        $normalizedSku = strtoupper($sku);
-        $resolvedVariantGroup = $this->variants->resolveVariantGroup($variantGroup, $name, $variantDefinitions);
-
-        $this->rules->assertValidData($name, $normalizedSku, $description, $shortDescription, $priceCents, $stock);
-        $this->rules->assertUniqueness($normalizedSku, null);
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, null, $color, $storageCapacity, $variantDefinitions);
-
-        $resolvedSlug = $this->rules->resolveSlug($slug, $name, null);
-
-        $product = new Product(
-            $name,
-            $resolvedSlug,
-            $normalizedSku,
-            $description,
-            $priceCents,
-            $stock,
-            $category,
-        );
-
-        $product
-            ->setShortDescription($shortDescription)
-            ->setIsPublished($isPublished)
-            ->setIsFeaturedHome($isFeaturedHome)
-            ->setImageAlt($imageAlt)
-            ->setBrandReference($brand)
-            ->setVariantGroup($resolvedVariantGroup)
-            ->setVariantPosition(1)
-            ->setReleaseYear($releaseYear)
-            ->setStorageCapacity($storageCapacity)
-            ->setMemoryRam($memoryRam)
-            ->setColor($color);
-
-        if (null !== $sellingType) {
-            $product->setSellingType($sellingType);
-        }
-
-        $this->discounts->applyOnCreate($product, $discountEnabled, $discountType, $discountValue, $discountStartsAt, $discountEndsAt);
-
-        try {
-            $this->gallery->update($product, $galleryFiles, []);
-
-            $this->persistence->persist($product);
-            $this->variantBatch->forNewProduct(
-                $product,
-                $name,
-                $sku,
-                $slug,
-                $resolvedVariantGroup,
-                $stock,
-                $variantDefinitions,
-            );
-
-            $this->persistence->commit();
-            $this->catalogCache->clear();
-        } catch (\RuntimeException $exception) {
-            throw CatalogOperationException::failed('Impossible de créer le produit.', $exception);
-        }
-
-        return $product;
+        return $this->writer->create($name, $sku, $slug, $description, $shortDescription, $priceCents, $stock, $isPublished, $isFeaturedHome, $category, $galleryFiles, $imageAlt, $sellingType, $brand, $variantGroup, $releaseYear, $storageCapacity, $memoryRam, $color, $variantDefinitions, $discountEnabled, $discountType, $discountValue, $discountStartsAt, $discountEndsAt);
     }
 
     /**
@@ -154,74 +102,11 @@ final class ProductService
         ?\DateTimeImmutable $discountStartsAt = null,
         ?\DateTimeImmutable $discountEndsAt = null,
     ): Product {
-        $normalizedSku = strtoupper($sku);
-        $resolvedVariantGroup = $this->variants->resolveVariantGroup($variantGroup ?? $product->getVariantGroup(), $name, []);
-
-        $this->rules->assertValidData($name, $normalizedSku, $description, $shortDescription, $priceCents, $stock);
-        $this->rules->assertUniqueness($normalizedSku, $product->getId());
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, $product, $color, $storageCapacity, $variantDefinitions);
-
-        $resolvedSlug = $this->rules->resolveSlug($slug, $name, $product->getId());
-
-        $product
-            ->setName($name)
-            ->setSlug($resolvedSlug)
-            ->setSku($normalizedSku)
-            ->setDescription($description)
-            ->setShortDescription($shortDescription)
-            ->setPriceCents($priceCents)
-            ->setStock($stock)
-            ->setIsPublished($isPublished)
-            ->setIsFeaturedHome($isFeaturedHome)
-            ->setCategory($category)
-            ->setImageAlt($imageAlt)
-            ->setBrandReference($brand)
-            ->setVariantGroup($resolvedVariantGroup)
-            ->setVariantPosition($product->getVariantPosition() > 0 ? $product->getVariantPosition() : 1)
-            ->setReleaseYear($releaseYear)
-            ->setStorageCapacity($storageCapacity)
-            ->setMemoryRam($memoryRam)
-            ->setColor($color);
-
-        if (null !== $sellingType) {
-            $product->setSellingType($sellingType);
-        }
-
-        $this->discounts->applyOnUpdate($product, $discountEnabled, $discountType, $discountValue, $discountStartsAt, $discountEndsAt);
-
-        if ($removeImage) {
-            $galleryToRemove[] = 0;
-        }
-
-        try {
-            $this->gallery->update($product, $galleryFiles, $galleryToRemove);
-            $this->variantBatch->forExistingProduct(
-                $product,
-                $name,
-                $sku,
-                $slug,
-                $resolvedVariantGroup,
-                $stock,
-                $variantDefinitions,
-            );
-
-            $this->persistence->commit();
-            $this->catalogCache->clear();
-        } catch (\RuntimeException $exception) {
-            throw CatalogOperationException::failed('Impossible de mettre à jour le produit.', $exception);
-        }
-
-        return $product;
+        return $this->writer->update($product, $name, $sku, $slug, $description, $shortDescription, $priceCents, $stock, $isPublished, $isFeaturedHome, $category, $galleryFiles, $imageAlt, $galleryToRemove, $removeImage, $sellingType, $brand, $variantGroup, $releaseYear, $storageCapacity, $memoryRam, $color, $variantDefinitions, $discountEnabled, $discountType, $discountValue, $discountStartsAt, $discountEndsAt);
     }
 
     public function delete(Product $product): void
     {
-        try {
-            $this->persistence->remove($product);
-            $this->persistence->commit();
-            $this->catalogCache->clear();
-        } catch (\RuntimeException $exception) {
-            throw CatalogOperationException::failed('Impossible de supprimer le produit.', $exception);
-        }
+        $this->writer->delete($product);
     }
 }
