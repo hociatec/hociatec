@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
+use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Pdf\OrderInvoicePdfService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class OrderInvoiceDocumentService
 {
     public function __construct(
         private readonly OrderInvoiceCalculator $calculator,
-        private readonly OrderInvoicePdfService $pdfService,
+        private readonly OrderInvoicePdfRenderer $pdfService,
         private readonly OrderInvoiceXmlService $xmlService,
         private readonly OrderPersistence $persistence,
         #[Autowire('%kernel.project_dir%')]

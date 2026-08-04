@@ -104,9 +104,9 @@ final class RemainingMailSendersTest extends TestCase
         );
 
         $handler = new SendPasswordResetEmailHandler($repository, $emails);
-        self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token'])));
-        $handler->handle(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token']));
-        $handler->handle(new OutboxEvent('reset-2', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'stale-token']));
+        self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail()])));
+        $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'current-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
+        $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'stale-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
     }
 
     public function testContactSendersUseMailerWithExpectedContent(): void

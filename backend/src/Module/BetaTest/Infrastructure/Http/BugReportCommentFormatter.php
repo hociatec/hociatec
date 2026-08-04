@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Infrastructure\Http;
 
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
-use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 
 final readonly class BugReportCommentFormatter
 {
-    public function __construct(private BugReportAccessPolicy $accessPolicy)
+    public function __construct()
     {
     }
 
@@ -27,7 +26,7 @@ final readonly class BugReportCommentFormatter
                 'firstName' => $author->getFirstName(),
                 'lastName' => $author->getLastName(),
                 'email' => $author->getEmail(),
-                'role' => $this->accessPolicy->isAdmin($author) ? 'admin' : 'user',
+                'role' => $author->isAdmin() ? 'admin' : 'user',
             ],
         ];
     }

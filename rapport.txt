@@ -1,0 +1,100 @@
+3. Transactions
+Note actuelle : 8,5/10
+
+Le placement est corrigé : TransactionManager est dans Shared/Application et les implémentations Doctrine sont dans Shared/Infrastructure/Doctrine.
+CartService ne dépend plus de findForUpdate() ni de clear() exposés par DoctrineUnitOfWork.
+Reste à traiter pour atteindre 10/10 :
+- DoctrineUnitOfWork expose encore queryBuilder(), clear() et findForUpdate() pour d'autres flux.
+- findForUpdate() devrait être remplacé progressivement par des méthodes de repositories métier, par exemple getForUpdate().
+
+4. Grosses entités
+Note actuelle : 6,5/10
+
+Les entités volumineuses sont toujours présentes :
+- Product : 492 lignes
+- User : 429 lignes
+- Order : 407 lignes
+- OrderCheckoutSession : 403 lignes
+- Voucher : 305 lignes
+- OrderInvoiceTrait : 325 lignes
+Pour atteindre 10/10, il faut extraire des objets composés/embeddables comme OrderBilling, OrderDelivery, OrderPayment, OrderInvoice et OrderStatus.
+
+5. Gros services
+Note actuelle : 7/10
+
+Il reste 167 classes sous Application/Service et plusieurs services importants restent volumineux :
+- ProductService : 227 lignes
+- QuoteService : 243 lignes
+- PromotionEngine : 213 lignes
+- ProductVariantService : 220 lignes
+- OrderStripeWebhookHandler : 205 lignes
+Pour atteindre 10/10, il faut poursuivre le découpage vers Handler, Provider, Calculator, Workflow, Projection, Command et Query selon les responsabilités réelles.
+
+6. Persistance et repositories
+Note actuelle : 7,5/10
+
+Les repositories sont bien rangés côté Infrastructure, mais l’application dépend encore massivement de repositories Doctrine concrets.
+Constat actuel : 166 imports de repositories Infrastructure depuis Application/Admin Application.
+Pour atteindre 10/10, les agrégats majeurs doivent passer par des ports applicatifs ou des interfaces de repositories côté Domain/Application.
+
+8. Sécurité applicative
+Note actuelle : 8,5/10
+
+Les garde-fous principaux sont présents : erreurs publiques, CSRF, rate limiting, request ID, headers, download factory, policies.
+Reste à traiter :
+- 69 imports Doctrine/Symfony existent encore dans Domain.
+- User dépend encore directement d’interfaces Symfony Security.
+Ce choix est pragmatique, mais ce n’est pas un domaine totalement indépendant.
+
+10. Outbox, emails et appels externes
+Note actuelle : 9/10
+
+L’outbox a désormais verrou pessimiste, métriques, dead events, purge et récupération des événements processing trop anciens.
+Le payload de reset password ne transporte plus le token en clair.
+Reste à traiter :
+- findDueForUpdate() utilise PESSIMISTIC_WRITE mais pas SKIP LOCKED.
+- Les alertes sont seulement signalées dans la commande, pas branchées sur un système d’alerte réel.
+
+11. DTO et validation
+Note actuelle : 9/10
+
+La convention Application/DTO est corrigée et verrouillée par test d’architecture.
+Reste à traiter :
+- Plusieurs contrôleurs décodent encore JsonPayload inline.
+- Tous les flux ne passent pas encore par des Input/Command typés côté Application.
+
+12. Réponses API et mapping
+Note actuelle : 8/10
+
+OrderFormatter, AdminOperationsFormatter et AdminPaymentFormatter ne sont plus dans Application/Service.
+Reste à traiter :
+- 17 autres formatters restent dans Application/Service.
+- Il faut décider lesquels sont de vraies projections applicatives et lesquels sont des mappers HTTP à déplacer vers UI/Http.
+
+13. Gros repositories et requêtes
+Note actuelle : 8/10
+
+ProductRepository est réduit à 104 lignes, mais ProductRepositoryQueryHelpers reste à 228 lignes.
+Pour atteindre 10/10, il faut encore séparer :
+- PublicProductSearch
+- AdminProductSearch
+- ProductStockQuery
+- ProductFilterQuery
+
+15. Observabilité
+Note actuelle : 8,5/10
+
+Les métriques outbox sont exposées dans /metrics et la commande affiche pending, oldest age, failed, stale processing et dead.
+Reste à traiter :
+- Alertes opérationnelles réelles.
+- Tableaux de bord ou règles Prometheus/Alertmanager.
+- Corrélation exploitable dans les logs worker au-delà du stockage requestId.
+
+16. Cohérence de conception
+Note actuelle : 8/10
+
+Les erreurs de couche les plus visibles sont corrigées : Shared, PDF Infrastructure, DTO, projections majeures.
+Reste à traiter :
+- Les suffixes Service/Handler/Provider/Writer/Projection restent à formaliser dans une convention stricte.
+- Certains services techniques ou formatters restent dans Application/Service.
+- Les dépendances Domain vers framework doivent être assumées comme compromis ou progressivement isolées.

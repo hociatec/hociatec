@@ -6,9 +6,9 @@ namespace App\Module\Quote\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\AttachmentResponseFactory;
+use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +23,7 @@ class GenerateMyQuotePdfController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteCalculator $calculator,
-        private readonly QuotePdfService $pdfService,
+        private readonly QuotePdfRenderer $pdfService,
         private readonly AttachmentResponseFactory $attachments,
         private readonly QuoteAccessPolicy $accessPolicy,
     ) {

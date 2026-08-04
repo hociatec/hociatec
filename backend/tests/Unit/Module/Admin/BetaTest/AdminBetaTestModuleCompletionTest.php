@@ -89,7 +89,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         $closeElapsedCampaigns = new CloseElapsedBetaCampaignsHandler($persistence);
         $changeTesterStatus = new ChangeBetaTesterStatusHandler($persistence);
         $deleteTesterHandler = new DeleteBetaTesterHandler($persistence);
-        $assignBugReport = new AssignBugReportHandler($persistence, $activity, $accessPolicy);
+        $assignBugReport = new AssignBugReportHandler($persistence, $activity);
         $changeBugReportStatus = new ChangeBugReportStatusHandler($persistence, $activity, $notifier, new BugReportStatusLabelProvider());
         $bugReportReferences = new BugReportReferenceProvider($this->reports($em));
         $markBugReportDuplicate = new MarkBugReportDuplicateHandler($persistence, $activity, $notifier);

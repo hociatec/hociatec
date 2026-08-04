@@ -39,7 +39,7 @@ final class DownloadBugReportAttachmentController extends AbstractController
             return ApiResponse::error('Signalement introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if (!$this->accessPolicy->canDownloadAttachment($user, $report)) {
+        if (!$user->isAdmin() && !$this->accessPolicy->canDownloadAttachment($user, $report)) {
             return ApiResponse::error('Accès refusé.', Response::HTTP_FORBIDDEN);
         }
 

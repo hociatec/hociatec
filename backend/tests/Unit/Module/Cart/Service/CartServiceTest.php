@@ -12,6 +12,7 @@ use App\Module\Cart\Application\Service\CartService;
 use App\Module\Cart\Application\Service\CartSessionProvider;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -141,7 +142,7 @@ final class CartServiceTest extends TestCase
         $persistence = new DoctrineUnitOfWork($entityManager);
         $provider = new CartSessionProvider($this->cartRepository($entityManager), $persistence);
 
-        return new CartService($provider, new CartItemResolver(), $persistence);
+        return new CartService($provider, new CartItemResolver(), $persistence, new ProductRepository($this->registry($entityManager)));
     }
 
     private function reloadCart(CartSession $cart): CartSession
@@ -189,9 +190,14 @@ final class CartServiceTest extends TestCase
 
     private function cartRepository(EntityManager $entityManager): CartSessionRepository
     {
+        return new CartSessionRepository($this->registry($entityManager));
+    }
+
+    private function registry(EntityManager $entityManager): ManagerRegistry
+    {
         $registry = $this->createMock(ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
-        return new CartSessionRepository($registry);
+        return $registry;
     }
 }

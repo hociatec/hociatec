@@ -38,4 +38,9 @@ final class CartSessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function clearUnitOfWork(): void
+    {
+        $this->getEntityManager()->clear();
+    }
 }

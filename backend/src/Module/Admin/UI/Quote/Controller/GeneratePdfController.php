@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\AttachmentResponseFactory;
+use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +21,7 @@ class GeneratePdfController extends AbstractController
     public function __construct(
         private readonly QuoteRepository $quoteRepository,
         private readonly QuoteCalculator $calculator,
-        private readonly QuotePdfService $pdfService,
+        private readonly QuotePdfRenderer $pdfService,
         private readonly AttachmentResponseFactory $attachments,
     ) {
     }

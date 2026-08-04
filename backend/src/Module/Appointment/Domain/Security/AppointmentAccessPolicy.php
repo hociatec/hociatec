@@ -11,7 +11,6 @@ final readonly class AppointmentAccessPolicy
 {
     public function canChangeStatus(User $user, Appointment $appointment): bool
     {
-        return $user->isAdmin()
-            || $appointment->getUser()->getId() === $user->getId();
+        return $appointment->getUser()->getId() === $user->getId();
     }
 }

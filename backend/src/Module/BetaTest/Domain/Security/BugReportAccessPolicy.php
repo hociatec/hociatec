@@ -11,7 +11,7 @@ final readonly class BugReportAccessPolicy
 {
     public function canView(User $user, BugReport $report): bool
     {
-        return $this->isAdmin($user) || $report->getReporter()->getId() === $user->getId();
+        return $report->getReporter()->getId() === $user->getId();
     }
 
     public function canComment(User $user, BugReport $report): bool
@@ -22,10 +22,5 @@ final readonly class BugReportAccessPolicy
     public function canDownloadAttachment(User $user, BugReport $report): bool
     {
         return $this->canView($user, $report);
-    }
-
-    public function isAdmin(User $user): bool
-    {
-        return $user->isAdmin();
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Service;
 
+use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
@@ -15,7 +15,7 @@ final readonly class QuoteEmailDeliveryService
 {
     public function __construct(
         private QuoteCalculator $calculator,
-        private QuotePdfService $pdfService,
+        private QuotePdfRenderer $pdfService,
         private MailerInterface $mailer,
         private LoggerInterface $logger,
         private string $mailerFrom,

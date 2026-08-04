@@ -31,6 +31,7 @@ use App\Module\TradeIn\Application\Service\TradeInNumberGenerator;
 use App\Module\TradeIn\Application\Service\TradeInPersistence;
 use App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Service\TradeInService;
+use App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
@@ -270,7 +271,7 @@ final class TradeInModuleCompletionTest extends TestCase
             new DoctrineUnitOfWork($em),
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
-            new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
+            new TradeInReceiptPdfRenderer(new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), '')),
             new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($this->voucherRepository($em))),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),

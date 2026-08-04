@@ -27,18 +27,21 @@ final readonly class SendPasswordResetEmailHandler implements OutboxEventHandler
     {
         $payload = $event->getPayload();
         $email = $payload['email'] ?? null;
-        $token = $payload['token'] ?? null;
-        if (!is_string($email) || '' === trim($email) || !is_string($token) || '' === $token) {
+        if (!is_string($email) || '' === trim($email)) {
             throw new \RuntimeException('Password reset email outbox payload is invalid.');
         }
 
         $user = $this->users->findOneByEmailInsensitive($email);
-        if (!$user instanceof User || $user->getPasswordResetToken() !== $token) {
+        if (!$user instanceof User) {
             return;
         }
 
+        $token = $user->getPasswordResetToken();
         $expiresAt = $user->getPasswordResetTokenExpiresAt();
-        if (null === $expiresAt || $expiresAt < new \DateTimeImmutable()) {
+        if (!is_string($token) || '' === $token || null === $expiresAt || $expiresAt < new \DateTimeImmutable()) {
+            return;
+        }
+        if ($event->getKey() !== 'auth.password_reset.'.hash('sha256', $token)) {
             return;
         }
 

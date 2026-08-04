@@ -6,12 +6,13 @@ namespace App\Module\Quote\Infrastructure\Pdf;
 
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuoteService;
 use App\Module\Quote\Application\Service\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
 
-class QuotePdfService
+class QuotePdfService implements QuotePdfRenderer
 {
     private const ISSUER_EMAIL = 'contact@hociatec.fr';
     private const ISSUER_ADDRESS_LINES = [

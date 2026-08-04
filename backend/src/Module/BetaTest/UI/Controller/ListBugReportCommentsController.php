@@ -41,7 +41,7 @@ final class ListBugReportCommentsController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        if (!$this->accessPolicy->canView($user, $report)) {
+        if (!$user->isAdmin() && !$this->accessPolicy->canView($user, $report)) {
             return ApiResponse::error('Accès refusé.', 403);
         }
 

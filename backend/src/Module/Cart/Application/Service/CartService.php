@@ -7,6 +7,7 @@ namespace App\Module\Cart\Application\Service;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
@@ -16,6 +17,7 @@ final class CartService
         private readonly CartSessionProvider $cartSessions,
         private readonly CartItemResolver $cartItems,
         private readonly DoctrineUnitOfWork $persistence,
+        private readonly ProductRepository $products,
     ) {
     }
 
@@ -59,13 +61,13 @@ final class CartService
             $cartToken = $cart->getToken();
             $productId = $product->getId();
 
-            $this->persistence->clear();
+            $this->cartSessions->clearUnitOfWork();
             if (null === $productId) {
                 throw $exception;
             }
 
             $freshCart = $this->findCartByToken($cartToken);
-            $freshProduct = $this->persistence->findForUpdate(Product::class, $productId);
+            $freshProduct = $this->products->findForUpdate($productId);
 
             if (null === $freshCart || null === $freshProduct) {
                 throw $exception;

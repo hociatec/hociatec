@@ -40,7 +40,6 @@ class PasswordResetService
             $this->users->save($user);
             $this->outbox->record('auth.password_reset.'.hash('sha256', $token), 'auth.password_reset_email_requested', [
                 'email' => $user->getEmail(),
-                'token' => $token,
             ]);
         });
     }

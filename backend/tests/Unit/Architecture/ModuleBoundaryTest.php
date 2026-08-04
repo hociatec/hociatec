@@ -220,6 +220,48 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testDomainSecurityPoliciesDoNotGrantFrameworkAdminAccess(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Domain/Security/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['isAdmin(', 'ROLE_', 'AuthorizationCheckerInterface', 'isGranted('] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApplicationAndUiDependOnDocumentPortsInsteadOfPdfInfrastructure(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Application/') && !str_contains($path, '/UI/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['AccessiblePdfRenderer', '\\Dompdf\\', 'Infrastructure\\Pdf\\'] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testControllersDoNotImplementOwnershipRulesInline(): void
     {
         $allowed = [

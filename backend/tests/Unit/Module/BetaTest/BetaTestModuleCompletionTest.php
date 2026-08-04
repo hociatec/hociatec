@@ -128,7 +128,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $comments = $this->comments($em);
         $formatter = new BugReportResponseFormatter();
         $accessPolicy = new BugReportAccessPolicy();
-        $commentFormatter = new BugReportCommentFormatter($accessPolicy);
+        $commentFormatter = new BugReportCommentFormatter();
         $persistence = new DoctrineUnitOfWork($em);
         $notifier = $this->notifier($em);
         $activity = new BugReportActivityLogger($persistence);
@@ -166,7 +166,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $commentList->setContainer($this->container($this->user('comment-other@example.com')));
         self::assertSame(Response::HTTP_FORBIDDEN, $commentList((int) $report->getId(), Request::create('/'))->getStatusCode());
 
-        $commentWriter = new BugReportCommentWriter($persistence, $activity, $notifier, $this->users($em), $accessPolicy);
+        $commentWriter = new BugReportCommentWriter($persistence, $activity, $notifier, $this->users($em));
         $createComment = new CreateBugReportCommentController($reports, $accessPolicy, $commentWriter, $commentFormatter);
         $createComment->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"No auth"}'))->getStatusCode());

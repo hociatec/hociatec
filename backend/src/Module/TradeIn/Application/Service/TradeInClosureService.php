@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Application\Service;
 
-use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
+use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
@@ -23,7 +23,7 @@ final readonly class TradeInClosureService
         private DoctrineUnitOfWork $unitOfWork,
         private TransactionManager $transactions,
         private TradeInPrivateFileStorage $files,
-        private AccessiblePdfRenderer $pdf,
+        private TradeInReceiptRenderer $receiptRenderer,
         private CreateVoucherHandler $createVoucher,
         private VoucherNotificationEmailService $voucherNotifications,
         private LoggerInterface $logger,
@@ -63,7 +63,7 @@ final readonly class TradeInClosureService
             $paidAt = 'paid' === $paymentStatus ? new \DateTimeImmutable() : null;
             $request->setClosure($input->finalOfferCents, $input->paymentMethod, $paymentStatus, $input->transactionReference, $paidAt);
             $request->setAdminNote($input->note);
-            $receipt = $this->renderReceipt($this->receiptHtml($request, $input));
+            $receipt = $this->receiptRenderer->render($this->receiptHtml($request, $input));
             $request->setReceiptPath($this->files->storeReceipt($receipt));
             $this->persistence->save($request);
             $this->persistence->commit();
@@ -111,23 +111,5 @@ final readonly class TradeInClosureService
             $voucherBlock,
             (new \DateTimeImmutable())->format('d/m/Y H:i'),
         );
-    }
-
-    private function renderReceipt(string $html): string
-    {
-        try {
-            return $this->pdf->render($html, 'trade-in-receipt', 'Le justificatif de reprise n’a pas pu être généré.');
-        } catch (\RuntimeException $exception) {
-            if (!class_exists(\Dompdf\Dompdf::class)) {
-                throw $exception;
-            }
-
-            $dompdf = new \Dompdf\Dompdf(['isRemoteEnabled' => false]);
-            $dompdf->loadHtml($html, 'UTF-8');
-            $dompdf->setPaper('A4');
-            $dompdf->render();
-
-            return $dompdf->output();
-        }
     }
 }

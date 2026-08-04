@@ -44,7 +44,7 @@ final class CreateBugReportCommentController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        if (!$this->accessPolicy->canComment($user, $report)) {
+        if (!$user->isAdmin() && !$this->accessPolicy->canComment($user, $report)) {
             return ApiResponse::error('Accès refusé.', 403);
         }
 

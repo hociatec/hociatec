@@ -10,6 +10,7 @@ use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Application\Service\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
+use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\User\Domain\Entity\User;
@@ -44,7 +45,7 @@ final class UpdateAppointmentStatusController extends AbstractController
             return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if (!$this->accessPolicy->canChangeStatus($user, $appointment)) {
+        if (!$this->canAccessAppointment($user, $appointment)) {
             return ApiResponse::error('Vous n\'êtes pas autorisé à modifier ce rendez-vous.', Response::HTTP_FORBIDDEN);
         }
 
@@ -66,5 +67,10 @@ final class UpdateAppointmentStatusController extends AbstractController
         return ApiResponse::success([
             'appointment' => $this->appointmentFormatter->format($appointment),
         ]);
+    }
+
+    private function canAccessAppointment(User $user, Appointment $appointment): bool
+    {
+        return $user->isAdmin() || $this->accessPolicy->canChangeStatus($user, $appointment);
     }
 }

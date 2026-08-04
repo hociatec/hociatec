@@ -59,6 +59,11 @@ final readonly class CartSessionProvider
         return $this->cartSessions->findOneByToken(trim($token));
     }
 
+    public function clearUnitOfWork(): void
+    {
+        $this->cartSessions->clearUnitOfWork();
+    }
+
     private function create(): CartSession
     {
         do {

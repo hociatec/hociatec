@@ -6,9 +6,9 @@ namespace App\Module\Audit\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\AttachmentResponseFactory;
+use App\Module\Audit\Application\Port\AuditPdfRenderer;
 use App\Module\Audit\Application\Service\AuditEventLogger;
 use App\Module\Audit\Domain\Security\AuditAccessPolicy;
-use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ class GeneratePdfController extends AbstractController
 {
     public function __construct(
         private readonly AuditRequestRepository $audits,
-        private readonly AuditPdfService $pdf,
+        private readonly AuditPdfRenderer $pdf,
         private readonly AuditEventLogger $events,
         private readonly AttachmentResponseFactory $attachments,
         private readonly AuditAccessPolicy $accessPolicy,

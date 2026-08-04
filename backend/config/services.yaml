@@ -61,6 +61,18 @@ services:
     App\Module\Outbox\Application\OutboxEventStore:
         alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
 
+    App\Module\TradeIn\Application\Port\TradeInReceiptRenderer:
+        alias: App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer
+
+    App\Module\Order\Application\Port\OrderInvoicePdfRenderer:
+        alias: App\Module\Order\Infrastructure\Pdf\OrderInvoicePdfService
+
+    App\Module\Quote\Application\Port\QuotePdfRenderer:
+        alias: App\Module\Quote\Infrastructure\Pdf\QuotePdfService
+
+    App\Module\Audit\Application\Port\AuditPdfRenderer:
+        alias: App\Module\Audit\Infrastructure\Pdf\AuditPdfService
+
     App\Shared\Application\TransactionManager:
         alias: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
 

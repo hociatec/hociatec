@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Infrastructure\Pdf;
 
+use App\Module\Audit\Application\Port\AuditPdfRenderer;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 
-class AuditPdfService
+class AuditPdfService implements AuditPdfRenderer
 {
     public function renderDetailed(AuditRequest $audit): string
     {

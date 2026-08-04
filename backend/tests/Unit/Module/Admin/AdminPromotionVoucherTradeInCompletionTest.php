@@ -46,6 +46,7 @@ use App\Module\TradeIn\Application\Service\TradeInPersistence;
 use App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Service\TradeInService;
 use App\Module\User\Domain\Entity\User;
+use App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
@@ -257,7 +258,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
             new DoctrineUnitOfWork($em),
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
-            new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
+            new TradeInReceiptPdfRenderer(new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), '')),
             $this->createVoucherHandler($em),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),

@@ -6,9 +6,10 @@ namespace App\Module\Order\Infrastructure\Pdf;
 
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
 use App\Module\Order\Domain\Entity\Order;
 
-final class OrderInvoicePdfService
+final class OrderInvoicePdfService implements OrderInvoicePdfRenderer
 {
     private const ISSUER_NAME = 'Hociatec';
     private const ISSUER_LEGAL_FORM = 'SASU';

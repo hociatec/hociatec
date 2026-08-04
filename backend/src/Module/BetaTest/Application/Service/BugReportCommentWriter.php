@@ -7,7 +7,6 @@ namespace App\Module\BetaTest\Application\Service;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
-use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
@@ -20,7 +19,6 @@ final readonly class BugReportCommentWriter
         private BugReportActivityLogger $activityLogger,
         private UserCommunicationNotifier $notifier,
         private UserRepository $users,
-        private BugReportAccessPolicy $accessPolicy,
     ) {
     }
 
@@ -31,7 +29,7 @@ final readonly class BugReportCommentWriter
             throw new \InvalidArgumentException('Le contenu du message ne peut pas être vide.');
         }
 
-        $isAdmin = $this->accessPolicy->isAdmin($author);
+        $isAdmin = $author->isAdmin();
         $comment = new BugReportComment($report, $author, $content);
         $isAdmin ? $report->recordAdminReply() : $report->recordReporterReply();
 
