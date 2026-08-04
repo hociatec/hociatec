@@ -34,8 +34,8 @@ use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistenc
 use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Application\Service\WorkingDayPayloadMapper;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;

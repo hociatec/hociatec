@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Quote\Application\Service;
+namespace App\Module\Quote\Infrastructure\Pdf;
 
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuoteService;
+use App\Module\Quote\Application\Service\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
 
 class QuotePdfService

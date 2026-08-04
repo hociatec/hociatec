@@ -14,7 +14,7 @@ use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;

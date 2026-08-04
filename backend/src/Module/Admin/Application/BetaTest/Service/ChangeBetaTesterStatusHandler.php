@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class ChangeBetaTesterStatusHandler
 {

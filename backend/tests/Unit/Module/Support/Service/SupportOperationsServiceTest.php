@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Support\Service;
 
 use App\Module\Admin\UI\Operations\Controller\SupportOperationsController;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Service\AdminOperationsFormatter;
+use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Admin\Application\Operations\Service\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Service\SupportOperationsService;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
@@ -24,7 +24,7 @@ use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\AdminCustomerEmailService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;

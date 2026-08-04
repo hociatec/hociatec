@@ -10,7 +10,7 @@ use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
 use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherPayload;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\DriverManager;

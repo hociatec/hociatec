@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Promotion\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class DeletePromotionHandler
 {

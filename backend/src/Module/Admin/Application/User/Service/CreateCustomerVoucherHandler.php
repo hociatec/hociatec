@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\User\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CreateCustomerVoucherHandler
 {

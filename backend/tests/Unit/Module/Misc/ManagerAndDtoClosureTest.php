@@ -18,8 +18,8 @@ use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
 use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

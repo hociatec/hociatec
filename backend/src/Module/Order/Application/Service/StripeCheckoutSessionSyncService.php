@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Infrastructure\Http\ExternalServiceException;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class StripeCheckoutSessionSyncService
 {

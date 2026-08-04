@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\ValueObject;
 
-use App\Infrastructure\ValueObject\Money;
-use App\Infrastructure\ValueObject\Url;
+use App\Shared\Domain\ValueObject\Money;
+use App\Shared\Domain\ValueObject\Url;
 use PHPUnit\Framework\TestCase;
 
 final class ValueObjectsTest extends TestCase

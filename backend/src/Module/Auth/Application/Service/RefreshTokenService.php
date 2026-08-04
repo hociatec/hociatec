@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
 
 final class RefreshTokenService
 {

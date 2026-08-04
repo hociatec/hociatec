@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Quote\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuotePdfService;
+use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

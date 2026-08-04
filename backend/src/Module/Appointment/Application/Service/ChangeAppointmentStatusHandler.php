@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Appointment\Domain\Entity\Appointment;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class ChangeAppointmentStatusHandler
 {

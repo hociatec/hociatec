@@ -9,7 +9,7 @@ use App\Infrastructure\Http\ApiValidationException;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Order\DTO\OrderStatusInput;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Service\OrderStatusUpdater;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;

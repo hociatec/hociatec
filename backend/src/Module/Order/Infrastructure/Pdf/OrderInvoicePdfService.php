@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Order\Application\Service;
+namespace App\Module\Order\Infrastructure\Pdf;
 
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Pdf\PdfHtmlFormatter;

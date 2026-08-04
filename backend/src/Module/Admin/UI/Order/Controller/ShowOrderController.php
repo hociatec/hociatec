@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Order\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Service\OrderIssueInspector;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class BetaCampaignProvider
 {

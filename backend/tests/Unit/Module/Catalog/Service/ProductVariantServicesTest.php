@@ -11,7 +11,7 @@ use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Service\ProductCatalogRules;
 use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Service\ProductVariantService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;

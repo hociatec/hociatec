@@ -22,8 +22,8 @@ use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistenc
 use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;

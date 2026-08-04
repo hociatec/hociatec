@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Order\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final readonly class UpdateVoucherHandler

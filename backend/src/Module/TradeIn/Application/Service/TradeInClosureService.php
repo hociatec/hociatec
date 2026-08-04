@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
 
 final readonly class TradeInClosureService

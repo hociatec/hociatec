@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\News\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class NewsArticleWriter

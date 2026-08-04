@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Marketing\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;

@@ -18,7 +18,7 @@ use App\Module\News\Application\Service\NewsArticleViewTracker;
 use App\Module\News\Application\Service\NewsCommentWriter;
 use App\Module\News\Application\Service\NewsFormatter;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;

@@ -6,14 +6,14 @@ namespace App\Tests\Unit\Module\Admin\Payment;
 
 use App\Module\Admin\UI\Payment\Controller\ListPaymentsController;
 use App\Module\Admin\UI\Payment\Controller\ShowPaymentController;
-use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
+use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Admin\Application\Payment\Service\StripePaymentDetailsProvider;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Order\Application\Service\StripeCheckoutSessionSyncService;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;

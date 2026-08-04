@@ -19,7 +19,7 @@ use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Application\Service\TrainingSlotValidator;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Doctrine\Persistence\ManagerRegistry;

@@ -29,10 +29,11 @@ final class DispatchOutboxCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $processed = $this->dispatcher->dispatchDue((int) $input->getOption('limit'));
+        $staleThreshold = new \DateTimeImmutable('-'.(string) $input->getOption('stale-processing-after'));
+        $processed = $this->dispatcher->dispatchDue((int) $input->getOption('limit'), $staleThreshold);
         $threshold = new \DateTimeImmutable('-'.(string) $input->getOption('purge-finalized-older-than'));
         $purged = $this->events->purgeFinalizedBefore($threshold);
-        $metrics = $this->events->metricsSnapshot(new \DateTimeImmutable('-'.(string) $input->getOption('stale-processing-after')));
+        $metrics = $this->events->metricsSnapshot($staleThreshold);
         $output->writeln(sprintf('Dispatched %d outbox event(s).', $processed));
         $output->writeln(sprintf('Purged %d finalized outbox event(s).', $purged));
         $output->writeln(sprintf(

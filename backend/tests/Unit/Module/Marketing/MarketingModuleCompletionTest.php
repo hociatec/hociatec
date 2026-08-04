@@ -23,7 +23,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

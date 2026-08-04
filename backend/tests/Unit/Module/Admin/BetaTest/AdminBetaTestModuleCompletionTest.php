@@ -53,7 +53,7 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

@@ -8,7 +8,7 @@ use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
 use App\Module\Admin\Application\Marketing\Service\DeleteEmailTemplateHandler;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;

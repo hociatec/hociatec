@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 class ProductReviewStatsUpdater
 {

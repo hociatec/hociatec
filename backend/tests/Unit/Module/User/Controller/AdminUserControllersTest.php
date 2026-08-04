@@ -25,7 +25,7 @@ use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;

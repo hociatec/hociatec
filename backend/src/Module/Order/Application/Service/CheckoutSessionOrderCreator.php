@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CheckoutSessionOrderCreator
 {

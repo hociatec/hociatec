@@ -11,8 +11,8 @@ use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
 use App\Infrastructure\Http\RequestIdSubscriber;
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -142,6 +142,40 @@ final class OutboxTest extends TestCase
         self::assertSame('bad payload', $event->getLastError());
     }
 
+    public function testDispatcherRecoversStaleProcessingEventsBeforeDispatch(): void
+    {
+        $repository = new class implements OutboxEventStore {
+            public int $recoveries = 0;
+
+            public function findDueForUpdate(int $limit): array
+            {
+                return [];
+            }
+
+            public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+            {
+                ++$this->recoveries;
+
+                return 2;
+            }
+
+            public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int
+            {
+                return 0;
+            }
+
+            public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics
+            {
+                return new OutboxMetrics(0, null, 0, 0, 0);
+            }
+        };
+
+        $processed = (new OutboxDispatcher($repository, new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), $this->transactions(), [], $this->createMock(LoggerInterface::class)))->dispatchDue();
+
+        self::assertSame(0, $processed);
+        self::assertSame(1, $repository->recoveries);
+    }
+
     /** @param list<OutboxEvent> $events */
     private function repository(array $events): OutboxEventStore
     {
@@ -154,6 +188,11 @@ final class OutboxTest extends TestCase
             public function findDueForUpdate(int $limit): array
             {
                 return $this->events;
+            }
+
+            public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+            {
+                return 0;
             }
 
             public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int

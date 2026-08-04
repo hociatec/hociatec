@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Domain\Entity\Appointment;
@@ -13,6 +11,8 @@ use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class AppointmentService
 {

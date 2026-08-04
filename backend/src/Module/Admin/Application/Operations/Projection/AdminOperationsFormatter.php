@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Operations\Service;
+namespace App\Module\Admin\Application\Operations\Projection;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Entity\RefundRequest;

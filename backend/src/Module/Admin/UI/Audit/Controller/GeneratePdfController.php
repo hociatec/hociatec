@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Audit\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\AttachmentResponseFactory;
 use App\Module\Audit\Application\Service\AuditEventLogger;
-use App\Module\Audit\Application\Service\AuditPdfService;
+use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

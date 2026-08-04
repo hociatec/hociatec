@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
@@ -14,6 +12,8 @@ use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class TrainingEnrollmentCheckoutService
 {

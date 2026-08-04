@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Audit\Domain\Entity\AuditEvent;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 class AuditEventLogger
 {

@@ -11,6 +11,8 @@ interface OutboxEventStore
     /** @return list<OutboxEvent> */
     public function findDueForUpdate(int $limit): array;
 
+    public function recoverStaleProcessing(\DateTimeImmutable $threshold): int;
+
     public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics;
 
     public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int;

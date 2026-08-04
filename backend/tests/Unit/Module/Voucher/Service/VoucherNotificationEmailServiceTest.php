@@ -13,7 +13,7 @@ use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

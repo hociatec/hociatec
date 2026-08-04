@@ -33,8 +33,8 @@ use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\User\Application\Service\UserProfileFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -145,7 +145,7 @@ final class UserRemainingServicesTest extends TestCase
 
         $service = new UpdateProfileService(
             $userRepository,
-            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -172,7 +172,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository2->method('save')->willThrowException($this->uniqueConstraint('uniq_users_email'));
         $service2 = new UpdateProfileService(
             $userRepository2,
-            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository2, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -191,7 +191,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository3->method('save')->willThrowException($nonEmail);
         $service3 = new UpdateProfileService(
             $userRepository3,
-            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->entityManager()),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository3, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),

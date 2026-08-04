@@ -78,7 +78,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $deleteRepo->expects(self::once())->method('delete')->with($address);
         $deleteWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
             $deleteRepo,
-            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $deleteController = new class($deleteRepo, $deleteWriter, $user) extends DeleteAddressController {
             public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
@@ -92,7 +92,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $defaultRepo->expects(self::once())->method('setDefault')->with($user, $address);
         $defaultWriter = new \App\Module\User\Application\Service\ShippingAddressWriter(
             $defaultRepo,
-            new \App\Infrastructure\Persistence\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $defaultController = new class($defaultRepo, $defaultWriter, $user) extends SetDefaultAddressController {
             public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Service\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }

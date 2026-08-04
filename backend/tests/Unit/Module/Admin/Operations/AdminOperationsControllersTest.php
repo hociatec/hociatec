@@ -9,7 +9,7 @@ use App\Module\Admin\UI\Operations\Controller\EmailLogsController;
 use App\Module\Admin\UI\Operations\Controller\OperationsExportController;
 use App\Module\Admin\UI\Operations\Controller\OperationsOverviewController;
 use App\Module\Admin\Application\Operations\Service\AdminOperationsExporter;
-use App\Module\Admin\Application\Operations\Service\AdminOperationsFormatter;
+use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Admin\Application\Operations\Service\CustomerTimelineProvider;
 use App\Module\Admin\Application\Operations\Service\OperationsOverviewProvider;
 use App\Module\Catalog\Domain\Entity\Category;

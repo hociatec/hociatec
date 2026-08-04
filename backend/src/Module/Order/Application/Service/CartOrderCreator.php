@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\Order;
@@ -14,6 +12,8 @@ use App\Module\Promotion\Application\Service\PromotionEngine;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Service\VoucherEngine;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CartOrderCreator
 {

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
 use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Application\DTO\RegisterUserInput;
@@ -12,6 +11,7 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\TransactionManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 

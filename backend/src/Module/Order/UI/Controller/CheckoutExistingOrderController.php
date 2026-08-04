@@ -11,7 +11,7 @@ use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Order\Application\DTO\CheckoutInput;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Service\StripeCheckoutService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;

@@ -15,7 +15,7 @@ use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuoteNumberGenerator;
 use App\Module\Quote\Application\Service\QuotePersistence;
 use App\Module\Quote\Application\Service\QuoteService;
-use App\Infrastructure\ValueObject\Money;
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

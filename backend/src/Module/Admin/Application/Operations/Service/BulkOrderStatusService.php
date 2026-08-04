@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
-use App\Infrastructure\Application\TransactionManager;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\OrderStatus;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Shared\Application\TransactionManager;
 
 final readonly class BulkOrderStatusService
 {

@@ -27,7 +27,7 @@ use App\Infrastructure\Http\ExternalServiceException;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;

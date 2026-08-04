@@ -12,7 +12,7 @@ use App\Module\Cart\Application\Service\CartService;
 use App\Module\Cart\Application\Service\CartSessionProvider;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

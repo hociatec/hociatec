@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Quote\DTO;
 
-use App\Infrastructure\ValueObject\EmailAddress;
+use App\Shared\Domain\ValueObject\EmailAddress;
 
 final readonly class QuoteEmailInput
 {

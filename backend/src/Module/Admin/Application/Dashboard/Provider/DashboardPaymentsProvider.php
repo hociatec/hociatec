@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
-use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
+use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 

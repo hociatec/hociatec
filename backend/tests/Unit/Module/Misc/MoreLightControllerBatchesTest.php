@@ -18,7 +18,7 @@ use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

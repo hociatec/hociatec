@@ -12,11 +12,11 @@ use App\Module\Admin\Application\Quote\DTO\QuotePayloadInput;
 use App\Module\Admin\Application\Quote\DTO\QuoteProductItemInput;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Admin\Application\Quote\DTO\QuoteStatusInput;
-use App\Module\Audit\Application\Dto\CreateAuditRequestDto;
+use App\Module\Audit\Application\DTO\CreateAuditRequestDto;
 use App\Module\News\Application\DTO\CreateNewsCommentInput;
 use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Infrastructure\ValueObject\EmailAddress;
+use App\Shared\Domain\ValueObject\EmailAddress;
 use PHPUnit\Framework\TestCase;
 
 final class MarketingQuoteNewsDtoCoverageTest extends TestCase

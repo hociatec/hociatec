@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\User\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Application\Service\ShippingAddressFormatter;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;

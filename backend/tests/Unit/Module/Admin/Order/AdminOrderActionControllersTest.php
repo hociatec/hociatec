@@ -16,7 +16,7 @@ use App\Module\Order\Application\Service\OrderEventLogger;
 use App\Module\Order\Application\Service\OrderEventPersistence;
 use App\Module\Order\Application\Service\OrderStatusUpdater;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;

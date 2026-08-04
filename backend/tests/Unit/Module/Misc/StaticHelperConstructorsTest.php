@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Catalog\Application\Service\CatalogFormatter;
 use App\Module\Admin\Application\Catalog\Service\ProductFormValueNormalizer;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Promotion\Application\Service\PromotionFormatter;
 use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Rating\Application\Service\ProductReviewFormatter;

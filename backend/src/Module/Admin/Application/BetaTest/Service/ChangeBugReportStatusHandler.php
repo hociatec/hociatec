@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Application\Service\BugReportActivityLogger;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class ChangeBugReportStatusHandler
 {

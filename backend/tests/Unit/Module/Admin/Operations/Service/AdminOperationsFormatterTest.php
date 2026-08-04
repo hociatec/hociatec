@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Operations\Service;
 
-use App\Module\Admin\Application\Operations\Service\AdminOperationsFormatter;
+use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;

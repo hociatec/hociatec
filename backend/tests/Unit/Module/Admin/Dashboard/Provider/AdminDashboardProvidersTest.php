@@ -11,7 +11,7 @@ use App\Module\Admin\Application\Dashboard\Provider\DashboardDataProvider;
 use App\Module\Admin\Application\Dashboard\Provider\DashboardMetricsProvider;
 use App\Module\Admin\Application\Dashboard\Provider\DashboardNotificationsProvider;
 use App\Module\Admin\Application\Dashboard\Provider\DashboardPaymentsProvider;
-use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
+use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;

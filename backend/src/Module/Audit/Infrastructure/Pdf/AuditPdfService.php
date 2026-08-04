@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Audit\Application\Service;
+namespace App\Module\Audit\Infrastructure\Pdf;
 
 use App\Module\Audit\Domain\Entity\AuditRequest;
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Service\VoucherEngine;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CartVoucherService
 {

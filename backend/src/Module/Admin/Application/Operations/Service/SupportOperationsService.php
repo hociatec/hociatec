@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Support\Application\DTO\SupportCreateData;

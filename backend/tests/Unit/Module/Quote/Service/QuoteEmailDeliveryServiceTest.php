@@ -8,7 +8,7 @@ use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuoteEmailDeliveryService;
-use App\Module\Quote\Application\Service\QuotePdfService;
+use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;

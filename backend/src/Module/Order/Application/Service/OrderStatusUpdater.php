@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Workflow\WorkflowInterface;

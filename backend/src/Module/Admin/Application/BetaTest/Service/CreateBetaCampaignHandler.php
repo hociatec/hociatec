@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CreateBetaCampaignHandler
 {

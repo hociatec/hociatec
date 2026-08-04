@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Order\Application\Service;
+namespace App\Module\Order\Application\Projection;
 
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;

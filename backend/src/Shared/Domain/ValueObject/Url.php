@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\ValueObject;
+namespace App\Shared\Domain\ValueObject;
 
 final readonly class Url
 {

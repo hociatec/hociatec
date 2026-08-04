@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Payment\Service;
+namespace App\Module\Admin\Application\Payment\Projection;
 
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 

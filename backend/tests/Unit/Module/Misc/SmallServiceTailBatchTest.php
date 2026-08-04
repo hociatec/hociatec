@@ -11,7 +11,7 @@ use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

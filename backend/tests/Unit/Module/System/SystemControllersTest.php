@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Module\System;
 
 use App\Module\System\UI\Controller\HealthController;
 use App\Module\System\UI\Controller\MetricsController;
+use App\Module\Outbox\Application\OutboxEventStore;
+use App\Module\Outbox\Application\OutboxMetrics;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
 use Doctrine\DBAL\Result;
@@ -47,12 +49,13 @@ final class SystemControllersTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::once())->method('executeQuery')->with('SELECT 1')->willReturn($result);
 
-        $local = (new MetricsController($connection, ''))(
+        $local = (new MetricsController($connection, '', $this->outboxEvents()))(
             Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '127.0.0.1'])
         );
 
         self::assertSame(Response::HTTP_OK, $local->getStatusCode());
         self::assertStringContainsString('hociatec_database_up 1', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_outbox_pending_events 3', (string) $local->getContent());
 
         $failingConnection = $this->createMock(Connection::class);
         $failingConnection->expects(self::once())->method('executeQuery')->willThrowException(new DbalException('db down'));
@@ -67,5 +70,30 @@ final class SystemControllersTest extends TestCase
         );
 
         self::assertSame(Response::HTTP_FORBIDDEN, $denied->getStatusCode());
+    }
+
+    private function outboxEvents(): OutboxEventStore
+    {
+        return new class implements OutboxEventStore {
+            public function findDueForUpdate(int $limit): array
+            {
+                return [];
+            }
+
+            public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+            {
+                return 0;
+            }
+
+            public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics
+            {
+                return new OutboxMetrics(3, 42, 1, 2, 4);
+            }
+
+            public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int
+            {
+                return 0;
+            }
+        };
     }
 }

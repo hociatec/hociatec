@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence;
+namespace App\Shared\Infrastructure\Doctrine;
 
-use App\Infrastructure\Application\TransactionManager;
+use App\Shared\Application\TransactionManager;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrineTransactionManager implements TransactionManager

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Marketing\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class UpdateEmailTemplateHandler
 {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Payment\Service;
 
 use App\Infrastructure\Http\ExternalServiceException;
+use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 

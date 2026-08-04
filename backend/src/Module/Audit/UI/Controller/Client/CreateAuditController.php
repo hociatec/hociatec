@@ -6,7 +6,7 @@ namespace App\Module\Audit\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
-use App\Module\Audit\Application\Dto\CreateAuditRequestDto;
+use App\Module\Audit\Application\DTO\CreateAuditRequestDto;
 use App\Module\Audit\Application\Service\AuditEventLogger;
 use App\Module\Audit\Application\Service\CreateAuditRequestService;
 use App\Module\Audit\Domain\Entity\AuditType;

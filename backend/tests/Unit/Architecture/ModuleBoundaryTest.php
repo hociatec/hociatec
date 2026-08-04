@@ -47,11 +47,11 @@ final class ModuleBoundaryTest extends TestCase
             }
         }
 
-        $unitOfWork = file_get_contents(__DIR__.'/../../../src/Infrastructure/Persistence/DoctrineUnitOfWork.php');
+        $unitOfWork = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Doctrine/DoctrineUnitOfWork.php');
         self::assertIsString($unitOfWork);
         foreach (['implements TransactionManager', 'wrapInTransaction(', 'function transactional('] as $forbidden) {
             if (str_contains($unitOfWork, $forbidden)) {
-                $violations[] = 'src/Infrastructure/Persistence/DoctrineUnitOfWork.php: '.$forbidden;
+                $violations[] = 'src/Shared/Infrastructure/Doctrine/DoctrineUnitOfWork.php: '.$forbidden;
             }
         }
 
@@ -114,6 +114,49 @@ final class ModuleBoundaryTest extends TestCase
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
             if (str_ends_with($path, 'Manager.php')) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testSharedConceptsDoNotLiveInRootInfrastructure(): void
+    {
+        $forbiddenPaths = [
+            __DIR__.'/../../../src/Infrastructure/Application',
+            __DIR__.'/../../../src/Infrastructure/ValueObject',
+            __DIR__.'/../../../src/Infrastructure/Persistence/DoctrineTransactionManager.php',
+            __DIR__.'/../../../src/Infrastructure/Persistence/DoctrineUnitOfWork.php',
+        ];
+
+        $violations = [];
+        foreach ($forbiddenPaths as $path) {
+            if (file_exists($path)) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApplicationDtoDirectoriesUseUppercaseDtoConvention(): void
+    {
+        $violations = [];
+        foreach ($this->directories(__DIR__.'/../../../src/Module') as $path) {
+            if (str_ends_with($path, '/Application/Dto') || str_contains($path, '/Application/Dto/')) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testPdfGeneratorsLiveInInfrastructurePdf(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (str_contains($path, '/Application/Service/') && str_ends_with($path, 'PdfService.php')) {
                 $violations[] = $this->relativePath($path);
             }
         }
@@ -299,5 +342,25 @@ final class ModuleBoundaryTest extends TestCase
         $realPath = realpath($path);
 
         return is_string($root) && is_string($realPath) ? str_replace($root.'/', '', $realPath) : $path;
+    }
+
+    /** @return list<string> */
+    private function directories(string $directory): array
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory),
+            \RecursiveIteratorIterator::SELF_FIRST,
+        );
+        $paths = [];
+
+        foreach ($iterator as $file) {
+            if ($file instanceof \SplFileInfo && $file->isDir() && !in_array($file->getFilename(), ['.', '..'], true)) {
+                $paths[] = $file->getPathname();
+            }
+        }
+
+        sort($paths);
+
+        return $paths;
     }
 }

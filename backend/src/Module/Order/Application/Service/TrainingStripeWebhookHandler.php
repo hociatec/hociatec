@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class TrainingStripeWebhookHandler
 {

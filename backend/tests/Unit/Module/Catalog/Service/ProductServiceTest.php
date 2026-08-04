@@ -14,7 +14,7 @@ use App\Module\Catalog\Application\Service\ProductGalleryUpdater;
 use App\Module\Catalog\Application\Service\ProductService;
 use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Service\ProductVariantService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;

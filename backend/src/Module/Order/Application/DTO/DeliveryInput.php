@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\DTO;
 
-use App\Infrastructure\ValueObject\Url;
+use App\Shared\Domain\ValueObject\Url;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class DeliveryInput

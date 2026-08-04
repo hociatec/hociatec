@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\Application\Service;
 
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;

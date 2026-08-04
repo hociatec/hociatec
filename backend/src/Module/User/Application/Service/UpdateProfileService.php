@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
@@ -12,6 +11,7 @@ use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class UpdateProfileService

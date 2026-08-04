@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Persistence;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;

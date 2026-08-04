@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class CartService

@@ -25,7 +25,7 @@ use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuotePersistence;
 use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
 use App\Module\Quote\Application\Service\QuoteWorkflowService;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;

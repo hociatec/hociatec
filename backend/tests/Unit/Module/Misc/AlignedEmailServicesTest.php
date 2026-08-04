@@ -24,7 +24,7 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Application\Service\TradeInNotificationEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

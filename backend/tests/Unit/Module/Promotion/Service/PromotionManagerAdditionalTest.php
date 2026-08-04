@@ -10,7 +10,7 @@ use App\Module\Promotion\Application\Service\DeletePromotionHandler;
 use App\Module\Promotion\Application\Service\PromotionDataApplier;
 use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

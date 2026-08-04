@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Infrastructure\Pdf\OrderInvoicePdfService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class OrderInvoiceDocumentService

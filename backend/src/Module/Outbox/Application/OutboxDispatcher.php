@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Outbox\Application;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
@@ -23,8 +23,9 @@ final readonly class OutboxDispatcher
     ) {
     }
 
-    public function dispatchDue(int $limit = 50): int
+    public function dispatchDue(int $limit = 50, ?\DateTimeImmutable $staleProcessingThreshold = null): int
     {
+        $this->recoverStaleProcessing($staleProcessingThreshold ?? new \DateTimeImmutable('-15 minutes'));
         $processed = 0;
         foreach ($this->reserveDue($limit) as $event) {
             if ($this->dispatch($event)) {
@@ -33,6 +34,16 @@ final readonly class OutboxDispatcher
         }
 
         return $processed;
+    }
+
+    public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+    {
+        $recovered = $this->events->recoverStaleProcessing($threshold);
+        if ($recovered > 0) {
+            $this->logger->warning('Recovered stale outbox processing events.', ['count' => $recovered]);
+        }
+
+        return $recovered;
     }
 
     /** @return list<OutboxEvent> */

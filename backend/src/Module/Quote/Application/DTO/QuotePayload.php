@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\DTO;
 
-use App\Infrastructure\ValueObject\Money;
+use App\Shared\Domain\ValueObject\Money;
 
 final readonly class QuotePayload
 {

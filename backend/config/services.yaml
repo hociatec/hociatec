@@ -61,8 +61,8 @@ services:
     App\Module\Outbox\Application\OutboxEventStore:
         alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
 
-    App\Infrastructure\Application\TransactionManager:
-        alias: App\Infrastructure\Persistence\DoctrineTransactionManager
+    App\Shared\Application\TransactionManager:
+        alias: App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager
 
     App\Infrastructure\Http\RateLimitSubscriber:
         arguments:

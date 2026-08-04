@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;

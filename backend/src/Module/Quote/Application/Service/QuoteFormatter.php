@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Service;
 
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;

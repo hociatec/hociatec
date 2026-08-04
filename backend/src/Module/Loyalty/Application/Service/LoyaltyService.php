@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class LoyaltyService
 {

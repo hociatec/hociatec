@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
+use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
 use App\Module\Order\Domain\Entity\RefundRequest;

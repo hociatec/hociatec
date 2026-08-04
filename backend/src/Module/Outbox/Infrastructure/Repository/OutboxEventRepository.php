@@ -48,6 +48,24 @@ final class OutboxEventRepository extends ServiceEntityRepository implements Out
             ->execute();
     }
 
+    public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+    {
+        return (int) $this->createQueryBuilder('event')
+            ->update()
+            ->set('event.status', ':failed')
+            ->set('event.availableAt', ':now')
+            ->set('event.lastError', ':lastError')
+            ->andWhere('event.status = :processing')
+            ->andWhere('event.availableAt < :threshold')
+            ->setParameter('failed', OutboxEvent::STATUS_FAILED)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('lastError', 'Recovered after stale processing timeout.')
+            ->setParameter('processing', OutboxEvent::STATUS_PROCESSING)
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->execute();
+    }
+
     public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics
     {
         $now = new \DateTimeImmutable();

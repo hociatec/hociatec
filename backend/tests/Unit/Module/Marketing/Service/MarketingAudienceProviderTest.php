@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Marketing\Service;
 use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Service\MarketingAudienceProvider;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;

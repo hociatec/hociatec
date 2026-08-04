@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;

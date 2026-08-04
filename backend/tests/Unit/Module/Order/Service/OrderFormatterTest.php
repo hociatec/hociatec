@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Order\Service;
 
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use PHPUnit\Framework\TestCase;
 

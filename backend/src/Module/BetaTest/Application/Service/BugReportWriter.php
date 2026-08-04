@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class BugReportWriter

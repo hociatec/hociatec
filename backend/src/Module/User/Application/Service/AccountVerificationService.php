@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class AccountVerificationService
 {

@@ -27,7 +27,7 @@ use App\Module\User\Application\Service\RegisterUserService;
 use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\User\Application\Service\UserProfileFormatter;
-use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -61,7 +61,7 @@ final class UserRemainingControllersTest extends TestCase
         $repo->expects(self::exactly(2))->method('findOneForUser')->willReturnOnConsecutiveCalls(null, $address);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(3))->method('flush');
-        $writer = new \App\Module\User\Application\Service\ShippingAddressWriter($repo, new \App\Infrastructure\Persistence\DoctrineUnitOfWork($entityManager));
+        $writer = new \App\Module\User\Application\Service\ShippingAddressWriter($repo, new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($entityManager));
 
         $create = new class($writer, $validator, $user) extends CreateAddressController {
             public function __construct(\App\Module\User\Application\Service\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)

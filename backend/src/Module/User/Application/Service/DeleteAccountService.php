@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
 
 final readonly class DeleteAccountService
 {

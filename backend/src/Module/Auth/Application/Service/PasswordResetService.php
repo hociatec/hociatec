@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Service;
 
-use App\Infrastructure\Application\TransactionManager;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PasswordResetService

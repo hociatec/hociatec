@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Payment\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
+use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

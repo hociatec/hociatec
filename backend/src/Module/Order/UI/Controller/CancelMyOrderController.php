@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Service\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;

@@ -17,7 +17,7 @@ use App\Module\Order\Application\Service\OrderNotificationEmailService;
 use App\Module\Order\Application\Service\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
