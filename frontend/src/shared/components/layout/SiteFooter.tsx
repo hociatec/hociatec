@@ -9,13 +9,6 @@ const legalLinks = [
   { to: '/legal/mentions-legales', label: 'Mentions légales' },
 ];
 
-const prestationLinks = [
-  { to: '/services', label: 'Nos services' },
-  { to: '/appointments/book', label: 'Prendre rendez-vous' },
-  { to: '/devis/nouveau', label: 'Créer un devis' },
-  { to: '/audits/request', label: 'Demander un audit' },
-];
-
 const openingHours = [
   { key: 'lundi', label: 'Lundi', hours: '09h00 - 20h00' },
   { key: 'mardi', label: 'Mardi', hours: '09h00 - 20h00' },
@@ -73,17 +66,6 @@ export const SiteFooter = () => {
               <a href="/#histoire" className="site-footer__link">
                 Notre histoire
               </a>
-            </nav>
-          </div>
-
-          <div className="site-footer__column">
-            <h2>Prestations</h2>
-            <nav className="site-footer__links" aria-label="Liens prestations">
-              {prestationLinks.map((link) => (
-                <Link key={link.to} to={link.to} className="site-footer__link">
-                  {link.label}
-                </Link>
-              ))}
             </nav>
           </div>
 
