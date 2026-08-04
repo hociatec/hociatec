@@ -48,6 +48,7 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('Lovelace', $request->getLastName());
         self::assertSame('ada@example.com', $request->getEmail());
         self::assertSame('0102030405', $request->getPhone());
+        self::assertSame('Ada Lovelace', $request->applicant()->fullName());
         self::assertSame('smartphones', $request->getCategory());
         self::assertSame('iPhone', $request->getProductName());
         self::assertSame(0, $request->getPurchasePriceCents());
@@ -62,8 +63,11 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('Bon etat', $request->getDescription());
         self::assertSame(10, $request->getCatalogProductId());
         self::assertSame('iPhone 13', $request->getCatalogProductName());
+        self::assertSame('iPhone', $request->productSnapshot()->productName);
+        self::assertTrue($request->productSnapshot()->functional);
         self::assertSame(0, $request->getEstimatedMinCents());
         self::assertSame(80, $request->getEstimatedMaxCents());
+        self::assertSame(80, $request->estimate()->maxCents);
         self::assertNull($request->getOfferCents());
         self::assertNull($request->getFinalOfferCents());
         self::assertNull($request->getPaymentMethod());
@@ -97,6 +101,7 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('paid', $request->getPaymentStatus());
         self::assertSame('TX-1', $request->getTransactionReference());
         self::assertSame('2026-07-15T10:00:00+00:00', $request->getPaidAt()?->format(DATE_ATOM));
+        self::assertSame('bank_transfer', $request->closure()?->paymentMethod);
         self::assertInstanceOf(\DateTimeImmutable::class, $request->getClosedAt());
 
         $request
@@ -108,7 +113,9 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('/tmp/rib.pdf', $request->getRibPath());
         self::assertSame('rib.pdf', $request->getRibOriginalName());
         self::assertSame(1234, $request->getRibSize());
+        self::assertSame('hash', $request->ribDocument()?->sha256);
         self::assertSame('/tmp/receipt.pdf', $request->getReceiptPath());
+        self::assertSame('/tmp/receipt.pdf', $request->receiptDocument()?->path);
         self::assertSame('CODE', $request->getVoucherCode());
         self::assertSame('note', $request->getAdminNote());
 

@@ -7,6 +7,7 @@ namespace App\Module\Order\Application\Service;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -14,13 +15,6 @@ use Symfony\Component\Workflow\WorkflowInterface;
 
 final readonly class OrderStatusUpdater
 {
-    private const ALLOWED = [
-        Order::STATUS_PENDING,
-        Order::STATUS_CONFIRMED,
-        Order::STATUS_DELIVERED,
-        Order::STATUS_CANCELLED,
-    ];
-
     public function __construct(
         private DoctrineUnitOfWork $persistence,
         #[Autowire(service: 'state_machine.order_status')]
@@ -32,7 +26,7 @@ final readonly class OrderStatusUpdater
 
     public function update(Order $order, string $status, ?User $actor): Order
     {
-        if (!in_array($status, self::ALLOWED, true)) {
+        if (!in_array($status, (new OrderStatusWorkflow())->statuses(), true)) {
             throw new \InvalidArgumentException('Statut invalide.');
         }
 

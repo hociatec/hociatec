@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Order\Service;
 
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use PHPUnit\Framework\TestCase;
 
 final class OrderFormatterTest extends TestCase
@@ -42,5 +43,10 @@ final class OrderFormatterTest extends TestCase
             ],
             OrderFormatter::statusOptions(),
         );
+
+        $workflow = new OrderStatusWorkflow();
+        self::assertSame([Order::STATUS_CONFIRMED, Order::STATUS_CANCELLED], $workflow->nextStatuses(Order::STATUS_PENDING));
+        self::assertTrue($workflow->canTransitionTo(Order::STATUS_PENDING, Order::STATUS_CONFIRMED));
+        self::assertFalse($workflow->canTransitionTo(Order::STATUS_DELIVERED, Order::STATUS_CANCELLED));
     }
 }

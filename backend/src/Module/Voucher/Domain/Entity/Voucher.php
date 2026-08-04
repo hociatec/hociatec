@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Voucher\Domain\Entity;
 
 use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Domain\Policy\VoucherEligibilityPolicy;
+use App\Module\Voucher\Domain\ValueObject\VoucherDiscount;
+use App\Module\Voucher\Domain\ValueObject\VoucherRecipientConstraint;
+use App\Module\Voucher\Domain\ValueObject\VoucherValidityPeriod;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -14,7 +18,6 @@ class Voucher
 {
     public const TYPE_PERCENT = 'percent';
     public const TYPE_FIXED_CENTS = 'fixed_cents';
-    private const MAX_PERCENT_DISCOUNT = 100;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -129,7 +132,7 @@ class Voucher
 
     public function setDiscountType(string $discountType): self
     {
-        self::assertValidDiscountType($discountType);
+        new VoucherDiscount($discountType, 0);
         $this->discountType = $discountType;
 
         return $this;
@@ -142,7 +145,7 @@ class Voucher
 
     public function setDiscountValue(int $discountValue): self
     {
-        self::assertValidDiscountValue($this->discountType, $discountValue);
+        new VoucherDiscount($this->discountType, $discountValue);
         $this->discountValue = $discountValue;
 
         return $this;
@@ -150,8 +153,9 @@ class Voucher
 
     public function changeDiscount(string $discountType, int $discountValue): self
     {
-        self::assertValidDiscountType($discountType);
-        self::assertValidDiscountValue($discountType, $discountValue);
+        $discount = new VoucherDiscount($discountType, $discountValue);
+        $discountType = $discount->type;
+        $discountValue = $discount->value;
         $this->discountType = $discountType;
         $this->discountValue = $discountValue;
 
@@ -177,7 +181,7 @@ class Voucher
 
     public function setStartsAt(?\DateTimeImmutable $startsAt): self
     {
-        self::assertValidDateRange($startsAt, $this->endsAt);
+        new VoucherValidityPeriod($startsAt, $this->endsAt);
         $this->startsAt = $startsAt;
 
         return $this;
@@ -190,7 +194,7 @@ class Voucher
 
     public function setEndsAt(?\DateTimeImmutable $endsAt): self
     {
-        self::assertValidDateRange($this->startsAt, $endsAt);
+        new VoucherValidityPeriod($this->startsAt, $endsAt);
         $this->endsAt = $endsAt;
 
         return $this;
@@ -228,42 +232,27 @@ class Voucher
 
     public function hasStartedAt(\DateTimeImmutable $now): bool
     {
-        return null === $this->startsAt || $this->startsAt <= $now;
+        return $this->validityPeriod()->hasStartedAt($now);
     }
 
     public function isExpiredAt(\DateTimeImmutable $now): bool
     {
-        return null !== $this->endsAt && $this->endsAt < $now;
+        return $this->validityPeriod()->isExpiredAt($now);
     }
 
     public function hasRecipientConstraint(): bool
     {
-        return null !== $this->recipientUserId || null !== $this->recipientEmail;
+        return $this->recipientConstraint()->exists();
     }
 
     public function matchesRecipient(?User $user): bool
     {
-        if (!$this->hasRecipientConstraint()) {
-            return true;
-        }
-
-        if (null === $user) {
-            return false;
-        }
-
-        if (null !== $this->recipientUserId) {
-            return $this->recipientUserId === $user->getId();
-        }
-
-        return null !== $this->recipientEmail && 0 === strcasecmp($this->recipientEmail, $user->getEmail());
+        return $this->recipientConstraint()->matches($user);
     }
 
     public function canBeUsedBy(?User $user, \DateTimeImmutable $now): bool
     {
-        return $this->isActive()
-            && $this->hasStartedAt($now)
-            && !$this->isExpiredAt($now)
-            && $this->matchesRecipient($user);
+        return (new VoucherEligibilityPolicy())->canBeUsedBy($this, $user, $now);
     }
 
     public function canBeNotifiedTo(User $user, \DateTimeImmutable $now): bool
@@ -293,38 +282,24 @@ class Voucher
         return $this->updatedAt;
     }
 
+    public function discount(): VoucherDiscount
+    {
+        return new VoucherDiscount($this->discountType, $this->discountValue);
+    }
+
+    public function validityPeriod(): VoucherValidityPeriod
+    {
+        return new VoucherValidityPeriod($this->startsAt, $this->endsAt);
+    }
+
+    public function recipientConstraint(): VoucherRecipientConstraint
+    {
+        return new VoucherRecipientConstraint($this->recipientUserId, $this->recipientEmail);
+    }
+
     #[ORM\PreUpdate]
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    private static function assertValidDiscountType(string $discountType): void
-    {
-        if (!\in_array($discountType, [self::TYPE_PERCENT, self::TYPE_FIXED_CENTS], true)) {
-            throw new \InvalidArgumentException('Type de remise invalide.');
-        }
-    }
-
-    private static function assertValidDiscountValue(string $discountType, int $discountValue): void
-    {
-        if (0 === $discountValue) {
-            return;
-        }
-
-        if ($discountValue <= 0) {
-            throw new \InvalidArgumentException('La valeur de remise doit être supérieure à zéro.');
-        }
-
-        if (self::TYPE_PERCENT === $discountType && $discountValue > self::MAX_PERCENT_DISCOUNT) {
-            throw new \InvalidArgumentException('La remise en pourcentage ne peut pas dépasser 100 %.');
-        }
-    }
-
-    private static function assertValidDateRange(?\DateTimeImmutable $startsAt, ?\DateTimeImmutable $endsAt): void
-    {
-        if (null !== $startsAt && null !== $endsAt && $startsAt >= $endsAt) {
-            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
-        }
     }
 }

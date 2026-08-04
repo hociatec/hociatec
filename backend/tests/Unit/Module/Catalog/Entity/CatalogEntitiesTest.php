@@ -170,6 +170,7 @@ final class CatalogEntitiesTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $product->getDiscountStartsAt());
         self::assertInstanceOf(\DateTimeImmutable::class, $product->getDiscountEndsAt());
         self::assertSame(96000, $product->getEffectivePriceCents(new \DateTimeImmutable()));
+        self::assertSame(96000, $product->discount()->effectivePriceCents($product->getPriceCents(), new \DateTimeImmutable()));
         self::assertSame(['main.jpg', 'second.jpg', 'third.jpg', 'fourth.jpg'], $product->getGalleryImageNames());
         self::assertNull($product->getGalleryImage2File());
         self::assertSame('second.jpg', $product->getGalleryImage2Name());

@@ -39,9 +39,13 @@ final class VoucherTest extends TestCase
         self::assertSame('Desc', $voucher->getDescription());
         self::assertSame(Voucher::TYPE_PERCENT, $voucher->getDiscountType());
         self::assertSame(20, $voucher->getDiscountValue());
+        self::assertSame(Voucher::TYPE_PERCENT, $voucher->discount()->type);
+        self::assertSame(20, $voucher->discount()->value);
         self::assertFalse($voucher->isActive());
+        self::assertFalse($voucher->validityPeriod()->hasStartedAt(new \DateTimeImmutable()));
         self::assertSame(42, $voucher->getRecipientUserId());
         self::assertSame('Ada@example.com', $voucher->getRecipientEmail());
+        self::assertTrue($voucher->recipientConstraint()->exists());
         self::assertInstanceOf(\DateTimeImmutable::class, $voucher->getSentAt());
 
         usleep(1000);

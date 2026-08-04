@@ -6,6 +6,7 @@ namespace App\Module\Order\Application\Service;
 
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\Rating\Application\Service\ProductReviewFormatter;
 use App\Module\Rating\Domain\Entity\ProductRating;
 
@@ -29,9 +30,8 @@ final class OrderFormatter
     /** @return list<array{value: string, label: string}> */
     public static function statusOptions(): array
     {
-        $statuses = [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_DELIVERED, Order::STATUS_CANCELLED];
         $options = [];
-        foreach ($statuses as $status) {
+        foreach ((new OrderStatusWorkflow())->statuses() as $status) {
             $options[] = ['value' => $status, 'label' => self::formatStatusLabel($status)];
         }
 
@@ -101,7 +101,7 @@ final class OrderFormatter
 
         $status = $order->getStatus();
         $statusLabel = self::formatStatusLabel($status);
-        $allowedNextStatuses = self::nextStatuses($status);
+        $allowedNextStatuses = (new OrderStatusWorkflow())->nextStatuses($status);
 
         $deliveryStatus = $order->getDeliveryStatus();
         $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
@@ -165,15 +165,5 @@ final class OrderFormatter
             'items' => $items,
             ...$extra,
         ];
-    }
-
-    /** @return list<string> */
-    private static function nextStatuses(string $status): array
-    {
-        return match ($status) {
-            Order::STATUS_PENDING => [Order::STATUS_CONFIRMED, Order::STATUS_CANCELLED],
-            Order::STATUS_CONFIRMED => [Order::STATUS_DELIVERED],
-            default => [],
-        };
     }
 }

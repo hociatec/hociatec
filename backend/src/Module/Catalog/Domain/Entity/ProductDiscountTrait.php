@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Domain\Entity;
 
+use App\Module\Catalog\Domain\ValueObject\ProductDiscount;
 use Doctrine\ORM\Mapping as ORM;
 
 trait ProductDiscountTrait
@@ -42,10 +43,7 @@ trait ProductDiscountTrait
 
     public function setDiscountType(?string $type): self
     {
-        if (null !== $type && !in_array($type, ['percent', 'fixed_cents'], true)) {
-            throw new \InvalidArgumentException('Type de remise invalide.');
-        }
-
+        new ProductDiscount(false, $type, null, $this->discountStartsAt, $this->discountEndsAt);
         $this->discountType = $type;
 
         return $this;
@@ -58,10 +56,7 @@ trait ProductDiscountTrait
 
     public function setDiscountValue(?int $value): self
     {
-        if (null !== $value && $value < 0) {
-            throw new \InvalidArgumentException('Valeur de remise invalide.');
-        }
-
+        new ProductDiscount($this->discountEnabled, $this->discountType, $value, $this->discountStartsAt, $this->discountEndsAt);
         $this->discountValue = $value;
 
         return $this;
@@ -93,27 +88,11 @@ trait ProductDiscountTrait
 
     public function getEffectivePriceCents(?\DateTimeImmutable $now = null): int
     {
-        $now = $now ?? new \DateTimeImmutable();
-        $base = $this->getPriceCents();
-        if (true !== $this->discountEnabled) {
-            return $base;
-        }
-        if (null !== $this->discountStartsAt && $now < $this->discountStartsAt) {
-            return $base;
-        }
-        if (null !== $this->discountEndsAt && $now > $this->discountEndsAt) {
-            return $base;
-        }
-        if ('percent' === $this->discountType && null !== $this->discountValue) {
-            $percent = max(0, min(100, $this->discountValue));
-            $discount = (int) round($base * ($percent / 100));
+        return $this->discount()->effectivePriceCents($this->getPriceCents(), $now);
+    }
 
-            return max(0, $base - $discount);
-        }
-        if ('fixed_cents' === $this->discountType && null !== $this->discountValue) {
-            return max(0, $base - $this->discountValue);
-        }
-
-        return $base;
+    public function discount(): ProductDiscount
+    {
+        return new ProductDiscount($this->discountEnabled, $this->discountType, $this->discountValue, $this->discountStartsAt, $this->discountEndsAt);
     }
 }
