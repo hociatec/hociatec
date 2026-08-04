@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Service\OrderInvoicePdfService;
-use App\Module\User\Entity\User;
-use App\Shared\Pdf\AccessiblePdfRenderer;
-use App\Shared\Pdf\PdfHtmlFormatter;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Application\Service\OrderInvoicePdfService;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Infrastructure\Pdf\PdfHtmlFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class OrderInvoicePdfServiceTest extends TestCase

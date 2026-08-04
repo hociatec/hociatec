@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Entity;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderEvent;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderEvent;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class OrderEntitiesTest extends TestCase

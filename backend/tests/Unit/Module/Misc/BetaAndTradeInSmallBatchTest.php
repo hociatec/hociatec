@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\TradeIn\Controller\ShowTradeInController;
-use App\Module\BetaTest\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Entity\BugReport;
-use App\Module\BetaTest\Entity\BugReportActivity;
-use App\Module\BetaTest\Repository\BetaTesterProfileRepository;
-use App\Module\BetaTest\Repository\BugReportActivityRepository;
-use App\Module\TradeIn\Entity\TradeInRequest;
-use App\Module\TradeIn\Repository\TradeInRequestRepository;
-use App\Module\User\Entity\User;
+use App\Module\Admin\UI\TradeIn\Controller\ShowTradeInController;
+use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\BetaTest\Domain\Entity\BugReportActivity;
+use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository;
+use App\Module\TradeIn\Domain\Entity\TradeInRequest;
+use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

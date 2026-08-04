@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Service;
 
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Service\ShippingAddressFormatter;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Service\ShippingAddressFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class ShippingAddressFormatterTest extends TestCase

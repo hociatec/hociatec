@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Kernel;
-use App\Module\Admin\Backup\Controller\SystemStatusController;
-use App\Module\Admin\Backup\Service\MaintenanceModeService;
-use App\Module\System\Controller\MetricsController;
+use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
+use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\System\UI\Controller\MetricsController;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception as DbalException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +48,7 @@ final class KernelAndBackupLightTest extends TestCase
     public function testMetricsControllerAcceptsConfiguredToken(): void
     {
         $connection = $this->createMock(Connection::class);
-        $connection->method('executeQuery')->willThrowException(new \RuntimeException('db down'));
+        $connection->method('executeQuery')->willThrowException(new DbalException('db down'));
 
         $request = Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10']);
         $request->headers->set('X-Metrics-Token', 'secret');

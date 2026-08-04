@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Auth;
 
-use App\Module\Auth\Entity\RefreshToken;
-use App\Module\Auth\Http\AuthCookieService;
-use App\Module\User\Entity\User;
+use App\Module\Auth\Domain\Entity\RefreshToken;
+use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

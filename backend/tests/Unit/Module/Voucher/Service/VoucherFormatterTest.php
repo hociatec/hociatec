@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Voucher\Service;
 
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Service\VoucherFormatter;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Application\Service\VoucherFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class VoucherFormatterTest extends TestCase

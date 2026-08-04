@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Comment\Repository;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Comment\Entity\ProductComment;
-use App\Module\Comment\Repository\ProductCommentRepository;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\Rating\Entity\ProductRating;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Comment\Domain\Entity\ProductComment;
+use App\Module\Comment\Infrastructure\Repository\ProductCommentRepository;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Rating\Domain\Entity\ProductRating;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

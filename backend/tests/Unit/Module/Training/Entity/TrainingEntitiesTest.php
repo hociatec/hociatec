@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Entity;
 
-use App\Module\Training\Entity\Training;
-use App\Module\Training\Entity\TrainingCategory;
-use App\Module\Training\Entity\TrainingEnrollment;
-use App\Module\Training\Entity\TrainingRoadmapItem;
-use App\Module\Training\Entity\TrainingSession;
-use App\Module\User\Entity\User;
+use App\Module\Training\Domain\Entity\Training;
+use App\Module\Training\Domain\Entity\TrainingCategory;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
+use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
+use App\Module\Training\Domain\Entity\TrainingSession;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class TrainingEntitiesTest extends TestCase

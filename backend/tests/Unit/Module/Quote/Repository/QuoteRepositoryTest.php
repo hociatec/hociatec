@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Repository;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

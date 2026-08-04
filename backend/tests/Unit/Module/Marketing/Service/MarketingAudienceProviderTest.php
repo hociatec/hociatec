@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Marketing\Service;
 
-use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
-use App\Module\Marketing\Service\MarketingAudienceProvider;
-use App\Module\User\Entity\User;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
+use App\Module\Marketing\Application\Service\MarketingAudienceProvider;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;

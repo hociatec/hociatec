@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Notification\Service;
 
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Notification\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Service\CommunicationPreferences;
-use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\User\Entity\User;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Service\CommunicationPreferences;
+use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

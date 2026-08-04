@@ -10,8 +10,8 @@ modules:
         namespace: App\Module
     type: attribute
 
-shared:
+infrastructure:
     resource:
-        path: ../src/Shared/
-        namespace: App\Shared
+        path: ../src/Infrastructure/
+        namespace: App\Infrastructure
     type: attribute

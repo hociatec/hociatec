@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\User\Entity\User;
-use App\Module\User\Exception\UserAlreadyExistsException;
-use App\Module\User\Repository\UserRepository;
-use App\Module\User\Service\ChangeProfileEmailService;
-use App\Module\User\Service\ProfileCurrentPasswordVerifier;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Service\ChangeProfileEmailService;
+use App\Module\User\Application\Service\ProfileCurrentPasswordVerifier;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 

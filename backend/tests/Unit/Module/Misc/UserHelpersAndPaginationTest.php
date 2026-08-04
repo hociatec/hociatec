@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\User\Entity\User;
-use App\Module\User\Exception\InvalidCurrentPasswordException;
-use App\Module\User\Exception\InvalidProfilePasswordException;
-use App\Module\User\Service\ChangeProfilePasswordService;
-use App\Module\User\Service\ProfileCurrentPasswordVerifier;
-use App\Module\User\Service\UserUniqueConstraintViolationDetector;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
+use App\Module\User\Application\Exception\InvalidProfilePasswordException;
+use App\Module\User\Application\Service\ChangeProfilePasswordService;
+use App\Module\User\Application\Service\ProfileCurrentPasswordVerifier;
+use App\Module\User\Application\Service\UserUniqueConstraintViolationDetector;
 use Doctrine\DBAL\Driver\PDO\Exception as PdoDriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use App\Shared\Http\Pagination;
+use App\Infrastructure\Http\Pagination;
 
 final class UserHelpersAndPaginationTest extends TestCase
 {

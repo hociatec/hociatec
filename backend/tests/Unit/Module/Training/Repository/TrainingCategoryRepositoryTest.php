@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Repository;
 
-use App\Module\Training\Entity\TrainingCategory;
-use App\Module\Training\Repository\TrainingCategoryRepository;
+use App\Module\Training\Domain\Entity\TrainingCategory;
+use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

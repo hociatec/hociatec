@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Voucher\Service;
 
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Repository\VoucherRepository;
-use App\Module\Voucher\Service\VoucherManager;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\DriverManager;

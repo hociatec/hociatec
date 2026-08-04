@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Promotion\DTO\PromotionInput;
-use App\Module\Training\DTO\TrainingEnrollmentCheckoutResult;
-use App\Module\Training\DTO\TrainingSessionInput;
-use App\Module\Training\Entity\Training;
-use App\Module\Training\Entity\TrainingEnrollment;
-use App\Module\Training\Entity\TrainingSession;
-use App\Module\User\DTO\RegisterUserInput;
-use App\Module\User\DTO\UpdateProfileInput;
-use App\Module\User\Entity\User;
+use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
+use App\Module\Training\Application\DTO\TrainingSessionInput;
+use App\Module\Training\Domain\Entity\Training;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
+use App\Module\Training\Domain\Entity\TrainingSession;
+use App\Module\User\Application\DTO\RegisterUserInput;
+use App\Module\User\Application\DTO\UpdateProfileInput;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;

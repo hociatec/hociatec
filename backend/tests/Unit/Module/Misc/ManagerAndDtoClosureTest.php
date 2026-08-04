@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Notification\DTO\NotificationReadStateInput;
-use App\Module\Promotion\DTO\PromotionInput;
-use App\Module\Promotion\Entity\Promotion;
-use App\Module\Promotion\Service\PromotionManager;
-use App\Module\User\Entity\User;
-use App\Module\User\Service\UserPersistence;
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Service\VoucherManager;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Notification\Application\DTO\NotificationReadStateInput;
+use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Application\Service\PromotionManager;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Service\UserPersistence;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -188,7 +188,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
-        $repo = new \App\Module\Voucher\Repository\VoucherRepository($registry);
+        $repo = new \App\Module\Voucher\Infrastructure\Repository\VoucherRepository($registry);
         $manager = new VoucherManager($repo, new DoctrinePersistence($entityManager));
 
         $manager->create([
@@ -208,7 +208,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         ]);
     }
 
-    private function voucherRepository(): \App\Module\Voucher\Repository\VoucherRepository
+    private function voucherRepository(): \App\Module\Voucher\Infrastructure\Repository\VoucherRepository
     {
         $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
         $connection = \Doctrine\DBAL\DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
@@ -219,6 +219,6 @@ final class ManagerAndDtoClosureTest extends TestCase
         $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
-        return new \App\Module\Voucher\Repository\VoucherRepository($registry);
+        return new \App\Module\Voucher\Infrastructure\Repository\VoucherRepository($registry);
     }
 }

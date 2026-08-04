@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Repository;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderEvent;
-use App\Module\Order\Repository\OrderEventRepository;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderEvent;
+use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

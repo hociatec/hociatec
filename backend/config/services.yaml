@@ -20,7 +20,7 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
     _instanceof:
-        App\Shared\Outbox\OutboxEventHandler:
+        App\Module\Outbox\Application\OutboxEventHandler:
             tags: ['app.outbox_handler']
 
     # makes classes in src/ available to be used as services
@@ -30,41 +30,41 @@ services:
         exclude:
             - '../src/DataFixtures/'
 
-    App\Shared\Http\RequestIdProcessor:
+    App\Infrastructure\Http\RequestIdProcessor:
         tags: ['monolog.processor']
 
-    App\Module\Auth\Http\AuthCookieService:
+    App\Module\Auth\Infrastructure\Http\AuthCookieService:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Module\Auth\Controller\ActivationRedirectController:
+    App\Module\Auth\UI\Controller\ActivationRedirectController:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Auth\Service\PasswordResetService:
+    App\Module\Auth\Application\Service\PasswordResetService:
         arguments:
-            $outbox: '@App\Shared\Outbox\Outbox'
+            $outbox: '@App\Module\Outbox\Application\Outbox'
 
-    App\Module\Auth\Service\PasswordResetEmailService:
+    App\Module\Auth\Application\Service\PasswordResetEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Shared\Http\CsrfTokenService:
+    App\Infrastructure\Http\CsrfTokenService:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Shared\Http\ApiErrorSanitizerSubscriber:
+    App\Infrastructure\Http\ApiErrorSanitizerSubscriber:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Shared\Outbox\OutboxEventStore:
-        alias: App\Shared\Outbox\Repository\OutboxEventRepository
+    App\Module\Outbox\Application\OutboxEventStore:
+        alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
 
-    App\Shared\Application\TransactionManager:
-        alias: App\Shared\Persistence\DoctrinePersistence
+    App\Infrastructure\Application\TransactionManager:
+        alias: App\Infrastructure\Persistence\DoctrinePersistence
 
-    App\Shared\Http\RateLimitSubscriber:
+    App\Infrastructure\Http\RateLimitSubscriber:
         arguments:
             $limiters: !service_locator
                 public_api: '@limiter.public_api'
@@ -75,141 +75,142 @@ services:
                 beta_report_create: '@limiter.beta_report_create'
                 beta_report_comment: '@limiter.beta_report_comment'
 
-    App\Module\Admin\Backup\Service\MaintenanceModeService:
+    App\Module\Admin\Application\Backup\Service\MaintenanceModeService:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Backup\Service\BackupManager:
+    App\Module\Admin\Application\Backup\Service\BackupManager:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Backup\Service\BackupStateStore:
+    App\Module\Admin\Application\Backup\Service\BackupStateStore:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Backup\Service\BackupFileStorage:
+    App\Module\Admin\Application\Backup\Service\BackupFileStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Backup\Service\DatabaseBackupDumper:
+    App\Module\Admin\Application\Backup\Service\DatabaseBackupDumper:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
 
-    App\Module\System\Controller\MetricsController:
+    App\Module\System\UI\Controller\MetricsController:
         arguments:
             $metricsToken: '%env(METRICS_TOKEN)%'
 
-    App\Module\TradeIn\Service\TradeInPrivateFileStorage:
+    App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Backup\Service\BackupEncryptionService:
+    App\Module\Admin\Application\Backup\Service\BackupEncryptionService:
         arguments:
             $keyFile: '%env(BACKUP_ENCRYPTION_KEY_FILE)%'
 
-    App\Module\Order\Command\SecureInvoiceStorageCommand:
+    App\Module\Order\Infrastructure\Command\SecureInvoiceStorageCommand:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\User\Service\AccountActivationEmailService:
+    App\Module\User\Application\Service\AccountActivationEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Contact\Service\ContactNotificationSender:
+    App\Module\Contact\Application\Service\ContactNotificationSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
             $contactRecipient: '%env(CONTACT_RECIPIENT)%'
 
-    App\Module\Contact\Service\ContactAcknowledgementSender:
+    App\Module\Contact\Application\Service\ContactAcknowledgementSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\TradeIn\Service\TradeInNotificationEmailService:
+    App\Module\TradeIn\Application\Service\TradeInNotificationEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Catalog\Service\ProductShareEmailService:
+    App\Module\Catalog\Application\Service\ProductShareEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Training\Service\TrainingEnrollmentCheckoutService:
+    App\Module\Training\Application\Service\TrainingEnrollmentCheckoutService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Voucher\Service\VoucherNotificationEmailService:
-        arguments:
-            $frontendUrl: '%env(APP_FRONTEND_URL)%'
-            $mailerFrom: '%env(MAILER_FROM)%'
-
-    App\Module\User\Service\AdminCustomerEmailService:
-        arguments:
-            $mailerFrom: '%env(MAILER_FROM)%'
-
-    App\Module\Notification\Service\UserCommunicationNotifier:
+    App\Module\Voucher\Application\Service\VoucherNotificationEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Notification\Service\AccountNotificationProvider:
+    App\Module\User\Application\Service\AdminCustomerEmailService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Notification\Application\Service\UserCommunicationNotifier:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Notification\Application\Service\AccountNotificationProvider:
         arguments:
             $computedProviders:
-                - '@App\Module\Notification\Service\PendingReviewNotificationProvider'
-                - '@App\Module\Notification\Service\AppointmentNotificationProvider'
-                - '@App\Module\Notification\Service\TrainingNotificationProvider'
-                - '@App\Module\Notification\Service\AuditNotificationProvider'
-                - '@App\Module\Notification\Service\VoucherNotificationProvider'
+                - '@App\Module\Notification\Application\Service\PendingReviewNotificationProvider'
+                - '@App\Module\Notification\Application\Service\AppointmentNotificationProvider'
+                - '@App\Module\Notification\Application\Service\TrainingNotificationProvider'
+                - '@App\Module\Notification\Application\Service\AuditNotificationProvider'
+                - '@App\Module\Notification\Application\Service\VoucherNotificationProvider'
 
-    App\Module\Order\Service\StripeApiClient:
+    App\Module\Order\Application\Service\StripeApiClient:
         arguments:
             $secretKey: '%env(STRIPE_SECRET_KEY)%'
 
-    App\Module\Order\Service\CartHostedCheckoutCreator:
+    App\Module\Order\Application\Service\CartHostedCheckoutCreator:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Order\Service\OrderHostedCheckoutCreator:
+    App\Module\Order\Application\Service\OrderHostedCheckoutCreator:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Order\Service\OrderNotificationEmailService:
+    App\Module\Order\Application\Service\OrderNotificationEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Order\Service\OrderNotificationContentProvider:
+    App\Module\Order\Application\Service\OrderNotificationContentProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Quote\Service\QuoteCreatedEmailContentProvider:
+    App\Module\Quote\Application\Service\QuoteCreatedEmailContentProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Quote\Service\QuoteEmailDeliveryService:
+    App\Module\Quote\Application\Service\QuoteEmailDeliveryService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Order\Service\StripeWebhookVerifier:
+    App\Module\Order\Application\Service\StripeWebhookVerifier:
         arguments:
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
             $refundWebhookSecret: '%env(STRIPE_REFUND_WEBHOOK_SECRET)%'
 
-    App\Module\Marketing\Service\MarketingRecipientContextProvider:
+    App\Module\Marketing\Application\Service\MarketingRecipientContextProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
-    App\Module\Marketing\Service\MarketingCampaignSender:
+    App\Module\Marketing\Application\Service\MarketingCampaignSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Shared\Pdf\AccessiblePdfRenderer:
+    App\Infrastructure\Pdf\AccessiblePdfRenderer:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $configuredPython: '%env(WEASYPRINT_PYTHON)%'
             $configuredPythonPath: '%env(WEASYPRINT_PYTHONPATH)%'
+            $configuredHome: '%env(WEASYPRINT_HOME)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

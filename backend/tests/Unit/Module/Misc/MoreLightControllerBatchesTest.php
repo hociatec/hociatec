@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Quote\Controller\Client\GetMyQuoteController;
-use App\Module\Quote\Controller\PublicApi\CreateQuoteController;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Service\QuoteCalculator;
-use App\Module\Quote\Service\QuoteService as QuoteDomainService;
-use App\Module\Rating\Controller\ListPendingReviewsController;
-use App\Module\Rating\Service\PendingReviewResolver;
-use App\Module\Training\Controller\Admin\DeleteTrainingCategoryController;
-use App\Module\Training\Entity\TrainingCategory;
-use App\Module\Training\Repository\TrainingCategoryRepository;
-use App\Module\Training\Repository\TrainingRepository;
-use App\Module\Training\Service\TrainingWriter;
-use App\Module\User\Entity\User;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
+use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
+use App\Module\Rating\UI\Controller\ListPendingReviewsController;
+use App\Module\Rating\Application\Service\PendingReviewResolver;
+use App\Module\Training\UI\Controller\Admin\DeleteTrainingCategoryController;
+use App\Module\Training\Domain\Entity\TrainingCategory;
+use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Module\Training\Infrastructure\Repository\TrainingRepository;
+use App\Module\Training\Application\Service\TrainingWriter;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,7 +58,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $controller = new class($quotes, new QuoteCalculator(), $user) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator, new \App\Module\Quote\Security\QuoteAccessPolicy());
+                parent::__construct($quotes, $calculator, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -73,7 +73,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $otherUserController = new class($quotes, new QuoteCalculator(), $this->user('grace@example.com')) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator, new \App\Module\Quote\Security\QuoteAccessPolicy());
+                parent::__construct($quotes, $calculator, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -107,7 +107,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         try {
             $create(new Request(content: '{"name":'));
             self::fail('Expected invalid JSON payload exception.');
-        } catch (\App\Shared\Http\InvalidJsonPayloadException) {
+        } catch (\App\Infrastructure\Http\InvalidJsonPayloadException) {
             self::assertTrue(true);
         }
         $createPayload = json_decode((string) $create(new Request(content: json_encode([

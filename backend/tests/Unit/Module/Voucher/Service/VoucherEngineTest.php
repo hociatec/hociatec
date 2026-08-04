@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Voucher\Service;
 
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\User\Entity\User;
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Repository\VoucherLookupInterface;
-use App\Module\Voucher\Service\VoucherEngine;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
+use App\Module\Voucher\Application\Service\VoucherEngine;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 

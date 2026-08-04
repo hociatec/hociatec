@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Promotion\Entity;
 
-use App\Module\Promotion\Entity\Promotion;
+use App\Module\Promotion\Domain\Entity\Promotion;
 use PHPUnit\Framework\TestCase;
 
 final class PromotionTest extends TestCase

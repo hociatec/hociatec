@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Service;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\Quote\DTO\QuoteItemAddition;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Service\QuoteFormatter;
-use App\Module\Quote\Service\QuotePersistence;
-use App\Module\Quote\Service\QuoteWorkflowService;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Quote\Application\DTO\QuoteItemAddition;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -94,7 +94,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         $order = $this->createOrder();
         $quote->setConvertedOrder($order);
 
-        $payload = QuoteFormatter::formatQuote($quote, new \App\Module\Quote\Service\QuoteCalculator());
+        $payload = QuoteFormatter::formatQuote($quote, new \App\Module\Quote\Application\Service\QuoteCalculator());
 
         self::assertSame(50, $payload['id']);
         self::assertSame('Q-2026-050', $payload['number']);

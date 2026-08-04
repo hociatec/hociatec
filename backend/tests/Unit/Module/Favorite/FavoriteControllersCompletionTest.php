@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Favorite;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Favorite\Controller\AddFavoriteController;
-use App\Module\Favorite\Entity\Favorite;
-use App\Module\Favorite\Service\FavoriteService;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Favorite\UI\Controller\AddFavoriteController;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\Application\Service\FavoriteService;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Response;

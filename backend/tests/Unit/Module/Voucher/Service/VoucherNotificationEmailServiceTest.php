@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Voucher\Service;
 
-use App\Module\Marketing\Entity\EmailTemplate;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Notification\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Service\CommunicationPreferences;
-use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\User\Entity\User;
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Service\VoucherNotificationEmailService;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Service\CommunicationPreferences;
+use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

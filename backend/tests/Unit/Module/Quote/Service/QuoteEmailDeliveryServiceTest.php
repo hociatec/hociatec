@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Service;
 
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Service\QuoteCalculator;
-use App\Module\Quote\Service\QuoteEmailDeliveryService;
-use App\Module\Quote\Service\QuotePdfService;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuoteEmailDeliveryService;
+use App\Module\Quote\Application\Service\QuotePdfService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;

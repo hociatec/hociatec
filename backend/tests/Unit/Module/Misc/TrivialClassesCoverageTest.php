@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Order\Controller\ListOrderMetadataController;
-use App\Module\Admin\Quote\Controller\ListQuoteMetadataController;
-use App\Module\Audit\Entity\AuditType;
-use App\Module\Audit\Entity\AuditRequest;
-use App\Module\Audit\Service\AuditPersistence;
-use App\Module\BetaTest\Entity\BugReport;
-use App\Module\BetaTest\Service\BugReportActivityLogger;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderEvent;
-use App\Module\Order\Message\OrderCreatedMessage;
-use App\Module\Order\Message\OrderStatusChangedMessage;
-use App\Module\Order\Service\OrderEventPersistence;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Service\QuoteNumberGenerator;
-use App\Module\TradeIn\Controller\ListTradeInMetadataController;
-use App\Module\TradeIn\Service\TradeInMetadataFormatter;
-use App\Module\TradeIn\Service\TradeInNumberGenerator;
-use App\Module\User\Entity\User;
-use App\Shared\Http\ApiValidationException;
-use App\Shared\Http\ExternalServiceException;
-use App\Shared\Http\InvalidJsonPayloadException;
-use App\Shared\Http\RateLimited;
-use App\Shared\Mail\MailDeliveryException;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Admin\UI\Order\Controller\ListOrderMetadataController;
+use App\Module\Admin\UI\Quote\Controller\ListQuoteMetadataController;
+use App\Module\Audit\Domain\Entity\AuditType;
+use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Application\Service\AuditPersistence;
+use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\BetaTest\Application\Service\BugReportActivityLogger;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderEvent;
+use App\Module\Order\Application\Message\OrderCreatedMessage;
+use App\Module\Order\Application\Message\OrderStatusChangedMessage;
+use App\Module\Order\Application\Service\OrderEventPersistence;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Service\QuoteNumberGenerator;
+use App\Module\TradeIn\UI\Controller\ListTradeInMetadataController;
+use App\Module\TradeIn\Application\Service\TradeInMetadataFormatter;
+use App\Module\TradeIn\Application\Service\TradeInNumberGenerator;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Http\ApiValidationException;
+use App\Infrastructure\Http\ExternalServiceException;
+use App\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Infrastructure\Http\RateLimited;
+use App\Infrastructure\Mail\MailDeliveryException;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -128,7 +128,7 @@ final class TrivialClassesCoverageTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())
             ->method('persist')
-            ->with(self::callback(static fn (object $activity): bool => $activity instanceof \App\Module\BetaTest\Entity\BugReportActivity
+            ->with(self::callback(static fn (object $activity): bool => $activity instanceof \App\Module\BetaTest\Domain\Entity\BugReportActivity
                 && 'status_changed' === $activity->getAction()
                 && 'open' === $activity->getFromValue()
                 && 'closed' === $activity->getToValue()

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Service;
 
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Cart\Service\CartFormatter;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Promotion\Repository\PromotionRepository;
-use App\Module\Promotion\Service\PromotionEngine;
-use App\Module\Voucher\Repository\VoucherRepository;
-use App\Module\Voucher\Service\VoucherEngine;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Cart\Application\Service\CartFormatter;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Service\PromotionEngine;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Service\VoucherEngine;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -61,14 +61,14 @@ final class CartFormatterTest extends TestCase
 
         $promotionRepository = $this->createMock(PromotionRepository::class);
         $promotionRepository->method('findActiveForDate')->willReturn([
-            (new \App\Module\Promotion\Entity\Promotion('Promo', 'promo', \App\Module\Promotion\Entity\Promotion::TYPE_FIXED_CENTS, 5000, 'all_users'))
+            (new \App\Module\Promotion\Domain\Entity\Promotion('Promo', 'promo', \App\Module\Promotion\Domain\Entity\Promotion::TYPE_FIXED_CENTS, 5000, 'all_users'))
                 ->setStartsAt(new \DateTimeImmutable('-1 day'))
                 ->setEndsAt(new \DateTimeImmutable('+1 day')),
         ]);
 
-        $voucherRepository = $this->createMock(\App\Module\Voucher\Repository\VoucherLookupInterface::class);
+        $voucherRepository = $this->createMock(\App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface::class);
         $voucherRepository->method('findOneByCode')->with('VOUCHER8')->willReturn(
-            (new \App\Module\Voucher\Entity\Voucher('Voucher 8', 'VOUCHER8', \App\Module\Voucher\Entity\Voucher::TYPE_FIXED_CENTS, 8000))
+            (new \App\Module\Voucher\Domain\Entity\Voucher('Voucher 8', 'VOUCHER8', \App\Module\Voucher\Domain\Entity\Voucher::TYPE_FIXED_CENTS, 8000))
                 ->setStartsAt(new \DateTimeImmutable('-1 day'))
                 ->setEndsAt(new \DateTimeImmutable('+1 day'))
         );

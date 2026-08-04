@@ -4,36 +4,36 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Service;
 
-use App\Module\BetaTest\DTO\BetaProfileInput;
-use App\Module\BetaTest\Service\BetaTesterProfileService;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Service\EmailTemplateRenderer;
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Notification\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Service\CommunicationPreferences;
-use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\User\DTO\RegisterUserInput;
-use App\Module\User\DTO\UpdateProfileInput;
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Exception\ActivationEmailDeliveryException;
-use App\Module\User\Exception\InvalidBirthDateException;
-use App\Module\User\Exception\UserAlreadyExistsException;
-use App\Module\User\Outbox\SendActivationEmailHandler;
-use App\Module\User\Repository\ShippingAddressRepository;
-use App\Module\User\Repository\UserRepository;
-use App\Module\User\Service\AccountActivationEmailService;
-use App\Module\User\Service\AdminCustomerEmailService;
-use App\Module\User\Service\ChangeProfileEmailService;
-use App\Module\User\Service\ChangeProfilePasswordService;
-use App\Module\User\Service\ProfileCurrentPasswordVerifier;
-use App\Module\User\Service\RegisterUserService;
-use App\Module\User\Service\UpdatePersonalInformationService;
-use App\Module\User\Service\UpdateProfileService;
-use App\Module\User\Service\UserPersistence;
-use App\Module\User\Service\UserProfileFormatter;
-use App\Shared\Outbox\Entity\OutboxEvent;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\BetaTest\Application\DTO\BetaProfileInput;
+use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\Application\Service\EmailTemplateRenderer;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Service\CommunicationPreferences;
+use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\User\Application\DTO\RegisterUserInput;
+use App\Module\User\Application\DTO\UpdateProfileInput;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
+use App\Module\User\Application\Exception\InvalidBirthDateException;
+use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Outbox\SendActivationEmailHandler;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Service\AccountActivationEmailService;
+use App\Module\User\Application\Service\AdminCustomerEmailService;
+use App\Module\User\Application\Service\ChangeProfileEmailService;
+use App\Module\User\Application\Service\ChangeProfilePasswordService;
+use App\Module\User\Application\Service\ProfileCurrentPasswordVerifier;
+use App\Module\User\Application\Service\RegisterUserService;
+use App\Module\User\Application\Service\UpdatePersonalInformationService;
+use App\Module\User\Application\Service\UpdateProfileService;
+use App\Module\User\Application\Service\UserPersistence;
+use App\Module\User\Application\Service\UserProfileFormatter;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -366,7 +366,7 @@ final class UserRemainingServicesTest extends TestCase
         $persistence = new UserPersistence($entityManager);
         $betaProfiles = new BetaTesterProfileService(new DoctrinePersistence($entityManager));
 
-        $service = new RegisterUserService($userRepository, $hasher, new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager)), $persistence, $betaProfiles);
+        $service = new RegisterUserService($userRepository, $hasher, new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager)), $persistence, $betaProfiles);
 
         $existsInput = RegisterUserInput::fromArray([
             'email' => 'ada@example.com',
@@ -454,7 +454,7 @@ final class UserRemainingServicesTest extends TestCase
         $dupService = new RegisterUserService(
             $userRepository,
             $hasher,
-            new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager2)),
+            new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager2)),
             new UserPersistence($entityManager2),
             new BetaTesterProfileService(new DoctrinePersistence($entityManager2)),
         );
@@ -481,7 +481,7 @@ final class UserRemainingServicesTest extends TestCase
         $rawUniqueService = new RegisterUserService(
             $userRepository,
             $hasher,
-            new \App\Shared\Outbox\Outbox(new DoctrinePersistence($entityManager3)),
+            new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager3)),
             new UserPersistence($entityManager3),
             new BetaTesterProfileService(new DoctrinePersistence($entityManager3)),
         );

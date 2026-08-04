@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Service;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Quote\DTO\QuoteItemPayload;
-use App\Module\Quote\DTO\QuotePayload;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Service\QuoteCalculator;
-use App\Module\Quote\Service\QuoteNumberGenerator;
-use App\Module\Quote\Service\QuotePersistence;
-use App\Module\Quote\Service\QuoteService;
-use App\Shared\ValueObject\Money;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Quote\Application\DTO\QuoteItemPayload;
+use App\Module\Quote\Application\DTO\QuotePayload;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuoteNumberGenerator;
+use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Application\Service\QuoteService;
+use App\Infrastructure\ValueObject\Money;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

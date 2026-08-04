@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Loyalty;
 
-use App\Module\Loyalty\Controller\AdminLoyaltyController;
-use App\Module\Loyalty\Controller\MyLoyaltyController;
-use App\Module\Loyalty\EventSubscriber\LoyaltyOrderSubscriber;
-use App\Module\Loyalty\Service\LoyaltyService;
-use App\Module\Order\Entity\Order;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
-use App\Module\Voucher\Entity\Voucher;
-use App\Module\Voucher\Repository\VoucherRepository;
-use App\Module\Voucher\Service\VoucherManager;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Loyalty\UI\Controller\AdminLoyaltyController;
+use App\Module\Loyalty\UI\Controller\MyLoyaltyController;
+use App\Module\Loyalty\Infrastructure\EventSubscriber\LoyaltyOrderSubscriber;
+use App\Module\Loyalty\Application\Service\LoyaltyService;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

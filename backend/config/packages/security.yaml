@@ -7,7 +7,7 @@ security:
     providers:
         app_user_provider:
             entity:
-                class: App\Module\User\Entity\User
+                class: App\Module\User\Domain\Entity\User
                 property: email
 
     firewalls:
@@ -19,13 +19,13 @@ security:
             pattern: ^/api/auth/login(?:/|$)
             stateless: true
             provider: app_user_provider
-            user_checker: App\Module\Auth\Security\UserChecker
+            user_checker: App\Module\Auth\Infrastructure\Security\UserChecker
             json_login:
                 check_path: /api/auth/login
                 username_path: email
                 password_path: password
-                success_handler: App\Module\Auth\Security\AuthenticationSuccessHandler
-                failure_handler: App\Module\Auth\Security\AuthenticationFailureHandler
+                success_handler: App\Module\Auth\Infrastructure\Security\AuthenticationSuccessHandler
+                failure_handler: App\Module\Auth\Infrastructure\Security\AuthenticationFailureHandler
             login_throttling:
                 max_attempts: 5
                 interval: '15 minutes'
@@ -38,7 +38,7 @@ security:
             pattern: ^/api(?:/|$)
             stateless: true
             provider: app_user_provider
-            user_checker: App\Module\Auth\Security\UserChecker
+            user_checker: App\Module\Auth\Infrastructure\Security\UserChecker
             jwt: ~
 
     access_control:

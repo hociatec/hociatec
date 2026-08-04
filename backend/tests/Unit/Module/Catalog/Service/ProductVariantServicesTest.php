@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Catalog\Service\ProductCatalogRules;
-use App\Module\Catalog\Service\ProductVariantBatchCreator;
-use App\Module\Catalog\Service\ProductVariantService;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Service\ProductCatalogRules;
+use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
+use App\Module\Catalog\Application\Service\ProductVariantService;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Repository;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Repository\CategoryRepository;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

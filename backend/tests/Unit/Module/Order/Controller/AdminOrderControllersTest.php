@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Controller;
 
-use App\Module\Admin\Order\Controller\ListOrdersController;
-use App\Module\Admin\Order\Controller\ShowOrderController;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderCheckoutSession;
-use App\Module\Order\Entity\OrderEvent;
-use App\Module\Order\Repository\OrderCheckoutSessionRepository;
-use App\Module\Order\Repository\OrderEventRepository;
-use App\Module\Order\Repository\OrderRepository;
-use App\Module\User\Entity\User;
+use App\Module\Admin\UI\Order\Controller\ListOrdersController;
+use App\Module\Admin\UI\Order\Controller\ShowOrderController;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
+use App\Module\Order\Domain\Entity\OrderEvent;
+use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

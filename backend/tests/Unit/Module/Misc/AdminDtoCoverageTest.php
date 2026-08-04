@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Operations\DTO\BulkOrderStatusInput;
-use App\Module\Admin\Operations\DTO\RefundCreateInput;
-use App\Module\Admin\Operations\DTO\RefundProcessInput;
-use App\Module\Admin\Operations\DTO\RefundUpdateInput;
-use App\Module\Admin\Operations\DTO\StockMovementInput;
-use App\Module\Admin\Operations\DTO\SupportCreateInput;
-use App\Module\Admin\Operations\DTO\SupportReplyInput;
-use App\Module\Admin\Operations\DTO\SupportUpdateInput;
-use App\Module\Admin\Operations\DTO\UpdateLowStockThresholdInput;
-use App\Module\Admin\Order\DTO\OrderEmailScenarioInput;
-use App\Module\Admin\Order\DTO\OrderStatusInput;
-use App\Module\Admin\TradeIn\DTO\TradeInClosureInput;
-use App\Module\Admin\TradeIn\DTO\TradeInOfferInput;
-use App\Module\Admin\TradeIn\DTO\TradeInStatusInput;
-use App\Module\Admin\User\DTO\CustomerAdminProfileInput;
-use App\Module\Admin\User\DTO\CustomerEmailInput;
-use App\Module\Admin\User\DTO\CustomerVoucherInput;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Enum\RefundStatus;
-use App\Module\Support\Enum\SupportStatus;
-use App\Module\Voucher\Entity\Voucher;
+use App\Module\Admin\Application\Operations\DTO\BulkOrderStatusInput;
+use App\Module\Admin\Application\Operations\DTO\RefundCreateInput;
+use App\Module\Admin\Application\Operations\DTO\RefundProcessInput;
+use App\Module\Admin\Application\Operations\DTO\RefundUpdateInput;
+use App\Module\Admin\Application\Operations\DTO\StockMovementInput;
+use App\Module\Admin\Application\Operations\DTO\SupportCreateInput;
+use App\Module\Admin\Application\Operations\DTO\SupportReplyInput;
+use App\Module\Admin\Application\Operations\DTO\SupportUpdateInput;
+use App\Module\Admin\Application\Operations\DTO\UpdateLowStockThresholdInput;
+use App\Module\Admin\Application\Order\DTO\OrderEmailScenarioInput;
+use App\Module\Admin\Application\Order\DTO\OrderStatusInput;
+use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
+use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
+use App\Module\Admin\Application\TradeIn\DTO\TradeInStatusInput;
+use App\Module\Admin\Application\User\DTO\CustomerAdminProfileInput;
+use App\Module\Admin\Application\User\DTO\CustomerEmailInput;
+use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Enum\RefundStatus;
+use App\Module\Support\Domain\Enum\SupportStatus;
+use App\Module\Voucher\Domain\Entity\Voucher;
 use PHPUnit\Framework\TestCase;
 
 final class AdminDtoCoverageTest extends TestCase

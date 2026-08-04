@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\BetaTest\UI\Controller;
+
+use App\Infrastructure\Http\ApiResponse;
+use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
+use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\User\Domain\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/beta/reports/{id}', name: 'api_beta_reports_show', methods: ['GET'])]
+#[IsGranted('ROLE_USER')]
+final class ShowBugReportController extends AbstractController
+{
+    public function __construct(
+        private readonly BugReportRepository $reports,
+        private readonly BugReportResponseFormatter $formatter,
+        private readonly BugReportAccessPolicy $accessPolicy,
+    ) {
+    }
+
+    public function __invoke(int $id): JsonResponse
+    {
+        $report = $this->reports->find($id);
+        if (null === $report) {
+            return ApiResponse::error('Rapport introuvable.', 404);
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return ApiResponse::error('Authentification requise.', 401);
+        }
+
+        if (!$this->accessPolicy->canView($user, $report)) {
+            return ApiResponse::error('Accès refusé.', 403);
+        }
+
+        return ApiResponse::success(['report' => $this->formatter->format($report)]);
+    }
+}

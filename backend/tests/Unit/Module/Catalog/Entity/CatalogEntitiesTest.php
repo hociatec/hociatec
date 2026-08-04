@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Entity;
 
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\File;
 

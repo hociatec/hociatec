@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Catalog\Controller\DeleteBrandController;
-use App\Module\Admin\Catalog\Controller\DeleteCategoryController;
-use App\Module\Admin\Catalog\Controller\ListCategoriesController;
-use App\Module\Admin\Catalog\Controller\ShowBrandController;
-use App\Module\Admin\Catalog\Controller\ShowCategoryController;
-use App\Module\Admin\Promotion\Controller\DeletePromotionController;
-use App\Module\Admin\Promotion\Controller\ListPromotionAudiencesController;
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Repository\BrandRepository;
-use App\Module\Catalog\Repository\CategoryRepository;
-use App\Module\Catalog\Service\BrandService;
-use App\Module\Catalog\Service\CatalogPersistence;
-use App\Module\Catalog\Service\CategoryService;
-use App\Module\Promotion\Entity\Promotion;
-use App\Module\Promotion\Repository\PromotionRepository;
-use App\Module\Promotion\Service\PromotionEngine;
-use App\Module\Promotion\Service\PromotionManager;
+use App\Module\Admin\UI\Catalog\Controller\DeleteBrandController;
+use App\Module\Admin\UI\Catalog\Controller\DeleteCategoryController;
+use App\Module\Admin\UI\Catalog\Controller\ListCategoriesController;
+use App\Module\Admin\UI\Catalog\Controller\ShowBrandController;
+use App\Module\Admin\UI\Catalog\Controller\ShowCategoryController;
+use App\Module\Admin\UI\Promotion\Controller\DeletePromotionController;
+use App\Module\Admin\UI\Promotion\Controller\ListPromotionAudiencesController;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
+use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Module\Catalog\Application\Service\BrandService;
+use App\Module\Catalog\Application\Service\CatalogPersistence;
+use App\Module\Catalog\Application\Service\CategoryService;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Service\PromotionEngine;
+use App\Module\Promotion\Application\Service\PromotionManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,14 +46,14 @@ final class AdminControllerBatchTest extends TestCase
         $missingBrandRepo->expects(self::once())->method('find')->with(404)->willReturn(null);
         $missingBrandService = new BrandService(
             $missingBrandRepo,
-            $this->createMock(\App\Module\Catalog\Repository\ProductRepository::class),
+            $this->createMock(\App\Module\Catalog\Infrastructure\Repository\ProductRepository::class),
             new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
         $deleteMissingBrand = new DeleteBrandController($missingBrandRepo, $missingBrandService);
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteMissingBrand(404)->getStatusCode());
 
-        $productRepository = $this->createMock(\App\Module\Catalog\Repository\ProductRepository::class);
+        $productRepository = $this->createMock(\App\Module\Catalog\Infrastructure\Repository\ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($brand);
         $entityManager->expects(self::once())->method('flush');
@@ -83,7 +83,7 @@ final class AdminControllerBatchTest extends TestCase
         self::assertSame(Response::HTTP_OK, $showCategory(5)->getStatusCode());
 
         $busyCategory = new Category('Busy', 'busy');
-        $busyCategory->addProduct($this->createMock(\App\Module\Catalog\Entity\Product::class));
+        $busyCategory->addProduct($this->createMock(\App\Module\Catalog\Domain\Entity\Product::class));
         $freeCategory = new Category('Free', 'free');
         $this->setId($freeCategory, 6);
         $listRepo = $this->createMock(CategoryRepository::class);
@@ -131,7 +131,7 @@ final class AdminControllerBatchTest extends TestCase
         $persistenceEm = $this->createMock(EntityManagerInterface::class);
         $persistenceEm->expects(self::once())->method('remove')->with($promotion);
         $persistenceEm->expects(self::once())->method('flush');
-        $manager = new PromotionManager(new \App\Shared\Persistence\DoctrinePersistence($persistenceEm));
+        $manager = new PromotionManager(new \App\Infrastructure\Persistence\DoctrinePersistence($persistenceEm));
 
         $controller = new DeletePromotionController($promotions, $manager);
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());

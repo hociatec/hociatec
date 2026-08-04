@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Catalog\Service;
 
-use App\Module\Admin\Catalog\DTO\ProductWriteData;
-use App\Module\Admin\Catalog\Service\ProductDiscountRequestMapper;
-use App\Module\Admin\Catalog\Service\ProductFormValueNormalizer;
-use App\Module\Admin\Catalog\Service\ProductGalleryRequestMapper;
-use App\Module\Admin\Catalog\Service\ProductVariantPayloadParser;
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
+use App\Module\Admin\Application\Catalog\DTO\ProductWriteData;
+use App\Module\Admin\Application\Catalog\Service\ProductDiscountRequestMapper;
+use App\Module\Admin\Application\Catalog\Service\ProductFormValueNormalizer;
+use App\Module\Admin\Application\Catalog\Service\ProductGalleryRequestMapper;
+use App\Module\Admin\Application\Catalog\Service\ProductVariantPayloadParser;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;

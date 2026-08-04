@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Support\Entity;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Support\Entity\SupportRequest;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Support\Domain\Entity\SupportRequest;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class SupportRequestTest extends TestCase

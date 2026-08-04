@@ -1,0 +1,95 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Appointment\Application\Service;
+
+use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Module\Appointment\Application\Exception\AppointmentOperationException;
+use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
+use App\Module\Appointment\Domain\Entity\Appointment;
+use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
+use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
+use App\Module\User\Domain\Entity\User;
+
+final class AppointmentService
+{
+    public function __construct(
+        private readonly AppointmentRepository $appointmentRepository,
+        private readonly WorkingDayConfigurationRepository $workingDayRepository,
+        private readonly AvailabilityService $availabilityService,
+        private readonly AppointmentStatusManager $appointmentStatusManager,
+        private readonly DoctrinePersistence $persistence,
+    ) {
+    }
+
+    public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
+    {
+        try {
+            return $this->persistence->transactional(function () use ($user, $prestation, $startAt): Appointment {
+                $dayOfWeek = (int) $startAt->format('N') - 1;
+                $this->workingDayRepository->findOneByDayForUpdate($dayOfWeek);
+
+                if (!$this->availabilityService->isSlotAvailable($startAt, $prestation)) {
+                    throw new InvalidAppointmentSlotException('Ce creneau n\'est plus disponible.');
+                }
+
+                $appointment = new Appointment($user, $prestation, $startAt);
+
+                $this->persistence->persist($appointment);
+                $this->persistence->flush();
+
+                return $appointment;
+            });
+        } catch (InvalidAppointmentSlotException $exception) {
+            throw $exception;
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de reserver ce creneau.', $exception);
+        }
+    }
+
+    /**
+     * @return array{upcoming: list<Appointment>, past: list<Appointment>}
+     */
+    public function getAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null): array
+    {
+        $appointments = $this->appointmentRepository->findForUser($user);
+        $now ??= new \DateTimeImmutable();
+
+        $future = [];
+        $past = [];
+
+        foreach ($appointments as $appointment) {
+            if ($appointment->getStartAt() >= $now) {
+                $future[] = $appointment;
+            } else {
+                $past[] = $appointment;
+            }
+        }
+
+        return [
+            'upcoming' => $future,
+            'past' => $past,
+        ];
+    }
+
+    public function cancel(Appointment $appointment): void
+    {
+        if ($appointment->isCancelled()) {
+            throw new \RuntimeException('Ce rendez-vous est déjà annulé.');
+        }
+
+        $appointment->cancel();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible d\'annuler ce rendez-vous.', $exception);
+        }
+    }
+
+    public function changeStatus(Appointment $appointment, string $targetStatus): void
+    {
+        $this->appointmentStatusManager->changeStatus($appointment, $targetStatus);
+    }
+}

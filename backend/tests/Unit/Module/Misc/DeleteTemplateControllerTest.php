@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Marketing\Controller\DeleteTemplateController;
-use App\Module\Admin\Marketing\Service\EmailTemplateAdminManager;
-use App\Module\Marketing\Entity\EmailTemplate;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
+use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;

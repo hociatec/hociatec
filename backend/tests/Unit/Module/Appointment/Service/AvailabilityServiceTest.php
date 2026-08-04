@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Appointment\Service;
 
-use App\Module\Appointment\Entity\Appointment;
-use App\Module\Appointment\Entity\Prestation;
-use App\Module\Appointment\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Repository\AppointmentRepository;
-use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Service\AvailabilityService;
-use App\Module\User\Entity\User;
+use App\Module\Appointment\Domain\Entity\Appointment;
+use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
+use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
+use App\Module\Appointment\Application\Service\AvailabilityService;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class AvailabilityServiceTest extends TestCase

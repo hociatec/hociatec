@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Favorite\Repository;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Favorite\Entity\Favorite;
-use App\Module\Favorite\Repository\FavoriteRepository;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\Infrastructure\Repository\FavoriteRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

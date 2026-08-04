@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Promotion\Service;
 
-use App\Module\Promotion\DTO\PromotionInput;
-use App\Module\Promotion\Entity\Promotion;
-use App\Module\Promotion\Service\PromotionManager;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Application\Service\PromotionManager;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

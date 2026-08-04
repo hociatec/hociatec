@@ -4,28 +4,29 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Controller;
 
-use App\Module\User\Controller\Address\CreateAddressController;
-use App\Module\User\Controller\Address\UpdateAddressController;
-use App\Module\User\Controller\DeleteAccountController;
-use App\Module\User\Controller\RegisterController;
-use App\Module\User\Controller\UpdateProfileController;
-use App\Module\User\DTO\RegisterUserInput;
-use App\Module\User\DTO\UpdateProfileInput;
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Exception\ActivationEmailDeliveryException;
-use App\Module\User\Exception\InvalidBirthDateException;
-use App\Module\User\Exception\InvalidCurrentPasswordException;
-use App\Module\User\Exception\InvalidProfilePasswordException;
-use App\Module\User\Exception\UserAlreadyExistsException;
-use App\Module\User\Repository\ShippingAddressRepository;
-use App\Module\User\Repository\UserRepository;
-use App\Module\User\Service\DeleteAccountService;
-use App\Module\User\Service\RegisterUserService;
-use App\Module\User\Service\UpdateProfileService;
-use App\Module\User\Service\UserProfileFormatter;
-use App\Shared\Validation\ConstraintViolationFormatter;
-use App\Shared\Validation\DtoValidator;
+use App\Module\User\UI\Controller\Address\CreateAddressController;
+use App\Module\User\UI\Controller\Address\UpdateAddressController;
+use App\Module\User\UI\Controller\DeleteAccountController;
+use App\Module\User\UI\Controller\RegisterController;
+use App\Module\User\Application\Service\RegistrationRateLimiter;
+use App\Module\User\UI\Controller\UpdateProfileController;
+use App\Module\User\Application\DTO\RegisterUserInput;
+use App\Module\User\Application\DTO\UpdateProfileInput;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
+use App\Module\User\Application\Exception\InvalidBirthDateException;
+use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
+use App\Module\User\Application\Exception\InvalidProfilePasswordException;
+use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Service\DeleteAccountService;
+use App\Module\User\Application\Service\RegisterUserService;
+use App\Module\User\Application\Service\UpdateProfileService;
+use App\Module\User\Application\Service\UserProfileFormatter;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -187,7 +188,7 @@ final class UserRemainingControllersTest extends TestCase
             'limit' => 1,
             'interval' => '1 hour',
         ], new InMemoryStorage());
-        $factory->create((new \App\Shared\Http\RateLimitKeyFactory())->forRequest(
+        $factory->create((new \App\Infrastructure\Http\RateLimitKeyFactory())->forRequest(
             Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']),
             'new@example.com',
         ))->consume(1);
@@ -220,7 +221,13 @@ final class UserRemainingControllersTest extends TestCase
         $warnLogger = $this->createMock(LoggerInterface::class);
         $warnLogger->expects(self::once())->method('warning');
 
-        $register = new RegisterController($registerService, $validator, $warnLogger, $profiles, new \App\Shared\Http\RateLimitKeyFactory(), $factory);
+        $register = new RegisterController(
+            $registerService,
+            $validator,
+            $warnLogger,
+            $profiles,
+            new RegistrationRateLimiter(new \App\Infrastructure\Http\RateLimitKeyFactory(), $factory),
+        );
         self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(409, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.2'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(422, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.3'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());

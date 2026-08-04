@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Catalog\Service\CatalogFormatter;
-use App\Module\Admin\Catalog\Service\ProductFormValueNormalizer;
-use App\Module\Order\Service\OrderFormatter;
-use App\Module\Promotion\Service\PromotionFormatter;
-use App\Module\Quote\Service\QuoteFormatter;
-use App\Module\Rating\Service\ProductReviewFormatter;
-use App\Module\User\Service\ShippingAddressFormatter;
-use App\Module\Voucher\Service\VoucherFormatter;
-use App\Shared\Http\ApiResponse;
+use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Admin\Application\Catalog\Service\ProductFormValueNormalizer;
+use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Promotion\Application\Service\PromotionFormatter;
+use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Rating\Application\Service\ProductReviewFormatter;
+use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\Voucher\Application\Service\VoucherFormatter;
+use App\Infrastructure\Http\ApiResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

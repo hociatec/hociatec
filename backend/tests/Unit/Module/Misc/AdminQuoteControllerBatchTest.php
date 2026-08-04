@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Quote\Controller\CreateServiceController;
-use App\Module\Admin\Quote\Controller\DeleteQuoteController;
-use App\Module\Admin\Quote\Controller\DuplicateQuoteController;
-use App\Module\Admin\Quote\Controller\GetServiceController;
-use App\Module\Admin\Quote\Controller\ListServicesController;
-use App\Module\Admin\Quote\Controller\ShowQuoteController;
-use App\Module\Admin\Quote\Controller\UpdateQuoteStatusController;
-use App\Module\Admin\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Quote\Service\QuoteServiceCatalogManager;
-use App\Module\Admin\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\Service;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Repository\ServiceRepository;
-use App\Module\Quote\Service\QuoteCalculator;
-use App\Module\Quote\Service\QuotePersistence;
-use App\Module\Quote\Service\QuoteService as QuoteDomainService;
-use App\Module\Quote\Service\QuoteWorkflowService;
-use App\Shared\Persistence\DoctrinePersistence;
-use App\Shared\Validation\ConstraintViolationFormatter;
-use App\Shared\Validation\DtoValidator;
+use App\Module\Admin\UI\Quote\Controller\CreateServiceController;
+use App\Module\Admin\UI\Quote\Controller\DeleteQuoteController;
+use App\Module\Admin\UI\Quote\Controller\DuplicateQuoteController;
+use App\Module\Admin\UI\Quote\Controller\GetServiceController;
+use App\Module\Admin\UI\Quote\Controller\ListServicesController;
+use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
+use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
+use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceCatalogManager;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\Service;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
+use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -202,7 +202,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $quote->getCreatedEmailSentAt());
 
         $convertedQuote = new Quote('Q-10');
-        $convertedQuote->setStatus(Quote::STATUS_ACCEPTED)->setConvertedOrder(new \App\Module\Order\Entity\Order('ORD-1', $this->user()));
+        $convertedQuote->setStatus(Quote::STATUS_ACCEPTED)->setConvertedOrder(new \App\Module\Order\Domain\Entity\Order('ORD-1', $this->user()));
         $this->setId($convertedQuote, 10);
 
         $quotes2 = $this->createMock(QuoteRepository::class);
@@ -314,9 +314,9 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertFalse($unchanged->updatesDuration);
     }
 
-    private function user(): \App\Module\User\Entity\User
+    private function user(): \App\Module\User\Domain\Entity\User
     {
-        $user = new \App\Module\User\Entity\User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $user = new \App\Module\User\Domain\Entity\User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $user->setPassword('hashed');
 
         return $user;

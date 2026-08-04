@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Auth\Security\UserChecker;
-use App\Module\BetaTest\DTO\BetaProfileInput;
-use App\Module\BetaTest\Service\BetaTesterProfileService;
-use App\Module\Order\Message\OrderStatusChangedMessage;
-use App\Module\Order\MessageHandler\SyncOrderExternalHandler;
-use App\Module\Quote\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Service\QuoteCatalogManager;
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Auth\Infrastructure\Security\UserChecker;
+use App\Module\BetaTest\Application\DTO\BetaProfileInput;
+use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
+use App\Module\Order\Application\Message\OrderStatusChangedMessage;
+use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
+use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Application\Service\QuoteCatalogManager;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

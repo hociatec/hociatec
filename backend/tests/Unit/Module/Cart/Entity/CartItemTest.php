@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Entity;
 
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
 final class CartItemTest extends TestCase

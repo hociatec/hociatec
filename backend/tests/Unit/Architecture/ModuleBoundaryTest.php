@@ -49,7 +49,7 @@ final class ModuleBoundaryTest extends TestCase
     public function testBetaDomainDoesNotReadSymfonyRoles(): void
     {
         $violations = [];
-        foreach ($this->phpFiles(__DIR__.'/../../../src/Module/BetaTest/Entity') as $path) {
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module/BetaTest/Domain/Entity') as $path) {
             $source = file_get_contents($path);
             self::assertIsString($source);
 
@@ -66,7 +66,7 @@ final class ModuleBoundaryTest extends TestCase
     public function testControllersDoNotImplementOwnershipRulesInline(): void
     {
         $allowed = [
-            'src/Module/Auth/Controller/ProfileController.php',
+            'src/Module/Auth/UI/Controller/ProfileController.php',
         ];
         $violations = [];
 
@@ -142,7 +142,7 @@ final class ModuleBoundaryTest extends TestCase
     public function testAttachmentResponsesDoNotBuildContentDispositionManually(): void
     {
         $allowed = [
-            'src/Shared/Http/AttachmentResponseFactory.php',
+            'src/Infrastructure/Http/AttachmentResponseFactory.php',
         ];
         $violations = [];
 

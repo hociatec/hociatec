@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Promotion\Repository;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\Promotion\Entity\Promotion;
-use App\Module\Promotion\Repository\PromotionRepository;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\BetaTest\Entity;
 
-use App\Module\BetaTest\Entity\BetaCampaign;
-use App\Module\BetaTest\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Entity\BugReport;
-use App\Module\User\Entity\User;
+use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class BetaEntitiesDetailedTest extends TestCase

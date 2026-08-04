@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Catalog\Service;
 
-use App\Module\Admin\Catalog\Exception\ProductFormRequestException;
-use App\Module\Admin\Catalog\Service\ProductDiscountRequestMapper;
-use App\Module\Admin\Catalog\Service\ProductFormRequestMapper;
-use App\Module\Admin\Catalog\Service\ProductGalleryRequestMapper;
-use App\Module\Admin\Catalog\Service\ProductVariantPayloadParser;
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\BrandRepository;
-use App\Module\Catalog\Repository\CategoryRepository;
+use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
+use App\Module\Admin\Application\Catalog\Service\ProductDiscountRequestMapper;
+use App\Module\Admin\Application\Catalog\Service\ProductFormRequestMapper;
+use App\Module\Admin\Application\Catalog\Service\ProductGalleryRequestMapper;
+use App\Module\Admin\Application\Catalog\Service\ProductVariantPayloadParser;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
+use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

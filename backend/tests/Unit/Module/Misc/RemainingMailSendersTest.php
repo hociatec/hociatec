@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Contact\DTO\ContactInput;
-use App\Module\Contact\Service\ContactAcknowledgementSender;
-use App\Module\Contact\Service\ContactNotificationSender;
-use App\Module\Marketing\Service\EmailTemplateRenderer;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Service\MarketingAudienceProvider;
-use App\Module\Marketing\Service\MarketingCampaignSender;
-use App\Module\Marketing\Service\MarketingRecipientContextProvider;
-use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
-use App\Module\Marketing\Service\MarketingTemplateRenderer;
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Notification\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Service\CommunicationPreferences;
-use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\Auth\Outbox\SendPasswordResetEmailHandler;
-use App\Module\Auth\Service\PasswordResetEmailService;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
-use App\Shared\Outbox\Entity\OutboxEvent;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Contact\Application\DTO\ContactInput;
+use App\Module\Contact\Application\Service\ContactAcknowledgementSender;
+use App\Module\Contact\Application\Service\ContactNotificationSender;
+use App\Module\Marketing\Application\Service\EmailTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\Application\Service\MarketingAudienceProvider;
+use App\Module\Marketing\Application\Service\MarketingCampaignSender;
+use App\Module\Marketing\Application\Service\MarketingRecipientContextProvider;
+use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
+use App\Module\Marketing\Application\Service\MarketingTemplateRenderer;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Service\CommunicationPreferences;
+use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Auth\Application\Outbox\SendPasswordResetEmailHandler;
+use App\Module\Auth\Application\Service\PasswordResetEmailService;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -156,7 +156,7 @@ final class RemainingMailSendersTest extends TestCase
         $entityManager->expects(self::once())
             ->method('persist')
             ->with(self::callback(static function (object $campaign): bool {
-                return $campaign instanceof \App\Module\Marketing\Entity\EmailCampaign
+                return $campaign instanceof \App\Module\Marketing\Domain\Entity\EmailCampaign
                     && 'Campagne' === $campaign->getName()
                     && 2 === $campaign->getRecipientsCount();
             }));

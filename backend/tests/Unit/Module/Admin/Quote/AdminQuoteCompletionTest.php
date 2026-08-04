@@ -4,53 +4,53 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Quote;
 
-use App\Module\Admin\Quote\Controller\AddProductItemController;
-use App\Module\Admin\Quote\Controller\CreateQuoteController;
-use App\Module\Admin\Quote\Controller\CreateServiceController;
-use App\Module\Admin\Quote\Controller\DeleteQuoteController;
-use App\Module\Admin\Quote\Controller\DeleteServiceController;
-use App\Module\Admin\Quote\Controller\DuplicateQuoteController;
-use App\Module\Admin\Quote\Controller\GeneratePdfController;
-use App\Module\Admin\Quote\Controller\GetServiceController;
-use App\Module\Admin\Quote\Controller\ListQuoteMetadataController;
-use App\Module\Admin\Quote\Controller\ListQuotesController;
-use App\Module\Admin\Quote\Controller\ListServicesController;
-use App\Module\Admin\Quote\Controller\SendQuoteEmailController;
-use App\Module\Admin\Quote\Controller\ShowQuoteController;
-use App\Module\Admin\Quote\Controller\UpdateQuoteController;
-use App\Module\Admin\Quote\Controller\UpdateQuoteStatusController;
-use App\Module\Admin\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Quote\Service\QuoteServiceCatalogManager;
-use App\Module\Admin\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Notification\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Repository\ServiceRepository;
-use App\Module\Quote\Service\QuoteCalculator;
-use App\Module\Quote\Service\QuoteCatalogManager;
-use App\Module\Quote\Service\QuoteEmailService;
-use App\Module\Quote\Service\QuoteNumberGenerator;
-use App\Module\Quote\Service\QuotePdfService;
-use App\Module\Quote\Service\QuotePersistence;
-use App\Module\Quote\Service\QuoteService;
-use App\Module\Quote\Service\QuoteWorkflowService;
-use App\Module\Order\Entity\Order;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
-use App\Shared\Pdf\AccessiblePdfRenderer;
-use App\Shared\Pdf\PdfHtmlFormatter;
-use App\Shared\Outbox\Entity\OutboxEvent;
-use App\Shared\Outbox\Outbox;
-use App\Shared\Persistence\DoctrinePersistence;
-use App\Shared\Validation\ConstraintViolationFormatter;
-use App\Shared\Validation\DtoValidator;
+use App\Module\Admin\UI\Quote\Controller\AddProductItemController;
+use App\Module\Admin\UI\Quote\Controller\CreateQuoteController;
+use App\Module\Admin\UI\Quote\Controller\CreateServiceController;
+use App\Module\Admin\UI\Quote\Controller\DeleteQuoteController;
+use App\Module\Admin\UI\Quote\Controller\DeleteServiceController;
+use App\Module\Admin\UI\Quote\Controller\DuplicateQuoteController;
+use App\Module\Admin\UI\Quote\Controller\GeneratePdfController;
+use App\Module\Admin\UI\Quote\Controller\GetServiceController;
+use App\Module\Admin\UI\Quote\Controller\ListQuoteMetadataController;
+use App\Module\Admin\UI\Quote\Controller\ListQuotesController;
+use App\Module\Admin\UI\Quote\Controller\ListServicesController;
+use App\Module\Admin\UI\Quote\Controller\SendQuoteEmailController;
+use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
+use App\Module\Admin\UI\Quote\Controller\UpdateQuoteController;
+use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
+use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceCatalogManager;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Application\Service\QuoteCalculator;
+use App\Module\Quote\Application\Service\QuoteCatalogManager;
+use App\Module\Quote\Application\Service\QuoteEmailService;
+use App\Module\Quote\Application\Service\QuoteNumberGenerator;
+use App\Module\Quote\Application\Service\QuotePdfService;
+use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Application\Service\QuoteService;
+use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Module\Outbox\Application\Outbox;
+use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -149,7 +149,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $sentResponse = $send($this->jsonRequest(['to' => 'external-client@example.test']), (string) $quoteId);
         self::assertSame(Response::HTTP_OK, $sentResponse->getStatusCode(), (string) $sentResponse->getContent());
 
-        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService(), new \App\Shared\Http\AttachmentResponseFactory());
+        $pdf = new GeneratePdfController($quoteRepository, $calculator, $this->pdfService(), new \App\Infrastructure\Http\AttachmentResponseFactory());
         self::assertSame(Response::HTTP_NOT_FOUND, $pdf(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $pdf($quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_IMPLEMENTED, (new GeneratePdfController($quoteRepository, $calculator, new class extends QuotePdfService {
@@ -161,7 +161,7 @@ final class AdminQuoteCompletionTest extends TestCase
             {
                 throw new \RuntimeException('pdf down');
             }
-        }, new \App\Shared\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
+        }, new \App\Infrastructure\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
 
         self::assertSame(Response::HTTP_NOT_FOUND, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))($quoteId)->getStatusCode());
@@ -176,12 +176,12 @@ final class AdminQuoteCompletionTest extends TestCase
     private function failingQuoteService(EntityManager $em): QuoteService
     {
         return new class(new QuotePersistence($em), $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock(), new QuoteNumberGenerator(new QuoteRepository($this->registry($em))), new QuoteCalculator()) extends QuoteService {
-            public function createFromPayload(\App\Module\Quote\DTO\QuotePayload $payload): Quote
+            public function createFromPayload(\App\Module\Quote\Application\DTO\QuotePayload $payload): Quote
             {
                 throw new \RuntimeException('quote down');
             }
 
-            public function updateFromPayload(Quote $quote, \App\Module\Quote\DTO\QuotePayload $payload): Quote
+            public function updateFromPayload(Quote $quote, \App\Module\Quote\Application\DTO\QuotePayload $payload): Quote
             {
                 throw new \RuntimeException('quote down');
             }

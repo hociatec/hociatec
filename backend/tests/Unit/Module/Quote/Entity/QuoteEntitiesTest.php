@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Entity;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Entity\Service;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Domain\Entity\Service;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class QuoteEntitiesTest extends TestCase

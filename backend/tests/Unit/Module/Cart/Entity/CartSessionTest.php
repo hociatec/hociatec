@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Entity;
 
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
 final class CartSessionTest extends TestCase
@@ -67,7 +67,7 @@ final class CartSessionTest extends TestCase
         $cart = new CartSession('token');
         $product = $this->product('sale');
         $item = new CartItem($cart, $product, 1);
-        $user = new \App\Module\User\Entity\User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'femme');
+        $user = new \App\Module\User\Domain\Entity\User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'femme');
 
         self::assertNull($cart->getId());
         self::assertFalse($cart->hasProduct($product));

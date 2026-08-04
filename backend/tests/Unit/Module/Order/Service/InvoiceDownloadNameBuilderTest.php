@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Service\InvoiceDownloadNameBuilder;
-use App\Module\User\Entity\User;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Application\Service\InvoiceDownloadNameBuilder;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class InvoiceDownloadNameBuilderTest extends TestCase

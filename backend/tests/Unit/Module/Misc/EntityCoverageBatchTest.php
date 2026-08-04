@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\BetaTest\Entity\BetaCampaign;
-use App\Module\BetaTest\Entity\BugReport;
-use App\Module\BetaTest\Entity\BugReportActivity;
-use App\Module\BetaTest\Entity\BugReportComment;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Entity\StockMovement;
-use App\Module\Favorite\Entity\Favorite;
-use App\Module\Marketing\Entity\EmailCampaign;
-use App\Module\Marketing\Entity\EmailTemplate;
-use App\Module\News\Entity\NewsArticle;
-use App\Module\News\Entity\NewsArticleView;
-use App\Module\News\Entity\NewsComment;
-use App\Module\Notification\Entity\AccountNotificationEvent;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\RefundRequest;
-use App\Module\Order\Entity\StripeWebhookEvent;
-use App\Module\User\Entity\User;
+use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\BetaTest\Domain\Entity\BugReportActivity;
+use App\Module\BetaTest\Domain\Entity\BugReportComment;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Domain\Entity\StockMovement;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\News\Domain\Entity\NewsArticle;
+use App\Module\News\Domain\Entity\NewsArticleView;
+use App\Module\News\Domain\Entity\NewsComment;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\RefundRequest;
+use App\Module\Order\Domain\Entity\StripeWebhookEvent;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class EntityCoverageBatchTest extends TestCase

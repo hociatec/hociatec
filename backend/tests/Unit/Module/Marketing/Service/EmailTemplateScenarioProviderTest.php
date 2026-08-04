@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Marketing\Service;
 
-use App\Module\Marketing\Service\EmailTemplateScenarioProvider;
+use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
 use PHPUnit\Framework\TestCase;
 
 final class EmailTemplateScenarioProviderTest extends TestCase

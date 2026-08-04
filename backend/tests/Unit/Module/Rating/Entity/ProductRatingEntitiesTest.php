@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Rating\Entity;
 
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Comment\Entity\ProductComment;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\Rating\Entity\ProductRating;
-use App\Module\Rating\Service\ProductReviewFormatter;
-use App\Module\User\Entity\User;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Comment\Domain\Entity\ProductComment;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Rating\Domain\Entity\ProductRating;
+use App\Module\Rating\Application\Service\ProductReviewFormatter;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class ProductRatingEntitiesTest extends TestCase

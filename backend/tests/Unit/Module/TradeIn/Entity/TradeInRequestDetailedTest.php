@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\TradeIn\Entity;
 
-use App\Module\TradeIn\Entity\TradeInRequest;
-use App\Module\TradeIn\Enum\TradeInStatus;
-use App\Module\User\Entity\User;
+use App\Module\TradeIn\Domain\Entity\TradeInRequest;
+use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class TradeInRequestDetailedTest extends TestCase

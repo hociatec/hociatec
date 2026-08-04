@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Appointment\Entity;
 
-use App\Module\Appointment\Entity\Appointment;
-use App\Module\Appointment\Entity\Prestation;
-use App\Module\Appointment\Entity\WorkingDayConfiguration;
-use App\Module\User\Entity\User;
+use App\Module\Appointment\Domain\Entity\Appointment;
+use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class AppointmentEntitiesTest extends TestCase

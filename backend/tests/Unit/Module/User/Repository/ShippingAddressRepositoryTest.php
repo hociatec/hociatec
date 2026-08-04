@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Repository;
 
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\ShippingAddressRepository;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

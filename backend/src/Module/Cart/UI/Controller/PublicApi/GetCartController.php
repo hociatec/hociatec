@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Cart\UI\Controller\PublicApi;
+
+use App\Infrastructure\Http\ApiResponse;
+use App\Infrastructure\Http\RateLimited;
+use App\Module\Cart\Application\Service\CartFormatter;
+use App\Module\Cart\Application\Service\CartService;
+use App\Module\User\Domain\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/public/cart', name: 'api_public_cart_get', methods: ['GET'])]
+#[RateLimited('public_api')]
+class GetCartController extends AbstractController
+{
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly CartFormatter $cartFormatter,
+    ) {
+    }
+
+    public function __invoke(Request $request): JsonResponse
+    {
+        $token = $this->extractToken($request);
+        $cart = $this->cartService->viewCart($token);
+        $user = $this->getUser();
+
+        $response = ApiResponse::success([
+            'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
+        ]);
+
+        $response->headers->set('X-Cart-Token', $cart->getToken());
+
+        return $response;
+    }
+
+    private function extractToken(Request $request): ?string
+    {
+        $headerToken = $request->headers->get('X-Cart-Token');
+
+        if (is_string($headerToken) && '' !== $headerToken) {
+            return $headerToken;
+        }
+
+        return null;
+    }
+}

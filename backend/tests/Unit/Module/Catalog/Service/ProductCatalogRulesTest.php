@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Catalog\Service\ProductCatalogRules;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Service\ProductCatalogRules;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 

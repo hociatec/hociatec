@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Auth\Controller;
 
-use App\Module\Auth\Controller\ProfileController;
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\ShippingAddressRepository;
+use App\Module\Auth\UI\Controller\ProfileController;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\User\UserInterface;
 

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Kernel;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\HttpFoundation\Request;
 

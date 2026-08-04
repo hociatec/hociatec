@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Marketing\DTO\MarketingAudienceInput;
-use App\Module\Admin\Marketing\DTO\MarketingCampaignInput;
-use App\Module\Admin\Marketing\DTO\MarketingTemplateInput;
-use App\Module\Admin\Quote\DTO\QuoteEmailInput;
-use App\Module\Admin\Quote\DTO\QuotePayloadInput;
-use App\Module\Admin\Quote\DTO\QuoteProductItemInput;
-use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
-use App\Module\Admin\Quote\DTO\QuoteStatusInput;
-use App\Module\Audit\Dto\CreateAuditRequestDto;
-use App\Module\News\DTO\CreateNewsCommentInput;
-use App\Module\News\DTO\NewsArticleInput;
-use App\Module\Quote\Entity\Quote;
-use App\Shared\ValueObject\EmailAddress;
+use App\Module\Admin\Application\Marketing\DTO\MarketingAudienceInput;
+use App\Module\Admin\Application\Marketing\DTO\MarketingCampaignInput;
+use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
+use App\Module\Admin\Application\Quote\DTO\QuoteEmailInput;
+use App\Module\Admin\Application\Quote\DTO\QuotePayloadInput;
+use App\Module\Admin\Application\Quote\DTO\QuoteProductItemInput;
+use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
+use App\Module\Admin\Application\Quote\DTO\QuoteStatusInput;
+use App\Module\Audit\Application\Dto\CreateAuditRequestDto;
+use App\Module\News\Application\DTO\CreateNewsCommentInput;
+use App\Module\News\Application\DTO\NewsArticleInput;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Infrastructure\ValueObject\EmailAddress;
 use PHPUnit\Framework\TestCase;
 
 final class MarketingQuoteNewsDtoCoverageTest extends TestCase

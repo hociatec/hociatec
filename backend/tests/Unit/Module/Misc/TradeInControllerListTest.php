@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\TradeIn\Controller\ListTradeInsController;
-use App\Module\TradeIn\Entity\TradeInRequest;
-use App\Module\TradeIn\Enum\TradeInStatus;
-use App\Module\TradeIn\Repository\TradeInRequestRepository;
-use App\Module\User\Entity\User;
+use App\Module\Admin\UI\TradeIn\Controller\ListTradeInsController;
+use App\Module\TradeIn\Domain\Entity\TradeInRequest;
+use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

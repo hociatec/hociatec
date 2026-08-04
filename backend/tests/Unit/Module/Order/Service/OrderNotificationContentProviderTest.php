@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
-use App\Module\Marketing\Entity\EmailTemplate;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Service\OrderNotificationContentProvider;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\User\Entity\User;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Application\Service\OrderNotificationContentProvider;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class OrderNotificationContentProviderTest extends TestCase

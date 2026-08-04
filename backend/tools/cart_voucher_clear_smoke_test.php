@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Cart\Repository {
-    use App\Module\Cart\Entity\CartSession;
+namespace App\Module\Cart\Infrastructure\Repository {
+    use App\Module\Cart\Domain\Entity\CartSession;
 
     final class CartSessionRepository
     {
@@ -29,7 +29,7 @@ namespace App\Module\Cart\Repository {
     }
 }
 
-namespace App\Module\Voucher\Repository {
+namespace App\Module\Voucher\Infrastructure\Repository {
     final class VoucherRepository
     {
     }
@@ -38,11 +38,11 @@ namespace App\Module\Voucher\Repository {
 namespace {
     require dirname(__DIR__).'/vendor/autoload.php';
 
-    use App\Module\Cart\Entity\CartSession;
-    use App\Module\Cart\Repository\CartSessionRepository;
-    use App\Module\Cart\Service\CartService;
-    use App\Module\Voucher\Repository\VoucherRepository;
-    use App\Module\Voucher\Service\VoucherEngine;
+    use App\Module\Cart\Application\Service\CartService;
+    use App\Module\Cart\Domain\Entity\CartSession;
+    use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+    use App\Module\Voucher\Application\Service\VoucherEngine;
+    use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
     use Doctrine\ORM\EntityManagerInterface;
 
     $fakeEntityManagerClass = <<<'PHP'

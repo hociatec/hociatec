@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\News\Service;
 
-use App\Module\News\DTO\NewsArticleInput;
-use App\Module\News\Entity\NewsArticle;
-use App\Module\News\Message\NewsArticlePublishedEmailMessage;
-use App\Module\News\Service\NewsArticleWriter;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\UserRepository;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\News\Application\DTO\NewsArticleInput;
+use App\Module\News\Domain\Entity\NewsArticle;
+use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
+use App\Module\News\Application\Service\NewsArticleWriter;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;

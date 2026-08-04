@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Catalog\Entity\Brand;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Repository\BrandRepository;
-use App\Module\Catalog\Repository\CategoryRepository;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Catalog\Service\BrandService;
-use App\Module\Catalog\Service\CatalogPersistence;
-use App\Module\Catalog\Service\CategoryService;
-use App\Module\Training\DTO\TrainingInput;
-use App\Module\Training\Entity\Training;
-use App\Module\Training\Service\TrainingWriter;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
+use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Service\BrandService;
+use App\Module\Catalog\Application\Service\CatalogPersistence;
+use App\Module\Catalog\Application\Service\CategoryService;
+use App\Module\Training\Application\DTO\TrainingInput;
+use App\Module\Training\Domain\Entity\Training;
+use App\Module\Training\Application\Service\TrainingWriter;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
@@ -146,7 +146,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         );
         $category = new Category('Phones', 'phones');
         $childCategory = new Category('Child', 'child');
-        $product = $this->createMock(\App\Module\Catalog\Entity\Product::class);
+        $product = $this->createMock(\App\Module\Catalog\Domain\Entity\Product::class);
         $category->addProduct($product);
 
         try {

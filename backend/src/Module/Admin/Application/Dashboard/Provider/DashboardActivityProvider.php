@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Admin\Application\Dashboard\Provider;
+
+use App\Module\Order\Application\Service\OrderFormatter;
+use App\Module\Order\Domain\Entity\OrderEvent;
+use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
+
+final readonly class DashboardActivityProvider
+{
+    public function __construct(
+        private OrderRepository $orders,
+        private OrderEventRepository $events,
+    ) {
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function recentOrders(): array
+    {
+        return array_map(
+            static fn ($order): array => OrderFormatter::formatOrder($order),
+            $this->orders->findRecentForAdmin(6),
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function recentEvents(): array
+    {
+        return array_map(
+            static fn (OrderEvent $event): array => [
+                'id' => $event->getId(),
+                'type' => $event->getType(),
+                'message' => $event->getMessage(),
+                'createdAt' => $event->getCreatedAt()->format(DATE_ATOM),
+                'order' => [
+                    'id' => $event->getOrder()->getId(),
+                    'number' => $event->getOrder()->getNumber(),
+                ],
+                'actor' => [
+                    'id' => $event->getActorUserId(),
+                    'name' => $event->getActorName(),
+                ],
+            ],
+            $this->events->findBy([], ['createdAt' => 'DESC'], 8),
+        );
+    }
+}

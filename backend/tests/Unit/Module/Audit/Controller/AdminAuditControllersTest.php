@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Audit\Controller;
 
-use App\Module\Admin\Audit\Controller\ListAuditsController;
-use App\Module\Admin\Audit\Controller\ShowAuditController;
-use App\Module\Audit\Entity\AuditChecklistItem;
-use App\Module\Audit\Entity\AuditEvent;
-use App\Module\Audit\Entity\AuditRequest;
-use App\Module\Audit\Entity\AuditType;
-use App\Module\Audit\Repository\AuditEventRepository;
-use App\Module\Audit\Repository\AuditRequestRepository;
-use App\Module\Audit\Service\AuditMetadataFormatter;
-use App\Module\User\Entity\User;
+use App\Module\Admin\UI\Audit\Controller\ListAuditsController;
+use App\Module\Admin\UI\Audit\Controller\ShowAuditController;
+use App\Module\Audit\Domain\Entity\AuditChecklistItem;
+use App\Module\Audit\Domain\Entity\AuditEvent;
+use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Domain\Entity\AuditType;
+use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
+use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

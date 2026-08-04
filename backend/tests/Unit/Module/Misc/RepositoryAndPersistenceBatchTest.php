@@ -4,58 +4,58 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Operations\Service\OperationsPersistence;
-use App\Module\Appointment\Entity\Prestation;
-use App\Module\Appointment\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Repository\PrestationRepository;
-use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Service\PrestationPersistence;
-use App\Module\Appointment\Service\WorkingDayConfigurationPersistence;
-use App\Module\Audit\Entity\AuditChecklistItem;
-use App\Module\Audit\Repository\AuditChecklistItemRepository;
-use App\Module\Audit\Repository\AuditEventRepository;
-use App\Module\Audit\Repository\AuditRequestRepository;
-use App\Module\Auth\Entity\RefreshToken;
-use App\Module\Auth\Service\RefreshTokenPersistence;
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Cart\Repository\CartItemRepository;
-use App\Module\Cart\Repository\CartSessionRepository;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\BetaTest\Entity\BetaCampaign;
-use App\Module\BetaTest\Repository\BetaCampaignRepository;
-use App\Module\Catalog\Entity\StockMovement;
-use App\Module\Catalog\Repository\StockMovementRepository;
-use App\Module\Comment\Entity\ProductComment;
-use App\Module\Comment\Repository\ProductCommentRepository;
-use App\Module\Marketing\Entity\EmailCampaign;
-use App\Module\Marketing\Entity\EmailTemplate;
-use App\Module\Marketing\Repository\EmailCampaignRepository;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\News\Entity\NewsArticleView;
-use App\Module\News\Entity\NewsArticle;
-use App\Module\News\Repository\NewsArticleViewRepository;
-use App\Module\Order\Entity\Order;
-use App\Module\Order\Entity\OrderItem;
-use App\Module\Order\Entity\RefundRequest;
-use App\Module\Order\Entity\StripeWebhookEvent;
-use App\Module\Order\Repository\OrderItemRepository;
-use App\Module\Order\Repository\RefundRequestRepository;
-use App\Module\Order\Repository\StripeWebhookEventRepository;
-use App\Module\Order\Service\OrderPersistence;
-use App\Module\Order\Service\StripeWebhookEventPersistence;
-use App\Module\Quote\Entity\QuoteItem;
-use App\Module\Quote\Repository\QuoteItemRepository;
-use App\Module\Rating\Service\RatingPersistence;
-use App\Module\Support\Entity\SupportRequest;
-use App\Module\Support\Repository\SupportRequestRepository;
-use App\Module\TradeIn\Entity\TradeInRequest;
-use App\Module\TradeIn\Repository\TradeInRequestRepository;
-use App\Module\TradeIn\Service\TradeInPersistence;
-use App\Module\Training\Entity\TrainingRoadmapItem;
-use App\Module\Training\Repository\TrainingRoadmapItemRepository;
-use App\Module\User\Entity\User;
+use App\Module\Admin\Application\Operations\Service\OperationsPersistence;
+use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
+use App\Module\Appointment\Application\Service\PrestationPersistence;
+use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistence;
+use App\Module\Audit\Domain\Entity\AuditChecklistItem;
+use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
+use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
+use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Auth\Domain\Entity\RefreshToken;
+use App\Module\Auth\Application\Service\RefreshTokenPersistence;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Cart\Infrastructure\Repository\CartItemRepository;
+use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
+use App\Module\Catalog\Domain\Entity\StockMovement;
+use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
+use App\Module\Comment\Domain\Entity\ProductComment;
+use App\Module\Comment\Infrastructure\Repository\ProductCommentRepository;
+use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\News\Domain\Entity\NewsArticleView;
+use App\Module\News\Domain\Entity\NewsArticle;
+use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Order\Domain\Entity\RefundRequest;
+use App\Module\Order\Domain\Entity\StripeWebhookEvent;
+use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
+use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
+use App\Module\Order\Infrastructure\Repository\StripeWebhookEventRepository;
+use App\Module\Order\Application\Service\OrderPersistence;
+use App\Module\Order\Application\Service\StripeWebhookEventPersistence;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Infrastructure\Repository\QuoteItemRepository;
+use App\Module\Rating\Application\Service\RatingPersistence;
+use App\Module\Support\Domain\Entity\SupportRequest;
+use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
+use App\Module\TradeIn\Domain\Entity\TradeInRequest;
+use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Application\Service\TradeInPersistence;
+use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
+use App\Module\Training\Infrastructure\Repository\TrainingRoadmapItemRepository;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityManager;
@@ -106,17 +106,17 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         self::assertSame([$configuration], $workingDayRepository->findAllOrdered());
 
         $auditRequestRepository = $this->getMockBuilder(AuditRequestRepository::class)
-            ->setConstructorArgs([$this->registry(\App\Module\Audit\Entity\AuditRequest::class)])
+            ->setConstructorArgs([$this->registry(\App\Module\Audit\Domain\Entity\AuditRequest::class)])
             ->onlyMethods(['createQueryBuilder'])
             ->getMock();
         $auditRequestRepository->expects(self::once())->method('createQueryBuilder')->with('a')->willReturn($this->queryBuilderReturning(['items']));
         self::assertSame(['items'], $auditRequestRepository->findByUser($this->user()));
 
         $auditEventRepository = $this->getMockBuilder(AuditEventRepository::class)
-            ->setConstructorArgs([$this->registry(\App\Module\Audit\Entity\AuditEvent::class)])
+            ->setConstructorArgs([$this->registry(\App\Module\Audit\Domain\Entity\AuditEvent::class)])
             ->onlyMethods(['createQueryBuilder'])
             ->getMock();
-        $audit = new \App\Module\Audit\Entity\AuditRequest('AUD-1', $this->user(), \App\Module\Audit\Entity\AuditType::SEO, 'https://example.com', null);
+        $audit = new \App\Module\Audit\Domain\Entity\AuditRequest('AUD-1', $this->user(), \App\Module\Audit\Domain\Entity\AuditType::SEO, 'https://example.com', null);
         $auditEventRepository->expects(self::once())->method('createQueryBuilder')->with('e')->willReturn($this->queryBuilderReturning(['events']));
         self::assertSame(['events'], $auditEventRepository->findByAudit($audit, 'ASC'));
 

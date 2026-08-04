@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Payment;
 
-use App\Module\Admin\Payment\Controller\ListPaymentsController;
-use App\Module\Admin\Payment\Controller\ShowPaymentController;
-use App\Module\Admin\Payment\Service\AdminPaymentFormatter;
-use App\Module\Admin\Payment\Service\StripePaymentDetailsProvider;
-use App\Module\Order\Entity\OrderCheckoutSession;
-use App\Module\Order\Repository\OrderCheckoutSessionRepository;
-use App\Module\Order\Service\StripeApiClient;
-use App\Module\Order\Service\StripeCheckoutSessionSyncService;
-use App\Module\User\Entity\User;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Admin\UI\Payment\Controller\ListPaymentsController;
+use App\Module\Admin\UI\Payment\Controller\ShowPaymentController;
+use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
+use App\Module\Admin\Application\Payment\Service\StripePaymentDetailsProvider;
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
+use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Application\Service\StripeApiClient;
+use App\Module\Order\Application\Service\StripeCheckoutSessionSyncService;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;

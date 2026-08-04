@@ -6,7 +6,7 @@ framework:
                 type: 'method'
                 property: 'status'
             supports:
-                - App\Module\Order\Entity\Order
+                - App\Module\Order\Domain\Entity\Order
             places: ['pending', 'confirmed', 'delivered', 'cancelled']
             transitions:
                 confirm:

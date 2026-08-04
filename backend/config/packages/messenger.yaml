@@ -16,10 +16,10 @@ framework:
                 dsn: '%env(MESSENGER_FAILURE_TRANSPORT_DSN)%'
         failure_transport: failed
         routing:
-            App\Module\Order\Message\OrderCreatedMessage: async
-            App\Module\Order\Message\OrderStatusChangedMessage: async
-            App\Module\Notification\Message\UserCommunicationEmailMessage: async
-            App\Module\News\Message\NewsArticlePublishedEmailMessage: async
+            App\Module\Order\Application\Message\OrderCreatedMessage: async
+            App\Module\Order\Application\Message\OrderStatusChangedMessage: async
+            App\Module\Notification\Application\Message\UserCommunicationEmailMessage: async
+            App\Module\News\Application\Message\NewsArticlePublishedEmailMessage: async
         buses:
             messenger.bus.default:
                 middleware:

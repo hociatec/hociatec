@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Audit\Entity;
 
-use App\Module\Audit\Entity\AuditChecklistItem;
-use App\Module\Audit\Entity\AuditEvent;
-use App\Module\Audit\Entity\AuditRequest;
-use App\Module\Audit\Entity\AuditType;
-use App\Module\User\Entity\User;
+use App\Module\Audit\Domain\Entity\AuditChecklistItem;
+use App\Module\Audit\Domain\Entity\AuditEvent;
+use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Domain\Entity\AuditType;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class AuditEntitiesTest extends TestCase

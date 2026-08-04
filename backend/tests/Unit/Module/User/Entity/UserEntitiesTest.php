@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Entity;
 
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class UserEntitiesTest extends TestCase

@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Auth\Security\UserChecker;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Favorite\Controller\RemoveFavoriteController;
-use App\Module\Favorite\Service\FavoriteService;
-use App\Module\Quote\Controller\Client\DeleteMyQuoteController;
-use App\Module\Quote\Entity\Quote;
-use App\Module\Quote\Service\QuotePersistence;
-use App\Module\Quote\Repository\QuoteRepository;
-use App\Module\Quote\Service\QuoteWorkflowService;
-use App\Module\User\Controller\Address\DeleteAddressController;
-use App\Module\User\Controller\Address\ListMyAddressesController;
-use App\Module\User\Controller\Address\SetDefaultAddressController;
-use App\Module\User\Entity\ShippingAddress;
-use App\Module\User\Entity\User;
-use App\Module\User\Repository\ShippingAddressRepository;
-use App\Module\User\Service\DeleteShippingAddressService;
-use App\Shared\Http\CsrfTokenController;
-use App\Shared\Http\CsrfTokenService;
+use App\Module\Auth\Infrastructure\Security\UserChecker;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
+use App\Module\Favorite\Application\Service\FavoriteService;
+use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Application\Service\QuotePersistence;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Service\QuoteWorkflowService;
+use App\Module\User\UI\Controller\Address\DeleteAddressController;
+use App\Module\User\UI\Controller\Address\ListMyAddressesController;
+use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Service\DeleteShippingAddressService;
+use App\Infrastructure\Http\CsrfTokenController;
+use App\Infrastructure\Http\CsrfTokenService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -122,7 +122,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
         $quoteController = new class($quotes, $workflow, $user) extends DeleteMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user) { parent::__construct($quotes, $workflow, new \App\Module\Quote\Security\QuoteAccessPolicy()); }
+            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user) { parent::__construct($quotes, $workflow, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy()); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $quoteController(9)->getStatusCode());

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Contact;
 
-use App\Module\Contact\Controller\ContactController;
-use App\Module\Contact\DTO\ContactInput;
-use App\Module\Contact\Service\ContactAcknowledgementSender;
-use App\Module\Contact\Service\ContactNotificationSender;
-use App\Module\Contact\Service\ContactSubmissionService;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Service\EmailTemplateRenderer;
-use App\Shared\Mail\MailDeliveryException;
-use App\Shared\Validation\ConstraintViolationFormatter;
-use App\Shared\Validation\DtoValidator;
+use App\Module\Contact\UI\Controller\ContactController;
+use App\Module\Contact\Application\DTO\ContactInput;
+use App\Module\Contact\Application\Service\ContactAcknowledgementSender;
+use App\Module\Contact\Application\Service\ContactNotificationSender;
+use App\Module\Contact\Application\Service\ContactSubmissionService;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\Application\Service\EmailTemplateRenderer;
+use App\Infrastructure\Mail\MailDeliveryException;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;

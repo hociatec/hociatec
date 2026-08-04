@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Service;
 
-use App\Module\Training\Entity\Training;
-use App\Module\Training\Entity\TrainingCategory;
-use App\Module\Training\Entity\TrainingEnrollment;
-use App\Module\Training\Entity\TrainingRoadmapItem;
-use App\Module\Training\Entity\TrainingSession;
-use App\Module\Training\Repository\TrainingCategoryRepository;
-use App\Module\Training\Repository\TrainingEnrollmentRepository;
-use App\Module\Training\Service\TrainingFormatter;
-use App\Module\Training\Service\TrainingMetadataFormatter;
-use App\Module\User\Entity\User;
+use App\Module\Training\Domain\Entity\Training;
+use App\Module\Training\Domain\Entity\TrainingCategory;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
+use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
+use App\Module\Training\Domain\Entity\TrainingSession;
+use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Service\TrainingMetadataFormatter;
+use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 final class TrainingFormatterTest extends TestCase

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Audit\Controller;
 
-use App\Module\Admin\Audit\Controller\UpdateAuditStatusController;
-use App\Module\Admin\Audit\Controller\UpdateChecklistItemController;
-use App\Module\Audit\Entity\AuditChecklistItem;
-use App\Module\Audit\Entity\AuditRequest;
-use App\Module\Audit\Entity\AuditType;
-use App\Module\Audit\Repository\AuditChecklistItemRepository;
-use App\Module\Audit\Repository\AuditRequestRepository;
-use App\Module\Audit\Service\AuditEventLogger;
-use App\Module\User\Entity\User;
-use App\Shared\Validation\ConstraintViolationFormatter;
-use App\Shared\Validation\DtoValidator;
+use App\Module\Admin\UI\Audit\Controller\UpdateAuditStatusController;
+use App\Module\Admin\UI\Audit\Controller\UpdateChecklistItemController;
+use App\Module\Audit\Domain\Entity\AuditChecklistItem;
+use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Domain\Entity\AuditType;
+use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
+use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Service\AuditEventLogger;
+use App\Module\User\Domain\Entity\User;
+use App\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validation;

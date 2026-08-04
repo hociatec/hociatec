@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Promotion\Service;
 
-use App\Module\Promotion\Entity\Promotion;
-use App\Module\Promotion\Service\PromotionFormatter;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Application\Service\PromotionFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class PromotionFormatterTest extends TestCase

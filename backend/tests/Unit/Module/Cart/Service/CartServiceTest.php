@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Service;
 
-use App\Module\Cart\Entity\CartItem;
-use App\Module\Cart\Entity\CartSession;
-use App\Module\Cart\Repository\CartSessionRepository;
-use App\Module\Cart\Service\CartItemResolver;
-use App\Module\Cart\Service\CartService;
-use App\Module\Cart\Service\CartSessionProvider;
-use App\Module\Catalog\Entity\Category;
-use App\Module\Catalog\Entity\Product;
-use App\Shared\Persistence\DoctrinePersistence;
+use App\Module\Cart\Domain\Entity\CartItem;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Cart\Application\Service\CartItemResolver;
+use App\Module\Cart\Application\Service\CartService;
+use App\Module\Cart\Application\Service\CartSessionProvider;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Infrastructure\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
