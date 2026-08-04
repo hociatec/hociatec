@@ -132,7 +132,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $accentedLockedUser = new User('client@example.com', 'Client', 'Elephant !!!', new \DateTimeImmutable('1990-01-01'), '0102030405', 'other');
         $this->setId($accentedLockedUser, 19);
         $accentedLockedUser->setLoyaltyPointsBalance(100);
-        $entityManager->method('find')->willReturnCallback(static fn (string $class, int $id, int $lockMode): ?User => match ($id) {
+        $users->method('findForUpdate')->willReturnCallback(static fn (int $id): ?User => match ($id) {
             9 => $user,
             19 => $accentedLockedUser,
             default => null,

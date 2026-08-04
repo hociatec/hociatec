@@ -8,7 +8,8 @@ use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\LockMode;
+use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<OutboxEvent> */
@@ -23,6 +24,48 @@ final class OutboxEventRepository extends ServiceEntityRepository implements Out
     public function findDueForUpdate(int $limit): array
     {
         $now = new \DateTimeImmutable();
+        $limit = max(1, min(100, $limit));
+
+        if ($this->supportsSkipLocked()) {
+            $ids = $this->getEntityManager()->getConnection()->executeQuery(
+                <<<'SQL'
+                    SELECT id
+                    FROM outbox_events
+                    WHERE status IN (:statuses)
+                      AND available_at <= :now
+                    ORDER BY created_at ASC
+                    LIMIT :limit
+                    FOR UPDATE SKIP LOCKED
+                    SQL,
+                [
+                    'statuses' => [OutboxEvent::STATUS_PENDING, OutboxEvent::STATUS_FAILED],
+                    'now' => $now->format('Y-m-d H:i:s'),
+                    'limit' => $limit,
+                ],
+                [
+                    'statuses' => ArrayParameterType::STRING,
+                    'now' => ParameterType::STRING,
+                    'limit' => ParameterType::INTEGER,
+                ],
+            )->fetchFirstColumn();
+
+            if ([] === $ids) {
+                return [];
+            }
+
+            $events = $this->createQueryBuilder('event')
+                ->andWhere('event.id IN (:ids)')
+                ->setParameter('ids', array_map('intval', $ids))
+                ->getQuery()
+                ->getResult();
+
+            $byId = [];
+            foreach ($events as $event) {
+                $byId[$event->getId()] = $event;
+            }
+
+            return array_values(array_filter(array_map(static fn (mixed $id): ?OutboxEvent => $byId[(int) $id] ?? null, $ids)));
+        }
 
         return $this->createQueryBuilder('event')
             ->andWhere('event.status IN (:statuses)')
@@ -30,9 +73,8 @@ final class OutboxEventRepository extends ServiceEntityRepository implements Out
             ->setParameter('statuses', [OutboxEvent::STATUS_PENDING, OutboxEvent::STATUS_FAILED])
             ->setParameter('now', $now)
             ->orderBy('event.createdAt', 'ASC')
-            ->setMaxResults(max(1, min(100, $limit)))
+            ->setMaxResults($limit)
             ->getQuery()
-            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
             ->getResult();
     }
 
@@ -103,5 +145,10 @@ final class OutboxEventRepository extends ServiceEntityRepository implements Out
             ->setParameter('statuses', $statuses)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    private function supportsSkipLocked(): bool
+    {
+        return \in_array($this->getEntityManager()->getConnection()->getDatabasePlatform()->getName(), ['mysql', 'postgresql'], true);
     }
 }

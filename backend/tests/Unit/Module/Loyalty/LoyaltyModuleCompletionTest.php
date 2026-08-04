@@ -104,13 +104,14 @@ final class LoyaltyModuleCompletionTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
-        $entityManager->expects(self::once())->method('find')->willReturn(null);
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->expects(self::once())->method('findForUpdate')->with(404)->willReturn(null);
 
         $service = new LoyaltyService(
             new DoctrineUnitOfWork($entityManager),
             new DoctrineTransactionManager($entityManager),
             new CreateVoucherHandler(new DoctrineUnitOfWork($this->entityManager()), new VoucherPayload($this->voucherRepository($this->entityManager()))),
-            $this->userRepository($this->entityManager()),
+            $userRepository,
         );
 
         $user = $this->user('missing@example.com');

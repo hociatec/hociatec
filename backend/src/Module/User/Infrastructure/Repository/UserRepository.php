@@ -7,6 +7,7 @@ namespace App\Module\User\Infrastructure\Repository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -23,6 +24,13 @@ class UserRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $entityManager->persist($user);
+    }
+
+    public function findForUpdate(int $id): ?User
+    {
+        $user = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $user instanceof User ? $user : null;
     }
 
     public function existsByEmail(string $email): bool

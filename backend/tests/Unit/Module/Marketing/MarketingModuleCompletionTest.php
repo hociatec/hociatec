@@ -15,6 +15,8 @@ use App\Module\Marketing\Application\Service\MarketingCampaignSender;
 use App\Module\Marketing\Application\Service\MarketingCampaignService;
 use App\Module\Marketing\Application\Service\MarketingRecipientContextProvider;
 use App\Module\Marketing\Application\Service\MarketingTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery;
+use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Application\Service\CommunicationPreferences;
@@ -88,7 +90,7 @@ final class MarketingModuleCompletionTest extends TestCase
         $em->persist($user);
         $em->flush();
 
-        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($em), 'https://front.example.test/'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test/'))->provide($user);
 
         self::assertSame('0', $context['order_count']);
         self::assertSame('', $context['last_order_date']);
@@ -107,7 +109,7 @@ final class MarketingModuleCompletionTest extends TestCase
         $em->persist($order);
         $em->flush();
 
-        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($em), 'https://front.example.test'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'))->provide($user);
 
         self::assertSame('1', $context['order_count']);
         self::assertSame('123,45', $context['total_spent_eur']);
@@ -133,7 +135,7 @@ final class MarketingModuleCompletionTest extends TestCase
             $this->queryBuilder($queries[2]),
         );
 
-        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($entityManager), 'https://front.example.test'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($entityManager), 'https://front.example.test'))->provide($user);
 
         self::assertSame('15/07/2026', $context['last_order_date']);
         self::assertSame('ORD-DATE-1', $context['last_order_number']);
@@ -143,13 +145,13 @@ final class MarketingModuleCompletionTest extends TestCase
     private function campaignService(EntityManager $em, MailerInterface $mailer): MarketingCampaignService
     {
         $persistence = new DoctrineUnitOfWork($em);
-        $audiences = new MarketingAudienceProvider($persistence, new EmailTemplateScenarioProvider());
+        $audiences = new MarketingAudienceProvider(new DoctrineMarketingAudienceQuery($em), new EmailTemplateScenarioProvider());
 
         return new MarketingCampaignService(
             $audiences,
             new MarketingCampaignSender(
                 $audiences,
-                new MarketingRecipientContextProvider($persistence, 'https://front.example.test'),
+                new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'),
                 new MarketingTemplateRenderer(),
                 $mailer,
                 $this->notifier($em),

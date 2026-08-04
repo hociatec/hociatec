@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Outbox;
 
-use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Infrastructure\Http\RequestIdSubscriber;
 use App\Module\Outbox\Application\Outbox;
+use App\Module\Outbox\Application\OutboxAlert;
+use App\Module\Outbox\Application\OutboxAlertNotifier;
+use App\Module\Outbox\Application\OutboxAlertPolicy;
 use App\Module\Outbox\Application\OutboxDispatcher;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
-use App\Infrastructure\Http\RequestIdSubscriber;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier;
+use App\Module\Outbox\Infrastructure\Command\DispatchOutboxCommand;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class OutboxTest extends TestCase
 {
@@ -174,6 +182,66 @@ final class OutboxTest extends TestCase
 
         self::assertSame(0, $processed);
         self::assertSame(1, $repository->recoveries);
+    }
+
+    public function testDispatchCommandEmitsOutboxAlertForCriticalMetrics(): void
+    {
+        $alerts = new class implements OutboxAlertNotifier {
+            public ?OutboxAlert $alert = null;
+
+            public function notify(OutboxAlert $alert): void
+            {
+                $this->alert = $alert;
+            }
+        };
+
+        $repository = new class implements OutboxEventStore {
+            public function findDueForUpdate(int $limit): array
+            {
+                return [];
+            }
+
+            public function recoverStaleProcessing(\DateTimeImmutable $threshold): int
+            {
+                return 0;
+            }
+
+            public function purgeFinalizedBefore(\DateTimeImmutable $threshold): int
+            {
+                return 1;
+            }
+
+            public function metricsSnapshot(\DateTimeImmutable $staleProcessingThreshold): OutboxMetrics
+            {
+                return new OutboxMetrics(2, 120, 1, 1, 0);
+            }
+        };
+
+        $dispatcher = new OutboxDispatcher($repository, new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), $this->transactions(), [], $this->createMock(LoggerInterface::class));
+        $tester = new CommandTester(new DispatchOutboxCommand($dispatcher, $repository, $alerts));
+
+        self::assertSame(0, $tester->execute([]));
+        self::assertInstanceOf(OutboxAlert::class, $alerts->alert);
+        self::assertSame('critical', $alerts->alert->severity);
+        self::assertStringContainsString('Outbox alert emitted', $tester->getDisplay());
+    }
+
+    public function testOutboxAlertPolicyAndWebhookNotifier(): void
+    {
+        $policy = new OutboxAlertPolicy();
+        self::assertNull($policy->alertFor(new OutboxMetrics(0, null, 0, 0, 0)));
+        self::assertSame('warning', $policy->alertFor(new OutboxMetrics(1, 60, 1, 0, 0))?->severity);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects(self::once())->method('getStatusCode')->willReturn(202);
+        $client = $this->createMock(HttpClientInterface::class);
+        $client->expects(self::once())
+            ->method('request')
+            ->with('POST', 'https://alerts.example/outbox', self::callback(static fn (array $options): bool => 'critical' === ($options['json']['severity'] ?? null)))
+            ->willReturn($response);
+
+        $notifier = new WebhookOutboxAlertNotifier($client, $this->createMock(LoggerInterface::class), 'https://alerts.example/outbox');
+        $notifier->notify(new OutboxAlert('critical', 'Outbox blocked.', new OutboxMetrics(1, 120, 0, 1, 0)));
     }
 
     /** @param list<OutboxEvent> $events */

@@ -12,6 +12,7 @@ parameters:
     env(STRIPE_SECRET_KEY): ''
     env(BACKUP_ENCRYPTION_KEY_FILE): '/etc/hociatec/backup.key'
     env(METRICS_TOKEN): ''
+    env(OUTBOX_ALERT_WEBHOOK_URL): ''
 
 services:
     # default configuration for services in *this* file
@@ -60,6 +61,19 @@ services:
 
     App\Module\Outbox\Application\OutboxEventStore:
         alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
+
+    App\Module\Marketing\Application\Port\MarketingAudienceQuery:
+        alias: App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery
+
+    App\Module\Marketing\Application\Port\MarketingRecipientContextQuery:
+        alias: App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery
+
+    App\Module\Outbox\Application\OutboxAlertNotifier:
+        alias: App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier
+
+    App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier:
+        arguments:
+            $webhookUrl: '%env(OUTBOX_ALERT_WEBHOOK_URL)%'
 
     App\Module\TradeIn\Application\Port\TradeInReceiptRenderer:
         alias: App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer

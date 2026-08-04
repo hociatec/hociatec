@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Promotion\Application\Service\PromotionEngine;
@@ -25,6 +26,8 @@ final readonly class CartOrderCreator
         private OrderInvoiceCalculator $invoiceCalculator,
         private PromotionEngine $promotionEngine,
         private VoucherEngine $voucherEngine,
+        private CartSessionRepository $carts,
+        private ProductRepository $products,
     ) {
     }
 
@@ -43,8 +46,8 @@ final readonly class CartOrderCreator
                     throw new \InvalidArgumentException('Panier invalide.');
                 }
 
-                $lockedCart = $this->persistence->findForUpdate(CartSession::class, $cartId);
-                if (!$lockedCart instanceof CartSession) {
+                $lockedCart = $this->carts->findForUpdate($cartId);
+                if (null === $lockedCart) {
                     throw new \InvalidArgumentException('Panier introuvable.');
                 }
                 if ($lockedCart->isConverted()) {
@@ -61,8 +64,8 @@ final readonly class CartOrderCreator
                         throw new \InvalidArgumentException('Produit invalide.');
                     }
 
-                    $product = $this->persistence->findForUpdate(Product::class, $productId);
-                    if (!$product instanceof Product) {
+                    $product = $this->products->findForUpdate($productId);
+                    if (null === $product) {
                         throw new \InvalidArgumentException('Produit introuvable.');
                     }
 

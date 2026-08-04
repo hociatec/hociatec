@@ -7,6 +7,7 @@ namespace App\Module\Cart\Infrastructure\Repository;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -22,6 +23,13 @@ final class CartSessionRepository extends ServiceEntityRepository
     public function findOneByToken(string $token): ?CartSession
     {
         return $this->findOneBy(['token' => $token]);
+    }
+
+    public function findForUpdate(int $id): ?CartSession
+    {
+        $cart = $this->find($id, LockMode::PESSIMISTIC_WRITE);
+
+        return $cart instanceof CartSession ? $cart : null;
     }
 
     public function findOneByUser(User $user): ?CartSession

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Outbox\Infrastructure\Command;
 
+use App\Module\Outbox\Application\OutboxAlertNotifier;
+use App\Module\Outbox\Application\OutboxAlertPolicy;
 use App\Module\Outbox\Application\OutboxDispatcher;
 use App\Module\Outbox\Application\OutboxEventStore;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -15,8 +17,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:outbox:dispatch', description: 'Dispatch pending outbox events.')]
 final class DispatchOutboxCommand extends Command
 {
-    public function __construct(private readonly OutboxDispatcher $dispatcher, private readonly OutboxEventStore $events)
-    {
+    public function __construct(
+        private readonly OutboxDispatcher $dispatcher,
+        private readonly OutboxEventStore $events,
+        private readonly OutboxAlertNotifier $alerts,
+        private readonly OutboxAlertPolicy $alertPolicy = new OutboxAlertPolicy(),
+    ) {
         parent::__construct();
     }
 
@@ -47,6 +53,12 @@ final class DispatchOutboxCommand extends Command
 
         if ($metrics->staleProcessingEvents > 0) {
             $output->writeln(sprintf('<error>%d outbox event(s) are stuck in processing.</error>', $metrics->staleProcessingEvents));
+        }
+
+        $alert = $this->alertPolicy->alertFor($metrics);
+        if (null !== $alert) {
+            $this->alerts->notify($alert);
+            $output->writeln(sprintf('<comment>Outbox alert emitted: %s</comment>', $alert->message));
         }
 
         return Command::SUCCESS;

@@ -58,6 +58,16 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testDoctrineUnitOfWorkOnlyExposesWriteUnitOfWorkOperations(): void
+    {
+        $unitOfWork = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Doctrine/DoctrineUnitOfWork.php');
+        self::assertIsString($unitOfWork);
+
+        foreach (['createQueryBuilder', 'function queryBuilder(', 'function findForUpdate(', 'LockMode::', 'function clear('] as $forbidden) {
+            self::assertStringNotContainsString($forbidden, $unitOfWork);
+        }
+    }
+
     public function testRepositoriesDoNotExposeImplicitFlushBooleans(): void
     {
         $violations = [];

@@ -16,8 +16,10 @@ use Doctrine\Persistence\ManagerRegistry;
 class ProductRepository extends ServiceEntityRepository
 {
     use ProductAdminQueries;
+    use ProductCatalogFacetProjection;
+    use ProductCatalogFilterQueries;
+    use ProductPublishedQueryBuilder;
     use ProductPublicQueries;
-    use ProductRepositoryQueryHelpers;
     use ProductStockQueries;
 
     public function __construct(ManagerRegistry $registry)

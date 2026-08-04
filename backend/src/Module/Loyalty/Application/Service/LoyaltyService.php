@@ -116,8 +116,8 @@ final class LoyaltyService
             return $user;
         }
 
-        $locked = $this->persistence->findForUpdate(User::class, $userId);
-        if (!$locked instanceof User) {
+        $locked = $this->users->findForUpdate($userId);
+        if (null === $locked) {
             throw new \InvalidArgumentException('Client introuvable.');
         }
 

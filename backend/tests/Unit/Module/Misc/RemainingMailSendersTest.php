@@ -172,8 +172,8 @@ final class RemainingMailSendersTest extends TestCase
             }));
 
         $sender = new MarketingCampaignSender(
-            new MarketingAudienceProvider(new DoctrineUnitOfWork($entityManager), new EmailTemplateScenarioProvider()),
-            new MarketingRecipientContextProvider(new DoctrineUnitOfWork($entityManager), 'https://front.example.test'),
+            new MarketingAudienceProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery($entityManager), new EmailTemplateScenarioProvider()),
+            new MarketingRecipientContextProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery($entityManager), 'https://front.example.test'),
             new MarketingTemplateRenderer(),
             $mailer,
             $this->notifier(),

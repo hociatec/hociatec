@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
@@ -20,6 +21,9 @@ final readonly class CheckoutSessionOrderCreator
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
+        private OrderRepository $orders,
+        private ProductRepository $products,
+        private CartSessionRepository $carts,
     ) {
     }
 
@@ -28,7 +32,7 @@ final readonly class CheckoutSessionOrderCreator
         return $this->transactions->transactional(
             function () use ($checkout): Order {
                 if (null !== $checkout->getOrderId()) {
-                    $existing = $this->persistence->findForUpdate(Order::class, $checkout->getOrderId());
+                    $existing = $this->orders->findForUpdate($checkout->getOrderId());
                     if ($existing instanceof Order) {
                         return $existing;
                     }
@@ -93,8 +97,8 @@ final readonly class CheckoutSessionOrderCreator
             throw new \InvalidArgumentException('Produit Stripe invalide.');
         }
 
-        $product = $this->persistence->findForUpdate(Product::class, $productId);
-        if (!$product instanceof Product) {
+        $product = $this->products->findForUpdate($productId);
+        if (null === $product) {
             throw new \InvalidArgumentException('Produit introuvable.');
         }
 
@@ -124,8 +128,8 @@ final readonly class CheckoutSessionOrderCreator
             return;
         }
 
-        $cart = $this->persistence->findForUpdate(CartSession::class, $checkout->getCartId());
-        if ($cart instanceof CartSession && !$cart->isConverted()) {
+        $cart = $this->carts->findForUpdate($checkout->getCartId());
+        if (null !== $cart && !$cart->isConverted()) {
             $cart->markConverted($orderId);
             $this->persistence->persist($cart);
             $this->persistence->commit();
