@@ -22,6 +22,8 @@ use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Module\User\Service\VerificationTokenHasher;
+use App\Shared\Outbox\Entity\OutboxEvent;
+use App\Shared\Outbox\Outbox;
 use App\Shared\Persistence\DoctrinePersistence;
 use App\Shared\Validation\ConstraintViolationFormatter;
 use App\Shared\Validation\DtoValidator;
@@ -119,16 +121,10 @@ final class AuthModuleCompletionTest extends TestCase
 
         $passwords = $this->createMock(UserPasswordHasherInterface::class);
         $passwords->method('hashPassword')->willReturn('new-hash');
-        $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())->method('send');
         $passwordReset = new PasswordResetService(
             $this->userRepository($em),
             $passwords,
-            $mailer,
-            new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
-            $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
-            'noreply@example.com',
+            new Outbox(new DoctrinePersistence($em)),
         );
 
         $requestController = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Shared\Http\RateLimitKeyFactory(), $this->limiter(10));
@@ -286,6 +282,7 @@ final class AuthModuleCompletionTest extends TestCase
         (new SchemaTool($em))->createSchema([
             $em->getClassMetadata(User::class),
             $em->getClassMetadata(RefreshToken::class),
+            $em->getClassMetadata(OutboxEvent::class),
         ]);
 
         return $em;

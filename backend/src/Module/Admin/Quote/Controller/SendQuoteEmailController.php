@@ -87,9 +87,11 @@ class SendQuoteEmailController extends AbstractController
             'to' => $result['to'],
             'attachmentIncluded' => $result['attachmentIncluded'],
             'transport' => $result['transport'],
-            'message' => $result['attachmentIncluded']
+            'message' => 'outbox' === $result['transport']
+                ? 'Envoi du devis programmé.'
+                : ($result['attachmentIncluded']
                 ? 'Devis envoyé par e-mail avec le PDF en pièce jointe.'
-                : 'Devis envoyé par e-mail.',
+                : 'Devis envoyé par e-mail.'),
         ]);
     }
 }

@@ -78,7 +78,7 @@ final class ApiResponseTest extends TestCase
 
     public function testInternalErrorUsesDefaultMessageAndStatus(): void
     {
-        $response = ApiResponse::internalError();
+        $response = ApiResponse::internalError('SQLSTATE /home/app secret');
 
         self::assertSame(JsonResponse::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
         self::assertSame([

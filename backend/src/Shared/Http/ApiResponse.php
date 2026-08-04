@@ -63,7 +63,9 @@ final class ApiResponse
 
     public static function internalError(string $message = 'Une erreur interne est survenue.'): JsonResponse
     {
-        return self::error($message, JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        unset($message);
+
+        return self::error('Une erreur interne est survenue.', JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     private static function defaultErrorCode(int $status): string

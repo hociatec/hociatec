@@ -25,8 +25,6 @@ use App\Module\Admin\Quote\Service\QuoteServiceFormMapper;
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Entity\Product;
 use App\Module\Catalog\Repository\ProductRepository;
-use App\Module\Marketing\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Service\EmailTemplateRenderer;
 use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
@@ -37,8 +35,6 @@ use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Repository\ServiceRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteCatalogManager;
-use App\Module\Quote\Service\QuoteCreatedEmailContentProvider;
-use App\Module\Quote\Service\QuoteEmailDeliveryService;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteNumberGenerator;
 use App\Module\Quote\Service\QuotePdfService;
@@ -50,6 +46,8 @@ use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Pdf\AccessiblePdfRenderer;
 use App\Shared\Pdf\PdfHtmlFormatter;
+use App\Shared\Outbox\Entity\OutboxEvent;
+use App\Shared\Outbox\Outbox;
 use App\Shared\Persistence\DoctrinePersistence;
 use App\Shared\Validation\ConstraintViolationFormatter;
 use App\Shared\Validation\DtoValidator;
@@ -78,7 +76,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $calculator = new QuoteCalculator();
         $quoteService = $this->quoteService($em);
         $emailService = $this->emailService($em);
-        $validator = $this->validator(12);
+        $validator = $this->validator(11);
 
         $catalogManager = new QuoteServiceCatalogManager(new DoctrinePersistence($em));
         $formMapper = new QuoteServiceFormMapper();
@@ -143,7 +141,6 @@ final class AdminQuoteCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, $send($this->jsonRequest(['to' => 'client@example.test']), '999')->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $send(Request::create('/', 'POST', server: [], content: '{bad'), (string) $quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $send($this->jsonRequest(['to' => 'bad']), (string) $quoteId)->getStatusCode());
-        self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, (new SendQuoteEmailController($quoteRepository, $this->emailService($em, true), new QuoteWorkflowService(new QuotePersistence($em)), $this->createMock(LoggerInterface::class), $validator))($this->jsonRequest(['to' => 'down@example.test']), (string) $quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, (new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new QuotePersistence($em)), $this->createMock(LoggerInterface::class), $this->throwingValidator()))($this->jsonRequest(['to' => 'unexpected@example.test']), (string) $quoteId)->getStatusCode());
         $client = new User('client@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $client->setPassword('hashed')->setCommunicationPreferences([]);
@@ -238,22 +235,11 @@ final class AdminQuoteCompletionTest extends TestCase
 
     private function emailService(EntityManager $em, bool $fail = false): QuoteEmailService
     {
-        $mailer = $this->createMock(MailerInterface::class);
-        if ($fail) {
-            $mailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
-        } else {
-            $mailer->method('send');
-        }
+        unset($fail);
 
         return new QuoteEmailService(
             new QuotePersistence($em),
-            new QuoteCreatedEmailContentProvider(
-                new QuoteCalculator(),
-                new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
-                'https://front.example.test',
-                'noreply@example.test',
-            ),
-            new QuoteEmailDeliveryService(new QuoteCalculator(), $this->pdfService(), $mailer, $this->createMock(LoggerInterface::class), 'noreply@example.test'),
+            new Outbox(new DoctrinePersistence($em)),
             new UserRepository($this->registry($em)),
             new UserCommunicationNotifier(
                 new AccountNotificationEventRepository($this->registry($em)),
@@ -318,6 +304,7 @@ final class AdminQuoteCompletionTest extends TestCase
             $em->getClassMetadata(Quote::class),
             $em->getClassMetadata(QuoteItem::class),
             $em->getClassMetadata(QuoteServiceEntity::class),
+            $em->getClassMetadata(OutboxEvent::class),
             $em->getClassMetadata(User::class),
             $em->getClassMetadata(AccountNotificationEvent::class),
         ]);

@@ -8,13 +8,13 @@ use App\Module\Quote\Entity\Quote;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
+use App\Shared\Outbox\Outbox;
 
 final readonly class QuoteEmailService
 {
     public function __construct(
         private QuotePersistence $persistence,
-        private QuoteCreatedEmailContentProvider $content,
-        private QuoteEmailDeliveryService $delivery,
+        private Outbox $outbox,
         private UserRepository $users,
         private UserCommunicationNotifier $userNotifications,
     ) {
@@ -70,6 +70,16 @@ final readonly class QuoteEmailService
             }
         }
 
-        return $this->delivery->deliver($quote, $recipient, $this->content->build($quote));
+        $quoteId = $quote->getId();
+        if (null === $quoteId) {
+            throw new \InvalidArgumentException('Devis invalide.');
+        }
+
+        $this->outbox->record('quote.email.created.'.$quoteId.'.'.hash('sha256', $recipient).'.'.bin2hex(random_bytes(8)), 'quote.created_email_requested', [
+            'quoteId' => $quoteId,
+            'recipient' => $recipient,
+        ]);
+
+        return ['to' => $recipient, 'attachmentIncluded' => true, 'transport' => 'outbox'];
     }
 }

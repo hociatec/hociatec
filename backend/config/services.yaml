@@ -43,6 +43,10 @@ services:
 
     App\Module\Auth\Service\PasswordResetService:
         arguments:
+            $outbox: '@App\Shared\Outbox\Outbox'
+
+    App\Module\Auth\Service\PasswordResetEmailService:
+        arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 

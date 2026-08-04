@@ -18,9 +18,11 @@ use App\Module\Notification\Entity\AccountNotificationEvent;
 use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Service\CommunicationPreferences;
 use App\Module\Notification\Service\UserCommunicationNotifier;
-use App\Module\Auth\Service\PasswordResetService;
+use App\Module\Auth\Outbox\SendPasswordResetEmailHandler;
+use App\Module\Auth\Service\PasswordResetEmailService;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
+use App\Shared\Outbox\Entity\OutboxEvent;
 use App\Shared\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -47,12 +49,9 @@ final class RemainingMailSendersTest extends TestCase
         $this->entityManager = null;
     }
 
-    public function testPasswordResetServiceUsesMailerAndSilentlyLogsFailures(): void
+    public function testPasswordResetEmailServiceUsesMailerAndLogsFailures(): void
     {
         $user = $this->user('ada@example.com');
-        $repo = $this->createMock(UserRepository::class);
-        $repo->expects(self::once())->method('findOneByEmailInsensitive')->with('ada@example.com')->willReturn($user);
-        $repo->expects(self::once())->method('save')->with($user, true);
 
         $mailer = $this->createMock(MailerInterface::class);
         $mailer->expects(self::once())
@@ -63,35 +62,51 @@ final class RemainingMailSendersTest extends TestCase
                     && str_contains($email->getHtmlBody() ?? '', '/reset-password/');
             }));
 
-        $service = new PasswordResetService(
-            $repo,
-            $this->createMock(UserPasswordHasherInterface::class),
+        $service = new PasswordResetEmailService(
             $mailer,
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
             $this->createMock(LoggerInterface::class),
             'https://front.example.test',
             'noreply@example.com',
         );
-        $service->request('ada@example.com');
-        self::assertNotNull($user->getPasswordResetToken());
+        $service->send($user, 'reset-token');
 
-        $repo2 = $this->createMock(UserRepository::class);
-        $repo2->method('findOneByEmailInsensitive')->willReturn($user);
-        $repo2->method('save');
         $failingMailer = $this->createMock(MailerInterface::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning');
-        $service2 = new PasswordResetService(
-            $repo2,
-            $this->createMock(UserPasswordHasherInterface::class),
+        $service2 = new PasswordResetEmailService(
             $failingMailer,
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
             $logger,
             'https://front.example.test',
             'noreply@example.com',
         );
-        $service2->request('ada@example.com');
+        $this->expectException(\RuntimeException::class);
+        $service2->send($user, 'reset-token');
+    }
+
+    public function testPasswordResetOutboxHandlerSendsOnlyCurrentValidToken(): void
+    {
+        $user = $this->user('reset-handler@example.com');
+        $user->setPasswordResetToken('current-token')->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
+        $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['findOneByEmailInsensitive'])->getMock();
+        $repository->expects(self::exactly(2))->method('findOneByEmailInsensitive')->willReturn($user);
+
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(Email::class));
+        $emails = new PasswordResetEmailService(
+            $mailer,
+            new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
+            $this->createMock(LoggerInterface::class),
+            'https://front.example.test',
+            'noreply@example.com',
+        );
+
+        $handler = new SendPasswordResetEmailHandler($repository, $emails);
+        self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token'])));
+        $handler->handle(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token']));
+        $handler->handle(new OutboxEvent('reset-2', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'stale-token']));
     }
 
     public function testContactSendersUseMailerWithExpectedContent(): void

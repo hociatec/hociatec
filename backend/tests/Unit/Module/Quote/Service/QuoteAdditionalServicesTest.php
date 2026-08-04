@@ -11,6 +11,8 @@ use App\Module\Notification\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Service\UserCommunicationNotifier;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
+use App\Module\Quote\Outbox\SendQuoteCreatedEmailHandler;
+use App\Module\Quote\Repository\QuoteRepository;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteCreatedEmailContentProvider;
 use App\Module\Quote\Service\QuoteEmailDeliveryService;
@@ -21,6 +23,8 @@ use App\Module\Quote\Service\QuoteStatusTranslator;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
+use App\Shared\Outbox\Entity\OutboxEvent;
+use App\Shared\Outbox\Outbox;
 use App\Shared\Persistence\DoctrinePersistence;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -94,15 +98,13 @@ final class QuoteAdditionalServicesTest extends TestCase
     public function testQuoteEmailServiceValidatesRecipientSendsAndMarksCreatedWhenNeeded(): void
     {
         $quote = $this->quote('DEV-MAIL-1', 'Ada', '  ada@example.test  ');
-        $content = $this->contentProvider();
-        $delivery = $this->deliveryService(['to' => 'ada@example.test', 'attachmentIncluded' => true, 'transport' => 'symfony_mailer']);
+        $this->setEntityId($quote, 500);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
 
         $service = new QuoteEmailService(
             new QuotePersistence($entityManager),
-            $content,
-            $delivery,
+            new Outbox(new DoctrinePersistence($entityManager)),
             $this->repository(UserRepository::class),
             $this->notifier(),
         );
@@ -120,17 +122,18 @@ final class QuoteAdditionalServicesTest extends TestCase
         $this->entityManager()->persist($user);
         $this->entityManager()->flush();
 
-        $delivery = $this->deliveryService(['to' => 'override@example.test', 'attachmentIncluded' => false, 'transport' => 'symfony_mailer']);
         $service = new QuoteEmailService(
             new QuotePersistence($this->createMock(EntityManagerInterface::class)),
-            $this->contentProvider(),
-            $delivery,
+            new Outbox(new DoctrinePersistence($this->createMock(EntityManagerInterface::class))),
             $this->repository(UserRepository::class),
             $this->notifier(),
         );
 
-        $override = $service->send($this->quote('DEV-MAIL-2', 'Ada', 'ada@example.test'), ' override@example.test ');
+        $quoteForOverride = $this->quote('DEV-MAIL-2', 'Ada', 'ada@example.test');
+        $this->setEntityId($quoteForOverride, 502);
+        $override = $service->send($quoteForOverride, ' override@example.test ');
         self::assertSame('override@example.test', $override['to']);
+        self::assertSame('outbox', $override['transport']);
 
         $quoteForMember = $this->quote('DEV-MAIL-3', 'Member', 'member@example.test');
         $this->setEntityId($quoteForMember, 501);
@@ -145,6 +148,29 @@ final class QuoteAdditionalServicesTest extends TestCase
                 self::assertNotSame('', $exception->getMessage());
             }
         }
+    }
+
+    public function testQuoteCreatedEmailOutboxHandlerDeliversCurrentEvent(): void
+    {
+        $quote = $this->quote('DEV-OUTBOX-1', 'Ada', 'ada@example.test');
+        $this->setEntityId($quote, 700);
+        $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
+        $quotes->expects(self::once())->method('find')->with(700)->willReturn($quote);
+
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(\Symfony\Component\Mime\Email::class));
+        $delivery = new QuoteEmailDeliveryService(
+            new QuoteCalculator(),
+            $this->pdfService('%PDF-1.4'),
+            $mailer,
+            $this->createMock(LoggerInterface::class),
+            'contact@example.test',
+        );
+        $handler = new SendQuoteCreatedEmailHandler($quotes, $this->contentProvider(), $delivery);
+        $event = new OutboxEvent('quote-email-700', 'quote.created_email_requested', ['quoteId' => 700, 'recipient' => 'ada@example.test']);
+
+        self::assertTrue($handler->supports($event));
+        $handler->handle($event);
     }
 
     private function quote(string $number, string $customerName, string $customerEmail): Quote
@@ -190,6 +216,14 @@ final class QuoteAdditionalServicesTest extends TestCase
         );
     }
 
+    private function pdfService(string $pdf): QuotePdfService
+    {
+        $service = $this->createMock(QuotePdfService::class);
+        $service->method('render')->willReturn($pdf);
+
+        return $service;
+    }
+
     private function notifier(): UserCommunicationNotifier
     {
         return new UserCommunicationNotifier(
@@ -215,6 +249,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         (new SchemaTool($entityManager))->createSchema([
             $entityManager->getClassMetadata(User::class),
             $entityManager->getClassMetadata(AccountNotificationEvent::class),
+            $entityManager->getClassMetadata(OutboxEvent::class),
         ]);
 
         return $this->entityManager = $entityManager;

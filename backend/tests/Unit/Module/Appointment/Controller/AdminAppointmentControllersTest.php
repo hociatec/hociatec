@@ -56,7 +56,7 @@ final class AdminAppointmentControllersTest extends TestCase
             'price' => 30,
         ]));
         self::assertSame(500, $internalError->getStatusCode());
-        self::assertSame('Impossible d\'enregistrer la prestation.', $this->payload($internalError)['message']);
+        self::assertSame('Une erreur interne est survenue.', $this->payload($internalError)['message']);
 
         $success = $controller->__invoke($this->jsonRequest([
             'name' => 'Audit réussi',
@@ -119,7 +119,7 @@ final class AdminAppointmentControllersTest extends TestCase
             'price' => 18,
         ], 'PUT'));
         self::assertSame(500, $runtimeError->getStatusCode());
-        self::assertSame('Impossible de mettre à jour la prestation.', $this->payload($runtimeError)['message']);
+        self::assertSame('Une erreur interne est survenue.', $this->payload($runtimeError)['message']);
 
         $success = $controller->__invoke(9, $this->jsonRequest([
             'name' => 'Audit premium',
