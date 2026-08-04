@@ -19,6 +19,11 @@ final readonly class UserPersistence implements TransactionManager
         $this->entityManager->persist($user);
     }
 
+    public function remove(User $user): void
+    {
+        $this->entityManager->remove($user);
+    }
+
     public function flush(): void
     {
         $this->entityManager->flush();

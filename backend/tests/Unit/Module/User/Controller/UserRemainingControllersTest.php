@@ -10,6 +10,8 @@ use App\Module\User\UI\Controller\DeleteAccountController;
 use App\Module\User\UI\Controller\RegisterController;
 use App\Module\User\Application\Service\RegistrationRateLimiter;
 use App\Module\User\UI\Controller\UpdateProfileController;
+use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Domain\Entity\ShippingAddress;
@@ -20,13 +22,14 @@ use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\DeleteAccountService;
 use App\Module\User\Application\Service\RegisterUserService;
 use App\Module\User\Application\Service\UpdateProfileService;
+use App\Module\User\Application\Service\UserPersistence;
 use App\Module\User\Application\Service\UserProfileFormatter;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -156,30 +159,47 @@ final class UserRemainingControllersTest extends TestCase
         $user = $this->user();
         $this->setId($user, 11);
 
-        $repo = $this->getMockBuilder(UserRepository::class)
+        $orders = $this->getMockBuilder(OrderRepository::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['remove'])
+            ->onlyMethods(['hasActiveForUser'])
             ->getMock();
-        $repo->expects(self::exactly(2))
-            ->method('remove')
-            ->willReturnCallback(function () {
+        $orders->expects(self::exactly(3))
+            ->method('hasActiveForUser')
+            ->with($user)
+            ->willReturnOnConsecutiveCalls(false, true, false);
+
+        $refreshTokens = $this->getMockBuilder(RefreshTokenRepository::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['revokeAllForUser'])
+            ->getMock();
+        $refreshTokens->expects(self::once())->method('revokeAllForUser')->with($user);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::exactly(2))
+            ->method('wrapInTransaction')
+            ->willReturnCallback(function (\Closure $operation) {
                 static $calls = 0;
                 ++$calls;
                 if (2 === $calls) {
                     throw new \RuntimeException('db down');
                 }
+
+                return $operation();
             });
+        $entityManager->expects(self::once())->method('remove')->with($user);
+        $entityManager->expects(self::once())->method('flush');
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
-        $delete = new class($repo, $logger, $user) extends DeleteAccountController {
-            public function __construct(UserRepository $repo, LoggerInterface $logger, private User $user)
+        $delete = new class($orders, $refreshTokens, new UserPersistence($entityManager), $logger, $user) extends DeleteAccountController {
+            public function __construct(OrderRepository $orders, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, LoggerInterface $logger, private User $user)
             {
-                parent::__construct(new DeleteAccountService($repo), $logger);
+                parent::__construct(new DeleteAccountService($orders, $refreshTokens, $persistence), $logger);
             }
             protected function getUser(): ?User { return $this->user; }
         };
         self::assertSame(200, $delete()->getStatusCode());
+        self::assertSame(409, $delete()->getStatusCode());
         self::assertSame(500, $delete()->getStatusCode());
 
         $factory = new RateLimiterFactory([

@@ -37,4 +37,11 @@ final class TradeInRequestRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function delete(TradeInRequest $request): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->remove($request);
+        $entityManager->flush();
+    }
 }

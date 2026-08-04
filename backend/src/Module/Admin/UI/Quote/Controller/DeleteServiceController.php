@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Quote\Application\Service\QuoteCatalogManager;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +17,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteServiceController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteCatalogManager $catalog,
         private readonly ServiceRepository $serviceRepository,
     ) {
     }
@@ -30,7 +28,7 @@ class DeleteServiceController extends AbstractController
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->catalog->delete($service);
+        $this->serviceRepository->delete($service);
 
         return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le service a bien été supprimé.');
     }

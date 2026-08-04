@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Application\Service\DeleteAccountService;
 use App\Module\User\Domain\Entity\User;
 use Psr\Log\LoggerInterface;
@@ -30,6 +31,8 @@ class DeleteAccountController extends AbstractController
 
         try {
             $this->deleter->delete($user);
+        } catch (DeleteAccountBlockedException $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
         } catch (\RuntimeException $exception) {
             $this->logger->error('Unable to delete user account.', [
                 'userId' => $user->getId(),

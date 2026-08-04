@@ -18,7 +18,6 @@ use App\Module\Admin\UI\TradeIn\Controller\SetTradeInOfferController;
 use App\Module\Admin\UI\TradeIn\Controller\ShowTradeInController;
 use App\Module\Admin\UI\TradeIn\Controller\UpdateTradeInStatusController;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
-use App\Module\Admin\Application\TradeIn\Service\AdminTradeInDeletionService;
 use App\Module\Admin\UI\Voucher\Controller\CreateVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\DeleteVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\GetVoucherController;
@@ -181,7 +180,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_CONFLICT, $closure((int) $submitted->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid'], 'POST'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $closure((int) $inspected->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid', 'transactionReference' => 'TX'], 'POST'))->getStatusCode());
 
-        $delete = new DeleteTradeInController($repository, new AdminTradeInDeletionService(new TradeInPersistence($em)));
+        $delete = new DeleteTradeInController($repository);
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete((int) $submitted->getId())->getStatusCode());
     }

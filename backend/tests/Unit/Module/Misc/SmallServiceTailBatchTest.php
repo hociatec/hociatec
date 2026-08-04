@@ -9,8 +9,6 @@ use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
-use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Application\Service\QuoteCatalogManager;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Persistence\DoctrinePersistence;
@@ -46,12 +44,10 @@ final class SmallServiceTailBatchTest extends TestCase
         }
     }
 
-    public function testQuoteCatalogManagerBetaProfileServiceAndSyncHandler(): void
+    public function testBetaProfileServiceAndSyncHandler(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist');
-        $entityManager->expects(self::once())->method('remove');
-        $entityManager->expects(self::once())->method('flush');
         $persistence = new DoctrinePersistence($entityManager);
 
         $user = $this->user();
@@ -70,9 +66,6 @@ final class SmallServiceTailBatchTest extends TestCase
             true,
         ));
         self::assertSame($user, $profile->getUser());
-
-        $service = new QuoteServiceEntity('Audit', 10000, 2000);
-        (new QuoteCatalogManager($persistence))->delete($service);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('info')->with('Queued order status sync.', self::arrayHasKey('order_number'));

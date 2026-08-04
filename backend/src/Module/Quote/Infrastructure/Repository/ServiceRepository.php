@@ -36,4 +36,11 @@ class ServiceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function delete(Service $service): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->remove($service);
+        $entityManager->flush();
+    }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Admin\Application\TradeIn\Service\AdminTradeInDeletionService;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +18,6 @@ final class DeleteTradeInController extends AbstractController
 {
     public function __construct(
         private readonly TradeInRequestRepository $requests,
-        private readonly AdminTradeInDeletionService $deleter,
     ) {
     }
 
@@ -30,7 +28,7 @@ final class DeleteTradeInController extends AbstractController
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->deleter->delete($request);
+        $this->requests->delete($request);
 
         return ApiResponse::success([], Response::HTTP_OK, 'La demande de reprise a bien été supprimée.');
     }

@@ -4,17 +4,30 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
+use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class DeleteAccountService
 {
-    public function __construct(private UserRepository $users)
-    {
+    public function __construct(
+        private OrderRepository $orders,
+        private RefreshTokenRepository $refreshTokens,
+        private UserPersistence $persistence,
+    ) {
     }
 
     public function delete(User $user): void
     {
-        $this->users->remove($user, true);
+        if ($this->orders->hasActiveForUser($user)) {
+            throw DeleteAccountBlockedException::activeOrders();
+        }
+
+        $this->persistence->transactional(function () use ($user): void {
+            $this->refreshTokens->revokeAllForUser($user);
+            $this->persistence->remove($user);
+            $this->persistence->flush();
+        });
     }
 }

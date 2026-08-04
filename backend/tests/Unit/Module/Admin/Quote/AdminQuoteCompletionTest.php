@@ -34,7 +34,6 @@ use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteCatalogManager;
 use App\Module\Quote\Application\Service\QuoteEmailService;
 use App\Module\Quote\Application\Service\QuoteNumberGenerator;
 use App\Module\Quote\Application\Service\QuotePdfService;
@@ -168,7 +167,7 @@ final class AdminQuoteCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, (new DeleteQuoteController($quoteRepository, $quoteService))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DeleteQuoteController($quoteRepository, $quoteService))($quoteId)->getStatusCode());
 
-        $deleteService = new DeleteServiceController(new QuoteCatalogManager(new DoctrinePersistence($em)), $serviceRepository);
+        $deleteService = new DeleteServiceController($serviceRepository);
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());
     }

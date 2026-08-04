@@ -37,6 +37,11 @@ class ShippingAddressRepository extends ServiceEntityRepository
         }
     }
 
+    public function delete(ShippingAddress $address): void
+    {
+        $this->remove($address, true);
+    }
+
     /** @return list<ShippingAddress> */
     public function findAllForUser(User $user): array
     {

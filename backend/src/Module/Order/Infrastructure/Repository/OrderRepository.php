@@ -69,6 +69,19 @@ class OrderRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function hasActiveForUser(User $user): bool
+    {
+        return null !== $this->createQueryBuilder('o')
+            ->select('1')
+            ->andWhere('o.user = :user')
+            ->andWhere('o.status IN (:statuses)')
+            ->setParameter('user', $user)
+            ->setParameter('statuses', [Order::STATUS_PENDING, Order::STATUS_CONFIRMED])
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * @return list<Order>
      */

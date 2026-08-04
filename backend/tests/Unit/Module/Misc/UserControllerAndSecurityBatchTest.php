@@ -21,7 +21,6 @@ use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
-use App\Module\User\Application\Service\DeleteShippingAddressService;
 use App\Infrastructure\Http\CsrfTokenController;
 use App\Infrastructure\Http\CsrfTokenService;
 use PHPUnit\Framework\TestCase;
@@ -76,9 +75,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
 
         $deleteRepo = $this->createMock(ShippingAddressRepository::class);
         $deleteRepo->expects(self::exactly(2))->method('findOneForUser')->with(7, $user)->willReturnOnConsecutiveCalls(null, $address);
-        $deleteRepo->expects(self::once())->method('remove')->with($address, true);
+        $deleteRepo->expects(self::once())->method('delete')->with($address);
         $deleteController = new class($deleteRepo, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses, new DeleteShippingAddressService($addresses)); }
+            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses); }
             public function getUser(): ?User { return $this->user; }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());

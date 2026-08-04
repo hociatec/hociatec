@@ -13,7 +13,6 @@ use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Service\PromotionManager;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
-use App\Module\Quote\Application\Service\QuoteCatalogManager;
 use App\Infrastructure\Persistence\DoctrinePersistence;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
@@ -79,13 +78,9 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
 
         $services = $this->createMock(ServiceRepository::class);
         $services->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $serviceEntity);
+        $services->expects(self::once())->method('delete')->with($serviceEntity);
 
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('remove')->with($serviceEntity);
-        $entityManager->expects(self::once())->method('flush');
-        $catalog = new QuoteCatalogManager(new DoctrinePersistence($entityManager));
-
-        $controller = new DeleteServiceController($catalog, $services);
+        $controller = new DeleteServiceController($services);
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(7)->getStatusCode());
     }
