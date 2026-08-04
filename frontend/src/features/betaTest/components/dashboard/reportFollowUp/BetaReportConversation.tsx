@@ -32,7 +32,7 @@ export const BetaReportConversation = ({
     </div>
     <div className="flex-1 space-y-4 overflow-y-auto bg-stone-50/50 p-4">
       {loadingComments ? (
-        <p className="text-center text-sm text-stone-500">Chargement des messages...</p>
+        <p className="sr-only">Chargement des messages...</p>
       ) : comments.length === 0 ? (
         <p className="py-4 text-center text-sm text-stone-400">Pas encore de message. L'équipe technique vous répondra très bientôt ici !</p>
       ) : (

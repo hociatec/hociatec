@@ -42,7 +42,8 @@ export const PageState = ({
 
 export const LoadingState = ({ children = 'Chargement...', ...props }: LoadingStateProps) => (
   <PageState role="status" aria-live="polite" {...props}>
-    {children}
+    <span className="inline-flex h-3 w-3 rounded-full bg-current opacity-70" aria-hidden="true" />
+    <span className="sr-only">{children}</span>
   </PageState>
 );
 

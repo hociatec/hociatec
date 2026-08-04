@@ -17,10 +17,7 @@ export const AdminDashboardHome = ({
 }: AdminDashboardHomeProps) => (
   <div className="admin-dashboard__live">
     {dashboardStatus === 'loading' && (
-      <div
-        className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6 text-sm text-stone-500"
-        aria-hidden="true"
-      >
+      <div className="sr-only" role="status" aria-live="polite">
         Chargement des indicateurs...
       </div>
     )}

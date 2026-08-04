@@ -28,7 +28,7 @@ export const AdminBetaCampaignsPage = () => {
       </header>
 
       {campaigns.isLoading ? (
-        <p className="text-stone-500">Chargement des campagnes...</p>
+        <p className="sr-only">Chargement des campagnes...</p>
       ) : campaigns.error ? (
         <p className="text-red-600">Erreur lors du chargement des campagnes.</p>
       ) : campaigns.campaigns.length === 0 ? (

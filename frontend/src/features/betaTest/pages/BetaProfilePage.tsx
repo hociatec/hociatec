@@ -60,7 +60,7 @@ export const BetaProfilePage = () => {
     return (
       <SiteLayout headerVariant="light">
         <PageContainer title="Mon profil bêta">
-          {error ? <p className="text-red-700">{error}</p> : <p>Chargement…</p>}
+          {error ? <p className="text-red-700">{error}</p> : <p className="sr-only">Chargement…</p>}
         </PageContainer>
       </SiteLayout>
     );

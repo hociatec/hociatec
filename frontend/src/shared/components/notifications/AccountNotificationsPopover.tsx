@@ -68,7 +68,7 @@ export const AccountNotificationsPopover = ({
         aria-label="Notifications du compte"
       >
         {loading ? (
-          <p aria-hidden="true">Chargement des notifications...</p>
+          <p className="sr-only">Chargement des notifications...</p>
         ) : notifications.length === 0 ? (
           <p>Aucune notification prioritaire.</p>
         ) : (

@@ -105,7 +105,7 @@ export const AdminBugReportDetailDialog = ({
                 <h2 className="font-semibold text-brand-900">Discussion</h2>
               </div>
               <div className="flex-1 space-y-3 overflow-y-auto bg-stone-50 p-4">
-                {loadingComments ? <p className="text-sm text-stone-500">Chargement des messages...</p> : comments.length === 0 ? <p className="text-sm text-stone-500">Aucun message.</p> : comments.map((comment) => {
+                {loadingComments ? <p className="sr-only">Chargement des messages...</p> : comments.length === 0 ? <p className="text-sm text-stone-500">Aucun message.</p> : comments.map((comment) => {
                   const authorLabel = comment.author.role === 'admin' ? 'Support Hociatec' : comment.author.email;
                   return <p key={comment.id} className="rounded-lg border border-stone-200 bg-white p-3 text-sm"><span className="font-semibold">{authorLabel}</span> <span className="text-stone-500">({new Date(comment.createdAt).toLocaleString()})</span> : {comment.content}</p>;
                 })}

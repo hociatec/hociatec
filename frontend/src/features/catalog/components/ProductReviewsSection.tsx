@@ -38,7 +38,7 @@ export const ProductReviewsSection = ({
           </div>
         </div>
       </div>
-      {reviewsLoading && <p className="muted">Chargement des avis...</p>}
+      {reviewsLoading && <p className="sr-only">Chargement des avis...</p>}
       {reviewsError && <p className="muted">{reviewsError}</p>}
       {!reviewsLoading && reviews.length === 0 && (
         <p className="muted">Pas encore d'avis pour ce produit.</p>

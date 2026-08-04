@@ -44,7 +44,7 @@ export const HomePage = () => {
         <section className="home-products animate-fade-in-up delay-300">
           <HomeServicesHeading />
           {loadingServices && (
-            <p className="home-loading" role="status" aria-live="polite">
+            <p className="sr-only" role="status" aria-live="polite">
               Chargement des services...
             </p>
           )}
@@ -65,7 +65,7 @@ export const HomePage = () => {
         <section className="home-products animate-fade-in-up delay-300">
           <HomeProductsHeading />
           {loadingProducts && (
-            <p className="home-loading" role="status" aria-live="polite">
+            <p className="sr-only" role="status" aria-live="polite">
               Chargement des produits...
             </p>
           )}
@@ -92,7 +92,7 @@ export const HomePage = () => {
         <section className="home-news animate-fade-in-up delay-300">
           <HomeNewsHeading />
           {loadingNews && (
-            <p className="home-loading" role="status" aria-live="polite">
+            <p className="sr-only" role="status" aria-live="polite">
               Chargement des actualités...
             </p>
           )}

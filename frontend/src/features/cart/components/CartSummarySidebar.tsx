@@ -159,7 +159,7 @@ export const CartSummarySidebar = ({
         <h2>Lieu de livraison</h2>
         <div className="cart-summary-address">
           {addressesLoading ? (
-            <p role="status">Chargement de vos adresses...</p>
+            <p className="sr-only" role="status">Chargement de vos adresses...</p>
           ) : addressesError ? (
             <FeedbackMessage>{addressesError}</FeedbackMessage>
           ) : addresses.length > 0 ? (

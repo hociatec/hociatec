@@ -18,7 +18,7 @@ export const BetaDashboardPage = () => {
     return (
       <SiteLayout headerVariant="light">
         <PageContainer title="Mon espace bêta">
-          <p className="py-8 text-stone-500">Chargement de votre espace bêta...</p>
+          <p className="sr-only">Chargement de votre espace bêta...</p>
         </PageContainer>
       </SiteLayout>
     );

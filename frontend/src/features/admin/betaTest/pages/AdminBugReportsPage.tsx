@@ -57,7 +57,7 @@ export const AdminBugReportsPage = () => {
       />
 
       {reports.isLoading ? (
-        <p className="text-stone-500">Chargement des signalements...</p>
+        <p className="sr-only">Chargement des signalements...</p>
       ) : reports.error ? (
         <p className="text-red-600">Erreur lors du chargement des signalements.</p>
       ) : reports.reports.length === 0 ? (

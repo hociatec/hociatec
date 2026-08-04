@@ -88,7 +88,7 @@ export const CommunicationPreferencesPage = () => {
 
         <form onSubmit={submit} className="mt-6 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
           {loading ? (
-            <p className="text-stone-600">Chargement…</p>
+            <p className="sr-only">Chargement…</p>
           ) : (
             <div className="space-y-3">
               <h2 className="text-lg font-semibold text-brand-900">Moyens de communication</h2>
