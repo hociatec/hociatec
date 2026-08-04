@@ -57,8 +57,6 @@ final class CheckoutController extends AbstractController
             return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Impossible de valider la commande.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
-        } catch (\Throwable $exception) {
-            return ApiResponse::error('Impossible de valider la commande.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
         }
 
         if (null !== $result->order) {
@@ -74,7 +72,7 @@ final class CheckoutController extends AbstractController
 
     private function cartToken(Request $request): ?string
     {
-        $token = $request->headers->get('X-Cart-Token') ?? $request->query->get('cartToken');
+        $token = $request->headers->get('X-Cart-Token');
 
         return is_string($token) && '' !== $token ? $token : null;
     }

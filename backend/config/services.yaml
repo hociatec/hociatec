@@ -8,6 +8,7 @@ parameters:
     env(STRIPE_REFUND_WEBHOOK_SECRET): ''
     env(WEASYPRINT_PYTHON): ''
     env(WEASYPRINT_PYTHONPATH): ''
+    env(WEASYPRINT_HOME): ''
     env(STRIPE_SECRET_KEY): ''
     env(BACKUP_ENCRYPTION_KEY_FILE): '/etc/hociatec/backup.key'
     env(METRICS_TOKEN): ''

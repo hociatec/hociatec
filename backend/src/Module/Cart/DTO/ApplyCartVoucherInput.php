@@ -11,7 +11,6 @@ final readonly class ApplyCartVoucherInput
     public function __construct(
         #[Assert\NotBlank]
         #[Assert\Length(max: 64)] public string $voucherCode,
-        #[Assert\Length(max: 64)] public ?string $cartToken = null,
     ) {
     }
 
@@ -20,7 +19,6 @@ final readonly class ApplyCartVoucherInput
     {
         return new self(
             is_string($payload['voucherCode'] ?? null) ? trim($payload['voucherCode']) : '',
-            is_string($payload['cartToken'] ?? null) ? trim($payload['cartToken']) : null,
         );
     }
 }

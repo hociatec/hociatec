@@ -34,7 +34,9 @@ final readonly class RateLimitSubscriber
 
         $request = $event->getRequest();
         $user = $this->security->getUser();
-        $key = null !== $user ? 'user:'.$user->getUserIdentifier() : 'ip:'.($request->getClientIp() ?? 'unknown');
+        $route = $request->attributes->get('_route');
+        $scope = $attribute->limiter.':'.(is_string($route) && '' !== $route ? $route : $request->getPathInfo());
+        $key = null !== $user ? $scope.':user:'.$user->getUserIdentifier() : $scope.':ip:'.($request->getClientIp() ?? 'unknown');
         $limit = $factory->create($key)->consume($attribute->tokens);
         if ($limit->isAccepted()) {
             return;

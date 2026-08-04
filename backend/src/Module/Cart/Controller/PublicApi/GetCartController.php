@@ -47,8 +47,6 @@ class GetCartController extends AbstractController
             return $headerToken;
         }
 
-        $queryToken = $request->query->get('cartToken');
-
-        return is_string($queryToken) && '' !== $queryToken ? $queryToken : null;
+        return null;
     }
 }

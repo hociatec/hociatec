@@ -6,6 +6,7 @@ namespace App\Module\Auth\Repository;
 
 use App\Module\Auth\Entity\RefreshToken;
 use App\Module\User\Entity\User;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -44,6 +45,17 @@ class RefreshTokenRepository extends ServiceEntityRepository
         return $this->findOneBy(['selector' => $selector]);
     }
 
+    public function findOneBySelectorForUpdate(string $selector): ?RefreshToken
+    {
+        return $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.selector = :selector')
+            ->setParameter('selector', $selector)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->getOneOrNullResult();
+    }
+
     public function revokeAllForUser(User $user, bool $flush = false): void
     {
         $tokens = $this->findBy(['user' => $user, 'revokedAt' => null]);
@@ -55,5 +67,17 @@ class RefreshTokenRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function purgeExpiredOrRevokedBefore(\DateTimeImmutable $now, \DateTimeImmutable $revokedBefore): int
+    {
+        return (int) $this->createQueryBuilder('refreshToken')
+            ->delete()
+            ->where('refreshToken.expiresAt < :now')
+            ->orWhere('refreshToken.revokedAt IS NOT NULL AND refreshToken.revokedAt < :revokedBefore')
+            ->setParameter('now', $now)
+            ->setParameter('revokedBefore', $revokedBefore)
+            ->getQuery()
+            ->execute();
     }
 }

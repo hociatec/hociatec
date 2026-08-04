@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Shared\Pdf;
 
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Process\Process;
+
 final readonly class AccessiblePdfRenderer
 {
     public function __construct(
         private string $projectDir,
         private string $configuredPython,
         private string $configuredPythonPath,
+        private ?LoggerInterface $logger = null,
+        private int $timeoutSeconds = 60,
     ) {
     }
 
@@ -29,11 +34,13 @@ final readonly class AccessiblePdfRenderer
 
         $htmlPath = $htmlFile.'.html';
         $pdfPath = $pdfFile.'.pdf';
-        @unlink($htmlFile);
-        @unlink($pdfFile);
+        $this->removeTemporaryFile($htmlFile);
+        $this->removeTemporaryFile($pdfFile);
 
         try {
-            file_put_contents($htmlPath, $html);
+            if (false === file_put_contents($htmlPath, $html)) {
+                throw new \RuntimeException('Impossible d\'écrire le fichier temporaire du document PDF.');
+            }
             $this->run($python, $script, $htmlPath, $pdfPath);
             $pdf = file_get_contents($pdfPath);
             if (false === $pdf) {
@@ -42,8 +49,8 @@ final readonly class AccessiblePdfRenderer
 
             return $pdf;
         } finally {
-            @unlink($htmlPath);
-            @unlink($pdfPath);
+            $this->removeTemporaryFile($htmlPath);
+            $this->removeTemporaryFile($pdfPath);
         }
     }
 
@@ -74,51 +81,48 @@ final readonly class AccessiblePdfRenderer
             return false;
         }
 
-        $process = proc_open(
-            sprintf('%s -c %s', escapeshellarg($python), escapeshellarg('import weasyprint')),
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-            null,
-            $this->environment(),
-        );
-        if (!is_resource($process)) {
+        $process = new Process([$python, '-c', 'import weasyprint'], null, $this->environment());
+        $process->setTimeout(5);
+
+        try {
+            $process->run();
+        } catch (\Throwable $exception) {
+            $this->logger?->debug('WeasyPrint import check failed.', [
+                'python' => $python,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
             return false;
         }
 
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        return 0 === proc_close($process);
+        return $process->isSuccessful();
     }
 
     private function run(string $python, string $script, string $htmlPath, string $pdfPath): void
     {
-        $process = proc_open(
-            sprintf(
-                '%s %s %s %s',
-                escapeshellarg($python),
-                escapeshellarg($script),
-                escapeshellarg($htmlPath),
-                escapeshellarg($pdfPath),
-            ),
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-            null,
-            $this->environment(),
-        );
-        if (!is_resource($process)) {
-            throw new \RuntimeException('Impossible de démarrer WeasyPrint.');
+        $process = new Process([$python, $script, $htmlPath, $pdfPath], null, $this->environment());
+        $process->setTimeout($this->timeoutSeconds);
+
+        try {
+            $process->run();
+        } catch (\Throwable $exception) {
+            $this->logger?->error('PDF generation process failed.', [
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw new \RuntimeException('La génération PDF accessible a échoué.', 0, $exception);
         }
 
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-        $exitCode = proc_close($process);
+        if (!$process->isSuccessful() || !is_file($pdfPath)) {
+            $this->logger?->error('PDF generation failed.', [
+                'exitCode' => $process->getExitCode(),
+                'stdout' => $process->getOutput(),
+                'stderr' => $process->getErrorOutput(),
+            ]);
 
-        if (0 !== $exitCode || !is_file($pdfPath)) {
-            $message = trim($stderr ?: $stdout);
-            throw new \RuntimeException('' !== $message ? $message : 'La génération PDF accessible a échoué.');
+            throw new \RuntimeException('La génération PDF accessible a échoué.');
         }
     }
 
@@ -130,15 +134,11 @@ final readonly class AccessiblePdfRenderer
             $pythonPaths[] = trim($this->configuredPythonPath);
         }
 
-        $deploymentPackages = '/home/hocine/.local/lib/python3.10/site-packages';
-        if (is_dir($deploymentPackages)) {
-            $pythonPaths[] = $deploymentPackages;
+        $environment = ['PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'];
+        $pythonHome = $this->environmentVariable('WEASYPRINT_HOME');
+        if (null !== $pythonHome) {
+            $environment['HOME'] = $pythonHome;
         }
-
-        $environment = [
-            'HOME' => '/home/hocine',
-            'PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-        ];
         if ([] !== $pythonPaths) {
             $environment['PYTHONPATH'] = implode(
                 PATH_SEPARATOR,
@@ -147,5 +147,23 @@ final readonly class AccessiblePdfRenderer
         }
 
         return $environment;
+    }
+
+    private function environmentVariable(string $name): ?string
+    {
+        $value = $_ENV[$name] ?? $_SERVER[$name] ?? getenv($name);
+
+        return is_string($value) && '' !== trim($value) ? trim($value) : null;
+    }
+
+    private function removeTemporaryFile(string $path): void
+    {
+        if (!is_file($path)) {
+            return;
+        }
+
+        if (!unlink($path)) {
+            $this->logger?->warning('Temporary PDF file cleanup failed.', ['path' => $path]);
+        }
     }
 }

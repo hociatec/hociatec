@@ -12,18 +12,19 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 final class CsrfProtectionSubscriber implements EventSubscriberInterface
 {
-    /**
-     * @var list<string>
-     */
-    private const EXCLUDED_PREFIXES = [
-        '/api/csrf-token',
+    /** @var list<string> */
+    private const EXCLUDED_PATHS = [
         '/api/auth/login',
-        '/api/auth/logout',
-        '/api/auth/refresh',
-        '/api/auth/register',
-        '/api/auth/verify',
-        '/api/auth/password-reset',
-        '/api/stripe/webhook',
+    ];
+
+    /** @var list<string> */
+    private const EXCLUDED_ROUTES = [
+        'api_auth_logout',
+        'api_auth_password_reset_confirm',
+        'api_auth_password_reset_request',
+        'api_auth_refresh',
+        'api_auth_register',
+        'api_stripe_webhook',
     ];
 
     public function __construct(private readonly CsrfTokenService $csrfTokenService)
@@ -63,10 +64,13 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
                 return false;
             }
 
-            foreach (self::EXCLUDED_PREFIXES as $prefix) {
-                if ($path === $prefix || str_starts_with($path, $prefix.'/')) {
-                    return false;
-                }
+            if (in_array($path, self::EXCLUDED_PATHS, true)) {
+                return false;
+            }
+
+            $route = $request->attributes->get('_route');
+            if (is_string($route) && in_array($route, self::EXCLUDED_ROUTES, true)) {
+                return false;
             }
 
             return true;

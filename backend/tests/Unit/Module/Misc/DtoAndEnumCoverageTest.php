@@ -97,21 +97,18 @@ final class DtoAndEnumCoverageTest extends TestCase
         self::assertSame('GIFT10', $voucher->code);
         self::assertFalse($voucher->isActive);
 
-        $add = AddCartItemInput::fromArray(['productId' => '88', 'quantity' => '2', 'rentalMonths' => '3', 'cartToken' => ' abc ']);
+        $add = AddCartItemInput::fromArray(['productId' => '88', 'quantity' => '2', 'rentalMonths' => '3']);
         self::assertSame(88, $add->productId);
         self::assertSame(2, $add->quantity);
         self::assertSame(3, $add->rentalMonths);
-        self::assertSame('abc', $add->cartToken);
 
-        $apply = ApplyCartVoucherInput::fromArray(['voucherCode' => ' GIFT10 ', 'cartToken' => ' token ']);
+        $apply = ApplyCartVoucherInput::fromArray(['voucherCode' => ' GIFT10 ']);
         self::assertSame('GIFT10', $apply->voucherCode);
-        self::assertSame('token', $apply->cartToken);
 
-        $update = UpdateCartItemInput::fromArray(['quantity' => '0', 'rentalMonths' => '6', 'currentRentalMonths' => '3', 'cartToken' => ' token ']);
+        $update = UpdateCartItemInput::fromArray(['quantity' => '0', 'rentalMonths' => '6', 'currentRentalMonths' => '3']);
         self::assertSame(0, $update->quantity);
         self::assertSame(6, $update->rentalMonths);
         self::assertSame(3, $update->currentRentalMonths);
-        self::assertSame('token', $update->cartToken);
     }
 
     public function testAuthCatalogContactDtosAndEnums(): void

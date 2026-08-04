@@ -213,7 +213,7 @@ final class AuthModuleCompletionTest extends TestCase
 
     private function refreshService(EntityManager $em): RefreshTokenService
     {
-        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em));
+        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), $em);
     }
 
     private function limiter(int $limit): RateLimiterFactory

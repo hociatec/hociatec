@@ -37,7 +37,7 @@ final class UpdateCartItemController extends AbstractController
         $this->validator->validate($input);
         $quantity = $input->quantity;
 
-        $token = $this->extractToken($request, ['cartToken' => $input->cartToken]);
+        $token = $this->extractToken($request);
 
         $product = $this->productRepository->find($productId);
         if (null === $product) {
@@ -70,10 +70,7 @@ final class UpdateCartItemController extends AbstractController
         return $response;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function extractToken(Request $request, array $payload): ?string
+    private function extractToken(Request $request): ?string
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
@@ -81,8 +78,6 @@ final class UpdateCartItemController extends AbstractController
             return $headerToken;
         }
 
-        $payloadToken = $payload['cartToken'] ?? null;
-
-        return is_string($payloadToken) && '' !== $payloadToken ? $payloadToken : null;
+        return null;
     }
 }

@@ -12,7 +12,6 @@ final readonly class UpdateCartItemInput
         #[Assert\PositiveOrZero] public int $quantity,
         #[Assert\Positive] public ?int $rentalMonths = null,
         #[Assert\Positive] public ?int $currentRentalMonths = null,
-        #[Assert\Length(max: 64)] public ?string $cartToken = null,
     ) {
     }
 
@@ -23,7 +22,6 @@ final readonly class UpdateCartItemInput
             is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : -1,
             is_numeric($payload['rentalMonths'] ?? null) ? (int) $payload['rentalMonths'] : null,
             is_numeric($payload['currentRentalMonths'] ?? null) ? (int) $payload['currentRentalMonths'] : null,
-            is_string($payload['cartToken'] ?? null) ? trim($payload['cartToken']) : null,
         );
     }
 }

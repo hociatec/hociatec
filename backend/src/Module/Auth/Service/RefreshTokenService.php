@@ -7,6 +7,7 @@ namespace App\Module\Auth\Service;
 use App\Module\Auth\Entity\RefreshToken;
 use App\Module\Auth\Repository\RefreshTokenRepository;
 use App\Module\User\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 
 final class RefreshTokenService
 {
@@ -15,6 +16,7 @@ final class RefreshTokenService
     public function __construct(
         private readonly RefreshTokenRepository $refreshTokenRepository,
         private readonly RefreshTokenPersistence $persistence,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -23,17 +25,7 @@ final class RefreshTokenService
      */
     public function issueForUser(User $user): array
     {
-        $selector = bin2hex(random_bytes(16));
-        $secret = bin2hex(random_bytes(32));
-        $plainToken = $selector.'.'.$secret;
-        $expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('P'.self::REFRESH_TOKEN_TTL_DAYS.'D'));
-
-        $refreshToken = new RefreshToken(
-            $user,
-            $selector,
-            hash('sha256', $secret),
-            $expiresAt,
-        );
+        [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
 
         $this->persistence->save($refreshToken);
         $this->persistence->flush();
@@ -55,26 +47,28 @@ final class RefreshTokenService
         }
         [$selector, $secret] = $parts;
 
-        $storedToken = $this->refreshTokenRepository->findOneBySelector($selector);
-        if (null === $storedToken || $storedToken->isRevoked() || $storedToken->isExpired()) {
-            return null;
-        }
+        return $this->entityManager->wrapInTransaction(function () use ($selector, $secret): ?array {
+            $storedToken = $this->refreshTokenRepository->findOneBySelectorForUpdate($selector);
+            if (null === $storedToken || $storedToken->isRevoked() || $storedToken->isExpired()) {
+                return null;
+            }
 
-        if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
+            if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
+                $storedToken->revoke();
+
+                return null;
+            }
+
             $storedToken->revoke();
-            $this->persistence->flush();
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
+            $this->persistence->save($refreshToken);
 
-            return null;
-        }
-
-        $storedToken->revoke();
-        $issued = $this->issueForUser($storedToken->getUser());
-
-        return [
-            'user' => $storedToken->getUser(),
-            'refreshToken' => $issued['refreshToken'],
-            'expiresAt' => $issued['expiresAt'],
-        ];
+            return [
+                'user' => $storedToken->getUser(),
+                'refreshToken' => $plainToken,
+                'expiresAt' => $expiresAt->format(DATE_ATOM),
+            ];
+        });
     }
 
     public function revokePlainToken(string $plainToken): void
@@ -108,5 +102,27 @@ final class RefreshTokenService
         }
 
         return [$parts[0], $parts[1]];
+    }
+
+    /**
+     * @return array{0: RefreshToken, 1: string, 2: \DateTimeImmutable}
+     */
+    private function createRefreshToken(User $user): array
+    {
+        $selector = bin2hex(random_bytes(16));
+        $secret = bin2hex(random_bytes(32));
+        $plainToken = $selector.'.'.$secret;
+        $expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('P'.self::REFRESH_TOKEN_TTL_DAYS.'D'));
+
+        return [
+            new RefreshToken(
+                $user,
+                $selector,
+                hash('sha256', $secret),
+                $expiresAt,
+            ),
+            $plainToken,
+            $expiresAt,
+        ];
     }
 }

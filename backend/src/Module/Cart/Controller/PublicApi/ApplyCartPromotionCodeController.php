@@ -37,7 +37,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
 
         try {
             $cart = $this->cartVouchers->apply(
-                $this->extractToken($request, ['cartToken' => $input->cartToken]),
+                $this->extractToken($request),
                 $input->voucherCode,
                 $user instanceof User ? $user : null,
             );
@@ -53,18 +53,13 @@ final class ApplyCartPromotionCodeController extends AbstractController
         return $response;
     }
 
-    /**
-     * @param array<string, mixed>|null $payload
-     */
-    private function extractToken(Request $request, ?array $payload): ?string
+    private function extractToken(Request $request): ?string
     {
         $headerToken = $request->headers->get('X-Cart-Token');
         if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
         }
 
-        $payloadToken = $payload['cartToken'] ?? null;
-
-        return is_string($payloadToken) && '' !== $payloadToken ? $payloadToken : null;
+        return null;
     }
 }

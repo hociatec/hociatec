@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Backup\Service;
 
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\Process;
+
 final readonly class DatabaseBackupDumper
 {
+    private const PROCESS_TIMEOUT_SECONDS = 900;
+
     public function __construct(private string $projectDir, private string $databaseUrl)
     {
     }
@@ -20,54 +25,91 @@ final readonly class DatabaseBackupDumper
         if (null !== $database['port']) {
             array_splice($command, 4, 0, ['-P'.$database['port']]);
         }
-        $process = @proc_open(
+        $tempPath = $targetPath.'.part';
+        $this->removePartialFile($tempPath);
+
+        $gzip = gzopen($tempPath, 'wb9');
+        if (false === $gzip) {
+            throw new \RuntimeException('Impossible de créer le fichier de sauvegarde.');
+        }
+
+        $stderr = '';
+        $writeFailed = false;
+        $process = new Process(
             $command,
-            [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
             $this->projectDir,
             ['MYSQL_PWD' => $database['password'], 'PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'],
         );
-        if (!is_resource($process)) {
-            throw new \RuntimeException('Impossible de lancer mysqldump.');
-        }
-        $gzip = gzopen($targetPath, 'wb9');
-        if (false === $gzip) {
-            proc_terminate($process);
-            throw new \RuntimeException('Impossible de créer le fichier de sauvegarde.');
-        }
-        while (!feof($pipes[1])) {
-            $chunk = fread($pipes[1], 1024 * 1024);
-            if (false === $chunk) {
-                break;
+        $process->setInput('');
+        $process->setTimeout(self::PROCESS_TIMEOUT_SECONDS);
+
+        $runException = null;
+        try {
+            $process->run(function (string $type, string $buffer) use ($gzip, &$stderr, &$writeFailed): void {
+                if (Process::ERR === $type) {
+                    $stderr .= $buffer;
+
+                    return;
+                }
+
+                if ('' !== $buffer && false === gzwrite($gzip, $buffer)) {
+                    $writeFailed = true;
+                    throw new \RuntimeException('Impossible d\'écrire le fichier de sauvegarde.');
+                }
+            });
+        } catch (ProcessTimedOutException $exception) {
+            $runException = new \RuntimeException('mysqldump a dépassé le délai autorisé.', 0, $exception);
+        } catch (\RuntimeException $exception) {
+            $runException = $exception;
+        } finally {
+            if (!gzclose($gzip)) {
+                $writeFailed = true;
             }
-            gzwrite($gzip, $chunk);
         }
-        fclose($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]) ?: '';
-        fclose($pipes[2]);
-        gzclose($gzip);
-        if (0 !== proc_close($process)) {
+
+        if (null !== $runException) {
+            $this->removePartialFile($tempPath);
+            throw $runException;
+        }
+
+        if ($writeFailed || !$process->isSuccessful()) {
+            $this->removePartialFile($tempPath);
             throw new \RuntimeException(trim($stderr) ?: 'mysqldump a échoué.');
+        }
+
+        if (!is_file($tempPath) || 0 >= filesize($tempPath)) {
+            $this->removePartialFile($tempPath);
+            throw new \RuntimeException('La sauvegarde générée est vide.');
+        }
+
+        if (!rename($tempPath, $targetPath)) {
+            $this->removePartialFile($tempPath);
+            throw new \RuntimeException('Impossible de finaliser le fichier de sauvegarde.');
         }
     }
 
     public function isAvailable(): bool
     {
-        $process = @proc_open(
-            ['mysqldump', '--version'],
-            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
-            $this->projectDir,
-            ['PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'],
-        );
-        if (!is_resource($process)) {
+        try {
+            $this->configuration();
+        } catch (\RuntimeException) {
             return false;
         }
 
-        fclose($pipes[1]);
-        fclose($pipes[2]);
+        $process = new Process(
+            ['mysqldump', '--version'],
+            $this->projectDir,
+            ['PATH' => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'],
+        );
+        $process->setTimeout(5);
 
-        return 0 === proc_close($process);
+        try {
+            $process->run();
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return $process->isSuccessful();
     }
 
     /** @return array{user: string, password: string, host: string, port: int|null, name: string} */
@@ -89,5 +131,12 @@ final readonly class DatabaseBackupDumper
             'port' => isset($parts['port']) ? (int) $parts['port'] : null,
             'name' => rawurldecode($name),
         ];
+    }
+
+    private function removePartialFile(string $path): void
+    {
+        if (is_file($path) && !unlink($path)) {
+            throw new \RuntimeException('Impossible de supprimer le fichier temporaire de sauvegarde.');
+        }
     }
 }

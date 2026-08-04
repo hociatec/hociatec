@@ -53,7 +53,7 @@ class AddCartItemController extends AbstractController
 
         $quantity = $input->quantity;
 
-        $token = $this->extractToken($request, ['cartToken' => $input->cartToken]);
+        $token = $this->extractToken($request);
         try {
             $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
         } catch (\InvalidArgumentException $exception) {
@@ -70,19 +70,12 @@ class AddCartItemController extends AbstractController
         return $response;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function extractToken(Request $request, array $payload): ?string
+    private function extractToken(Request $request): ?string
     {
         $headerToken = $request->headers->get('X-Cart-Token');
 
         if (is_string($headerToken) && '' !== $headerToken) {
             return $headerToken;
-        }
-
-        if (isset($payload['cartToken']) && is_string($payload['cartToken']) && '' !== $payload['cartToken']) {
-            return $payload['cartToken'];
         }
 
         return null;

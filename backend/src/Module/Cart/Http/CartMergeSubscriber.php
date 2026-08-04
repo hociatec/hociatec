@@ -40,9 +40,10 @@ final class CartMergeSubscriber implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-        $headerToken = $request->headers->get('X-Cart-Token');
-        $queryToken = $request->query->get('cartToken');
-        $cartToken = is_string($headerToken) && '' !== $headerToken ? $headerToken : (is_string($queryToken) ? $queryToken : null);
+        $cartToken = $request->headers->get('X-Cart-Token');
+        if (!is_string($cartToken) || '' === $cartToken) {
+            return;
+        }
 
         // Merge or attach if applicable
         $this->mergeService->mergeForUser($cartToken, $user);

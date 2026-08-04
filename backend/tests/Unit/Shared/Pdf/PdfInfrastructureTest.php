@@ -48,7 +48,7 @@ SH);
         $renderer->render('<p>x</p>', 'invoice', 'read error');
     }
 
-    public function testAccessiblePdfRendererRunPropagatesProcessFailureMessage(): void
+    public function testAccessiblePdfRendererRunReturnsGenericFailureMessage(): void
     {
         $projectDir = sys_get_temp_dir().'/hociatec-pdf-fail-'.bin2hex(random_bytes(4));
         mkdir($projectDir, 0777, true);
@@ -72,7 +72,7 @@ SH);
         $method->setAccessible(true);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('boom');
+        $this->expectExceptionMessage('La génération PDF accessible a échoué.');
 
         $method->invoke($renderer, $python, $projectDir.'/script.py', $projectDir.'/in.html', $projectDir.'/out.pdf');
     }
@@ -102,7 +102,7 @@ SH);
         $env = $reflection->getMethod('environment');
         $env->setAccessible(true);
         $environment = $env->invoke($renderer);
-        self::assertSame('/home/hocine', $environment['HOME']);
+        self::assertArrayNotHasKey('HOME', $environment);
         self::assertStringContainsString('/opt/site-packages', $environment['PYTHONPATH']);
 
         $canImport = $reflection->getMethod('canImportWeasyPrint');
