@@ -6,7 +6,6 @@ namespace App\Module\Order\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Order\Application\DTO\CheckoutInput;
@@ -41,7 +40,7 @@ final class CheckoutController extends AbstractController
         }
 
         try {
-            $payload = JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = CheckoutInput::fromArray($payload);
             $this->dtoValidator->validate($input);
             $result = $this->checkout->checkout(
@@ -60,7 +59,7 @@ final class CheckoutController extends AbstractController
         }
 
         if (null !== $result->order) {
-            return ApiResponse::success(['order' => OrderFormatter::formatOrder($result->order)]);
+            return ApiResponse::successItem('order', OrderFormatter::formatOrder($result->order));
         }
 
         return ApiResponse::created([

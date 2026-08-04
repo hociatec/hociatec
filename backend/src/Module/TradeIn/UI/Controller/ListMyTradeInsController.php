@@ -26,6 +26,6 @@ final class ListMyTradeInsController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        return ApiResponse::success(['items' => array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findByUser($user))]);
+        return ApiResponse::successItem('items', array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findByUser($user)));
     }
 }

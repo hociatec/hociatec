@@ -32,7 +32,7 @@ class UpdateConfigurationController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = WorkingDaysInput::fromArray($payload);
             $this->validator->validate($input);
             $days = $this->payloadMapper->map($input->toPayload());

@@ -56,6 +56,6 @@ final class UpdateOrderDeliveryController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
     }
 }

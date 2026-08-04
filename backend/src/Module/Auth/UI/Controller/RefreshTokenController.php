@@ -6,7 +6,6 @@ namespace App\Module\Auth\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\CsrfExempt;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Http\RateLimitKeyFactory;
 use App\Module\Auth\Application\Service\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
@@ -35,7 +34,7 @@ class RefreshTokenController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
         if (!is_string($refreshToken) || '' === $refreshToken) {
             $refreshToken = (string) ($payload['refreshToken'] ?? '');

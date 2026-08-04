@@ -41,6 +41,6 @@ final class ShowBugReportController extends AbstractController
             return ApiResponse::error('Accès refusé.', 403);
         }
 
-        return ApiResponse::success(['report' => $this->formatter->format($report)]);
+        return ApiResponse::successItem('report', $this->formatter->format($report));
     }
 }

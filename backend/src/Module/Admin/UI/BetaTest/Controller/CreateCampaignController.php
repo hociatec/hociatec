@@ -36,6 +36,6 @@ final class CreateCampaignController extends AbstractController
             return ApiResponse::error($exception->getMessage(), 422);
         }
 
-        return ApiResponse::created(['id' => $campaign->getId()], 'Campagne créée.');
+        return ApiResponse::createdItem('id', $campaign->getId(), 'Campagne créée.');
     }
 }

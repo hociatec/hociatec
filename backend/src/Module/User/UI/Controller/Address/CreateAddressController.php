@@ -29,7 +29,7 @@ class CreateAddressController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
 
         $input = ShippingAddressInput::fromArray($payload);
         $this->dtoValidator->validate($input);
@@ -45,6 +45,6 @@ class CreateAddressController extends AbstractController
         $isDefault = isset($payload['isDefault']) ? (bool) $payload['isDefault'] : false;
         $this->writer->saveWithDefaultPolicy($user, $address, $isDefault);
 
-        return ApiResponse::created(['address' => ShippingAddressFormatter::toArray($address)]);
+        return ApiResponse::createdItem('address', ShippingAddressFormatter::toArray($address));
     }
 }

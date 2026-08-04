@@ -36,6 +36,16 @@ final class ApiResponse
         return self::success($data, JsonResponse::HTTP_CREATED, $message);
     }
 
+    public static function successItem(string $key, mixed $value, int $status = JsonResponse::HTTP_OK, ?string $message = null): JsonResponse
+    {
+        return self::success([$key => $value], $status, $message);
+    }
+
+    public static function createdItem(string $key, mixed $value, ?string $message = null): JsonResponse
+    {
+        return self::created([$key => $value], $message);
+    }
+
     /**
      * @param list<mixed>                                          $items
      * @param array{page:int,perPage:int,total:int,totalPages:int} $meta

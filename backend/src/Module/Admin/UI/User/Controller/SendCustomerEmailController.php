@@ -36,7 +36,7 @@ final class SendCustomerEmailController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

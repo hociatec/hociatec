@@ -15,6 +15,6 @@ final class GetBetaProfileOptionsController extends AbstractController
 {
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['choices' => BetaProfileChoices::groups()]);
+        return ApiResponse::successItem('choices', BetaProfileChoices::groups());
     }
 }

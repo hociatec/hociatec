@@ -28,7 +28,7 @@ final readonly class BulkOrderStatusController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = BulkOrderStatusInput::fromArray($payload);
             $this->validator->validate($input);
             $updated = $this->bulkStatus->update($input->orderIds, $input->status);
@@ -38,6 +38,6 @@ final readonly class BulkOrderStatusController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['updated' => $updated]);
+        return ApiResponse::successItem('updated', $updated);
     }
 }

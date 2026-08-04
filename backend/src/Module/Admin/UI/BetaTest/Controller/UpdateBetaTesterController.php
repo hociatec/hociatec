@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Module\Admin\Application\BetaTest\Service\ChangeBetaTesterStatusHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
@@ -31,7 +30,7 @@ final class UpdateBetaTesterController extends AbstractController
             return ApiResponse::error('Profil introuvable.', 404);
         }
 
-        $status = (string) (JsonPayload::decode($request)['status'] ?? '');
+        $status = (string) (\App\Infrastructure\Http\JsonRequestInput::payload($request)['status'] ?? '');
         try {
             $this->changeTesterStatus->change($profile, $status);
         } catch (\InvalidArgumentException $exception) {

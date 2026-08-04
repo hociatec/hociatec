@@ -32,7 +32,7 @@ final readonly class SupportOperationsController
     #[Route('', name: 'api_admin_operations_support_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        return ApiResponse::success(['items' => $this->support->list()]);
+        return ApiResponse::successItem('items', $this->support->list());
     }
 
     #[Route('', name: 'api_admin_operations_support_create', methods: ['POST'])]
@@ -48,7 +48,7 @@ final readonly class SupportOperationsController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::created(['item' => $item]);
+        return ApiResponse::createdItem('item', $item);
     }
 
     #[Route('/{id}', name: 'api_admin_operations_support_update', methods: ['PATCH'])]
@@ -64,7 +64,7 @@ final readonly class SupportOperationsController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['item' => $item]);
+        return ApiResponse::successItem('item', $item);
     }
 
     #[Route('/{id}/reply', name: 'api_admin_operations_support_reply', methods: ['POST'])]

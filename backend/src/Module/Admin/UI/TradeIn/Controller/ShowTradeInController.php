@@ -25,6 +25,6 @@ final class ShowTradeInController extends AbstractController
     {
         $request = $this->requests->find($id);
 
-        return null === $request ? ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND) : ApiResponse::success(['item' => TradeInFormatter::format($request)]);
+        return null === $request ? ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND) : ApiResponse::successItem('item', TradeInFormatter::format($request));
     }
 }

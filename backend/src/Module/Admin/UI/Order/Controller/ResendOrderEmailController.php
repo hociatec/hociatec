@@ -38,7 +38,7 @@ final class ResendOrderEmailController extends AbstractController
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = OrderEmailScenarioInput::fromArray($payload);
         $this->validator->validate($input);
         $scenario = $input->scenario;
@@ -68,7 +68,7 @@ final class ResendOrderEmailController extends AbstractController
             'Renvoi manuel d’email depuis l’admin: '.$scenario.'.',
         );
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
     }
 
     private function resendCurrentStatusEmail(Order $order): bool

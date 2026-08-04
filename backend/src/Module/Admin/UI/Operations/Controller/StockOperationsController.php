@@ -32,14 +32,14 @@ final class StockOperationsController extends AbstractController
     #[Route('/stock-movements', name: 'api_admin_operations_stock_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        return ApiResponse::success(['items' => $this->stock->list()]);
+        return ApiResponse::successItem('items', $this->stock->list());
     }
 
     #[Route('/stock-movements', name: 'api_admin_operations_stock_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = StockMovementInput::fromArray($payload);
             $this->validator->validate($input);
             $item = $this->stock->create(
@@ -57,7 +57,7 @@ final class StockOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::created(['item' => $item]);
+        return ApiResponse::createdItem('item', $item);
     }
 
     #[Route('/products/{id}/low-stock-threshold', name: 'api_admin_operations_product_low_stock_threshold', methods: ['PATCH'])]
@@ -75,7 +75,7 @@ final class StockOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['product' => $product]);
+        return ApiResponse::successItem('product', $product);
     }
 
     private function currentAdmin(): ?User

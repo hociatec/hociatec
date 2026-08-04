@@ -20,6 +20,6 @@ final readonly class EmailLogsController
 
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['items' => $this->formatter->emailLogs()]);
+        return ApiResponse::successItem('items', $this->formatter->emailLogs());
     }
 }

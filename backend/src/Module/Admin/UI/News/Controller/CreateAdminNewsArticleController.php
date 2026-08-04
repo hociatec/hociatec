@@ -33,6 +33,6 @@ final readonly class CreateAdminNewsArticleController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(['article' => $this->formatter->article($article)], 'Actualité créée.');
+        return ApiResponse::createdItem('article', $this->formatter->article($article), 'Actualité créée.');
     }
 }

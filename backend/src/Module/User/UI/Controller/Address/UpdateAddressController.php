@@ -37,7 +37,7 @@ class UpdateAddressController extends AbstractController
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
 
         $input = ShippingAddressInput::fromArray($payload);
         $this->dtoValidator->validate($input);
@@ -55,6 +55,6 @@ class UpdateAddressController extends AbstractController
 
         $this->writer->save($address);
 
-        return ApiResponse::success(['address' => ShippingAddressFormatter::toArray($address)]);
+        return ApiResponse::successItem('address', ShippingAddressFormatter::toArray($address));
     }
 }

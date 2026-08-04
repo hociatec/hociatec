@@ -23,7 +23,7 @@ final readonly class CustomerTimelineController
     public function __invoke(int $id): JsonResponse
     {
         try {
-            return ApiResponse::success(['items' => $this->timeline->provide($id)]);
+            return ApiResponse::successItem('items', $this->timeline->provide($id));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         }

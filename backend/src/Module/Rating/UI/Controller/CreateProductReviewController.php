@@ -55,7 +55,7 @@ class CreateProductReviewController extends AbstractController
             return ApiResponse::error('Article introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = '' !== $request->getContent() ? \App\Infrastructure\Http\JsonPayload::decode($request) : [];
+        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $score = isset($payload['score']) ? (int) $payload['score'] : 0;
         $comment = isset($payload['comment']) ? (string) $payload['comment'] : null;
 

@@ -34,7 +34,7 @@ final class RefundOperationsController extends AbstractController
     #[Route('', name: 'api_admin_operations_refunds_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        return ApiResponse::success(['items' => $this->refunds->list()]);
+        return ApiResponse::successItem('items', $this->refunds->list());
     }
 
     #[Route('', name: 'api_admin_operations_refunds_create', methods: ['POST'])]
@@ -50,7 +50,7 @@ final class RefundOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::created(['item' => $item]);
+        return ApiResponse::createdItem('item', $item);
     }
 
     #[Route('/{id}', name: 'api_admin_operations_refunds_update', methods: ['PATCH'])]
@@ -66,7 +66,7 @@ final class RefundOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['item' => $item]);
+        return ApiResponse::successItem('item', $item);
     }
 
     #[Route('/{id}/process-stripe', name: 'api_admin_operations_refunds_process_stripe', methods: ['POST'])]

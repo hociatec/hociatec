@@ -46,6 +46,6 @@ final class RetryOrderInvoiceController extends AbstractController
             return ApiResponse::internalError('Impossible de regénérer la facture.');
         }
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
     }
 }

@@ -47,6 +47,6 @@ class CancelMyOrderController extends AbstractController
 
         $this->workflow->cancel($order);
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
     }
 }

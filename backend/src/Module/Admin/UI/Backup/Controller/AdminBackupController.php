@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Backup\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Backup\Service\BackupStatusProvider;
 use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
@@ -42,7 +41,7 @@ final class AdminBackupController
     public function settings(Request $request): JsonResponse
     {
         try {
-            $payload = JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = BackupSettingsInput::fromArray($payload);
             $this->validator->validate($input);
 
@@ -68,7 +67,7 @@ final class AdminBackupController
     public function maintenance(Request $request): JsonResponse
     {
         try {
-            $payload = JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = MaintenanceInput::fromArray($payload);
             $this->validator->validate($input);
 

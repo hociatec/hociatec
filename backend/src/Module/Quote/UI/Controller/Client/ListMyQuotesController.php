@@ -41,6 +41,6 @@ class ListMyQuotesController extends AbstractController
             $qb->getQuery()->getResult(),
         );
 
-        return ApiResponse::success(['items' => $items]);
+        return ApiResponse::successItem('items', $items);
     }
 }

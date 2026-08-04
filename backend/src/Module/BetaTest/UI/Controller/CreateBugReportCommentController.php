@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Http\RateLimited;
 use App\Module\BetaTest\Application\Service\BugReportCommentWriter;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
@@ -48,7 +47,7 @@ final class CreateBugReportCommentController extends AbstractController
             return ApiResponse::error('Accès refusé.', 403);
         }
 
-        $payload = JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
 
         try {
             $comment = $this->writer->create($report, $user, (string) ($payload['content'] ?? ''));

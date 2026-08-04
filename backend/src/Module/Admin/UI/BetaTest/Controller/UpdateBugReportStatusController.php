@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Module\Admin\Application\BetaTest\Service\ChangeBugReportStatusHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
@@ -32,7 +31,7 @@ final class UpdateBugReportStatusController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         }
 
-        $payload = JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $status = trim((string) ($payload['status'] ?? ''));
 
         $admin = $this->getUser();

@@ -52,7 +52,7 @@ final class CheckoutExistingOrderController extends AbstractController
         }
 
         if (Order::STATUS_CONFIRMED === $order->getStatus() || Order::STATUS_DELIVERED === $order->getStatus()) {
-            return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+            return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
         }
 
         if (Order::STATUS_PENDING !== $order->getStatus()) {

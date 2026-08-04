@@ -47,6 +47,6 @@ final class SendCampaignController extends AbstractController
             $actor?->getEmail(),
         );
 
-        return ApiResponse::created(['campaign' => $this->formatter->summary($campaign)]);
+        return ApiResponse::createdItem('campaign', $this->formatter->summary($campaign));
     }
 }

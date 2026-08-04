@@ -30,6 +30,6 @@ final class GetTemplateController extends AbstractController
             return ApiResponse::error('Template introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(['template' => $this->formatter->format($template)]);
+        return ApiResponse::successItem('template', $this->formatter->format($template));
     }
 }

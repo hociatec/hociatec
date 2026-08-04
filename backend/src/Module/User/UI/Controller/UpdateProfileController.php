@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\User\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
@@ -34,7 +33,7 @@ class UpdateProfileController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
 
         $user = $this->getUser();
         if (!$user instanceof User) {

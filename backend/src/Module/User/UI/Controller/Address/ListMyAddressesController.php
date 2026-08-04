@@ -30,6 +30,6 @@ class ListMyAddressesController extends AbstractController
             $this->addresses->findAllForUser($user)
         );
 
-        return ApiResponse::success(['items' => $items]);
+        return ApiResponse::successItem('items', $items);
     }
 }

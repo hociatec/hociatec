@@ -34,9 +34,9 @@ class VerifyAccountController extends AbstractController
         }
 
         return match ($this->verification->verify($token)) {
-            AccountVerificationService::ALREADY_VERIFIED => ApiResponse::success(['message' => 'Votre compte est déjà activé.']),
+            AccountVerificationService::ALREADY_VERIFIED => ApiResponse::successItem('message', 'Votre compte est déjà activé.'),
             AccountVerificationService::EXPIRED => ApiResponse::error('Le lien d\'activation a expiré.', JsonResponse::HTTP_BAD_REQUEST),
-            AccountVerificationService::VERIFIED => ApiResponse::success(['message' => 'Votre compte a été activé avec succès.']),
+            AccountVerificationService::VERIFIED => ApiResponse::successItem('message', 'Votre compte a été activé avec succès.'),
             default => ApiResponse::error('Lien d\'activation invalide.', JsonResponse::HTTP_BAD_REQUEST),
         };
     }

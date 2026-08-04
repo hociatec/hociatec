@@ -28,7 +28,7 @@ final class LogoutController extends AbstractController
             $this->refreshTokenService->revokePlainToken($refreshToken);
         }
 
-        $response = ApiResponse::success(['message' => 'Déconnexion effectuée.']);
+        $response = ApiResponse::successItem('message', 'Déconnexion effectuée.');
         $this->authCookieService->clearAuthCookies($response, $request);
 
         return $response;

@@ -21,6 +21,6 @@ final class ListPaymentMetadataController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['statuses' => $this->formatter->statusOptions()]);
+        return ApiResponse::successItem('statuses', $this->formatter->statusOptions());
     }
 }

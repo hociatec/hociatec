@@ -39,7 +39,7 @@ final class AccountNotificationsReadStateController extends AbstractController
         $user = $this->currentUser();
 
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $state = $this->readState->update($user, NotificationReadStateInput::fromArray($payload));
         } catch (InvalidJsonPayloadException|\InvalidArgumentException) {
             return ApiResponse::error('État de lecture invalide.', Response::HTTP_BAD_REQUEST);
@@ -47,7 +47,7 @@ final class AccountNotificationsReadStateController extends AbstractController
             return ApiResponse::internalError();
         }
 
-        return ApiResponse::success(['readState' => $state]);
+        return ApiResponse::successItem('readState', $state);
     }
 
     private function currentUser(): User

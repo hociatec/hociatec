@@ -17,6 +17,6 @@ final class ListOrderMetadataController extends AbstractController
 {
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['statuses' => OrderFormatter::statusOptions()]);
+        return ApiResponse::successItem('statuses', OrderFormatter::statusOptions());
     }
 }

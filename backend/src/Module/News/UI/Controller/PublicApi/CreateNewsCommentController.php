@@ -51,6 +51,6 @@ final class CreateNewsCommentController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(['comment' => $this->formatter->comment($comment)], 'Commentaire publié.');
+        return ApiResponse::createdItem('comment', $this->formatter->comment($comment), 'Commentaire publié.');
     }
 }

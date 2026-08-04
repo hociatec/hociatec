@@ -32,4 +32,16 @@ final class JsonRequestInput
 
         return $input;
     }
+
+    /** @return array<string, mixed> */
+    public static function payload(Request $request): array
+    {
+        return JsonPayload::decode($request);
+    }
+
+    /** @return array<string, mixed> */
+    public static function optionalPayload(Request $request): array
+    {
+        return '' !== $request->getContent() ? JsonPayload::decode($request) : [];
+    }
 }

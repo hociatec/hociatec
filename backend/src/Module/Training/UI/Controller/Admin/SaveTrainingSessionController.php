@@ -35,7 +35,7 @@ class SaveTrainingSessionController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = TrainingSessionInput::fromArray($payload);
         $this->validator->validate($input);
         if ($input->endsAt <= $input->startsAt) {

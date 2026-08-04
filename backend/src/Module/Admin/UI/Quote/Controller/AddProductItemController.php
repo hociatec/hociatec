@@ -40,7 +40,7 @@ class AddProductItemController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = '' !== $request->getContent() ? \App\Infrastructure\Http\JsonPayload::decode($request) : [];
+        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $input = QuoteProductItemInput::fromArray($payload);
         $this->validator->validate($input);
         $product = $this->productRepository->find($input->productId);

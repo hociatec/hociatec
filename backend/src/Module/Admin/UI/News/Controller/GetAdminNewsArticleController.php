@@ -26,6 +26,6 @@ final readonly class GetAdminNewsArticleController
             return ApiResponse::error('Actualité introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(['article' => $this->formatter->article($article)]);
+        return ApiResponse::successItem('article', $this->formatter->article($article));
     }
 }

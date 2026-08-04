@@ -33,6 +33,6 @@ final readonly class ShowNewsArticleController
 
         $this->views->track($article, $request->getClientIp());
 
-        return ApiResponse::success(['article' => $this->formatter->article($article)]);
+        return ApiResponse::successItem('article', $this->formatter->article($article));
     }
 }

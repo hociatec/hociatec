@@ -39,7 +39,7 @@ final class UpdateQuoteStatusController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = QuoteStatusInput::fromArray($payload);
         $this->validator->validate($input);
         $status = QuoteStatusTranslator::toCode($input->status);

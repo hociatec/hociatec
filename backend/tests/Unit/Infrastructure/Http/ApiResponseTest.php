@@ -44,6 +44,16 @@ final class ApiResponseTest extends TestCase
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
+    public function testItemHelpersWrapSingleKeyPayloads(): void
+    {
+        $response = ApiResponse::successItem('item', ['id' => 42]);
+        $created = ApiResponse::createdItem('id', 42, 'Created');
+
+        self::assertSame(['item' => ['id' => 42]], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR)['data']);
+        self::assertSame(JsonResponse::HTTP_CREATED, $created->getStatusCode());
+        self::assertSame(['id' => 42], json_decode((string) $created->getContent(), true, 512, JSON_THROW_ON_ERROR)['data']);
+    }
+
     public function testPaginatedWrapsItemsAndMeta(): void
     {
         $response = ApiResponse::paginated(

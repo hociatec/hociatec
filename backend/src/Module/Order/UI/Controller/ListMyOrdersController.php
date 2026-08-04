@@ -45,6 +45,6 @@ class ListMyOrdersController extends AbstractController
             $orders,
         );
 
-        return ApiResponse::success(['items' => $items]);
+        return ApiResponse::successItem('items', $items);
     }
 }

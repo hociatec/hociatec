@@ -27,6 +27,6 @@ final class ListTradeInsController extends AbstractController
         $statusValue = $request->query->get('status');
         $status = is_string($statusValue) ? TradeInStatus::tryFrom($statusValue) : null;
 
-        return ApiResponse::success(['items' => array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findForAdmin(is_string($request->query->get('q')) ? $request->query->get('q') : null, $status))]);
+        return ApiResponse::successItem('items', array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findForAdmin(is_string($request->query->get('q')) ? $request->query->get('q') : null, $status)));
     }
 }

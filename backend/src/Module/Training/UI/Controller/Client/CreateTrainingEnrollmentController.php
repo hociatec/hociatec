@@ -29,7 +29,7 @@ final class CreateTrainingEnrollmentController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $result = $this->checkout->enroll(
                 $this->currentUser(),
                 (int) ($payload['sessionId'] ?? 0),

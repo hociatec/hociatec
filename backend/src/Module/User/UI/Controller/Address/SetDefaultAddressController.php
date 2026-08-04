@@ -32,6 +32,6 @@ class SetDefaultAddressController extends AbstractController
 
         $this->writer->setDefault($user, $address);
 
-        return ApiResponse::success(['message' => 'Adresse définie par défaut']);
+        return ApiResponse::successItem('message', 'Adresse définie par défaut');
     }
 }

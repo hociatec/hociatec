@@ -33,7 +33,7 @@ class UpdateAuditStatusController extends AbstractController
         if (null === $audit) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = AuditStatusInput::fromArray($payload);
         $this->validator->validate($input);
         $status = $input->status;
@@ -47,6 +47,6 @@ class UpdateAuditStatusController extends AbstractController
         $actor = $this->getUser();
         $this->events->log($audit, $actor, 'status_changed', sprintf('Statut: %s → %s', $old, $status));
 
-        return ApiResponse::success(['status' => $audit->getStatus()]);
+        return ApiResponse::successItem('status', $audit->getStatus());
     }
 }

@@ -35,6 +35,6 @@ class ListFavoritesController extends AbstractController
             $this->favorites->listForUser($user),
         );
 
-        return ApiResponse::success(['items' => $items]);
+        return ApiResponse::successItem('items', $items);
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Notification\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Module\Notification\Application\Service\CommunicationPreferences;
 use App\Module\Notification\Application\Service\CommunicationPreferenceUpdater;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
@@ -33,7 +32,7 @@ final class CommunicationPreferencesController extends AbstractController
     #[Route('', name: 'api_auth_communication_preferences_update', methods: ['PUT'])]
     public function update(Request $request): JsonResponse
     {
-        $payload = JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $user = $this->currentUser();
 
         try {

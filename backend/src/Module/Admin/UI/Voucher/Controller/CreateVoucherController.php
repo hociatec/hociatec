@@ -30,7 +30,7 @@ final class CreateVoucherController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

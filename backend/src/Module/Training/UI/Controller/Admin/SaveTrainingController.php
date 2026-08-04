@@ -33,7 +33,7 @@ class SaveTrainingController extends AbstractController
 
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = TrainingInput::fromArray($payload);
         $this->validator->validate($input);
 

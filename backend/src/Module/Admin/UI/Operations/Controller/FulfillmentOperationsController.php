@@ -29,7 +29,7 @@ final class FulfillmentOperationsController extends AbstractController
     #[Route('/orders', name: 'api_admin_operations_fulfillment_orders', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        return ApiResponse::success(['items' => $this->fulfillment->queue()]);
+        return ApiResponse::successItem('items', $this->fulfillment->queue());
     }
 
     #[Route('/orders/{id}/ship', name: 'api_admin_operations_fulfillment_ship', methods: ['PATCH'])]
@@ -47,7 +47,7 @@ final class FulfillmentOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['order' => $order]);
+        return ApiResponse::successItem('order', $order);
     }
 
     private function currentAdmin(): ?User

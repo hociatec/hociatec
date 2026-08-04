@@ -33,6 +33,6 @@ class RemoveFavoriteController extends AbstractController
             $this->favorites->removeProduct($user, $product);
         }
 
-        return ApiResponse::success(['removed' => true]);
+        return ApiResponse::successItem('removed', true);
     }
 }

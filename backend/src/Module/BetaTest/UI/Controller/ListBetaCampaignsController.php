@@ -40,6 +40,6 @@ final class ListBetaCampaignsController extends AbstractController
         $now = new \DateTimeImmutable();
         $campaigns = $this->campaigns->openCampaigns();
 
-        return ApiResponse::success(['items' => array_map(fn ($campaign) => $this->formatter->format($campaign, $now), $campaigns)]);
+        return ApiResponse::successItem('items', array_map(fn ($campaign) => $this->formatter->format($campaign, $now), $campaigns));
     }
 }

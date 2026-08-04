@@ -29,7 +29,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = '' !== $request->getContent() ? \App\Infrastructure\Http\JsonPayload::decode($request) : [];
+        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
         $input = ApplyCartVoucherInput::fromArray($payload);
         $this->validator->validate($input);
 

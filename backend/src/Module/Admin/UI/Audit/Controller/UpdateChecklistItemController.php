@@ -43,7 +43,7 @@ class UpdateChecklistItemController extends AbstractController
             return ApiResponse::error('Association invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = ChecklistItemInput::fromArray($payload);
         $this->validator->validate($input);
         $isCompliant = $input->isCompliant;

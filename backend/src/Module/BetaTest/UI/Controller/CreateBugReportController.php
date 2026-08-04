@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Http\RateLimited;
 use App\Module\BetaTest\Application\Service\BugReportWriter;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
@@ -43,7 +42,7 @@ final class CreateBugReportController extends AbstractController
             return ApiResponse::error('Votre profil bêta doit être accepté avant d’envoyer un signalement.', 403);
         }
 
-        $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : JsonPayload::decode($request);
+        $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data') ? $request->request->all() : \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $campaign = null;
         if (isset($payload['campaignId'])) {
             $campaign = $this->campaigns->find((int) $payload['campaignId']);
@@ -65,6 +64,6 @@ final class CreateBugReportController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(['id' => $report->getId()], 'Votre signalement a bien été envoyé.');
+        return ApiResponse::createdItem('id', $report->getId(), 'Votre signalement a bien été envoyé.');
     }
 }

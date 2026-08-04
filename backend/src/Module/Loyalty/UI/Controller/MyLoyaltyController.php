@@ -31,7 +31,7 @@ final class MyLoyaltyController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        return ApiResponse::success(['loyalty' => $this->formatLoyalty($user)]);
+        return ApiResponse::successItem('loyalty', $this->formatLoyalty($user));
     }
 
     #[Route('/convert', name: 'api_loyalty_me_convert', methods: ['POST'])]
@@ -41,7 +41,7 @@ final class MyLoyaltyController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $points = (int) ($payload['points'] ?? 0);
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {

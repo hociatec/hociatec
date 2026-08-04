@@ -38,6 +38,6 @@ final class CreateTemplateController extends AbstractController
             return ApiResponse::error($exception->getMessage());
         }
 
-        return ApiResponse::created(['template' => $this->formatter->format($template)], 'Le modèle d’e-mail a bien été créé.');
+        return ApiResponse::createdItem('template', $this->formatter->format($template), 'Le modèle d’e-mail a bien été créé.');
     }
 }

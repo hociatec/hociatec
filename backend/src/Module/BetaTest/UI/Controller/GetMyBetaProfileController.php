@@ -34,6 +34,6 @@ final class GetMyBetaProfileController extends AbstractController
             return ApiResponse::error('Profil bêta introuvable.', 404);
         }
 
-        return ApiResponse::success(['profile' => $this->formatter->format($profile)]);
+        return ApiResponse::successItem('profile', $this->formatter->format($profile));
     }
 }

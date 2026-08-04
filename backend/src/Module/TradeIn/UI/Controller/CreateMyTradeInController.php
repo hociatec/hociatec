@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
@@ -33,7 +32,7 @@ final class CreateMyTradeInController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $payload = $request->request->all();
-        $input = TradeInInput::fromArray([] !== $payload ? $payload : JsonPayload::decode($request))->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
+        $input = TradeInInput::fromArray([] !== $payload ? $payload : \App\Infrastructure\Http\JsonRequestInput::payload($request))->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
         $rib = $request->files->get('rib');
         if (!$rib instanceof UploadedFile) {
             return ApiResponse::error('Le RIB du demandeur doit être fourni au format PDF.', Response::HTTP_UNPROCESSABLE_ENTITY);

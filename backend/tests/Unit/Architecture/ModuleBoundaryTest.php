@@ -201,6 +201,25 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testModuleControllersDoNotDecodeJsonPayloadInline(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'JsonPayload::decode')) {
+                $violations[] = $this->relativePath($path).': JsonPayload::decode';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testSourceDoesNotCatchThrowableOrBaseException(): void
     {
         $allowed = [

@@ -33,7 +33,7 @@ class CreateQuoteController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $input = QuotePayloadInput::fromArray($payload);
         $this->validator->validate($input);
 

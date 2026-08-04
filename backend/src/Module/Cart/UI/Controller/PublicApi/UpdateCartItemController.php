@@ -31,7 +31,7 @@ final class UpdateCartItemController extends AbstractController
 
     public function __invoke(int $productId, Request $request): JsonResponse
     {
-        $payload = '' !== $request->getContent() ? \App\Infrastructure\Http\JsonPayload::decode($request) : [];
+        $payload = \App\Infrastructure\Http\JsonRequestInput::optionalPayload($request);
 
         $input = UpdateCartItemInput::fromArray($payload);
         $this->validator->validate($input);

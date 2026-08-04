@@ -34,6 +34,6 @@ class DeleteAddressController extends AbstractController
 
         $this->writer->delete($address);
 
-        return ApiResponse::success(['message' => 'Adresse supprimée']);
+        return ApiResponse::successItem('message', 'Adresse supprimée');
     }
 }

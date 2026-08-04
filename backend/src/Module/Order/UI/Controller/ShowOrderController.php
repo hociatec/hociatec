@@ -48,6 +48,6 @@ class ShowOrderController extends AbstractController
         }
         $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order, $ratings)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order, $ratings));
     }
 }

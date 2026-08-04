@@ -35,7 +35,7 @@ class RegisterController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+        $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
         $email = is_string($payload['email'] ?? null) ? $payload['email'] : null;
         if (!$this->rateLimiter->isAccepted($request, $email)) {
             return ApiResponse::error(

@@ -40,7 +40,7 @@ final class UpdateOrderStatusController extends AbstractController
         }
 
         try {
-            $payload = \App\Infrastructure\Http\JsonPayload::decode($request);
+            $payload = \App\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = OrderStatusInput::fromArray($payload);
             $this->validator->validate($input);
             $actor = $this->getUser();
@@ -55,6 +55,6 @@ final class UpdateOrderStatusController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success(['order' => OrderFormatter::formatOrder($order)]);
+        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
     }
 }
