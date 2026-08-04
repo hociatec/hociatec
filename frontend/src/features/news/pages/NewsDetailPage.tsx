@@ -70,11 +70,6 @@ export const NewsDetailPage = () => {
               <p className="text-sm font-semibold text-stone-500">
                 Date de publication : {formatDate(article.publishedAt)}
               </p>
-              {article.category ? (
-                <p className="mt-3 w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">
-                  {article.category}
-                </p>
-              ) : null}
               <h1 className="mt-5 text-4xl font-semibold tracking-tight text-brand-900">
                 {article.title}
               </h1>

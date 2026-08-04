@@ -41,10 +41,7 @@ export const AdminBackupsPage = () => {
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
       <header className="rounded-xl border border-amber-200/20 bg-brand-900/80 p-8 shadow-2xl shadow-black/20">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-300">
-          Exploitation
-        </p>
-        <h1 className="mt-3 text-4xl font-bold text-white">Sauvegardes et maintenance</h1>
+        <h1 className="text-4xl font-bold text-white">Sauvegardes et maintenance</h1>
         <p className="mt-4 max-w-3xl text-stone-500">
           Pilotez les sauvegardes MySQL, la fréquence d’exécution, la rétention locale et le mode
           maintenance public.

@@ -19,10 +19,7 @@ export const BetaReportFollowUpHeader = ({ report, onClose }: BetaReportFollowUp
   <header className="border-b border-stone-200 p-5">
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-          Suivi du signalement
-        </p>
-        <DialogTitle className="mt-1 text-xl font-bold text-brand-900">
+        <DialogTitle className="text-xl font-bold text-brand-900">
           {report.title}
         </DialogTitle>
         <p className="mt-1 text-xs text-stone-500">

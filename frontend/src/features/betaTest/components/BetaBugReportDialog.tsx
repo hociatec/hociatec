@@ -73,9 +73,6 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId, campaignName }:
       <div className="fixed inset-0 flex items-center justify-center px-4 py-6">
         <DialogPanel className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-brand-100 bg-white p-6 shadow-2xl">
           <header className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-              Nouveau signalement
-            </p>
             <DialogTitle className="text-2xl font-bold text-brand-900">
               Créer un signalement
             </DialogTitle>

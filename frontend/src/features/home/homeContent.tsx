@@ -42,7 +42,6 @@ export const HomeServicesHeading = () => (
 export const HomeNewsHeading = () => (
   <div className="home-section-heading home-section-heading--row">
     <div>
-      <p>Actualités</p>
       <h2>Actualité</h2>
     </div>
     <Link to="/actualites" className="home-button home-button--secondary">

@@ -10,13 +10,6 @@ import {
 } from '@/features/trainings/api/trainingsApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
-const formatDuration = (minutes: number) => {
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-
-  return hours > 0 ? `${hours}h${rest ? String(rest).padStart(2, '0') : ''}` : `${minutes} min`;
-};
-
 interface ResultSectionProps {
   title: string;
   count: number;
@@ -48,21 +41,17 @@ export const SearchResultSection = ({ title, count, viewAllTo, children }: Resul
 
 interface SearchCardProps {
   to: string;
-  label: string;
   title: string;
   description?: string | null;
   price: string;
 }
 
-const SearchCard = ({ to, label, title, description, price }: SearchCardProps) => (
+const SearchCard = ({ to, title, description, price }: SearchCardProps) => (
   <Link
     to={to}
     className="flex h-full flex-col rounded-xl border border-brand-100 bg-brand-50 p-4 transition hover:border-brand-300 hover:bg-white"
   >
-    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-      {label}
-    </span>
-    <strong className="mt-3 text-base text-brand-900">{title}</strong>
+    <strong className="text-base text-brand-900">{title}</strong>
     {description ? (
       <span className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600">{description}</span>
     ) : null}
@@ -76,7 +65,6 @@ export const ProductSearchResults = ({ products }: { products: CatalogProduct[] 
       <SearchCard
         key={product.id}
         to={`/catalogue/produits/${product.slug}`}
-        label={`${product.sellingType === 'rental' ? 'Location' : 'Vente'} · ${product.category.name}`}
         title={getCatalogProductDisplayName(product)}
         description={product.shortDescription}
         price={`${formatEuroCents(product.priceCents)}${product.sellingType === 'rental' ? ' / mois' : ''}`}
@@ -91,7 +79,6 @@ export const ServiceSearchResults = ({ services }: { services: QuoteServiceDto[]
       <SearchCard
         key={service.id}
         to={`/services/${service.id}`}
-        label={service.durationLabel || 'Sur étude'}
         title={service.title}
         description={service.description}
         price={formatEuroCents(service.priceCents)}
@@ -106,7 +93,6 @@ export const TrainingSearchResults = ({ trainings }: { trainings: TrainingDto[] 
       <SearchCard
         key={training.id}
         to={`/formations/${training.slug}`}
-        label={`${training.categoryDetails?.name ?? ''} · ${formatDuration(training.durationMinutes)}`}
         title={training.title}
         description={training.shortDescription}
         price={`${formatEuroCents(training.priceCents)} · ${training.availableFormatDetails.map((format) => format.label).join(', ')}`}
@@ -121,7 +107,6 @@ export const NewsSearchResults = ({ news }: { news: NewsArticleDto[] }) => (
       <SearchCard
         key={article.id}
         to={`/actualites/${article.slug}`}
-        label={article.category ?? 'Actualité'}
         title={article.title}
         description={article.excerpt}
         price={article.publishedAt ? `Publié le ${new Intl.DateTimeFormat('fr-FR').format(new Date(article.publishedAt))}` : 'Actualité'}

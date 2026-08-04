@@ -46,7 +46,6 @@ export const MyVouchersPage = () => {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-stone-500">Mon espace</p>
             <h1 className="text-3xl font-semibold text-brand-900">Mes bons de réduction</h1>
             <p className="mt-2 max-w-2xl text-sm text-stone-600">
               Consultez vos bons actuellement utilisables et l’historique des bons déjà expirés ou

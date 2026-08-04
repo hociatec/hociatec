@@ -21,10 +21,7 @@ export const MyTrainingsPage = () => {
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-12">
         <header className="rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
-              Espace client
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold text-brand-900">Mes formations</h1>
+            <h1 className="text-3xl font-semibold text-brand-900">Mes formations</h1>
             <p className="mt-3 text-stone-600">
               Suivez vos inscriptions, sessions et feuilles de route.
             </p>

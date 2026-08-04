@@ -12,7 +12,6 @@ export const AdminDashboardPage = () => {
     <section className="admin-dashboard">
       <header className="admin-dashboard__header">
         <div>
-          <p className="admin-dashboard__eyebrow">Admin Hociatec</p>
           <h1>Tableau de bord</h1>
           <p>Une vue simple pour traiter les priorités et rejoindre les bons espaces.</p>
         </div>

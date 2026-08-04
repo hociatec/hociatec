@@ -53,10 +53,7 @@ export const ServiceDetailPage = () => {
                 />
               </div>
             ) : null}
-            <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
-              Service Hociatec
-            </span>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
+            <h1 className="text-4xl font-semibold tracking-tight text-brand-900">
               {service.title}
             </h1>
             <p className="mt-5 text-base leading-7 text-stone-600">

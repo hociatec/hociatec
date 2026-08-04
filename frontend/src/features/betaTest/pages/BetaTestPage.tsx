@@ -12,7 +12,6 @@ export const BetaTestPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <main className="container mx-auto max-w-4xl p-4 md:p-8">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-700">Programme bêta</p>
         <h1 className="mb-4 text-3xl font-semibold md:text-4xl">Participez à l’amélioration de Hociatec</h1>
         <p className="mb-8 max-w-2xl text-base leading-7 text-stone-700">
           Rejoignez notre communauté de bêta-testeurs, testez les nouvelles fonctionnalités et contribuez à rendre le site plus accessible et agréable.

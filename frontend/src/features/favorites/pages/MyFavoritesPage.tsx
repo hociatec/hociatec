@@ -35,9 +35,6 @@ export const MyFavoritesPage = () => {
     <SiteLayout>
       <div className="mx-auto max-w-6xl px-4 py-10 space-y-8">
         <header className="space-y-3 text-stone-800">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-stone-500">
-            Mon espace
-          </p>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-3xl font-semibold text-brand-900">Mes favoris</h1>

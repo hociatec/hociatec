@@ -14,11 +14,6 @@ export const NewsCard = ({ article }: { article: NewsArticleDto }) => (
     <p className="text-sm font-semibold text-stone-500">
       Date de publication : {formatDate(article.publishedAt)}
     </p>
-    {article.category ? (
-      <p className="mt-2 w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">
-        {article.category}
-      </p>
-    ) : null}
     <h2 className="mt-4 text-2xl font-semibold text-brand-900">
       <Link to={`/actualites/${article.slug}`} className="hover:text-brand-700">
         {article.title}

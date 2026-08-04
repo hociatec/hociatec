@@ -35,9 +35,6 @@ export const MyOrdersPage = () => {
     <SiteLayout>
       <div className="mx-auto max-w-6xl px-4 py-10" aria-busy={isLoading}>
         <header className="mb-8 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-stone-500">
-            Mon espace
-          </p>
           <h1 className="text-3xl font-semibold text-brand-900">Mes commandes</h1>
           <p className="max-w-2xl text-stone-600">
             Suivez l&apos;historique de vos achats, consultez vos factures et ouvrez chaque commande

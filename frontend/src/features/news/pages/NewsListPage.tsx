@@ -58,10 +58,7 @@ export const NewsListPage = () => {
     <SiteLayout headerVariant="light">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
-          <span className="inline-flex w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-            Actualité
-          </span>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
+          <h1 className="text-4xl font-semibold tracking-tight text-brand-900">
             Actualités Hociatec
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">

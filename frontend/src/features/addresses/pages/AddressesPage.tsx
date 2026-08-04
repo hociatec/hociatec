@@ -16,9 +16,6 @@ export const AddressesPage = () => {
     <SiteLayout>
       <main className="mx-auto max-w-6xl px-4 py-10">
         <header className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-stone-500">
-            Mon espace
-          </p>
           <h1 className="text-3xl font-semibold text-brand-900">Mes adresses</h1>
           <p className="mt-2 max-w-2xl text-stone-600">
             Gérez vos adresses de livraison et les informations de facturation utilisées sur vos

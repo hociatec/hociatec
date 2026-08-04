@@ -40,10 +40,7 @@ export const AdminCampaignFormDialog = ({
       <DialogPanel className="w-full max-w-xl rounded-xl border border-brand-100 bg-white p-6 shadow-2xl">
         <header className="flex items-center justify-between border-b border-stone-200 pb-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-              Campagne bêta
-            </p>
-            <DialogTitle className="mt-1 text-xl font-bold text-stone-900">
+            <DialogTitle className="text-xl font-bold text-stone-900">
               {title}
             </DialogTitle>
             <DialogDescription className="mt-0.5 text-sm text-stone-500">

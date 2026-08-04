@@ -21,10 +21,7 @@ export const GlobalSearchHeader = ({
   onSubmit,
 }: GlobalSearchHeaderProps) => (
   <header className="public-directory-page__hero rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
-    <span className="inline-flex w-fit rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
-      Recherche Hociatec
-    </span>
-    <h1 className="mt-4 text-4xl font-semibold tracking-tight text-brand-900">
+    <h1 className="text-4xl font-semibold tracking-tight text-brand-900">
       Trouver un produit, un service ou une formation
     </h1>
     <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">

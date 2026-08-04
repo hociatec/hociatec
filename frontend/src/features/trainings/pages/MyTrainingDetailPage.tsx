@@ -26,10 +26,7 @@ export const MyTrainingDetailPage = () => {
           </Link>
           <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
-                Formation
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-brand-900">
+              <h1 className="text-3xl font-semibold text-brand-900">
                 {enrollment?.session.training.title ?? 'Détail formation'}
               </h1>
               {enrollment?.session.training.shortDescription ? (

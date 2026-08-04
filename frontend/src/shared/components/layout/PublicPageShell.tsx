@@ -18,7 +18,6 @@ export const PublicPageShell = ({
   actions,
   children,
   description,
-  eyebrow,
   size = 'wide',
   title,
 }: PublicPageShellProps) => {
@@ -35,12 +34,7 @@ export const PublicPageShell = ({
       aria-describedby={description ? descriptionId : undefined}
     >
       <header className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm sm:p-8">
-        {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
-            {eyebrow}
-          </p>
-        ) : null}
-        <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 id={titleId} className="text-3xl font-semibold tracking-tight text-brand-900 sm:text-4xl">
               {title}
