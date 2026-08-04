@@ -28,7 +28,7 @@ class PendingReviewResolver
             ->leftJoin('oi.product', 'p')
             ->leftJoin(ProductRating::class, 'r', 'WITH', 'r.orderItem = oi')
             ->andWhere('o.user = :user')
-            ->andWhere('o.status = :status')
+            ->andWhere('o.state.status = :status')
             ->andWhere('r.id IS NULL')
             ->andWhere('p IS NOT NULL')
             ->setParameter('user', $user)

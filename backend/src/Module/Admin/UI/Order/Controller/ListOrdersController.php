@@ -37,7 +37,7 @@ final class ListOrdersController extends AbstractController
             ->orderBy('o.createdAt', 'DESC');
 
         if (is_string($status) && '' !== $status && 'all' !== $status) {
-            $qb->andWhere('o.status = :status')->setParameter('status', $status);
+            $qb->andWhere('o.state.status = :status')->setParameter('status', $status);
         }
 
         if ('issues' === $health) {
@@ -45,8 +45,8 @@ final class ListOrdersController extends AbstractController
                 ->leftJoin('App\Module\Order\Domain\Entity\OrderEvent', 'e', 'WITH', 'e.order = o')
                 ->andWhere(
                     $qb->expr()->orX(
-                        'o.invoicePdfPath IS NULL',
-                        'o.invoiceXmlPath IS NULL',
+                        'o.invoice.pdfPath IS NULL',
+                        'o.invoice.xmlPath IS NULL',
                         'o.orderCreatedEmailSentAt IS NULL',
                         $qb->expr()->in('e.type', ':issueTypes'),
                     )

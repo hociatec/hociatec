@@ -4,141 +4,112 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 trait OrderBillingTrait
 {
-    #[ORM\Column(length: 180, nullable: true)]
-    private ?string $billingName = null;
-
-    #[ORM\Column(length: 180, nullable: true)]
-    private ?string $billingCompany = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $billingCompanySiren = null;
-
-    #[ORM\Column(length: 32, nullable: true)]
-    private ?string $billingCompanyVatNumber = null;
-
-    #[ORM\Column(length: 80, nullable: true)]
-    private ?string $purchaseOrderNumber = null;
-
-    #[ORM\Column(length: 180, nullable: true)]
-    private ?string $billingEmail = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $billingAddress = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $billingPostalCode = null;
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $billingCity = null;
-
     public function getBillingName(): ?string
     {
-        return $this->billingName;
+        return $this->billing->getBillingName();
     }
 
     public function setBillingName(?string $billingName): self
     {
-        $this->billingName = $billingName;
+        $this->billing->setBillingName($billingName);
 
         return $this;
     }
 
     public function getBillingCompany(): ?string
     {
-        return $this->billingCompany;
+        return $this->billing->getBillingCompany();
     }
 
     public function setBillingCompany(?string $billingCompany): self
     {
-        $this->billingCompany = $billingCompany;
+        $this->billing->setBillingCompany($billingCompany);
 
         return $this;
     }
 
     public function getBillingCompanySiren(): ?string
     {
-        return $this->billingCompanySiren;
+        return $this->billing->getBillingCompanySiren();
     }
 
     public function setBillingCompanySiren(?string $billingCompanySiren): self
     {
-        $this->billingCompanySiren = $billingCompanySiren;
+        $this->billing->setBillingCompanySiren($billingCompanySiren);
 
         return $this;
     }
 
     public function getBillingCompanyVatNumber(): ?string
     {
-        return $this->billingCompanyVatNumber;
+        return $this->billing->getBillingCompanyVatNumber();
     }
 
     public function setBillingCompanyVatNumber(?string $billingCompanyVatNumber): self
     {
-        $this->billingCompanyVatNumber = $billingCompanyVatNumber;
+        $this->billing->setBillingCompanyVatNumber($billingCompanyVatNumber);
 
         return $this;
     }
 
     public function getPurchaseOrderNumber(): ?string
     {
-        return $this->purchaseOrderNumber;
+        return $this->billing->getPurchaseOrderNumber();
     }
 
     public function setPurchaseOrderNumber(?string $purchaseOrderNumber): self
     {
-        $this->purchaseOrderNumber = $purchaseOrderNumber;
+        $this->billing->setPurchaseOrderNumber($purchaseOrderNumber);
 
         return $this;
     }
 
     public function getBillingEmail(): ?string
     {
-        return $this->billingEmail;
+        return $this->billing->getBillingEmail();
     }
 
     public function setBillingEmail(?string $billingEmail): self
     {
-        $this->billingEmail = $billingEmail;
+        $this->billing->setBillingEmail($billingEmail);
 
         return $this;
     }
 
     public function getBillingAddress(): ?string
     {
-        return $this->billingAddress;
+        return $this->billing->getBillingAddress();
     }
 
     public function setBillingAddress(?string $billingAddress): self
     {
-        $this->billingAddress = $billingAddress;
+        $this->billing->setBillingAddress($billingAddress);
 
         return $this;
     }
 
     public function getBillingPostalCode(): ?string
     {
-        return $this->billingPostalCode;
+        return $this->billing->getBillingPostalCode();
     }
 
     public function setBillingPostalCode(?string $billingPostalCode): self
     {
-        $this->billingPostalCode = $billingPostalCode;
+        $this->billing->setBillingPostalCode($billingPostalCode);
 
         return $this;
     }
 
     public function getBillingCity(): ?string
     {
-        return $this->billingCity;
+        return $this->billing->getBillingCity();
     }
 
     public function setBillingCity(?string $billingCity): self
     {
-        $this->billingCity = $billingCity;
+        $this->billing->setBillingCity($billingCity);
 
         return $this;
     }

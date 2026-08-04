@@ -181,7 +181,7 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
                 'u.adminTags AS adminTags',
                 'u.createdAt AS createdAt',
                 'COUNT(o.id) AS ordersCount',
-                'COALESCE(SUM(o.totalPriceCents), 0) AS totalSpentCents',
+                'COALESCE(SUM(o.payment.totalPriceCents), 0) AS totalSpentCents',
                 'MAX(o.createdAt) AS lastOrderAt'
             )
             ->leftJoin(Order::class, 'o', 'WITH', 'o.user = u')

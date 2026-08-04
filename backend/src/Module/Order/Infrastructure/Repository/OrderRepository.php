@@ -49,8 +49,8 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
 
         $qb = $this->createQueryBuilder('o');
         $qb->select('COUNT(o.id)')
-            ->andWhere('o.invoicedAt BETWEEN :from AND :to')
-            ->andWhere('o.invoiceNumber IS NOT NULL')
+            ->andWhere('o.invoice.invoicedAt BETWEEN :from AND :to')
+            ->andWhere('o.invoice.number IS NOT NULL')
             ->setParameter('from', $from)
             ->setParameter('to', $to);
 
@@ -75,7 +75,7 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
         return null !== $this->createQueryBuilder('o')
             ->select('1')
             ->andWhere('o.user = :user')
-            ->andWhere('o.status IN (:statuses)')
+            ->andWhere('o.state.status IN (:statuses)')
             ->setParameter('user', $user)
             ->setParameter('statuses', [Order::STATUS_PENDING, Order::STATUS_CONFIRMED])
             ->setMaxResults(1)
@@ -101,7 +101,7 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     public function findPendingPaymentForAdmin(int $limit = 10): array
     {
         return $this->createQueryBuilder('o')
-            ->andWhere('o.status = :status')
+            ->andWhere('o.state.status = :status')
             ->setParameter('status', Order::STATUS_PENDING)
             ->orderBy('o.createdAt', 'DESC')
             ->setMaxResults(max(1, $limit))
@@ -115,8 +115,8 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     public function findFulfillmentQueue(int $limit = 30): array
     {
         return $this->createQueryBuilder('o')
-            ->andWhere('o.status IN (:orderStatuses)')
-            ->andWhere('o.deliveryStatus IN (:deliveryStatuses)')
+            ->andWhere('o.state.status IN (:orderStatuses)')
+            ->andWhere('o.delivery.status IN (:deliveryStatuses)')
             ->setParameter('orderStatuses', [Order::STATUS_PENDING, Order::STATUS_CONFIRMED])
             ->setParameter('deliveryStatuses', [
                 Order::DELIVERY_STATUS_PREPARING,
@@ -134,7 +134,7 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
         $result = $this->createQueryBuilder('o')
-            ->select('COUNT(o.id) AS ordersCount', 'COALESCE(SUM(o.totalPriceCents), 0) AS totalCents')
+            ->select('COUNT(o.id) AS ordersCount', 'COALESCE(SUM(o.payment.totalPriceCents), 0) AS totalCents')
             ->andWhere('o.createdAt BETWEEN :from AND :to')
             ->setParameter('from', $from)
             ->setParameter('to', $to)
@@ -153,8 +153,8 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     public function getStatusCounts(): array
     {
         $rows = $this->createQueryBuilder('o')
-            ->select('o.status AS status', 'COUNT(o.id) AS count')
-            ->groupBy('o.status')
+            ->select('o.state.status AS status', 'COUNT(o.id) AS count')
+            ->groupBy('o.state.status')
             ->getQuery()
             ->getArrayResult();
 
@@ -186,8 +186,8 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->leftJoin('App\Module\Order\Domain\Entity\OrderEvent', 'e', 'WITH', 'e.order = o')
             ->andWhere(
                 $qb->expr()->orX(
-                    'o.invoicePdfPath IS NULL',
-                    'o.invoiceXmlPath IS NULL',
+                    'o.invoice.pdfPath IS NULL',
+                    'o.invoice.xmlPath IS NULL',
                     'o.orderCreatedEmailSentAt IS NULL',
                     $qb->expr()->in('e.type', ':issueTypes'),
                 )

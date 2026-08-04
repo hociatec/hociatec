@@ -1,15 +1,3 @@
-4. Grosses entités
-Note actuelle : 7/10
-
-Le gros OrderInvoiceTrait a été découpé en traits plus ciblés : état facture, facturation, documents facture et état email.
-Les entités volumineuses restent toutefois présentes :
-- Product : 492 lignes
-- User : 429 lignes
-- Order : 410 lignes
-- OrderCheckoutSession : 403 lignes
-- Voucher : 305 lignes
-Pour atteindre 10/10, il faut extraire des objets composés/embeddables comme OrderBilling, OrderDelivery, OrderPayment, OrderInvoice et OrderStatus.
-
 5. Gros services
 Note actuelle : 7,5/10
 

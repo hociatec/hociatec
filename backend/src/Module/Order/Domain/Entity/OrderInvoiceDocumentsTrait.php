@@ -4,36 +4,28 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 trait OrderInvoiceDocumentsTrait
 {
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $invoicePdfPath = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $invoiceXmlPath = null;
-
     public function getInvoicePdfPath(): ?string
     {
-        return $this->invoicePdfPath;
+        return $this->invoice->getPdfPath();
     }
 
     public function setInvoicePdfPath(?string $invoicePdfPath): self
     {
-        $this->invoicePdfPath = $invoicePdfPath;
+        $this->invoice->setPdfPath($invoicePdfPath);
 
         return $this;
     }
 
     public function getInvoiceXmlPath(): ?string
     {
-        return $this->invoiceXmlPath;
+        return $this->invoice->getXmlPath();
     }
 
     public function setInvoiceXmlPath(?string $invoiceXmlPath): self
     {
-        $this->invoiceXmlPath = $invoiceXmlPath;
+        $this->invoice->setXmlPath($invoiceXmlPath);
 
         return $this;
     }

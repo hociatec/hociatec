@@ -56,7 +56,7 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
                 $minimum = max(1000, (int) ($criteria['minimumTotalCents'] ?? 50000));
                 $qb->join(Order::class, 'o', 'WITH', 'o.user = u')
                     ->groupBy('u.id')
-                    ->having('SUM(o.totalPriceCents) >= :minimum')
+                    ->having('SUM(o.payment.totalPriceCents) >= :minimum')
                     ->setParameter('minimum', $minimum);
                 break;
             case 'customers_without_review':

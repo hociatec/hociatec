@@ -21,7 +21,7 @@ final readonly class DoctrineMarketingRecipientContextQuery implements Marketing
     {
         /** @var array{ordersCount:int|string, totalSpentCents:int|string, lastOrderAt?:?\DateTimeInterface} $stats */
         $stats = $this->entityManager->createQueryBuilder()
-            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt', 'COALESCE(SUM(o.totalPriceCents), 0) AS totalSpentCents')
+            ->select('COUNT(o.id) AS ordersCount', 'MAX(o.createdAt) AS lastOrderAt', 'COALESCE(SUM(o.payment.totalPriceCents), 0) AS totalSpentCents')
             ->from(Order::class, 'o')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user)
