@@ -6,14 +6,14 @@ namespace App\Module\User\Application\Outbox;
 
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Application\Service\AccountActivationEmailService;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class SendActivationEmailHandler implements OutboxEventHandler
 {
     public function __construct(
-        private UserRepository $users,
+        private UserRepositoryPort $users,
         private AccountActivationEmailService $activationEmails,
     ) {
     }

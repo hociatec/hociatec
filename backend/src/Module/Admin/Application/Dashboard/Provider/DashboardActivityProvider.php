@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
+use App\Module\Order\Application\Port\OrderEventRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\OrderEvent;
-use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 
 final readonly class DashboardActivityProvider
 {
     public function __construct(
-        private OrderRepository $orders,
-        private OrderEventRepository $events,
+        private OrderRepositoryPort $orders,
+        private OrderEventRepositoryPort $events,
     ) {
     }
 

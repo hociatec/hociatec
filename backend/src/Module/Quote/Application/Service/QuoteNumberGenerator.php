@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Service;
 
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 
 class QuoteNumberGenerator
 {
-    public function __construct(private readonly QuoteRepository $quoteRepository)
+    public function __construct(private readonly QuoteRepositoryPort $quoteRepository)
     {
     }
 

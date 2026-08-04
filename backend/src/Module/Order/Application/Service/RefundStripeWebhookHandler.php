@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class RefundStripeWebhookHandler
 {
     public function __construct(
-        private readonly RefundRequestRepository $refunds,
+        private readonly RefundRequestRepositoryPort $refunds,
         private readonly DoctrineUnitOfWork $persistence,
         private readonly TransactionManager $transactions,
     ) {

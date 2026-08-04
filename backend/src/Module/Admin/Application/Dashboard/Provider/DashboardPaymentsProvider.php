@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 
 final readonly class DashboardPaymentsProvider
 {
     public function __construct(
-        private OrderCheckoutSessionRepository $payments,
+        private OrderCheckoutSessionRepositoryPort $payments,
         private AdminPaymentFormatter $formatter,
     ) {
     }

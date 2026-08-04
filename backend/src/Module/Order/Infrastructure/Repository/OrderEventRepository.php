@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Repository;
 
+use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<OrderEvent>
  */
-final class OrderEventRepository extends ServiceEntityRepository
+final class OrderEventRepository extends ServiceEntityRepository implements OrderEventRepositoryPort
 {
     private const ISSUE_TYPES = [
         'email_failed',

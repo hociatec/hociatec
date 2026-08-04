@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Infrastructure\Http\ExternalServiceException;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class OrderStripeWebhookHandler
 {
     public function __construct(
-        private readonly OrderCheckoutSessionRepository $checkoutSessions,
-        private readonly OrderRepository $orders,
+        private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderService $orderCreator,
         private readonly StripeApiClient $stripe,
         private readonly DoctrineUnitOfWork $persistence,

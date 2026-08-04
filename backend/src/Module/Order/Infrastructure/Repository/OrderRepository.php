@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Repository;
 
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -13,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Order>
  */
-class OrderRepository extends ServiceEntityRepository
+class OrderRepository extends ServiceEntityRepository implements OrderRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

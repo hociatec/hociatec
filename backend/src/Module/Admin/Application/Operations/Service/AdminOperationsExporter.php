@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
+use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
+use App\Module\User\Application\Port\UserRepositoryPort;
 
 final readonly class AdminOperationsExporter
 {
     public function __construct(
-        private OrderRepository $orders,
-        private UserRepository $users,
+        private OrderRepositoryPort $orders,
+        private UserRepositoryPort $users,
         private ProductCatalogRepository $products,
-        private QuoteRepository $quotes,
-        private RefundRequestRepository $refunds,
-        private SupportRequestRepository $supportRequests,
+        private QuoteRepositoryPort $quotes,
+        private RefundRequestRepositoryPort $refunds,
+        private SupportRequestRepositoryPort $supportRequests,
     ) {
     }
 

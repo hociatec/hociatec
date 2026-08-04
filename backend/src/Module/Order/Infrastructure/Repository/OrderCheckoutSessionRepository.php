@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Repository;
 
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<OrderCheckoutSession>
  */
-final class OrderCheckoutSessionRepository extends ServiceEntityRepository
+final class OrderCheckoutSessionRepository extends ServiceEntityRepository implements OrderCheckoutSessionRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -131,6 +132,23 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository
                 OrderCheckoutSession::STATUS_EXPIRED,
             ])
             ->setParameter('paidStatus', OrderCheckoutSession::STATUS_PAID)
+            ->orderBy('s.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $items;
+    }
+
+    /**
+     * @return list<OrderCheckoutSession>
+     */
+    public function findRecentOpen(int $limit = 20): array
+    {
+        /** @var list<OrderCheckoutSession> $items */
+        $items = $this->createQueryBuilder('s')
+            ->andWhere('s.status = :status')
+            ->setParameter('status', OrderCheckoutSession::STATUS_OPEN)
             ->orderBy('s.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()

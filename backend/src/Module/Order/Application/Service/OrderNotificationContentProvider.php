@@ -6,13 +6,13 @@ namespace App\Module\Order\Application\Service;
 
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 
 final readonly class OrderNotificationContentProvider
 {
     public function __construct(
         private EmailTemplateRepository $templates,
-        private QuoteRepository $quotes,
+        private QuoteRepositoryPort $quotes,
         private string $frontendUrl,
     ) {
     }
@@ -44,7 +44,7 @@ final readonly class OrderNotificationContentProvider
     private function context(Order $order, array $extraContext): array
     {
         $frontendUrl = rtrim($this->frontendUrl, '/');
-        $quoteNumber = $this->quotes->findOneBy(['convertedOrder' => $order])?->getNumber() ?? '';
+        $quoteNumber = $this->quotes->findConvertedQuoteForOrder($order)?->getNumber() ?? '';
         $isPendingPayment = Order::STATUS_PENDING === $order->getStatus();
 
         return $extraContext + [

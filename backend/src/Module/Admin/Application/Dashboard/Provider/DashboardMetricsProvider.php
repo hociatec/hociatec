@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
 use App\Module\Catalog\Application\Service\GroupedLowStockCounter;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
+use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
-use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 
 final readonly class DashboardMetricsProvider
 {
     public function __construct(
-        private OrderRepository $orders,
-        private UserRepository $users,
-        private SupportRequestRepository $supportRequests,
-        private RefundRequestRepository $refunds,
+        private OrderRepositoryPort $orders,
+        private UserRepositoryPort $users,
+        private SupportRequestRepositoryPort $supportRequests,
+        private RefundRequestRepositoryPort $refunds,
         private GroupedLowStockCounter $lowStock,
     ) {
     }

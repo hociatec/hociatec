@@ -8,8 +8,8 @@ use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class BugReportCommentWriter
@@ -18,7 +18,7 @@ final readonly class BugReportCommentWriter
         private DoctrineUnitOfWork $persistence,
         private BugReportActivityLogger $activityLogger,
         private UserCommunicationNotifier $notifier,
-        private UserRepository $users,
+        private UserRepositoryPort $users,
     ) {
     }
 

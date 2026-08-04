@@ -6,10 +6,10 @@ namespace App\Module\Order\Application\Service;
 
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
@@ -21,7 +21,7 @@ final readonly class CheckoutSessionOrderCreator
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
-        private OrderRepository $orders,
+        private OrderRepositoryPort $orders,
         private ProductCatalogRepository $products,
         private CartSessionRepository $carts,
     ) {

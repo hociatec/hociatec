@@ -7,18 +7,18 @@ namespace App\Module\Admin\Application\Operations\Service;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
+use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
-use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
 
 final readonly class OperationsOverviewProvider
 {
     private const LOW_STOCK_THRESHOLD = 3;
 
     public function __construct(
-        private SupportRequestRepository $supportRequests,
-        private RefundRequestRepository $refunds,
+        private SupportRequestRepositoryPort $supportRequests,
+        private RefundRequestRepositoryPort $refunds,
         private ProductCatalogRepository $products,
         private StockMovementRepository $stockMovements,
         private AdminOperationsFormatter $formatter,

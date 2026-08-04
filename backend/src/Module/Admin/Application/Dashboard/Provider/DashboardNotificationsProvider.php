@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
+use App\Module\Order\Application\Port\OrderEventRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 
 final readonly class DashboardNotificationsProvider
 {
     public function __construct(
-        private QuoteRepository $quotes,
+        private QuoteRepositoryPort $quotes,
         private QuoteCalculator $quoteCalculator,
-        private OrderRepository $orders,
-        private OrderEventRepository $events,
+        private OrderRepositoryPort $orders,
+        private OrderEventRepositoryPort $events,
     ) {
     }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Infrastructure\Repository;
 
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Quote>
  */
-class QuoteRepository extends ServiceEntityRepository
+class QuoteRepository extends ServiceEntityRepository implements QuoteRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -30,6 +32,11 @@ class QuoteRepository extends ServiceEntityRepository
             ->setParameter('to', $to);
 
         return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function findConvertedQuoteForOrder(Order $order): ?Quote
+    {
+        return $this->findOneBy(['convertedOrder' => $order]);
     }
 
     /**

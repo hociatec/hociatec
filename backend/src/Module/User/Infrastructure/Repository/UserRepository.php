@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Infrastructure\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
@@ -13,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<User>
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository implements UserRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -115,6 +116,41 @@ class UserRepository extends ServiceEntityRepository
             ->orderBy('u.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<User>
+     */
+    public function findLoyaltyCustomers(string $search, int $limit, int $offset): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->orderBy('u.loyaltyPointsBalance', 'DESC')
+            ->addOrderBy('u.createdAt', 'DESC')
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->setFirstResult(max(0, $offset));
+
+        $normalizedSearch = trim($search);
+        if ('' !== $normalizedSearch) {
+            $qb
+                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->setParameter('search', '%'.$normalizedSearch.'%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countLoyaltyCustomers(string $search): int
+    {
+        $qb = $this->createQueryBuilder('u')->select('COUNT(u.id)');
+
+        $normalizedSearch = trim($search);
+        if ('' !== $normalizedSearch) {
+            $qb
+                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
+                ->setParameter('search', '%'.$normalizedSearch.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     /**

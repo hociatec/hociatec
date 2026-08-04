@@ -9,8 +9,8 @@ use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Application\TransactionManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -18,7 +18,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class RegisterUserService
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
+        private readonly UserRepositoryPort $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,
         private readonly UserPersistence $persistence,

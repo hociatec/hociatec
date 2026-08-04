@@ -15,17 +15,17 @@ use App\Module\Order\Application\Service\OrderNotificationEmailService;
 use App\Module\Order\Application\Service\OrderNumberGenerator;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class QuoteToOrderConverter
 {
     public function __construct(
-        private QuoteRepository $quotes,
-        private UserRepository $users,
+        private QuoteRepositoryPort $quotes,
+        private UserRepositoryPort $users,
         private ProductCatalogRepository $products,
         private QuoteCalculator $quoteCalculator,
         private OrderNumberGenerator $orderNumbers,

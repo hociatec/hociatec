@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Dashboard\Provider;
 
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 
 final readonly class DashboardCustomersProvider
 {
-    public function __construct(private UserRepository $users)
+    public function __construct(private UserRepositoryPort $users)
     {
     }
 

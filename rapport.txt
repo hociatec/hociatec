@@ -20,11 +20,3 @@ Il reste 170 classes sous Application/Service et plusieurs services importants r
 - ProductVariantService : 220 lignes
 - OrderStripeWebhookHandler : 205 lignes
 Pour atteindre 10/10, il faut poursuivre le découpage vers Handler, Provider, Calculator, Workflow, Projection, Command et Query selon les responsabilités réelles.
-
-6. Persistance et repositories
-Note actuelle : 8/10
-
-Les usages applicatifs principaux de ProductRepository passent maintenant par le port ProductCatalogRepository.
-Les repositories sont bien rangés côté Infrastructure, mais l’application dépend encore fortement de repositories Doctrine concrets.
-Constat actuel : 156 imports de repositories Infrastructure depuis Application/Admin Application.
-Pour atteindre 10/10, les agrégats majeurs doivent passer par des ports applicatifs ou des interfaces de repositories côté Domain/Application.

@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Order\Application\Port;
+
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
+use App\Module\User\Domain\Entity\User;
+
+interface OrderCheckoutSessionRepositoryPort
+{
+    public function findOneByStripeSessionId(string $stripeSessionId): ?OrderCheckoutSession;
+
+    public function findOneByStripePaymentIntentId(string $stripePaymentIntentId): ?OrderCheckoutSession;
+
+    public function findOneByToken(string $token): ?OrderCheckoutSession;
+
+    public function findReusableOpenSessionForCart(User $user, string $cartToken): ?OrderCheckoutSession;
+
+    public function findReusableOpenSessionForOrder(User $user, int $orderId): ?OrderCheckoutSession;
+
+    /** @return array<string, int> */
+    public function getStatusCounts(): array;
+
+    public function countPaidWithoutOrder(): int;
+
+    /** @return list<OrderCheckoutSession> */
+    public function findRecentForDashboard(int $limit = 6): array;
+
+    /** @return list<OrderCheckoutSession> */
+    public function findAttentionItemsForDashboard(int $limit = 6): array;
+
+    /** @return list<OrderCheckoutSession> */
+    public function findRecentOpen(int $limit = 20): array;
+
+    /**
+     * @param array<string, mixed>       $criteria
+     * @param array<string, string>|null $orderBy
+     *
+     * @return list<OrderCheckoutSession>
+     */
+    public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
+}

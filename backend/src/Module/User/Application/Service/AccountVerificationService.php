@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class AccountVerificationService
@@ -15,7 +15,7 @@ final readonly class AccountVerificationService
     public const VERIFIED = 'verified';
 
     public function __construct(
-        private UserRepository $users,
+        private UserRepositoryPort $users,
         private DoctrineUnitOfWork $unitOfWork,
     ) {
     }

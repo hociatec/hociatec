@@ -6,8 +6,8 @@ namespace App\Module\Loyalty\Application\Service;
 
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Application\TransactionManager;
@@ -22,7 +22,7 @@ final class LoyaltyService
         private readonly DoctrineUnitOfWork $persistence,
         private readonly TransactionManager $transactions,
         private readonly CreateVoucherHandler $createVoucher,
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
     ) {
     }
 
@@ -44,31 +44,12 @@ final class LoyaltyService
     /** @return list<User> */
     public function findCustomers(string $search, int $limit, int $offset): array
     {
-        $qb = $this->users->createQueryBuilder('u')
-            ->orderBy('u.loyaltyPointsBalance', 'DESC')
-            ->addOrderBy('u.createdAt', 'DESC')
-            ->setMaxResults(max(1, min(100, $limit)))
-            ->setFirstResult(max(0, $offset));
-
-        if ('' !== $search) {
-            $qb
-                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$search.'%');
-        }
-
-        return $qb->getQuery()->getResult();
+        return $this->users->findLoyaltyCustomers($search, $limit, $offset);
     }
 
     public function countCustomers(string $search): int
     {
-        $qb = $this->users->createQueryBuilder('u')->select('COUNT(u.id)');
-        if ('' !== $search) {
-            $qb
-                ->andWhere('LOWER(u.email) LIKE LOWER(:search) OR LOWER(u.firstName) LIKE LOWER(:search) OR LOWER(u.lastName) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$search.'%');
-        }
-
-        return (int) $qb->getQuery()->getSingleScalarResult();
+        return $this->users->countLoyaltyCustomers($search);
     }
 
     public function syncOrderPoints(Order $order): void

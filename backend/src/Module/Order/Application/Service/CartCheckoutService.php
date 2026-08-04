@@ -9,8 +9,8 @@ use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Order\Application\DTO\CartCheckoutResult;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
@@ -19,7 +19,7 @@ final readonly class CartCheckoutService
 {
     public function __construct(
         private StripeCheckoutService $stripe,
-        private OrderRepository $orders,
+        private OrderRepositoryPort $orders,
         private CartService $carts,
         private ShippingAddressRepository $addresses,
     ) {

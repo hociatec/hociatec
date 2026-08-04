@@ -6,24 +6,24 @@ namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
+use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
 use App\Module\Support\Domain\Enum\SupportStatus;
-use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Application\Service\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class SupportOperationsService
 {
     public function __construct(
-        private SupportRequestRepository $supportRequests,
-        private UserRepository $users,
-        private OrderRepository $orders,
+        private SupportRequestRepositoryPort $supportRequests,
+        private UserRepositoryPort $users,
+        private OrderRepositoryPort $orders,
         private AdminCustomerEmailService $customerEmails,
         private OperationsPersistence $persistence,
         private AdminOperationsFormatter $formatter,

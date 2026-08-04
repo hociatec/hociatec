@@ -6,19 +6,19 @@ namespace App\Module\Admin\Application\Operations\Projection;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
+use App\Module\Order\Application\Port\OrderEventRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Support\Domain\Entity\SupportRequest;
 
 final readonly class AdminOperationsFormatter
 {
     public function __construct(
-        private OrderRepository $orders,
-        private OrderEventRepository $orderEvents,
+        private OrderRepositoryPort $orders,
+        private OrderEventRepositoryPort $orderEvents,
     ) {
     }
 

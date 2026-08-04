@@ -13,8 +13,8 @@ use App\Module\Notification\Application\Service\AccountNotificationReadStateServ
 use App\Module\Notification\Application\Service\CommunicationPreferences;
 use App\Module\Notification\Application\Service\ComputedAccountNotificationProviderInterface;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
@@ -27,8 +27,6 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
-use Doctrine\ORM\Query;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -120,7 +118,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
 
         $voucherRepository = $this->voucherRepository();
         $voucherManager = new CreateVoucherHandler($persistence, new VoucherPayload($voucherRepository));
-        $users = $this->createMock(UserRepository::class);
+        $users = $this->createMock(UserRepositoryPort::class);
         $service = new LoyaltyService($persistence, new DoctrineTransactionManager($entityManager), $voucherManager, $users);
 
         self::assertSame(500, $service->pointsToCents(599));
@@ -188,21 +186,15 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
 
     public function testLoyaltyServiceCustomerSearchHelpers(): void
     {
-        $queryBuilder = $this->createMock(QueryBuilder::class);
-        $query = $this->createMock(Query::class);
-        $query->method('getResult')->willReturn(['users']);
-        $query->method('getSingleScalarResult')->willReturn(12);
-        $queryBuilder->method('orderBy')->willReturnSelf();
-        $queryBuilder->method('addOrderBy')->willReturnSelf();
-        $queryBuilder->method('setMaxResults')->willReturnSelf();
-        $queryBuilder->method('setFirstResult')->willReturnSelf();
-        $queryBuilder->method('andWhere')->willReturnSelf();
-        $queryBuilder->method('setParameter')->willReturnSelf();
-        $queryBuilder->method('select')->willReturnSelf();
-        $queryBuilder->method('getQuery')->willReturn($query);
-
-        $users = $this->createMock(UserRepository::class);
-        $users->expects(self::exactly(4))->method('createQueryBuilder')->with('u')->willReturn($queryBuilder);
+        $users = $this->createMock(UserRepositoryPort::class);
+        $users->expects(self::exactly(2))->method('findLoyaltyCustomers')->willReturnMap([
+            ['ada', 500, -5, ['users']],
+            ['', 0, -5, ['users']],
+        ]);
+        $users->expects(self::exactly(2))->method('countLoyaltyCustomers')->willReturnMap([
+            ['ada', 12],
+            ['', 12],
+        ]);
 
         $service = new LoyaltyService(
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\OrderStatus;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Shared\Application\TransactionManager;
 
 final readonly class BulkOrderStatusService
 {
     public function __construct(
-        private OrderRepository $orders,
+        private OrderRepositoryPort $orders,
         private OperationsPersistence $persistence,
         private TransactionManager $transactions,
     ) {

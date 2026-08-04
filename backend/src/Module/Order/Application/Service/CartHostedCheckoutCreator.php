@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -15,7 +15,7 @@ final readonly class CartHostedCheckoutCreator
 {
     public function __construct(
         private StripeApiClient $stripe,
-        private OrderCheckoutSessionRepository $checkoutSessions,
+        private OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private StripeCheckoutPayloadProvider $payloads,
         private DoctrineUnitOfWork $persistence,
         private string $frontendUrl,

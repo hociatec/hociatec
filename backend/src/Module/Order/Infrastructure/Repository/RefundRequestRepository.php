@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Repository;
 
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
@@ -12,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<RefundRequest>
  */
-final class RefundRequestRepository extends ServiceEntityRepository
+final class RefundRequestRepository extends ServiceEntityRepository implements RefundRequestRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

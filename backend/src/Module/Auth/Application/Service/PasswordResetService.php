@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Auth\Application\Service;
 
 use App\Module\Outbox\Application\Outbox;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -14,7 +14,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class PasswordResetService
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
         private readonly DoctrineUnitOfWork $unitOfWork,
         private readonly TransactionManager $transactions,
         private readonly UserPasswordHasherInterface $passwordHasher,

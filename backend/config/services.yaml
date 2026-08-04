@@ -71,6 +71,27 @@ services:
     App\Module\Catalog\Application\Port\ProductCatalogRepository:
         alias: App\Module\Catalog\Infrastructure\Repository\ProductRepository
 
+    App\Module\User\Application\Port\UserRepositoryPort:
+        alias: App\Module\User\Infrastructure\Repository\UserRepository
+
+    App\Module\Order\Application\Port\OrderRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\OrderRepository
+
+    App\Module\Order\Application\Port\RefundRequestRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\RefundRequestRepository
+
+    App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository
+
+    App\Module\Order\Application\Port\OrderEventRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\OrderEventRepository
+
+    App\Module\Quote\Application\Port\QuoteRepositoryPort:
+        alias: App\Module\Quote\Infrastructure\Repository\QuoteRepository
+
+    App\Module\Support\Application\Port\SupportRequestRepositoryPort:
+        alias: App\Module\Support\Infrastructure\Repository\SupportRequestRepository
+
     App\Module\Outbox\Application\OutboxAlertNotifier:
         alias: App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier
 

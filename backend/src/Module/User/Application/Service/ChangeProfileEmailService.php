@@ -6,13 +6,13 @@ namespace App\Module\User\Application\Service;
 
 use App\Domain\Normalization\EmailNormalizer;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class ChangeProfileEmailService
 {
     public function __construct(
-        private UserRepository $userRepository,
+        private UserRepositoryPort $userRepository,
         private ProfileCurrentPasswordVerifier $currentPasswordVerifier,
     ) {
     }

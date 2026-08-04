@@ -7,15 +7,15 @@ namespace App\Module\Admin\Application\Operations\Service;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\DeliveryInput;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Service\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class FulfillmentOperationsService
 {
     public function __construct(
-        private OrderRepository $orders,
+        private OrderRepositoryPort $orders,
         private OperationsPersistence $persistence,
         private OrderEventLogger $events,
         private AdminOperationsFormatter $formatter,

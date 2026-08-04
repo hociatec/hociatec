@@ -6,10 +6,10 @@ namespace App\Tests\Unit\Module\Order\Service;
 
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Application\Service\OrderNotificationContentProvider;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -18,13 +18,13 @@ final class OrderNotificationContentProviderTest extends TestCase
     public function testBuildUsesFallbackContentAndResolvedContext(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $quotes = $this->createMock(QuoteRepository::class);
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
         $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test/');
         $order = $this->order(Order::STATUS_PENDING);
         $quote = new Quote('DEV-2026-0042');
 
         $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_created')->willReturn(null);
-        $quotes->expects(self::once())->method('findOneBy')->with(['convertedOrder' => $order])->willReturn($quote);
+        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn($quote);
 
         $content = $provider->build($order, 'order_created', ['custom_value' => 'X']);
 
@@ -39,7 +39,7 @@ final class OrderNotificationContentProviderTest extends TestCase
     public function testBuildUsesCustomTemplateAndEscapesHtmlContext(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $quotes = $this->createMock(QuoteRepository::class);
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
         $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
         $order = $this->order(Order::STATUS_DELIVERED, '<Ada>');
 
@@ -53,7 +53,7 @@ final class OrderNotificationContentProviderTest extends TestCase
         );
 
         $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_status_delivered')->willReturn($template);
-        $quotes->expects(self::once())->method('findOneBy')->with(['convertedOrder' => $order])->willReturn(null);
+        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn(null);
 
         $content = $provider->build($order, 'order_status_delivered', ['custom_html' => '<b>unsafe</b>']);
 
@@ -65,7 +65,7 @@ final class OrderNotificationContentProviderTest extends TestCase
     public function testBuildCoversInvoiceCancelledAndDefaultFallbackScenarios(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $quotes = $this->createMock(QuoteRepository::class);
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
         $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
         $order = $this->order(Order::STATUS_CANCELLED);
         $order->setInvoiceNumber('FAC-2026-0001')
@@ -73,7 +73,7 @@ final class OrderNotificationContentProviderTest extends TestCase
             ->setBillingEmail('billing@example.com');
 
         $templates->expects(self::exactly(3))->method('findActiveOneByScenarioKey')->willReturn(null);
-        $quotes->expects(self::exactly(3))->method('findOneBy')->willReturn(null);
+        $quotes->expects(self::exactly(3))->method('findConvertedQuoteForOrder')->willReturn(null);
 
         $invoice = $provider->build($order, 'order_invoice_issued');
         self::assertStringContainsString('FAC-2026-0001', $invoice['subject']);
@@ -92,12 +92,12 @@ final class OrderNotificationContentProviderTest extends TestCase
     public function testBuildUsesUnknownOrderStatusVerbatimInContextFallback(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $quotes = $this->createMock(QuoteRepository::class);
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
         $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
         $order = $this->order('archived');
 
         $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_status_delivered')->willReturn(null);
-        $quotes->expects(self::once())->method('findOneBy')->with(['convertedOrder' => $order])->willReturn(null);
+        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn(null);
 
         $content = $provider->build($order, 'order_status_delivered');
 

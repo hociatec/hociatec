@@ -6,20 +6,20 @@ namespace App\Module\Admin\Application\Operations\Service;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
+use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 
 final readonly class CustomerTimelineProvider
 {
     public function __construct(
-        private UserRepository $users,
-        private OrderRepository $orders,
-        private SupportRequestRepository $supportRequests,
-        private QuoteRepository $quotes,
+        private UserRepositoryPort $users,
+        private OrderRepositoryPort $orders,
+        private SupportRequestRepositoryPort $supportRequests,
+        private QuoteRepositoryPort $quotes,
         private AdminOperationsFormatter $formatter,
     ) {
     }

@@ -9,15 +9,15 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class UpdateProfileService
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
+        private readonly UserRepositoryPort $userRepository,
         private readonly DoctrineUnitOfWork $unitOfWork,
         private readonly UpdatePersonalInformationService $personalInformation,
         private readonly ChangeProfileEmailService $emailChanger,

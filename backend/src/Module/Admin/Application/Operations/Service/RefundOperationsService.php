@@ -10,23 +10,23 @@ use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Application\Service\OrderEventLogger;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Enum\RefundStatus;
-use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 
 final readonly class RefundOperationsService
 {
     public function __construct(
-        private RefundRequestRepository $refunds,
-        private OrderRepository $orders,
-        private OrderCheckoutSessionRepository $payments,
+        private RefundRequestRepositoryPort $refunds,
+        private OrderRepositoryPort $orders,
+        private OrderCheckoutSessionRepositoryPort $payments,
         private StripeApiClient $stripe,
         private OrderEventLogger $events,
         private OperationsPersistence $persistence,
