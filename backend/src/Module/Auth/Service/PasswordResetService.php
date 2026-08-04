@@ -67,7 +67,7 @@ class PasswordResetService
                 ->text($content['text']);
 
             $this->mailer->send($emailMessage);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Password reset email send failed.', [
                 'userId' => $user->getId(),
                 'exception' => $exception,

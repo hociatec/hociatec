@@ -55,7 +55,7 @@ final class VoucherNotificationEmailService
         try {
             $email = $this->buildEmail($user, $subject, $htmlBody, $textBody, $context);
             $this->mailer->send($email);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Voucher notification email send failed.', [
                 'userId' => $user->getId(),
                 'voucherId' => $voucher->getId(),

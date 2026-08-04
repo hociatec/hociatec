@@ -61,6 +61,13 @@ final class AuthModuleCompletionTest extends TestCase
         $repository = $this->refreshRepository($em);
         self::assertNotNull($repository->findOneBySelector($selector));
 
+        $activeTokens = [$issued['refreshToken']];
+        for ($index = 0; $index < 10; ++$index) {
+            $activeTokens[] = $service->issueForUser($user)['refreshToken'];
+        }
+        self::assertNull($service->rotate($activeTokens[0]));
+        self::assertNotNull($service->rotate($activeTokens[10]));
+
         self::assertNull($service->rotate('bad-token'));
         self::assertNull($service->rotate($selector.'.wrong'));
         self::assertTrue((bool) $repository->findOneBySelector($selector)?->isRevoked());

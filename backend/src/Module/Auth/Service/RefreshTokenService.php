@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final class RefreshTokenService
 {
     private const REFRESH_TOKEN_TTL_DAYS = 30;
+    private const MAX_ACTIVE_SESSIONS_PER_USER = 10;
 
     public function __construct(
         private readonly RefreshTokenRepository $refreshTokenRepository,
@@ -28,6 +29,8 @@ final class RefreshTokenService
         [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
 
         $this->persistence->save($refreshToken);
+        $this->persistence->flush();
+        $this->refreshTokenRepository->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
         $this->persistence->flush();
 
         return [
@@ -62,6 +65,8 @@ final class RefreshTokenService
             $storedToken->revoke();
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
             $this->persistence->save($refreshToken);
+            $this->entityManager->flush();
+            $this->refreshTokenRepository->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
 
             return [
                 'user' => $storedToken->getUser(),

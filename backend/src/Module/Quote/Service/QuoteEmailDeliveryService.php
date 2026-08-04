@@ -38,7 +38,7 @@ final readonly class QuoteEmailDeliveryService
                 'attachmentIncluded' => null !== $pdf,
                 'transport' => 'symfony_mailer',
             ];
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->error('Quote email send failed.', [
                 'quoteId' => $quote->getId(),
                 'email' => $recipient,

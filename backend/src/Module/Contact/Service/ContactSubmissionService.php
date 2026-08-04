@@ -23,13 +23,13 @@ final readonly class ContactSubmissionService
             $this->notification->send($input);
         } catch (MailDeliveryException $exception) {
             throw $exception;
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             throw MailDeliveryException::failed('contact_admin_notification', $exception);
         }
 
         try {
             $this->acknowledgement->send($input);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Contact acknowledgement could not be delivered.', [
                 'exception' => $exception,
             ]);

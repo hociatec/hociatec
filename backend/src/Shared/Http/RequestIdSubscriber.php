@@ -44,7 +44,7 @@ final class RequestIdSubscriber implements EventSubscriberInterface
     {
         try {
             return bin2hex(random_bytes(16));
-        } catch (\Exception) {
+        } catch (\Random\RandomException) {
             return (string) microtime(true);
         }
     }

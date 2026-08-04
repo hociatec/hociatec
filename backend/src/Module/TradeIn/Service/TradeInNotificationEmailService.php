@@ -81,7 +81,7 @@ final readonly class TradeInNotificationEmailService
 
         try {
             $this->mailer->send($email);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->error('Trade-in notification email failed.', [
                 'scenario' => $scenario,
                 'reference' => $request->getReference(),

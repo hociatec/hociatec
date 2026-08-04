@@ -22,7 +22,7 @@ final readonly class ProductCatalogSearchProvider
      */
     public function search(ProductSearchCriteria $criteria): array
     {
-        $cacheKey = 'catalog_'.sha1((string) json_encode([
+        $cacheKey = 'catalog_'.hash('xxh128', (string) json_encode([
             'page' => $criteria->page,
             'perPage' => $criteria->perPage,
             'filters' => $criteria->filterArguments(),

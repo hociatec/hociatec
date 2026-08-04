@@ -54,7 +54,7 @@ final readonly class UserCommunicationNotifier
 
             $this->persistence->persist(new AccountNotificationEvent($user, $key, $title, $message, $targetUrl, $type));
             $this->persistence->flush();
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException|\InvalidArgumentException $exception) {
             $this->logger->warning('Internal account notification failed.', [
                 'userId' => $user->getId(),
                 'key' => $key,
@@ -95,7 +95,7 @@ final readonly class UserCommunicationNotifier
 
         try {
             $this->mailer->send($email);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Communication email send failed.', [
                 'userId' => $user->getId(),
                 'type' => $type,
@@ -113,7 +113,7 @@ final readonly class UserCommunicationNotifier
 
         try {
             $this->bus->dispatch(new UserCommunicationEmailMessage($userId, $title, $message, $targetUrl, $type));
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Communication email dispatch failed.', [
                 'userId' => $userId,
                 'type' => $type,

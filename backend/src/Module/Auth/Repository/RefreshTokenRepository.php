@@ -80,4 +80,29 @@ class RefreshTokenRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    public function revokeActiveTokensOverLimit(User $user, int $limit): int
+    {
+        if (1 > $limit) {
+            throw new \InvalidArgumentException('La limite de sessions doit être positive.');
+        }
+
+        $tokensToRevoke = $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.user = :user')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->orderBy('refreshToken.createdAt', 'DESC')
+            ->addOrderBy('refreshToken.id', 'DESC')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setFirstResult($limit)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tokensToRevoke as $token) {
+            $token->revoke();
+        }
+
+        return count($tokensToRevoke);
+    }
 }

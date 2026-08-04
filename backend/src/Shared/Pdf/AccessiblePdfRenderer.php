@@ -86,7 +86,7 @@ final readonly class AccessiblePdfRenderer
 
         try {
             $process->run();
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger?->debug('WeasyPrint import check failed.', [
                 'python' => $python,
                 'exception' => $exception::class,
@@ -106,7 +106,7 @@ final readonly class AccessiblePdfRenderer
 
         try {
             $process->run();
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger?->error('PDF generation process failed.', [
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),

@@ -8,6 +8,7 @@ use App\Module\Order\Entity\Order;
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Repository\OrderRepository;
+use App\Shared\Http\ExternalServiceException;
 use App\Shared\Persistence\DoctrinePersistence;
 
 final class OrderStripeWebhookHandler
@@ -170,7 +171,7 @@ final class OrderStripeWebhookHandler
     {
         try {
             $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             return [null, null, null];
         }
 
@@ -191,7 +192,7 @@ final class OrderStripeWebhookHandler
     {
         try {
             $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             // Stripe may already have completed or expired the session.
         }
     }

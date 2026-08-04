@@ -42,7 +42,7 @@ final readonly class AccountActivationEmailService
                 'html' => '<p>Bonjour {{first_name}},</p><p>Merci pour votre inscription. Pour activer votre compte, cliquez sur le lien ci-dessous, valide {{activation_expires_in}}.</p><p><a href="{{activation_url}}">Activer mon compte</a></p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.</p>',
                 'text' => "Bonjour {{first_name}},\n\nMerci pour votre inscription. Pour activer votre compte, ouvrez le lien ci-dessous dans les {{activation_expires_in}} :\n{{activation_url}}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
             ]);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->error('Unable to render activation email.', [
                 'exception' => $exception,
                 'userId' => $user->getId(),
@@ -60,7 +60,7 @@ final readonly class AccountActivationEmailService
 
         try {
             $this->mailer->send($email);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Account activation email send failed.', [
                 'userId' => $user->getId(),
                 'exception' => $exception,

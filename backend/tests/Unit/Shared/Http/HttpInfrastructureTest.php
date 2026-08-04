@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Shared\Http;
 
 use App\Shared\Http\RateLimitSubscriber;
 use App\Shared\Http\RateLimited;
+use App\Shared\Http\CsrfProtectionSubscriber;
+use App\Shared\Http\CsrfTokenService;
 use App\Shared\Http\RequestIdProcessor;
 use App\Shared\Http\RequestIdSubscriber;
 use App\Shared\Http\SecurityHeadersSubscriber;
@@ -110,6 +112,20 @@ final class HttpInfrastructureTest extends TestCase
         $nonApiResponse = new Response();
         $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('http://example.test/admin'), HttpKernelInterface::MAIN_REQUEST, $nonApiResponse));
         self::assertFalse($nonApiResponse->headers->has('X-Content-Type-Options'));
+    }
+
+    public function testCsrfProtectionDoesNotExemptLogoutRoute(): void
+    {
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $subscriber = new CsrfProtectionSubscriber(new CsrfTokenService('test'));
+        $request = Request::create('/api/auth/logout', 'POST');
+        $request->attributes->set('_route', 'api_auth_logout');
+
+        $event = new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+        $subscriber->onKernelRequest($event);
+
+        self::assertTrue($event->hasResponse());
+        self::assertSame(Response::HTTP_FORBIDDEN, $event->getResponse()?->getStatusCode());
     }
 
     public function testRateLimitedAttributeValidatesTokenCount(): void

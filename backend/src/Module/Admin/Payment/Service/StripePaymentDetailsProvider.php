@@ -6,6 +6,7 @@ namespace App\Module\Admin\Payment\Service;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Service\StripeApiClient;
+use App\Shared\Http\ExternalServiceException;
 
 final readonly class StripePaymentDetailsProvider
 {
@@ -22,7 +23,7 @@ final readonly class StripePaymentDetailsProvider
     {
         try {
             $session = $this->stripe->retrieveCheckoutSession($payment->getStripeSessionId());
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             return ['error' => 'Détails Stripe indisponibles.'];
         }
 
@@ -71,7 +72,7 @@ final readonly class StripePaymentDetailsProvider
 
         try {
             $intent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             return ['error' => 'Détails Stripe indisponibles.'];
         }
 

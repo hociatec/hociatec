@@ -52,7 +52,7 @@ final class AdminCustomerEmailService
                 ->html(nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));
 
             $this->mailer->send($email);
-        } catch (\Exception $smtpException) {
+        } catch (\RuntimeException $smtpException) {
             $this->logger->error('Admin customer email send failed.', [
                 'customerId' => $user->getId(),
                 'exception' => $smtpException,

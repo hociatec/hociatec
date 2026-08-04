@@ -19,7 +19,6 @@ final class CsrfProtectionSubscriber implements EventSubscriberInterface
 
     /** @var list<string> */
     private const EXCLUDED_ROUTES = [
-        'api_auth_logout',
         'api_auth_password_reset_confirm',
         'api_auth_password_reset_request',
         'api_auth_refresh',

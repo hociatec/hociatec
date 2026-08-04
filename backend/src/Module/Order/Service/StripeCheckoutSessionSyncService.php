@@ -6,6 +6,7 @@ namespace App\Module\Order\Service;
 
 use App\Module\Order\Entity\OrderCheckoutSession;
 use App\Module\Order\Repository\OrderCheckoutSessionRepository;
+use App\Shared\Http\ExternalServiceException;
 use App\Shared\Persistence\DoctrinePersistence;
 
 final class StripeCheckoutSessionSyncService
@@ -25,7 +26,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $session = $this->stripe->retrieveCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             return;
         }
 
@@ -58,7 +59,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $paymentIntent = $this->stripe->retrievePaymentIntent($paymentIntentId);
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             $checkout->setStripePaymentIntentId($paymentIntentId);
             $this->persistence->persist($checkout);
             $this->persistence->flush();
@@ -133,7 +134,7 @@ final class StripeCheckoutSessionSyncService
 
         try {
             $this->stripe->expireCheckoutSession($checkout->getStripeSessionId());
-        } catch (\Exception) {
+        } catch (ExternalServiceException|\JsonException) {
             // The admin sync should still save the local failure even if Stripe already closed the session.
         }
     }
