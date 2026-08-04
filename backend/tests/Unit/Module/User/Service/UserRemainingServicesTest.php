@@ -31,7 +31,7 @@ use App\Module\User\Application\Service\RegisterUserService;
 use App\Module\User\Application\Service\UpdatePersonalInformationService;
 use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
-use App\Module\User\Application\Service\UserProfileFormatter;
+use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;

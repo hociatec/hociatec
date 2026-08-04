@@ -6,8 +6,8 @@ namespace App\Module\Training\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Service\TrainingEnrollmentCheckoutService;
-use App\Module\Training\Application\Service\TrainingFormatter;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

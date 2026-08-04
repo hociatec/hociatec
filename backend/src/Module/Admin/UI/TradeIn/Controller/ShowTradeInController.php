@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\TradeIn\Application\Service\TradeInFormatter;
+use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

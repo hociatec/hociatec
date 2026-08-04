@@ -7,8 +7,8 @@ namespace App\Module\Admin\Application\Dashboard\Provider;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 

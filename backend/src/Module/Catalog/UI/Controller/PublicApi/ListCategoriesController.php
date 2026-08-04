@@ -6,7 +6,7 @@ namespace App\Module\Catalog\UI\Controller\PublicApi;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
-use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Service\CategoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

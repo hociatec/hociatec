@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Audit\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

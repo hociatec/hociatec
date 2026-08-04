@@ -12,7 +12,7 @@ use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

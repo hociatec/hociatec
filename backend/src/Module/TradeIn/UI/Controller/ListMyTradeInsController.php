@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\TradeIn\Application\Service\TradeInFormatter;
+use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

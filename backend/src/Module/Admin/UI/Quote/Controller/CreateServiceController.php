@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Quote\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\Quote\Service\CreateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

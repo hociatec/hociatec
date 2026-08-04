@@ -11,7 +11,7 @@ use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Service\AppointmentFormatter;
+use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
 use App\Module\Appointment\Application\Service\AppointmentStatusWorkflow;
 use App\Module\Appointment\Application\Service\AvailabilityService;

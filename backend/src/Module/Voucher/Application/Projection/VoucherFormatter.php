@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Voucher\Application\Service;
+namespace App\Module\Voucher\Application\Projection;
 
 use App\Module\Voucher\Domain\Entity\Voucher;
 

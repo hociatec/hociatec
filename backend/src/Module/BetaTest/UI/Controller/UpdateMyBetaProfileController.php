@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
@@ -34,7 +33,7 @@ final class UpdateMyBetaProfileController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
         $profile = $this->profiles->findOneByUser($user);
-        $input = BetaProfileInput::fromArray(JsonPayload::decode($request));
+        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, BetaProfileInput::class);
         $this->validator->validate($input);
         $this->profileService->save($user, $profile, $input);
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
 use App\Module\TradeIn\Application\Service\TradeInService;
@@ -31,7 +30,7 @@ final class SetTradeInOfferController extends AbstractController
         if (null === $tradeIn) {
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);
         }
-        $input = TradeInOfferInput::fromArray(JsonPayload::decode($request));
+        $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, TradeInOfferInput::class);
         $this->validator->validate($input);
         $expires = null;
         if (null !== $input->offerExpiresAt && '' !== $input->offerExpiresAt) {

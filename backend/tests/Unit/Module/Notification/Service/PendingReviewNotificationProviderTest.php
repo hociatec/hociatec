@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Notification\Service;
 
-use App\Module\Notification\Application\Service\AccountNotificationFormatter;
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Service\PendingReviewNotificationProvider;
 use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
 use App\Module\Rating\Application\Service\PendingReviewResolver;

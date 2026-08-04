@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Service;
 
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;

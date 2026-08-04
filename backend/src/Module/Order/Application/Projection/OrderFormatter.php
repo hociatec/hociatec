@@ -7,7 +7,7 @@ namespace App\Module\Order\Application\Projection;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
-use App\Module\Rating\Application\Service\ProductReviewFormatter;
+use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Domain\Entity\ProductRating;
 
 final class OrderFormatter

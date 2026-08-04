@@ -6,6 +6,7 @@ namespace App\Module\Notification\Application\Service;
 
 use App\Module\Appointment\Application\Service\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class AppointmentNotificationProvider implements ComputedAccountNotificationProviderInterface

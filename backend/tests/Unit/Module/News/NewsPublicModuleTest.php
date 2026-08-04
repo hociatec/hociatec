@@ -16,7 +16,7 @@ use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
 use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
 use App\Module\News\Application\Service\NewsArticleViewTracker;
 use App\Module\News\Application\Service\NewsCommentWriter;
-use App\Module\News\Application\Service\NewsFormatter;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;

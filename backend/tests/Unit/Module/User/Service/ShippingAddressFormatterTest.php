@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\User\Service;
 
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class ShippingAddressFormatterTest extends TestCase

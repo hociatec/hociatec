@@ -39,7 +39,7 @@ final readonly class SupportOperationsController
     public function create(Request $request): JsonResponse
     {
         try {
-            $input = SupportCreateInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportCreateInput::class);
             $this->validator->validate($input);
             $item = $this->support->create(new SupportCreateData($input->customerId, $input->subject, $input->reason, $input->message, $input->internalNotes, $input->orderId));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -55,7 +55,7 @@ final readonly class SupportOperationsController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $input = SupportUpdateInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportUpdateInput::class);
             $this->validator->validate($input);
             $item = $this->support->update($id, new SupportUpdateData($input->status, $input->internalNotes, $input->subject));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -71,7 +71,7 @@ final readonly class SupportOperationsController
     public function reply(int $id, Request $request): JsonResponse
     {
         try {
-            $input = SupportReplyInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, SupportReplyInput::class);
             $this->validator->validate($input);
             $item = $this->support->reply($id, new SupportReplyData($input->message, $input->subject, $input->status));
         } catch (OperationsResourceNotFoundException $exception) {

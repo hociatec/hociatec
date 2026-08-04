@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Misc;
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Service\AccountNotificationFormatter;
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Service\AccountNotificationProvider;
 use App\Module\Notification\Application\Service\AccountNotificationReadStateService;
 use App\Module\Notification\Application\Service\CommunicationPreferences;

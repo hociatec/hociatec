@@ -6,8 +6,8 @@ namespace App\Module\Quote\UI\Controller\Client;
 
 // not used, rely on AbstractController
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

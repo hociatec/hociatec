@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Catalog\Application\Service;
+namespace App\Module\Catalog\Application\Projection;
 
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;

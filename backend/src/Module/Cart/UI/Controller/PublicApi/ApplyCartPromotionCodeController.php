@@ -8,7 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Cart\Application\DTO\ApplyCartVoucherInput;
-use App\Module\Cart\Application\Service\CartFormatter;
+use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Service\CartVoucherService;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -21,7 +21,7 @@ use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use App\Module\Audit\Application\Service\AuditEventLogger;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
 use App\Module\Audit\Application\Service\AuditPersistence;
 use App\Module\Audit\Application\Service\AuditTemplateProvider;

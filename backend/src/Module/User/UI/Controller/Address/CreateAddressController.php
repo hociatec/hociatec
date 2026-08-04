@@ -7,7 +7,7 @@ namespace App\Module\User\UI\Controller\Address;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\User\Application\DTO\ShippingAddressInput;
-use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Application\Service\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\News\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\News\Application\Service\NewsFormatter;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Rating\Application\Service;
+namespace App\Module\Rating\Application\Projection;
 
 use App\Module\Rating\Domain\Entity\ProductRating;
 

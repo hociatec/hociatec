@@ -9,7 +9,7 @@ use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Module\Loyalty\Application\Service\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Application\Service\VoucherFormatter;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

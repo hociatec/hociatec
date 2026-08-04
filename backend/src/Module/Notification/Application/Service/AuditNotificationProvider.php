@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Service;
 
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class AuditNotificationProvider implements ComputedAccountNotificationProviderInterface

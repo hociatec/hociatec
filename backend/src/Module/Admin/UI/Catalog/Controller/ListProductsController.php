@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Service\ProductQueryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

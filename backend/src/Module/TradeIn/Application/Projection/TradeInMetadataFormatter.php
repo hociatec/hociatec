@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\TradeIn\Application\Service;
+namespace App\Module\TradeIn\Application\Projection;
 
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 

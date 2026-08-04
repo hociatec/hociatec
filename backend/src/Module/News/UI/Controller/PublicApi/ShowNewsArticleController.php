@@ -6,8 +6,8 @@ namespace App\Module\News\UI\Controller\PublicApi;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Service\NewsArticleViewTracker;
-use App\Module\News\Application\Service\NewsFormatter;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

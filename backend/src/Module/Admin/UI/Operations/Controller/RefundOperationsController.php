@@ -41,7 +41,7 @@ final class RefundOperationsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         try {
-            $input = RefundCreateInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundCreateInput::class);
             $this->validator->validate($input);
             $item = $this->refunds->create(new RefundCreateData($input->orderId, $input->amountCents, $input->reason, $input->internalNotes, $input->paymentId, $input->currencyCode), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
@@ -57,7 +57,7 @@ final class RefundOperationsController extends AbstractController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $input = RefundUpdateInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundUpdateInput::class);
             $this->validator->validate($input);
             $item = $this->refunds->update($id, new RefundUpdateData($input->status, $input->stripeRefundId, $input->internalNotes));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -73,7 +73,7 @@ final class RefundOperationsController extends AbstractController
     public function processStripe(int $id, Request $request): JsonResponse
     {
         try {
-            $input = RefundProcessInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, RefundProcessInput::class);
             $this->validator->validate($input);
             $result = $this->refunds->processStripe($id, new RefundProcessData($input->confirmation, $input->paymentIntentId), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {

@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Quote\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
 use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
-use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;

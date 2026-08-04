@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Voucher\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Voucher\Application\Service\VoucherFormatter;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

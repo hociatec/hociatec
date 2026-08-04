@@ -9,7 +9,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Comment\Domain\Entity\ProductComment;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
-use App\Module\Rating\Application\Service\ProductReviewFormatter;
+use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

@@ -7,7 +7,7 @@ namespace App\Module\Training\UI\Controller\PublicApi;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
 use App\Infrastructure\Http\RateLimited;
-use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

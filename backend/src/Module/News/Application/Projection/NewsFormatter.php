@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\News\Application\Service;
+namespace App\Module\News\Application\Projection;
 
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;

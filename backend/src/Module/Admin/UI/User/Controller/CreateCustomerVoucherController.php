@@ -10,7 +10,7 @@ use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\Admin\Application\User\Service\CreateCustomerVoucherHandler as CreateCustomerVoucherForCustomerHandler;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\Voucher\Application\Service\VoucherFormatter;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

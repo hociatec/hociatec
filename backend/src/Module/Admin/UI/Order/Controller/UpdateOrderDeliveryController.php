@@ -41,7 +41,7 @@ final class UpdateOrderDeliveryController extends AbstractController
 
         try {
             $actor = $this->getUser();
-            $input = DeliveryInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
             $this->validator->validate($input);
             $order = $this->delivery->update(
                 $order,

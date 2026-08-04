@@ -7,7 +7,7 @@ namespace App\Module\Rating\UI\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
 use App\Module\Catalog\Application\Service\ProductQueryService;
-use App\Module\Rating\Application\Service\ProductReviewFormatter;
+use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

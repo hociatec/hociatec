@@ -36,7 +36,7 @@ final class FulfillmentOperationsController extends AbstractController
     public function ship(int $id, Request $request): JsonResponse
     {
         try {
-            $input = DeliveryInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
             $this->validator->validate($input);
             $order = $this->fulfillment->ship($id, $input, $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {

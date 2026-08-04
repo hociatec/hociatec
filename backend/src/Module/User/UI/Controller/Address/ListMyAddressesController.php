@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\UI\Controller\Address;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -6,7 +6,7 @@ namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
-use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

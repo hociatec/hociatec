@@ -6,10 +6,9 @@ namespace App\Module\Admin\UI\News\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Infrastructure\Http\JsonPayload;
 use App\Module\News\Application\DTO\NewsArticleInput;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Service\NewsArticleWriter;
-use App\Module\News\Application\Service\NewsFormatter;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +26,7 @@ final readonly class CreateAdminNewsArticleController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $article = $this->writer->create(NewsArticleInput::fromArray(JsonPayload::decode($request)));
+            $article = $this->writer->create(\App\Infrastructure\Http\JsonRequestInput::decode($request, NewsArticleInput::class));
         } catch (InvalidJsonPayloadException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         } catch (NewsOperationException $exception) {

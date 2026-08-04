@@ -3,7 +3,8 @@
 Use suffixes consistently so class names describe responsibility.
 
 - `Input` / `DTO`: typed data crossing a boundary. It may normalize raw payloads and carry Symfony validation constraints.
-- `Formatter`: maps domain state to API or document output arrays. Controllers should prefer formatters over inline entity mapping.
+- `Projection`: read-side payload mapping for API-facing application views.
+- `Formatter`: maps domain state to API or document output arrays. Application formatters live under `Application/Projection`; HTTP-only response mappers live under UI/HTTP or Infrastructure/Http. Controllers should prefer formatters over inline entity mapping.
 - `Writer`: creates or mutates a resource from a typed input.
 - `Handler`: handles an event, command, or explicit application action.
 - `Policy`: answers authorization or business-rule decisions without side effects.

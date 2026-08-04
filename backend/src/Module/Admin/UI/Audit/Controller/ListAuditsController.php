@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Audit\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -26,7 +26,7 @@ use App\Module\User\Application\Service\DeleteAccountService;
 use App\Module\User\Application\Service\RegisterUserService;
 use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
-use App\Module\User\Application\Service\UserProfileFormatter;
+use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Promotion\Application\Service;
+namespace App\Module\Promotion\Application\Projection;
 
 use App\Module\Promotion\Domain\Entity\Promotion;
 

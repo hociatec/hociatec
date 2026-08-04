@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Quote\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;

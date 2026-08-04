@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Audit\UI\Controller\Client;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Domain\Security\AuditAccessPolicy;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;

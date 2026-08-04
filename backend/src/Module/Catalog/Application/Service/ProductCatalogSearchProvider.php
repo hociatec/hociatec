@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Service;
 
 use App\Module\Catalog\Application\DTO\ProductSearchCriteria;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 

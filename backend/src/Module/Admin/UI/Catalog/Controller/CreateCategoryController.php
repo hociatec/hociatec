@@ -8,7 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Catalog\DTO\CategoryInput;
-use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Service\CategoryService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

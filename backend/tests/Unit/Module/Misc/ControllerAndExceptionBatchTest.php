@@ -8,7 +8,7 @@ use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\Audit\UI\Controller\Client\ListAuditMetadataController;
-use App\Module\Audit\Application\Service\AuditMetadataFormatter;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Auth\UI\Controller\ActivationRedirectController;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
@@ -21,7 +21,7 @@ use App\Module\Training\UI\Controller\PublicApi\ListTrainingCategoriesController
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
-use App\Module\Training\Application\Service\TrainingCategoryFormatter;
+use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;

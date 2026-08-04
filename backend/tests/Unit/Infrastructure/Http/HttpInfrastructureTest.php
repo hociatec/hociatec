@@ -193,7 +193,7 @@ final class HttpInfrastructureTest extends TestCase
 
     public function testAccountNotificationFormatterNormalizesInternalTargets(): void
     {
-        $formatter = new \App\Module\Notification\Application\Service\AccountNotificationFormatter();
+        $formatter = new \App\Module\Notification\Application\Projection\AccountNotificationFormatter();
 
         self::assertSame('/orders/1', $formatter->safeInternalTarget(' /orders/1 '));
         self::assertSame('/mon-espace', $formatter->safeInternalTarget('https://example.test'));

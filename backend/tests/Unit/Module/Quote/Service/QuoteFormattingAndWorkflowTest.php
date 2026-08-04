@@ -12,7 +12,7 @@ use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuotePersistence;
 use App\Module\Quote\Application\Service\QuoteWorkflowService;
 use App\Module\User\Domain\Entity\User;

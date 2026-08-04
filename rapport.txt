@@ -34,31 +34,32 @@ Note actuelle : 8,5/10
 
 Les garde-fous principaux sont présents : erreurs publiques, CSRF, rate limiting, request ID, headers, download factory, policies.
 Reste à traiter :
-- 69 imports Doctrine/Symfony existent encore dans Domain.
+- 72 références Doctrine/Symfony existent encore dans Domain.
 - User dépend encore directement d’interfaces Symfony Security.
 Ce choix est pragmatique, mais ce n’est pas un domaine totalement indépendant.
 
 11. DTO et validation
-Note actuelle : 9/10
+Note actuelle : 9,2/10
 
 La convention Application/DTO est corrigée et verrouillée par test d’architecture.
+Les contrôleurs déjà dotés d’inputs typés peuvent désormais passer par JsonRequestInput, ce qui évite de propager le tableau JSON brut.
 Reste à traiter :
-- Plusieurs contrôleurs décodent encore JsonPayload inline.
+- 62 décodages JsonPayload inline restent dans les modules.
 - Tous les flux ne passent pas encore par des Input/Command typés côté Application.
 
 12. Réponses API et mapping
-Note actuelle : 8/10
+Note actuelle : 9/10
 
-OrderFormatter, AdminOperationsFormatter et AdminPaymentFormatter ne sont plus dans Application/Service.
+Les formatters applicatifs ont été déplacés hors Application/Service vers Application/Projection, et la règle est verrouillée par test d’architecture.
 Reste à traiter :
-- 17 autres formatters restent dans Application/Service.
-- Il faut décider lesquels sont de vraies projections applicatives et lesquels sont des mappers HTTP à déplacer vers UI/Http.
+- 18 formatters/projections restent à auditer pour distinguer les vues applicatives des mappers HTTP purs.
+- 167 réponses ApiResponse construisent encore directement des tableaux inline dans les contrôleurs.
 
 16. Cohérence de conception
-Note actuelle : 8/10
+Note actuelle : 8,5/10
 
 Les erreurs de couche les plus visibles sont corrigées : Shared, PDF Infrastructure, DTO, projections majeures.
+La convention de suffixes est documentée dans backend/docs/architecture-naming.md et les formatters applicatifs sont verrouillés côté Projection par test.
 Reste à traiter :
-- Les suffixes Service/Handler/Provider/Writer/Projection restent à formaliser dans une convention stricte.
-- Certains services techniques ou formatters restent dans Application/Service.
+- Certains services techniques restent dans Application/Service et doivent migrer progressivement vers Handler, Provider, Writer ou Projection selon leur responsabilité.
 - Les dépendances Domain vers framework doivent être assumées comme compromis ou progressivement isolées.

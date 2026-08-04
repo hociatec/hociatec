@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Notification\Application\Service;
+namespace App\Module\Notification\Application\Projection;
 
 final readonly class AccountNotificationFormatter
 {

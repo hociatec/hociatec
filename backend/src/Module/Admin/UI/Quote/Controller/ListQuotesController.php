@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteCalculator;
-use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Quote\Application\Service\QuoteStatusTranslator;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

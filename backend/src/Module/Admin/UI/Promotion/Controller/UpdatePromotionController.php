@@ -8,7 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Promotion\Application\DTO\PromotionInput;
-use App\Module\Promotion\Application\Service\PromotionFormatter;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -16,7 +16,7 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\ChangeProfileEmailService;
 use App\Module\User\Application\Service\ChangeProfilePasswordService;
 use App\Module\User\Application\Service\ProfileCurrentPasswordVerifier;
-use App\Module\User\Application\Service\ShippingAddressFormatter;
+use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Application\Service\UserUniqueConstraintViolationDetector;
 use App\Module\User\Application\Service\VerificationTokenHasher;
 use Doctrine\DBAL\Driver\Exception as DriverException;

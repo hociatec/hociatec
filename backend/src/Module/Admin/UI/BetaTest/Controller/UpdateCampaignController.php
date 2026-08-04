@@ -6,7 +6,6 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\ApiValidationException;
-use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\BetaTest\DTO\UpdateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Service\UpdateBetaCampaignHandler;
@@ -36,7 +35,7 @@ final class UpdateCampaignController extends AbstractController
         }
 
         try {
-            $input = UpdateBetaCampaignInput::fromArray(JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, UpdateBetaCampaignInput::class);
             $this->validator->validate($input);
             $this->updateCampaign->update($campaign, $input);
         } catch (ApiValidationException $exception) {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;

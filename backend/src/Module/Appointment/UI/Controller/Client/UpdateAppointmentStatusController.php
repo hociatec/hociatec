@@ -8,7 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
-use App\Module\Appointment\Application\Service\AppointmentFormatter;
+use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;

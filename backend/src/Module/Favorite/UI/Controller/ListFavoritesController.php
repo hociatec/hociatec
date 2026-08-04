@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Favorite\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Application\Service\FavoriteService;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;

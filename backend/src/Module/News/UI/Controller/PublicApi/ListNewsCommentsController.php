@@ -7,7 +7,7 @@ namespace App\Module\News\UI\Controller\PublicApi;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
 use App\Infrastructure\Http\RateLimited;
-use App\Module\News\Application\Service\NewsFormatter;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -9,7 +9,7 @@ use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
-use App\Module\TradeIn\Application\Service\TradeInFormatter;
+use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Service\TradeInService;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
-use App\Module\Quote\Application\Service\QuoteFormatter;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

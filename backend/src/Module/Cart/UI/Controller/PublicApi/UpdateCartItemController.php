@@ -8,7 +8,7 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Cart\Application\DTO\UpdateCartItemInput;
-use App\Module\Cart\Application\Service\CartFormatter;
+use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Service\CartService;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\User\Domain\Entity\User;

@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Promotion\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\Pagination;
-use App\Module\Promotion\Application\Service\PromotionFormatter;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

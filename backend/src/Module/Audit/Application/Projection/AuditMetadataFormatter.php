@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Audit\Application\Service;
+namespace App\Module\Audit\Application\Projection;
 
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;

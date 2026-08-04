@@ -7,7 +7,7 @@ namespace App\Module\Training\UI\Controller\Admin;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Training\Application\DTO\TrainingInput;
-use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;

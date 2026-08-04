@@ -19,7 +19,7 @@ use App\Module\Order\Application\Service\OrderEventPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Application\Service\QuoteNumberGenerator;
 use App\Module\TradeIn\UI\Controller\ListTradeInMetadataController;
-use App\Module\TradeIn\Application\Service\TradeInMetadataFormatter;
+use App\Module\TradeIn\Application\Projection\TradeInMetadataFormatter;
 use App\Module\TradeIn\Application\Service\TradeInNumberGenerator;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Http\ApiValidationException;

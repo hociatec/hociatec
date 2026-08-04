@@ -174,6 +174,18 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationFormattersLiveInProjectionNamespaces(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (str_contains($path, '/Application/Service/') && str_ends_with($path, 'Formatter.php')) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testCleanedMarketingControllersDoNotDecodeJsonInline(): void
     {
         $violations = [];

@@ -6,6 +6,7 @@ namespace App\Module\Promotion\Application\Service;
 
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\User\Domain\Entity\User;

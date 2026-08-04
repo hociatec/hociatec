@@ -64,7 +64,7 @@ final class StockOperationsController extends AbstractController
     public function updateThreshold(int $id, Request $request): JsonResponse
     {
         try {
-            $input = UpdateLowStockThresholdInput::fromArray(\App\Infrastructure\Http\JsonPayload::decode($request));
+            $input = \App\Infrastructure\Http\JsonRequestInput::decode($request, UpdateLowStockThresholdInput::class);
             $this->validator->validate($input);
             $product = $this->stock->updateThreshold($id, $input->threshold);
         } catch (OperationsResourceNotFoundException $exception) {

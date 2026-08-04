@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Catalog\Service;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Application\Service\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class CatalogFormatterTest extends TestCase

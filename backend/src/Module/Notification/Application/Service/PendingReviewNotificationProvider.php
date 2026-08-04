@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Service;
 
+use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Rating\Application\Service\PendingReviewResolver;
 use App\Module\User\Domain\Entity\User;
 

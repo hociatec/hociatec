@@ -11,8 +11,8 @@ use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
-use App\Module\Training\Application\Service\TrainingFormatter;
-use App\Module\Training\Application\Service\TrainingMetadataFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

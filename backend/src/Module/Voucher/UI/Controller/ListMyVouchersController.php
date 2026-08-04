@@ -6,7 +6,7 @@ namespace App\Module\Voucher\UI\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Application\Service\VoucherFormatter;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

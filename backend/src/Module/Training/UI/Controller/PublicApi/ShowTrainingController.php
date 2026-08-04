@@ -6,7 +6,7 @@ namespace App\Module\Training\UI\Controller\PublicApi;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\RateLimited;
-use App\Module\Training\Application\Service\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

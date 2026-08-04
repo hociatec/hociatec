@@ -10,7 +10,7 @@ use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Appointment\Application\DTO\CreateAppointmentInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
-use App\Module\Appointment\Application\Service\AppointmentFormatter;
+use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\User\Domain\Entity\User;

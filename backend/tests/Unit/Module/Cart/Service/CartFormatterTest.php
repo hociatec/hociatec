@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Cart\Service;
 
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Application\Service\CartFormatter;
+use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
