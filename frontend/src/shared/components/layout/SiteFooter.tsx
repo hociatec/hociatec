@@ -16,13 +16,6 @@ const prestationLinks = [
   { to: '/audits/request', label: 'Demander un audit' },
 ];
 
-const catalogLinks = [
-  { to: '/catalogue/vente', label: 'Vente' },
-  { to: '/catalogue/location', label: 'Location' },
-  { to: '/reprise', label: 'Reprise' },
-  { to: '/formations', label: 'Formations' },
-];
-
 const openingHours = [
   { key: 'lundi', label: 'Lundi', hours: '09h00 - 20h00' },
   { key: 'mardi', label: 'Mardi', hours: '09h00 - 20h00' },
@@ -87,17 +80,6 @@ export const SiteFooter = () => {
             <h2>Prestations</h2>
             <nav className="site-footer__links" aria-label="Liens prestations">
               {prestationLinks.map((link) => (
-                <Link key={link.to} to={link.to} className="site-footer__link">
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          <div className="site-footer__column">
-            <h2>Catalogue</h2>
-            <nav className="site-footer__links" aria-label="Liens catalogue">
-              {catalogLinks.map((link) => (
                 <Link key={link.to} to={link.to} className="site-footer__link">
                   {link.label}
                 </Link>
