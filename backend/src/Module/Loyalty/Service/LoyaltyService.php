@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Loyalty\Service;
 
 use App\Module\Order\Entity\Order;
+use App\Module\Loyalty\Exception\LoyaltyOperationException;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Module\Voucher\Entity\Voucher;
@@ -86,15 +87,24 @@ final class LoyaltyService
     public function adjustBalance(User $user, int $points): void
     {
         $user->setLoyaltyPointsBalance($points);
-        $this->persistence->persist($user);
-        $this->persistence->flush();
+
+        try {
+            $this->persistence->persist($user);
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw LoyaltyOperationException::failed('Impossible de mettre à jour le solde fidélité.', $exception);
+        }
     }
 
     public function convertPointsToVoucher(User $user, int $points): Voucher
     {
-        return $this->persistence->transactional(
-            fn (): Voucher => $this->convertPointsToVoucherInTransaction($this->lockUser($user), $points),
-        );
+        try {
+            return $this->persistence->transactional(
+                fn (): Voucher => $this->convertPointsToVoucherInTransaction($this->lockUser($user), $points),
+            );
+        } catch (\RuntimeException $exception) {
+            throw LoyaltyOperationException::failed('Impossible de convertir les points fidélité.', $exception);
+        }
     }
 
     private function lockUser(User $user): User
@@ -153,6 +163,12 @@ final class LoyaltyService
     {
         $seed = preg_replace('/[^A-Za-z0-9]+/', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $user->getLastName()) ?: '') ?: 'CLIENT';
 
-        return sprintf('FID-%s-%s', strtoupper(substr($seed, 0, 10)), strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)));
+        try {
+            $suffix = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        } catch (\Random\RandomException $exception) {
+            throw LoyaltyOperationException::failed('Impossible de générer le code fidélité.', $exception);
+        }
+
+        return sprintf('FID-%s-%s', strtoupper(substr($seed, 0, 10)), $suffix);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Admin\Quote\DTO\QuotePayloadInput;
 use App\Module\Quote\DTO\QuotePayload;
+use App\Module\Quote\Exception\QuoteOperationException;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteFormatter;
@@ -38,15 +39,15 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($input->toPayload()));
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de créer le devis.');
+        } catch (\InvalidArgumentException|QuoteOperationException|\RuntimeException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         $data = QuoteFormatter::formatQuote($quote, $this->calculator);
 
         try {
             $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $data['emailNotificationSent'] = false;
             $data['emailNotificationError'] = 'Notification email indisponible.';
         }

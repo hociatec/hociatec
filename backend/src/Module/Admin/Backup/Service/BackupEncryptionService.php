@@ -54,7 +54,7 @@ final readonly class BackupEncryptionService
             if (!rename($temporaryPath, $targetPath)) {
                 throw new \RuntimeException('Impossible de finaliser la sauvegarde chiffrée.');
             }
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             if (is_resource($source)) {
                 fclose($source);
             }

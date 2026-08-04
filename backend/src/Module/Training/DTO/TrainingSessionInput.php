@@ -31,7 +31,7 @@ final readonly class TrainingSessionInput
             $endsAt = new \DateTimeImmutable(is_string($payload['endsAt'] ?? null) ? $payload['endsAt'] : $startsAt->modify('+1 day')->format(\DateTimeInterface::ATOM));
             $dailyStart = new \DateTimeImmutable(is_string($payload['dailyStartTime'] ?? null) ? $payload['dailyStartTime'] : '08:00');
             $dailyEnd = new \DateTimeImmutable(is_string($payload['dailyEndTime'] ?? null) ? $payload['dailyEndTime'] : '20:00');
-        } catch (\Exception $exception) {
+        } catch (\DateMalformedStringException $exception) {
             throw new \InvalidArgumentException('Dates de session invalides.', previous: $exception);
         }
 

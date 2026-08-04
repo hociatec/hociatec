@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Category;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Shared\Service\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -54,7 +55,11 @@ final class CategoryService
             ->setDescription($description)
             ->setIsVisible($isVisible);
 
-        $this->persistence->save($category);
+        try {
+            $this->persistence->save($category);
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de créer la catégorie.', $exception);
+        }
 
         return $category;
     }
@@ -77,7 +82,11 @@ final class CategoryService
             ->setDescription($description)
             ->setIsVisible($isVisible);
 
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de mettre à jour la catégorie.', $exception);
+        }
 
         return $category;
     }
@@ -85,10 +94,14 @@ final class CategoryService
     public function delete(Category $category): void
     {
         if (!$category->getProducts()->isEmpty()) {
-            throw new \RuntimeException('Impossible de supprimer la categorie car elle contient encore des produits.');
+            throw CatalogOperationException::invalidOperation('Impossible de supprimer la categorie car elle contient encore des produits.');
         }
 
-        $this->persistence->delete($category);
+        try {
+            $this->persistence->delete($category);
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de supprimer la catégorie.', $exception);
+        }
     }
 
     private function generateUniqueSlug(string $name, ?int $excludeId): string

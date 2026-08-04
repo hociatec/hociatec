@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\DTO\WorkingDayData;
 use App\Module\Appointment\Entity\WorkingDayConfiguration;
+use App\Module\Appointment\Exception\AppointmentOperationException;
 use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
 
 final class WorkingDayConfigurationService
@@ -89,7 +90,11 @@ final class WorkingDayConfigurationService
             $configurations[] = $configuration;
         }
 
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de mettre a jour la configuration.', $exception);
+        }
 
         return $configurations;
     }
@@ -120,7 +125,11 @@ final class WorkingDayConfigurationService
             $defaults[] = $configuration;
         }
 
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de préparer la configuration par défaut.', $exception);
+        }
 
         return $defaults;
     }

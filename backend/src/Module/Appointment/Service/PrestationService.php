@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\Entity\Prestation;
+use App\Module\Appointment\Exception\AppointmentOperationException;
 use App\Module\Appointment\Repository\PrestationRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -32,7 +33,11 @@ final class PrestationService
 
         $prestation = new Prestation($name, $durationMinutes, $priceCents);
 
-        $this->persistence->save($prestation);
+        try {
+            $this->persistence->save($prestation);
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible d\'enregistrer la prestation.', $exception);
+        }
 
         return $prestation;
     }
@@ -46,39 +51,51 @@ final class PrestationService
             ->setDurationMinutes($durationMinutes)
             ->setPriceCents($priceCents);
 
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de mettre à jour la prestation.', $exception);
+        }
 
         return $prestation;
     }
 
     public function delete(Prestation $prestation): void
     {
-        $this->persistence->delete($prestation);
+        try {
+            $this->persistence->delete($prestation);
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de supprimer la prestation.', $exception);
+        }
     }
 
     private function assertValidData(string $name, int $durationMinutes, int $priceCents): void
     {
-        $violations = $this->validator->validate(
-            [
-                'name' => $name,
-                'duration' => $durationMinutes,
-                'price' => $priceCents,
-            ],
-            new Assert\Collection([
-                'name' => [
-                    new Assert\NotBlank(message: 'La prestation doit avoir un nom.'),
-                    new Assert\Length(max: 120, maxMessage: 'Le nom ne doit pas depasser 120 caracteres.'),
+        try {
+            $violations = $this->validator->validate(
+                [
+                    'name' => $name,
+                    'duration' => $durationMinutes,
+                    'price' => $priceCents,
                 ],
-                'duration' => [
-                    new Assert\Positive(message: 'La duree doit etre superieure a 0.'),
-                    new Assert\LessThanOrEqual(value: 8 * 60, message: 'La duree ne peut depasser 8 heures.'),
-                ],
-                'price' => [
-                    new Assert\GreaterThanOrEqual(value: 0, message: 'Le prix doit etre positif.'),
-                    new Assert\LessThanOrEqual(value: 1000000, message: 'Le prix est trop eleve.'),
-                ],
-            ])
-        );
+                new Assert\Collection([
+                    'name' => [
+                        new Assert\NotBlank(message: 'La prestation doit avoir un nom.'),
+                        new Assert\Length(max: 120, maxMessage: 'Le nom ne doit pas depasser 120 caracteres.'),
+                    ],
+                    'duration' => [
+                        new Assert\Positive(message: 'La duree doit etre superieure a 0.'),
+                        new Assert\LessThanOrEqual(value: 8 * 60, message: 'La duree ne peut depasser 8 heures.'),
+                    ],
+                    'price' => [
+                        new Assert\GreaterThanOrEqual(value: 0, message: 'Le prix doit etre positif.'),
+                        new Assert\LessThanOrEqual(value: 1000000, message: 'Le prix est trop eleve.'),
+                    ],
+                ])
+            );
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de valider la prestation.', $exception);
+        }
 
         if ($violations->count() > 0) {
             throw new \InvalidArgumentException((string) $violations);

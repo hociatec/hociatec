@@ -45,7 +45,7 @@ final class AdminBackupController
             return ApiResponse::success($this->backupManager->updateSettings($input->settings()), Response::HTTP_OK, 'La configuration des sauvegardes a bien été enregistrée.');
         } catch (\InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Exception $e) {
+        } catch (\RuntimeException $e) {
             return ApiResponse::internalError();
         }
     }
@@ -57,8 +57,6 @@ final class AdminBackupController
             return ApiResponse::success($this->backupManager->runBackup('manual'), Response::HTTP_OK, 'La sauvegarde a bien été exécutée.');
         } catch (\RuntimeException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_CONFLICT);
-        } catch (\Exception $e) {
-            return ApiResponse::internalError();
         }
     }
 
@@ -73,7 +71,9 @@ final class AdminBackupController
             return ApiResponse::success([
                 'maintenance' => $this->maintenanceModeService->set($input->enabled, $input->message),
             ], Response::HTTP_OK, $input->enabled ? 'Le mode maintenance a été activé.' : 'Le mode maintenance a été désactivé.');
-        } catch (\Exception $e) {
+        } catch (\InvalidArgumentException $e) {
+            return ApiResponse::error($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $e) {
             return ApiResponse::internalError();
         }
     }

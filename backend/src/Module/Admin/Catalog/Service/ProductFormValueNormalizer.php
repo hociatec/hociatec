@@ -60,7 +60,7 @@ final class ProductFormValueNormalizer
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Exception $exception) {
+        } catch (\DateMalformedStringException $exception) {
             throw new \InvalidArgumentException('Date de remise invalide.', previous: $exception);
         }
     }

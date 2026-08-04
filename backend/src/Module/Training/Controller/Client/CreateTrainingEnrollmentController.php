@@ -39,7 +39,7 @@ final class CreateTrainingEnrollmentController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
             return ApiResponse::error('Impossible de finaliser l’inscription à la formation.', Response::HTTP_BAD_REQUEST);
         }
 

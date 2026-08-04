@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Admin\Catalog\Controller;
 
 use App\Module\Admin\Catalog\DTO\CatalogNameInput;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Service\BrandService;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +40,7 @@ class UpdateBrandController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -49,8 +51,8 @@ class UpdateBrandController extends AbstractController
             $brand = $this->brandService->update($brand, $input->name);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de mettre à jour la marque.');
+        } catch (CatalogOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(CatalogFormatter::formatBrand($brand), JsonResponse::HTTP_OK, 'La marque a bien été mise à jour.');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Service;
 
 use App\Module\Catalog\Entity\Brand;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Repository\ProductRepository;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -35,7 +36,11 @@ final class BrandService
         $this->assertUniqueName($normalizedName, null);
 
         $brand = new Brand($normalizedName);
-        $this->persistence->save($brand);
+        try {
+            $this->persistence->save($brand);
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de créer la marque.', $exception);
+        }
 
         return $brand;
     }
@@ -47,15 +52,23 @@ final class BrandService
         $this->assertUniqueName($normalizedName, $brand->getId());
 
         $brand->setName($normalizedName);
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de mettre à jour la marque.', $exception);
+        }
 
         return $brand;
     }
 
     public function delete(Brand $brand): void
     {
-        $this->productRepository->clearBrand($brand);
-        $this->persistence->delete($brand);
+        try {
+            $this->productRepository->clearBrand($brand);
+            $this->persistence->delete($brand);
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de supprimer la marque.', $exception);
+        }
     }
 
     private function normalizeName(string $name): string

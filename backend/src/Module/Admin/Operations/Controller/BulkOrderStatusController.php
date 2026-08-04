@@ -7,6 +7,7 @@ namespace App\Module\Admin\Operations\Controller;
 use App\Module\Admin\Operations\DTO\BulkOrderStatusInput;
 use App\Module\Admin\Operations\Service\BulkOrderStatusService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +34,7 @@ final readonly class BulkOrderStatusController
             $updated = $this->bulkStatus->update($input->orderIds, $input->status);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 

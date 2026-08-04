@@ -7,6 +7,7 @@ namespace App\Module\Auth\Controller;
 use App\Module\Auth\DTO\ResetPasswordInput;
 use App\Module\Auth\Service\PasswordResetService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -34,7 +35,7 @@ class ResetPasswordController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 

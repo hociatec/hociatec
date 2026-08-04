@@ -37,7 +37,7 @@ final class SetTradeInOfferController extends AbstractController
         if (null !== $input->offerExpiresAt && '' !== $input->offerExpiresAt) {
             try {
                 $expires = new \DateTimeImmutable($input->offerExpiresAt);
-            } catch (\Exception) {
+            } catch (\DateMalformedStringException) {
                 return ApiResponse::error('Date d’expiration invalide.');
             }
         }

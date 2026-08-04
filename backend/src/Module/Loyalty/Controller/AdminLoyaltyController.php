@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Loyalty\Controller;
 
 use App\Module\Loyalty\Service\LoyaltyService;
+use App\Module\Loyalty\Exception\LoyaltyOperationException;
 use App\Module\User\Entity\User;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -48,12 +50,16 @@ final class AdminLoyaltyController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         $points = (int) ($payload['points'] ?? $user->getLoyaltyPointsBalance());
-        $this->loyalty->adjustBalance($user, $points);
+        try {
+            $this->loyalty->adjustBalance($user, $points);
+        } catch (LoyaltyOperationException) {
+            return ApiResponse::internalError();
+        }
 
         return ApiResponse::success(['customer' => $this->formatCustomer($user)], Response::HTTP_OK, 'Le solde fidélité a bien été mis à jour.');
     }

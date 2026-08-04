@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Admin\Catalog\Controller;
 
 use App\Module\Admin\Catalog\DTO\CategoryInput;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\CategoryService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +40,7 @@ class UpdateCategoryController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -49,8 +51,8 @@ class UpdateCategoryController extends AbstractController
             $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de mettre à jour la catégorie.');
+        } catch (CatalogOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(CatalogFormatter::formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');

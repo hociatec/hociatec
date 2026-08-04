@@ -42,7 +42,7 @@ final class RetryOrderInvoiceController extends AbstractController
                 'invoice_regenerated',
                 'Facture regénérée depuis l’admin.',
             );
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
             return ApiResponse::internalError('Impossible de regénérer la facture.');
         }
 

@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Service;
 
 use App\Module\Appointment\Entity\Appointment;
 use App\Module\Appointment\Entity\Prestation;
+use App\Module\Appointment\Exception\AppointmentOperationException;
 use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\AppointmentRepository;
 use App\Module\Appointment\Repository\WorkingDayConfigurationRepository;
@@ -25,21 +26,27 @@ final class AppointmentService
 
     public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
     {
-        return $this->persistence->transactional(function () use ($user, $prestation, $startAt): Appointment {
-            $dayOfWeek = (int) $startAt->format('N') - 1;
-            $this->workingDayRepository->findOneByDayForUpdate($dayOfWeek);
+        try {
+            return $this->persistence->transactional(function () use ($user, $prestation, $startAt): Appointment {
+                $dayOfWeek = (int) $startAt->format('N') - 1;
+                $this->workingDayRepository->findOneByDayForUpdate($dayOfWeek);
 
-            if (!$this->availabilityService->isSlotAvailable($startAt, $prestation)) {
-                throw new InvalidAppointmentSlotException('Ce creneau n\'est plus disponible.');
-            }
+                if (!$this->availabilityService->isSlotAvailable($startAt, $prestation)) {
+                    throw new InvalidAppointmentSlotException('Ce creneau n\'est plus disponible.');
+                }
 
-            $appointment = new Appointment($user, $prestation, $startAt);
+                $appointment = new Appointment($user, $prestation, $startAt);
 
-            $this->persistence->persist($appointment);
-            $this->persistence->flush();
+                $this->persistence->persist($appointment);
+                $this->persistence->flush();
 
-            return $appointment;
-        });
+                return $appointment;
+            });
+        } catch (InvalidAppointmentSlotException $exception) {
+            throw $exception;
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de reserver ce creneau.', $exception);
+        }
     }
 
     /**
@@ -74,7 +81,11 @@ final class AppointmentService
         }
 
         $appointment->cancel();
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible d\'annuler ce rendez-vous.', $exception);
+        }
     }
 
     public function changeStatus(Appointment $appointment, string $targetStatus): void

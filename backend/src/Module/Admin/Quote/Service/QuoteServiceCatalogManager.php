@@ -6,6 +6,7 @@ namespace App\Module\Admin\Quote\Service;
 
 use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Entity\Service;
+use App\Module\Quote\Exception\QuoteOperationException;
 use App\Shared\Persistence\DoctrinePersistence;
 
 final readonly class QuoteServiceCatalogManager
@@ -19,8 +20,12 @@ final readonly class QuoteServiceCatalogManager
         $this->validate($data, true);
         $service = new Service($data->title, $data->priceCents ?? 0, $data->vatRateBps ?? 0);
         $this->apply($service, $data);
-        $this->persistence->persist($service);
-        $this->persistence->flush();
+        try {
+            $this->persistence->persist($service);
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de créer le service.', $exception);
+        }
 
         return $service;
     }
@@ -29,7 +34,11 @@ final readonly class QuoteServiceCatalogManager
     {
         $this->validate($data, false);
         $this->apply($service, $data);
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de mettre à jour le service.', $exception);
+        }
 
         return $service;
     }

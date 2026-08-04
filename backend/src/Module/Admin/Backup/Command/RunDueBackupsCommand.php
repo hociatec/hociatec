@@ -39,7 +39,7 @@ final class RunDueBackupsCommand extends Command
             $output->writeln('Backup completed.');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (\RuntimeException $e) {
             $output->writeln('<error>'.$e->getMessage().'</error>');
 
             return Command::FAILURE;

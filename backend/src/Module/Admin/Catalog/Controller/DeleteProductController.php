@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Catalog\Service\ProductService;
 use App\Shared\Http\ApiResponse;
@@ -33,8 +34,8 @@ class DeleteProductController extends AbstractController
 
         try {
             $this->productService->delete($product);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de supprimer le produit.');
+        } catch (CatalogOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'Le produit a bien été supprimé du catalogue.');

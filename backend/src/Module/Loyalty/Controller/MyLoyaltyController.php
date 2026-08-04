@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\Controller;
 
+use App\Module\Loyalty\Exception\LoyaltyOperationException;
 use App\Module\Loyalty\Service\LoyaltyService;
 use App\Module\User\Entity\User;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,7 +46,9 @@ final class MyLoyaltyController extends AbstractController
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
+            return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (LoyaltyOperationException) {
             return ApiResponse::error('Impossible de convertir ce solde.', Response::HTTP_BAD_REQUEST);
         }
 

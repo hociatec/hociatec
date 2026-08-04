@@ -119,7 +119,7 @@ final readonly class BackupStateStore
         }
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Exception) {
+        } catch (\DateMalformedStringException) {
             return null;
         }
     }

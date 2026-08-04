@@ -63,7 +63,8 @@ final class CartFormatter
 
         try {
             $promotionSummary = $this->promotionEngine->calculateCartSummary($cart, $user);
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
+        } catch (\LogicException) {
         }
 
         $voucherSummary = [
@@ -77,7 +78,8 @@ final class CartFormatter
 
         try {
             $voucherSummary = $this->voucherEngine->calculateCartSummary($cart, $user);
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
+        } catch (\LogicException) {
         }
 
         $summary = (null !== $cart->getVoucherCode() && 'applied' === $voucherSummary['voucherCodeStatus'])

@@ -11,6 +11,8 @@ use App\Module\Order\Service\OrderFormatter;
 use App\Module\Order\Service\OrderStatusUpdater;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\ApiValidationException;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -45,9 +47,11 @@ final class UpdateOrderStatusController extends AbstractController
             $order = $this->statusUpdater->update($order, $input->status, $actor instanceof User ? $actor : null);
         } catch (\DomainException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+        } catch (ApiValidationException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST, $exception->details);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 

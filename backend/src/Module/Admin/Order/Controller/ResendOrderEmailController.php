@@ -52,7 +52,7 @@ final class ResendOrderEmailController extends AbstractController
             };
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
             return ApiResponse::internalError('Impossible de renvoyer l’email.');
         }
 

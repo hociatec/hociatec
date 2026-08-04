@@ -26,7 +26,7 @@ final readonly class MetricsController
         try {
             $this->connection->executeQuery('SELECT 1')->fetchOne();
             $databaseUp = 1;
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
         }
 
         $body = implode("\n", [

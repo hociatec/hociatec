@@ -6,6 +6,7 @@ namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Admin\Quote\Service\QuoteServiceCatalogManager;
 use App\Module\Admin\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Quote\Exception\QuoteOperationException;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Shared\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,8 +31,8 @@ final readonly class CreateServiceController
             $service = $this->services->create($this->forms->create($request));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de créer le service.');
+        } catch (QuoteOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::created(QuoteFormatter::formatService($service), 'Le service a bien été créé.');

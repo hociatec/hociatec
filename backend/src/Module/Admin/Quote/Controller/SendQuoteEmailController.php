@@ -11,6 +11,7 @@ use App\Module\Quote\Service\QuoteEmailService;
 use App\Module\Quote\Service\QuoteStatusTranslator;
 use App\Module\Quote\Service\QuoteWorkflowService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,7 +53,7 @@ class SendQuoteEmailController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -64,7 +65,7 @@ class SendQuoteEmailController extends AbstractController
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
-        } catch (\Exception $exception) {
+        } catch (\LogicException $exception) {
             $this->logger->error('Unexpected quote email send failure.', [
                 'quoteId' => $quote->getId(),
                 'quoteNumber' => $quote->getNumber(),

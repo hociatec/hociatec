@@ -13,6 +13,7 @@ use App\Module\User\Entity\User;
 use App\Module\User\Repository\ShippingAddressRepository;
 use App\Shared\Http\ApiResponse;
 use App\Shared\Http\ApiValidationException;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Http\JsonPayload;
 use App\Shared\Http\RateLimited;
 use App\Shared\Validation\DtoValidator;
@@ -66,7 +67,7 @@ final class CheckoutExistingOrderController extends AbstractController
             $this->dtoValidator->validate($input);
         } catch (ApiValidationException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload de checkout invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -83,7 +84,7 @@ final class CheckoutExistingOrderController extends AbstractController
             $checkout = $this->stripeCheckout->createHostedCheckoutForOrder($user, $order, $shipping);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
         }
 

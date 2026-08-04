@@ -61,7 +61,7 @@ final readonly class PromotionInput
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Exception) {
+        } catch (\DateMalformedStringException) {
             return null;
         }
     }

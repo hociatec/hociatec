@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\BrandRepository;
 use App\Module\Catalog\Service\BrandService;
 use App\Shared\Http\ApiResponse;
@@ -33,8 +34,8 @@ class DeleteBrandController extends AbstractController
 
         try {
             $this->brandService->delete($brand);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de supprimer la marque.');
+        } catch (CatalogOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La marque a bien été supprimée.');

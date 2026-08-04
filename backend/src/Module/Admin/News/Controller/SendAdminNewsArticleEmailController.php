@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\News\Controller;
 
+use App\Module\News\Exception\NewsOperationException;
 use App\Module\News\Repository\NewsArticleRepository;
 use App\Module\News\Service\NewsArticleWriter;
 use App\Shared\Http\ApiResponse;
@@ -28,8 +29,10 @@ final readonly class SendAdminNewsArticleEmailController
 
         try {
             $this->writer->sendPublishedEmails($article);
-        } catch (\Exception $exception) {
+        } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+        } catch (NewsOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(['sent' => true], JsonResponse::HTTP_OK, 'Envoi des e-mails d’actualité planifié.');

@@ -8,6 +8,7 @@ use App\Module\Admin\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Service\VoucherFormatter;
 use App\Module\Voucher\Service\VoucherManager;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,7 +31,7 @@ final class CreateVoucherController extends AbstractController
     {
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -61,7 +62,7 @@ final class CreateVoucherController extends AbstractController
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Exception) {
+        } catch (\DateMalformedStringException) {
             return null;
         }
     }

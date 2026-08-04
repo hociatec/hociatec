@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Appointment\Controller;
 
 use App\Module\Admin\Appointment\DTO\WorkingDaysInput;
+use App\Module\Appointment\Exception\AppointmentOperationException;
 use App\Module\Appointment\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Service\WorkingDayPayloadMapper;
 use App\Shared\Http\ApiResponse;
@@ -41,8 +42,8 @@ class UpdateConfigurationController extends AbstractController
 
         try {
             $configurations = $this->configurationService->update($days);
-        } catch (\Exception) {
-            return ApiResponse::error('Impossible de mettre a jour la configuration.', Response::HTTP_BAD_REQUEST);
+        } catch (\InvalidArgumentException|AppointmentOperationException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success([

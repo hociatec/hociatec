@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Controller\Client;
 
 use App\Module\Appointment\DTO\CreateAppointmentInput;
+use App\Module\Appointment\Exception\AppointmentOperationException;
+use App\Module\Appointment\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\AppointmentFormatter;
 use App\Module\Appointment\Service\AppointmentService;
 use App\Module\User\Entity\User;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,14 +37,14 @@ class CreateAppointmentController extends AbstractController
     {
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $input = CreateAppointmentInput::fromArray($payload);
             $this->dtoValidator->validate($input);
-        } catch (\Exception $exception) {
+        } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Donnees de rendez-vous invalides.', Response::HTTP_UNPROCESSABLE_ENTITY, [$exception->getMessage()]);
         }
 
@@ -53,7 +56,7 @@ class CreateAppointmentController extends AbstractController
 
         try {
             $startAt = new \DateTimeImmutable($input->startAt);
-        } catch (\Exception) {
+        } catch (\DateMalformedStringException) {
             return ApiResponse::error('La date de debut est invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -62,7 +65,7 @@ class CreateAppointmentController extends AbstractController
 
         try {
             $appointment = $this->appointmentService->book($user, $prestation, $startAt);
-        } catch (\Exception $exception) {
+        } catch (InvalidAppointmentSlotException|AppointmentOperationException $exception) {
             return ApiResponse::error(
                 'Impossible de reserver ce creneau.',
                 Response::HTTP_BAD_REQUEST,

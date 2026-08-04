@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Notification\Service;
 
 use App\Module\Notification\DTO\NotificationReadStateInput;
+use App\Module\Notification\Exception\NotificationOperationException;
 use App\Module\User\Entity\User;
 use App\Module\User\Service\UserPersistence;
 
@@ -51,8 +52,12 @@ final readonly class AccountNotificationReadStateService
         }
 
         $formatted = $this->format($state);
-        $user->setAccountNotificationsSeenSignature(json_encode($formatted, JSON_THROW_ON_ERROR));
-        $this->persistence->flush();
+        try {
+            $user->setAccountNotificationsSeenSignature(json_encode($formatted, JSON_THROW_ON_ERROR));
+            $this->persistence->flush();
+        } catch (\JsonException|\RuntimeException $exception) {
+            throw NotificationOperationException::failed('Impossible de mettre à jour l’état de lecture des notifications.', $exception);
+        }
 
         return $formatted;
     }
@@ -69,7 +74,7 @@ final readonly class AccountNotificationReadStateService
 
         try {
             $decoded = json_decode($rawState, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Exception) {
+        } catch (\JsonException) {
             return [
                 'seenKeys' => $this->normalize(preg_split('/\R+/', $rawState) ?: []),
                 'dismissedKeys' => [],

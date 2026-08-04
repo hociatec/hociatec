@@ -17,6 +17,7 @@ use App\Module\Order\Repository\RefundRequestRepository;
 use App\Module\Order\Service\OrderEventLogger;
 use App\Module\Order\Service\StripeApiClient;
 use App\Module\User\Entity\User;
+use App\Shared\Http\ExternalServiceException;
 
 final readonly class RefundOperationsService
 {
@@ -123,7 +124,7 @@ final readonly class RefundOperationsService
                 'metadata[refund_request_id]' => (string) $refund->getId(),
                 'metadata[order_number]' => $refund->getOrder()->getNumber(),
             ]);
-        } catch (\Exception $exception) {
+        } catch (ExternalServiceException|\JsonException $exception) {
             $refund->setStatus($previousStatus);
             $this->persistence->flush();
             throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);

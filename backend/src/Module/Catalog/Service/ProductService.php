@@ -7,6 +7,7 @@ namespace App\Module\Catalog\Service;
 use App\Module\Catalog\Entity\Brand;
 use App\Module\Catalog\Entity\Category;
 use App\Module\Catalog\Entity\Product;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Shared\Persistence\DoctrinePersistence;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -108,21 +109,25 @@ final class ProductService
             $product->setDiscountEndsAt($discountEndsAt);
         }
 
-        $this->gallery->update($product, $galleryFiles, []);
+        try {
+            $this->gallery->update($product, $galleryFiles, []);
 
-        $this->persistence->persist($product);
-        $this->variantBatch->forNewProduct(
-            $product,
-            $name,
-            $sku,
-            $slug,
-            $resolvedVariantGroup,
-            $stock,
-            $variantDefinitions,
-        );
+            $this->persistence->persist($product);
+            $this->variantBatch->forNewProduct(
+                $product,
+                $name,
+                $sku,
+                $slug,
+                $resolvedVariantGroup,
+                $stock,
+                $variantDefinitions,
+            );
 
-        $this->persistence->flush();
-        $this->catalogCache->clear();
+            $this->persistence->flush();
+            $this->catalogCache->clear();
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de créer le produit.', $exception);
+        }
 
         return $product;
     }
@@ -213,27 +218,35 @@ final class ProductService
             $galleryToRemove[] = 0;
         }
 
-        $this->gallery->update($product, $galleryFiles, $galleryToRemove);
-        $this->variantBatch->forExistingProduct(
-            $product,
-            $name,
-            $sku,
-            $slug,
-            $resolvedVariantGroup,
-            $stock,
-            $variantDefinitions,
-        );
+        try {
+            $this->gallery->update($product, $galleryFiles, $galleryToRemove);
+            $this->variantBatch->forExistingProduct(
+                $product,
+                $name,
+                $sku,
+                $slug,
+                $resolvedVariantGroup,
+                $stock,
+                $variantDefinitions,
+            );
 
-        $this->persistence->flush();
-        $this->catalogCache->clear();
+            $this->persistence->flush();
+            $this->catalogCache->clear();
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de mettre à jour le produit.', $exception);
+        }
 
         return $product;
     }
 
     public function delete(Product $product): void
     {
-        $this->persistence->remove($product);
-        $this->persistence->flush();
-        $this->catalogCache->clear();
+        try {
+            $this->persistence->remove($product);
+            $this->persistence->flush();
+            $this->catalogCache->clear();
+        } catch (\RuntimeException $exception) {
+            throw CatalogOperationException::failed('Impossible de supprimer le produit.', $exception);
+        }
     }
 }

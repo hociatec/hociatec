@@ -6,6 +6,7 @@ namespace App\Module\Admin\Catalog\Controller;
 
 use App\Module\Admin\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Catalog\Service\ProductFormRequestMapper;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\ProductService;
 use App\Shared\Http\ApiResponse;
@@ -32,7 +33,7 @@ final readonly class CreateProductController
             $product = $this->products->create(...$data->createArguments());
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
-        } catch (\Exception $exception) {
+        } catch (\InvalidArgumentException|CatalogOperationException $exception) {
             return ApiResponse::error(
                 'Impossible de créer le produit.',
                 Response::HTTP_BAD_REQUEST,

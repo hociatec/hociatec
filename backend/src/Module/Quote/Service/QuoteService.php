@@ -9,6 +9,7 @@ use App\Module\Quote\DTO\QuoteItemPayload;
 use App\Module\Quote\DTO\QuotePayload;
 use App\Module\Quote\Entity\Quote;
 use App\Module\Quote\Entity\QuoteItem;
+use App\Module\Quote\Exception\QuoteOperationException;
 
 class QuoteService
 {
@@ -31,7 +32,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     public function createEmpty(): Quote
     {
         $quote = new Quote($this->numberGenerator->generate());
-        $this->persistence->save($quote);
+        try {
+            $this->persistence->save($quote);
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
+        }
 
         return $quote;
     }
@@ -40,7 +45,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         $quote = new Quote($this->numberGenerator->generate());
         $this->hydrateQuote($quote, $payload);
-        $this->persistence->save($quote);
+        try {
+            $this->persistence->save($quote);
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
+        }
 
         return $quote;
     }
@@ -48,7 +57,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     public function updateFromPayload(Quote $quote, QuotePayload $payload): Quote
     {
         $this->hydrateQuote($quote, $payload, true);
-        $this->persistence->flush();
+        try {
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de mettre à jour le devis.', $exception);
+        }
 
         return $quote;
     }
@@ -80,7 +93,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
             $copy->addItem($new);
         }
 
-        $this->persistence->save($copy);
+        try {
+            $this->persistence->save($copy);
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de dupliquer le devis.', $exception);
+        }
 
         return $copy;
     }
@@ -178,7 +195,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
     public function delete(Quote $quote): void
     {
-        $this->persistence->delete($quote);
+        try {
+            $this->persistence->delete($quote);
+        } catch (\RuntimeException $exception) {
+            throw QuoteOperationException::failed('Impossible de supprimer le devis.', $exception);
+        }
     }
 
     /** @return array{totalHt: int, totalVat: int, totalTtc: int} */

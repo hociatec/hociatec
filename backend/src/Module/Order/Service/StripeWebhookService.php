@@ -72,7 +72,7 @@ final class StripeWebhookService
             $this->persistence->flush();
 
             return ['eventId' => $eventId] + $result;
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $received?->markFailed($exception->getMessage());
             $this->persistence->flush();
             throw $exception;

@@ -6,6 +6,7 @@ namespace App\Module\News\Service;
 
 use App\Module\News\DTO\NewsArticleInput;
 use App\Module\News\Entity\NewsArticle;
+use App\Module\News\Exception\NewsOperationException;
 use App\Module\News\Message\NewsArticlePublishedEmailMessage;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Persistence\DoctrinePersistence;
@@ -24,11 +25,16 @@ final readonly class NewsArticleWriter
     {
         $article = new NewsArticle($input->title, $input->slug, $input->excerpt, $input->content);
         $this->apply($article, $input);
-        $this->persistence->persist($article);
-        $this->persistence->flush();
 
-        if ($article->isPublished()) {
-            $this->dispatchPublishedEmails($article);
+        try {
+            $this->persistence->persist($article);
+            $this->persistence->flush();
+
+            if ($article->isPublished()) {
+                $this->dispatchPublishedEmails($article);
+            }
+        } catch (\RuntimeException $exception) {
+            throw NewsOperationException::failed('Impossible de créer l’actualité.', $exception);
         }
 
         return $article;
@@ -38,10 +44,15 @@ final readonly class NewsArticleWriter
     {
         $wasPublished = $article->isPublished();
         $this->apply($article, $input);
-        $this->persistence->flush();
 
-        if (!$wasPublished && $article->isPublished()) {
-            $this->dispatchPublishedEmails($article);
+        try {
+            $this->persistence->flush();
+
+            if (!$wasPublished && $article->isPublished()) {
+                $this->dispatchPublishedEmails($article);
+            }
+        } catch (\RuntimeException $exception) {
+            throw NewsOperationException::failed('Impossible de mettre à jour l’actualité.', $exception);
         }
 
         return $article;
@@ -49,8 +60,12 @@ final readonly class NewsArticleWriter
 
     public function delete(object $entity): void
     {
-        $this->persistence->remove($entity);
-        $this->persistence->flush();
+        try {
+            $this->persistence->remove($entity);
+            $this->persistence->flush();
+        } catch (\RuntimeException $exception) {
+            throw NewsOperationException::failed('Impossible de supprimer l’actualité.', $exception);
+        }
     }
 
     public function sendPublishedEmails(NewsArticle $article): void
@@ -59,7 +74,11 @@ final readonly class NewsArticleWriter
             throw new \InvalidArgumentException('Seule une actualité publiée peut être envoyée par e-mail.');
         }
 
-        $this->dispatchPublishedEmails($article);
+        try {
+            $this->dispatchPublishedEmails($article);
+        } catch (\RuntimeException $exception) {
+            throw NewsOperationException::failed('Impossible de planifier l’envoi de l’actualité.', $exception);
+        }
     }
 
     private function apply(NewsArticle $article, NewsArticleInput $input): void
@@ -88,7 +107,11 @@ final readonly class NewsArticleWriter
             return new \DateTimeImmutable();
         }
 
-        return new \DateTimeImmutable($input->publishedAt);
+        try {
+            return new \DateTimeImmutable($input->publishedAt);
+        } catch (\DateMalformedStringException $exception) {
+            throw new \InvalidArgumentException('Date de publication invalide.', 0, $exception);
+        }
     }
 
     private function dispatchPublishedEmails(NewsArticle $article): void

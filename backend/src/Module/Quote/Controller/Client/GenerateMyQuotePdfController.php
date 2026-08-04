@@ -40,7 +40,7 @@ class GenerateMyQuotePdfController extends AbstractController
 
         try {
             $pdf = $this->pdfService->render($quote, $totals);
-        } catch (\Exception) {
+        } catch (\RuntimeException) {
             return ApiResponse::error(
                 'Génération PDF accessible indisponible.',
                 Response::HTTP_NOT_IMPLEMENTED

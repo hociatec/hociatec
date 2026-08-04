@@ -7,6 +7,7 @@ namespace App\Module\Admin\Quote\Controller;
 use App\Module\Admin\Quote\Service\QuoteServiceCatalogManager;
 use App\Module\Admin\Quote\Service\QuoteServiceFormMapper;
 use App\Module\Quote\Entity\Service;
+use App\Module\Quote\Exception\QuoteOperationException;
 use App\Module\Quote\Repository\ServiceRepository;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Shared\Http\ApiResponse;
@@ -38,8 +39,8 @@ final readonly class UpdateServiceController
             $service = $this->services->update($service, $this->forms->update($request, $service));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de mettre à jour le service.');
+        } catch (QuoteOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(QuoteFormatter::formatService($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');

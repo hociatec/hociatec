@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Notification\Controller;
 
 use App\Module\Notification\DTO\NotificationReadStateInput;
+use App\Module\Notification\Exception\NotificationOperationException;
 use App\Module\User\Entity\User;
 use App\Module\Notification\Service\AccountNotificationReadStateService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,13 +36,15 @@ final class AccountNotificationsReadStateController extends AbstractController
     #[Route('', name: 'api_account_notifications_read_state_update', methods: ['PATCH'])]
     public function update(Request $request): JsonResponse
     {
+        $user = $this->currentUser();
+
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-            $state = $this->readState->update($this->currentUser(), NotificationReadStateInput::fromArray($payload));
-        } catch (\JsonException|\InvalidArgumentException) {
+            $state = $this->readState->update($user, NotificationReadStateInput::fromArray($payload));
+        } catch (InvalidJsonPayloadException|\InvalidArgumentException) {
             return ApiResponse::error('État de lecture invalide.', Response::HTTP_BAD_REQUEST);
-        } catch (\Exception) {
-            return ApiResponse::error('Requête invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (NotificationOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['readState' => $state]);

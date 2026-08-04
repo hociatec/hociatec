@@ -37,7 +37,7 @@ final class SendOrderStatusEmailHandler
 
         try {
             $sent = $this->notifications->sendStatusChangedIfNeeded($order, $message->oldStatus, $message->newStatus);
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->events->log($order, null, 'email_failed', 'Échec email statut '.$message->newStatus.': '.$exception->getMessage());
             throw $exception;
         }

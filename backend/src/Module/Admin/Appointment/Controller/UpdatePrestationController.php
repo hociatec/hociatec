@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Admin\Appointment\Controller;
 
 use App\Module\Admin\Appointment\DTO\PrestationInput;
+use App\Module\Appointment\Exception\AppointmentOperationException;
 use App\Module\Appointment\Repository\PrestationRepository;
 use App\Module\Appointment\Service\PrestationService;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,7 +39,7 @@ class UpdatePrestationController extends AbstractController
 
         try {
             $payload = \App\Shared\Http\JsonPayload::decode($request);
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
@@ -53,8 +55,8 @@ class UpdatePrestationController extends AbstractController
             $prestation = $this->prestationService->update($prestation, $input->name, $input->durationMinutes, $priceCents);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de mettre à jour la prestation.');
+        } catch (AppointmentOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success([

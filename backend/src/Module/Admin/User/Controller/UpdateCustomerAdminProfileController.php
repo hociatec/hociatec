@@ -7,6 +7,7 @@ namespace App\Module\Admin\User\Controller;
 use App\Module\Admin\User\DTO\CustomerAdminProfileInput;
 use App\Module\User\Repository\UserRepository;
 use App\Shared\Http\ApiResponse;
+use App\Shared\Http\InvalidJsonPayloadException;
 use App\Shared\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,7 +32,7 @@ final class UpdateCustomerAdminProfileController extends AbstractController
 
         try {
             $payload = '' !== $request->getContent() ? \App\Shared\Http\JsonPayload::decode($request) : [];
-        } catch (\Exception) {
+        } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload JSON invalide.');
         }
 

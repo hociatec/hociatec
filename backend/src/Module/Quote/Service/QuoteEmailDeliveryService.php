@@ -53,7 +53,7 @@ final readonly class QuoteEmailDeliveryService
     {
         try {
             return $this->pdfService->render($quote, $this->calculator->computeTotals($quote));
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->logger->warning('Quote PDF attachment generation failed before email send.', [
                 'quoteId' => $quote->getId(),
                 'quoteNumber' => $quote->getNumber(),

@@ -146,7 +146,7 @@ final readonly class QuoteToOrderConverter
     {
         try {
             return [$this->notifications->sendOrderCreatedIfNeeded($order), null];
-        } catch (\Exception $exception) {
+        } catch (\RuntimeException $exception) {
             $this->events->log($order, null, 'email_failed', 'Échec email commande à régler: '.$exception->getMessage());
 
             return [false, 'La notification email n’a pas pu être envoyée.'];

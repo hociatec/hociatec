@@ -7,6 +7,7 @@ namespace App\Module\Admin\Catalog\Controller;
 use App\Module\Admin\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Catalog\Service\ProductFormRequestMapper;
 use App\Module\Catalog\Entity\Product;
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\ProductRepository;
 use App\Module\Catalog\Service\CatalogFormatter;
 use App\Module\Catalog\Service\ProductService;
@@ -40,7 +41,7 @@ final readonly class UpdateProductController
             $product = $this->products->update(...$data->updateArguments($product));
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
-        } catch (\Exception $exception) {
+        } catch (\InvalidArgumentException|CatalogOperationException $exception) {
             return ApiResponse::error(
                 'Impossible de mettre à jour le produit.',
                 Response::HTTP_BAD_REQUEST,

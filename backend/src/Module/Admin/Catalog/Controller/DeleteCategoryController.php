@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Catalog\Controller;
 
+use App\Module\Catalog\Exception\CatalogOperationException;
 use App\Module\Catalog\Repository\CategoryRepository;
 use App\Module\Catalog\Service\CategoryService;
 use App\Shared\Http\ApiResponse;
@@ -33,8 +34,8 @@ class DeleteCategoryController extends AbstractController
 
         try {
             $this->categoryService->delete($category);
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de supprimer la catégorie.');
+        } catch (CatalogOperationException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La catégorie a bien été supprimée.');

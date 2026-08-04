@@ -6,6 +6,7 @@ namespace App\Module\Quote\Controller\PublicApi;
 
 use App\Module\Quote\DTO\QuotePayload;
 use App\Module\Quote\Entity\Quote;
+use App\Module\Quote\Exception\QuoteOperationException;
 use App\Module\Quote\Service\QuoteCalculator;
 use App\Module\Quote\Service\QuoteFormatter;
 use App\Module\Quote\Service\QuoteService as QuoteDomainService;
@@ -36,8 +37,8 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($payload));
-        } catch (\Exception) {
-            return ApiResponse::internalError('Impossible de créer le devis.');
+        } catch (\InvalidArgumentException|QuoteOperationException|\RuntimeException $exception) {
+            return ApiResponse::internalError($exception->getMessage());
         }
 
         return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator), 'Votre devis a bien été enregistré.');
