@@ -99,7 +99,7 @@ export const SiteHeaderNavigation = () => {
           className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/services', '/appointments/book', '/devis/nouveau', '/audits/request']) ? ' site-header__link--active' : ''}`}
         >
           <MonitorCog aria-hidden="true" />
-          <span>Services</span>
+          <span>Prestations</span>
         </summary>
         <div className="site-header__menu-panel">
           {serviceLinks.map(({ path, label, Icon }) => (

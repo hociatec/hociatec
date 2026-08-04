@@ -14,6 +14,7 @@ import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMo
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 const SERVICES_PER_PAGE = 7;
+const SERVICE_ILLUSTRATION_FALLBACK = '/service-illustrations/service-generique.svg';
 
 const getFirstSentence = (value?: string | null) => {
   const description = value?.trim();
@@ -75,15 +76,20 @@ export const ServicesCatalogPage = () => {
                     <article
                       key={service.id}
                       className="home-service-card home-service-card--featured"
-                      style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
                     >
                       <Link to={`/services/${service.id}`} className="home-service-card__media">
                         {illustration ? (
                           <img
                             src={illustration.imageUrl}
                             alt={illustration.imageAlt || service.title}
-                            loading="lazy"
+                            loading="eager"
                             decoding="async"
+                            onError={(event) => {
+                              const image = event.currentTarget;
+                              if (!image.src.endsWith(SERVICE_ILLUSTRATION_FALLBACK)) {
+                                image.src = SERVICE_ILLUSTRATION_FALLBACK;
+                              }
+                            }}
                           />
                         ) : (
                           <div className="home-service-card__media-fallback" aria-hidden="true" />
