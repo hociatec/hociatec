@@ -10,7 +10,7 @@ use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Domain\Entity\Voucher;
 
 final class LoyaltyService
@@ -21,7 +21,7 @@ final class LoyaltyService
     public function __construct(
         private readonly DoctrineUnitOfWork $persistence,
         private readonly TransactionManager $transactions,
-        private readonly VoucherManager $voucherManager,
+        private readonly CreateVoucherHandler $createVoucher,
         private readonly UserRepository $users,
     ) {
     }
@@ -138,7 +138,7 @@ final class LoyaltyService
             throw new \InvalidArgumentException('Solde de fidélité insuffisant.');
         }
 
-        $voucher = $this->voucherManager->create([
+        $voucher = $this->createVoucher->create([
             'name' => 'Conversion fidélité',
             'code' => $this->generateVoucherCode($user),
             'description' => sprintf('%d points fidélité convertis en bon de réduction.', $normalizedPoints),

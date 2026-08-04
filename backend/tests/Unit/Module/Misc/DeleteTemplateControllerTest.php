@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Admin\Application\Marketing\Service\DeleteEmailTemplateHandler;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
@@ -28,7 +28,7 @@ final class DeleteTemplateControllerTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
 
         $controller = new DeleteTemplateController(
-            new EmailTemplateAdminManager(new DoctrineUnitOfWork($entityManager)),
+            new DeleteEmailTemplateHandler(new DoctrineUnitOfWork($entityManager)),
             $templates,
         );
 

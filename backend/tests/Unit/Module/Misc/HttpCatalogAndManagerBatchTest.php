@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Admin\Application\Marketing\Service\CreateEmailTemplateHandler;
+use App\Module\Admin\Application\Marketing\Service\DeleteEmailTemplateHandler;
+use App\Module\Admin\Application\Marketing\Service\UpdateEmailTemplateHandler;
 use App\Module\Admin\UI\Payment\Controller\ListPaymentMetadataController;
 use App\Module\Admin\Application\Payment\Service\AdminPaymentFormatter;
 use App\Module\Audit\Domain\Entity\AuditRequest;
@@ -200,10 +202,10 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $entityManager->expects(self::once())->method('remove');
 
         $template = new EmailTemplate('Welcome', 'welcome', 'account_created', 'Sujet', '<p>Hi</p>', 'Hi');
-        $manager = new EmailTemplateAdminManager(new DoctrineUnitOfWork($entityManager));
-        $manager->create($template);
-        $manager->save($template);
-        $manager->delete($template);
+        $persistence = new DoctrineUnitOfWork($entityManager);
+        (new CreateEmailTemplateHandler($persistence))->create($template);
+        (new UpdateEmailTemplateHandler($persistence))->update($template);
+        (new DeleteEmailTemplateHandler($persistence))->delete($template);
 
         $user = $this->user();
         $audit = new AuditRequest('AUD-1', $user, AuditType::SEO, 'https://example.test', 'Goals');

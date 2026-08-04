@@ -8,9 +8,10 @@ use App\Module\Admin\UI\Promotion\Controller\CreatePromotionController;
 use App\Module\Admin\UI\Promotion\Controller\GetPromotionController;
 use App\Module\Admin\UI\Promotion\Controller\ListPromotionsController;
 use App\Module\Admin\UI\Quote\Controller\DeleteServiceController;
+use App\Module\Promotion\Application\Service\CreatePromotionHandler;
+use App\Module\Promotion\Application\Service\PromotionDataApplier;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
-use App\Module\Promotion\Application\Service\PromotionManager;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
@@ -49,7 +50,7 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
 
         $controller = new CreatePromotionController(
-            new PromotionManager(new DoctrineUnitOfWork($entityManager)),
+            new CreatePromotionHandler(new DoctrineUnitOfWork($entityManager), new PromotionDataApplier()),
             new DtoValidator(
                 Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
                 new ConstraintViolationFormatter(),

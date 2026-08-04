@@ -4,15 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 
-final readonly class AdminBetaCampaignManager
+final readonly class BetaCampaignPayloadMapper
 {
-    public function __construct(private DoctrineUnitOfWork $persistence)
-    {
-    }
-
     /** @param array<string, mixed> $payload */
     public function create(array $payload): BetaCampaign
     {
@@ -24,20 +19,16 @@ final readonly class AdminBetaCampaignManager
 
         $startsAt = $this->dateFromPayload($payload['startsAt'] ?? null) ?? new \DateTimeImmutable('today');
         $endsAt = $this->dateFromPayload($payload['endsAt'] ?? null) ?? $startsAt->modify('+30 days');
-        if ($endsAt < $startsAt) {
-            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
-        }
+        $this->assertChronology($startsAt, $endsAt);
 
         $campaign = new BetaCampaign($name, $description, $startsAt, $endsAt);
         $campaign->setStatus($this->status($payload['status'] ?? 'draft'));
-        $this->persistence->persist($campaign);
-        $this->persistence->flush();
 
         return $campaign;
     }
 
     /** @param array<string, mixed> $payload */
-    public function update(BetaCampaign $campaign, array $payload): BetaCampaign
+    public function update(BetaCampaign $campaign, array $payload): void
     {
         if (isset($payload['name'])) {
             $name = trim((string) $payload['name']);
@@ -67,35 +58,7 @@ final readonly class AdminBetaCampaignManager
             $campaign->setEndsAt($this->dateFromPayload($payload['endsAt']));
         }
 
-        if (null !== $campaign->getStartsAt() && null !== $campaign->getEndsAt() && $campaign->getEndsAt() < $campaign->getStartsAt()) {
-            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
-        }
-
-        $this->persistence->flush();
-
-        return $campaign;
-    }
-
-    /** @param list<BetaCampaign> $campaigns */
-    public function closeElapsedCampaigns(array $campaigns, \DateTimeImmutable $now): void
-    {
-        $hasClosedCampaign = false;
-        foreach ($campaigns as $campaign) {
-            if ('closed' === $campaign->getEffectiveStatus($now) && 'closed' !== $campaign->getStatus()) {
-                $campaign->setStatus('closed');
-                $hasClosedCampaign = true;
-            }
-        }
-
-        if ($hasClosedCampaign) {
-            $this->persistence->flush();
-        }
-    }
-
-    public function delete(BetaCampaign $campaign): void
-    {
-        $this->persistence->remove($campaign);
-        $this->persistence->flush();
+        $this->assertChronology($campaign->getStartsAt(), $campaign->getEndsAt());
     }
 
     private function status(mixed $value): string
@@ -112,5 +75,12 @@ final readonly class AdminBetaCampaignManager
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d', trim($value));
 
         return $date instanceof \DateTimeImmutable ? $date : null;
+    }
+
+    private function assertChronology(?\DateTimeImmutable $startsAt, ?\DateTimeImmutable $endsAt): void
+    {
+        if (null !== $startsAt && null !== $endsAt && $endsAt < $startsAt) {
+            throw new \InvalidArgumentException('La date de fin doit être postérieure à la date de début.');
+        }
     }
 }

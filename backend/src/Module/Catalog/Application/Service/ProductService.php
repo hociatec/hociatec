@@ -20,7 +20,7 @@ final class ProductService
         private readonly ProductCatalogRules $rules,
         private readonly ProductVariantService $variants,
         private readonly ProductVariantBatchCreator $variantBatch,
-        private readonly ProductGalleryManager $gallery,
+        private readonly ProductGalleryUpdater $gallery,
         private readonly ProductDiscountApplicator $discounts,
         #[Autowire(service: 'app.catalog_cache')]
         private readonly CacheItemPoolInterface $catalogCache,

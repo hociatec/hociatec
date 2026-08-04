@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
-use App\Module\Admin\Application\BetaTest\Service\AdminBugReportManager;
+use App\Module\Admin\Application\BetaTest\Service\ChangeBugReportStatusHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ final class UpdateBugReportStatusController extends AbstractController
 {
     public function __construct(
         private readonly BugReportRepository $reports,
-        private readonly AdminBugReportManager $reportManager,
+        private readonly ChangeBugReportStatusHandler $changeBugReportStatus,
     ) {
     }
 
@@ -38,7 +38,7 @@ final class UpdateBugReportStatusController extends AbstractController
         $admin = $this->getUser();
         $actor = $admin instanceof User ? $admin : null;
         try {
-            $this->reportManager->updateStatus($report, $status, $actor);
+            $this->changeBugReportStatus->change($report, $status, $actor);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
         }

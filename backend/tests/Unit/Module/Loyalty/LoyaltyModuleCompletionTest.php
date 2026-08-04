@@ -13,7 +13,8 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Infrastructure\Persistence\DoctrineTransactionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -108,7 +109,7 @@ final class LoyaltyModuleCompletionTest extends TestCase
         $service = new LoyaltyService(
             new DoctrineUnitOfWork($entityManager),
             new DoctrineTransactionManager($entityManager),
-            new VoucherManager($this->voucherRepository($this->entityManager()), new DoctrineUnitOfWork($this->entityManager())),
+            new CreateVoucherHandler(new DoctrineUnitOfWork($this->entityManager()), new VoucherPayload($this->voucherRepository($this->entityManager()))),
             $this->userRepository($this->entityManager()),
         );
 
@@ -127,7 +128,7 @@ final class LoyaltyModuleCompletionTest extends TestCase
         return new LoyaltyService(
             $persistence,
             new DoctrineTransactionManager($em),
-            new VoucherManager($this->voucherRepository($em), $persistence),
+            new CreateVoucherHandler($persistence, new VoucherPayload($this->voucherRepository($em))),
             $this->userRepository($em),
         );
     }

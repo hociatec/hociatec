@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Admin\Application\BetaTest\Service\AdminBetaCampaignManager;
+use App\Module\Admin\Application\BetaTest\Service\CloseElapsedBetaCampaignsHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
@@ -24,7 +24,7 @@ final class ListCampaignsController extends AbstractController
         private readonly BetaTesterProfileRepository $profiles,
         private readonly BugReportRepository $reports,
         private readonly BugReportResponseFormatter $reportFormatter,
-        private readonly AdminBetaCampaignManager $campaignManager,
+        private readonly CloseElapsedBetaCampaignsHandler $closeElapsedCampaigns,
     ) {
     }
 
@@ -32,7 +32,7 @@ final class ListCampaignsController extends AbstractController
     {
         $now = new \DateTimeImmutable();
         $campaigns = $this->campaigns->findBy([], ['createdAt' => 'DESC']);
-        $this->campaignManager->closeElapsedCampaigns($campaigns, $now);
+        $this->closeElapsedCampaigns->closeElapsed($campaigns, $now);
 
         $acceptedProfilesCount = $this->profiles->count(['status' => BetaTesterProfile::STATUS_ACCEPTED]);
 

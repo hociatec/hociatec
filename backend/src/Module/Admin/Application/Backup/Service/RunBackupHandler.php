@@ -4,71 +4,19 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Backup\Service;
 
-final readonly class BackupManager
+final readonly class RunBackupHandler
 {
     public function __construct(
-        private string $projectDir,
-        private MaintenanceModeService $maintenance,
         private BackupStateStore $states,
         private BackupFileStorage $files,
         private BackupEncryptionService $encryption,
         private DatabaseBackupDumper $database,
+        private BackupStatusProvider $statusProvider,
     ) {
     }
 
     /** @return array<string, mixed> */
-    public function getStatus(): array
-    {
-        $state = $this->states->read();
-        $settings = $this->states->settings($state['settings'] ?? []);
-
-        return [
-            'settings' => $this->states->outputSettings($settings, $state),
-            'backups' => $this->files->list(),
-            'history' => array_slice($this->states->history($state['history'] ?? []), 0, 80),
-            'maintenance' => $this->maintenance->getStatus(),
-            'tools' => ['mysqldumpAvailable' => $this->database->isAvailable(), 'gzipAvailable' => extension_loaded('zlib')],
-            'scheduler' => [
-                'command' => 'cd '.$this->projectDir.' && APP_ENV=prod APP_DEBUG=0 php bin/console app:backups:run-due',
-                'cronExample' => '*/15 * * * * cd '.$this->projectDir.' && APP_ENV=prod APP_DEBUG=0 php bin/console app:backups:run-due >> var/log/backup-cron.log 2>&1',
-            ],
-        ];
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @return array<string, mixed>
-     */
-    public function updateSettings(array $payload): array
-    {
-        $state = $this->states->read();
-        $settings = $this->states->mergeSettings($this->states->settings($state['settings'] ?? []), $payload);
-        $state['settings'] = $settings;
-        $this->states->write($state);
-        $this->files->applyRetention($settings['retentionCount']);
-
-        return $this->getStatus();
-    }
-
-    /** @return array<string, mixed>|null */
-    public function runDue(): ?array
-    {
-        $state = $this->states->read();
-        $settings = $this->states->settings($state['settings'] ?? []);
-        if (!$settings['enabled']) {
-            return null;
-        }
-        $lastRunAt = $this->states->date($state['lastSuccessfulRunAt'] ?? null);
-        if (null !== $lastRunAt && $lastRunAt->modify('+'.$settings['intervalHours'].' hours') > new \DateTimeImmutable()) {
-            return null;
-        }
-
-        return $this->runBackup('scheduled');
-    }
-
-    /** @return array<string, mixed> */
-    public function runBackup(string $trigger = 'manual'): array
+    public function run(string $trigger = 'manual'): array
     {
         $lock = fopen($this->files->lockFile(), 'c');
         if (false === $lock) {
@@ -115,7 +63,7 @@ final readonly class BackupManager
             $state = $this->states->recordRun($run, $state);
             $this->files->applyRetention($this->states->settings($state['settings'] ?? [])['retentionCount']);
 
-            return $this->getStatus();
+            return $this->statusProvider->status();
         } catch (\RuntimeException $exception) {
             $this->files->delete($path);
             $this->files->delete($temporaryPath);

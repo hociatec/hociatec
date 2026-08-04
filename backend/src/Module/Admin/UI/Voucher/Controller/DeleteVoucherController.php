@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Voucher\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +19,7 @@ final class DeleteVoucherController extends AbstractController
 {
     public function __construct(
         private readonly VoucherRepository $vouchers,
-        private readonly VoucherManager $manager,
+        private readonly DeleteVoucherHandler $deleteVoucher,
     ) {
     }
 
@@ -30,7 +30,7 @@ final class DeleteVoucherController extends AbstractController
             return ApiResponse::error('Bon de réduction introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $this->manager->delete($voucher);
+        $this->deleteVoucher->delete($voucher);
 
         return ApiResponse::success(['deleted' => true], JsonResponse::HTTP_OK, 'Le bon de réduction a bien été supprimé.');
     }

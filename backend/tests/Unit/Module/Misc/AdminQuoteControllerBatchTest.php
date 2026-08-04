@@ -12,8 +12,10 @@ use App\Module\Admin\UI\Quote\Controller\ListServicesController;
 use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceCatalogManager;
+use App\Module\Admin\Application\Quote\Service\CreateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceFormApplier;
 use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\Service;
@@ -109,10 +111,12 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Service::class));
         $entityManager->expects(self::exactly(2))->method('flush');
-        $catalog = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($entityManager));
+        $formApplier = new QuoteServiceFormApplier();
+        $createServiceHandler = new CreateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier);
+        $updateServiceHandler = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier);
         $forms = new QuoteServiceFormMapper();
 
-        $create = new CreateServiceController($forms, $catalog);
+        $create = new CreateServiceController($forms, $createServiceHandler);
         self::assertSame(
             Response::HTTP_UNPROCESSABLE_ENTITY,
             $create(new Request([], ['title' => '', 'price' => '-5']))->getStatusCode()
@@ -135,7 +139,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertSame('https://example.com/installation.svg', $createdPayload['data']['imageUrl']);
         self::assertSame('Illustration installation', $createdPayload['data']['imageAlt']);
 
-        $update = new UpdateServiceController($repository, $forms, $catalog);
+        $update = new UpdateServiceController($repository, $forms, $updateServiceHandler);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(new Request([], ['title' => 'x']), 404)->getStatusCode());
         self::assertSame(
             Response::HTTP_UNPROCESSABLE_ENTITY,
@@ -157,8 +161,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager->expects(self::once())->method('persist')->willThrowException(new \RuntimeException('db down'));
-        $failingCatalog = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($failingEntityManager));
-        $failingCreate = new CreateServiceController($forms, $failingCatalog);
+        $failingCreate = new CreateServiceController($forms, new CreateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager), $formApplier));
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
             $failingCreate(new Request([], ['title' => 'Installation', 'price' => '250']))->getStatusCode()
@@ -166,8 +169,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager2 = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager2->expects(self::once())->method('flush')->willThrowException(new \RuntimeException('db down'));
-        $failingCatalog2 = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($failingEntityManager2));
-        $failingUpdate = new UpdateServiceController($repository, $forms, $failingCatalog2);
+        $failingUpdate = new UpdateServiceController($repository, $forms, new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager2), $formApplier));
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
             $failingUpdate(new Request([], ['title' => 'Audit premium', 'price' => '300']), 12)->getStatusCode()
@@ -217,19 +219,21 @@ final class AdminQuoteControllerBatchTest extends TestCase
         );
     }
 
-    public function testQuoteServiceCatalogManagerRejectsInconsistentFormData(): void
+    public function testQuoteServiceHandlersRejectInconsistentFormData(): void
     {
-        $manager = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)));
+        $formApplier = new QuoteServiceFormApplier();
+        $createService = new CreateQuoteServiceHandler(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), $formApplier);
+        $updateService = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), $formApplier);
 
         try {
-            $manager->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, false, null, null, null, true, false));
+            $createService->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, false, null, null, null, true, false));
             self::fail('Expected invalid billing mode exception.');
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Mode de facturation invalide.', $exception->getMessage());
         }
 
         try {
-            $manager->update(
+            $updateService->update(
                 new Service('Audit', 1000, 2000),
                 new QuoteServiceFormData('Audit', null, 'hour', 2, null, 1000, null, false, null, null, null, true, true)
             );
@@ -239,7 +243,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         }
 
         try {
-            $manager->update(
+            $updateService->update(
                 new Service('Audit', 1000, 2000),
                 new QuoteServiceFormData('Audit', null, null, null, null, -1, null, false, null, null, null, false, false)
             );

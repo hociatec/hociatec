@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
-use App\Module\Admin\Application\BetaTest\Service\AdminBetaTesterManager;
+use App\Module\Admin\Application\BetaTest\Service\ChangeBetaTesterStatusHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +20,7 @@ final class UpdateBetaTesterController extends AbstractController
 {
     public function __construct(
         private readonly BetaTesterProfileRepository $profiles,
-        private readonly AdminBetaTesterManager $testerManager,
+        private readonly ChangeBetaTesterStatusHandler $changeTesterStatus,
     ) {
     }
 
@@ -33,7 +33,7 @@ final class UpdateBetaTesterController extends AbstractController
 
         $status = (string) (JsonPayload::decode($request)['status'] ?? '');
         try {
-            $this->testerManager->updateStatus($profile, $status);
+            $this->changeTesterStatus->change($profile, $status);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
         }

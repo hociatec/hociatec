@@ -8,8 +8,8 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Application\Service\CreatePromotionHandler;
 use App\Module\Promotion\Application\Service\PromotionFormatter;
-use App\Module\Promotion\Application\Service\PromotionManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreatePromotionController extends AbstractController
 {
     public function __construct(
-        private readonly PromotionManager $promotions,
+        private readonly CreatePromotionHandler $createPromotion,
         private readonly DtoValidator $validator,
     ) {
     }
@@ -37,7 +37,7 @@ final class CreatePromotionController extends AbstractController
 
         $input = PromotionInput::fromArray($payload);
         $this->validator->validate($input);
-        $promotion = $this->promotions->create($input);
+        $promotion = $this->createPromotion->create($input);
 
         return ApiResponse::created([
             'promotion' => PromotionFormatter::formatPromotion($promotion),

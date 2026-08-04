@@ -21,7 +21,7 @@ use App\Module\Catalog\Application\Service\CategoryService;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Service\PromotionEngine;
-use App\Module\Promotion\Application\Service\PromotionManager;
+use App\Module\Promotion\Application\Service\DeletePromotionHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -131,9 +131,9 @@ final class AdminControllerBatchTest extends TestCase
         $persistenceEm = $this->createMock(EntityManagerInterface::class);
         $persistenceEm->expects(self::once())->method('remove')->with($promotion);
         $persistenceEm->expects(self::once())->method('flush');
-        $manager = new PromotionManager(new \App\Infrastructure\Persistence\DoctrineUnitOfWork($persistenceEm));
+        $deletePromotion = new DeletePromotionHandler(new \App\Infrastructure\Persistence\DoctrineUnitOfWork($persistenceEm));
 
-        $controller = new DeletePromotionController($promotions, $manager);
+        $controller = new DeletePromotionController($promotions, $deletePromotion);
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(9)->getStatusCode());
     }

@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
-use App\Module\Admin\Application\BetaTest\Service\AdminBetaCampaignManager;
+use App\Module\Admin\Application\BetaTest\Service\UpdateBetaCampaignHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ final class UpdateCampaignController extends AbstractController
 {
     public function __construct(
         private readonly BetaCampaignRepository $campaigns,
-        private readonly AdminBetaCampaignManager $campaignManager,
+        private readonly UpdateBetaCampaignHandler $updateCampaign,
     ) {
     }
 
@@ -32,7 +32,7 @@ final class UpdateCampaignController extends AbstractController
         }
 
         try {
-            $this->campaignManager->update($campaign, JsonPayload::decode($request));
+            $this->updateCampaign->update($campaign, JsonPayload::decode($request));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
         }

@@ -18,7 +18,8 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Loyalty\Application\Service\LoyaltyService;
 use App\Infrastructure\Persistence\DoctrineTransactionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
@@ -118,7 +119,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $persistence = new DoctrineUnitOfWork($entityManager);
 
         $voucherRepository = $this->voucherRepository();
-        $voucherManager = new VoucherManager($voucherRepository, $persistence);
+        $voucherManager = new CreateVoucherHandler($persistence, new VoucherPayload($voucherRepository));
         $users = $this->createMock(UserRepository::class);
         $service = new LoyaltyService($persistence, new DoctrineTransactionManager($entityManager), $voucherManager, $users);
 
@@ -206,7 +207,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $service = new LoyaltyService(
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             new DoctrineTransactionManager($this->createMock(EntityManagerInterface::class)),
-            new VoucherManager($this->voucherRepository(), new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
+            new CreateVoucherHandler(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), new VoucherPayload($this->voucherRepository())),
             $users,
         );
 

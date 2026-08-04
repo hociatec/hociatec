@@ -58,6 +58,18 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationModulesDoNotUseGenericManagerServices(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (str_contains($path, '/Application/') && str_ends_with($path, 'Manager.php')) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testSourceDoesNotCatchThrowableOrBaseException(): void
     {
         $violations = [];

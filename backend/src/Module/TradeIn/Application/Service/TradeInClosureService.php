@@ -10,7 +10,7 @@ use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use Psr\Log\LoggerInterface;
@@ -24,7 +24,7 @@ final readonly class TradeInClosureService
         private TransactionManager $transactions,
         private TradeInPrivateFileStorage $files,
         private AccessiblePdfRenderer $pdf,
-        private VoucherManager $vouchers,
+        private CreateVoucherHandler $createVoucher,
         private VoucherNotificationEmailService $voucherNotifications,
         private LoggerInterface $logger,
     ) {
@@ -45,7 +45,7 @@ final readonly class TradeInClosureService
                 throw new \InvalidArgumentException('Un avoir client nécessite un compte Hociatec associé à la demande.');
             }
             if ('store_credit' === $input->paymentMethod && null === $request->getVoucherCode()) {
-                $voucher = $this->vouchers->create([
+                $voucher = $this->createVoucher->create([
                     'name' => 'Avoir de reprise '.$request->getReference(),
                     'code' => 'RPR-'.date('Ymd').'-'.strtoupper(bin2hex(random_bytes(4))),
                     'description' => 'Avoir généré après la reprise '.$request->getReference().'.',

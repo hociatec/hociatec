@@ -79,7 +79,7 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\BackupManager:
+    App\Module\Admin\Application\Backup\Service\BackupStatusProvider:
         arguments:
             $projectDir: '%kernel.project_dir%'
 

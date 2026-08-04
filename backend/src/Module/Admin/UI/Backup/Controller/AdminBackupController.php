@@ -7,8 +7,10 @@ namespace App\Module\Admin\UI\Backup\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
 use App\Infrastructure\Validation\DtoValidator;
-use App\Module\Admin\Application\Backup\Service\BackupManager;
+use App\Module\Admin\Application\Backup\Service\BackupStatusProvider;
 use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\Application\Backup\Service\RunBackupHandler;
+use App\Module\Admin\Application\Backup\Service\UpdateBackupSettingsHandler;
 use App\Module\Admin\Application\DTO\BackupSettingsInput;
 use App\Module\Admin\Application\DTO\MaintenanceInput;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +24,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminBackupController
 {
     public function __construct(
-        private readonly BackupManager $backupManager,
+        private readonly BackupStatusProvider $backupStatus,
+        private readonly UpdateBackupSettingsHandler $updateBackupSettings,
+        private readonly RunBackupHandler $runBackup,
         private readonly MaintenanceModeService $maintenanceModeService,
         private readonly DtoValidator $validator,
     ) {
@@ -31,7 +35,7 @@ final class AdminBackupController
     #[Route('', name: 'api_admin_backups_status', methods: ['GET'])]
     public function status(): JsonResponse
     {
-        return ApiResponse::success($this->backupManager->getStatus());
+        return ApiResponse::success($this->backupStatus->status());
     }
 
     #[Route('/settings', name: 'api_admin_backups_settings', methods: ['PATCH'])]
@@ -42,7 +46,7 @@ final class AdminBackupController
             $input = BackupSettingsInput::fromArray($payload);
             $this->validator->validate($input);
 
-            return ApiResponse::success($this->backupManager->updateSettings($input->settings()), Response::HTTP_OK, 'La configuration des sauvegardes a bien été enregistrée.');
+            return ApiResponse::success($this->updateBackupSettings->update($input->settings()), Response::HTTP_OK, 'La configuration des sauvegardes a bien été enregistrée.');
         } catch (\InvalidArgumentException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $e) {
@@ -54,7 +58,7 @@ final class AdminBackupController
     public function run(): JsonResponse
     {
         try {
-            return ApiResponse::success($this->backupManager->runBackup('manual'), Response::HTTP_OK, 'La sauvegarde a bien été exécutée.');
+            return ApiResponse::success($this->runBackup->run('manual'), Response::HTTP_OK, 'La sauvegarde a bien été exécutée.');
         } catch (\RuntimeException $e) {
             return ApiResponse::error($e->getMessage(), Response::HTTP_CONFLICT);
         }

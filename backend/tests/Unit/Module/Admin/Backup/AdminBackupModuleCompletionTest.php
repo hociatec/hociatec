@@ -11,10 +11,13 @@ use App\Module\Admin\UI\Backup\Controller\MaintenanceModeSubscriber;
 use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
 use App\Module\Admin\Application\Backup\Service\BackupEncryptionService;
 use App\Module\Admin\Application\Backup\Service\BackupFileStorage;
-use App\Module\Admin\Application\Backup\Service\BackupManager;
+use App\Module\Admin\Application\Backup\Service\BackupStatusProvider;
 use App\Module\Admin\Application\Backup\Service\BackupStateStore;
 use App\Module\Admin\Application\Backup\Service\DatabaseBackupDumper;
 use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\Application\Backup\Service\RunBackupHandler;
+use App\Module\Admin\Application\Backup\Service\RunDueBackupsHandler;
+use App\Module\Admin\Application\Backup\Service\UpdateBackupSettingsHandler;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
@@ -37,8 +40,11 @@ final class AdminBackupModuleCompletionTest extends TestCase
         file_put_contents($keyFile, sodium_bin2base64(random_bytes(SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_KEYBYTES), SODIUM_BASE64_VARIANT_ORIGINAL));
         $encryption = new BackupEncryptionService($keyFile);
         $database = new DatabaseBackupDumper($projectDir, 'mysql://user:pass@localhost:3306/app');
-        $manager = new BackupManager($projectDir, $maintenance, $states, $files, $encryption, $database);
-        $controller = new AdminBackupController($manager, $maintenance, $this->validator());
+        $statusProvider = new BackupStatusProvider($projectDir, $maintenance, $states, $files, $database);
+        $updateSettings = new UpdateBackupSettingsHandler($states, $files, $statusProvider);
+        $runBackup = new RunBackupHandler($states, $files, $encryption, $database, $statusProvider);
+        $runDue = new RunDueBackupsHandler($states, $runBackup);
+        $controller = new AdminBackupController($statusProvider, $updateSettings, $runBackup, $maintenance, $this->validator());
 
         self::assertFalse($maintenance->isEnabled());
         self::assertSame(200, (new SystemStatusController($maintenance))()->getStatusCode());
@@ -46,9 +52,9 @@ final class AdminBackupModuleCompletionTest extends TestCase
         self::assertSame(200, $controller->settings($this->jsonRequest(['enabled' => true, 'intervalHours' => 12, 'retentionCount' => 2], 'PATCH'))->getStatusCode());
         self::assertSame(500, $controller->settings(Request::create('/', 'PATCH', server: [], content: '{bad'))->getStatusCode());
         $states->write(['settings' => ['enabled' => true, 'intervalHours' => 12, 'retentionCount' => 2], 'history' => [], 'lastSuccessfulRunAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM)]);
-        self::assertNull($manager->runDue());
+        self::assertNull($runDue->runDue());
         $states->write(['settings' => ['enabled' => false], 'history' => [['id' => 'x'], 'bad'], 'lastSuccessfulRunAt' => 'bad-date']);
-        self::assertNull($manager->runDue());
+        self::assertNull($runDue->runDue());
         self::assertNull($states->date(null));
         self::assertInstanceOf(\DateTimeImmutable::class, $states->date('2026-08-01T10:00:00+00:00'));
         self::assertSame([], $states->history('bad'));
@@ -91,7 +97,7 @@ final class AdminBackupModuleCompletionTest extends TestCase
         self::assertSame(Command::SUCCESS, (new CommandTester(new EncryptExistingBackupsCommand($files, $encryption)))->execute([]));
         self::assertFileDoesNotExist($source);
 
-        $runCommand = new CommandTester(new RunDueBackupsCommand($manager));
+        $runCommand = new CommandTester(new RunDueBackupsCommand($runBackup, $runDue));
         self::assertSame(Command::SUCCESS, $runCommand->execute([]));
         self::assertStringContainsString('No backup due.', $runCommand->getDisplay());
         self::assertSame(Command::FAILURE, $runCommand->execute(['--force' => true]));

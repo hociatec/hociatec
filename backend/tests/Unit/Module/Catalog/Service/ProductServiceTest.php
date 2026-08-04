@@ -10,7 +10,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Service\ProductCatalogRules;
 use App\Module\Catalog\Application\Service\ProductDiscountApplicator;
-use App\Module\Catalog\Application\Service\ProductGalleryManager;
+use App\Module\Catalog\Application\Service\ProductGalleryUpdater;
 use App\Module\Catalog\Application\Service\ProductService;
 use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Service\ProductVariantService;
@@ -267,7 +267,7 @@ final class ProductServiceTest extends TestCase
             $rules,
             $variants,
             $variantBatch,
-            new ProductGalleryManager(),
+            new ProductGalleryUpdater(),
             new ProductDiscountApplicator(),
             $cache,
         );

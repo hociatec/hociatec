@@ -8,8 +8,8 @@ use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Voucher\DTO\VoucherInput;
+use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherFormatter;
-use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +24,7 @@ final class UpdateVoucherController extends AbstractController
 {
     public function __construct(
         private readonly VoucherRepository $vouchers,
-        private readonly VoucherManager $voucherManager,
+        private readonly UpdateVoucherHandler $updateVoucher,
         private readonly DtoValidator $validator,
     ) {
     }
@@ -45,7 +45,7 @@ final class UpdateVoucherController extends AbstractController
         $input = VoucherInput::fromArray($payload);
         $this->validator->validate($input);
         try {
-            $voucher = $this->voucherManager->update($voucher, $this->toPayload($input));
+            $voucher = $this->updateVoucher->update($voucher, $this->toPayload($input));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
         }

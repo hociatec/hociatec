@@ -29,9 +29,12 @@ use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Service\CreatePromotionHandler;
+use App\Module\Promotion\Application\Service\DeletePromotionHandler;
+use App\Module\Promotion\Application\Service\PromotionDataApplier;
 use App\Module\Promotion\Application\Service\PromotionEngine;
-use App\Module\Promotion\Application\Service\PromotionManager;
+use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
@@ -44,8 +47,11 @@ use App\Module\TradeIn\Application\Service\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Service\TradeInService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
+use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Persistence\DoctrineTransactionManager;
@@ -71,11 +77,15 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     public function testAdminPromotionControllers(): void
     {
         $em = $this->entityManager();
-        $manager = new PromotionManager(new DoctrineUnitOfWork($em));
+        $persistence = new DoctrineUnitOfWork($em);
+        $applier = new PromotionDataApplier();
+        $createPromotion = new CreatePromotionHandler($persistence, $applier);
+        $updatePromotion = new UpdatePromotionHandler($persistence, $applier);
+        $deletePromotion = new DeletePromotionHandler($persistence);
         $repository = new PromotionRepository($this->registry($em));
         $validator = $this->validator(2);
 
-        $create = new CreatePromotionController($manager, $validator);
+        $create = new CreatePromotionController($createPromotion, $validator);
         self::assertSame(Response::HTTP_BAD_REQUEST, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         $created = $create($this->jsonRequest($this->promotionPayload()));
         self::assertSame(Response::HTTP_CREATED, $created->getStatusCode());
@@ -86,12 +96,12 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, (new GetPromotionController($repository))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new GetPromotionController($repository))($promotionId)->getStatusCode());
 
-        $update = new UpdatePromotionController($repository, $manager, $validator);
+        $update = new UpdatePromotionController($repository, $updatePromotion, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(999, $this->jsonRequest($this->promotionPayload(), 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($promotionId, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $update($promotionId, $this->jsonRequest($this->promotionPayload(['name' => 'Updated']), 'PUT'))->getStatusCode());
 
-        $delete = new DeletePromotionController($repository, $manager);
+        $delete = new DeletePromotionController($repository, $deletePromotion);
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete($promotionId)->getStatusCode());
     }
@@ -100,10 +110,14 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     {
         $em = $this->entityManager();
         $repository = new VoucherRepository($this->registry($em));
-        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($em));
+        $persistence = new DoctrineUnitOfWork($em);
+        $payload = new VoucherPayload($repository);
+        $createVoucher = new CreateVoucherHandler($persistence, $payload);
+        $updateVoucher = new UpdateVoucherHandler($persistence, $payload);
+        $deleteVoucher = new DeleteVoucherHandler($persistence);
         $validator = $this->validator(5);
 
-        $create = new CreateVoucherController($manager, $validator);
+        $create = new CreateVoucherController($createVoucher, $validator);
         self::assertSame(Response::HTTP_BAD_REQUEST, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $create($this->jsonRequest($this->voucherPayload(['discountValue' => 101])))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $create($this->jsonRequest($this->voucherPayload(['code' => 'BADDATE', 'startsAt' => 'bad', 'endsAt' => ''])))->getStatusCode());
@@ -115,13 +129,13 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, (new GetVoucherController($repository))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new GetVoucherController($repository))($voucherId)->getStatusCode());
 
-        $update = new UpdateVoucherController($repository, $manager, $validator);
+        $update = new UpdateVoucherController($repository, $updateVoucher, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(999, $this->jsonRequest($this->voucherPayload(), 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($voucherId, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($voucherId, $this->jsonRequest($this->voucherPayload(['startsAt' => '2026-08-10', 'endsAt' => '2026-08-01']), 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $update($voucherId, $this->jsonRequest($this->voucherPayload(['name' => 'Voucher updated', 'startsAt' => 'bad', 'endsAt' => '']), 'PUT'))->getStatusCode());
 
-        $delete = new DeleteVoucherController($repository, $manager);
+        $delete = new DeleteVoucherController($repository, $deleteVoucher);
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete($voucherId)->getStatusCode());
     }
@@ -241,7 +255,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
             new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
-            new VoucherManager(new VoucherRepository($this->registry($em)), new DoctrineUnitOfWork($em)),
+            $this->createVoucherHandler($em),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),
                 $this->createMock(MailerInterface::class),
@@ -285,6 +299,13 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         $user->setPassword('hashed');
 
         return $user;
+    }
+
+    private function createVoucherHandler(EntityManager $em): CreateVoucherHandler
+    {
+        $repository = new VoucherRepository($this->registry($em));
+
+        return new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($repository));
     }
 
     private function validator(int $calls): DtoValidator

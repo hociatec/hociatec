@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Appointment\Domain\Entity\Appointment;
 
-/**
- * Centralizes all appointment status transitions and metadata so we have a
- * single place to maintain business rules.
- */
-final class AppointmentStatusManager
+final class AppointmentStatusWorkflow
 {
     /**
      * @var array<string, array{label: string, transitions: list<string>}>
@@ -27,19 +22,13 @@ final class AppointmentStatusManager
         ],
     ];
 
-    public function __construct(private readonly DoctrineUnitOfWork $persistence)
-    {
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getKnownStatuses(): array
+    /** @return list<string> */
+    public function knownStatuses(): array
     {
         return array_keys(self::STATUS_DEFINITIONS);
     }
 
-    public function getLabel(string $status): string
+    public function label(string $status): string
     {
         $status = strtolower($status);
 
@@ -48,9 +37,7 @@ final class AppointmentStatusManager
 
     public function isKnownStatus(string $status): bool
     {
-        $status = strtolower($status);
-
-        return isset(self::STATUS_DEFINITIONS[$status]);
+        return isset(self::STATUS_DEFINITIONS[strtolower($status)]);
     }
 
     public function canBeCancelled(Appointment $appointment): bool
@@ -71,9 +58,7 @@ final class AppointmentStatusManager
             return false;
         }
 
-        $allowedTransitions = self::STATUS_DEFINITIONS[$currentStatus]['transitions'];
-
-        if (!in_array($targetStatus, $allowedTransitions, true)) {
+        if (!in_array($targetStatus, self::STATUS_DEFINITIONS[$currentStatus]['transitions'], true)) {
             return false;
         }
 
@@ -82,25 +67,5 @@ final class AppointmentStatusManager
         }
 
         return true;
-    }
-
-    public function changeStatus(Appointment $appointment, string $targetStatus): void
-    {
-        $targetStatus = strtolower($targetStatus);
-
-        if (!isset(self::STATUS_DEFINITIONS[$targetStatus])) {
-            throw new \DomainException('Statut de rendez-vous inconnu.');
-        }
-
-        if ($appointment->getStatus() === $targetStatus) {
-            return;
-        }
-
-        if (!$this->canTransition($appointment, $targetStatus)) {
-            throw new \DomainException('Transition de statut impossible pour ce rendez-vous.');
-        }
-
-        $appointment->setStatus($targetStatus);
-        $this->persistence->flush();
     }
 }

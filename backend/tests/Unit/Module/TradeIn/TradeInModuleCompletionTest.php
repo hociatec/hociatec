@@ -34,7 +34,8 @@ use App\Module\TradeIn\Application\Service\TradeInService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Persistence\DoctrineTransactionManager;
@@ -270,7 +271,7 @@ final class TradeInModuleCompletionTest extends TestCase
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
             new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
-            new VoucherManager($this->voucherRepository($em), new DoctrineUnitOfWork($em)),
+            new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($this->voucherRepository($em))),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),
                 $this->createMock(MailerInterface::class),

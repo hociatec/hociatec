@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Admin\Application\Marketing\Service\UpdateEmailTemplateHandler;
 use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly EmailTemplateAdminManager $manager,
+        private readonly UpdateEmailTemplateHandler $updateTemplate,
         private readonly EmailTemplateRepository $templates,
         private readonly EmailTemplateScenarioProvider $scenarioProvider,
         private readonly DtoValidator $validator,
@@ -58,7 +58,7 @@ final class UpdateTemplateController extends AbstractController
             ->setTextBody($input->textBody)
             ->setIsActive($input->isActive);
 
-        $this->manager->save($template);
+        $this->updateTemplate->update($template);
 
         return ApiResponse::success([
             'template' => [

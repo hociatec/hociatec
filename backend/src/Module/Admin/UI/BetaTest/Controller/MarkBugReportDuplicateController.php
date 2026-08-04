@@ -6,7 +6,8 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
-use App\Module\Admin\Application\BetaTest\Service\AdminBugReportManager;
+use App\Module\Admin\Application\BetaTest\Service\BugReportReferenceProvider;
+use App\Module\Admin\Application\BetaTest\Service\MarkBugReportDuplicateHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +22,8 @@ final class MarkBugReportDuplicateController extends AbstractController
 {
     public function __construct(
         private readonly BugReportRepository $reports,
-        private readonly AdminBugReportManager $reportManager,
+        private readonly BugReportReferenceProvider $references,
+        private readonly MarkBugReportDuplicateHandler $markBugReportDuplicate,
     ) {
     }
 
@@ -38,8 +40,8 @@ final class MarkBugReportDuplicateController extends AbstractController
         $actor = $this->getUser();
 
         try {
-            $duplicateOf = $this->reportManager->referenceReport($duplicateOfId, $id);
-            $this->reportManager->markDuplicate($report, $duplicateOf, $reason, $actor instanceof User ? $actor : null);
+            $duplicateOf = $this->references->referenceReport($duplicateOfId, $id);
+            $this->markBugReportDuplicate->mark($report, $duplicateOf, $reason, $actor instanceof User ? $actor : null);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
         } catch (\RuntimeException $exception) {

@@ -8,7 +8,8 @@ use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Service\AppointmentStatusManager;
+use App\Module\Appointment\Application\Service\AppointmentStatusWorkflow;
+use App\Module\Appointment\Application\Service\ChangeAppointmentStatusHandler;
 use App\Module\Appointment\Application\Service\AppointmentService;
 use App\Module\Appointment\Application\Service\AvailabilityService;
 use App\Module\Audit\Domain\Entity\AuditRequest;
@@ -219,7 +220,7 @@ final class ComputedNotificationProvidersTest extends TestCase
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $appointmentRepository,
             ),
-            new AppointmentStatusManager(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             new DoctrineTransactionManager($this->createMock(EntityManagerInterface::class)),
         );

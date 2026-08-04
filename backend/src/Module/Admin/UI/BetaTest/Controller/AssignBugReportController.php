@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Http\JsonPayload;
-use App\Module\Admin\Application\BetaTest\Service\AdminBugReportManager;
+use App\Module\Admin\Application\BetaTest\Service\AssignBugReportHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
@@ -23,7 +23,7 @@ final class AssignBugReportController extends AbstractController
     public function __construct(
         private readonly BugReportRepository $reports,
         private readonly UserRepository $users,
-        private readonly AdminBugReportManager $reportManager,
+        private readonly AssignBugReportHandler $assignBugReport,
     ) {
     }
 
@@ -46,7 +46,7 @@ final class AssignBugReportController extends AbstractController
 
         $actor = $this->getUser();
         try {
-            $this->reportManager->assign($report, $assignedTo, $actor instanceof User ? $actor : null);
+            $this->assignBugReport->assign($report, $assignedTo, $actor instanceof User ? $actor : null);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 404);
         }

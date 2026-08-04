@@ -8,7 +8,7 @@ use App\Module\Appointment\Domain\Entity\Appointment;
 
 final class AppointmentFormatter
 {
-    public function __construct(private readonly AppointmentStatusManager $statusManager)
+    public function __construct(private readonly AppointmentStatusWorkflow $statusWorkflow)
     {
     }
 
@@ -21,7 +21,7 @@ final class AppointmentFormatter
             'id' => $appointment->getId(),
             'startAt' => $appointment->getStartAt()->format(DATE_ATOM),
             'endAt' => $appointment->getEndAt()->format(DATE_ATOM),
-            'status' => $this->statusManager->getLabel($statusCode),
+            'status' => $this->statusWorkflow->label($statusCode),
             'statusCode' => $statusCode,
             'isCancelable' => $this->isCancelable($appointment),
             'prestation' => [
@@ -35,6 +35,6 @@ final class AppointmentFormatter
 
     private function isCancelable(Appointment $appointment): bool
     {
-        return $this->statusManager->canBeCancelled($appointment);
+        return $this->statusWorkflow->canBeCancelled($appointment);
     }
 }

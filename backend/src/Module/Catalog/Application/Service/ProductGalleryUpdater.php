@@ -7,7 +7,7 @@ namespace App\Module\Catalog\Application\Service;
 use App\Module\Catalog\Domain\Entity\Product;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-final class ProductGalleryManager
+final class ProductGalleryUpdater
 {
     /**
      * @param array<int, UploadedFile|null> $files

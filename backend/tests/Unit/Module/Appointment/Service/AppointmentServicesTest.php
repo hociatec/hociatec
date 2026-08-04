@@ -13,8 +13,9 @@ use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\Appointment\Application\Service\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
-use App\Module\Appointment\Application\Service\AppointmentStatusManager;
+use App\Module\Appointment\Application\Service\AppointmentStatusWorkflow;
 use App\Module\Appointment\Application\Service\AvailabilityService;
+use App\Module\Appointment\Application\Service\ChangeAppointmentStatusHandler;
 use App\Module\Appointment\Application\Service\PrestationPersistence;
 use App\Module\Appointment\Application\Service\PrestationService;
 use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistence;
@@ -40,76 +41,79 @@ final class AppointmentServicesTest extends TestCase
         $this->persistence = new DoctrineUnitOfWork($this->entityManager);
     }
 
-    public function testStatusManagerExposesKnownStatusesAndLabels(): void
+    public function testStatusWorkflowExposesKnownStatusesAndLabels(): void
     {
-        $manager = new AppointmentStatusManager($this->persistence);
+        $workflow = new AppointmentStatusWorkflow();
 
         self::assertSame(
             [Appointment::STATUS_CONFIRMED, Appointment::STATUS_CANCELLED],
-            $manager->getKnownStatuses(),
+            $workflow->knownStatuses(),
         );
-        self::assertSame('Confirmé', $manager->getLabel(Appointment::STATUS_CONFIRMED));
-        self::assertSame('Unknown', $manager->getLabel('unknown'));
-        self::assertTrue($manager->isKnownStatus('CONFIRMED'));
-        self::assertFalse($manager->isKnownStatus('pending'));
+        self::assertSame('Confirmé', $workflow->label(Appointment::STATUS_CONFIRMED));
+        self::assertSame('Unknown', $workflow->label('unknown'));
+        self::assertTrue($workflow->isKnownStatus('CONFIRMED'));
+        self::assertFalse($workflow->isKnownStatus('pending'));
     }
 
-    public function testStatusManagerHandlesTransitionsAndFlushesOnChange(): void
+    public function testStatusWorkflowAndHandlerHandleTransitionsAndFlushOnChange(): void
     {
         $appointment = $this->createFutureAppointment();
-        $manager = new AppointmentStatusManager($this->persistence);
+        $workflow = new AppointmentStatusWorkflow();
+        $handler = new ChangeAppointmentStatusHandler($workflow, $this->persistence);
 
-        self::assertTrue($manager->canBeCancelled($appointment));
-        self::assertTrue($manager->canTransition($appointment, Appointment::STATUS_CANCELLED));
-        self::assertFalse($manager->canTransition($appointment, Appointment::STATUS_CONFIRMED));
-        self::assertFalse($manager->canTransition($appointment, 'invalid'));
+        self::assertTrue($workflow->canBeCancelled($appointment));
+        self::assertTrue($workflow->canTransition($appointment, Appointment::STATUS_CANCELLED));
+        self::assertFalse($workflow->canTransition($appointment, Appointment::STATUS_CONFIRMED));
+        self::assertFalse($workflow->canTransition($appointment, 'invalid'));
 
         $this->entityManager->expects(self::once())->method('flush');
-        $manager->changeStatus($appointment, Appointment::STATUS_CANCELLED);
+        $handler->change($appointment, Appointment::STATUS_CANCELLED);
 
         self::assertSame(Appointment::STATUS_CANCELLED, $appointment->getStatus());
     }
 
-    public function testStatusManagerRejectsPastCancellationAndInvalidTransitions(): void
+    public function testStatusHandlerRejectsPastCancellationAndInvalidTransitions(): void
     {
-        $manager = new AppointmentStatusManager($this->persistence);
+        $workflow = new AppointmentStatusWorkflow();
+        $handler = new ChangeAppointmentStatusHandler($workflow, $this->persistence);
         $pastAppointment = $this->createAppointmentAt(new \DateTimeImmutable('2026-01-10T09:00:00+00:00'));
 
-        self::assertFalse($manager->canBeCancelled($pastAppointment));
+        self::assertFalse($workflow->canBeCancelled($pastAppointment));
 
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('Transition de statut impossible pour ce rendez-vous.');
 
-        $manager->changeStatus($pastAppointment, Appointment::STATUS_CANCELLED);
+        $handler->change($pastAppointment, Appointment::STATUS_CANCELLED);
     }
 
-    public function testStatusManagerRejectsUnknownStatusAndNoopsOnSameStatus(): void
+    public function testStatusHandlerRejectsUnknownStatusAndNoopsOnSameStatus(): void
     {
-        $manager = new AppointmentStatusManager($this->persistence);
+        $handler = new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence);
         $appointment = $this->createFutureAppointment();
 
         $this->entityManager->expects(self::never())->method('flush');
-        $manager->changeStatus($appointment, Appointment::STATUS_CONFIRMED);
+        $handler->change($appointment, Appointment::STATUS_CONFIRMED);
         self::assertSame(Appointment::STATUS_CONFIRMED, $appointment->getStatus());
 
         try {
-            $manager->changeStatus($appointment, 'draft');
+            $handler->change($appointment, 'draft');
             self::fail('Expected exception was not thrown.');
         } catch (\DomainException $exception) {
             self::assertSame('Statut de rendez-vous inconnu.', $exception->getMessage());
         }
     }
 
-    public function testStatusManagerAllowsReopeningCancelledAppointment(): void
+    public function testStatusHandlerAllowsReopeningCancelledAppointment(): void
     {
         $appointment = $this->createFutureAppointment();
         $appointment->setStatus(Appointment::STATUS_CANCELLED);
-        $manager = new AppointmentStatusManager($this->persistence);
+        $workflow = new AppointmentStatusWorkflow();
+        $handler = new ChangeAppointmentStatusHandler($workflow, $this->persistence);
 
-        self::assertTrue($manager->canTransition($appointment, Appointment::STATUS_CONFIRMED));
+        self::assertTrue($workflow->canTransition($appointment, Appointment::STATUS_CONFIRMED));
 
         $this->entityManager->expects(self::once())->method('flush');
-        $manager->changeStatus($appointment, Appointment::STATUS_CONFIRMED);
+        $handler->change($appointment, Appointment::STATUS_CONFIRMED);
 
         self::assertSame(Appointment::STATUS_CONFIRMED, $appointment->getStatus());
     }
@@ -117,7 +121,7 @@ final class AppointmentServicesTest extends TestCase
     public function testAppointmentFormatterBuildsExpectedPayload(): void
     {
         $appointment = $this->createFutureAppointment();
-        $formatter = new AppointmentFormatter(new AppointmentStatusManager($this->persistence));
+        $formatter = new AppointmentFormatter(new AppointmentStatusWorkflow());
 
         $data = $formatter->format($appointment);
 
@@ -155,7 +159,7 @@ final class AppointmentServicesTest extends TestCase
             $appointments,
             $workingDays,
             new AvailabilityService($workingDays, $appointments),
-            new AppointmentStatusManager($this->persistence),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
         );
@@ -184,7 +188,7 @@ final class AppointmentServicesTest extends TestCase
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $this->createMock(AppointmentRepository::class),
             ),
-            new AppointmentStatusManager($this->persistence),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
         );
@@ -214,7 +218,7 @@ final class AppointmentServicesTest extends TestCase
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $appointments,
             ),
-            new AppointmentStatusManager($this->persistence),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
         );
@@ -233,7 +237,7 @@ final class AppointmentServicesTest extends TestCase
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $this->createMock(AppointmentRepository::class),
             ),
-            new AppointmentStatusManager($this->persistence),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
         );

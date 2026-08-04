@@ -9,8 +9,8 @@ use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
 use App\Module\Voucher\Application\Service\VoucherFormatter;
-use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +26,7 @@ final class CreateCustomerVoucherController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $users,
-        private readonly VoucherManager $voucherManager,
+        private readonly CreateVoucherHandler $createVoucher,
         private readonly VoucherNotificationEmailService $notifications,
         private readonly VoucherRepository $vouchers,
         private readonly DtoValidator $validator,
@@ -49,7 +49,7 @@ final class CreateCustomerVoucherController extends AbstractController
         try {
             $input = CustomerVoucherInput::fromArray($payload);
             $this->validator->validate($input);
-            $voucher = $this->voucherManager->create([
+            $voucher = $this->createVoucher->create([
                 'name' => $input->name,
                 'code' => $this->normalizeCode($input->code ?? $this->generateCode($user->getLastName())),
                 'description' => $input->description,

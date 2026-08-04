@@ -20,7 +20,7 @@ final class AppointmentService
         private readonly AppointmentRepository $appointmentRepository,
         private readonly WorkingDayConfigurationRepository $workingDayRepository,
         private readonly AvailabilityService $availabilityService,
-        private readonly AppointmentStatusManager $appointmentStatusManager,
+        private readonly ChangeAppointmentStatusHandler $changeAppointmentStatus,
         private readonly DoctrineUnitOfWork $persistence,
         private readonly TransactionManager $transactions,
     ) {
@@ -92,6 +92,6 @@ final class AppointmentService
 
     public function changeStatus(Appointment $appointment, string $targetStatus): void
     {
-        $this->appointmentStatusManager->changeStatus($appointment, $targetStatus);
+        $this->changeAppointmentStatus->change($appointment, $targetStatus);
     }
 }

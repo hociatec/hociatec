@@ -22,7 +22,8 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\AdminCustomerEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Module\Voucher\Application\Service\VoucherManager;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
@@ -172,7 +173,7 @@ final class AdminUserControllersTest extends TestCase
 
         $entityManager = $this->entityManager([Voucher::class]);
         $voucherRepository = $this->voucherRepository($entityManager);
-        $manager = new VoucherManager($voucherRepository, new DoctrineUnitOfWork($entityManager));
+        $manager = new CreateVoucherHandler(new DoctrineUnitOfWork($entityManager), new VoucherPayload($voucherRepository));
 
         $controller = new CreateCustomerVoucherController(
             $users,

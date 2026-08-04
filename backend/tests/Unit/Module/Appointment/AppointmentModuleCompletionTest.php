@@ -25,7 +25,8 @@ use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepo
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\Application\Service\AppointmentFormatter;
 use App\Module\Appointment\Application\Service\AppointmentService;
-use App\Module\Appointment\Application\Service\AppointmentStatusManager;
+use App\Module\Appointment\Application\Service\AppointmentStatusWorkflow;
+use App\Module\Appointment\Application\Service\ChangeAppointmentStatusHandler;
 use App\Module\Appointment\Application\Service\AvailabilityService;
 use App\Module\Appointment\Application\Service\PrestationPersistence;
 use App\Module\Appointment\Application\Service\PrestationService;
@@ -243,7 +244,7 @@ final class AppointmentModuleCompletionTest extends TestCase
             $this->appointments(),
             $this->workingDays(),
             $this->availability(),
-            new AppointmentStatusManager($persistence),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $persistence),
             $persistence,
             new DoctrineTransactionManager($this->entityManager()),
         );
@@ -272,7 +273,7 @@ final class AppointmentModuleCompletionTest extends TestCase
 
     private function appointmentFormatter(): AppointmentFormatter
     {
-        return new AppointmentFormatter(new AppointmentStatusManager(new DoctrineUnitOfWork($this->entityManager())));
+        return new AppointmentFormatter(new AppointmentStatusWorkflow());
     }
 
     private function availability(): AvailabilityService

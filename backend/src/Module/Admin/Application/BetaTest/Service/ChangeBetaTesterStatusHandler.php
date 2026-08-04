@@ -7,25 +7,19 @@ namespace App\Module\Admin\Application\BetaTest\Service;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 
-final readonly class AdminBetaTesterManager
+final readonly class ChangeBetaTesterStatusHandler
 {
     public function __construct(private DoctrineUnitOfWork $persistence)
     {
     }
 
-    public function updateStatus(BetaTesterProfile $profile, string $status): void
+    public function change(BetaTesterProfile $profile, string $status): void
     {
         if (!in_array($status, ['pending', 'accepted', 'paused', 'rejected'], true)) {
             throw new \InvalidArgumentException('État invalide.');
         }
 
         $profile->setStatus($status);
-        $this->persistence->flush();
-    }
-
-    public function delete(BetaTesterProfile $profile): void
-    {
-        $this->persistence->remove($profile);
         $this->persistence->flush();
     }
 }

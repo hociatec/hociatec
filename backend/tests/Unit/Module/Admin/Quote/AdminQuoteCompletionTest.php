@@ -20,8 +20,10 @@ use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceCatalogManager;
+use App\Module\Admin\Application\Quote\Service\CreateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Service\QuoteServiceFormApplier;
 use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -77,27 +79,29 @@ final class AdminQuoteCompletionTest extends TestCase
         $emailService = $this->emailService($em);
         $validator = $this->validator(11);
 
-        $catalogManager = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($em));
+        $formApplier = new QuoteServiceFormApplier();
+        $createQuoteService = new CreateQuoteServiceHandler(new DoctrineUnitOfWork($em), $formApplier);
+        $updateQuoteService = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($em), $formApplier);
         $formMapper = new QuoteServiceFormMapper();
-        $createService = new CreateServiceController($formMapper, $catalogManager);
+        $createService = new CreateServiceController($formMapper, $createQuoteService);
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $createService(Request::create('/', 'POST', ['title' => '', 'price' => 10]))->getStatusCode());
         $createdService = $createService(Request::create('/', 'POST', ['title' => 'Audit', 'description' => 'Desc', 'unit' => 'jour', 'durationValue' => '2', 'durationUnit' => 'day', 'price' => '120,50', 'vatRate' => '20']));
         self::assertSame(Response::HTTP_CREATED, $createdService->getStatusCode());
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateServiceController($formMapper, $this->throwingCatalogManager('persist')))(Request::create('/', 'POST', ['title' => 'Down', 'price' => 10]))->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateServiceController($formMapper, $this->throwingCreateQuoteService()))(Request::create('/', 'POST', ['title' => 'Down', 'price' => 10]))->getStatusCode());
         $serviceId = (int) $this->payload($createdService)['data']['id'];
 
         self::assertSame(Response::HTTP_OK, (new ListServicesController($serviceRepository))(Request::create('/?page=1&perPage=5'))->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, (new GetServiceController($serviceRepository))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new GetServiceController($serviceRepository))($serviceId)->getStatusCode());
 
-        $updateService = new UpdateServiceController($serviceRepository, $formMapper, $catalogManager);
+        $updateService = new UpdateServiceController($serviceRepository, $formMapper, $updateQuoteService);
         self::assertSame(Response::HTTP_NOT_FOUND, $updateService(Request::create('/', 'POST', ['title' => 'x']), 999)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['unit' => 'bogus']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['durationValue' => '2', 'durationUnit' => '']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['title' => 'Audit', 'price' => 'abc']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $updateService(Request::create('/', 'POST', ['title' => 'Audit updated', 'price' => '90', 'durationValue' => '1', 'durationUnit' => 'hour']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $updateService(Request::create('/', 'POST', ['title' => 'Audit partial']), $serviceId)->getStatusCode());
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateServiceController($serviceRepository, $formMapper, $this->throwingCatalogManager('flush')))(Request::create('/', 'POST', ['title' => 'Down']), $serviceId)->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateServiceController($serviceRepository, $formMapper, $this->throwingUpdateQuoteService()))(Request::create('/', 'POST', ['title' => 'Down']), $serviceId)->getStatusCode());
 
         $createQuote = new CreateQuoteController($quoteService, $calculator, $emailService, $validator);
         $createdQuote = $createQuote($this->jsonRequest($this->quotePayload()));
@@ -187,12 +191,20 @@ final class AdminQuoteCompletionTest extends TestCase
         };
     }
 
-    private function throwingCatalogManager(string $method): QuoteServiceCatalogManager
+    private function throwingCreateQuoteService(): CreateQuoteServiceHandler
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method($method)->willThrowException(new \RuntimeException('doctrine down'));
+        $entityManager->method('persist')->willThrowException(new \RuntimeException('doctrine down'));
 
-        return new QuoteServiceCatalogManager(new DoctrineUnitOfWork($entityManager));
+        return new CreateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), new QuoteServiceFormApplier());
+    }
+
+    private function throwingUpdateQuoteService(): UpdateQuoteServiceHandler
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('flush')->willThrowException(new \RuntimeException('doctrine down'));
+
+        return new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), new QuoteServiceFormApplier());
     }
 
     private function throwingValidator(): DtoValidator

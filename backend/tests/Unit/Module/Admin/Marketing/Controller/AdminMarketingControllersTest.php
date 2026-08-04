@@ -11,7 +11,9 @@ use App\Module\Admin\UI\Marketing\Controller\ListCampaignsController;
 use App\Module\Admin\UI\Marketing\Controller\ListSegmentsController;
 use App\Module\Admin\UI\Marketing\Controller\ListTemplatesController;
 use App\Module\Admin\UI\Marketing\Controller\UpdateTemplateController;
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Admin\Application\Marketing\Service\CreateEmailTemplateHandler;
+use App\Module\Admin\Application\Marketing\Service\DeleteEmailTemplateHandler;
+use App\Module\Admin\Application\Marketing\Service\UpdateEmailTemplateHandler;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
@@ -42,7 +44,10 @@ final class AdminMarketingControllersTest extends TestCase
         $templates->method('find')->willReturnCallback(static fn (int $id): ?EmailTemplate => 10 === $id ? $template : null);
         $templates->method('findOneBySlug')->willReturnCallback(static fn (string $slug): ?EmailTemplate => 'duplicate' === $slug ? new EmailTemplate('Duplicate', 'duplicate', $scenarioKey, 'S', '<p>H</p>', null) : null);
 
-        $manager = $this->manager();
+        $persistence = new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class));
+        $createTemplateHandler = new CreateEmailTemplateHandler($persistence);
+        $updateTemplateHandler = new UpdateEmailTemplateHandler($persistence);
+        $deleteTemplateHandler = new DeleteEmailTemplateHandler($persistence);
         $validator = $this->validator();
 
         $listPayload = $this->payload((new ListTemplatesController($templates))(Request::create('/?page=1&perPage=5')));
@@ -53,7 +58,7 @@ final class AdminMarketingControllersTest extends TestCase
         $getPayload = $this->payload((new GetTemplateController($templates))(10));
         self::assertSame('Welcome', $getPayload['data']['template']['name']);
 
-        $create = new CreateTemplateController($manager, $templates, $scenarioProvider, $validator);
+        $create = new CreateTemplateController($createTemplateHandler, $templates, $scenarioProvider, $validator);
         self::assertSame(400, $create($this->jsonRequest([
             'name' => 'New',
             'slug' => 'new',
@@ -78,7 +83,7 @@ final class AdminMarketingControllersTest extends TestCase
             'isActive' => false,
         ]))->getStatusCode());
 
-        $update = new UpdateTemplateController($manager, $templates, $scenarioProvider, $validator);
+        $update = new UpdateTemplateController($updateTemplateHandler, $templates, $scenarioProvider, $validator);
         self::assertSame(404, $update(999, $this->jsonRequest([]))->getStatusCode());
         $updated = $update(10, $this->jsonRequest([
             'name' => 'Updated',
@@ -92,8 +97,8 @@ final class AdminMarketingControllersTest extends TestCase
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('Updated', $this->payload($updated)['data']['template']['name']);
 
-        self::assertSame(404, (new DeleteTemplateController($manager, $templates))(999)->getStatusCode());
-        $deleted = (new DeleteTemplateController($manager, $templates))(10);
+        self::assertSame(404, (new DeleteTemplateController($deleteTemplateHandler, $templates))(999)->getStatusCode());
+        $deleted = (new DeleteTemplateController($deleteTemplateHandler, $templates))(10);
         self::assertSame(200, $deleted->getStatusCode());
         self::assertTrue($this->payload($deleted)['data']['deleted']);
     }
@@ -119,13 +124,6 @@ final class AdminMarketingControllersTest extends TestCase
         self::assertSame('Campaign', $payload['data']['items'][0]['name']);
         self::assertSame('Digest', $payload['data']['items'][0]['template']['name']);
         self::assertSame(12, $payload['data']['meta']['total']);
-    }
-
-    private function manager(): EmailTemplateAdminManager
-    {
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-
-        return new EmailTemplateAdminManager(new DoctrineUnitOfWork($entityManager));
     }
 
     private function validator(): DtoValidator

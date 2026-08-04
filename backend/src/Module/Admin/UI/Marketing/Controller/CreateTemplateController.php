@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 use App\Infrastructure\Http\ApiResponse;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateAdminManager;
+use App\Module\Admin\Application\Marketing\Service\CreateEmailTemplateHandler;
 use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly EmailTemplateAdminManager $manager,
+        private readonly CreateEmailTemplateHandler $createTemplate,
         private readonly EmailTemplateRepository $templates,
         private readonly EmailTemplateScenarioProvider $scenarioProvider,
         private readonly DtoValidator $validator,
@@ -46,7 +46,7 @@ final class CreateTemplateController extends AbstractController
         $template = new EmailTemplate($input->name, $input->slug, $input->scenarioKey, $input->subjectTemplate, $input->htmlBody, $input->textBody);
         $template->setIsActive($input->isActive);
 
-        $this->manager->create($template);
+        $this->createTemplate->create($template);
 
         return ApiResponse::created([
             'template' => [

@@ -6,12 +6,18 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Application\Service\CreatePromotionHandler;
+use App\Module\Promotion\Application\Service\DeletePromotionHandler;
+use App\Module\Promotion\Application\Service\PromotionDataApplier;
+use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Module\Promotion\Application\Service\PromotionManager;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Service\UserPersistence;
+use App\Module\Voucher\Application\Service\CreateVoucherHandler;
+use App\Module\Voucher\Application\Service\DeleteVoucherHandler;
+use App\Module\Voucher\Application\Service\UpdateVoucherHandler;
+use App\Module\Voucher\Application\Service\VoucherPayload;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Infrastructure\Persistence\DoctrineTransactionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,13 +60,17 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame('done', (new DoctrineTransactionManager($entityManager))->transactional(static fn (): string => 'done'));
     }
 
-    public function testPromotionManagerCreateUpdateAndDelete(): void
+    public function testPromotionHandlersCreateUpdateAndDelete(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Promotion::class));
         $entityManager->expects(self::exactly(3))->method('flush');
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Promotion::class));
-        $manager = new PromotionManager(new DoctrineUnitOfWork($entityManager));
+        $persistence = new DoctrineUnitOfWork($entityManager);
+        $applier = new PromotionDataApplier();
+        $createPromotion = new CreatePromotionHandler($persistence, $applier);
+        $updatePromotion = new UpdatePromotionHandler($persistence, $applier);
+        $deletePromotion = new DeletePromotionHandler($persistence);
 
         $input = PromotionInput::fromArray([
             'name' => ' Promo ',
@@ -74,7 +84,7 @@ final class ManagerAndDtoClosureTest extends TestCase
             'startsAt' => '2026-07-01T10:00:00+00:00',
             'endsAt' => '2026-08-01T10:00:00+00:00',
         ]);
-        $promotion = $manager->create($input);
+        $promotion = $createPromotion->create($input);
 
         self::assertSame('Promo', $promotion->getName());
         self::assertSame('promo', $promotion->getSlug());
@@ -84,7 +94,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame(['country' => 'FR'], $promotion->getCriteria());
         self::assertSame('Desc', $promotion->getDescription());
 
-        $updated = $manager->update($promotion, new PromotionInput(
+        $updated = $updatePromotion->update($promotion, new PromotionInput(
             'Promo 2',
             'promo-2',
             Promotion::TYPE_FIXED_CENTS,
@@ -105,19 +115,22 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame('Desc 2', $updated->getDescription());
         self::assertFalse($updated->isActive());
 
-        $manager->delete($updated);
+        $deletePromotion->delete($updated);
     }
 
-    public function testVoucherManagerValidatesCreateUpdateAndDelete(): void
+    public function testVoucherHandlersValidateCreateUpdateAndDelete(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::atLeast(1))->method('persist');
         $entityManager->expects(self::atLeast(1))->method('flush');
         $persistence = new DoctrineUnitOfWork($entityManager);
         $repo = $this->voucherRepository();
-        $manager = new VoucherManager($repo, $persistence);
+        $payload = new VoucherPayload($repo);
+        $createVoucher = new CreateVoucherHandler($persistence, $payload);
+        $updateVoucher = new UpdateVoucherHandler($persistence, $payload);
+        $deleteVoucher = new DeleteVoucherHandler($persistence);
 
-        $voucher = $manager->create([
+        $voucher = $createVoucher->create([
             'name' => 'Voucher',
             'code' => ' test ',
             'description' => ' desc ',
@@ -130,7 +143,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame('TEST', $voucher->getCode());
         self::assertSame('desc', $voucher->getDescription());
 
-        $updated = $manager->update($voucher, [
+        $updated = $updateVoucher->update($voucher, [
             'name' => 'Voucher 2',
             'code' => ' test-2 ',
             'description' => ' text ',
@@ -146,7 +159,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertFalse($updated->isActive());
 
         try {
-            $manager->create([
+            $createVoucher->create([
                 'name' => '',
                 'code' => '',
                 'discountType' => '',
@@ -158,7 +171,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         }
 
         try {
-            $manager->create([
+            $createVoucher->create([
                 'name' => 'Voucher',
                 'code' => 'A',
                 'discountType' => 'weird',
@@ -170,7 +183,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         }
 
         try {
-            $manager->update($updated, [
+            $updateVoucher->update($updated, [
                 'name' => 'Voucher 2',
                 'code' => ' test-2 ',
                 'discountType' => Voucher::TYPE_PERCENT,
@@ -181,10 +194,10 @@ final class ManagerAndDtoClosureTest extends TestCase
             self::assertSame('La valeur de remise doit être supérieure à zéro.', $exception->getMessage());
         }
 
-        $manager->delete($updated);
+        $deleteVoucher->delete($updated);
     }
 
-    public function testVoucherManagerRejectsDuplicateCodesFromRepository(): void
+    public function testCreateVoucherRejectsDuplicateCodesFromRepository(): void
     {
         $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
         $connection = \Doctrine\DBAL\DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
@@ -196,7 +209,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
         $repo = new \App\Module\Voucher\Infrastructure\Repository\VoucherRepository($registry);
-        $manager = new VoucherManager($repo, new DoctrineUnitOfWork($entityManager));
+        $manager = new CreateVoucherHandler(new DoctrineUnitOfWork($entityManager), new VoucherPayload($repo));
 
         $manager->create([
             'name' => 'Existing',

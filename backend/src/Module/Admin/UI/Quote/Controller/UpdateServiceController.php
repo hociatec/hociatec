@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceCatalogManager;
 use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
 use App\Module\Quote\Application\Service\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
@@ -24,7 +24,7 @@ final readonly class UpdateServiceController
     public function __construct(
         private ServiceRepository $repository,
         private QuoteServiceFormMapper $forms,
-        private QuoteServiceCatalogManager $services,
+        private UpdateQuoteServiceHandler $updateService,
     ) {
     }
 
@@ -36,7 +36,7 @@ final readonly class UpdateServiceController
         }
 
         try {
-            $service = $this->services->update($service, $this->forms->update($request, $service));
+            $service = $this->updateService->update($service, $this->forms->update($request, $service));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (QuoteOperationException $exception) {

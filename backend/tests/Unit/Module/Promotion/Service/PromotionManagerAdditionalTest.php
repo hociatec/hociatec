@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Promotion\Service;
 
 use App\Module\Promotion\Application\DTO\PromotionInput;
+use App\Module\Promotion\Application\Service\CreatePromotionHandler;
+use App\Module\Promotion\Application\Service\DeletePromotionHandler;
+use App\Module\Promotion\Application\Service\PromotionDataApplier;
+use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Module\Promotion\Application\Service\PromotionManager;
 use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -20,8 +23,13 @@ final class PromotionManagerAdditionalTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Promotion::class));
         $entityManager->expects(self::exactly(3))->method('flush');
 
-        $manager = new PromotionManager(new DoctrineUnitOfWork($entityManager));
-        $created = $manager->create(PromotionInput::fromArray([
+        $persistence = new DoctrineUnitOfWork($entityManager);
+        $applier = new PromotionDataApplier();
+        $createPromotion = new CreatePromotionHandler($persistence, $applier);
+        $updatePromotion = new UpdatePromotionHandler($persistence, $applier);
+        $deletePromotion = new DeletePromotionHandler($persistence);
+
+        $created = $createPromotion->create(PromotionInput::fromArray([
             'name' => '  Rentree  ',
             'slug' => ' rentree ',
             'discountType' => Promotion::TYPE_PERCENT,
@@ -45,7 +53,7 @@ final class PromotionManagerAdditionalTest extends TestCase
         self::assertSame('2026-08-01', $created->getStartsAt()?->format('Y-m-d'));
         self::assertSame('2026-08-31', $created->getEndsAt()?->format('Y-m-d'));
 
-        $updated = $manager->update($created, new PromotionInput(
+        $updated = $updatePromotion->update($created, new PromotionInput(
             'Black Friday',
             'black-friday',
             Promotion::TYPE_FIXED_CENTS,
@@ -68,6 +76,6 @@ final class PromotionManagerAdditionalTest extends TestCase
         self::assertNull($updated->getStartsAt());
         self::assertNull($updated->getEndsAt());
 
-        $manager->delete($updated);
+        $deletePromotion->delete($updated);
     }
 }

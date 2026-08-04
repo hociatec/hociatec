@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Infrastructure\Http\ApiResponse;
-use App\Module\Admin\Application\BetaTest\Service\AdminBugReportManager;
+use App\Module\Admin\Application\BetaTest\Service\DeleteBugReportHandler;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ final class DeleteBugReportController extends AbstractController
 {
     public function __construct(
         private readonly BugReportRepository $reports,
-        private readonly AdminBugReportManager $reportManager,
+        private readonly DeleteBugReportHandler $deleteBugReport,
     ) {
     }
 
@@ -29,7 +29,7 @@ final class DeleteBugReportController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         }
 
-        $this->reportManager->delete($report);
+        $this->deleteBugReport->delete($report);
 
         return ApiResponse::success([], 200, 'Rapport supprimé.');
     }

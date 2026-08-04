@@ -9,7 +9,7 @@ use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Validation\DtoValidator;
 use App\Module\Promotion\Application\DTO\PromotionInput;
 use App\Module\Promotion\Application\Service\PromotionFormatter;
-use App\Module\Promotion\Application\Service\PromotionManager;
+use App\Module\Promotion\Application\Service\UpdatePromotionHandler;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +24,7 @@ final class UpdatePromotionController extends AbstractController
 {
     public function __construct(
         private readonly PromotionRepository $promotions,
-        private readonly PromotionManager $manager,
+        private readonly UpdatePromotionHandler $updatePromotion,
         private readonly DtoValidator $validator,
     ) {
     }
@@ -44,7 +44,7 @@ final class UpdatePromotionController extends AbstractController
 
         $input = PromotionInput::fromArray($payload);
         $this->validator->validate($input);
-        $this->manager->update($promotion, $input);
+        $this->updatePromotion->update($promotion, $input);
 
         return ApiResponse::success([
             'promotion' => PromotionFormatter::formatPromotion($promotion),
