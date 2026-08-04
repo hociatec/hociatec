@@ -9,7 +9,7 @@ use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Application\OutboxDispatcher;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Application\OutboxEventStore;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -23,7 +23,7 @@ final class OutboxTest extends TestCase
             ->method('persist')
             ->with(self::isInstanceOf(OutboxEvent::class));
 
-        $event = (new Outbox(new DoctrinePersistence($entityManager)))->record('order-paid-1', 'order.paid', ['orderId' => 1]);
+        $event = (new Outbox(new DoctrineUnitOfWork($entityManager)))->record('order-paid-1', 'order.paid', ['orderId' => 1]);
 
         self::assertSame('order-paid-1', $event->getKey());
         self::assertSame('order.paid', $event->getType());
@@ -51,7 +51,7 @@ final class OutboxTest extends TestCase
             }
         };
 
-        $processed = (new OutboxDispatcher($repository, new DoctrinePersistence($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+        $processed = (new OutboxDispatcher($repository, new DoctrineUnitOfWork($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
 
         self::assertSame(1, $processed);
         self::assertSame(1, $handler->calls);
@@ -77,7 +77,7 @@ final class OutboxTest extends TestCase
             }
         };
 
-        (new OutboxDispatcher($this->repository([$event]), new DoctrinePersistence($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
+        (new OutboxDispatcher($this->repository([$event]), new DoctrineUnitOfWork($entityManager), [$handler], $this->createMock(LoggerInterface::class)))->dispatchDue();
 
         self::assertSame(OutboxEvent::STATUS_FAILED, $event->getStatus());
         self::assertSame('temporary failure', $event->getLastError());

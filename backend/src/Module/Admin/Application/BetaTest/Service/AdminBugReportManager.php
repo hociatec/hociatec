@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Application\Service\BetaAttachmentStorage;
 use App\Module\BetaTest\Application\Service\BugReportActivityLogger;
 use App\Module\BetaTest\Domain\Entity\BugReport;
@@ -16,7 +16,7 @@ use App\Module\User\Domain\Entity\User;
 final readonly class AdminBugReportManager
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private BugReportActivityLogger $activityLogger,
         private UserCommunicationNotifier $notifier,
         private BetaAttachmentStorage $attachments,

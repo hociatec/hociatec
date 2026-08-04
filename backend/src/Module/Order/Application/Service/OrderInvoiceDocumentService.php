@@ -49,6 +49,7 @@ final class OrderInvoiceDocumentService
             ->setInvoiceXmlPath($xmlRelativePath);
 
         $this->persistence->save($order);
+        $this->persistence->flush();
     }
 
     public function getPdf(Order $order): string

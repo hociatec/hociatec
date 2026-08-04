@@ -24,7 +24,7 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Application\Service\TradeInNotificationEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -207,7 +207,7 @@ final class AlignedEmailServicesTest extends TestCase
     {
         return new UserCommunicationNotifier(
             $this->notificationRepository($this->entityManager()),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

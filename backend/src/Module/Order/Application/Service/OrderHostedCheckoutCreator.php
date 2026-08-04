@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
@@ -17,7 +17,7 @@ final readonly class OrderHostedCheckoutCreator
         private StripeApiClient $stripe,
         private OrderCheckoutSessionRepository $checkoutSessions,
         private StripeCheckoutPayloadProvider $payloads,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private string $frontendUrl,
     ) {
     }

@@ -17,7 +17,7 @@ use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -125,7 +125,7 @@ final class AdminMarketingControllersTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
 
-        return new EmailTemplateAdminManager(new DoctrinePersistence($entityManager));
+        return new EmailTemplateAdminManager(new DoctrineUnitOfWork($entityManager));
     }
 
     private function validator(): DtoValidator

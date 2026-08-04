@@ -27,7 +27,7 @@ use App\Infrastructure\Http\ExternalServiceException;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Http\RateLimited;
 use App\Infrastructure\Mail\MailDeliveryException;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -101,7 +101,7 @@ final class TrivialClassesCoverageTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(2))->method('persist');
-        $entityManager->expects(self::exactly(2))->method('flush');
+        $entityManager->expects(self::never())->method('flush');
 
         $auditPersistence = new AuditPersistence($entityManager);
         $orderPersistence = new OrderEventPersistence($entityManager);
@@ -134,7 +134,7 @@ final class TrivialClassesCoverageTest extends TestCase
                 && 'closed' === $activity->getToValue()
                 && 'done' === $activity->getMessage()));
 
-        $logger = new BugReportActivityLogger(new DoctrinePersistence($entityManager));
+        $logger = new BugReportActivityLogger(new DoctrineUnitOfWork($entityManager));
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $report = new BugReport($user, null, 'Bug', 'Body', null, null, 'low', '/beta');
 

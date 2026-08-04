@@ -24,7 +24,7 @@ use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -172,7 +172,7 @@ final class AdminUserControllersTest extends TestCase
 
         $entityManager = $this->entityManager([Voucher::class]);
         $voucherRepository = $this->voucherRepository($entityManager);
-        $manager = new VoucherManager($voucherRepository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($voucherRepository, new DoctrineUnitOfWork($entityManager));
 
         $controller = new CreateCustomerVoucherController(
             $users,
@@ -237,7 +237,7 @@ final class AdminUserControllersTest extends TestCase
 
         return new UserCommunicationNotifier(
             $notifications,
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

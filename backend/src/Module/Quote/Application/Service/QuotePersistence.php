@@ -17,7 +17,6 @@ final readonly class QuotePersistence
     public function save(Quote $quote): void
     {
         $this->entityManager->persist($quote);
-        $this->entityManager->flush();
     }
 
     public function addItem(Quote $quote, QuoteItem $item): void
@@ -39,6 +38,5 @@ final readonly class QuotePersistence
     public function delete(Quote $quote): void
     {
         $this->entityManager->remove($quote);
-        $this->entityManager->flush();
     }
 }

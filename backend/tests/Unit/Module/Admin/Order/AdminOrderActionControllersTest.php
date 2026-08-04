@@ -16,7 +16,7 @@ use App\Module\Order\Application\Service\OrderEventLogger;
 use App\Module\Order\Application\Service\OrderEventPersistence;
 use App\Module\Order\Application\Service\OrderStatusUpdater;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -97,12 +97,12 @@ final class AdminOrderActionControllersTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->method('dispatch')->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
 
-        return new OrderStatusUpdater(new DoctrinePersistence($this->entityManager()), $workflow, $bus, $this->eventLogger());
+        return new OrderStatusUpdater(new DoctrineUnitOfWork($this->entityManager()), $workflow, $bus, $this->eventLogger());
     }
 
     private function deliveryUpdater(): OrderDeliveryUpdater
     {
-        return new OrderDeliveryUpdater(new DoctrinePersistence($this->entityManager()), $this->eventLogger());
+        return new OrderDeliveryUpdater(new DoctrineUnitOfWork($this->entityManager()), $this->eventLogger());
     }
 
     private function eventLogger(): OrderEventLogger

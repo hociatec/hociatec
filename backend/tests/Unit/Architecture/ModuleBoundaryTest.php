@@ -19,10 +19,39 @@ final class ModuleBoundaryTest extends TestCase
             $source = file_get_contents($path);
             self::assertIsString($source);
 
-            foreach (['EntityManagerInterface', 'DoctrinePersistence', '->persist(', '->flush(', '->remove('] as $forbidden) {
+            foreach (['EntityManagerInterface', 'DoctrineUnitOfWork', '->persist(', '->flush(', '->remove('] as $forbidden) {
                 if (str_contains($source, $forbidden)) {
                     $violations[] = $this->relativePath($path).': '.$forbidden;
                 }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testTransactionBoundaryIsSeparatedFromUnitOfWork(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Persistence.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach (['implements TransactionManager', 'wrapInTransaction(', 'function transactional('] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        $unitOfWork = file_get_contents(__DIR__.'/../../../src/Infrastructure/Persistence/DoctrineUnitOfWork.php');
+        self::assertIsString($unitOfWork);
+        foreach (['implements TransactionManager', 'wrapInTransaction(', 'function transactional('] as $forbidden) {
+            if (str_contains($unitOfWork, $forbidden)) {
+                $violations[] = 'src/Infrastructure/Persistence/DoctrineUnitOfWork.php: '.$forbidden;
             }
         }
 

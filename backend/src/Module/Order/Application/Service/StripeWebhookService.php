@@ -40,6 +40,7 @@ final class StripeWebhookService
             $received = new StripeWebhookEvent($eventId, $type);
             try {
                 $this->persistence->save($received);
+                $this->persistence->flush();
             } catch (UniqueConstraintViolationException) {
                 $received = $this->events->findOneByStripeEventId($eventId);
                 if ($received?->isProcessed()) {

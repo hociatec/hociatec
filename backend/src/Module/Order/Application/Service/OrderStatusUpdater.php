@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
@@ -22,7 +22,7 @@ final readonly class OrderStatusUpdater
     ];
 
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         #[Autowire(service: 'state_machine.order_status')]
         private WorkflowInterface $stateMachine,
         private MessageBusInterface $bus,

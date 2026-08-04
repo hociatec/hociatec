@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
+use App\Infrastructure\Application\TransactionManager;
 use App\Infrastructure\Http\ExternalServiceException;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Order\Application\DTO\RefundCreateData;
@@ -28,6 +29,7 @@ final readonly class RefundOperationsService
         private StripeApiClient $stripe,
         private OrderEventLogger $events,
         private OperationsPersistence $persistence,
+        private TransactionManager $transactions,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -102,7 +104,7 @@ final readonly class RefundOperationsService
         }
 
         $previousStatus = $refund->getStatus();
-        $refund = $this->persistence->transactional(function () use ($refundId): RefundRequest {
+        $refund = $this->transactions->transactional(function () use ($refundId): RefundRequest {
             $locked = $this->refunds->findForUpdate($refundId);
             if (!$locked instanceof RefundRequest) {
                 throw new OperationsResourceNotFoundException('Remboursement introuvable.');

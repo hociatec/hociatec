@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Service\VoucherEngine;
@@ -14,7 +14,7 @@ final readonly class CartVoucherService
     public function __construct(
         private CartSessionProvider $carts,
         private VoucherEngine $voucherEngine,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
     ) {
     }
 

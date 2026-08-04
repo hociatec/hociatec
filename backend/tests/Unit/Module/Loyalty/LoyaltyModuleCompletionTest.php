@@ -14,7 +14,8 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -105,8 +106,9 @@ final class LoyaltyModuleCompletionTest extends TestCase
         $entityManager->expects(self::once())->method('find')->willReturn(null);
 
         $service = new LoyaltyService(
-            new DoctrinePersistence($entityManager),
-            new VoucherManager($this->voucherRepository($this->entityManager()), new DoctrinePersistence($this->entityManager())),
+            new DoctrineUnitOfWork($entityManager),
+            new DoctrineTransactionManager($entityManager),
+            new VoucherManager($this->voucherRepository($this->entityManager()), new DoctrineUnitOfWork($this->entityManager())),
             $this->userRepository($this->entityManager()),
         );
 
@@ -120,10 +122,11 @@ final class LoyaltyModuleCompletionTest extends TestCase
 
     private function loyalty(EntityManager $em): LoyaltyService
     {
-        $persistence = new DoctrinePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
 
         return new LoyaltyService(
             $persistence,
+            new DoctrineTransactionManager($em),
             new VoucherManager($this->voucherRepository($em), $persistence),
             $this->userRepository($em),
         );

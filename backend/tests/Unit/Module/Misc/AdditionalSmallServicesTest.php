@@ -19,7 +19,7 @@ use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Application\Service\TrainingSlotValidator;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,7 +38,7 @@ final class AdditionalSmallServicesTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with($product);
         $entityManager->expects(self::once())->method('flush');
-        (new ProductReviewStatsUpdater($ratings, new DoctrinePersistence($entityManager)))->refresh($product);
+        (new ProductReviewStatsUpdater($ratings, new DoctrineUnitOfWork($entityManager)))->refresh($product);
         self::assertSame(3, $product->getReviewsCount());
         self::assertSame(4.5, $product->getReviewsAverage());
 

@@ -27,7 +27,7 @@ use App\Module\Audit\Application\Service\AuditPersistence;
 use App\Module\Audit\Application\Service\AuditTemplateProvider;
 use App\Module\Audit\Application\Service\CreateAuditRequestService;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -263,7 +263,7 @@ final class AuditModuleCompletionTest extends TestCase
 
     private function eventLogger(): AuditEventLogger
     {
-        return new AuditEventLogger(new DoctrinePersistence($this->entityManager()));
+        return new AuditEventLogger(new DoctrineUnitOfWork($this->entityManager()));
     }
 
     private function validator(): DtoValidator

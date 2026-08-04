@@ -15,7 +15,7 @@ use App\Module\Catalog\Application\Service\CategoryService;
 use App\Module\Training\Application\DTO\TrainingInput;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Application\Service\TrainingWriter;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
@@ -29,7 +29,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $persistence = new CatalogPersistence($entityManager);
 
         $entityManager->expects(self::once())->method('persist')->with($entity);
-        $entityManager->expects(self::exactly(3))->method('flush');
+        $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($entity);
 
         $persistence->save($entity);
@@ -209,7 +209,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
     public function testTrainingWriterSaveDeleteApplyAndSlugify(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $writer = new TrainingWriter($persistence);
         $training = new Training('Initial', 'initial', 30, 1000);
 
@@ -256,7 +256,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
 
     public function testTrainingWriterFallsBackForCategoryAndFormats(): void
     {
-        $writer = new TrainingWriter(new DoctrinePersistence($this->createMock(EntityManagerInterface::class)));
+        $writer = new TrainingWriter(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)));
         $training = new Training('Initial', 'initial', 30, 1000);
 
         $writer->apply($training, TrainingInput::fromArray([

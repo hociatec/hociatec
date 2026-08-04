@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final readonly class BugReportWriter
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private BetaAttachmentStorage $attachments,
         private BugReportActivityLogger $activityLogger,
         private UserRepository $users,

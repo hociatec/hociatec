@@ -62,7 +62,7 @@ services:
         alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
 
     App\Infrastructure\Application\TransactionManager:
-        alias: App\Infrastructure\Persistence\DoctrinePersistence
+        alias: App\Infrastructure\Persistence\DoctrineTransactionManager
 
     App\Infrastructure\Http\RateLimitSubscriber:
         arguments:

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Application\TransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 
@@ -12,7 +13,8 @@ final class RefundStripeWebhookHandler
 {
     public function __construct(
         private readonly RefundRequestRepository $refunds,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
+        private readonly TransactionManager $transactions,
     ) {
     }
 
@@ -37,7 +39,7 @@ final class RefundStripeWebhookHandler
             return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => null];
         }
 
-        $this->persistence->transactional(function () use ($refund, $stripeRefundId, $type, $object): void {
+        $this->transactions->transactional(function () use ($refund, $stripeRefundId, $type, $object): void {
             if (null !== $stripeRefundId) {
                 $refund->setStripeRefundId($stripeRefundId);
             }

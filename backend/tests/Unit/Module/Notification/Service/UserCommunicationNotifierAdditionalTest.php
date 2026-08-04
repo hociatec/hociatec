@@ -9,7 +9,7 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Service\CommunicationPreferences;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,7 +33,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $repository,
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
@@ -71,7 +71,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $repository,
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $logger,
@@ -104,7 +104,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $repository,
-            new DoctrinePersistence($persistenceEntityManager),
+            new DoctrineUnitOfWork($persistenceEntityManager),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
@@ -129,7 +129,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $repository,
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             $this->createMock(MailerInterface::class),
             $bus,
             $this->createMock(LoggerInterface::class),
@@ -162,7 +162,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $this->notificationRepository($this->notificationEntityManager()),
-            new DoctrinePersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             $mailer,
             $this->createMock(MessageBusInterface::class),
             $logger,
@@ -181,7 +181,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
     {
         $entityManager = $this->notificationEntityManager();
         $repository = $this->notificationRepository($entityManager);
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::once())->method('dispatch')->willThrowException(new \RuntimeException('bus down'));

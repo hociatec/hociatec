@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence;
 
-use App\Infrastructure\Application\TransactionManager;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 
-/** Infrastructure boundary for unit-of-work operations. */
-final readonly class DoctrinePersistence implements TransactionManager
+/** Infrastructure boundary for Doctrine unit-of-work operations. */
+final readonly class DoctrineUnitOfWork
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {
@@ -53,17 +52,5 @@ final readonly class DoctrinePersistence implements TransactionManager
         $entity = $this->entityManager->find($class, $id, LockMode::PESSIMISTIC_WRITE);
 
         return $entity;
-    }
-
-    /**
-     * @template T
-     *
-     * @param \Closure(): T $operation
-     *
-     * @return T
-     */
-    public function transactional(\Closure $operation): mixed
-    {
-        return $this->entityManager->wrapInTransaction(static fn (): mixed => $operation());
     }
 }

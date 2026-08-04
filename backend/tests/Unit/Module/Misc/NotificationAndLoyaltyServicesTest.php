@@ -20,7 +20,8 @@ use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Loyalty\Application\Service\LoyaltyService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -114,12 +115,12 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
         $entityManager->expects(self::atLeast(1))->method('persist');
         $entityManager->expects(self::atLeast(1))->method('flush');
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $voucherRepository = $this->voucherRepository();
         $voucherManager = new VoucherManager($voucherRepository, $persistence);
         $users = $this->createMock(UserRepository::class);
-        $service = new LoyaltyService($persistence, $voucherManager, $users);
+        $service = new LoyaltyService($persistence, new DoctrineTransactionManager($entityManager), $voucherManager, $users);
 
         self::assertSame(500, $service->pointsToCents(599));
         self::assertSame(500, $service->centsToPoints(599));
@@ -203,8 +204,9 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
         $users->expects(self::exactly(4))->method('createQueryBuilder')->with('u')->willReturn($queryBuilder);
 
         $service = new LoyaltyService(
-            new DoctrinePersistence($this->createMock(EntityManagerInterface::class)),
-            new VoucherManager($this->voucherRepository(), new DoctrinePersistence($this->createMock(EntityManagerInterface::class))),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
+            new DoctrineTransactionManager($this->createMock(EntityManagerInterface::class)),
+            new VoucherManager($this->voucherRepository(), new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
             $users,
         );
 

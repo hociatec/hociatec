@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 
 final readonly class AdminBetaCampaignManager
 {
-    public function __construct(private DoctrinePersistence $persistence)
+    public function __construct(private DoctrineUnitOfWork $persistence)
     {
     }
 

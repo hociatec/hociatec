@@ -47,7 +47,7 @@ use App\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Infrastructure\Pdf\PdfHtmlFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Outbox\Application\Outbox;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -77,7 +77,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $emailService = $this->emailService($em);
         $validator = $this->validator(11);
 
-        $catalogManager = new QuoteServiceCatalogManager(new DoctrinePersistence($em));
+        $catalogManager = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($em));
         $formMapper = new QuoteServiceFormMapper();
         $createService = new CreateServiceController($formMapper, $catalogManager);
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $createService(Request::create('/', 'POST', ['title' => '', 'price' => 10]))->getStatusCode());
@@ -192,7 +192,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->method($method)->willThrowException(new \RuntimeException('doctrine down'));
 
-        return new QuoteServiceCatalogManager(new DoctrinePersistence($entityManager));
+        return new QuoteServiceCatalogManager(new DoctrineUnitOfWork($entityManager));
     }
 
     private function throwingValidator(): DtoValidator
@@ -238,11 +238,11 @@ final class AdminQuoteCompletionTest extends TestCase
 
         return new QuoteEmailService(
             new QuotePersistence($em),
-            new Outbox(new DoctrinePersistence($em)),
+            new Outbox(new DoctrineUnitOfWork($em)),
             new UserRepository($this->registry($em)),
             new UserCommunicationNotifier(
                 new AccountNotificationEventRepository($this->registry($em)),
-                new DoctrinePersistence($em),
+                new DoctrineUnitOfWork($em),
                 $this->createMock(MailerInterface::class),
                 $this->createMock(MessageBusInterface::class),
                 $this->createMock(LoggerInterface::class),

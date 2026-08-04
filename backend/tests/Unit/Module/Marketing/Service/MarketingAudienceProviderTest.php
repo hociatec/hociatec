@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Marketing\Service;
 use App\Module\Marketing\Application\Service\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Service\MarketingAudienceProvider;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -104,7 +104,7 @@ final class MarketingAudienceProviderTest extends TestCase
         $entityManager->method('createQueryBuilder')->willReturnOnConsecutiveCalls(...$builders);
 
         return new MarketingAudienceProvider(
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             new EmailTemplateScenarioProvider(),
         );
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\News\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Domain\Entity\NewsArticle;
@@ -15,7 +15,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 final readonly class NewsArticleWriter
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private UserRepository $users,
         private MessageBusInterface $bus,
     ) {

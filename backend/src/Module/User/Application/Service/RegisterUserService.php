@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Service;
 
+use App\Infrastructure\Application\TransactionManager;
 use App\Module\BetaTest\Application\Service\BetaTesterProfileService;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Application\DTO\RegisterUserInput;
@@ -21,6 +22,7 @@ class RegisterUserService
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,
         private readonly UserPersistence $persistence,
+        private readonly TransactionManager $transactions,
         private readonly BetaTesterProfileService $betaProfiles,
     ) {
     }
@@ -62,7 +64,7 @@ class RegisterUserService
         $user->setIsVerified(false);
 
         try {
-            return $this->persistence->transactional(function () use ($user, $token, $input): User {
+            return $this->transactions->transactional(function () use ($user, $token, $input): User {
                 $this->persistence->save($user);
                 $this->persistence->flush();
                 if (null !== $input->betaProfile) {

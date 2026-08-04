@@ -18,7 +18,7 @@ use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -139,7 +139,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($category);
         $entityManager->expects(self::once())->method('flush');
-        $delete = new DeleteTrainingCategoryController($categories, $trainings, new TrainingWriter(new DoctrinePersistence($entityManager)));
+        $delete = new DeleteTrainingCategoryController($categories, $trainings, new TrainingWriter(new DoctrineUnitOfWork($entityManager)));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(404)->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $delete(3)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete(3)->getStatusCode());

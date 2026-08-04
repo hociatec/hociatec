@@ -41,7 +41,7 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -63,7 +63,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
     {
         $em = $this->entityManager();
         [$reporter, $admin, $campaign, $report, $duplicate] = $this->seed($em);
-        $persistence = new DoctrinePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
         $formatter = new BugReportResponseFormatter();
         $activity = new BugReportActivityLogger($persistence);
         $notifier = $this->notifier($em);
@@ -189,7 +189,7 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
     {
         return new UserCommunicationNotifier(
             new AccountNotificationEventRepository($this->registry($em)),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

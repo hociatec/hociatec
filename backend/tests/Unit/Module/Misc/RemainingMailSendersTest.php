@@ -23,7 +23,7 @@ use App\Module\Auth\Application\Service\PasswordResetEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -172,12 +172,12 @@ final class RemainingMailSendersTest extends TestCase
             }));
 
         $sender = new MarketingCampaignSender(
-            new MarketingAudienceProvider(new DoctrinePersistence($entityManager), new EmailTemplateScenarioProvider()),
-            new MarketingRecipientContextProvider(new DoctrinePersistence($entityManager), 'https://front.example.test'),
+            new MarketingAudienceProvider(new DoctrineUnitOfWork($entityManager), new EmailTemplateScenarioProvider()),
+            new MarketingRecipientContextProvider(new DoctrineUnitOfWork($entityManager), 'https://front.example.test'),
             new MarketingTemplateRenderer(),
             $mailer,
             $this->notifier(),
-            new DoctrinePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             'noreply@example.com',
         );
 
@@ -227,7 +227,7 @@ final class RemainingMailSendersTest extends TestCase
     {
         return new UserCommunicationNotifier(
             $this->notificationRepository($this->entityManager()),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

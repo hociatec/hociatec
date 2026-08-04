@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Marketing\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
@@ -13,7 +13,7 @@ use App\Module\User\Domain\Entity\User;
 final readonly class MarketingRecipientContextProvider
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private string $frontendUrl,
     ) {
     }

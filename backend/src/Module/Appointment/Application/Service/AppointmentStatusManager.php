@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Appointment\Domain\Entity\Appointment;
 
 /**
@@ -27,7 +27,7 @@ final class AppointmentStatusManager
         ],
     ];
 
-    public function __construct(private readonly DoctrinePersistence $persistence)
+    public function __construct(private readonly DoctrineUnitOfWork $persistence)
     {
     }
 

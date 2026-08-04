@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 
@@ -12,7 +12,7 @@ class ProductReviewStatsUpdater
 {
     public function __construct(
         private readonly ProductRatingRepository $ratings,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
     ) {
     }
 

@@ -25,7 +25,7 @@ use App\Module\Rating\Application\Service\ProductRatingService;
 use App\Module\Rating\Application\Service\ProductReviewStatsUpdater;
 use App\Module\Rating\Application\Service\RatingPersistence;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -184,7 +184,7 @@ final class RatingServicesAndControllersTest extends TestCase
 
         return new ProductRatingService(
             $ratingRepository,
-            new ProductReviewStatsUpdater($ratingRepository, new DoctrinePersistence($entityManager)),
+            new ProductReviewStatsUpdater($ratingRepository, new DoctrineUnitOfWork($entityManager)),
             new RatingPersistence($entityManager),
         );
     }

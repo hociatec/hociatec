@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
+use App\Infrastructure\Application\TransactionManager;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\OrderStatus;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
@@ -13,6 +14,7 @@ final readonly class BulkOrderStatusService
     public function __construct(
         private OrderRepository $orders,
         private OperationsPersistence $persistence,
+        private TransactionManager $transactions,
     ) {
     }
 
@@ -25,7 +27,7 @@ final readonly class BulkOrderStatusService
             throw new \InvalidArgumentException('Sélection ou statut invalide.');
         }
 
-        return $this->persistence->transactional(function () use ($orderIds, $status): int {
+        return $this->transactions->transactional(function () use ($orderIds, $status): int {
             $updated = 0;
             foreach ($orderIds as $orderId) {
                 $order = $this->orders->findForUpdate($orderId);

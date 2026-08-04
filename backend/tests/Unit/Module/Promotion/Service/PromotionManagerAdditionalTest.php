@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Promotion\Service;
 use App\Module\Promotion\Application\DTO\PromotionInput;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Application\Service\PromotionManager;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +20,7 @@ final class PromotionManagerAdditionalTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Promotion::class));
         $entityManager->expects(self::exactly(3))->method('flush');
 
-        $manager = new PromotionManager(new DoctrinePersistence($entityManager));
+        $manager = new PromotionManager(new DoctrineUnitOfWork($entityManager));
         $created = $manager->create(PromotionInput::fromArray([
             'name' => '  Rentree  ',
             'slug' => ' rentree ',

@@ -79,7 +79,7 @@ final class SmallServicesCoverageTest extends TestCase
         $persistence = new QuotePersistence($entityManager);
 
         $entityManager->expects(self::once())->method('persist')->with($quote);
-        $entityManager->expects(self::exactly(3))->method('flush');
+        $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $persistence->save($quote);
         $persistence->flush();

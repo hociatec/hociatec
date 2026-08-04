@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Application\TransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\Order;
@@ -17,7 +18,8 @@ use App\Module\Voucher\Application\Service\VoucherEngine;
 final readonly class CartOrderCreator
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
+        private TransactionManager $transactions,
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,
         private OrderInvoiceCalculator $invoiceCalculator,
@@ -34,7 +36,7 @@ final readonly class CartOrderCreator
 
         $summary = $this->cartSummary($cart, $user);
 
-        return $this->persistence->transactional(
+        return $this->transactions->transactional(
             function () use ($user, $cart, $address, $summary): Order {
                 $cartId = $cart->getId();
                 if (null === $cartId) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 
@@ -12,7 +12,7 @@ final readonly class BetaCampaignProvider
 {
     public function __construct(
         private BetaCampaignRepository $campaigns,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
     ) {
     }
 

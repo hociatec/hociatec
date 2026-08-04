@@ -24,7 +24,7 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\VerificationTokenHasher;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Outbox\Application\Outbox;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -124,7 +124,7 @@ final class AuthModuleCompletionTest extends TestCase
         $passwordReset = new PasswordResetService(
             $this->userRepository($em),
             $passwords,
-            new Outbox(new DoctrinePersistence($em)),
+            new Outbox(new DoctrineUnitOfWork($em)),
         );
 
         $requestController = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
@@ -216,7 +216,7 @@ final class AuthModuleCompletionTest extends TestCase
 
     private function refreshService(EntityManager $em): RefreshTokenService
     {
-        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), new \App\Infrastructure\Persistence\DoctrinePersistence($em));
+        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), new \App\Infrastructure\Persistence\DoctrineTransactionManager($em));
     }
 
     private function limiter(int $limit): RateLimiterFactory

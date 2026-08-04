@@ -204,11 +204,8 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(8))->method('persist');
-        $entityManager->expects(self::exactly(13))->method('flush');
+        $entityManager->expects(self::exactly(7))->method('flush');
         $entityManager->expects(self::exactly(2))->method('remove');
-        $entityManager->expects(self::exactly(2))
-            ->method('wrapInTransaction')
-            ->willReturnCallback(static fn (callable $callback): mixed => $callback());
 
         $user = $this->user();
         $order = new Order('ORD-1', $user);
@@ -223,7 +220,6 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         (new TradeInPersistence($entityManager))->remove($this->tradeInRequest($user));
         (new OrderPersistence($entityManager))->flush();
         (new OrderPersistence($entityManager))->save($order);
-        self::assertSame('ok', (new OrderPersistence($entityManager))->transactional(static fn (): string => 'ok'));
         (new PrestationPersistence($entityManager))->save(new Prestation('Diag', 30, 1000));
         (new PrestationPersistence($entityManager))->flush();
         (new PrestationPersistence($entityManager))->delete(new Prestation('Diag', 30, 1000));
@@ -231,7 +227,6 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         (new StripeWebhookEventPersistence($entityManager))->flush();
         (new OperationsPersistence($entityManager))->persist(new \stdClass());
         (new OperationsPersistence($entityManager))->flush();
-        self::assertSame(12, (new OperationsPersistence($entityManager))->transactional(static fn (): int => 12));
     }
 
     private function repository(string $repositoryClass, string $entityClass): object

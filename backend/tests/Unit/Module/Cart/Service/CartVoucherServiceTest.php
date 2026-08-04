@@ -14,7 +14,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
 use App\Module\Voucher\Application\Service\VoucherEngine;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -75,7 +75,7 @@ final class CartVoucherServiceTest extends TestCase
     private function service(?Voucher $voucher): CartVoucherService
     {
         $entityManager = $this->entityManager();
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $provider = new CartSessionProvider($this->repository(), $persistence);
 
         return new CartVoucherService(

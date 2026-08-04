@@ -57,6 +57,7 @@ final class CategoryService
 
         try {
             $this->persistence->save($category);
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la catégorie.', $exception);
         }
@@ -99,6 +100,7 @@ final class CategoryService
 
         try {
             $this->persistence->delete($category);
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la catégorie.', $exception);
         }

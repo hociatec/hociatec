@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class ProductService
 {
     public function __construct(
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
         private readonly ProductCatalogRules $rules,
         private readonly ProductVariantService $variants,
         private readonly ProductVariantBatchCreator $variantBatch,

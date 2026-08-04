@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\DeliveryStatus;
@@ -13,7 +13,7 @@ use App\Module\User\Domain\Entity\User;
 final readonly class OrderDeliveryUpdater
 {
     public function __construct(
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private OrderEventLogger $events,
     ) {
     }

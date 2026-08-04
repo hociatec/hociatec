@@ -25,5 +25,6 @@ final class OrderEventLogger
         );
 
         $this->persistence->save($event);
+        $this->persistence->flush();
     }
 }

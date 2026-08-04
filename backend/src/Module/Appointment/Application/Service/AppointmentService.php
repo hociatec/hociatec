@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Application\TransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Domain\Entity\Appointment;
@@ -20,14 +21,15 @@ final class AppointmentService
         private readonly WorkingDayConfigurationRepository $workingDayRepository,
         private readonly AvailabilityService $availabilityService,
         private readonly AppointmentStatusManager $appointmentStatusManager,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
+        private readonly TransactionManager $transactions,
     ) {
     }
 
     public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
     {
         try {
-            return $this->persistence->transactional(function () use ($user, $prestation, $startAt): Appointment {
+            return $this->transactions->transactional(function () use ($user, $prestation, $startAt): Appointment {
                 $dayOfWeek = (int) $startAt->format('N') - 1;
                 $this->workingDayRepository->findOneByDayForUpdate($dayOfWeek);
 

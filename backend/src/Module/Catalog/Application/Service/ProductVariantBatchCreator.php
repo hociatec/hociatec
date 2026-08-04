@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 
@@ -13,7 +13,7 @@ final readonly class ProductVariantBatchCreator
     public function __construct(
         private ProductVariantService $variants,
         private ProductRepository $products,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
     ) {
     }
 

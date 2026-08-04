@@ -21,7 +21,8 @@ use App\Module\Appointment\Application\Service\WorkingDayConfigurationPersistenc
 use App\Module\Appointment\Application\Service\WorkingDayConfigurationService;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,13 +31,13 @@ use Symfony\Component\Validator\Validation;
 final class AppointmentServicesTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
-    private DoctrinePersistence $persistence;
+    private DoctrineUnitOfWork $persistence;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
-        $this->persistence = new DoctrinePersistence($this->entityManager);
+        $this->persistence = new DoctrineUnitOfWork($this->entityManager);
     }
 
     public function testStatusManagerExposesKnownStatusesAndLabels(): void
@@ -156,6 +157,7 @@ final class AppointmentServicesTest extends TestCase
             new AvailabilityService($workingDays, $appointments),
             new AppointmentStatusManager($this->persistence),
             $this->persistence,
+            new DoctrineTransactionManager($this->entityManager),
         );
 
         $this->entityManager->expects(self::once())
@@ -184,6 +186,7 @@ final class AppointmentServicesTest extends TestCase
             ),
             new AppointmentStatusManager($this->persistence),
             $this->persistence,
+            new DoctrineTransactionManager($this->entityManager),
         );
 
         $this->expectException(InvalidAppointmentSlotException::class);
@@ -213,6 +216,7 @@ final class AppointmentServicesTest extends TestCase
             ),
             new AppointmentStatusManager($this->persistence),
             $this->persistence,
+            new DoctrineTransactionManager($this->entityManager),
         );
 
         $result = $service->getAppointmentsForUser($user);
@@ -231,6 +235,7 @@ final class AppointmentServicesTest extends TestCase
             ),
             new AppointmentStatusManager($this->persistence),
             $this->persistence,
+            new DoctrineTransactionManager($this->entityManager),
         );
         $appointment = $this->createFutureAppointment();
 

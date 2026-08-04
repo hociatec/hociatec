@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
 
@@ -12,7 +12,7 @@ final class TrainingStripeWebhookHandler
 {
     public function __construct(
         private readonly TrainingEnrollmentRepository $enrollments,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
     ) {
     }
 

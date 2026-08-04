@@ -23,7 +23,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -88,7 +88,7 @@ final class MarketingModuleCompletionTest extends TestCase
         $em->persist($user);
         $em->flush();
 
-        $context = (new MarketingRecipientContextProvider(new DoctrinePersistence($em), 'https://front.example.test/'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($em), 'https://front.example.test/'))->provide($user);
 
         self::assertSame('0', $context['order_count']);
         self::assertSame('', $context['last_order_date']);
@@ -107,7 +107,7 @@ final class MarketingModuleCompletionTest extends TestCase
         $em->persist($order);
         $em->flush();
 
-        $context = (new MarketingRecipientContextProvider(new DoctrinePersistence($em), 'https://front.example.test'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($em), 'https://front.example.test'))->provide($user);
 
         self::assertSame('1', $context['order_count']);
         self::assertSame('123,45', $context['total_spent_eur']);
@@ -133,7 +133,7 @@ final class MarketingModuleCompletionTest extends TestCase
             $this->queryBuilder($queries[2]),
         );
 
-        $context = (new MarketingRecipientContextProvider(new DoctrinePersistence($entityManager), 'https://front.example.test'))->provide($user);
+        $context = (new MarketingRecipientContextProvider(new DoctrineUnitOfWork($entityManager), 'https://front.example.test'))->provide($user);
 
         self::assertSame('15/07/2026', $context['last_order_date']);
         self::assertSame('ORD-DATE-1', $context['last_order_number']);
@@ -142,7 +142,7 @@ final class MarketingModuleCompletionTest extends TestCase
 
     private function campaignService(EntityManager $em, MailerInterface $mailer): MarketingCampaignService
     {
-        $persistence = new DoctrinePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
         $audiences = new MarketingAudienceProvider($persistence, new EmailTemplateScenarioProvider());
 
         return new MarketingCampaignService(
@@ -163,7 +163,7 @@ final class MarketingModuleCompletionTest extends TestCase
     {
         return new UserCommunicationNotifier(
             new AccountNotificationEventRepository($this->registry($em)),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

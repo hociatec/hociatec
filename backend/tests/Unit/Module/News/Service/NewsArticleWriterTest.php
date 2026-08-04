@@ -10,7 +10,7 @@ use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Application\Service\NewsArticleWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
@@ -24,7 +24,7 @@ final class NewsArticleWriterTest extends TestCase
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(NewsArticle::class));
         $entityManager->expects(self::exactly(4))->method('flush');
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(NewsArticle::class));
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $userRepository = $this->createMock(UserRepository::class);
         $subscriber = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
@@ -80,7 +80,7 @@ final class NewsArticleWriterTest extends TestCase
     public function testWriterRejectsMissingFields(): void
     {
         $writer = new NewsArticleWriter(
-            new DoctrinePersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             $this->createMock(UserRepository::class),
             $this->createMock(MessageBusInterface::class),
         );
@@ -104,7 +104,7 @@ final class NewsArticleWriterTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::never())->method('dispatch');
 
-        $writer = new NewsArticleWriter(new DoctrinePersistence($entityManager), $users, $bus);
+        $writer = new NewsArticleWriter(new DoctrineUnitOfWork($entityManager), $users, $bus);
 
         $published = $writer->create(new NewsArticleInput(
             'Published',

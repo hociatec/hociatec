@@ -16,6 +16,10 @@ final readonly class OrderEventPersistence
     public function save(OrderEvent $event): void
     {
         $this->entityManager->persist($event);
+    }
+
+    public function flush(): void
+    {
         $this->entityManager->flush();
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Service;
 
+use App\Infrastructure\Application\TransactionManager;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
@@ -17,6 +18,7 @@ final readonly class StockOperationsService
         private ProductRepository $products,
         private StockMovementRepository $movements,
         private OperationsPersistence $persistence,
+        private TransactionManager $transactions,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -41,7 +43,7 @@ final readonly class StockOperationsService
             throw new \InvalidArgumentException('Le mouvement de stock doit être différent de zéro.');
         }
 
-        return $this->persistence->transactional(function () use ($productId, $delta, $reason, $note, $actor): array {
+        return $this->transactions->transactional(function () use ($productId, $delta, $reason, $note, $actor): array {
             $product = $this->products->findForUpdate($productId);
             if (!$product instanceof Product) {
                 throw new OperationsResourceNotFoundException('Produit introuvable.');
@@ -69,7 +71,7 @@ final readonly class StockOperationsService
             throw new \InvalidArgumentException('Le seuil doit être un entier positif.');
         }
 
-        return $this->persistence->transactional(function () use ($productId, $threshold): array {
+        return $this->transactions->transactional(function () use ($productId, $threshold): array {
             $product = $this->products->findForUpdate($productId);
             if (!$product instanceof Product) {
                 throw new OperationsResourceNotFoundException('Produit introuvable.');

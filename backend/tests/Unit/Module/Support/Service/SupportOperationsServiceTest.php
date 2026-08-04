@@ -24,7 +24,7 @@ use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\User\Application\Service\AdminCustomerEmailService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -178,7 +178,7 @@ final class SupportOperationsServiceTest extends TestCase
     {
         $notifier = new UserCommunicationNotifier(
             $this->repository(AccountNotificationEventRepository::class),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

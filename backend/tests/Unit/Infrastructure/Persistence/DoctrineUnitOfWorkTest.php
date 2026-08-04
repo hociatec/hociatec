@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Persistence;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 
-final class DoctrinePersistenceTest extends TestCase
+final class DoctrineUnitOfWorkTest extends TestCase
 {
     public function testItDelegatesBasicUnitOfWorkOperations(): void
     {
@@ -23,7 +24,7 @@ final class DoctrinePersistenceTest extends TestCase
         $entityManager->expects(self::once())->method('clear');
         $entityManager->expects(self::once())->method('createQueryBuilder')->willReturn($queryBuilder);
 
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $persistence->persist($entity);
         $persistence->remove($entity);
@@ -32,7 +33,7 @@ final class DoctrinePersistenceTest extends TestCase
         $persistence->clear();
     }
 
-    public function testItFindsEntitiesForUpdateAndWrapsTransactions(): void
+    public function testItFindsEntitiesForUpdate(): void
     {
         $entity = new \stdClass();
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -41,14 +42,20 @@ final class DoctrinePersistenceTest extends TestCase
             ->method('find')
             ->with(\stdClass::class, 12, LockMode::PESSIMISTIC_WRITE)
             ->willReturn($entity);
+
+        $persistence = new DoctrineUnitOfWork($entityManager);
+
+        self::assertSame($entity, $persistence->findForUpdate(\stdClass::class, 12));
+    }
+
+    public function testTransactionManagerWrapsTransactions(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
             ->expects(self::once())
             ->method('wrapInTransaction')
             ->willReturnCallback(static fn (callable $operation): mixed => $operation());
 
-        $persistence = new DoctrinePersistence($entityManager);
-
-        self::assertSame($entity, $persistence->findForUpdate(\stdClass::class, 12));
-        self::assertSame('done', $persistence->transactional(static fn (): string => 'done'));
+        self::assertSame('done', (new DoctrineTransactionManager($entityManager))->transactional(static fn (): string => 'done'));
     }
 }

@@ -21,7 +21,7 @@ use App\Module\News\Application\Service\NewsArticleWriter;
 use App\Module\News\Application\Service\NewsFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
@@ -107,7 +107,7 @@ final class AdminNewsControllersTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->method('dispatch')->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
 
-        return new NewsArticleWriter(new DoctrinePersistence($this->entityManager()), $users, $bus);
+        return new NewsArticleWriter(new DoctrineUnitOfWork($this->entityManager()), $users, $bus);
     }
 
     private function persistUser(string $email = 'news-admin@example.test'): User

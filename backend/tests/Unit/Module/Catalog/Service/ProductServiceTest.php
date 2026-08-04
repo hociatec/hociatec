@@ -14,7 +14,7 @@ use App\Module\Catalog\Application\Service\ProductGalleryManager;
 use App\Module\Catalog\Application\Service\ProductService;
 use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Service\ProductVariantService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
@@ -259,7 +259,7 @@ final class ProductServiceTest extends TestCase
     ): ProductService {
         $rules = new ProductCatalogRules($productRepository, Validation::createValidator());
         $variants = new ProductVariantService($productRepository, $rules);
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $variantBatch = new ProductVariantBatchCreator($variants, $productRepository, $persistence);
 
         return new ProductService(

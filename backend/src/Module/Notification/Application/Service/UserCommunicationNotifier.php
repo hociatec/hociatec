@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
@@ -19,7 +19,7 @@ final readonly class UserCommunicationNotifier
 {
     public function __construct(
         private AccountNotificationEventRepository $notifications,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private MailerInterface $mailer,
         private MessageBusInterface $bus,
         private LoggerInterface $logger,

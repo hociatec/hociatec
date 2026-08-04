@@ -16,12 +16,15 @@ final readonly class TradeInPersistence
     public function save(TradeInRequest $request): void
     {
         $this->entityManager->persist($request);
-        $this->entityManager->flush();
     }
 
     public function remove(TradeInRequest $request): void
     {
         $this->entityManager->remove($request);
+    }
+
+    public function flush(): void
+    {
         $this->entityManager->flush();
     }
 }

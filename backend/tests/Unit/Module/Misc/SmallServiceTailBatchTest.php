@@ -11,7 +11,7 @@ use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -48,7 +48,7 @@ final class SmallServiceTailBatchTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist');
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $user = $this->user();
         $profileService = new BetaTesterProfileService($persistence);

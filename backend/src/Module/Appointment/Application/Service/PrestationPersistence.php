@@ -16,7 +16,6 @@ final readonly class PrestationPersistence
     public function save(Prestation $prestation): void
     {
         $this->entityManager->persist($prestation);
-        $this->entityManager->flush();
     }
 
     public function flush(): void
@@ -27,6 +26,5 @@ final readonly class PrestationPersistence
     public function delete(Prestation $prestation): void
     {
         $this->entityManager->remove($prestation);
-        $this->entityManager->flush();
     }
 }

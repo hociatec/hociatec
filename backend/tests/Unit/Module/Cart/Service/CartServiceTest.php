@@ -12,7 +12,7 @@ use App\Module\Cart\Application\Service\CartService;
 use App\Module\Cart\Application\Service\CartSessionProvider;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -138,7 +138,7 @@ final class CartServiceTest extends TestCase
     private function service(): CartService
     {
         $entityManager = $this->entityManager();
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $provider = new CartSessionProvider($this->cartRepository($entityManager), $persistence);
 
         return new CartService($provider, new CartItemResolver(), $persistence);

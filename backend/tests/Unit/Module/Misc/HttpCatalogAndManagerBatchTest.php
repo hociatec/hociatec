@@ -26,7 +26,7 @@ use App\Module\Order\Application\Service\OrderWorkflowService;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Infrastructure\Http\JsonPayload;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
@@ -200,14 +200,14 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $entityManager->expects(self::once())->method('remove');
 
         $template = new EmailTemplate('Welcome', 'welcome', 'account_created', 'Sujet', '<p>Hi</p>', 'Hi');
-        $manager = new EmailTemplateAdminManager(new DoctrinePersistence($entityManager));
+        $manager = new EmailTemplateAdminManager(new DoctrineUnitOfWork($entityManager));
         $manager->create($template);
         $manager->save($template);
         $manager->delete($template);
 
         $user = $this->user();
         $audit = new AuditRequest('AUD-1', $user, AuditType::SEO, 'https://example.test', 'Goals');
-        $logger = new AuditEventLogger(new DoctrinePersistence($entityManager));
+        $logger = new AuditEventLogger(new DoctrineUnitOfWork($entityManager));
         $logger->log($audit, $user, 'created', 'Audit created');
         $logger->save(new \stdClass());
 

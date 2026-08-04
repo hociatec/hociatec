@@ -37,7 +37,8 @@ use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -265,10 +266,11 @@ final class TradeInModuleCompletionTest extends TestCase
         return new TradeInClosureService(
             new TradeInPersistence($em),
             $this->tradeInService($em),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
+            new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
             new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
-            new VoucherManager($this->voucherRepository($em), new DoctrinePersistence($em)),
+            new VoucherManager($this->voucherRepository($em), new DoctrineUnitOfWork($em)),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),
                 $this->createMock(MailerInterface::class),
@@ -287,7 +289,7 @@ final class TradeInModuleCompletionTest extends TestCase
 
         return new UserCommunicationNotifier(
             $this->notificationRepository($em),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

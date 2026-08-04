@@ -12,7 +12,8 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Application\Service\VoucherManager;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -33,18 +34,24 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame('sig', $input->seenSignature);
     }
 
-    public function testUserPersistenceDelegatesTransactionAndSave(): void
+    public function testUserPersistenceDelegatesSaveAndFlush(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(User::class));
         $entityManager->expects(self::once())->method('flush');
-        $entityManager->expects(self::once())->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
         $persistence = new UserPersistence($entityManager);
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
         $persistence->save($user);
         $persistence->flush();
-        self::assertSame('done', $persistence->transactional(static fn (): string => 'done'));
+    }
+
+    public function testDoctrineTransactionManagerDelegatesTransaction(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('wrapInTransaction')->willReturnCallback(static fn (callable $operation): mixed => $operation());
+
+        self::assertSame('done', (new DoctrineTransactionManager($entityManager))->transactional(static fn (): string => 'done'));
     }
 
     public function testPromotionManagerCreateUpdateAndDelete(): void
@@ -53,7 +60,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Promotion::class));
         $entityManager->expects(self::exactly(3))->method('flush');
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Promotion::class));
-        $manager = new PromotionManager(new DoctrinePersistence($entityManager));
+        $manager = new PromotionManager(new DoctrineUnitOfWork($entityManager));
 
         $input = PromotionInput::fromArray([
             'name' => ' Promo ',
@@ -106,7 +113,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::atLeast(1))->method('persist');
         $entityManager->expects(self::atLeast(1))->method('flush');
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $repo = $this->voucherRepository();
         $manager = new VoucherManager($repo, $persistence);
 
@@ -189,7 +196,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $registry->method('getManagerForClass')->willReturn($entityManager);
 
         $repo = new \App\Module\Voucher\Infrastructure\Repository\VoucherRepository($registry);
-        $manager = new VoucherManager($repo, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repo, new DoctrineUnitOfWork($entityManager));
 
         $manager->create([
             'name' => 'Existing',

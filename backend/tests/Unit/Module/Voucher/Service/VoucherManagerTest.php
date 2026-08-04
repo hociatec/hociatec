@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Voucher\Service;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\DriverManager;
@@ -27,7 +27,7 @@ final class VoucherManagerTest extends TestCase
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Voucher::class));
         $entityManager->expects(self::exactly(2))->method('flush');
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Voucher::class));
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         $voucher = $manager->create([
             'name' => ' Voucher ',
@@ -50,7 +50,7 @@ final class VoucherManagerTest extends TestCase
         $repository = $this->repository();
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         $voucher = (new Voucher('Voucher', 'CODE', Voucher::TYPE_FIXED_CENTS, 500))
             ->setDescription('Existing')
@@ -77,7 +77,7 @@ final class VoucherManagerTest extends TestCase
         $repository = $this->repository();
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         $voucher = (new Voucher('Voucher', 'CODE', Voucher::TYPE_FIXED_CENTS, 500))
             ->setDescription('Existing')
@@ -103,7 +103,7 @@ final class VoucherManagerTest extends TestCase
     {
         $repository = $this->repository();
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         try {
             $manager->create([
@@ -136,7 +136,7 @@ final class VoucherManagerTest extends TestCase
     {
         $repository = $this->repository();
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         foreach ([
             [
@@ -199,7 +199,7 @@ final class VoucherManagerTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
-        $manager = new VoucherManager($repository, new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($entityManager));
 
         $updated = $manager->update($voucher, [
             'name' => 'Updated',
@@ -223,7 +223,7 @@ final class VoucherManagerTest extends TestCase
         $entityManager->expects(self::once())
             ->method('flush')
             ->willThrowException($this->uniqueConstraint('Duplicate entry for vouchers.code'));
-        $manager = new VoucherManager($this->repository(), new DoctrinePersistence($entityManager));
+        $manager = new VoucherManager($this->repository(), new DoctrineUnitOfWork($entityManager));
 
         try {
             $manager->create([

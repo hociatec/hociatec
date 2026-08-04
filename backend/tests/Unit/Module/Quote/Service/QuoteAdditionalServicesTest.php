@@ -25,7 +25,7 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Outbox\Application\Outbox;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -104,7 +104,7 @@ final class QuoteAdditionalServicesTest extends TestCase
 
         $service = new QuoteEmailService(
             new QuotePersistence($entityManager),
-            new Outbox(new DoctrinePersistence($entityManager)),
+            new Outbox(new DoctrineUnitOfWork($entityManager)),
             $this->repository(UserRepository::class),
             $this->notifier(),
         );
@@ -124,7 +124,7 @@ final class QuoteAdditionalServicesTest extends TestCase
 
         $service = new QuoteEmailService(
             new QuotePersistence($this->createMock(EntityManagerInterface::class)),
-            new Outbox(new DoctrinePersistence($this->createMock(EntityManagerInterface::class))),
+            new Outbox(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
             $this->repository(UserRepository::class),
             $this->notifier(),
         );
@@ -228,7 +228,7 @@ final class QuoteAdditionalServicesTest extends TestCase
     {
         return new UserCommunicationNotifier(
             $this->repository(AccountNotificationEventRepository::class),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

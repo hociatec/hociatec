@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Marketing\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 
 final readonly class EmailTemplateAdminManager
 {
-    public function __construct(private DoctrinePersistence $persistence)
+    public function __construct(private DoctrineUnitOfWork $persistence)
     {
     }
 

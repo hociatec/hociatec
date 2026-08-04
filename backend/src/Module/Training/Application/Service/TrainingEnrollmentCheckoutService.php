@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Application\TransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
@@ -21,14 +22,15 @@ final readonly class TrainingEnrollmentCheckoutService
         private TrainingEnrollmentRepository $enrollments,
         private TrainingSlotValidator $slots,
         private StripeApiClient $stripe,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
+        private TransactionManager $transactions,
         private string $frontendUrl,
     ) {
     }
 
     public function enroll(User $user, int $sessionId, string $startsAt): TrainingEnrollmentCheckoutResult
     {
-        return $this->persistence->transactional(fn (): TrainingEnrollmentCheckoutResult => $this->enrollInTransaction($user, $sessionId, $startsAt));
+        return $this->transactions->transactional(fn (): TrainingEnrollmentCheckoutResult => $this->enrollInTransaction($user, $sessionId, $startsAt));
     }
 
     private function enrollInTransaction(User $user, int $sessionId, string $startsAt): TrainingEnrollmentCheckoutResult

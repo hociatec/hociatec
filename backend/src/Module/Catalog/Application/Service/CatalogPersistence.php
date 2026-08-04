@@ -15,7 +15,6 @@ final readonly class CatalogPersistence
     public function save(object $entity): void
     {
         $this->entityManager->persist($entity);
-        $this->entityManager->flush();
     }
 
     public function flush(): void
@@ -26,6 +25,5 @@ final readonly class CatalogPersistence
     public function delete(object $entity): void
     {
         $this->entityManager->remove($entity);
-        $this->entityManager->flush();
     }
 }

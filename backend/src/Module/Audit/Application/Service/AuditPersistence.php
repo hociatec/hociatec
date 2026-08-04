@@ -16,6 +16,10 @@ final readonly class AuditPersistence
     public function save(AuditRequest $audit): void
     {
         $this->entityManager->persist($audit);
+    }
+
+    public function flush(): void
+    {
         $this->entityManager->flush();
     }
 }

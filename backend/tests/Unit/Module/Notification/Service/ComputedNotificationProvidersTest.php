@@ -27,7 +27,8 @@ use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -218,8 +219,9 @@ final class ComputedNotificationProvidersTest extends TestCase
                 $this->createMock(WorkingDayConfigurationRepository::class),
                 $appointmentRepository,
             ),
-            new AppointmentStatusManager(new DoctrinePersistence($this->createMock(EntityManagerInterface::class))),
-            new DoctrinePersistence($this->createMock(EntityManagerInterface::class)),
+            new AppointmentStatusManager(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
+            new DoctrineTransactionManager($this->createMock(EntityManagerInterface::class)),
         );
     }
 

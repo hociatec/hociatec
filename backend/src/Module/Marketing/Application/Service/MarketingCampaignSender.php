@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Marketing\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
@@ -20,7 +20,7 @@ final readonly class MarketingCampaignSender
         private MarketingTemplateRenderer $renderer,
         private MailerInterface $mailer,
         private UserCommunicationNotifier $userNotifications,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         private string $mailerFrom,
     ) {
     }

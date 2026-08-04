@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\User\Domain\Entity\User;
@@ -13,7 +13,7 @@ final readonly class CartSessionProvider
 {
     public function __construct(
         private CartSessionRepository $cartSessions,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
     ) {
     }
 

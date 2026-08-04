@@ -30,7 +30,8 @@ use App\Module\Training\Application\Service\TrainingSlotValidator;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
 use App\Infrastructure\Http\ExternalServiceException;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -98,7 +99,7 @@ final class TrainingModuleCompletionTest extends TestCase
         $trainings = $this->trainingRepository($em);
         $sessions = $this->sessionRepository($em);
         $enrollments = $this->enrollmentRepository($em);
-        $writer = new TrainingWriter(new DoctrinePersistence($em));
+        $writer = new TrainingWriter(new DoctrineUnitOfWork($em));
         $formatter = new TrainingFormatter($enrollments, new TrainingMetadataFormatter($categories));
         $validator = $this->validator(8);
 
@@ -133,7 +134,7 @@ final class TrainingModuleCompletionTest extends TestCase
         $categories = $this->categoryRepository($em);
         $enrollments = $this->enrollmentRepository($em);
         $formatter = new TrainingFormatter($enrollments, new TrainingMetadataFormatter($categories));
-        $writer = new TrainingWriter(new DoctrinePersistence($em));
+        $writer = new TrainingWriter(new DoctrineUnitOfWork($em));
 
         $list = new ListTrainingsController($this->trainingRepository($em), $formatter);
         $listPayload = json_decode((string) $list(Request::create('/?category=web&page=1&perPage=5'))->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -264,7 +265,8 @@ final class TrainingModuleCompletionTest extends TestCase
             $this->enrollmentRepository($em),
             new TrainingSlotValidator(),
             new StripeApiClient(''),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
+            new DoctrineTransactionManager($em),
             'https://front.example.test/',
         );
     }

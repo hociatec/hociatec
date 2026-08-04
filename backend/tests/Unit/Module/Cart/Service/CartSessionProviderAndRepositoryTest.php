@@ -11,7 +11,7 @@ use App\Module\Cart\Application\Service\CartSessionProvider;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -38,7 +38,7 @@ final class CartSessionProviderAndRepositoryTest extends TestCase
         $this->entityManager()->flush();
 
         $repository = $this->repository();
-        $provider = new CartSessionProvider($repository, new DoctrinePersistence($this->entityManager()));
+        $provider = new CartSessionProvider($repository, new DoctrineUnitOfWork($this->entityManager()));
 
         self::assertNull($provider->findByToken(null));
         self::assertNull($provider->findByToken('   '));
@@ -60,7 +60,7 @@ final class CartSessionProviderAndRepositoryTest extends TestCase
         }
         $this->entityManager()->flush();
 
-        $provider = new CartSessionProvider($this->repository(), new DoctrinePersistence($this->entityManager()));
+        $provider = new CartSessionProvider($this->repository(), new DoctrineUnitOfWork($this->entityManager()));
 
         self::assertSame($active, $provider->view('active-token'));
 
@@ -89,7 +89,7 @@ final class CartSessionProviderAndRepositoryTest extends TestCase
         }
         $this->entityManager()->flush();
 
-        $provider = new CartSessionProvider($this->repository(), new DoctrinePersistence($this->entityManager()));
+        $provider = new CartSessionProvider($this->repository(), new DoctrineUnitOfWork($this->entityManager()));
 
         self::assertSame($userCart, $provider->resolveForMutation('guest-cart', $user));
         self::assertSame($guestCart, $provider->resolveForMutation('guest-cart', null));

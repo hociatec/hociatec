@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -13,7 +13,7 @@ final class VoucherManager
 {
     public function __construct(
         private readonly VoucherRepository $vouchers,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
     ) {
     }
 

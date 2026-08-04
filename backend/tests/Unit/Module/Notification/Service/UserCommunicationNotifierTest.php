@@ -10,7 +10,7 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Service\CommunicationPreferences;
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -28,7 +28,7 @@ final class UserCommunicationNotifierTest extends TestCase
     public function testNotifierStoresInternalNotificationsAndQueuesEmails(): void
     {
         $entityManager = $this->notificationEntityManager();
-        $persistence = new DoctrinePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $mailer = $this->createMock(MailerInterface::class);
         $messages = [];
         $bus = new class($messages) implements MessageBusInterface {
@@ -91,7 +91,7 @@ final class UserCommunicationNotifierTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $this->notificationRepository($this->notificationEntityManager()),
-            new DoctrinePersistence($this->notificationEntityManager()),
+            new DoctrineUnitOfWork($this->notificationEntityManager()),
             $mailer,
             $this->createMock(MessageBusInterface::class),
             $logger,
@@ -112,7 +112,7 @@ final class UserCommunicationNotifierTest extends TestCase
 
         $notifier = new UserCommunicationNotifier(
             $this->notificationRepository($this->notificationEntityManager()),
-            new DoctrinePersistence($this->notificationEntityManager()),
+            new DoctrineUnitOfWork($this->notificationEntityManager()),
             $mailer,
             $this->createMock(MessageBusInterface::class),
             $logger,

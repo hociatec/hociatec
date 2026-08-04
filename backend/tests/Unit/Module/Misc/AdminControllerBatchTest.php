@@ -131,7 +131,7 @@ final class AdminControllerBatchTest extends TestCase
         $persistenceEm = $this->createMock(EntityManagerInterface::class);
         $persistenceEm->expects(self::once())->method('remove')->with($promotion);
         $persistenceEm->expects(self::once())->method('flush');
-        $manager = new PromotionManager(new \App\Infrastructure\Persistence\DoctrinePersistence($persistenceEm));
+        $manager = new PromotionManager(new \App\Infrastructure\Persistence\DoctrineUnitOfWork($persistenceEm));
 
         $controller = new DeletePromotionController($promotions, $manager);
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());

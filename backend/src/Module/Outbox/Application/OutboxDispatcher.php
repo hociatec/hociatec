@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Outbox\Application;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -14,7 +14,7 @@ final readonly class OutboxDispatcher
     /** @param iterable<OutboxEventHandler> $handlers */
     public function __construct(
         private OutboxEventStore $events,
-        private DoctrinePersistence $persistence,
+        private DoctrineUnitOfWork $persistence,
         #[AutowireIterator('app.outbox_handler')]
         private iterable $handlers,
         private LoggerInterface $logger,

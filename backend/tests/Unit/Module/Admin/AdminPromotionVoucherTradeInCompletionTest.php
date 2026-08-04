@@ -48,7 +48,8 @@ use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Service\VoucherManager;
 use App\Module\Voucher\Application\Service\VoucherNotificationEmailService;
 use App\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -70,7 +71,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     public function testAdminPromotionControllers(): void
     {
         $em = $this->entityManager();
-        $manager = new PromotionManager(new DoctrinePersistence($em));
+        $manager = new PromotionManager(new DoctrineUnitOfWork($em));
         $repository = new PromotionRepository($this->registry($em));
         $validator = $this->validator(2);
 
@@ -99,7 +100,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     {
         $em = $this->entityManager();
         $repository = new VoucherRepository($this->registry($em));
-        $manager = new VoucherManager($repository, new DoctrinePersistence($em));
+        $manager = new VoucherManager($repository, new DoctrineUnitOfWork($em));
         $validator = $this->validator(5);
 
         $create = new CreateVoucherController($manager, $validator);
@@ -236,10 +237,11 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         return new TradeInClosureService(
             new TradeInPersistence($em),
             $this->tradeInService($em),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
+            new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
             new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), ''),
-            new VoucherManager(new VoucherRepository($this->registry($em)), new DoctrinePersistence($em)),
+            new VoucherManager(new VoucherRepository($this->registry($em)), new DoctrineUnitOfWork($em)),
             new VoucherNotificationEmailService(
                 new EmailTemplateRepository($this->registry($em)),
                 $this->createMock(MailerInterface::class),
@@ -268,7 +270,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     {
         return new UserCommunicationNotifier(
             new AccountNotificationEventRepository($this->registry($em)),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

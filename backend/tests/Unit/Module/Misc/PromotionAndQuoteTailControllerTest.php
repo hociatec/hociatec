@@ -13,7 +13,7 @@ use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Service\PromotionManager;
 use App\Module\Quote\Domain\Entity\Service;
 use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,7 +49,7 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
 
         $controller = new CreatePromotionController(
-            new PromotionManager(new DoctrinePersistence($entityManager)),
+            new PromotionManager(new DoctrineUnitOfWork($entityManager)),
             new DtoValidator(
                 Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
                 new ConstraintViolationFormatter(),

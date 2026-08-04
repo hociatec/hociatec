@@ -16,7 +16,6 @@ final readonly class StripeWebhookEventPersistence
     public function save(StripeWebhookEvent $event): void
     {
         $this->entityManager->persist($event);
-        $this->entityManager->flush();
     }
 
     public function flush(): void

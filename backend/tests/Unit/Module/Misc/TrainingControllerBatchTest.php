@@ -24,7 +24,7 @@ use App\Module\Training\Application\Service\TrainingFormatter;
 use App\Module\Training\Application\Service\TrainingMetadataFormatter;
 use App\Module\Training\Application\Service\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,7 +65,7 @@ final class TrainingControllerBatchTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($training);
         $entityManager->expects(self::once())->method('flush');
-        $writer = new TrainingWriter(new DoctrinePersistence($entityManager));
+        $writer = new TrainingWriter(new DoctrineUnitOfWork($entityManager));
 
         $delete = new DeleteTrainingController($trainings, $writer);
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(404)->getStatusCode());
@@ -125,7 +125,7 @@ final class TrainingControllerBatchTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($session);
         $entityManager->expects(self::once())->method('flush');
-        $delete = new DeleteTrainingSessionController($sessionRepo, new TrainingWriter(new DoctrinePersistence($entityManager)));
+        $delete = new DeleteTrainingSessionController($sessionRepo, new TrainingWriter(new DoctrineUnitOfWork($entityManager)));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete(14)->getStatusCode());
     }

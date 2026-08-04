@@ -17,7 +17,7 @@ use App\Module\Order\Application\Service\OrderNotificationEmailService;
 use App\Module\Order\Application\Service\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -150,7 +150,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
     {
         return new UserCommunicationNotifier(
             $this->notificationRepository(),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

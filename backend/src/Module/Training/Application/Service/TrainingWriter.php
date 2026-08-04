@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Text\Slugifier;
 use App\Module\Training\Application\DTO\TrainingInput;
 use App\Module\Training\Domain\Entity\Training;
@@ -14,7 +14,7 @@ final class TrainingWriter
 {
     use Slugifier;
 
-    public function __construct(private readonly DoctrinePersistence $persistence)
+    public function __construct(private readonly DoctrineUnitOfWork $persistence)
     {
     }
 

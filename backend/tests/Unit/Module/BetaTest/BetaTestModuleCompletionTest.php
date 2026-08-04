@@ -37,7 +37,7 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Service\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -69,7 +69,7 @@ final class BetaTestModuleCompletionTest extends TestCase
 
         $profiles = $this->profiles($em);
         $campaigns = $this->campaigns($em);
-        $persistence = new DoctrinePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
 
         $profileService = new BetaTesterProfileService($persistence);
         $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence));
@@ -127,7 +127,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $formatter = new BugReportResponseFormatter();
         $accessPolicy = new BugReportAccessPolicy();
         $commentFormatter = new BugReportCommentFormatter($accessPolicy);
-        $persistence = new DoctrinePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
         $notifier = $this->notifier($em);
         $activity = new BugReportActivityLogger($persistence);
 
@@ -254,7 +254,7 @@ final class BetaTestModuleCompletionTest extends TestCase
     {
         return new UserCommunicationNotifier(
             new AccountNotificationEventRepository($this->registry($em)),
-            new DoctrinePersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),

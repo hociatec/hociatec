@@ -16,12 +16,15 @@ final readonly class FavoritePersistence
     public function save(Favorite $favorite): void
     {
         $this->entityManager->persist($favorite);
-        $this->entityManager->flush();
     }
 
     public function delete(Favorite $favorite): void
     {
         $this->entityManager->remove($favorite);
+    }
+
+    public function flush(): void
+    {
         $this->entityManager->flush();
     }
 }

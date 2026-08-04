@@ -23,7 +23,7 @@ use App\Module\Quote\Application\Service\QuoteCalculator;
 use App\Module\Quote\Application\Service\QuotePersistence;
 use App\Module\Quote\Application\Service\QuoteService as QuoteDomainService;
 use App\Module\Quote\Application\Service\QuoteWorkflowService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -109,7 +109,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Service::class));
         $entityManager->expects(self::exactly(2))->method('flush');
-        $catalog = new QuoteServiceCatalogManager(new DoctrinePersistence($entityManager));
+        $catalog = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($entityManager));
         $forms = new QuoteServiceFormMapper();
 
         $create = new CreateServiceController($forms, $catalog);
@@ -157,7 +157,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager->expects(self::once())->method('persist')->willThrowException(new \RuntimeException('db down'));
-        $failingCatalog = new QuoteServiceCatalogManager(new DoctrinePersistence($failingEntityManager));
+        $failingCatalog = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($failingEntityManager));
         $failingCreate = new CreateServiceController($forms, $failingCatalog);
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
@@ -166,7 +166,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager2 = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager2->expects(self::once())->method('flush')->willThrowException(new \RuntimeException('db down'));
-        $failingCatalog2 = new QuoteServiceCatalogManager(new DoctrinePersistence($failingEntityManager2));
+        $failingCatalog2 = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($failingEntityManager2));
         $failingUpdate = new UpdateServiceController($repository, $forms, $failingCatalog2);
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
@@ -219,7 +219,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
     public function testQuoteServiceCatalogManagerRejectsInconsistentFormData(): void
     {
-        $manager = new QuoteServiceCatalogManager(new DoctrinePersistence($this->createMock(EntityManagerInterface::class)));
+        $manager = new QuoteServiceCatalogManager(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)));
 
         try {
             $manager->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, false, null, null, null, true, false));

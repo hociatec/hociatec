@@ -27,6 +27,7 @@ use App\Module\User\Application\Service\RegisterUserService;
 use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\User\Application\Service\UserProfileFormatter;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
 use App\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -191,10 +192,10 @@ final class UserRemainingControllersTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
-        $delete = new class($orders, $refreshTokens, new UserPersistence($entityManager), $logger, $user) extends DeleteAccountController {
-            public function __construct(OrderRepository $orders, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, LoggerInterface $logger, private User $user)
+        $delete = new class($orders, $refreshTokens, new UserPersistence($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
+            public function __construct(OrderRepository $orders, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
             {
-                parent::__construct(new DeleteAccountService($orders, $refreshTokens, $persistence), $logger);
+                parent::__construct(new DeleteAccountService($orders, $refreshTokens, $persistence, $transactions), $logger);
             }
             protected function getUser(): ?User { return $this->user; }
         };

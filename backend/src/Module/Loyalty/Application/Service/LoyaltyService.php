@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Loyalty\Application\Service;
 
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Application\TransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
@@ -18,7 +19,8 @@ final class LoyaltyService
     public const POINTS_PER_EURO = 100;
 
     public function __construct(
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
+        private readonly TransactionManager $transactions,
         private readonly VoucherManager $voucherManager,
         private readonly UserRepository $users,
     ) {
@@ -99,7 +101,7 @@ final class LoyaltyService
     public function convertPointsToVoucher(User $user, int $points): Voucher
     {
         try {
-            return $this->persistence->transactional(
+            return $this->transactions->transactional(
                 fn (): Voucher => $this->convertPointsToVoucherInTransaction($this->lockUser($user), $points),
             );
         } catch (\RuntimeException $exception) {

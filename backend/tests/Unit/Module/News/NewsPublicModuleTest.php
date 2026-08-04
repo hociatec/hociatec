@@ -18,7 +18,7 @@ use App\Module\News\Application\Service\NewsArticleViewTracker;
 use App\Module\News\Application\Service\NewsCommentWriter;
 use App\Module\News\Application\Service\NewsFormatter;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
@@ -62,7 +62,7 @@ final class NewsPublicModuleTest extends TestCase
         self::assertNull($articles->findPublishedBySlug($draft->getSlug()));
         self::assertNull($articles->findPublishedBySlug($future->getSlug()));
 
-        $tracker = new NewsArticleViewTracker($views, new DoctrinePersistence($this->entityManager()));
+        $tracker = new NewsArticleViewTracker($views, new DoctrineUnitOfWork($this->entityManager()));
         $tracker->track($published, '');
         self::assertSame(0, $views->countUniqueForArticle($published));
         $tracker->track($published, '192.0.2.10');
@@ -104,7 +104,7 @@ final class NewsPublicModuleTest extends TestCase
         [$published, , , $user] = $this->seedNews();
         $articles = $this->repository(NewsArticleRepository::class);
         $formatter = new NewsFormatter($this->repository(NewsArticleViewRepository::class));
-        $controller = new CreateNewsCommentController($articles, new NewsCommentWriter(new DoctrinePersistence($this->entityManager())), $formatter);
+        $controller = new CreateNewsCommentController($articles, new NewsCommentWriter(new DoctrineUnitOfWork($this->entityManager())), $formatter);
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller('missing', new Request([], [], [], [], [], [], '{"content":"Bonjour"}'))->getStatusCode());
 

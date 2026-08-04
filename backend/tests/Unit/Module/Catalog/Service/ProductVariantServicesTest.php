@@ -11,7 +11,7 @@ use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Service\ProductCatalogRules;
 use App\Module\Catalog\Application\Service\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Service\ProductVariantService;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
@@ -147,7 +147,7 @@ final class ProductVariantServicesTest extends TestCase
         $repository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $service = $this->service($repository);
-        $batch = new ProductVariantBatchCreator($service, $repository, new DoctrinePersistence($entityManager));
+        $batch = new ProductVariantBatchCreator($service, $repository, new DoctrineUnitOfWork($entityManager));
         $category = new Category('Phones', 'phones');
         $template = new Product('Phone', 'phone', 'SKU', 'Desc', 1000, 4, $category);
         $persisted = [];
@@ -222,7 +222,7 @@ final class ProductVariantServicesTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('persist');
-        $batch = new ProductVariantBatchCreator($service, $repository, new DoctrinePersistence($entityManager));
+        $batch = new ProductVariantBatchCreator($service, $repository, new DoctrineUnitOfWork($entityManager));
         $batch->forExistingProduct($current, 'Phone', 'SKU', 'phone', 'Group', 3, []);
     }
 

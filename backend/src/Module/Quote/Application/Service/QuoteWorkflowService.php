@@ -19,6 +19,7 @@ final readonly class QuoteWorkflowService
     public function delete(Quote $quote): void
     {
         $this->persistence->delete($quote);
+        $this->persistence->flush();
     }
 
     public function setStatus(Quote $quote, string $status): void
@@ -60,6 +61,7 @@ final readonly class QuoteWorkflowService
     public function save(Quote $quote): void
     {
         $this->persistence->save($quote);
+        $this->persistence->flush();
     }
 
     private function stringOrNull(mixed $value): ?string

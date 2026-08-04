@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Service;
 
 use App\Infrastructure\Http\ExternalServiceException;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
@@ -18,7 +18,7 @@ final class OrderStripeWebhookHandler
         private readonly OrderRepository $orders,
         private readonly OrderService $orderCreator,
         private readonly StripeApiClient $stripe,
-        private readonly DoctrinePersistence $persistence,
+        private readonly DoctrineUnitOfWork $persistence,
     ) {
     }
 

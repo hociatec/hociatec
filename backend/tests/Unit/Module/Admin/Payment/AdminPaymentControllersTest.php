@@ -13,7 +13,7 @@ use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Application\Service\StripeApiClient;
 use App\Module\Order\Application\Service\StripeCheckoutSessionSyncService;
 use App\Module\User\Domain\Entity\User;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
@@ -38,7 +38,7 @@ final class AdminPaymentControllersTest extends TestCase
     {
         $payment = $this->persistPayment();
         $formatter = new AdminPaymentFormatter();
-        $sync = new StripeCheckoutSessionSyncService($this->payments(), new StripeApiClient(''), new DoctrinePersistence($this->entityManager()));
+        $sync = new StripeCheckoutSessionSyncService($this->payments(), new StripeApiClient(''), new DoctrineUnitOfWork($this->entityManager()));
 
         $list = new ListPaymentsController($this->payments(), $sync, $formatter);
         $allPayload = $this->payload($list(Request::create('/?status=all')));

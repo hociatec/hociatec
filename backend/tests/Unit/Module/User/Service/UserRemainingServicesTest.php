@@ -33,7 +33,8 @@ use App\Module\User\Application\Service\UpdateProfileService;
 use App\Module\User\Application\Service\UserPersistence;
 use App\Module\User\Application\Service\UserProfileFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Infrastructure\Persistence\DoctrinePersistence;
+use App\Infrastructure\Persistence\DoctrineTransactionManager;
+use App\Infrastructure\Persistence\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -364,9 +365,9 @@ final class UserRemainingServicesTest extends TestCase
         $entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $callback): mixed => $callback());
         $entityManager->expects(self::atLeast(1))->method('persist');
         $persistence = new UserPersistence($entityManager);
-        $betaProfiles = new BetaTesterProfileService(new DoctrinePersistence($entityManager));
+        $betaProfiles = new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager));
 
-        $service = new RegisterUserService($userRepository, $hasher, new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager)), $persistence, $betaProfiles);
+        $service = new RegisterUserService($userRepository, $hasher, new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager)), $persistence, new DoctrineTransactionManager($entityManager), $betaProfiles);
 
         $existsInput = RegisterUserInput::fromArray([
             'email' => 'ada@example.com',
@@ -454,9 +455,10 @@ final class UserRemainingServicesTest extends TestCase
         $dupService = new RegisterUserService(
             $userRepository,
             $hasher,
-            new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager2)),
+            new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager2)),
             new UserPersistence($entityManager2),
-            new BetaTesterProfileService(new DoctrinePersistence($entityManager2)),
+            new DoctrineTransactionManager($entityManager2),
+            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager2)),
         );
         try {
             $dupService->register(RegisterUserInput::fromArray([
@@ -481,9 +483,10 @@ final class UserRemainingServicesTest extends TestCase
         $rawUniqueService = new RegisterUserService(
             $userRepository,
             $hasher,
-            new \App\Module\Outbox\Application\Outbox(new DoctrinePersistence($entityManager3)),
+            new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager3)),
             new UserPersistence($entityManager3),
-            new BetaTesterProfileService(new DoctrinePersistence($entityManager3)),
+            new DoctrineTransactionManager($entityManager3),
+            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager3)),
         );
 
         try {
@@ -538,7 +541,7 @@ final class UserRemainingServicesTest extends TestCase
     {
         return new UserCommunicationNotifier(
             $this->notificationRepository($this->entityManager()),
-            new DoctrinePersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(MailerInterface::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
