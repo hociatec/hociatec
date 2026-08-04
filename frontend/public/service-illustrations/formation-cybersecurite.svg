@@ -1,0 +1,14 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cyber-bg" x1="88" y1="58" x2="552" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF3E3"/>
+      <stop offset="1" stop-color="#E8FAFC"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="40" fill="url(#cyber-bg)"/>
+  <rect x="122" y="118" width="396" height="246" rx="30" fill="#FFFFFF" stroke="#E6D8C7" stroke-width="10"/>
+  <path d="M320 162L396 194V250C396 298 366 330 320 348C274 330 244 298 244 250V194L320 162Z" fill="#19212B"/>
+  <path d="M292 254L312 274L350 228" stroke="#F39A20" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M162 330H230M410 330H478" stroke="#0EA5B7" stroke-width="12" stroke-linecap="round"/>
+  <path d="M166 168H226M414 168H474" stroke="#52606D" stroke-width="12" stroke-linecap="round"/>
+</svg>

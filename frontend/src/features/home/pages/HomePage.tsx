@@ -3,6 +3,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedProducts';
 import { useHomeFeaturedServices } from '@/features/home/hooks/useHomeFeaturedServices';
+import { useHomeLatestNews } from '@/features/home/hooks/useHomeLatestNews';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
 import {
   ORGANIZATION_SCHEMA,
@@ -12,6 +13,8 @@ import {
 } from '@/shared/config/seoConfig';
 import {
   HomeFeaturedServiceCard,
+  HomeNewsCard,
+  HomeNewsHeading,
   HomeProductsHeading,
   HomeServicesHeading,
 } from '@/features/home/homeContent';
@@ -33,6 +36,7 @@ export const HomePage = () => {
     loading: loadingProducts,
     error: errorProducts,
   } = useHomeFeaturedProducts();
+  const { articles, loading: loadingNews, error: errorNews } = useHomeLatestNews();
 
   return (
     <SiteLayout>
@@ -81,6 +85,33 @@ export const HomePage = () => {
             <div className="home-empty">
               <p>Aucun produit mis en avant pour le moment</p>
               <span>Les produits recommandés réapparaîtront ici dès que le catalogue sera mis à jour.</span>
+            </div>
+          )}
+        </section>
+
+        <section className="home-news animate-fade-in-up delay-300">
+          <HomeNewsHeading />
+          {loadingNews && (
+            <p className="home-loading" role="status" aria-live="polite">
+              Chargement des actualités...
+            </p>
+          )}
+          {errorNews && (
+            <div className="home-alert" role="alert">
+              {errorNews}
+            </div>
+          )}
+          {!loadingNews && !errorNews && articles.length > 0 && (
+            <div className="home-news__grid">
+              {articles.map((article) => (
+                <HomeNewsCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
+          {!loadingNews && !errorNews && articles.length === 0 && (
+            <div className="home-empty">
+              <p>Aucune actualité disponible pour le moment</p>
+              <span>Les publications Hociatec apparaîtront ici dès leur mise en ligne.</span>
             </div>
           )}
         </section>

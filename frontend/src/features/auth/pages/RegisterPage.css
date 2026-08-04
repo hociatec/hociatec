@@ -142,6 +142,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  margin: 0;
   font-size: 0.95rem;
   color: rgba(226, 232, 240, 0.8);
 }
@@ -150,7 +151,9 @@
   grid-column: 1 / -1;
 }
 
-.register-form__field span {
+.register-form__field span,
+.register-form__label {
+  display: block;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.72rem;

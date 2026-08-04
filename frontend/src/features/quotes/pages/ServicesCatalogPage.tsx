@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { Clock3 } from 'lucide-react';
 
 import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
@@ -12,6 +13,17 @@ import { formatEuroCents } from '@/shared/lib/formatters';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 const SERVICES_PER_PAGE = 7;
+
+const getFirstSentence = (value?: string | null) => {
+  const description = value?.trim();
+  if (!description) {
+    return 'Plus de détails disponibles dans la fiche du service.';
+  }
+
+  const [sentence] = description.match(/[^.!?]+[.!?]?/) ?? [description];
+
+  return sentence.trim();
+};
 
 export const ServicesCatalogPage = () => {
   useDocumentTitle('Services');
@@ -54,62 +66,56 @@ export const ServicesCatalogPage = () => {
             <EmptyState>Aucun service n’est publié pour le moment.</EmptyState>
           ) : (
             <div className="space-y-8">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {paginatedServices.map((service) => (
-                  <article
-                    key={service.id}
-                    className="flex h-full flex-col overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
-                    style={{ contentVisibility: 'auto', containIntrinsicSize: '280px' }}
-                  >
-                    {resolveServiceIllustration(service) ? (
-                      <div className="flex min-h-[190px] items-center justify-center bg-[linear-gradient(135deg,rgba(255,247,236,0.95),rgba(245,250,255,0.9))] p-6">
-                        <img
-                          src={resolveServiceIllustration(service)?.imageUrl}
-                          alt={resolveServiceIllustration(service)?.imageAlt || service.title}
-                          className="max-h-[140px] w-full max-w-[180px] object-contain"
-                          loading="lazy"
-                          decoding="async"
-                        />
+              <div className="home-products__grid">
+                {paginatedServices.map((service) => {
+                  const illustration = resolveServiceIllustration(service);
+
+                  return (
+                    <article
+                      key={service.id}
+                      className="home-service-card home-service-card--featured"
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: '420px' }}
+                    >
+                      <Link to={`/services/${service.id}`} className="home-service-card__media">
+                        {illustration ? (
+                          <img
+                            src={illustration.imageUrl}
+                            alt={illustration.imageAlt || service.title}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <div className="home-service-card__media-fallback" aria-hidden="true" />
+                        )}
+                      </Link>
+                      <div className="home-service-card__body">
+                        <h3 className="home-service-card__title">
+                          <Link to={`/services/${service.id}`}>{service.title}</Link>
+                        </h3>
+                        <dl className="home-service-card__facts">
+                          <div>
+                            <dt>Mode de facturation</dt>
+                            <dd>{service.unit?.trim() || 'Prix fixe'}</dd>
+                          </div>
+                          <div>
+                            <dt>Prix HT</dt>
+                            <dd>{formatEuroCents(service.priceCents)}</dd>
+                          </div>
+                          <div>
+                            <dt>Durée</dt>
+                            <dd>
+                              <Clock3 aria-hidden="true" />
+                              <span>{service.durationLabel || 'Sur étude'}</span>
+                            </dd>
+                          </div>
+                        </dl>
+                        <p className="home-service-card__description">
+                          {getFirstSentence(service.description)}
+                        </p>
                       </div>
-                    ) : null}
-                    <div className="space-y-3 p-4 sm:p-5">
-                      <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between">
-                        <h3 className="text-lg font-semibold text-brand-900">{service.title}</h3>
-                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700 shadow-sm">
-                          {service.unit?.trim() || 'Prix fixe'}
-                        </span>
-                      </div>
-                      <p className="min-h-[4.5rem] text-sm leading-6 text-stone-600">
-                        {service.description?.trim() ||
-                          'Plus de détails disponibles dans la fiche du service.'}
-                      </p>
-                    </div>
-                    <div className="mt-6 grid gap-3 border-t border-brand-100 pt-4 text-sm text-stone-600">
-                      <div className="flex items-center justify-between gap-4">
-                        <span>Durée estimée</span>
-                        <strong className="text-brand-900">
-                          {service.durationLabel || 'Sur étude'}
-                        </strong>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.16em] text-stone-500">
-                            Base tarifaire
-                          </p>
-                          <p className="mt-1 text-xl font-semibold text-brand-900">
-                            {formatEuroCents(service.priceCents)}
-                          </p>
-                        </div>
-                        <Link
-                          to={`/services/${service.id}`}
-                          className="inline-flex items-center justify-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 sm:w-auto"
-                        >
-                          Voir le détail
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                    </article>
+                  );
+                })}
               </div>
 
               {totalPages > 1 && (

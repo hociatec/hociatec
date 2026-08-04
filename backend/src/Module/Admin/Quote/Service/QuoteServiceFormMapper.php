@@ -6,15 +6,12 @@ namespace App\Module\Admin\Quote\Service;
 
 use App\Module\Admin\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Entity\Service;
+use App\Module\Quote\Enum\ServiceBillingMode;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
 final class QuoteServiceFormMapper
 {
-    private const BILLING_MODES = [
-        'prix fixe', 'heure', 'jour', 'intervention', 'audit', 'installation', 'maintenance',
-    ];
-
     public function create(Request $request): QuoteServiceFormData
     {
         return $this->map($request, null);
@@ -54,13 +51,7 @@ final class QuoteServiceFormMapper
 
     private function billingMode(mixed $value): ?string
     {
-        if (!is_string($value) || '' === trim($value)) {
-            return 'prix fixe';
-        }
-
-        $normalized = mb_strtolower(trim($value));
-
-        return in_array($normalized, self::BILLING_MODES, true) ? $normalized : null;
+        return ServiceBillingMode::normalize($value)?->value;
     }
 
     private function priceToCents(mixed $value): int

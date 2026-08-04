@@ -13,7 +13,10 @@ import type {
 import { extractQuoteApiError, unwrapQuoteApiData, unwrapQuoteApiResult } from './quoteApiShared';
 
 export interface QuoteMetadataOption { value: string; label: string }
-export interface AdminQuoteMetadataDto { statuses: QuoteMetadataOption[] }
+export interface AdminQuoteMetadataDto {
+  statuses: QuoteMetadataOption[];
+  serviceBillingModes: QuoteMetadataOption[];
+}
 
 export const fetchAdminQuoteMetadata = async (): Promise<AdminQuoteMetadataDto> =>
   unwrapQuoteApiData(

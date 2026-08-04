@@ -76,8 +76,16 @@
 
 .form-field label,
 .register-form__field,
-.register-form__field span {
+.register-form__field span,
+.register-form__label {
   color: var(--hocia-ink-soft);
+}
+
+fieldset.register-form__field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .form-field input,

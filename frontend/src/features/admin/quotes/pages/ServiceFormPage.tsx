@@ -4,8 +4,10 @@ import { useNavigate, useParams } from 'react-router';
 
 import {
   createAdminQuoteService,
+  fetchAdminQuoteMetadata,
   fetchAdminQuoteService,
   updateAdminQuoteService,
+  type QuoteMetadataOption,
 } from '@/features/quotes/api/quotesApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
@@ -29,7 +31,7 @@ type ServicePayload = {
 const emptyForm: ServiceFormState = {
   title: '',
   description: '',
-  unit: 'prix fixe',
+  unit: '',
   isFeaturedHome: false,
   imageUrl: '',
   imageAlt: '',
@@ -40,6 +42,10 @@ const emptyForm: ServiceFormState = {
   price: '0',
   vatRate: '20',
 };
+
+const fallbackBillingModeOptions: QuoteMetadataOption[] = [
+  { value: 'prix fixe', label: 'Prix fixe' },
+];
 
 export const ServiceFormPage = () => {
   const params = useParams<{ serviceId?: string }>();
@@ -54,6 +60,19 @@ export const ServiceFormPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [billingModeOptions, setBillingModeOptions] = useState<QuoteMetadataOption[]>(
+    fallbackBillingModeOptions,
+  );
+
+  useEffect(() => {
+    void fetchAdminQuoteMetadata()
+      .then((metadata) => {
+        if (metadata.serviceBillingModes.length > 0) {
+          setBillingModeOptions(metadata.serviceBillingModes);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!isEdit || serviceId === null) {
@@ -194,7 +213,11 @@ export const ServiceFormPage = () => {
         <LoadingState>Chargement du service...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
-          <ServiceFormFields form={form} setForm={setForm} />
+          <ServiceFormFields
+            form={form}
+            setForm={setForm}
+            billingModeOptions={billingModeOptions}
+          />
 
           <button type="submit" className="register-form__submit" disabled={saving}>
             {saving ? 'Sauvegarde...' : isEdit ? 'Mettre à jour' : 'Créer'}

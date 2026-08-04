@@ -1,172 +1,30 @@
 import { Link } from 'react-router';
-import { ArrowRight, Clock3, CheckCircle2, HeartHandshake, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Clock3 } from 'lucide-react';
 
 import { formatEuroCents } from '@/shared/lib/formatters';
+import type { NewsArticleDto } from '@/features/news/api/newsApi';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 
-export const audienceSections = [
-  {
-    title: 'Pour les particuliers',
-    description:
-      "Des solutions simples pour s'équiper, réparer un appareil et être accompagné au quotidien.",
-    ctaLabel: 'Voir les services',
-    ctaTo: '/services',
-    items: [
-      'Vente de matériel informatique',
-      "Réparation d'ordinateurs",
-      'Ordinateurs reconditionnés',
-      'Formation numérique',
-      'Assistance informatique',
-    ],
-  },
-  {
-    title: 'Pour les professionnels',
-    description:
-      "Un accompagnement structuré pour fiabiliser le parc, gagner du temps et faire évoluer vos outils.",
-    ctaLabel: 'Demander un devis',
-    ctaTo: '/devis/nouveau',
-    items: [
-      'Maintenance informatique',
-      'Gestion de parc informatique',
-      'Développement de sites web',
-      'Solutions numériques',
-      'Accompagnement informatique',
-    ],
-  },
-];
+const formatNewsDate = (value: string | null) =>
+  value
+    ? new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(value))
+    : 'Date non définie';
 
-export const trustItems = [
-  'Produits garantis',
-  'Accompagnement personnalisé',
-  'Conseils avant achat',
-  'Service de proximité',
-  'Disponibilité',
-  'Solutions adaptées aux besoins',
-  'Suivi client',
-  'Solutions durables',
-];
+const getFirstSentence = (value?: string | null) => {
+  const description = value?.trim();
+  if (!description) {
+    return 'Plus de détails disponibles dans la fiche du service.';
+  }
 
-export const HomeHeroSection = () => (
-  <section className="home-hero animate-fade-in-up">
-    <div className="home-hero__content">
-      <p className="home-hero__eyebrow">Hociatec</p>
-      <h1>Services informatiques, assistance et solutions web</h1>
-      <p>
-        Découvrez les services actuellement mis en avant et accédez rapidement au bon parcours
-        selon votre besoin.
-      </p>
-      <div className="home-hero__actions">
-        <Link to="/devis/nouveau" className="home-button home-button--primary">
-          Demander un devis
-        </Link>
-        <Link to="/contact" className="home-button home-button--secondary">
-          Nous contacter
-        </Link>
-        <Link to="/services" className="home-button home-button--ghost">
-          Découvrir nos services
-        </Link>
-      </div>
-    </div>
-    <div className="home-hero__visual" aria-hidden="true">
-      <img
-        src="/hociatec-hero-workbench.webp"
-        alt=""
-        loading="eager"
-        decoding="async"
-        fetchPriority="high"
-      />
-      <div className="home-hero__metric">
-        <strong>6 services peuvent être mis en avant sur l'accueil.</strong>
-        <span>Le contenu affiché se pilote directement depuis l'administration.</span>
-      </div>
-    </div>
-  </section>
-);
+  const [sentence] = description.match(/[^.!?]+[.!?]?/) ?? [description];
 
-export const HomeAudienceSection = () => (
-  <section className="home-services animate-fade-in-up delay-100" aria-label="Parcours Hociatec">
-    <div className="home-section-heading">
-      <p>Des services pensés selon votre profil</p>
-      <h2>Identifiez rapidement le bon accompagnement</h2>
-    </div>
-    <div className="home-services__grid home-services__grid--audiences">
-      {audienceSections.map((section) => (
-        <article key={section.title} className="home-service-card home-service-card--audience">
-          <div className="home-service-card__body">
-            <h3>{section.title}</h3>
-            <p>{section.description}</p>
-            <ul className="home-service-card__list">
-              {section.items.map((item) => (
-                <li key={item}>
-                  <CheckCircle2 aria-hidden="true" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <Link to={section.ctaTo} className="home-service-card__link">
-            {section.ctaLabel}
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        </article>
-      ))}
-    </div>
-  </section>
-);
-
-export const HomeTrustSection = () => (
-  <section className="home-trust animate-fade-in-up delay-200" aria-label="Éléments de réassurance">
-    <div className="home-trust__panel">
-      <div className="home-section-heading">
-        <p>Des repères simples et transparents</p>
-        <h2>Des engagements qui rassurent sans surpromesse</h2>
-      </div>
-      <div className="home-trust__grid">
-        {trustItems.map((item) => (
-          <div key={item} className="home-trust__item">
-            <ShieldCheck aria-hidden="true" />
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-export const HomeStorySection = () => (
-  <section id="histoire" className="home-story animate-fade-in-up delay-300">
-    <div className="home-story__content">
-      <div className="home-section-heading">
-        <p>Notre histoire</p>
-        <h2>Un accompagnement humain avant, pendant et après l’intervention</h2>
-      </div>
-      <p>
-        Hociatec mise sur la clarté, l’écoute et des conseils adaptés à chaque situation. Le besoin
-        est compris avant de proposer un matériel, une réparation, une maintenance ou une solution
-        numérique.
-      </p>
-      <div className="home-story__points">
-        <div className="home-story__point">
-          <Users aria-hidden="true" />
-          <div>
-            <strong>Conseils adaptés</strong>
-            <span>
-              Chaque demande est traitée selon l’usage, le budget et les contraintes réelles.
-            </span>
-          </div>
-        </div>
-        <div className="home-story__point">
-          <HeartHandshake aria-hidden="true" />
-          <div>
-            <strong>Suivi personnalisé</strong>
-            <span>Un interlocuteur reste disponible pour répondre et ajuster si nécessaire.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-);
+  return sentence.trim();
+};
 
 export const HomeProductsHeading = () => (
   <div className="home-section-heading">
@@ -180,12 +38,43 @@ export const HomeServicesHeading = () => (
   </div>
 );
 
+export const HomeNewsHeading = () => (
+  <div className="home-section-heading home-section-heading--row">
+    <div>
+      <p>Actualités</p>
+      <h2>Actualité</h2>
+    </div>
+    <Link to="/actualites" className="home-button home-button--secondary">
+      Toutes les actualités
+    </Link>
+  </div>
+);
+
+export const HomeNewsCard = ({ article }: { article: NewsArticleDto }) => (
+  <article className="home-news-card">
+    <div className="home-news-card__meta">
+      <time dateTime={article.publishedAt || article.createdAt}>
+        {formatNewsDate(article.publishedAt)}
+      </time>
+      {article.category ? <span>{article.category}</span> : null}
+    </div>
+    <h3>
+      <Link to={`/actualites/${article.slug}`}>{article.title}</Link>
+    </h3>
+    <p>{article.excerpt}</p>
+    <Link to={`/actualites/${article.slug}`} className="home-news-card__link">
+      Lire l'actualité
+      <ArrowRight aria-hidden="true" />
+    </Link>
+  </article>
+);
+
 export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto }) => {
   const illustration = resolveServiceIllustration(service);
 
   return (
     <article className="home-service-card home-service-card--featured">
-      <div className="home-service-card__media">
+      <Link to={`/services/${service.id}`} className="home-service-card__media">
         {illustration ? (
           <img
             src={illustration.imageUrl}
@@ -196,26 +85,29 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
         ) : (
           <div className="home-service-card__media-fallback" aria-hidden="true" />
         )}
-      </div>
+      </Link>
       <div className="home-service-card__body">
-        <div className="home-service-card__meta">
-          <span>{service.unit?.trim() || 'Prix fixe'}</span>
-          <strong>{formatEuroCents(service.priceCents)}</strong>
-        </div>
-        <h3 className="home-service-card__title">{service.title}</h3>
-        <p className="home-service-card__description">
-          {service.description?.trim() || 'Plus de détails disponibles dans la fiche du service.'}
-        </p>
-        <div className="home-service-card__footer">
-          <div className="home-service-card__duration">
-            <Clock3 aria-hidden="true" />
-            <span>{service.durationLabel || 'Sur étude'}</span>
+        <h3 className="home-service-card__title">
+          <Link to={`/services/${service.id}`}>{service.title}</Link>
+        </h3>
+        <dl className="home-service-card__facts">
+          <div>
+            <dt>Mode de facturation</dt>
+            <dd>{service.unit?.trim() || 'Prix fixe'}</dd>
           </div>
-          <Link to={`/services/${service.id}`} className="home-service-card__cta">
-            Voir le détail
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        </div>
+          <div>
+            <dt>Prix HT</dt>
+            <dd>{formatEuroCents(service.priceCents)}</dd>
+          </div>
+          <div>
+            <dt>Durée</dt>
+            <dd>
+              <Clock3 aria-hidden="true" />
+              <span>{service.durationLabel || 'Sur étude'}</span>
+            </dd>
+          </div>
+        </dl>
+        <p className="home-service-card__description">{getFirstSentence(service.description)}</p>
       </div>
     </article>
   );

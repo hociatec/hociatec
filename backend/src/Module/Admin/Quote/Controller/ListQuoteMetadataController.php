@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Quote\Controller;
 
 use App\Module\Quote\Service\QuoteStatusTranslator;
+use App\Module\Quote\Enum\ServiceBillingMode;
 use App\Shared\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,6 +18,9 @@ final class ListQuoteMetadataController extends AbstractController
 {
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::success(['statuses' => QuoteStatusTranslator::options()]);
+        return ApiResponse::success([
+            'statuses' => QuoteStatusTranslator::options(),
+            'serviceBillingModes' => ServiceBillingMode::options(),
+        ]);
     }
 }

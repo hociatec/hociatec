@@ -33,24 +33,33 @@ export const SiteFooter = () => {
         <div className="site-footer__grid">
           <div className="site-footer__column" aria-label="À propos">
             <h2>À propos</h2>
-            <a href="/#histoire" className="site-footer__link">
-              Notre histoire
-            </a>
-            <Link to="/contact" className="site-footer__link">
-              Contact
-            </Link>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__link">
-              <Mail aria-hidden="true" />
-              {CONTACT_EMAIL}
-            </a>
-            <span className="site-footer__link site-footer__link--static">
-              <MapPin aria-hidden="true" />
-              Interventions partout en France
-            </span>
-            <span className="site-footer__link site-footer__link--static">
-              <MapPin aria-hidden="true" />
-              Intervention sous 2 heures en Ile-de-France
-            </span>
+            <ul className="site-footer__about-info">
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="site-footer__info-row">
+                  <Mail aria-hidden="true" />
+                  <span>Email : {CONTACT_EMAIL}</span>
+                </a>
+              </li>
+              <li className="site-footer__info-row">
+                <MapPin aria-hidden="true" />
+                <span>Interventions partout en France</span>
+              </li>
+              <li className="site-footer__info-row">
+                <MapPin aria-hidden="true" />
+                <span>Intervention sous 2 heures en Ile-de-France</span>
+              </li>
+            </ul>
+            <nav className="site-footer__about-links" aria-label="Liens À propos">
+              <Link to="/contact" className="site-footer__link">
+                Contact
+              </Link>
+              <Link to="/actualites" className="site-footer__link">
+                Actualité
+              </Link>
+              <a href="/#histoire" className="site-footer__link">
+                Notre histoire
+              </a>
+            </nav>
           </div>
 
           <div className="site-footer__column">

@@ -1,0 +1,19 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="reuse-bg" x1="92" y1="60" x2="548" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF2DF"/>
+      <stop offset="1" stop-color="#EEF8FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="40" fill="url(#reuse-bg)"/>
+  <rect x="128" y="122" width="264" height="184" rx="28" fill="#19212B"/>
+  <rect x="152" y="146" width="216" height="136" rx="18" fill="#FFFFFF"/>
+  <path d="M200 214H320" stroke="#0EA5B7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M232 246H288" stroke="#F39A20" stroke-width="14" stroke-linecap="round"/>
+  <path d="M214 336H306" stroke="#19212B" stroke-width="14" stroke-linecap="round"/>
+  <path d="M260 306V336" stroke="#19212B" stroke-width="14" stroke-linecap="round"/>
+  <path d="M438 166C484 180 510 222 498 268" stroke="#12805F" stroke-width="14" stroke-linecap="round"/>
+  <path d="M474 158L438 166L462 194" stroke="#12805F" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M502 312C458 344 404 334 376 296" stroke="#F39A20" stroke-width="14" stroke-linecap="round"/>
+  <path d="M506 274L502 312L466 302" stroke="#F39A20" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

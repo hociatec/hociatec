@@ -1,4 +1,5 @@
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import type { QuoteMetadataOption } from '@/features/quotes/api/quotesApi';
 
 export type ServiceFormState = {
   title: string;
@@ -18,9 +19,13 @@ export type ServiceFormState = {
 type ServiceFormFieldsProps = {
   form: ServiceFormState;
   setForm: Dispatch<SetStateAction<ServiceFormState>>;
+  billingModeOptions: QuoteMetadataOption[];
 };
 
-export const ServiceFormFields = ({ form, setForm }: ServiceFormFieldsProps) => {
+export const ServiceFormFields = ({ form, setForm, billingModeOptions }: ServiceFormFieldsProps) => {
+  const billingModeId = 'service-billing-mode';
+  const billingModeLegendId = 'service-billing-mode-legend';
+
   const handleChange =
     (field: keyof ServiceFormState) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -63,16 +68,29 @@ export const ServiceFormFields = ({ form, setForm }: ServiceFormFieldsProps) => 
           onChange={handleChange('description')}
         />
       </label>
-      <label className="register-form__field">
-        <span className="register-form__label">Mode de facturation</span>
-        <input
-          className="register-form__input"
-          type="text"
+      <fieldset className="register-form__field">
+        <legend id={billingModeLegendId} className="register-form__label">
+          Mode de facturation
+        </legend>
+        <select
+          id={billingModeId}
+          name="billingMode"
+          className="register-form__select"
           value={form.unit}
           onChange={(event) => setForm((prev) => ({ ...prev, unit: event.target.value }))}
-          placeholder="Unité de facturation"
-        />
-      </label>
+          aria-labelledby={billingModeLegendId}
+          required
+        >
+          <option value="" disabled>
+            Sélectionnez un mode de facturation
+          </option>
+          {billingModeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </fieldset>
       <label className="booking__checkbox">
         <input
           type="checkbox"

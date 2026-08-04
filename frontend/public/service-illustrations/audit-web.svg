@@ -1,0 +1,17 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="audit-bg" x1="92" y1="52" x2="548" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF1D8"/>
+      <stop offset="1" stop-color="#EEF8FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="40" fill="url(#audit-bg)"/>
+  <rect x="122" y="112" width="350" height="236" rx="28" fill="#FFFFFF" stroke="#E6D8C7" stroke-width="10"/>
+  <rect x="150" y="146" width="294" height="28" rx="14" fill="#19212B"/>
+  <path d="M172 220H292" stroke="#0EA5B7" stroke-width="14" stroke-linecap="round"/>
+  <path d="M172 260H344" stroke="#F39A20" stroke-width="14" stroke-linecap="round"/>
+  <path d="M172 300H264" stroke="#52606D" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="438" cy="318" r="58" fill="#FFFFFF" stroke="#19212B" stroke-width="14"/>
+  <path d="M482 362L526 406" stroke="#19212B" stroke-width="16" stroke-linecap="round"/>
+  <path d="M412 318L432 338L466 292" stroke="#F39A20" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
