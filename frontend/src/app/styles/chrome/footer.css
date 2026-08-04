@@ -19,7 +19,7 @@
 
 .site-footer__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  grid-template-columns: minmax(240px, 1.35fr) repeat(4, minmax(150px, 1fr));
   align-items: start;
   padding-bottom: 1.75rem;
 }
@@ -42,7 +42,7 @@
 }
 
 .site-footer__contact-list,
-.site-footer__legal-links,
+.site-footer__links,
 .site-footer__about-info,
 .site-footer__about-links {
   display: flex;
@@ -59,6 +59,16 @@
 .site-footer__about-links {
   margin-top: 0.45rem;
   padding-top: 0.8rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.12);
+}
+
+.site-footer__brand {
+  max-width: 20rem;
+}
+
+.site-footer__hours-column {
+  grid-column: 1 / -1;
+  padding-top: 1.25rem;
   border-top: 1px solid rgba(226, 232, 240, 0.12);
 }
 
@@ -112,12 +122,12 @@
 .site-footer__hours {
   display: grid;
   gap: 0.45rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .site-footer__hours-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  gap: 0.2rem;
   padding: 0.55rem 0.7rem;
   border-radius: 0.8rem;
   color: rgba(226, 232, 240, 0.8);
@@ -151,12 +161,24 @@
 
 @media (max-width: 1080px) {
   .site-footer__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-footer__brand {
+    max-width: none;
+  }
+
+  .site-footer__hours {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 700px) {
   .site-footer__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer__hours {
     grid-template-columns: 1fr;
   }
 }

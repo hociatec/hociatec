@@ -9,6 +9,20 @@ const legalLinks = [
   { to: '/legal/mentions-legales', label: 'Mentions légales' },
 ];
 
+const prestationLinks = [
+  { to: '/services', label: 'Nos services' },
+  { to: '/appointments/book', label: 'Prendre rendez-vous' },
+  { to: '/devis/nouveau', label: 'Créer un devis' },
+  { to: '/audits/request', label: 'Demander un audit' },
+];
+
+const catalogLinks = [
+  { to: '/catalogue/vente', label: 'Vente' },
+  { to: '/catalogue/location', label: 'Location' },
+  { to: '/reprise', label: 'Reprise' },
+  { to: '/formations', label: 'Formations' },
+];
+
 const openingHours = [
   { key: 'lundi', label: 'Lundi', hours: '09h00 - 20h00' },
   { key: 'mardi', label: 'Mardi', hours: '09h00 - 20h00' },
@@ -31,6 +45,13 @@ export const SiteFooter = () => {
     <footer className="site-footer">
       <div className="site-footer__container">
         <div className="site-footer__grid">
+          <div className="site-footer__column site-footer__brand">
+            <h2>Hociatec</h2>
+            <p className="site-footer__tagline">
+              Informatique, réparation et services numériques pour particuliers et professionnels.
+            </p>
+          </div>
+
           <div className="site-footer__column" aria-label="À propos">
             <h2>À propos</h2>
             <ul className="site-footer__about-info">
@@ -63,6 +84,39 @@ export const SiteFooter = () => {
           </div>
 
           <div className="site-footer__column">
+            <h2>Prestations</h2>
+            <nav className="site-footer__links" aria-label="Liens prestations">
+              {prestationLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="site-footer__link">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="site-footer__column">
+            <h2>Catalogue</h2>
+            <nav className="site-footer__links" aria-label="Liens catalogue">
+              {catalogLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="site-footer__link">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="site-footer__column">
+            <h2>Informations légales</h2>
+            <nav className="site-footer__links" aria-label="Liens légaux">
+              {legalLinks.map((link) => (
+                <Link key={link.to} to={link.to} className="site-footer__link">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="site-footer__column site-footer__hours-column">
             <h2>
               <Clock3 aria-hidden="true" />
               Horaires d&apos;ouverture
@@ -78,17 +132,6 @@ export const SiteFooter = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="site-footer__column">
-            <h2>Informations légales</h2>
-            <nav className="site-footer__legal-links">
-            {legalLinks.map((link) => (
-              <Link key={link.to} to={link.to} className="site-footer__link">
-                {link.label}
-              </Link>
-            ))}
-            </nav>
           </div>
         </div>
 
