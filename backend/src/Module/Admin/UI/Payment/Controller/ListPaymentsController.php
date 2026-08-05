@@ -45,7 +45,7 @@ final class ListPaymentsController extends AbstractController
         }
 
         if ('' !== $query) {
-            $qb->andWhere('p.customer.customerEmail LIKE :q OR p.customer.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
+            $qb->andWhere('p.customerEmail LIKE :q OR p.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
                 ->setParameter('q', '%'.$query.'%');
         }
 

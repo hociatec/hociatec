@@ -461,7 +461,7 @@ final class ModuleBoundaryTest extends TestCase
             ],
             __DIR__.'/../../../src/Module/Order/Domain/Entity/OrderCheckoutSession.php' => [
                 'forbidden' => ['OrderCheckoutBillingTrait', 'OrderCheckoutCustomerIdentityTrait', 'OrderCheckoutShippingTrait'],
-                'required' => ['CheckoutCustomerSnapshot $customer', 'CheckoutShippingSnapshot $shipping', 'CheckoutBillingSnapshot $billing'],
+                'required' => ['CheckoutCustomerSnapshot', 'CheckoutShippingSnapshot', 'CheckoutBillingSnapshot'],
             ],
             __DIR__.'/../../../src/Module/TradeIn/Domain/Entity/TradeInRequest.php' => [
                 'forbidden' => [

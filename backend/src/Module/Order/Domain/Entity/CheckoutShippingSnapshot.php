@@ -4,31 +4,24 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
-#[ORM\Embeddable]
 final class CheckoutShippingSnapshot
 {
-    #[ORM\Column(length: 180, nullable: true)]
-    private ?string $shippingName = null;
+    private ?string $shippingName;
+    private ?string $shippingAddress;
+    private ?string $shippingPostalCode;
+    private ?string $shippingCity;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $shippingAddress = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $shippingPostalCode = null;
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $shippingCity = null;
+    public function __construct(?string $shippingName, ?string $shippingAddress, ?string $shippingPostalCode, ?string $shippingCity)
+    {
+        $this->shippingName = $shippingName;
+        $this->shippingAddress = $shippingAddress;
+        $this->shippingPostalCode = $shippingPostalCode;
+        $this->shippingCity = $shippingCity;
+    }
 
     public function name(): ?string
     {
         return $this->shippingName;
-    }
-
-    public function changeName(?string $shippingName): void
-    {
-        $this->shippingName = $shippingName;
     }
 
     public function address(): ?string
@@ -36,28 +29,13 @@ final class CheckoutShippingSnapshot
         return $this->shippingAddress;
     }
 
-    public function changeAddress(?string $shippingAddress): void
-    {
-        $this->shippingAddress = $shippingAddress;
-    }
-
     public function postalCode(): ?string
     {
         return $this->shippingPostalCode;
     }
 
-    public function changePostalCode(?string $shippingPostalCode): void
-    {
-        $this->shippingPostalCode = $shippingPostalCode;
-    }
-
     public function city(): ?string
     {
         return $this->shippingCity;
-    }
-
-    public function changeCity(?string $shippingCity): void
-    {
-        $this->shippingCity = $shippingCity;
     }
 }
