@@ -1,0 +1,59 @@
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: var(--hocia-surface);
+    color: var(--hocia-ink);
+  }
+
+  .site-header,
+  .site-footer,
+  .admin-shell__sidebar,
+  .no-print,
+  button,
+  [role='button'] {
+    display: none !important;
+  }
+
+  .site-layout,
+  .site-layout__content,
+  .admin-shell,
+  .admin-shell__content,
+  main,
+  article,
+  section {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  a {
+    color: currentColor;
+    text-decoration: none;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid var(--hocia-line);
+    padding: 0.35rem;
+    text-align: left;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+}

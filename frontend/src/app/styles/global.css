@@ -3,6 +3,7 @@
 @import './global/components.css';
 @import './global/tailwind-theme.css';
 @import './global/accessibility.css';
+@import './global/print.css';
 
 @plugin "tailwindcss-animate";
 
