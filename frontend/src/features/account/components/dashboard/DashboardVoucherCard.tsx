@@ -1,5 +1,9 @@
 import type { LoyaltyBalanceDto } from '@/features/loyalty/api/loyaltyApi';
-import { formatFrenchNumber, formatOptionalEuroCents } from '@/shared/lib/formatters';
+import {
+  formatEuroCents,
+  formatFrenchNumber,
+  formatOptionalEuroCents,
+} from '@/shared/lib/formatters';
 import { DashboardPanel } from './DashboardPanel';
 
 export const DashboardVoucherCard = ({
@@ -59,11 +63,7 @@ export const DashboardVoucherCard = ({
         />
       </label>
       <div>
-        <strong>
-          {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
-            conversionEuroCents / 100,
-          )}
-        </strong>
+        <strong>{formatEuroCents(conversionEuroCents)}</strong>
         <span>en bon de réduction</span>
       </div>
       <button

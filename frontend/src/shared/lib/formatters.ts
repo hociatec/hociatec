@@ -1,17 +1,41 @@
-export const formatEuroCents = (valueInCents: number) =>
-  new Intl.NumberFormat('fr-FR', {
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
+const getCurrencyFormatter = (currency: string) => {
+  const key = `fr-FR:${currency}`;
+  const existing = currencyFormatters.get(key);
+  if (existing) return existing;
+
+  const formatter = new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'EUR',
-  }).format(valueInCents / 100);
+    currency,
+  });
+  currencyFormatters.set(key, formatter);
+
+  return formatter;
+};
+
+export const formatCurrencyCents = (valueInCents: number, currency = 'EUR') =>
+  getCurrencyFormatter(currency).format(valueInCents / 100);
+
+export const formatEuroCents = (valueInCents: number) => formatCurrencyCents(valueInCents, 'EUR');
 
 export const formatOptionalEuroCents = (valueInCents?: number | null) =>
   typeof valueInCents === 'number' ? formatEuroCents(valueInCents) : '-';
 
-export const formatCurrencyCents = (valueInCents: number, currency = 'EUR') =>
-  new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency,
-  }).format((valueInCents ?? 0) / 100);
+export const formatEuroCentsRange = (
+  minValueInCents?: number | null,
+  maxValueInCents?: number | null,
+) => `${formatOptionalEuroCents(minValueInCents)} à ${formatOptionalEuroCents(maxValueInCents)}`;
+
+export const formatEuroInputFromCents = (valueInCents?: number | null) =>
+  typeof valueInCents === 'number' ? (valueInCents / 100).toFixed(2) : '';
+
+export const parseEuroInputToCents = (value: string) => {
+  const parsed = Number.parseFloat(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0;
+};
+
+export const formatSchemaPriceCents = (valueInCents: number) => (valueInCents / 100).toFixed(2);
 
 export const formatFrenchNumber = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
 

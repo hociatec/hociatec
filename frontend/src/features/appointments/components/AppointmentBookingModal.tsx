@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import type { AvailabilitySlot, Prestation } from '@/features/appointments/types/appointments';
+import { formatEuroCents } from '@/shared/lib/formatters';
 
 type AppointmentBookingModalProps = {
   booking: boolean;
@@ -44,7 +45,7 @@ export const AppointmentBookingModal = ({
             </li>
             <li>
               <strong>Tarif :</strong>{' '}
-              {selectedPrestation ? selectedPrestation.priceCents / 100 : 0} €
+              {selectedPrestation ? formatEuroCents(selectedPrestation.priceCents) : formatEuroCents(0)}
             </li>
           </ul>
 

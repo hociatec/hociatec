@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { Image as ImageIcon } from 'lucide-react';
 
+import { formatEuroCents } from '@/shared/lib/formatters';
 import type { CatalogProduct } from '../api';
 import { ProductMetaBadges } from './ProductMetaBadges';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
@@ -12,8 +13,6 @@ interface ProductCardProps {
   product: CatalogProduct;
   actionSlot?: React.ReactNode;
 }
-
-const formatPrice = (priceCents: number) => (priceCents / 100).toFixed(2).replace('.', ',');
 
 export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
@@ -87,7 +86,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
         <footer className="catalog-product-card__footer">
           <div className="catalog-product-card__footer-main">
             <span className="catalog-product-card__price">
-              {formatPrice(product.priceCents)} EUR
+              {formatEuroCents(product.priceCents)}
               {product.priceUnitLabel ?? ''}
             </span>
           </div>

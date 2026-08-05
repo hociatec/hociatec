@@ -1,5 +1,6 @@
 import { formatQuotePrice, type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
 import type { CatalogProduct } from '@/features/catalog/api';
+import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
 
 type AdminQuoteItemRowProps = {
   item: QuoteItem;
@@ -7,13 +8,6 @@ type AdminQuoteItemRowProps = {
   products: CatalogProduct[];
   onUpdateItem: (index: number, patch: Partial<QuoteItem>) => void;
   onRemoveItem: (index: number) => void;
-};
-
-const parseCents = (value: string) => {
-  const normalized = value.replace(',', '.');
-  const amount = Number.parseFloat(normalized);
-
-  return Number.isFinite(amount) ? Math.max(0, Math.round(amount * 100)) : 0;
 };
 
 const parseRate = (value: string) => {
@@ -180,9 +174,9 @@ export const AdminQuoteItemRow = ({
             type="number"
             min={0}
             step="0.01"
-            value={(item.unitPriceCents / 100).toFixed(2)}
+            value={formatEuroInputFromCents(item.unitPriceCents)}
             onChange={(event) =>
-              onUpdateItem(index, { unitPriceCents: parseCents(event.target.value) })
+              onUpdateItem(index, { unitPriceCents: parseEuroInputToCents(event.target.value) })
             }
             className="quote-line-input quote-line-input--money"
             aria-label="Prix HT"
@@ -212,9 +206,9 @@ export const AdminQuoteItemRow = ({
             type="number"
             min={0}
             step="0.01"
-            value={((item.discountCents ?? 0) / 100).toFixed(2)}
+            value={formatEuroInputFromCents(item.discountCents ?? 0)}
             onChange={(event) =>
-              onUpdateItem(index, { discountCents: parseCents(event.target.value) })
+              onUpdateItem(index, { discountCents: parseEuroInputToCents(event.target.value) })
             }
             className="quote-line-input quote-line-input--money"
             aria-label="Remise"

@@ -13,6 +13,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
 import {
   VoucherFormFields,
   type VoucherFormState,
@@ -27,12 +28,6 @@ const emptyForm: VoucherFormState = {
   isActive: true,
   startsAt: '',
   endsAt: '',
-};
-
-const centsToEuro = (value: number) => (value / 100).toFixed(2);
-const euroToCents = (value: string) => {
-  const parsed = Number.parseFloat(value.replace(',', '.'));
-  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0;
 };
 
 const generateCode = (name: string) => {
@@ -72,7 +67,7 @@ export const VoucherFormPage = () => {
           discountType: voucher.discountType,
           discountValue:
             voucher.discountType === 'fixed_cents'
-              ? centsToEuro(voucher.discountValue)
+              ? formatEuroInputFromCents(voucher.discountValue)
               : String(voucher.discountValue),
           isActive: voucher.isActive,
           startsAt: voucher.startsAt ? voucher.startsAt.slice(0, 16) : '',
@@ -95,7 +90,7 @@ export const VoucherFormPage = () => {
       discountType: form.discountType,
       discountValue:
         form.discountType === 'fixed_cents'
-          ? euroToCents(form.discountValue)
+          ? parseEuroInputToCents(form.discountValue)
           : Number.parseInt(form.discountValue, 10) || 0,
       isActive: form.isActive,
       startsAt: form.startsAt || null,

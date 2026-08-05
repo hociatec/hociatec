@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import { formatQuotePrice } from '@/features/quotes/utils/quoteFormUtils';
+import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
 import type { AdminQuoteFormState } from './AdminQuoteFormSections';
 
 type Props = {
@@ -27,8 +28,8 @@ export const AdminQuoteSettingsSummary = ({ quote, setQuote, total }: Props) => 
       <h3 className="mb-2 font-semibold">Paramètres</h3>
       <div className="space-y-2">
         <label className="flex items-center gap-2">Statut<select value={quote.status} onChange={(event) => setQuote({ ...quote, status: event.target.value as AdminQuoteFormState['status'] })}><option value="draft">Brouillon</option><option value="sent">Envoyé</option><option value="accepted">Accepté</option><option value="refused">Refusé</option><option value="expired">Expiré</option></select></label>
-        <label className="flex items-center gap-2">Remise globale<input type="number" min={0} step="0.01" value={((quote.discountCents ?? 0) / 100).toFixed(2)} onChange={(event) => setQuote({ ...quote, discountCents: Math.max(0, Math.round(Number(event.target.value.replace(',', '.')) * 100)) })} /></label>
-        <label className="flex items-center gap-2">Frais de port<input type="number" min={0} step="0.01" value={((quote.shippingCents ?? 0) / 100).toFixed(2)} onChange={(event) => setQuote({ ...quote, shippingCents: Math.max(0, Math.round(Number(event.target.value.replace(',', '.')) * 100)) })} /></label>
+        <label className="flex items-center gap-2">Remise globale<input type="number" min={0} step="0.01" value={formatEuroInputFromCents(quote.discountCents ?? 0)} onChange={(event) => setQuote({ ...quote, discountCents: parseEuroInputToCents(event.target.value) })} /></label>
+        <label className="flex items-center gap-2">Frais de port<input type="number" min={0} step="0.01" value={formatEuroInputFromCents(quote.shippingCents ?? 0)} onChange={(event) => setQuote({ ...quote, shippingCents: parseEuroInputToCents(event.target.value) })} /></label>
         <label className="flex items-center gap-2">Début de validité<input type="date" value={quote.validFrom ?? ''} onChange={(event) => setQuote({ ...quote, validFrom: event.target.value })} /></label>
         <label className="flex items-center gap-2">Fin de validité<input type="date" value={quote.validUntil ?? ''} onChange={(event) => setQuote({ ...quote, validUntil: event.target.value })} /></label>
         <label className="flex flex-col gap-2">Conditions<textarea rows={7} value={quote.conditions ?? ''} onChange={(event) => setQuote({ ...quote, conditions: event.target.value })} /></label>

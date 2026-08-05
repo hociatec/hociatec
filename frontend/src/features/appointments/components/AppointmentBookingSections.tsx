@@ -5,6 +5,7 @@ import { fr } from 'date-fns/locale';
 import type { EventInput } from '@fullcalendar/core';
 
 import type { AvailabilitySlot, Prestation } from '@/features/appointments/types/appointments';
+import { formatEuroCents } from '@/shared/lib/formatters';
 
 type AppointmentStepOneProps = {
   prestations: Prestation[];
@@ -39,7 +40,7 @@ export const AppointmentStepOne = ({
           checked={selectedPrestation?.id === prestation.id}
           onChange={() => setSelectedPrestation(prestation)}
         />
-        {prestation.name} — {prestation.priceCents / 100} € ({prestation.durationMinutes} min)
+        {prestation.name} — {formatEuroCents(prestation.priceCents)} ({prestation.durationMinutes} min)
       </label>
     ))}
     <div className="booking__actions">

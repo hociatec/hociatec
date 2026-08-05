@@ -1,5 +1,5 @@
 import type { CatalogProduct } from '../api';
-import { formatFrenchDate, formatEuroCents } from '@/shared/lib/formatters';
+import { formatFrenchDate, formatEuroCents, formatSchemaPriceCents } from '@/shared/lib/formatters';
 import { SITE_URL } from '@/shared/config/seoConfig';
 
 export const formatProductPrice = formatEuroCents;
@@ -101,7 +101,7 @@ export const buildProductStructuredData = (
         '@type': 'Offer',
         url: productUrl,
         priceCurrency: 'EUR',
-        price: (priceCents / 100).toFixed(2),
+        price: formatSchemaPriceCents(priceCents),
         availability:
           product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         itemCondition: 'https://schema.org/NewCondition',

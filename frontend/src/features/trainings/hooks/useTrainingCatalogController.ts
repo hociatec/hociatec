@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import type { TrainingFormat } from '@/features/trainings/api/trainingTypes';
+import { formatEuroCentsRange } from '@/shared/lib/formatters';
 import {
   filterAndSortTrainings,
   getActiveTrainingCategories,
@@ -65,9 +66,9 @@ export const useTrainingCatalogController = () => {
   const currentPage = Math.min(page, totalPages);
   const paginatedTrainings = filteredTrainings.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
   const resultSummary = query ? `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} pour "${query}"` : `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} affichée${filteredTrainings.length > 1 ? 's' : ''}`;
-  const priceValues = trainings.map((training) => training.priceCents / 100);
+  const priceValues = trainings.map((training) => training.priceCents);
   const durationValues = trainings.map((training) => training.durationMinutes);
-  const priceHint = priceValues.length > 0 ? `${Math.min(...priceValues)} € à ${Math.max(...priceValues)} €` : null;
+  const priceHint = priceValues.length > 0 ? formatEuroCentsRange(Math.min(...priceValues), Math.max(...priceValues)) : null;
   const durationHint = durationValues.length > 0 ? `${Math.min(...durationValues)} à ${Math.max(...durationValues)} min` : null;
 
   return { trainings, loading, error, category, format, sort, minPrice, maxPrice, minDuration, maxDuration, categoryOptions, formatOptions, priceHint, durationHint, resultSummary, paginatedTrainings, categoryName, currentPage, totalPages, updateParam, updateRange, resetFilters };

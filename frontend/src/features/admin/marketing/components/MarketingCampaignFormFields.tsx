@@ -1,4 +1,5 @@
 import type { useMarketingCampaignForm } from '@/features/admin/marketing/hooks/useMarketingCampaignForm';
+import { formatEuroCents } from '@/shared/lib/formatters';
 
 type CampaignController = ReturnType<typeof useMarketingCampaignForm>;
 
@@ -135,7 +136,7 @@ export const MarketingCampaignFormFields = ({ campaign }: { campaign: CampaignCo
             campaign.setForm((prev) => ({ ...prev, minimumTotalCents: event.target.value }))
           }
         />
-        <span className="text-xs text-stone-500">Exemple: 50000 = 500,00 EUR.</span>
+        <span className="text-xs text-stone-500">Exemple: 50000 = {formatEuroCents(50000)}.</span>
       </label>
     )}
 

@@ -1,4 +1,5 @@
 import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/features/catalog/api';
+import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import type { ProductFormState, VariantRowState } from './productFormConfig';
 import {
   buildVariantIdentityKey,
@@ -11,7 +12,7 @@ export const buildProductFormState = (product: CatalogProduct): ProductFormState
   name: product.name,
   slug: product.slug,
   sku: product.sku,
-  price: (product.priceCents / 100).toString(),
+  price: formatEuroInputFromCents(product.priceCents),
   sellingType: product.sellingType,
   brand: product.brand ?? '',
   variantGroup: product.variantGroup ?? '',
@@ -30,7 +31,7 @@ export const buildProductFormState = (product: CatalogProduct): ProductFormState
   discountType: product.discount?.type === 'fixed_cents' ? 'fixed' : 'percent',
   discountValue:
     product.discount?.type === 'fixed_cents'
-      ? ((product.discount?.value ?? 0) / 100).toString()
+      ? formatEuroInputFromCents(product.discount?.value ?? 0)
       : (product.discount?.value ?? '').toString(),
   discountStartsAt: product.discount?.startsAt ? product.discount.startsAt.substring(0, 10) : '',
   discountEndsAt: product.discount?.endsAt ? product.discount.endsAt.substring(0, 10) : '',

@@ -12,6 +12,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import {
   TrainingFormFields,
   type TrainingFormState,
@@ -72,7 +73,7 @@ export const TrainingFormPage = () => {
             audience: training.audience ?? '',
             category: training.category,
             durationMinutes: training.durationMinutes,
-            priceEuros: String(training.priceCents / 100),
+            priceEuros: formatEuroInputFromCents(training.priceCents),
             availableFormats: training.availableFormats,
             isActive: training.isActive,
             roadmap: training.roadmap.map((item) => item.title).join('\n'),

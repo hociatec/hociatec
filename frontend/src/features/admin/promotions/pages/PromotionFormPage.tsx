@@ -8,11 +8,10 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
 
 export type FormState = { name: string; slug: string; description: string; discountType: 'percent' | 'fixed_cents'; discountValue: string; audienceKey: string; minimumCartTotalEuros: string; registeredDays: string; minimumOrders: string; inactiveDays: string; isActive: boolean; startsAt: string; endsAt: string };
 const emptyForm: FormState = { name: '', slug: '', description: '', discountType: 'percent', discountValue: '', audienceKey: 'all_users', minimumCartTotalEuros: '0', registeredDays: '30', minimumOrders: '3', inactiveDays: '90', isActive: true, startsAt: '', endsAt: '' };
-const centsToEuroInput = (value: number) => (value / 100).toFixed(2);
-const euroInputToCents = (value: string) => { const normalized = Number.parseFloat(value.replace(',', '.')); return Number.isFinite(normalized) ? Math.max(0, Math.round(normalized * 100)) : 0; };
 
 export const PromotionFormPage = () => {
   const { promotionId } = useParams();
@@ -30,15 +29,15 @@ export const PromotionFormPage = () => {
   useEffect(() => {
     if (!isEdit || !promotionId) return;
     setInitialLoading(true);
-    void fetchPromotion(Number(promotionId)).then((promotion) => setForm({ name: promotion.name, slug: promotion.slug, description: promotion.description ?? '', discountType: promotion.discountType, discountValue: promotion.discountType === 'fixed_cents' ? centsToEuroInput(promotion.discountValue) : String(promotion.discountValue), audienceKey: promotion.audienceKey, minimumCartTotalEuros: centsToEuroInput(Number(promotion.criteria.minimumCartTotalCents ?? 0)), registeredDays: String(promotion.criteria.registeredDays ?? 30), minimumOrders: String(promotion.criteria.minimumOrders ?? 3), inactiveDays: String(promotion.criteria.inactiveDays ?? 90), isActive: promotion.isActive, startsAt: promotion.startsAt ? promotion.startsAt.slice(0, 16) : '', endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '' })).catch((err) => { const message = getHttpErrorMessage(err, 'Impossible de charger la promotion.'); setError(message); toast.show(message, { variant: 'error' }); }).finally(() => setInitialLoading(false));
+    void fetchPromotion(Number(promotionId)).then((promotion) => setForm({ name: promotion.name, slug: promotion.slug, description: promotion.description ?? '', discountType: promotion.discountType, discountValue: promotion.discountType === 'fixed_cents' ? formatEuroInputFromCents(promotion.discountValue) : String(promotion.discountValue), audienceKey: promotion.audienceKey, minimumCartTotalEuros: formatEuroInputFromCents(Number(promotion.criteria.minimumCartTotalCents ?? 0)), registeredDays: String(promotion.criteria.registeredDays ?? 30), minimumOrders: String(promotion.criteria.minimumOrders ?? 3), inactiveDays: String(promotion.criteria.inactiveDays ?? 90), isActive: promotion.isActive, startsAt: promotion.startsAt ? promotion.startsAt.slice(0, 16) : '', endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '' })).catch((err) => { const message = getHttpErrorMessage(err, 'Impossible de charger la promotion.'); setError(message); toast.show(message, { variant: 'error' }); }).finally(() => setInitialLoading(false));
   }, [isEdit, promotionId, toast]);
 
   const payload = useMemo<PromotionPayload>(() => {
-    const criteria: Record<string, string | number | boolean> = { minimumCartTotalCents: euroInputToCents(form.minimumCartTotalEuros) };
+    const criteria: Record<string, string | number | boolean> = { minimumCartTotalCents: parseEuroInputToCents(form.minimumCartTotalEuros) };
     if (form.audienceKey === 'new_users') criteria.registeredDays = Number.parseInt(form.registeredDays, 10) || 30;
     if (form.audienceKey === 'loyal_customers') criteria.minimumOrders = Number.parseInt(form.minimumOrders, 10) || 3;
     if (form.audienceKey === 'inactive_customers') criteria.inactiveDays = Number.parseInt(form.inactiveDays, 10) || 90;
-    return { name: form.name.trim(), slug: form.slug.trim(), description: form.description.trim() || null, discountType: form.discountType, discountValue: form.discountType === 'fixed_cents' ? euroInputToCents(form.discountValue) : Number.parseInt(form.discountValue, 10) || 0, audienceKey: form.audienceKey, criteria, isActive: form.isActive, startsAt: form.startsAt || null, endsAt: form.endsAt || null };
+    return { name: form.name.trim(), slug: form.slug.trim(), description: form.description.trim() || null, discountType: form.discountType, discountValue: form.discountType === 'fixed_cents' ? parseEuroInputToCents(form.discountValue) : Number.parseInt(form.discountValue, 10) || 0, audienceKey: form.audienceKey, criteria, isActive: form.isActive, startsAt: form.startsAt || null, endsAt: form.endsAt || null };
   }, [form]);
 
   const handleSubmit = async (event: FormEvent) => {

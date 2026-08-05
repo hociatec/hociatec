@@ -4,6 +4,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { downloadBlob } from '@/shared/lib/downloadFile';
+import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import {
   adminCloseTradeIn,
   adminDeleteTradeIn,
@@ -46,8 +47,7 @@ const generateTransactionReference = (): string => {
   return `TRX-${date}-${suffix}`;
 };
 
-const toMoneyInput = (cents: number | null | undefined) =>
-  cents === null || cents === undefined ? '' : String(cents / 100);
+const toMoneyInput = formatEuroInputFromCents;
 
 const toRoundedCents = (value: string) => Math.round(Number(value.replace(',', '.')) * 100);
 

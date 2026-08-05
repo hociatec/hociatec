@@ -1,4 +1,5 @@
 import { PublicPageSection } from '@/shared/components/layout/PublicPageShell';
+import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
 import type { TradeInInput } from '../../types';
 import { tradeInFieldClassName } from '../../lib/tradeInForm';
 import { Check, Field, SectionHeading } from './TradeInFormParts';
@@ -46,8 +47,8 @@ export const TradeInDeviceFields = ({
       <Field
         label="Prix payé à l’achat (€)"
         type="number"
-        value={form.purchasePriceCents > 0 ? String(form.purchasePriceCents / 100) : ''}
-        onChange={(value) => onChange('purchasePriceCents', Math.round(Number(value.replace(',', '.')) * 100))}
+        value={form.purchasePriceCents > 0 ? formatEuroInputFromCents(form.purchasePriceCents) : ''}
+        onChange={(value) => onChange('purchasePriceCents', parseEuroInputToCents(value))}
         min="1"
         step="0.01"
         required

@@ -3,6 +3,7 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { NumberRangeFilter } from '@/shared/components/filters/NumberRangeFilter';
 import { ResetFiltersButton } from '@/shared/components/filters/ResetFiltersButton';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
+import { formatEuroCentsRange } from '@/shared/lib/formatters';
 import type { CatalogSearchFacets, CatalogSort } from '../apiTypes';
 import { ALL_CATALOG_FILTER } from '../lib/catalogSearch';
 
@@ -179,9 +180,7 @@ export const CatalogFilters = ({
       </FilterBar>
       {(facets.price.min !== null || facets.price.max !== null) && (
         <p className="catalog-search-panel__hint">
-          Plage disponible:{' '}
-          {facets.price.min !== null ? `${Math.round(facets.price.min / 100)} €` : '0 €'} à{' '}
-          {facets.price.max !== null ? `${Math.round(facets.price.max / 100)} €` : '0 €'}
+          Plage disponible: {formatEuroCentsRange(facets.price.min, facets.price.max)}
         </p>
       )}
     </section>

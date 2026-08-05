@@ -12,6 +12,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { ServiceFormFields, type ServiceFormState } from '@/features/admin/quotes/components/ServiceFormFields';
 
 type ServicePayload = {
@@ -103,7 +104,7 @@ export const ServiceFormPage = () => {
           currentImageUrl: svc?.imageUrl ?? '',
           durationValue: svc?.durationValue ? String(svc.durationValue) : '',
           durationUnit: svc?.durationUnit === 'day' ? 'day' : 'hour',
-          price: svc ? (svc.priceCents / 100).toFixed(2) : '0',
+          price: svc ? formatEuroInputFromCents(svc.priceCents) : '0',
           vatRate: svc ? String(svc.vatRate ?? 0) : '0',
         });
       })

@@ -166,23 +166,6 @@ Exemple :
 qui sont ambiguës et difficiles à parser correctement.
 
 
-3.10 Uniformiser les montants
------------------------------
-
-Ne pas utiliser des flottants pour les montants financiers.
-
-Préférer :
-
-    {
-      "amount": 12990,
-      "currency": "EUR"
-    }
-
-où 12990 représente 129,90 €.
-
-Créer une fonction centrale de formatage avec Intl.NumberFormat.
-
-
 4. REACT QUERY ET GESTION DES DONNÉES
 =====================================
 

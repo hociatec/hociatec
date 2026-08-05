@@ -12,6 +12,7 @@ import type { Prestation } from '@/features/appointments/types/appointments';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 
 type PrestationFormState = {
   name: string;
@@ -68,7 +69,7 @@ export const PrestationFormPage = () => {
     setForm({
       name: prestation.name,
       durationMinutes: prestation.durationMinutes.toString(),
-      price: (prestation.priceCents / 100).toFixed(2),
+      price: formatEuroInputFromCents(prestation.priceCents),
     });
   };
 
