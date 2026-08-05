@@ -695,21 +695,6 @@ Les tests automatisés ne remplacent pas un audit clavier manuel, mais détecten
 11. PERFORMANCE
 ===============
 
-11.1 Analyser le bundle réel
-----------------------------
-
-Sans configuration Vite, il n’est pas possible de mesurer le poids.
-
-Ajouter un visualiseur de bundle et surveiller :
-- bundle initial ;
-- bundle admin ;
-- bibliothèques de dates ;
-- éditeurs HTML ;
-- composants de graphiques ;
-- icônes ;
-- CSS global.
-
-
 11.3 Éviter les fichiers index qui annulent le tree-shaking
 -----------------------------------------------------------
 
