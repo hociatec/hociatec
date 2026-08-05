@@ -23,7 +23,8 @@
         "validate:env": "npx esbuild --bundle scripts/validate-public-env.ts --format=cjs --platform=node --target=node20 --outfile=.ssg/validate-public-env.cjs && node .ssg/validate-public-env.cjs",
         "check:cycles": "madge --extensions ts,tsx --ts-config tsconfig.json --circular src",
         "check:architecture": "node scripts/check-feature-boundaries.mjs",
-        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm audit --omit=dev",
+        "check:maintainability": "node scripts/check-maintainability.mjs",
+        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm run check:maintainability && npm audit --omit=dev",
         "lint:debt": "eslint src scripts"
     },
     "devDependencies": {
