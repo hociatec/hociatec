@@ -124,7 +124,10 @@ export const CartItemsList = ({
               src={item.product.imageUrl}
               alt={item.product.imageAlt ?? item.product.name}
               className="cart-page__image"
+              width={96}
+              height={96}
               loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="cart-page__placeholder" aria-hidden="true">

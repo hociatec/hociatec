@@ -50,6 +50,8 @@ export const ServiceDetailPage = () => {
                   src={illustration.imageUrl}
                   alt={illustration.imageAlt || service.title}
                   className="max-h-[220px] w-full max-w-[320px] object-contain"
+                  width={640}
+                  height={360}
                   loading="lazy"
                   decoding="async"
                 />

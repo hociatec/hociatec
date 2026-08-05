@@ -73,6 +73,8 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
           <img
             src={illustration.imageUrl}
             alt={illustration.imageAlt || service.title}
+            width={400}
+            height={260}
             loading="lazy"
             decoding="async"
           />

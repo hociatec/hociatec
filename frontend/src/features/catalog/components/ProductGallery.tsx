@@ -29,6 +29,8 @@ export const ProductGallery = ({
               src={slide.url}
               alt={slide.alt}
               className={`catalog-slider__image${index === activeSlide ? ' is-active' : ''}`}
+              width={720}
+              height={540}
               loading={index === 0 ? 'eager' : 'lazy'}
               decoding="async"
               fetchPriority={index === 0 ? 'high' : 'low'}

@@ -108,6 +108,10 @@ export const MyFavoritesPage = () => {
                             src={product.imageUrl}
                             alt={product.imageAlt ?? product.name}
                             className="h-full w-full object-cover"
+                            width={96}
+                            height={96}
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-stone-400">

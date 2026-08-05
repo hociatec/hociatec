@@ -134,6 +134,10 @@ export const ServiceFormFields = ({ form, setForm, billingModeOptions }: Service
             src={previewUrl}
             alt={form.imageAlt || form.title || 'Illustration du service'}
             className="h-48 w-full rounded-2xl border border-stone-200 bg-stone-50 object-contain p-4"
+            width={640}
+            height={360}
+            loading="lazy"
+            decoding="async"
           />
         </div>
       ) : null}

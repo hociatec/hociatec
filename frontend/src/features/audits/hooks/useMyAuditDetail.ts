@@ -17,7 +17,10 @@ export const useMyAuditDetail = () => {
     queryKey: auditQueryKeys.mineDetail(Number.isFinite(id) && id > 0 ? id : null),
     queryFn: () => fetchMyAudit(id),
     enabled: Number.isFinite(id) && id > 0,
-    refetchInterval: 10_000,
+    refetchInterval: (currentQuery) =>
+      document.hidden || currentQuery.state.error || currentQuery.state.data?.status === 'done'
+        ? false
+        : 10_000,
     refetchIntervalInBackground: false,
   });
   const data = detailQuery.data ?? null;

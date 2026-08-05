@@ -97,9 +97,11 @@ export const CartProvider = ({ children }: PropsWithChildren) => {
     [cart],
   );
 
+  const pendingProductIdSet = useMemo(() => new Set(pendingProductIds), [pendingProductIds]);
+
   const isProductPending = useCallback(
-    (productId: number) => pendingProductIds.includes(productId),
-    [pendingProductIds],
+    (productId: number) => pendingProductIdSet.has(productId),
+    [pendingProductIdSet],
   );
 
   const value = useMemo(

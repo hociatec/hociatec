@@ -15,6 +15,7 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { DateRangeFilter } from '@/shared/components/filters/DateRangeFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 export const AdminAuditsListPage = () => {
@@ -35,6 +36,10 @@ export const AdminAuditsListPage = () => {
     sort,
     setSort,
     view,
+    paginatedView,
+    page,
+    setPage,
+    totalPages,
   } = useAdminAuditsList();
   const { types, statuses } = useAuditMetadata();
 
@@ -42,7 +47,8 @@ export const AdminAuditsListPage = () => {
     <PageContainer size="admin" title="Audits">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {view.length} audit{view.length > 1 ? 's' : ''} affiché{view.length > 1 ? 's' : ''}.
+          {view.length} audit{view.length > 1 ? 's' : ''} trouvé{view.length > 1 ? 's' : ''}
+          {totalPages > 1 ? `, page ${page} sur ${totalPages}` : ''}.
         </p>
         <p className="text-sm text-stone-500">Filtrez par numéro, URL, type, statut et période.</p>
       </div>
@@ -116,7 +122,7 @@ export const AdminAuditsListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {view.map((a) => (
+              {paginatedView.map((a) => (
                 <tr key={a.id}>
                   <th scope="row">
                     <strong>{a.number}</strong>
@@ -139,6 +145,13 @@ export const AdminAuditsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={page}
+          total={view.length}
+          totalLabel="audit"
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

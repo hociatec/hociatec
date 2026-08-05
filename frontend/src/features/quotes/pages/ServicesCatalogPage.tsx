@@ -83,7 +83,9 @@ export const ServicesCatalogPage = () => {
                           <img
                             src={illustration.imageUrl}
                             alt={illustration.imageAlt || service.title}
-                            loading="eager"
+                            width={400}
+                            height={260}
+                            loading="lazy"
                             decoding="async"
                             onError={(event) => {
                               const image = event.currentTarget;

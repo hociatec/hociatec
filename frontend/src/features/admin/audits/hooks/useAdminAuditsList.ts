@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publicApi';
 import { auditQueryKeys } from '@/shared/lib/queryKeys';
@@ -31,6 +31,8 @@ export const isAuditStatusFilter = (value: string): value is AuditStatusFilter =
 export const isAuditSort = (value: string): value is AuditSort =>
   AUDIT_SORTS.includes(value as AuditSort);
 
+const ADMIN_AUDITS_PER_PAGE = 50;
+
 export const useAdminAuditsList = () => {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<AuditStatusFilter>('all');
@@ -38,10 +40,19 @@ export const useAdminAuditsList = () => {
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
   const [sort, setSort] = useState<AuditSort>('date_desc');
+  const [page, setPage] = useState(1);
   const auditsQuery = useQuery<AuditListItemDto[], Error>({
     queryKey: auditQueryKeys.adminList(),
     queryFn: adminFetchAudits,
-    refetchInterval: () => (document.hidden ? false : 15000),
+    refetchInterval: (currentQuery) => {
+      if (document.hidden || currentQuery.state.error) {
+        return false;
+      }
+
+      const items = currentQuery.state.data ?? [];
+
+      return items.some((item) => item.status !== 'done') ? 15_000 : false;
+    },
   });
   const items = auditsQuery.data ?? [];
   const view = useMemo(() => {
@@ -69,6 +80,25 @@ export const useAdminAuditsList = () => {
               { new: 0, in_progress: 1, review: 2, done: 3 }[right.status]),
     );
   }, [items, search, filterStatus, filterType, fromDate, toDate, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(view.length / ADMIN_AUDITS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedView = useMemo(() => {
+    const start = (currentPage - 1) * ADMIN_AUDITS_PER_PAGE;
+
+    return view.slice(start, start + ADMIN_AUDITS_PER_PAGE);
+  }, [currentPage, view]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, filterStatus, filterType, fromDate, toDate, sort]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   return {
     loading: auditsQuery.isLoading,
     error: auditsQuery.error?.message ?? null,
@@ -85,5 +115,9 @@ export const useAdminAuditsList = () => {
     sort,
     setSort,
     view,
+    paginatedView,
+    page: currentPage,
+    setPage,
+    totalPages,
   };
 };

@@ -6,7 +6,15 @@ export const useMyAudits = () => {
   const query = useQuery<AuditListItemDto[], Error>({
     queryKey: auditQueryKeys.mine(),
     queryFn: fetchMyAudits,
-    refetchInterval: 15_000,
+    refetchInterval: (currentQuery) => {
+      if (document.hidden || currentQuery.state.error) {
+        return false;
+      }
+
+      const items = currentQuery.state.data ?? [];
+
+      return items.some((item) => item.status !== 'done') ? 15_000 : false;
+    },
     refetchIntervalInBackground: false,
   });
 

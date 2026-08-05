@@ -38,6 +38,8 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
             src={product.imageUrl}
             alt={product.imageAlt ?? productDisplayName}
             className="catalog-product-card__image"
+            width={400}
+            height={300}
             loading="lazy"
             decoding="async"
             onError={() => setImageFailed(true)}

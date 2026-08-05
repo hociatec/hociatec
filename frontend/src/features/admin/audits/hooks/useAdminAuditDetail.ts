@@ -23,8 +23,13 @@ export const useAdminAuditDetail = () => {
     queryKey: auditQueryKeys.adminDetail(Number.isFinite(id) ? id : null),
     queryFn: () => adminFetchAudit(id),
     enabled: Number.isFinite(id) && id > 0,
-    refetchInterval: () =>
-      !document.hidden && !Object.values(pendingTimers.current).some(Boolean) ? 10000 : false,
+    refetchInterval: (currentQuery) =>
+      !document.hidden &&
+      !currentQuery.state.error &&
+      currentQuery.state.data?.status !== 'done' &&
+      !Object.values(pendingTimers.current).some(Boolean)
+        ? 10000
+        : false,
   });
   const audit = auditQuery.data ?? null;
   const setAudit = (

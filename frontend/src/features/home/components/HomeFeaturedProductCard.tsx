@@ -28,6 +28,8 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
           <img
             src={product.imageUrl}
             alt={product.imageAlt ?? productDisplayName}
+            width={400}
+            height={300}
             loading="lazy"
             decoding="async"
             onError={() => setImageFailed(true)}
