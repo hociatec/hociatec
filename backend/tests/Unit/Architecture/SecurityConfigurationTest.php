@@ -33,6 +33,9 @@ final class SecurityConfigurationTest extends TestCase
         self::assertTrue($cors['nelmio_cors']['defaults']['allow_credentials']);
         self::assertContains('X-CSRF-Token', $cors['nelmio_cors']['defaults']['allow_headers']);
         self::assertContains('X-Request-Id', $cors['nelmio_cors']['defaults']['expose_headers']);
+        self::assertSame(['%env(CORS_ALLOW_ORIGIN)%'], $cors['nelmio_cors']['paths']['^/api/']['allow_origin']);
+        self::assertTrue($cors['nelmio_cors']['paths']['^/api/']['allow_credentials']);
+        self::assertContains('OPTIONS', $cors['nelmio_cors']['paths']['^/api/']['allow_methods']);
 
         foreach (['public_api', 'checkout', 'password_reset_request', 'auth_register', 'beta_report_create'] as $limiterName) {
             self::assertArrayHasKey($limiterName, $rateLimiter['framework']['rate_limiter']);
