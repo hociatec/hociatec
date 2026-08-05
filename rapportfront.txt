@@ -1099,17 +1099,6 @@ Puis corréler les régressions avec les versions de déploiement.
 14. CONFIGURATION ET ENVIRONNEMENTS
 ==================================
 
-14.3 Séparer développement, préproduction et production
--------------------------------------------------------
-
-Prévoir :
-- .env.development ;
-- .env.staging ;
-- .env.production.
-
-Ne pas déduire l’environnement uniquement depuis le hostname.
-
-
 14.4 Ne pas exposer de secrets dans les variables Vite
 ------------------------------------------------------
 
