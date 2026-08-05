@@ -33,13 +33,15 @@ export const NewsDetailPage = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void fetchNewsArticle(slug)
+    void fetchNewsArticle(slug, { signal: controller.signal })
       .then((item) => {
         if (!cancelled) setArticle(item);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
       })
       .finally(() => {
@@ -48,6 +50,7 @@ export const NewsDetailPage = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [slug]);
 

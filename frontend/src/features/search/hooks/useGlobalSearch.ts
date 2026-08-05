@@ -51,6 +51,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setState((current) => ({ ...current, loading: true, error: null }));
 
     const loadResults = async () => {
@@ -61,10 +62,11 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
             page: 1,
             perPage: limit,
             sort: query ? 'relevance' : 'created_desc',
+            signal: controller.signal,
           }),
-          fetchPublicQuoteServices(),
-          fetchPublicTrainings(),
-          fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit }),
+          fetchPublicQuoteServices({ signal: controller.signal }),
+          fetchPublicTrainings(undefined, { signal: controller.signal }),
+          fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit, signal: controller.signal }),
         ]);
 
         if (cancelled) return;
@@ -95,6 +97,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
           error: null,
         });
       } catch (reason) {
+        if (controller.signal.aborted) return;
         if (!cancelled) {
           setState((current) => ({
             ...current,
@@ -109,6 +112,7 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
     void loadResults();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [limit, query]);
 

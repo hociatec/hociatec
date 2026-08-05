@@ -10,6 +10,7 @@ export const usePublicServiceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    const controller = new AbortController();
     if (!Number.isFinite(serviceId)) {
       setError('Service introuvable.');
       setLoading(false);
@@ -17,10 +18,18 @@ export const usePublicServiceDetail = () => {
     }
     setLoading(true);
     setError(null);
-    void fetchPublicQuoteService(serviceId)
+    void fetchPublicQuoteService(serviceId, { signal: controller.signal })
       .then(setService)
-      .catch((err: Error) => setError(err.message || 'Impossible de charger ce service.'))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (!controller.signal.aborted) setError(err.message || 'Impossible de charger ce service.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [serviceId]);
   return { serviceId, service, loading, error };
 };

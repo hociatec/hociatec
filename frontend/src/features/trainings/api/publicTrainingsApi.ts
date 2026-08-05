@@ -3,20 +3,30 @@ import type { ApiResponse } from '@/shared/types/api';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
 import type { TrainingCategoryDto, TrainingDto, TrainingSessionDto } from './trainingTypes';
 
-export const fetchPublicTrainings = async (category?: string): Promise<TrainingDto[]> => {
+type RequestOptions = {
+  signal?: AbortSignal;
+};
+
+export const fetchPublicTrainings = async (
+  category?: string,
+  options: RequestOptions = {},
+): Promise<TrainingDto[]> => {
   return trainingRequest(async () => {
     const res = await httpClient.get<ApiResponse<{ items: TrainingDto[] }>>(
       TRAINING_API_ROUTES.publicList,
-      { params: category ? { category } : undefined },
+      { params: category ? { category } : undefined, signal: options.signal },
     );
     return unwrapTrainingData(res.data).items;
   }, 'Impossible de charger les formations.');
 };
 
-export const fetchPublicTrainingCategories = async (): Promise<TrainingCategoryDto[]> => {
+export const fetchPublicTrainingCategories = async (
+  options: RequestOptions = {},
+): Promise<TrainingCategoryDto[]> => {
   return trainingRequest(async () => {
     const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
       TRAINING_API_ROUTES.publicCategories,
+      { signal: options.signal },
     );
     return unwrapTrainingData(res.data).items;
   }, 'Impossible de charger les catégories de formation.');
@@ -24,11 +34,12 @@ export const fetchPublicTrainingCategories = async (): Promise<TrainingCategoryD
 
 export const fetchPublicTraining = async (
   slug: string,
+  options: RequestOptions = {},
 ): Promise<{ training: TrainingDto; sessions: TrainingSessionDto[] }> => {
   return trainingRequest(async () => {
     const res = await httpClient.get<
       ApiResponse<{ training: TrainingDto; sessions: TrainingSessionDto[] }>
-    >(TRAINING_API_ROUTES.publicDetail(slug));
+    >(TRAINING_API_ROUTES.publicDetail(slug), { signal: options.signal });
     return unwrapTrainingData(res.data);
   }, 'Impossible de charger la formation.');
 };

@@ -11,6 +11,7 @@ export const useProductPageData = (slug?: string) => {
 
   useEffect(() => {
     if (!slug) return;
+    const controller = new AbortController();
 
     if (product?.slug === slug) {
       setLoading(false);
@@ -21,10 +22,18 @@ export const useProductPageData = (slug?: string) => {
     setLoading(true);
     setError(null);
 
-    void fetchPublicProduct(slug)
+    void fetchPublicProduct(slug, { signal: controller.signal })
       .then(setProduct)
-      .catch((err: Error) => setError(err.message || 'Produit introuvable.'))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (!controller.signal.aborted) setError(err.message || 'Produit introuvable.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [slug, product?.slug]);
 
   useEffect(() => {
@@ -34,18 +43,27 @@ export const useProductPageData = (slug?: string) => {
     }
 
     const variantGroup = buildVariantGroupKey(product);
+    const controller = new AbortController();
 
     void fetchPublicProducts({
       category: product.category.slug,
       sellingType: product.sellingType,
       sort: 'release_year_desc',
       perPage: 100,
+      signal: controller.signal,
     })
       .then((items) => {
+        if (controller.signal.aborted) return;
         const variants = items.filter((item) => buildVariantGroupKey(item) === variantGroup);
         setColorVariants(variants.length > 0 ? variants : [product]);
       })
-      .catch(() => setColorVariants([product]));
+      .catch(() => {
+        if (!controller.signal.aborted) setColorVariants([product]);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [product]);
 
   return { product, colorVariants, loading, error };

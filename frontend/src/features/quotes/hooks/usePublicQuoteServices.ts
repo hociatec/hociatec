@@ -7,10 +7,20 @@ export const usePublicQuoteServices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    void fetchPublicQuoteServices()
+    const controller = new AbortController();
+    void fetchPublicQuoteServices({ signal: controller.signal })
       .then(setServices)
-      .catch((reason: Error) => setError(reason.message || 'Impossible de charger les services.'))
-      .finally(() => setLoading(false));
+      .catch((reason: Error) => {
+        if (!controller.signal.aborted)
+          setError(reason.message || 'Impossible de charger les services.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, []);
   return { services, loading, error };
 };

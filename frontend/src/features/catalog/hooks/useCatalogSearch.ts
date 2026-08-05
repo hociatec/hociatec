@@ -76,6 +76,8 @@ export const useCatalogSearch = ({
   }, [query, setSearchParams]);
 
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
     void searchPublicProducts({
@@ -94,16 +96,26 @@ export const useCatalogSearch = ({
       page,
       perPage: CATALOG_PAGE_SIZE,
       sort,
+      signal: controller.signal,
     })
       .then((result) => {
+        if (cancelled) return;
         setProducts(result.items);
         setMeta(result.meta);
         setFacets(result.facets);
       })
-      .catch((reason: Error) =>
-        setError(reason.message || "Les produits n'ont pas pu être chargés."),
-      )
-      .finally(() => setLoading(false));
+      .catch((reason: Error) => {
+        if (controller.signal.aborted || cancelled) return;
+        setError(reason.message || "Les produits n'ont pas pu être chargés.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [
     brand,
     category,

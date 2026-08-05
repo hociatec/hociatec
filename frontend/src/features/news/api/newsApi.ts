@@ -32,26 +32,35 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+type RequestOptions = {
+  signal?: AbortSignal;
+};
+
 export const fetchNewsArticles = async ({
   page = 1,
   perPage = 9,
   q,
+  signal,
 }: {
   page?: number;
   perPage?: number;
   q?: string;
-} = {}): Promise<{ items: NewsArticleDto[]; meta: PaginationMeta }> => {
+} & RequestOptions = {}): Promise<{ items: NewsArticleDto[]; meta: PaginationMeta }> => {
   const { data } = await httpClient.get<
     ApiResponse<{ items: NewsArticleDto[]; meta: PaginationMeta }>
-  >('/api/public/news', { params: { page, perPage, q: q?.trim() || undefined } });
+  >('/api/public/news', { params: { page, perPage, q: q?.trim() || undefined }, signal });
 
   if (isApiOk(data)) return data.data;
   throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les actualités.');
 };
 
-export const fetchNewsArticle = async (slug: string): Promise<NewsArticleDto> => {
+export const fetchNewsArticle = async (
+  slug: string,
+  options: RequestOptions = {},
+): Promise<NewsArticleDto> => {
   const { data } = await httpClient.get<ApiResponse<{ article: NewsArticleDto }>>(
     `/api/public/news/${encodeURIComponent(slug)}`,
+    { signal: options.signal },
   );
 
   if (isApiOk(data)) return data.data.article;
@@ -61,10 +70,14 @@ export const fetchNewsArticle = async (slug: string): Promise<NewsArticleDto> =>
 export const fetchNewsComments = async (
   slug: string,
   page = 1,
+  options: RequestOptions = {},
 ): Promise<{ items: NewsCommentDto[]; meta: PaginationMeta }> => {
   const { data } = await httpClient.get<
     ApiResponse<{ items: NewsCommentDto[]; meta: PaginationMeta }>
-  >(`/api/public/news/${encodeURIComponent(slug)}/comments`, { params: { page, perPage: 10 } });
+  >(`/api/public/news/${encodeURIComponent(slug)}/comments`, {
+    params: { page, perPage: 10 },
+    signal: options.signal,
+  });
 
   if (isApiOk(data)) return data.data;
   throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les commentaires.');

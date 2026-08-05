@@ -28,15 +28,17 @@ export const NewsListPage = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void fetchNewsArticles({ page, q })
+    void fetchNewsArticles({ page, q, signal: controller.signal })
       .then((result) => {
         if (cancelled) return;
         setItems(result.items);
         setMeta(result.meta);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
       })
       .finally(() => {
@@ -45,6 +47,7 @@ export const NewsListPage = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [page, q]);
 

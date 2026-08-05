@@ -26,15 +26,17 @@ export const NewsComments = ({ slug }: { slug: string }) => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void fetchNewsComments(slug, page)
+    void fetchNewsComments(slug, page, { signal: controller.signal })
       .then((result) => {
         if (cancelled) return;
         setComments(result.items);
         setMeta(result.meta);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
       })
       .finally(() => {
@@ -43,6 +45,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [page, slug]);
 

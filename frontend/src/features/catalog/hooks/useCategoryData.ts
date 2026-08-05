@@ -60,12 +60,14 @@ export const useCategoryData = ({
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
+    const controller = new AbortController();
     setError(null);
-    void fetchPublicCategory(slug)
+    void fetchPublicCategory(slug, { signal: controller.signal })
       .then((result) => {
         if (!cancelled) setData(result);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled)
           setError(
             getHttpErrorMessage(reason, "Cette catégorie n'est pas disponible pour le moment."),
@@ -73,12 +75,14 @@ export const useCategoryData = ({
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [slug]);
 
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
     void searchPublicProducts({
@@ -94,6 +98,7 @@ export const useCategoryData = ({
       page,
       perPage,
       sort,
+      signal: controller.signal,
     })
       .then((result) => {
         if (cancelled) return;
@@ -102,6 +107,7 @@ export const useCategoryData = ({
         setFacets(result.facets);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled)
           setError(
             getHttpErrorMessage(
@@ -115,6 +121,7 @@ export const useCategoryData = ({
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [
     brand,

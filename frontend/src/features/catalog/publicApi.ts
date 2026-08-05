@@ -22,6 +22,10 @@ import {
   parseCategoryWithProducts,
 } from './catalogValidation';
 
+type RequestOptions = {
+  signal?: AbortSignal;
+};
+
 export const fetchPublicCategories = async () => {
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
@@ -38,10 +42,11 @@ export const fetchPublicCategories = async () => {
   }
 };
 
-export const fetchPublicCategory = async (slug: string) => {
+export const fetchPublicCategory = async (slug: string, options: RequestOptions = {}) => {
   try {
     const { data } = await httpClient.get<ApiResponse<CategoryWithProducts>>(
       `/api/public/catalog/categories/${slug}`,
+      { signal: options.signal },
     );
 
     if (data.status === 'success') {
@@ -54,10 +59,11 @@ export const fetchPublicCategory = async (slug: string) => {
   }
 };
 
-export const fetchPublicProduct = async (slug: string) => {
+export const fetchPublicProduct = async (slug: string, options: RequestOptions = {}) => {
   try {
     const { data } = await httpClient.get<ApiResponse<CatalogProduct>>(
       `/api/public/catalog/products/${slug}`,
+      { signal: options.signal },
     );
 
     if (data.status === 'success') {
@@ -141,7 +147,7 @@ export const fetchPublicProducts = async (
     page?: number;
     perPage?: number;
     sort?: CatalogSort;
-  } = {},
+  } & RequestOptions = {},
 ) => {
   const queryParams: Record<string, string> = {};
 
@@ -204,7 +210,7 @@ export const fetchPublicProducts = async (
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
       '/api/public/catalog/products',
-      { params: queryParams },
+      { params: queryParams, signal: params.signal },
     );
 
     if (data.status === 'success') {
@@ -233,7 +239,7 @@ export const searchPublicProducts = async (
     page?: number;
     perPage?: number;
     sort?: CatalogSort;
-  } = {},
+  } & RequestOptions = {},
 ) => {
   const queryParams: Record<string, string> = {};
 
@@ -257,7 +263,7 @@ export const searchPublicProducts = async (
   try {
     const { data } = await httpClient.get<
       ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>
-    >('/api/public/catalog/products', { params: queryParams });
+    >('/api/public/catalog/products', { params: queryParams, signal: params.signal });
 
     if (data.status === 'success') {
       return parseCatalogSearchPayload(data.data);

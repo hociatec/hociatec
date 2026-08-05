@@ -14,10 +14,11 @@ export const useHomeFeaturedServices = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    void fetchPublicQuoteServices()
+    void fetchPublicQuoteServices({ signal: controller.signal })
       .then((items) => {
         if (cancelled) {
           return;
@@ -25,6 +26,7 @@ export const useHomeFeaturedServices = () => {
         setServices(selectFeaturedServices(items, HOMEPAGE_SERVICE_LIMIT));
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled) {
           setError(getHttpErrorMessage(reason, 'Impossible de charger les services.'));
         }
@@ -37,6 +39,7 @@ export const useHomeFeaturedServices = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

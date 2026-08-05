@@ -12,16 +12,18 @@ export const useHomeLatestNews = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    void fetchNewsArticles({ page: 1, perPage: HOMEPAGE_NEWS_LIMIT })
+    void fetchNewsArticles({ page: 1, perPage: HOMEPAGE_NEWS_LIMIT, signal: controller.signal })
       .then(({ items }) => {
         if (!cancelled) {
           setArticles(items.slice(0, HOMEPAGE_NEWS_LIMIT));
         }
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled) {
           setError(getHttpErrorMessage(reason, 'Impossible de charger les actualités.'));
         }
@@ -34,6 +36,7 @@ export const useHomeLatestNews = () => {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

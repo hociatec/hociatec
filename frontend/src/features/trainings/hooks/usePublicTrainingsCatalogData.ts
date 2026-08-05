@@ -16,15 +16,20 @@ export const usePublicTrainingsCatalogData = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void Promise.all([fetchPublicTrainings(), fetchPublicTrainingCategories()])
+    void Promise.all([
+      fetchPublicTrainings(undefined, { signal: controller.signal }),
+      fetchPublicTrainingCategories({ signal: controller.signal }),
+    ])
       .then(([trainingItems, categoryItems]) => {
         if (cancelled) return;
         setTrainings(trainingItems);
         setCategories(categoryItems);
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled)
           setError(getHttpErrorMessage(reason, 'Impossible de charger les formations.'));
       })
@@ -33,6 +38,7 @@ export const usePublicTrainingsCatalogData = () => {
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

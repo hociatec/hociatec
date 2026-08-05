@@ -112,18 +112,6 @@ Avec des statuts HTTP corrects :
 - 500 serveur.
 
 
-3.4 Ajouter l’annulation des requêtes
--------------------------------------
-
-Les recherches, filtres et chargements de pages doivent annuler les requêtes devenues inutiles.
-
-Axios accepte AbortSignal :
-
-    httpClient.get('/products', { signal });
-
-React Query fournit directement un signal à queryFn.
-
-
 3.8 Générer le client depuis OpenAPI
 ------------------------------------
 

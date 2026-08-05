@@ -12,13 +12,19 @@ export const useHomeFeaturedProducts = () => {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void fetchPublicProducts({ homepage: true, perPage: HOMEPAGE_PRODUCT_LIMIT })
+    void fetchPublicProducts({
+      homepage: true,
+      perPage: HOMEPAGE_PRODUCT_LIMIT,
+      signal: controller.signal,
+    })
       .then((items) => {
         if (!cancelled) setProducts(items.slice(0, HOMEPAGE_PRODUCT_LIMIT));
       })
       .catch((reason) => {
+        if (controller.signal.aborted) return;
         if (!cancelled)
           setError(getHttpErrorMessage(reason, 'Impossible de charger les produits.'));
       })
@@ -27,6 +33,7 @@ export const useHomeFeaturedProducts = () => {
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

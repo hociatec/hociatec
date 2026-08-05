@@ -12,10 +12,18 @@ export const useQuoteCatalogSearch = () => {
   const productDebounce = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    void fetchPublicQuoteServices().then(setAllServices).catch(() => void 0);
+    const controller = new AbortController();
+    void fetchPublicQuoteServices({ signal: controller.signal })
+      .then(setAllServices)
+      .catch(() => void 0);
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     const query = searchQuery.trim();
     if (productDebounce.current) window.clearTimeout(productDebounce.current);
     if (query.length < 2) {
@@ -25,10 +33,19 @@ export const useQuoteCatalogSearch = () => {
     }
     setProductLoading(true);
     productDebounce.current = window.setTimeout(() => {
-      void fetchPublicProducts({ q: query, perPage: 48, sort: 'relevance' })
-        .then(setProducts)
-        .finally(() => setProductLoading(false));
+      void fetchPublicProducts({ q: query, perPage: 48, sort: 'relevance', signal: controller.signal })
+        .then((items) => {
+          if (!controller.signal.aborted) setProducts(items);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setProductLoading(false);
+        });
     }, 300);
+
+    return () => {
+      if (productDebounce.current) window.clearTimeout(productDebounce.current);
+      controller.abort();
+    };
   }, [searchQuery]);
 
   const filteredServices = useMemo(

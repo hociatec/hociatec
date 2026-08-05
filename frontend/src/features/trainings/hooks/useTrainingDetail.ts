@@ -22,15 +22,25 @@ export const useTrainingDetail = () => {
   const [submittingId, setSubmittingId] = useState<number | null>(null);
   const [slotForms, setSlotForms] = useState<Record<number, { date: string; time: string }>>({});
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    void fetchPublicTraining(slug)
+    void fetchPublicTraining(slug, { signal: controller.signal })
       .then((data) => {
+        if (controller.signal.aborted) return;
         setTraining(data.training);
         setSessions(data.sessions);
       })
-      .catch((err: Error) => setError(err.message || 'Formation introuvable.'))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (!controller.signal.aborted) setError(err.message || 'Formation introuvable.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [slug]);
   const updateSlot = (
     sessionId: number,
