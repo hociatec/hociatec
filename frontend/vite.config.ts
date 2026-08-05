@@ -1,4 +1,4 @@
-import { defineConfig, type PluginOption } from 'vite';
+import { defineConfig, loadEnv, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { execSync } from 'node:child_process';
@@ -32,50 +32,57 @@ const plugins: PluginOption[] = [
     : []),
 ];
 
-export default defineConfig(() => ({
-  base: '/',
-  plugins,
-  define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(
-      process.env.VITE_APP_VERSION ?? process.env.npm_package_version ?? '0.0.0',
-    ),
-    'import.meta.env.VITE_BUILD_DATE': JSON.stringify(
-      process.env.VITE_BUILD_DATE ?? new Date().toISOString(),
-    ),
-    'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(
-      process.env.VITE_COMMIT_SHA ?? process.env.GITHUB_SHA ?? readGitCommitSha(),
-    ),
-  },
-  build: {
-    chunkSizeWarningLimit: 900,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined;
-          if (id.includes('@fullcalendar')) return 'vendor-fullcalendar';
-          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react';
-          if (id.includes('@radix-ui') || id.includes('@headlessui')) return 'vendor-ui';
-          if (id.includes('lucide-react')) return 'vendor-icons';
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, rootDir, '');
+  const devApiProxyTarget = env.VITE_DEV_API_PROXY_TARGET ?? 'http://127.0.0.1:8083';
+  const devApiProxyHost = env.VITE_DEV_API_PROXY_HOST ?? 'api.hociatec.fr';
 
-          return 'vendor';
+  return {
+    base: '/',
+    cacheDir: env.VITE_CACHE_DIR || 'node_modules/.vite',
+    plugins,
+    define: {
+      'import.meta.env.VITE_APP_VERSION': JSON.stringify(
+        process.env.VITE_APP_VERSION ?? process.env.npm_package_version ?? '0.0.0',
+      ),
+      'import.meta.env.VITE_BUILD_DATE': JSON.stringify(
+        process.env.VITE_BUILD_DATE ?? new Date().toISOString(),
+      ),
+      'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(
+        process.env.VITE_COMMIT_SHA ?? process.env.GITHUB_SHA ?? readGitCommitSha(),
+      ),
+    },
+    build: {
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('@fullcalendar')) return 'vendor-fullcalendar';
+            if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react';
+            if (id.includes('@radix-ui') || id.includes('@headlessui')) return 'vendor-ui';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+
+            return 'vendor';
+          },
         },
       },
     },
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        headers: {
-          Host: 'api.hociatec.fr',
+    server: {
+      proxy: {
+        '/api': {
+          target: devApiProxyTarget,
+          changeOrigin: true,
+          headers: {
+            Host: devApiProxyHost,
+          },
         },
       },
     },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(rootDir, 'src'),
+    resolve: {
+      alias: {
+        '@': resolve(rootDir, 'src'),
+      },
     },
-  },
-}));
+  };
+});
