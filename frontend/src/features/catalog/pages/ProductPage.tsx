@@ -11,6 +11,7 @@ import { useProductPageData } from '@/features/catalog/hooks/useProductPageData'
 import { useProductPageInteractions } from '@/features/catalog/hooks/useProductPageInteractions';
 import { useProductReviews } from '@/features/catalog/hooks/useProductReviews';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
+import { buildProductStructuredData } from '@/features/catalog/utils/productPageDisplay';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
@@ -25,17 +26,10 @@ export const ProductPage = () => {
   const { hasMoreReviews, loadMoreReviews, reviews, reviewsError, reviewsLoading, reviewsMeta } = useProductReviews(product);
   const productDisplayName = product ? getCatalogProductDisplayName(product) : null;
   const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
-  const productStructuredData = product ? {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: productDisplayName,
-    description: product.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
-    sku: product.sku,
-    url: canonicalUrl,
-    category: product.category.name,
-    image: product.imageUrl ?? undefined,
-    offers: { '@type': 'Offer', priceCurrency: 'EUR', price: (product.priceCents / 100).toFixed(2), availability: 'https://schema.org/InStock' },
-  } : undefined;
+  const productStructuredData =
+    product && productDisplayName && canonicalUrl
+      ? buildProductStructuredData(product, productDisplayName, canonicalUrl)
+      : undefined;
 
   useDocumentTitle(productDisplayName ? `${productDisplayName} - Catalogue` : 'Produit - Catalogue');
   useMetaTags({

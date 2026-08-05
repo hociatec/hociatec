@@ -1,5 +1,6 @@
 import type { CatalogProduct } from '../api';
 import { formatFrenchDate, formatEuroCents } from '@/shared/lib/formatters';
+import { SITE_URL } from '@/shared/config/seoConfig';
 
 export const formatProductPrice = formatEuroCents;
 export const formatProductDate = formatFrenchDate;
@@ -64,4 +65,81 @@ export const groupProductVariants = <T extends { storage: string | null; title: 
     storage,
     items: items.sort((left, right) => left.title.localeCompare(right.title, 'fr')),
   }));
+};
+
+const toAbsoluteUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
+
+  try {
+    return new URL(url, SITE_URL).toString();
+  } catch {
+    return undefined;
+  }
+};
+
+export const buildProductStructuredData = (
+  product: CatalogProduct,
+  productDisplayName: string,
+  canonicalUrl: string,
+) => {
+  const productUrl = toAbsoluteUrl(canonicalUrl) ?? canonicalUrl;
+  const imageUrl = toAbsoluteUrl(product.imageUrl);
+  const priceCents = product.effectivePriceCents ?? product.priceCents;
+  const schemas: Record<string, unknown>[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: productDisplayName,
+      description:
+        product.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
+      sku: product.sku,
+      brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+      category: product.category.name,
+      image: imageUrl ? [imageUrl] : undefined,
+      url: productUrl,
+      offers: {
+        '@type': 'Offer',
+        url: productUrl,
+        priceCurrency: 'EUR',
+        price: (priceCents / 100).toFixed(2),
+        availability:
+          product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        itemCondition: 'https://schema.org/NewCondition',
+      },
+      aggregateRating:
+        product.reviews && product.reviews.count > 0
+          ? {
+              '@type': 'AggregateRating',
+              ratingValue: product.reviews.average,
+              reviewCount: product.reviews.count,
+            }
+          : undefined,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Accueil',
+          item: SITE_URL,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: product.category.name,
+          item: `${SITE_URL}/catalogue/${product.category.slug}`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: productDisplayName,
+          item: productUrl,
+        },
+      ],
+    },
+  ];
+
+  return schemas;
 };

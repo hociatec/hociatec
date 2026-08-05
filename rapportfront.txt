@@ -1145,18 +1145,6 @@ Pour un catalogue public important, envisager :
 - données structurées JSON-LD.
 
 
-15.4 Ajouter les données structurées
-------------------------------------
-
-Pour les produits :
-- Product ;
-- Offer ;
-- BreadcrumbList ;
-- éventuellement Organization.
-
-Les données doivent correspondre exactement au contenu visible.
-
-
 16. EXPÉRIENCE UTILISATEUR
 ==========================
 
