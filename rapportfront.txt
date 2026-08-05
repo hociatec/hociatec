@@ -16,41 +16,6 @@ Limite de l’analyse :
 L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
 
 
-13. OBSERVABILITÉ ET PRODUCTION
-===============================
-
-13.2 Ajouter une solution de suivi d’erreurs
---------------------------------------------
-
-Sentry ou équivalent peut suivre :
-- erreurs React ;
-- erreurs réseau ;
-- source maps ;
-- version déployée ;
-- route ;
-- navigateur ;
-- performance.
-
-Ne pas enregistrer :
-- mots de passe ;
-- tokens ;
-- données bancaires ;
-- messages privés ;
-- données sensibles des formulaires.
-
-
-13.3 Ajouter les Web Vitals
----------------------------
-
-Mesurer :
-- LCP ;
-- CLS ;
-- INP ;
-- TTFB.
-
-Puis corréler les régressions avec les versions de déploiement.
-
-
 14. CONFIGURATION ET ENVIRONNEMENTS
 ==================================
 

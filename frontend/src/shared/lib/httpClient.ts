@@ -11,6 +11,7 @@ import {
   shouldAttachCsrfToken,
 } from './http/csrf';
 import { getPersistedCartToken } from './http/tokens';
+import { reportError } from './observability';
 
 export {
   ApiResponseError,
@@ -100,6 +101,7 @@ httpClient.interceptors.response.use(
   },
   async (error: unknown) => {
     if (!isAxiosError(error) || !error.config) {
+      reportError(error, { category: 'network', message: 'Unhandled HTTP client error.' });
       throw error;
     }
 
@@ -122,6 +124,16 @@ httpClient.interceptors.response.use(
     }
 
     if (error.response?.status !== 401) {
+      if (!error.response || error.response.status >= 500) {
+        reportError(error, {
+          category: 'network',
+          message: 'HTTP request failed.',
+          method: originalRequest.method,
+          status: error.response?.status,
+          url: originalRequest.url,
+        });
+      }
+
       throw error;
     }
 

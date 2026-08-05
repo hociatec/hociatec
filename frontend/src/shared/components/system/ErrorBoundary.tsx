@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router';
 
 import { ErrorState } from '@/shared/components/ui/page-state';
 import { BUILD_INFO } from '@/shared/config/appConfig';
-import { logger } from '@/shared/lib/logger';
+import { reportError } from '@/shared/lib/observability';
 
 interface ErrorBoundaryProps extends PropsWithChildren {
   resetKey: string;
@@ -75,10 +75,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo) {
-    logger.error('React render tree failed.', {
+    reportError(error, {
+      category: 'react',
       error,
       componentStack: info.componentStack,
       errorId: this.state.errorId,
+      message: 'React render tree failed.',
     });
   }
 

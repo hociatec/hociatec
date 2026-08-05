@@ -38,3 +38,27 @@ export const BUILD_INFO: BuildInfo = {
   buildDate: import.meta.env.VITE_BUILD_DATE || 'unknown',
   environment: APP_ENV,
 };
+
+const parseBoolean = (value: string | undefined, fallback: boolean) => {
+  if (value === undefined || value.trim() === '') return fallback;
+
+  return value === 'true' || value === '1';
+};
+
+const parseSampleRate = (value: string | undefined, fallback: number) => {
+  if (value === undefined || value.trim() === '') return fallback;
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    throw new Error('Les taux observabilité doivent être compris entre 0 et 1.');
+  }
+
+  return parsed;
+};
+
+export const OBSERVABILITY_CONFIG = {
+  enabled: parseBoolean(import.meta.env.VITE_OBSERVABILITY_ENABLED, APP_ENV === 'production'),
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN?.trim() || '',
+  tracesSampleRate: parseSampleRate(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE, 0.05),
+  webVitalsEndpoint: import.meta.env.VITE_WEB_VITALS_ENDPOINT?.trim() || '',
+};
