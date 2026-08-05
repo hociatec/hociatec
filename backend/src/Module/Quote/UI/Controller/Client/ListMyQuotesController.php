@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
@@ -22,7 +21,7 @@ class ListMyQuotesController extends AbstractController
 {
     public function __construct(
         private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
     ) {
     }
 
@@ -33,7 +32,7 @@ class ListMyQuotesController extends AbstractController
         $user = $this->getUser();
         $quotes = $this->quotes->findByCustomerEmail($user->getEmail(), $pagination->perPage, $pagination->offset());
         $items = array_map(
-            fn ($q) => QuoteFormatter::formatQuote($q, $this->calculator),
+            fn ($q) => $this->formatter->formatQuote($q),
             $quotes,
         );
 

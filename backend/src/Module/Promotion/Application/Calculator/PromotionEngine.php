@@ -15,10 +15,11 @@ final class PromotionEngine
 {
     public function __construct(
         private readonly PromotionRepositoryPort $promotions,
-        private readonly PromotionAudienceProvider $audiences = new PromotionAudienceProvider(),
-        private readonly CartSubtotalCalculator $cartSubtotal = new CartSubtotalCalculator(),
-        private readonly PromotionDiscountCalculator $discounts = new PromotionDiscountCalculator(),
-        private readonly PromotionEligibilityPolicy $eligibility = new PromotionEligibilityPolicy(),
+        private readonly PromotionFormatter $formatter,
+        private readonly PromotionAudienceProvider $audiences,
+        private readonly CartSubtotalCalculator $cartSubtotal,
+        private readonly PromotionDiscountCalculator $discounts,
+        private readonly PromotionEligibilityPolicy $eligibility,
     ) {
     }
 
@@ -72,7 +73,7 @@ final class PromotionEngine
             }
 
             $formatted = [
-                ...PromotionFormatter::formatPromotion($promotion),
+                ...$this->formatter->formatPromotion($promotion),
                 'discountAmountCents' => $discountAmount,
             ];
 

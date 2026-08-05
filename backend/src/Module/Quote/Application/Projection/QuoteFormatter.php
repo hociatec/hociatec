@@ -13,14 +13,17 @@ use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
 
 final class QuoteFormatter
 {
-    private function __construct()
+    public function __construct(
+        private readonly QuoteCalculator $calculator,
+        private readonly OrderFormatter $orderFormatter,
+    )
     {
     }
 
     /**
      * @return array<string, mixed>
      */
-    public static function formatService(ServiceOffering $service): array
+    public function formatService(ServiceOffering $service): array
     {
         $durationValue = $service->getDurationValue();
         $durationUnit = $service->getDurationUnit();
@@ -31,11 +34,11 @@ final class QuoteFormatter
             'description' => $service->getDescription(),
             'unit' => $service->getUnit(),
             'isFeaturedHome' => $service->isFeaturedHome(),
-            'imageUrl' => self::formatServiceImageUrl($service),
+            'imageUrl' => $this->formatServiceImageUrl($service),
             'imageAlt' => $service->getImageAlt(),
             'durationValue' => $durationValue,
             'durationUnit' => $durationUnit,
-            'durationLabel' => self::formatServiceDurationLabel($durationValue, $durationUnit),
+            'durationLabel' => $this->formatServiceDurationLabel($durationValue, $durationUnit),
             'priceCents' => $service->getPriceCents(),
             'vatRate' => $service->getVatRateBps() / 100,
         ];
@@ -44,9 +47,9 @@ final class QuoteFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatQuote(Quote $quote, QuoteCalculator $calculator): array
+    public function formatQuote(Quote $quote): array
     {
-        $totals = $calculator->computeTotals($quote);
+        $totals = $this->calculator->computeTotals($quote);
 
         $statusCode = $quote->getStatus();
         $statusLabel = QuoteStatusTranslator::toLabel($statusCode);
@@ -64,7 +67,7 @@ final class QuoteFormatter
                 'address' => $quote->getCustomerAddress(),
             ],
             'items' => array_map(
-                static fn (QuoteItem $item) => self::formatItem($item),
+                fn (QuoteItem $item) => $this->formatItem($item),
                 [...$quote->getItems()]
             ),
             'discountCents' => $quote->getGlobalDiscountCents(),
@@ -81,7 +84,7 @@ final class QuoteFormatter
             'updatedAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
             'sentAt' => $quote->getCreatedEmailSentAt()?->format(DATE_ATOM),
             'convertedOrder' => null !== $quote->getConvertedOrder()
-                ? OrderFormatter::formatOrder($quote->getConvertedOrder())
+                ? $this->orderFormatter->formatOrder($quote->getConvertedOrder())
                 : null,
         ];
     }
@@ -89,11 +92,10 @@ final class QuoteFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatItem(QuoteItem $item): array
+    public function formatItem(QuoteItem $item): array
     {
         $qty = $item->getQuantity();
-        $calc = new QuoteCalculator();
-        $line = $calc->computeItemTotals($item);
+        $line = $this->calculator->computeItemTotals($item);
 
         return [
             'id' => $item->getId(),
@@ -115,7 +117,7 @@ final class QuoteFormatter
         ];
     }
 
-    private static function formatServiceImageUrl(ServiceOffering $service): ?string
+    private function formatServiceImageUrl(ServiceOffering $service): ?string
     {
         if (null !== $service->getImageName() && '' !== trim($service->getImageName())) {
             return sprintf('/uploads/services/%s', ltrim($service->getImageName(), '/'));
@@ -128,7 +130,7 @@ final class QuoteFormatter
         return null;
     }
 
-    private static function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string
+    private function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string
     {
         if (null === $durationValue || $durationValue <= 0 || null === $durationUnit || '' === $durationUnit) {
             return null;

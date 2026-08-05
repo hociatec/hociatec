@@ -29,21 +29,8 @@ readonly class ProductCatalogQuery
         return ($this->page - 1) * $this->perPage;
     }
 
-    /** @return list<mixed> */
-    public function filterArguments(): array
+    public function criteria(): ProductCatalogCriteria
     {
-        return [
-            $this->categorySlug,
-            $this->search,
-            $this->onlyFeatured,
-            $this->sellingType,
-            $this->brand,
-            $this->storageCapacity,
-            $this->memoryRam,
-            $this->color,
-            $this->minPriceCents,
-            $this->maxPriceCents,
-            $this->inStockOnly,
-        ];
+        return ProductCatalogCriteria::fromCatalogQuery($this);
     }
 }

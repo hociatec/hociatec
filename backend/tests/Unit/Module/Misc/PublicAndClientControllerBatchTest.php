@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\UI\Controller\ListFavoritesController;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
@@ -36,7 +37,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $services->expects(self::once())->method('findPaginated')->with(20, 20)->willReturn([$service]);
         $services->expects(self::once())->method('countAll')->willReturn(21);
 
-        $publicServices = new ListServicesController($services);
+        $publicServices = new ListServicesController($services, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())));
         $servicesPayload = json_decode((string) $publicServices(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $servicesPayload['data']['meta']['page']);
         self::assertSame('2 jours', $servicesPayload['data']['items'][0]['durationLabel']);
@@ -55,10 +56,10 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $favorites->expects(self::once())->method('listForUser')->with($user, 12, 0)->willReturn([$favorite]);
         $favorites->expects(self::once())->method('countForUser')->with($user)->willReturn(1);
 
-        $controller = new class($favorites, $user) extends ListFavoritesController {
-            public function __construct(FavoriteService $favorites, private readonly User $user)
+        $controller = new class($favorites, new CatalogFormatter(), $user) extends ListFavoritesController {
+            public function __construct(FavoriteService $favorites, CatalogFormatter $formatter, private readonly User $user)
             {
-                parent::__construct($favorites);
+                parent::__construct($favorites, $formatter);
             }
 
             public function getUser(): ?User
@@ -110,7 +111,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $controller = new class($orders, $workflow, $owner) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy());
+                parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
             }
 
             public function getUser(): ?User
@@ -124,7 +125,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $otherUserController = new class($orders, $workflow, $actor) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy());
+                parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
             }
 
             public function getUser(): ?User

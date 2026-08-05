@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowProductController extends AbstractController
 {
-    public function __construct(private readonly ProductRepositoryPort $productRepository)
+    public function __construct(
+        private readonly ProductRepositoryPort $productRepository,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -29,6 +32,6 @@ class ShowProductController extends AbstractController
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(CatalogFormatter::formatProduct($product, true));
+        return ApiResponse::success($this->catalogFormatter->formatProduct($product, true));
     }
 }

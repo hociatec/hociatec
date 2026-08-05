@@ -25,6 +25,7 @@ class UpdateAddressController extends AbstractController
         private readonly ShippingAddressRepositoryPort $addresses,
         private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
+        private readonly ShippingAddressFormatter $formatter,
     ) {
     }
 
@@ -55,6 +56,6 @@ class UpdateAddressController extends AbstractController
 
         $this->writer->save($address);
 
-        return ApiResponse::successItem('address', ShippingAddressFormatter::toArray($address));
+        return ApiResponse::successItem('address', $this->formatter->toArray($address));
     }
 }

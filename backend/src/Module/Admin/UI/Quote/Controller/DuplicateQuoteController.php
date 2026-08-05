@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
@@ -22,7 +21,7 @@ class DuplicateQuoteController extends AbstractController
     public function __construct(
         private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteDomainService $quoteService,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
     ) {
     }
 
@@ -35,6 +34,6 @@ class DuplicateQuoteController extends AbstractController
 
         $copy = $this->quoteService->duplicate($quote);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($copy, $this->calculator), JsonResponse::HTTP_OK, 'Le devis a bien été dupliqué.');
+        return ApiResponse::success($this->formatter->formatQuote($copy), JsonResponse::HTTP_OK, 'Le devis a bien été dupliqué.');
     }
 }

@@ -8,21 +8,17 @@ use App\Module\Catalog\Domain\ValueObject\ProductDiscount;
 
 final class ProductCatalogListProjectionFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @param array<string, mixed> $product
      *
      * @return array<string, mixed>
      */
-    public static function format(array $product): array
+    public function format(array $product): array
     {
         $name = (string) $product['name'];
         $sellingType = (string) $product['sellingType'];
         $imageAlt = null !== $product['imageAlt'] ? (string) $product['imageAlt'] : null;
-        $gallery = self::formatGallery($product, $imageAlt ?? $name);
+        $gallery = $this->formatGallery($product, $imageAlt ?? $name);
         $priceCents = (int) $product['priceCents'];
         $discount = new ProductDiscount(
             (bool) $product['discountEnabled'],
@@ -55,7 +51,7 @@ final class ProductCatalogListProjectionFormatter
             'stock' => (int) $product['stock'],
             'isPublished' => (bool) $product['isPublished'],
             'isFeaturedHome' => (bool) $product['isFeaturedHome'],
-            'imageUrl' => $gallery[0]['url'] ?? self::resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
+            'imageUrl' => $gallery[0]['url'] ?? $this->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
             'imageAlt' => $imageAlt,
             'createdAt' => $product['createdAt'] instanceof \DateTimeInterface ? $product['createdAt']->format(DATE_ATOM) : null,
             'updatedAt' => $product['updatedAt'] instanceof \DateTimeInterface ? $product['updatedAt']->format(DATE_ATOM) : null,
@@ -89,12 +85,12 @@ final class ProductCatalogListProjectionFormatter
      *
      * @return list<array{position:int,url:string,alt:string,isPrimary:bool}>
      */
-    private static function formatGallery(array $product, string $alt): array
+    private function formatGallery(array $product, string $alt): array
     {
         $items = [];
         foreach ([0 => 'imageName', 1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name'] as $position => $key) {
             $fileName = null !== $product[$key] ? (string) $product[$key] : null;
-            $url = self::resolveImageUrlFromName($fileName);
+            $url = $this->resolveImageUrlFromName($fileName);
             if (null === $url) {
                 continue;
             }
@@ -110,7 +106,7 @@ final class ProductCatalogListProjectionFormatter
         return $items;
     }
 
-    private static function resolveImageUrlFromName(?string $fileName): ?string
+    private function resolveImageUrlFromName(?string $fileName): ?string
     {
         if (null === $fileName || '' === $fileName) {
             return null;

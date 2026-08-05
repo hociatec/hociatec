@@ -6,7 +6,6 @@ namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteProductItemInput;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
@@ -28,7 +27,7 @@ class AddProductItemController extends AbstractController
         private readonly QuoteWorkflowService $workflow,
         private readonly QuoteRepositoryPort $quoteRepository,
         private readonly ProductRepositoryPort $productRepository,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
         private readonly DtoValidator $validator,
     ) {
     }
@@ -50,6 +49,6 @@ class AddProductItemController extends AbstractController
 
         $this->workflow->addProductItem($quote, $product, QuoteItemAddition::fromArray($input->toPayload()));
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::success($this->formatter->formatQuote($quote));
     }
 }

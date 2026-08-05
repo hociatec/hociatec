@@ -26,6 +26,9 @@ final class ShowCustomerController extends AbstractController
         private readonly ShippingAddressRepositoryPort $addresses,
         private readonly OrderRepositoryPort $orders,
         private readonly VoucherRepositoryPort $vouchers,
+        private readonly OrderFormatter $orderFormatter,
+        private readonly ShippingAddressFormatter $shippingAddressFormatter,
+        private readonly VoucherFormatter $voucherFormatter,
     ) {
     }
 
@@ -38,7 +41,7 @@ final class ShowCustomerController extends AbstractController
 
         $orders = $this->orders->findByUser($user);
         $addressRows = array_map(
-            static fn ($address): array => ShippingAddressFormatter::toArray($address),
+            fn ($address): array => $this->shippingAddressFormatter->toArray($address),
             $this->addresses->findAllForUser($user),
         );
 
@@ -73,11 +76,11 @@ final class ShowCustomerController extends AbstractController
             ],
             'addresses' => $addressRows,
             'orders' => array_map(
-                static fn ($order): array => OrderFormatter::formatOrder($order),
+                fn ($order): array => $this->orderFormatter->formatOrder($order),
                 $orders,
             ),
             'vouchers' => array_map(
-                static fn ($voucher): array => VoucherFormatter::formatVoucher($voucher),
+                fn ($voucher): array => $this->voucherFormatter->formatVoucher($voucher),
                 $this->vouchers->findByRecipientUserId($userId),
             ),
         ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Factory;
 
+use App\Module\Catalog\Application\DTO\ProductVariantCopyData;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -112,17 +113,17 @@ final readonly class ProductVariantBatchCreator
         array $values,
         int $position,
     ): void {
-        $copy = $this->variants->createVariantCopy(
-            $product,
-            $name,
-            $sku,
-            $slug,
-            $variantGroup,
-            $values['color'],
-            $values['storage'],
-            $values['stock'],
-            $position,
-        );
+        $copy = $this->variants->createVariantCopy(new ProductVariantCopyData(
+            template: $product,
+            baseName: $name,
+            baseSku: $sku,
+            baseSlug: $slug,
+            variantGroup: $variantGroup,
+            color: $values['color'],
+            storageCapacity: $values['storage'],
+            stock: $values['stock'],
+            position: $position,
+        ));
         $this->persistence->persist($copy);
     }
 }

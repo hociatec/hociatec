@@ -27,6 +27,7 @@ final class UpdateVoucherController extends AbstractController
         private readonly VoucherRepositoryPort $vouchers,
         private readonly UpdateVoucherHandler $updateVoucher,
         private readonly DtoValidator $validator,
+        private readonly VoucherFormatter $formatter,
     ) {
     }
 
@@ -52,7 +53,7 @@ final class UpdateVoucherController extends AbstractController
         }
 
         return ApiResponse::success([
-            'voucher' => VoucherFormatter::formatVoucher($voucher),
+            'voucher' => $this->formatter->formatVoucher($voucher),
         ], JsonResponse::HTTP_OK, 'Le bon de réduction a bien été mis à jour.');
     }
 

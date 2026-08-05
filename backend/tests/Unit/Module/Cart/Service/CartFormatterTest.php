@@ -9,6 +9,7 @@ use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
@@ -26,8 +27,16 @@ final class CartFormatterTest extends TestCase
             ->willReturn(null);
 
         $formatter = new CartFormatter(
-            new PromotionEngine(new PromotionRepository($registry)),
-            new VoucherEngine(new VoucherRepository($registry)),
+            new PromotionEngine(
+                new PromotionRepository($registry),
+                new \App\Module\Promotion\Application\Projection\PromotionFormatter(),
+                new \App\Module\Promotion\Application\Provider\PromotionAudienceProvider(),
+                new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
+                new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
+                new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+            ),
+            new VoucherEngine(new VoucherRepository($registry), new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
+            new CatalogFormatter(),
         );
 
         $category = new Category('Telephone', 'telephone');
@@ -74,8 +83,16 @@ final class CartFormatterTest extends TestCase
         );
 
         $formatter = new CartFormatter(
-            new PromotionEngine($promotionRepository),
-            new VoucherEngine($voucherRepository),
+            new PromotionEngine(
+                $promotionRepository,
+                new \App\Module\Promotion\Application\Projection\PromotionFormatter(),
+                new \App\Module\Promotion\Application\Provider\PromotionAudienceProvider(),
+                new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
+                new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
+                new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+            ),
+            new VoucherEngine($voucherRepository, new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
+            new CatalogFormatter(),
         );
 
         $cart = new CartSession('cart-token');

@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_PROMOTIONS_MANAGER')]
 final class GetPromotionController extends AbstractController
 {
-    public function __construct(private readonly PromotionRepositoryPort $promotions)
+    public function __construct(
+        private readonly PromotionRepositoryPort $promotions,
+        private readonly PromotionFormatter $formatter,
+    )
     {
     }
 
@@ -29,7 +32,7 @@ final class GetPromotionController extends AbstractController
         }
 
         return ApiResponse::success([
-            'promotion' => PromotionFormatter::formatPromotion($promotion),
+            'promotion' => $this->formatter->formatPromotion($promotion),
         ]);
     }
 }

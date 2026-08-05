@@ -18,7 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class ListCategoriesController extends AbstractController
 {
-    public function __construct(private readonly CategoryService $categoryService)
+    public function __construct(
+        private readonly CategoryService $categoryService,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -30,7 +33,7 @@ class ListCategoriesController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                static fn ($category) => CatalogFormatter::formatCategory($category, true),
+                fn ($category) => $this->catalogFormatter->formatCategory($category, true),
                 $categories
             ),
             $pagination->metadata($this->categoryService->countForAdmin()),

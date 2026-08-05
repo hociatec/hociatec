@@ -29,6 +29,7 @@ final class CheckoutController extends AbstractController
     public function __construct(
         private readonly CartCheckoutService $checkout,
         private readonly DtoValidator $dtoValidator,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -59,7 +60,7 @@ final class CheckoutController extends AbstractController
         }
 
         if (null !== $result->order) {
-            return ApiResponse::successItem('order', OrderFormatter::formatOrder($result->order));
+            return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($result->order));
         }
 
         return ApiResponse::created([

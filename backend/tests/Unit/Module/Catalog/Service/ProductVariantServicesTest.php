@@ -9,6 +9,7 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\DTO\ProductVariantCopyData;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -62,7 +63,7 @@ final class ProductVariantServicesTest extends TestCase
             ->setGalleryImage4Name('g4.jpg')
             ->setGalleryImage4Size(400);
 
-        $copy = $service->createVariantCopy($template, 'Phone', 'SKU-BASE', null, 'Family', null, null, 9, 2);
+        $copy = $service->createVariantCopy(new ProductVariantCopyData($template, 'Phone', 'SKU-BASE', null, 'Family', null, null, 9, 2));
 
         self::assertSame('Phone', $copy->getName());
         self::assertSame('SKU-BASE-3', $copy->getSku());
@@ -228,9 +229,11 @@ final class ProductVariantServicesTest extends TestCase
 
     private function service(ProductRepository $repository): ProductVariantService
     {
+        $rules = new ProductCatalogRules($repository, Validation::createValidator());
+
         return new ProductVariantService(
-            $repository,
-            new ProductCatalogRules($repository, Validation::createValidator()),
+            new \App\Module\Catalog\Application\Factory\ProductVariantFactory($repository, $rules),
+            new \App\Module\Catalog\Application\Policy\ProductVariantIdentityPolicy($repository),
         );
     }
 

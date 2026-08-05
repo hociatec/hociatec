@@ -56,10 +56,10 @@ final class MoreLightControllerBatchesTest extends TestCase
         $quotes = $this->createMock(QuoteRepository::class);
         $quotes->expects(self::exactly(3))->method('find')->willReturnOnConsecutiveCalls(null, $quote, $quote);
 
-        $controller = new class($quotes, new QuoteCalculator(), $user) extends GetMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
+        $controller = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())), $user) extends GetMyQuoteController {
+            public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+                parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -71,10 +71,10 @@ final class MoreLightControllerBatchesTest extends TestCase
         $payload = json_decode((string) $controller(7)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Q-1', $payload['data']['number']);
 
-        $otherUserController = new class($quotes, new QuoteCalculator(), $this->user('grace@example.com')) extends GetMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteCalculator $calculator, private readonly User $user)
+        $otherUserController = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())), $this->user('grace@example.com')) extends GetMyQuoteController {
+            public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
             {
-                parent::__construct($quotes, $calculator, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+                parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
             public function getUser(): ?User
@@ -104,7 +104,8 @@ final class MoreLightControllerBatchesTest extends TestCase
                 return $created;
             });
 
-        $create = new CreateQuoteController($quoteService, new QuoteCalculator());
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $create = new CreateQuoteController($quoteService, $quoteFormatter);
         try {
             $create(new Request(content: '{"name":'));
             self::fail('Expected invalid JSON payload exception.');
@@ -125,7 +126,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $failingQuoteService->expects(self::once())
             ->method('createFromPayload')
             ->willThrowException(new \RuntimeException('db down'));
-        $failingCreate = new CreateQuoteController($failingQuoteService, new QuoteCalculator());
+        $failingCreate = new CreateQuoteController($failingQuoteService, $quoteFormatter);
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
             $failingCreate(new Request(content: '{"customer":{"name":"Ada","email":"ada@example.com"},"items":[]}'))->getStatusCode()

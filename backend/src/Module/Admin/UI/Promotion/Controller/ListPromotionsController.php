@@ -18,7 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_PROMOTIONS_MANAGER')]
 final class ListPromotionsController extends AbstractController
 {
-    public function __construct(private readonly PromotionRepositoryPort $promotions)
+    public function __construct(
+        private readonly PromotionRepositoryPort $promotions,
+        private readonly PromotionFormatter $formatter,
+    )
     {
     }
 
@@ -28,7 +31,7 @@ final class ListPromotionsController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                static fn ($promotion) => PromotionFormatter::formatPromotion($promotion),
+                fn ($promotion) => $this->formatter->formatPromotion($promotion),
                 $this->promotions->findBy([], ['updatedAt' => 'DESC'], $pagination->perPage, $pagination->offset()),
             ),
             $pagination->metadata($this->promotions->count([])),

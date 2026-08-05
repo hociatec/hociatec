@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Workflow;
 
-use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuotePayload;
-use App\Module\Quote\Application\Factory\QuoteItemFactory;
 use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
 use App\Module\Quote\Application\Mapper\QuoteHydrator;
 use App\Module\Quote\Application\Mapper\QuoteValueNormalizer;
@@ -27,16 +25,11 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
     public function __construct(
         private readonly QuotePersistencePort $persistence,
-        ProductCatalogRepository $productRepository,
         private readonly QuoteNumberGenerator $numberGenerator,
         private readonly QuoteCalculator $calculator,
-        ?\DateTimeImmutable $today = null,
-        ?QuoteHydrator $hydrator = null,
+        private readonly QuoteHydrator $hydrator,
     ) {
-        $this->hydrator = $hydrator ?? new QuoteHydrator($this->persistence, new QuoteItemFactory($productRepository), $today);
     }
-
-    private readonly QuoteHydrator $hydrator;
 
     public function createEmpty(): Quote
     {

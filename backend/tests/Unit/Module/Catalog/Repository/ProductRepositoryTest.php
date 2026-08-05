@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Repository;
 
+use App\Module\Catalog\Application\Query\ProductAdminCriteria;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -38,20 +40,22 @@ final class ProductRepositoryTest extends TestCase
             $entityManager->getConnection()->rollBack();
         }
 
-        $adminResults = $repository->findAllForAdmin('phones', 'galaxy', null, 'rental', 50000, 100000, false, 'price_desc', 10, 0);
+        $adminCriteria = new ProductAdminCriteria('phones', 'galaxy', null, 'rental', 50000, 100000, false, 'price_desc', 10, 0);
+        $adminResults = $repository->findAllForAdmin($adminCriteria);
         self::assertCount(1, $adminResults);
         self::assertSame($galaxy->getId(), $adminResults[0]->getId());
-        self::assertSame(1, $repository->countForAdmin('phones', 'galaxy', null, 'rental', 50000, 100000, false));
+        self::assertSame(1, $repository->countForAdmin($adminCriteria->withoutSortAndPagination()));
 
-        $featuredAdmin = $repository->findAllForAdmin(null, null, true, null, null, null, true, 'stock_asc', 5, 0);
+        $featuredAdmin = $repository->findAllForAdmin(new ProductAdminCriteria(onlyFeatured: true, lowStockOnly: true, sort: 'stock_asc', limit: 5));
         self::assertSame([$iphone->getId()], array_map(static fn (Product $product): ?int => $product->getId(), $featuredAdmin));
 
-        $published = $repository->findPublished('phones', 'iphone', true, 'sale', 'apple', '256 Go', '8 Go', 'Noir', 100000, 200000, true, 'relevance', 5, 0);
+        $publishedCriteria = new ProductCatalogCriteria('phones', 'iphone', true, 'sale', 'apple', '256 Go', '8 Go', 'Noir', 100000, 200000, true, 'relevance', 5, 0);
+        $published = $repository->findPublished($publishedCriteria);
         self::assertCount(1, $published);
         self::assertSame($iphone->getId(), $published[0]->getId());
-        self::assertSame(1, $repository->countPublished('phones', 'iphone', true, 'sale', 'apple', '256 Go', '8 Go', 'Noir', 100000, 200000, true));
+        self::assertSame(1, $repository->countPublished($publishedCriteria->withoutSortAndPagination()));
 
-        $facets = $repository->collectPublishedFacets('phones', null, null, null, null, null, null, null, null, null, null);
+        $facets = $repository->collectPublishedFacets(new ProductCatalogCriteria(categorySlug: 'phones'));
         self::assertSame([
             ['value' => 'Apple', 'count' => 1],
             ['value' => 'Samsung', 'count' => 1],

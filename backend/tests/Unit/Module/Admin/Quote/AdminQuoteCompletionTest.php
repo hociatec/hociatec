@@ -78,59 +78,63 @@ final class AdminQuoteCompletionTest extends TestCase
         $quoteService = $this->quoteService($em);
         $emailService = $this->emailService($em);
         $validator = $this->validator(11);
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(
+            $calculator,
+            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+        );
 
         $formApplier = new QuoteServiceFormApplier();
         $createQuoteService = new CreateQuoteServiceHandler(new DoctrineUnitOfWork($em), $formApplier);
         $updateQuoteService = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($em), $formApplier);
         $formMapper = new QuoteServiceFormMapper();
-        $createService = new CreateServiceController($formMapper, $createQuoteService);
+        $createService = new CreateServiceController($formMapper, $createQuoteService, $quoteFormatter);
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $createService(Request::create('/', 'POST', ['title' => '', 'price' => 10]))->getStatusCode());
         $createdService = $createService(Request::create('/', 'POST', ['title' => 'Audit', 'description' => 'Desc', 'unit' => 'jour', 'durationValue' => '2', 'durationUnit' => 'day', 'price' => '120,50', 'vatRate' => '20']));
         self::assertSame(Response::HTTP_CREATED, $createdService->getStatusCode());
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateServiceController($formMapper, $this->throwingCreateQuoteService()))(Request::create('/', 'POST', ['title' => 'Down', 'price' => 10]))->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateServiceController($formMapper, $this->throwingCreateQuoteService(), $quoteFormatter))(Request::create('/', 'POST', ['title' => 'Down', 'price' => 10]))->getStatusCode());
         $serviceId = (int) $this->payload($createdService)['data']['id'];
 
-        self::assertSame(Response::HTTP_OK, (new ListServicesController($serviceRepository))(Request::create('/?page=1&perPage=5'))->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, (new GetServiceController($serviceRepository))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new GetServiceController($serviceRepository))($serviceId)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ListServicesController($serviceRepository, $quoteFormatter))(Request::create('/?page=1&perPage=5'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new GetServiceController($serviceRepository, $quoteFormatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new GetServiceController($serviceRepository, $quoteFormatter))($serviceId)->getStatusCode());
 
-        $updateService = new UpdateServiceController($serviceRepository, $formMapper, $updateQuoteService);
+        $updateService = new UpdateServiceController($serviceRepository, $formMapper, $updateQuoteService, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $updateService(Request::create('/', 'POST', ['title' => 'x']), 999)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['unit' => 'bogus']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['durationValue' => '2', 'durationUnit' => '']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $updateService(Request::create('/', 'POST', ['title' => 'Audit', 'price' => 'abc']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $updateService(Request::create('/', 'POST', ['title' => 'Audit updated', 'price' => '90', 'durationValue' => '1', 'durationUnit' => 'hour']), $serviceId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $updateService(Request::create('/', 'POST', ['title' => 'Audit partial']), $serviceId)->getStatusCode());
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateServiceController($serviceRepository, $formMapper, $this->throwingUpdateQuoteService()))(Request::create('/', 'POST', ['title' => 'Down']), $serviceId)->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateServiceController($serviceRepository, $formMapper, $this->throwingUpdateQuoteService(), $quoteFormatter))(Request::create('/', 'POST', ['title' => 'Down']), $serviceId)->getStatusCode());
 
-        $createQuote = new CreateQuoteController($quoteService, $calculator, $emailService, $validator);
+        $createQuote = new CreateQuoteController($quoteService, $quoteFormatter, $emailService, $validator);
         $createdQuote = $createQuote($this->jsonRequest($this->quotePayload()));
         self::assertSame(Response::HTTP_CREATED, $createdQuote->getStatusCode());
         $quoteId = (int) $this->payload($createdQuote)['data']['id'];
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateQuoteController($this->failingQuoteService($em), $calculator, $emailService, $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'Fail']])))->getStatusCode());
-        self::assertSame(Response::HTTP_CREATED, (new CreateQuoteController($quoteService, $calculator, $this->emailService($em, true), $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'Email fail', 'email' => 'email-fail@example.test']])))->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new CreateQuoteController($this->failingQuoteService($em), $quoteFormatter, $emailService, $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'Fail']])))->getStatusCode());
+        self::assertSame(Response::HTTP_CREATED, (new CreateQuoteController($quoteService, $quoteFormatter, $this->emailService($em, true), $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'Email fail', 'email' => 'email-fail@example.test']])))->getStatusCode());
 
         self::assertSame(Response::HTTP_OK, (new ListQuoteMetadataController())()->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new ListQuotesController($quoteRepository, $calculator))(Request::create('/?q=ada&status=draft'))->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, (new ShowQuoteController($quoteRepository, $calculator))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new ShowQuoteController($quoteRepository, $calculator))($quoteId)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ListQuotesController($quoteRepository, $quoteFormatter))(Request::create('/?q=ada&status=draft'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new ShowQuoteController($quoteRepository, $quoteFormatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ShowQuoteController($quoteRepository, $quoteFormatter))($quoteId)->getStatusCode());
 
-        $updateQuote = new UpdateQuoteController($quoteRepository, $quoteService, $calculator, $emailService, $validator);
+        $updateQuote = new UpdateQuoteController($quoteRepository, $quoteService, $quoteFormatter, $emailService, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $updateQuote($this->jsonRequest($this->quotePayload(), 'PUT'), 999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $updateQuote($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'Grace', 'email' => 'grace@example.test']]), 'PUT'), $quoteId)->getStatusCode());
         $quoteRepository->find($quoteId)?->setCreatedEmailSentAt(null);
-        self::assertSame(Response::HTTP_OK, (new UpdateQuoteController($quoteRepository, $quoteService, $calculator, $this->emailService($em, true), $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'No mail', 'email' => 'no-mail@example.test']]), 'PUT'), $quoteId)->getStatusCode());
-        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateQuoteController($quoteRepository, $this->failingQuoteService($em), $calculator, $emailService, $validator))($this->jsonRequest($this->quotePayload(), 'PUT'), $quoteId)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new UpdateQuoteController($quoteRepository, $quoteService, $quoteFormatter, $this->emailService($em, true), $validator))($this->jsonRequest($this->quotePayload(['customer' => ['name' => 'No mail', 'email' => 'no-mail@example.test']]), 'PUT'), $quoteId)->getStatusCode());
+        self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, (new UpdateQuoteController($quoteRepository, $this->failingQuoteService($em), $quoteFormatter, $emailService, $validator))($this->jsonRequest($this->quotePayload(), 'PUT'), $quoteId)->getStatusCode());
 
         $product = $this->product();
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
         $productRepository->method('find')->willReturnMap([[1, null], [2, $product]]);
-        $addProduct = new AddProductItemController(new QuoteWorkflowService(new QuotePersistence($em)), $quoteRepository, $productRepository, $calculator, $validator);
+        $addProduct = new AddProductItemController(new QuoteWorkflowService(new QuotePersistence($em)), $quoteRepository, $productRepository, $quoteFormatter, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $addProduct($this->jsonRequest(['productId' => 2]), 999)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, $addProduct($this->jsonRequest(['productId' => 1]), $quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $addProduct($this->jsonRequest(['productId' => 2, 'quantity' => 2, 'vatRate' => 20]), $quoteId)->getStatusCode());
 
-        $status = new UpdateQuoteStatusController($quoteRepository, $calculator, new QuoteWorkflowService(new QuotePersistence($em)), $validator);
+        $status = new UpdateQuoteStatusController($quoteRepository, $quoteFormatter, new QuoteWorkflowService(new QuotePersistence($em)), $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $status($this->jsonRequest(['status' => Quote::STATUS_SENT], 'PATCH'), 999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $status($this->jsonRequest(['status' => Quote::STATUS_SENT], 'PATCH'), $quoteId)->getStatusCode());
         $quote = $quoteRepository->find($quoteId);
@@ -166,8 +170,8 @@ final class AdminQuoteCompletionTest extends TestCase
             }
         }, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory()))($quoteId)->getStatusCode());
 
-        self::assertSame(Response::HTTP_NOT_FOUND, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new DuplicateQuoteController($quoteRepository, $quoteService, $calculator))($quoteId)->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new DuplicateQuoteController($quoteRepository, $quoteService, $quoteFormatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new DuplicateQuoteController($quoteRepository, $quoteService, $quoteFormatter))($quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, (new DeleteQuoteController($quoteRepository, $quoteService))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DeleteQuoteController($quoteRepository, $quoteService))($quoteId)->getStatusCode());
 
@@ -181,7 +185,18 @@ final class AdminQuoteCompletionTest extends TestCase
 
     private function failingQuoteService(EntityManager $em): QuoteService
     {
-        return new class(new QuotePersistence($em), $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock(), new QuoteNumberGenerator(new QuoteRepository($this->registry($em))), new QuoteCalculator()) extends QuoteService {
+        $persistence = new QuotePersistence($em);
+        $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
+
+        return new class(
+            $persistence,
+            new QuoteNumberGenerator(new QuoteRepository($this->registry($em))),
+            new QuoteCalculator(),
+            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
+                $persistence,
+                new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository),
+            ),
+        ) extends QuoteService {
             public function createFromPayload(\App\Module\Quote\Application\DTO\QuotePayload $payload): Quote
             {
                 throw new \RuntimeException('quote down');
@@ -238,12 +253,17 @@ final class AdminQuoteCompletionTest extends TestCase
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
         $productRepository->method('find')->willReturn(null);
 
+        $persistence = new QuotePersistence($em);
+
         return new QuoteService(
-            new QuotePersistence($em),
-            $productRepository,
+            $persistence,
             new QuoteNumberGenerator(new QuoteRepository($this->registry($em))),
             new QuoteCalculator(),
-            new \DateTimeImmutable('2026-08-01'),
+            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
+                $persistence,
+                new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository),
+                new \DateTimeImmutable('2026-08-01'),
+            ),
         );
     }
 

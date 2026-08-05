@@ -27,6 +27,7 @@ class UpdateBrandController extends AbstractController
         private readonly BrandRepositoryPort $brandRepository,
         private readonly BrandService $brandService,
         private readonly DtoValidator $validator,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -55,6 +56,6 @@ class UpdateBrandController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::success(CatalogFormatter::formatBrand($brand), JsonResponse::HTTP_OK, 'La marque a bien été mise à jour.');
+        return ApiResponse::success($this->catalogFormatter->formatBrand($brand), JsonResponse::HTTP_OK, 'La marque a bien été mise à jour.');
     }
 }

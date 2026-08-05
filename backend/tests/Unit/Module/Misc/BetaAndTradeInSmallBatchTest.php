@@ -51,7 +51,7 @@ final class BetaAndTradeInSmallBatchTest extends TestCase
         self::assertCount(1, $activities);
         self::assertSame('created', $activities[0]->getAction());
 
-        $show = new ShowTradeInController($this->tradeInRepository());
+        $show = new ShowTradeInController($this->tradeInRepository(), new \App\Module\TradeIn\Application\Projection\TradeInFormatter());
         self::assertSame(Response::HTTP_NOT_FOUND, $show(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $show((int) $tradeIn->getId())->getStatusCode());
     }

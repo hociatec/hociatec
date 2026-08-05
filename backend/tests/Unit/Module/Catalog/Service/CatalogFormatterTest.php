@@ -20,7 +20,7 @@ final class CatalogFormatterTest extends TestCase
         $product = new Product('Phone X', 'phone-x', 'SKU-1', 'Desc', 99900, 5, $category);
         $category->addProduct($product);
 
-        $formatted = CatalogFormatter::formatCategory($category, true);
+        $formatted = (new CatalogFormatter())->formatCategory($category, true);
 
         self::assertSame('Phones', $formatted['name']);
         self::assertSame('phones', $formatted['slug']);
@@ -35,7 +35,7 @@ final class CatalogFormatterTest extends TestCase
     {
         $brand = new Brand('Apple');
 
-        $formatted = CatalogFormatter::formatBrand($brand, 12);
+        $formatted = (new CatalogFormatter())->formatBrand($brand, 12);
 
         self::assertSame('Apple', $formatted['name']);
         self::assertSame(12, $formatted['productsCount']);
@@ -77,7 +77,7 @@ final class CatalogFormatterTest extends TestCase
             ->setDiscountStartsAt(new \DateTimeImmutable('-1 day'))
             ->setDiscountEndsAt(new \DateTimeImmutable('+1 day'));
 
-        $formatted = CatalogFormatter::formatProduct($product, true);
+        $formatted = (new CatalogFormatter())->formatProduct($product, true);
 
         self::assertSame(99, $formatted['id']);
         self::assertSame('iPhone 15', $formatted['name']);
@@ -126,7 +126,7 @@ final class CatalogFormatterTest extends TestCase
         $product = new Product('iPad', 'ipad', 'IPAD-1', 'Tablet', 50000, 3, $category);
         $product->setImageName('cover.png');
 
-        $formatted = CatalogFormatter::formatProduct($product);
+        $formatted = (new CatalogFormatter())->formatProduct($product);
 
         self::assertSame('Vente', $formatted['sellingTypeLabel']);
         self::assertNull($formatted['priceUnitLabel']);

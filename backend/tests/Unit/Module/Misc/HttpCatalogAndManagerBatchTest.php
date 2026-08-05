@@ -17,6 +17,8 @@ use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
+use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\UI\Http\ProductSearchRequestMapper;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Provider\ProductCatalogSearchProvider;
@@ -90,22 +92,20 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $products = $this->createMock(ProductRepository::class);
         $products->expects(self::once())
             ->method('findPublishedListProjection')
-            ->with(
-                'phones',
-                'iphone',
-                true,
-                'rental',
-                'apple',
-                '256 Go',
-                '8 Go',
-                'Noir',
-                1050,
-                2000,
-                true,
-                'price_desc',
-                48,
-                0
-            )
+            ->with(self::callback(static fn (ProductCatalogCriteria $criteria): bool => 'phones' === $criteria->categorySlug
+                && 'iphone' === $criteria->search
+                && true === $criteria->onlyFeatured
+                && 'rental' === $criteria->sellingType
+                && 'apple' === $criteria->brand
+                && '256 Go' === $criteria->storageCapacity
+                && '8 Go' === $criteria->memoryRam
+                && 'Noir' === $criteria->color
+                && 1050 === $criteria->minPriceCents
+                && 2000 === $criteria->maxPriceCents
+                && true === $criteria->inStockOnly
+                && 'price_desc' === $criteria->sort
+                && 48 === $criteria->limit
+                && 0 === $criteria->offset))
             ->willReturn([[
                 'id' => 12,
                 'name' => 'iPhone',
@@ -146,17 +146,30 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
             ]]);
         $products->expects(self::once())
             ->method('countPublished')
-            ->with('phones', 'iphone', true, 'rental', 'apple', '256 Go', '8 Go', 'Noir', 1050, 2000, true)
+            ->with(self::callback(static fn (ProductCatalogCriteria $criteria): bool => 'phones' === $criteria->categorySlug
+                && 'iphone' === $criteria->search
+                && true === $criteria->onlyFeatured
+                && 'rental' === $criteria->sellingType
+                && 'apple' === $criteria->brand
+                && '256 Go' === $criteria->storageCapacity
+                && '8 Go' === $criteria->memoryRam
+                && 'Noir' === $criteria->color
+                && 1050 === $criteria->minPriceCents
+                && 2000 === $criteria->maxPriceCents
+                && true === $criteria->inStockOnly
+                && null === $criteria->sort
+                && null === $criteria->limit
+                && null === $criteria->offset))
             ->willReturn(49);
         $products->expects(self::once())
             ->method('collectPublishedFacets')
-            ->with('phones', 'iphone', true, 'rental', 'apple', '256 Go', '8 Go', 'Noir', 1050, 2000, true)
+            ->with(self::isInstanceOf(ProductCatalogCriteria::class))
             ->willReturn(['brands' => ['Apple']]);
 
         $cache = new ArrayAdapter();
         $controller = new ListProductsController(
             new ProductSearchRequestMapper(),
-            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), $cache),
+            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), new ProductCatalogListProjectionFormatter(), $cache),
         );
 
         $request = new Request([

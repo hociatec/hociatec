@@ -89,7 +89,15 @@ final class QuoteServiceTest extends TestCase
         $persistence = new QuotePersistence($entityManager);
         $productRepository = $this->createMock(ProductRepository::class);
         $numberGenerator = $this->numberGenerator('DEV-2026-9999');
-        $service = new QuoteService($persistence, $productRepository, $numberGenerator, new QuoteCalculator());
+        $service = new QuoteService(
+            $persistence,
+            $numberGenerator,
+            new QuoteCalculator(),
+            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
+                $persistence,
+                new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository),
+            ),
+        );
 
         $quote = new Quote('DEV-2026-0003');
         $existing = new QuoteItem('Ancienne ligne', 1000);
@@ -138,9 +146,12 @@ final class QuoteServiceTest extends TestCase
         $persistence = new QuotePersistence($entityManager);
         $service = new QuoteService(
             $persistence,
-            $this->createMock(ProductRepository::class),
             $this->numberGenerator('DEV-2026-0004'),
             new QuoteCalculator(),
+            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
+                $persistence,
+                new \App\Module\Quote\Application\Factory\QuoteItemFactory($this->createMock(ProductRepository::class)),
+            ),
         );
 
         $source = new Quote('DEV-2026-0003');
@@ -211,12 +222,17 @@ final class QuoteServiceTest extends TestCase
         $productRepository = $this->createMock(ProductRepository::class);
         $productRepository->method('findProduct')->willReturn($product);
 
+        $persistence = new QuotePersistence($entityManager);
+
         return new QuoteService(
-            new QuotePersistence($entityManager),
-            $productRepository,
+            $persistence,
             $this->numberGenerator($number),
             new QuoteCalculator(),
-            new \DateTimeImmutable('2026-07-29'),
+            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
+                $persistence,
+                new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository),
+                new \DateTimeImmutable('2026-07-29'),
+            ),
         );
     }
 

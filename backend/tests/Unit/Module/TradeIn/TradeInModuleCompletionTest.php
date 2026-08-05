@@ -75,18 +75,19 @@ final class TradeInModuleCompletionTest extends TestCase
         $products->method('find')->willReturnMap([[9, null], [10, $product]]);
         $service = $this->tradeInService($this->mockEntityManager(self::any()));
 
-        $my = new CreateMyTradeInController($service, $this->validator(2), $products);
+        $tradeInFormatter = new \App\Module\TradeIn\Application\Projection\TradeInFormatter();
+        $my = new CreateMyTradeInController($service, $this->validator(2), $products, $tradeInFormatter);
         $my->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $my(Request::create('/', 'POST', $this->payload()))->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, $my(Request::create('/', 'POST', $this->payload(['catalogProductId' => 9]), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $my(Request::create('/', 'POST', $this->payload(['catalogProductId' => 10]), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
 
-        $public = new CreatePublicTradeInController($service, $this->validator(1), $products);
+        $public = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter);
         $public->setContainer($this->controllerContainer(null));
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $public(Request::create('/', 'POST', $this->payload()))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $public(Request::create('/', 'POST', $this->payload(), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
 
-        $publicForUser = new CreatePublicTradeInController($service, $this->validator(1), $products);
+        $publicForUser = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter);
         $publicForUser->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_CREATED, $publicForUser(Request::create('/', 'POST', $this->payload(), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
     }
@@ -109,7 +110,7 @@ final class TradeInModuleCompletionTest extends TestCase
         file_put_contents($this->projectDir().'/var/private/trade-ins/receipt.pdf', '%PDF-receipt');
 
         $repository = $this->tradeInRepository($em);
-        $list = new ListMyTradeInsController($repository);
+        $list = new ListMyTradeInsController($repository, new \App\Module\TradeIn\Application\Projection\TradeInFormatter());
         $list->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $list()->getStatusCode());
 

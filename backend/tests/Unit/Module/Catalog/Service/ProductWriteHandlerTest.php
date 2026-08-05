@@ -336,7 +336,10 @@ final class ProductWriteHandlerTest extends TestCase
         CacheItemPoolInterface $cache,
     ): ProductWriteHandler {
         $rules = new ProductCatalogRules($productRepository, Validation::createValidator());
-        $variants = new ProductVariantService($productRepository, $rules);
+        $variants = new ProductVariantService(
+            new \App\Module\Catalog\Application\Factory\ProductVariantFactory($productRepository, $rules),
+            new \App\Module\Catalog\Application\Policy\ProductVariantIdentityPolicy($productRepository),
+        );
         $persistence = new DoctrineUnitOfWork($entityManager);
         $variantBatch = new ProductVariantBatchCreator($variants, $productRepository, $persistence);
 
@@ -363,6 +366,7 @@ final class ProductWriteHandlerTest extends TestCase
             new ProductGalleryUpdater(),
             new ProductDiscountApplicator(),
             new CatalogCacheInvalidator(new CatalogCacheVersion($cache, new NullLogger())),
+            new \App\Module\Catalog\Application\Writer\ProductAttributeWriter(),
         );
     }
 

@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Favorite;
 
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Favorite\UI\Controller\AddFavoriteController;
 use App\Module\Favorite\Domain\Entity\Favorite;
@@ -34,7 +35,7 @@ final class FavoriteControllersCompletionTest extends TestCase
             ['favorite' => $favorite, 'created' => false],
         );
 
-        $controller = new AddFavoriteController($products, $favorites);
+        $controller = new AddFavoriteController($products, $favorites, new CatalogFormatter());
         $controller->setContainer($this->container($user));
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(1)->getStatusCode());

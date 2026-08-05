@@ -8,14 +8,10 @@ use App\Module\User\Domain\Entity\ShippingAddress;
 
 final class ShippingAddressFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, mixed>
      */
-    public static function toArray(ShippingAddress $address): array
+    public function toArray(ShippingAddress $address): array
     {
         return [
             'id' => $address->getId(),

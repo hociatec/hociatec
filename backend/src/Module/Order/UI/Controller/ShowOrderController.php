@@ -24,6 +24,7 @@ class ShowOrderController extends AbstractController
         private readonly OrderRepositoryPort $orders,
         private readonly ProductRatingRepositoryPort $ratings,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -48,6 +49,6 @@ class ShowOrderController extends AbstractController
         }
         $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
 
-        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order, $ratings));
+        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order, $ratings));
     }
 }

@@ -67,7 +67,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $addresses = $this->createMock(ShippingAddressRepository::class);
         $addresses->expects(self::once())->method('findAllForUser')->with($user)->willReturn([$address]);
         $listController = new class($addresses, $user) extends ListMyAddressesController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses); }
+            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter()); }
             public function getUser(): ?User { return $this->user; }
         };
         $listPayload = json_decode((string) $listController()->getContent(), true, 512, JSON_THROW_ON_ERROR);

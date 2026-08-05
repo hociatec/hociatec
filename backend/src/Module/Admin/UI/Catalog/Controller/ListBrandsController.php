@@ -23,6 +23,7 @@ class ListBrandsController extends AbstractController
     public function __construct(
         private readonly BrandService $brandService,
         private readonly ProductRepositoryPort $productRepository,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -34,7 +35,7 @@ class ListBrandsController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                fn (Brand $brand) => CatalogFormatter::formatBrand(
+                fn (Brand $brand) => $this->catalogFormatter->formatBrand(
                     $brand,
                     $this->productRepository->countByBrand($brand)
                 ),

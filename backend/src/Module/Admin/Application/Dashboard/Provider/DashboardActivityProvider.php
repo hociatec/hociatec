@@ -14,6 +14,7 @@ final readonly class DashboardActivityProvider
     public function __construct(
         private OrderRepositoryPort $orders,
         private OrderEventRepositoryPort $events,
+        private OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -23,7 +24,7 @@ final readonly class DashboardActivityProvider
     public function recentOrders(): array
     {
         return array_map(
-            static fn ($order): array => OrderFormatter::formatOrder($order),
+            fn ($order): array => $this->orderFormatter->formatOrder($order),
             $this->orders->findRecentForAdmin(6),
         );
     }

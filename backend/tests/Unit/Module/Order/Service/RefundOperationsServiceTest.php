@@ -94,7 +94,10 @@ final class RefundOperationsServiceTest extends TestCase
                     return $operation();
                 }
             },
-            new AdminOperationsFormatter(new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents())),
+            new AdminOperationsFormatter(
+                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
+                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            ),
         );
 
         $result = $service->processStripe(42, new RefundProcessData('REMBOURSER', 'pi_42'), $user);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Port;
 
+use App\Module\Catalog\Application\Query\ProductAdminCriteria;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Product;
 
@@ -38,95 +40,22 @@ interface ProductCatalogRepository
     public function findLowStock(int $threshold = 3, int $limit = 8): array;
 
     /** @return list<Product> */
-    public function findAllForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-        ?string $sort = null,
-        int $limit = 100,
-        int $offset = 0,
-    ): array;
+    public function findAllForAdmin(ProductAdminCriteria $criteria): array;
 
-    public function countForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-    ): int;
+    public function countForAdmin(ProductAdminCriteria $criteria): int;
 
     /** @return list<Product> */
-    public function findPublished(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array;
+    public function findPublished(ProductCatalogCriteria $criteria): array;
 
     /**
      * @return list<array<string, mixed>>
      */
-    public function findPublishedListProjection(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array;
+    public function findPublishedListProjection(ProductCatalogCriteria $criteria): array;
 
-    public function countPublished(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): int;
+    public function countPublished(ProductCatalogCriteria $criteria): int;
 
     /** @return array<string, mixed> */
-    public function collectPublishedFacets(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): array;
+    public function collectPublishedFacets(ProductCatalogCriteria $criteria): array;
 
     public function findOnePublishedBySlug(string $slug): ?Product;
 }

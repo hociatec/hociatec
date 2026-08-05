@@ -23,7 +23,12 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimited('public_api')]
 final class CreatePublicTradeInController extends AbstractController
 {
-    public function __construct(private readonly TradeInService $service, private readonly DtoValidator $validator, private readonly ProductRepositoryPort $products)
+    public function __construct(
+        private readonly TradeInService $service,
+        private readonly DtoValidator $validator,
+        private readonly ProductRepositoryPort $products,
+        private readonly TradeInFormatter $formatter,
+    )
     {
     }
 
@@ -48,6 +53,6 @@ final class CreatePublicTradeInController extends AbstractController
 
         $tradeIn = $this->service->create($input, $user, $product, $rib);
 
-        return ApiResponse::created(TradeInFormatter::format($tradeIn), 'Votre demande de reprise a bien été enregistrée.');
+        return ApiResponse::created($this->formatter->format($tradeIn), 'Votre demande de reprise a bien été enregistrée.');
     }
 }

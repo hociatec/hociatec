@@ -23,6 +23,7 @@ class ListProductReviewsController extends AbstractController
     public function __construct(
         private readonly ProductQueryService $products,
         private readonly ProductRatingRepositoryPort $ratings,
+        private readonly ProductReviewFormatter $formatter,
     ) {
     }
 
@@ -37,7 +38,7 @@ class ListProductReviewsController extends AbstractController
 
         $items = $this->ratings->findPublishedByProduct($product, $pagination->perPage, $pagination->offset());
         $formatted = array_map(
-            static fn ($rating) => ProductReviewFormatter::formatRating($rating),
+            fn ($rating) => $this->formatter->formatRating($rating),
             $items,
         );
 

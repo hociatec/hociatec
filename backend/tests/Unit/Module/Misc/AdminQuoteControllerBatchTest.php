@@ -47,7 +47,8 @@ final class AdminQuoteControllerBatchTest extends TestCase
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $quote, null, $quote);
 
-        $show = new ShowQuoteController($quotes, new QuoteCalculator());
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $show = new ShowQuoteController($quotes, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $show(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $show(5)->getStatusCode());
 
@@ -66,12 +67,12 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $duplicateMissingQuotes = $this->createMock(QuoteRepository::class);
         $duplicateMissingQuotes->expects(self::once())->method('find')->with(404)->willReturn(null);
-        $duplicateMissing = new DuplicateQuoteController($duplicateMissingQuotes, $service, new QuoteCalculator());
+        $duplicateMissing = new DuplicateQuoteController($duplicateMissingQuotes, $service, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $duplicateMissing(404)->getStatusCode());
 
         $duplicateQuotes = $this->createMock(QuoteRepository::class);
         $duplicateQuotes->expects(self::once())->method('find')->with(5)->willReturn($quote);
-        $duplicate = new DuplicateQuoteController($duplicateQuotes, $service, new QuoteCalculator());
+        $duplicate = new DuplicateQuoteController($duplicateQuotes, $service, $quoteFormatter);
         $payload = json_decode((string) $duplicate(5)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Q-2', $payload['data']['number']);
     }
@@ -99,11 +100,12 @@ final class AdminQuoteControllerBatchTest extends TestCase
             ->willReturn([$service]);
         $repository->expects(self::once())->method('count')->with([])->willReturn(21);
 
-        $get = new GetServiceController($repository);
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $get = new GetServiceController($repository, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $get(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $get(12)->getStatusCode());
 
-        $list = new ListServicesController($repository);
+        $list = new ListServicesController($repository, $quoteFormatter);
         $listPayload = json_decode((string) $list(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $listPayload['data']['meta']['page']);
         self::assertSame('Audit', $listPayload['data']['items'][0]['title']);
@@ -116,7 +118,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $updateServiceHandler = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier);
         $forms = new QuoteServiceFormMapper();
 
-        $create = new CreateServiceController($forms, $createServiceHandler);
+        $create = new CreateServiceController($forms, $createServiceHandler, $quoteFormatter);
         self::assertSame(
             Response::HTTP_UNPROCESSABLE_ENTITY,
             $create(new Request([], ['title' => '', 'price' => '-5']))->getStatusCode()
@@ -139,7 +141,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertSame('https://example.com/installation.svg', $createdPayload['data']['imageUrl']);
         self::assertSame('Illustration installation', $createdPayload['data']['imageAlt']);
 
-        $update = new UpdateServiceController($repository, $forms, $updateServiceHandler);
+        $update = new UpdateServiceController($repository, $forms, $updateServiceHandler, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(new Request([], ['title' => 'x']), 404)->getStatusCode());
         self::assertSame(
             Response::HTTP_UNPROCESSABLE_ENTITY,
@@ -161,7 +163,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager->expects(self::once())->method('persist')->willThrowException(new \RuntimeException('db down'));
-        $failingCreate = new CreateServiceController($forms, new CreateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager), $formApplier));
+        $failingCreate = new CreateServiceController($forms, new CreateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager), $formApplier), $quoteFormatter);
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
             $failingCreate(new Request([], ['title' => 'Installation', 'price' => '250']))->getStatusCode()
@@ -169,7 +171,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         $failingEntityManager2 = $this->createMock(EntityManagerInterface::class);
         $failingEntityManager2->expects(self::once())->method('flush')->willThrowException(new \RuntimeException('db down'));
-        $failingUpdate = new UpdateServiceController($repository, $forms, new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager2), $formApplier));
+        $failingUpdate = new UpdateServiceController($repository, $forms, new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager2), $formApplier), $quoteFormatter);
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
             $failingUpdate(new Request([], ['title' => 'Audit premium', 'price' => '300']), 12)->getStatusCode()
@@ -195,7 +197,8 @@ final class AdminQuoteControllerBatchTest extends TestCase
             new ConstraintViolationFormatter(),
         );
 
-        $controller = new UpdateQuoteStatusController($quotes, new QuoteCalculator(), $workflow, $validator);
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $controller = new UpdateQuoteStatusController($quotes, $quoteFormatter, $workflow, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(new Request(content: '{"status":"sent"}'), 404)->getStatusCode());
 
         $payload = json_decode((string) $controller(new Request(content: '{"status":"envoyé"}'), 9)->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -212,7 +215,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         $entityManager2 = $this->createMock(EntityManagerInterface::class);
         $entityManager2->expects(self::never())->method('flush');
         $workflow2 = new QuoteWorkflowService(new QuotePersistence($entityManager2));
-        $controller2 = new UpdateQuoteStatusController($quotes2, new QuoteCalculator(), $workflow2, $validator);
+        $controller2 = new UpdateQuoteStatusController($quotes2, $quoteFormatter, $workflow2, $validator);
         self::assertSame(
             Response::HTTP_BAD_REQUEST,
             $controller2(new Request(content: '{"status":"refused"}'), 10)->getStatusCode()

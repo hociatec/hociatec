@@ -19,7 +19,7 @@ final class PromotionFormatterTest extends TestCase
             ->setStartsAt(new \DateTimeImmutable('-1 day'))
             ->setEndsAt(new \DateTimeImmutable('+1 day'));
 
-        $formatted = PromotionFormatter::formatPromotion($promotion);
+        $formatted = (new PromotionFormatter())->formatPromotion($promotion);
 
         self::assertSame(99, $formatted['id']);
         self::assertSame('Promo', $formatted['name']);

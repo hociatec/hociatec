@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Workflow;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Catalog\Application\Query\ProductAdminCriteria;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class GroupedLowStockCounter
@@ -21,7 +22,7 @@ final readonly class GroupedLowStockCounter
         $offset = 0;
 
         do {
-            $page = $this->products->findAllForAdmin(limit: self::BATCH_SIZE, offset: $offset);
+            $page = $this->products->findAllForAdmin(new ProductAdminCriteria(limit: self::BATCH_SIZE, offset: $offset));
 
             /** @var Product $product */
             foreach ($page as $product) {

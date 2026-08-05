@@ -14,7 +14,10 @@ use App\Module\Support\Domain\Entity\SupportRequest;
 
 final readonly class AdminOperationsFormatter
 {
-    public function __construct(private AdminOperationsEmailLogFormatter $emailLogs)
+    public function __construct(
+        private AdminOperationsEmailLogFormatter $emailLogs,
+        private OrderFormatter $orderFormatter,
+    )
     {
     }
 
@@ -98,7 +101,7 @@ final readonly class AdminOperationsFormatter
             'id' => $order->getId(),
             'number' => $order->getNumber(),
             'status' => $order->getStatus(),
-            'statusLabel' => OrderFormatter::formatStatusLabel($order->getStatus()),
+            'statusLabel' => $this->orderFormatter->formatStatusLabel($order->getStatus()),
             'customer' => [
                 'id' => $order->getUser()->getId(),
                 'name' => $order->getUser()->getFullName(),
@@ -113,7 +116,7 @@ final readonly class AdminOperationsFormatter
             ],
             'delivery' => [
                 'status' => $order->getDeliveryStatus(),
-                'statusLabel' => OrderFormatter::formatDeliveryStatusLabel($order->getDeliveryStatus()),
+                'statusLabel' => $this->orderFormatter->formatDeliveryStatusLabel($order->getDeliveryStatus()),
                 'carrier' => $order->getDeliveryCarrier(),
                 'trackingNumber' => $order->getDeliveryTrackingNumber(),
                 'trackingUrl' => $order->getDeliveryTrackingUrl(),

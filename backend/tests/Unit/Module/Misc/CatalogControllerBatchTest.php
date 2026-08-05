@@ -11,6 +11,8 @@ use App\Module\Catalog\UI\Controller\PublicApi\ShowCategoryController;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -37,9 +39,13 @@ final class CatalogControllerBatchTest extends TestCase
 
         $products = $this->createMock(ProductRepository::class);
         $products->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $product);
-        $products->expects(self::once())->method('findPublished')->with('phones', null)->willReturn([$product]);
+        $products->expects(self::once())
+            ->method('findPublished')
+            ->with(self::callback(static fn (ProductCatalogCriteria $criteria): bool => 'phones' === $criteria->categorySlug && null === $criteria->search))
+            ->willReturn([$product]);
 
-        $showProduct = new ShowProductController($products);
+        $catalogFormatter = new CatalogFormatter();
+        $showProduct = new ShowProductController($products, $catalogFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $showProduct(404)->getStatusCode());
         $showPayload = json_decode((string) $showProduct(4)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('/uploads/products/phone.jpg', $showPayload['data']['imageUrl']);
@@ -62,11 +68,11 @@ final class CatalogControllerBatchTest extends TestCase
             Validation::createValidator(),
         );
 
-        $listCategories = new ListCategoriesController($categoryService);
+        $listCategories = new ListCategoriesController($categoryService, $catalogFormatter);
         $listPayload = json_decode((string) $listCategories()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('phones', $listPayload['data']['items'][0]['slug']);
 
-        $showCategory = new ShowCategoryController($categoryService, new ProductQueryService($products));
+        $showCategory = new ShowCategoryController($categoryService, new ProductQueryService($products), $catalogFormatter);
         $categoryPayload = json_decode((string) $showCategory('phones')->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Phones', $categoryPayload['data']['category']['name']);
         self::assertSame('Phone', $categoryPayload['data']['products'][0]['name']);
@@ -93,7 +99,7 @@ final class CatalogControllerBatchTest extends TestCase
             Validation::createValidator(),
         );
 
-        $payload = json_decode((string) (new ListBrandsController($service, $products))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) (new ListBrandsController($service, $products, new CatalogFormatter()))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Apple', $payload['data']['items'][0]['name']);
         self::assertSame(3, $payload['data']['items'][0]['productsCount']);
     }

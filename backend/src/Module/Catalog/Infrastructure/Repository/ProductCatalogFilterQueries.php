@@ -4,52 +4,43 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use Doctrine\ORM\QueryBuilder;
 
 trait ProductCatalogFilterQueries
 {
-    private function applyPublishedFilters(
-        QueryBuilder $qb,
-        ?string $categorySlug,
-        ?string $sellingType,
-        ?string $brand,
-        ?string $storageCapacity,
-        ?string $memoryRam,
-        ?string $color,
-        ?int $minPriceCents,
-        ?int $maxPriceCents,
-        ?bool $inStockOnly,
-    ): void {
-        if (null !== $categorySlug && '' !== $categorySlug) {
+    private function applyPublishedFilters(QueryBuilder $qb, ProductCatalogCriteria $criteria): void
+    {
+        if (null !== $criteria->categorySlug && '' !== $criteria->categorySlug) {
             $qb
                 ->andWhere('c.slug = :slug')
-                ->setParameter('slug', $categorySlug);
+                ->setParameter('slug', $criteria->categorySlug);
         }
 
-        if (null !== $sellingType && in_array($sellingType, ['sale', 'rental'], true)) {
+        if (null !== $criteria->sellingType && in_array($criteria->sellingType, ['sale', 'rental'], true)) {
             $qb
                 ->andWhere('p.pricing.sellingType = :stype')
-                ->setParameter('stype', $sellingType);
+                ->setParameter('stype', $criteria->sellingType);
         }
 
-        $this->applyExactLowerFilter($qb, 'b.name', 'brand', $brand);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.storageCapacity', 'storageCapacity', $storageCapacity);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.memoryRam', 'memoryRam', $memoryRam);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.color', 'color', $color);
+        $this->applyExactLowerFilter($qb, 'b.name', 'brand', $criteria->brand);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.storageCapacity', 'storageCapacity', $criteria->storageCapacity);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.memoryRam', 'memoryRam', $criteria->memoryRam);
+        $this->applyExactLowerFilter($qb, 'p.characteristics.color', 'color', $criteria->color);
 
-        if (null !== $minPriceCents && $minPriceCents >= 0) {
+        if (null !== $criteria->minPriceCents && $criteria->minPriceCents >= 0) {
             $qb
                 ->andWhere('p.pricing.priceCents >= :minPriceCents')
-                ->setParameter('minPriceCents', $minPriceCents);
+                ->setParameter('minPriceCents', $criteria->minPriceCents);
         }
 
-        if (null !== $maxPriceCents && $maxPriceCents >= 0) {
+        if (null !== $criteria->maxPriceCents && $criteria->maxPriceCents >= 0) {
             $qb
                 ->andWhere('p.pricing.priceCents <= :maxPriceCents')
-                ->setParameter('maxPriceCents', $maxPriceCents);
+                ->setParameter('maxPriceCents', $criteria->maxPriceCents);
         }
 
-        if (true === $inStockOnly) {
+        if (true === $criteria->inStockOnly) {
             $qb->andWhere('p.inventory.stock > 0');
         }
     }

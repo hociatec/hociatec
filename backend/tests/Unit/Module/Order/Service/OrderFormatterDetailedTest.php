@@ -88,7 +88,7 @@ final class OrderFormatterDetailedTest extends TestCase
         $comment = new ProductComment($rating, 'Excellent');
         $rating->setComment($comment);
 
-        $formatted = OrderFormatter::formatOrder(
+        $formatted = (new OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()))->formatOrder(
             $order,
             [$itemWithReview->getId() => $rating],
             ['source' => 'test']
@@ -143,7 +143,7 @@ final class OrderFormatterDetailedTest extends TestCase
         $this->setEntityId($item, 201);
         $order->addItem($item);
 
-        $formatted = OrderFormatter::formatOrder($order);
+        $formatted = (new OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()))->formatOrder($order);
 
         self::assertNull($formatted['appliedPromotion']);
         self::assertSame([Order::STATUS_CONFIRMED, Order::STATUS_CANCELLED], $formatted['allowedNextStatuses']);
@@ -168,7 +168,7 @@ final class OrderFormatterDetailedTest extends TestCase
         $this->setEntityId($item, 301);
         $order->addItem($item);
 
-        $formatted = OrderFormatter::formatOrder($order);
+        $formatted = (new OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()))->formatOrder($order);
 
         self::assertSame([Order::STATUS_DELIVERED], $formatted['allowedNextStatuses']);
         self::assertSame([

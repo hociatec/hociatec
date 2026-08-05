@@ -21,6 +21,7 @@ class ListProductsController extends AbstractController
     public function __construct(
         private readonly ProductQueryService $productService,
         private readonly ProductAdminListQueryMapper $queries,
+        private readonly CatalogFormatter $catalogFormatter,
     )
     {
     }
@@ -28,30 +29,12 @@ class ListProductsController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $query = $this->queries->fromRequest($request);
-        $products = $this->productService->listForAdmin(
-            categorySlug: $query->categorySlug,
-            search: $query->search,
-            onlyFeatured: $query->featured,
-            sellingType: $query->sellingType,
-            minPriceCents: $query->minPriceCents,
-            maxPriceCents: $query->maxPriceCents,
-            lowStockOnly: $query->lowStock,
-            sort: $query->sort,
-            limit: $query->perPage,
-            offset: $query->offset(),
-        );
-        $total = $this->productService->countForAdmin(
-            categorySlug: $query->categorySlug,
-            search: $query->search,
-            onlyFeatured: $query->featured,
-            sellingType: $query->sellingType,
-            minPriceCents: $query->minPriceCents,
-            maxPriceCents: $query->maxPriceCents,
-            lowStockOnly: $query->lowStock,
-        );
+        $criteria = $query->criteria();
+        $products = $this->productService->listForAdmin($criteria);
+        $total = $this->productService->countForAdmin($criteria->withoutSortAndPagination());
 
         return ApiResponse::paginated(
-            array_map(static fn ($product) => CatalogFormatter::formatProduct($product, true), $products),
+            array_map(fn ($product) => $this->catalogFormatter->formatProduct($product, true), $products),
             [
                 'page' => $query->page,
                 'perPage' => $query->perPage,

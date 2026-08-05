@@ -18,7 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_QUOTES_MANAGER')]
 class ListServicesController extends AbstractController
 {
-    public function __construct(private readonly ServiceOfferingRepositoryPort $serviceRepository)
+    public function __construct(
+        private readonly ServiceOfferingRepositoryPort $serviceRepository,
+        private readonly QuoteFormatter $formatter,
+    )
     {
     }
 
@@ -28,7 +31,7 @@ class ListServicesController extends AbstractController
         $items = $this->serviceRepository->findBy([], ['title' => 'ASC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(static fn ($s) => QuoteFormatter::formatService($s), $items),
+            array_map(fn ($s) => $this->formatter->formatService($s), $items),
             $pagination->metadata($this->serviceRepository->count([])),
         );
     }

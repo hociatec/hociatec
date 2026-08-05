@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
@@ -24,7 +23,7 @@ final class RefuseMyQuoteController extends AbstractController
 {
     public function __construct(
         private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
         private readonly QuoteWorkflowService $workflow,
         private readonly QuoteAccessPolicy $accessPolicy,
     ) {
@@ -50,6 +49,6 @@ final class RefuseMyQuoteController extends AbstractController
 
         $this->workflow->setStatus($quote, Quote::STATUS_REFUSED);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator), JsonResponse::HTTP_OK, 'Le devis a bien été refusé.');
+        return ApiResponse::success($this->formatter->formatQuote($quote), JsonResponse::HTTP_OK, 'Le devis a bien été refusé.');
     }
 }

@@ -22,6 +22,7 @@ final readonly class CreateServiceController
     public function __construct(
         private QuoteServiceFormMapper $forms,
         private CreateQuoteServiceHandler $createService,
+        private QuoteFormatter $formatter,
     ) {
     }
 
@@ -35,6 +36,6 @@ final readonly class CreateServiceController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(QuoteFormatter::formatService($service), 'Le service a bien été créé.');
+        return ApiResponse::created($this->formatter->formatService($service), 'Le service a bien été créé.');
     }
 }

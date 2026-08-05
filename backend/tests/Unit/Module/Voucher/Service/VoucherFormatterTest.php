@@ -10,20 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 final class VoucherFormatterTest extends TestCase
 {
-    public function testFormatterCannotBeConstructedPublicly(): void
-    {
-        $reflection = new \ReflectionClass(VoucherFormatter::class);
-        $formatter = $reflection->newInstanceWithoutConstructor();
-        $constructor = $reflection->getConstructor();
-
-        self::assertNotNull($constructor);
-        self::assertFalse($constructor->isPublic());
-
-        $constructor->invoke($formatter);
-
-        self::assertInstanceOf(VoucherFormatter::class, $formatter);
-    }
-
     public function testItFormatsVoucher(): void
     {
         $voucher = new Voucher('Gift', 'gift-10', Voucher::TYPE_FIXED_CENTS, 1000);
@@ -36,7 +22,7 @@ final class VoucherFormatterTest extends TestCase
             ->setRecipientEmail('ada@example.com')
             ->setSentAt(new \DateTimeImmutable('now'));
 
-        $formatted = VoucherFormatter::formatVoucher($voucher);
+        $formatted = (new VoucherFormatter())->formatVoucher($voucher);
 
         self::assertSame(88, $formatted['id']);
         self::assertSame('Gift', $formatted['name']);
@@ -61,7 +47,7 @@ final class VoucherFormatterTest extends TestCase
             ->setRecipientEmail('ada@example.com')
             ->setSentAt(new \DateTimeImmutable('now'));
 
-        $formatted = VoucherFormatter::formatCartVoucher($voucher, 750);
+        $formatted = (new VoucherFormatter())->formatCartVoucher($voucher, 750);
 
         self::assertSame([
             'id',

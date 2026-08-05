@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
@@ -22,7 +21,7 @@ class ListQuotesController extends AbstractController
 {
     public function __construct(
         private readonly QuoteRepositoryPort $quoteRepository,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
     ) {
     }
 
@@ -43,7 +42,7 @@ class ListQuotesController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                fn ($q) => QuoteFormatter::formatQuote($q, $this->calculator),
+                fn ($q) => $this->formatter->formatQuote($q),
                 $quotes
             ),
             $pagination->metadata($total),

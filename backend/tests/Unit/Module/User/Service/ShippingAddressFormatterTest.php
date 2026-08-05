@@ -34,7 +34,7 @@ final class ShippingAddressFormatterTest extends TestCase
             'companyVatNumber' => 'FR123456789',
             'purchaseOrderNumber' => 'PO-2026-01',
             'isDefault' => true,
-        ], ShippingAddressFormatter::toArray($address));
+        ], (new ShippingAddressFormatter())->toArray($address));
     }
 
     private function setId(object $entity, int $id): void

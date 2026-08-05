@@ -24,6 +24,7 @@ final class CreatePromotionController extends AbstractController
     public function __construct(
         private readonly CreatePromotionHandler $createPromotion,
         private readonly DtoValidator $validator,
+        private readonly PromotionFormatter $formatter,
     ) {
     }
 
@@ -40,7 +41,7 @@ final class CreatePromotionController extends AbstractController
         $promotion = $this->createPromotion->create($input);
 
         return ApiResponse::created([
-            'promotion' => PromotionFormatter::formatPromotion($promotion),
+            'promotion' => $this->formatter->formatPromotion($promotion),
         ], 'La promotion a bien été créée.');
     }
 }

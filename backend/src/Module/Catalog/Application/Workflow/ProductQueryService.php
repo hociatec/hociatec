@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Workflow;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Catalog\Application\Query\ProductAdminCriteria;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class ProductQueryService
@@ -16,183 +18,43 @@ final readonly class ProductQueryService
     /**
      * @return list<Product>
      */
-    public function listForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-        ?string $sort = null,
-        int $limit = 100,
-        int $offset = 0,
-    ): array {
-        return $this->products->findAllForAdmin(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $minPriceCents,
-            $maxPriceCents,
-            $lowStockOnly,
-            $sort,
-            $limit,
-            $offset,
-        );
+    public function listForAdmin(ProductAdminCriteria $criteria): array
+    {
+        return $this->products->findAllForAdmin($criteria);
     }
 
-    public function countForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-    ): int {
-        return $this->products->countForAdmin(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $minPriceCents,
-            $maxPriceCents,
-            $lowStockOnly,
-        );
+    public function countForAdmin(ProductAdminCriteria $criteria): int
+    {
+        return $this->products->countForAdmin($criteria);
     }
 
     /**
      * @return list<Product>
      */
-    public function listPublished(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array {
-        return $this->products->findPublished(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            $sort,
-            $limit,
-            $offset,
-        );
+    public function listPublished(ProductCatalogCriteria $criteria): array
+    {
+        return $this->products->findPublished($criteria);
     }
 
     /**
      * @return list<array<string, mixed>>
      */
-    public function listPublishedProjection(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array {
-        return $this->products->findPublishedListProjection(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            $sort,
-            $limit,
-            $offset,
-        );
+    public function listPublishedProjection(ProductCatalogCriteria $criteria): array
+    {
+        return $this->products->findPublishedListProjection($criteria);
     }
 
-    public function countPublished(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): int {
-        return $this->products->countPublished(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-        );
+    public function countPublished(ProductCatalogCriteria $criteria): int
+    {
+        return $this->products->countPublished($criteria);
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function collectPublishedFacets(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): array {
-        return $this->products->collectPublishedFacets(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-        );
+    public function collectPublishedFacets(ProductCatalogCriteria $criteria): array
+    {
+        return $this->products->collectPublishedFacets($criteria);
     }
 
     public function findPublishedBySlug(string $slug): ?Product

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
@@ -22,7 +21,7 @@ class GetMyQuoteController extends AbstractController
 {
     public function __construct(
         private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
         private readonly QuoteAccessPolicy $accessPolicy,
     ) {
     }
@@ -36,6 +35,6 @@ class GetMyQuoteController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator));
+        return ApiResponse::success($this->formatter->formatQuote($quote));
     }
 }

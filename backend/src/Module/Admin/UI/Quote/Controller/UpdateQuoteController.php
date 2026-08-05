@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\DTO\QuotePayloadInput;
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
@@ -28,7 +27,7 @@ class UpdateQuoteController extends AbstractController
     public function __construct(
         private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteDomainService $quoteService,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
         private readonly QuoteEmailService $quoteEmailService,
         private readonly DtoValidator $validator,
     ) {
@@ -51,7 +50,7 @@ class UpdateQuoteController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        $data = QuoteFormatter::formatQuote($quote, $this->calculator);
+        $data = $this->formatter->formatQuote($quote);
 
         try {
             $data['emailNotificationSent'] = $this->quoteEmailService->sendCreatedIfNeeded($quote);

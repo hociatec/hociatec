@@ -128,6 +128,7 @@ final class RatingServicesAndControllersTest extends TestCase
         $controller = new ListProductReviewsController(
             new ProductQueryService($this->repository(ProductRepository::class)),
             $this->ratingRepository(),
+            new \App\Module\Rating\Application\Projection\ProductReviewFormatter(),
         );
 
         $missing = $controller('missing', new Request());
@@ -155,7 +156,7 @@ final class RatingServicesAndControllersTest extends TestCase
         $controller = new class($this->repository(OrderRepository::class), $this->ratingService(), $user) extends CreateProductReviewController {
             public function __construct(OrderRepository $orders, ProductRatingService $reviews, private readonly User $user)
             {
-                parent::__construct($orders, $reviews, new OrderAccessPolicy());
+                parent::__construct($orders, $reviews, new OrderAccessPolicy(), new \App\Module\Rating\Application\Projection\ProductReviewFormatter());
             }
 
             protected function getUser(): User

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Domain\Entity\Product;
 
 trait ProductPublicQueries
@@ -11,44 +12,19 @@ trait ProductPublicQueries
     /**
      * @return list<Product>
      */
-    public function findPublished(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array {
+    public function findPublished(ProductCatalogCriteria $criteria): array
+    {
         $qb = $this->buildPublishedQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            $sort,
+            $criteria,
             true,
         );
 
-        if (null !== $offset) {
-            $qb->setFirstResult(max(0, $offset));
+        if (null !== $criteria->offset) {
+            $qb->setFirstResult(max(0, $criteria->offset));
         }
 
-        if (null !== $limit) {
-            $qb->setMaxResults(max(1, $limit));
+        if (null !== $criteria->limit) {
+            $qb->setMaxResults(max(1, $criteria->limit));
         }
 
         return $qb->getQuery()->getResult();
@@ -57,35 +33,10 @@ trait ProductPublicQueries
     /**
      * @return list<array<string, mixed>>
      */
-    public function findPublishedListProjection(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-        ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
-    ): array {
+    public function findPublishedListProjection(ProductCatalogCriteria $criteria): array
+    {
         $qb = $this->buildPublishedQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            $sort,
+            $criteria,
             true,
         )
             ->select([
@@ -127,12 +78,12 @@ trait ProductPublicQueries
                 'c.slug AS categorySlug',
             ]);
 
-        if (null !== $offset) {
-            $qb->setFirstResult(max(0, $offset));
+        if (null !== $criteria->offset) {
+            $qb->setFirstResult(max(0, $criteria->offset));
         }
 
-        if (null !== $limit) {
-            $qb->setMaxResults(max(1, $limit));
+        if (null !== $criteria->limit) {
+            $qb->setMaxResults(max(1, $criteria->limit));
         }
 
         /** @var list<array<string, mixed>> $rows */
@@ -141,32 +92,10 @@ trait ProductPublicQueries
         return $rows;
     }
 
-    public function countPublished(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): int {
+    public function countPublished(ProductCatalogCriteria $criteria): int
+    {
         $qb = $this->buildPublishedQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            null,
+            $criteria->withoutSortAndPagination(),
             false,
         );
 
@@ -180,32 +109,10 @@ trait ProductPublicQueries
     /**
      * @return array<string, mixed>
      */
-    public function collectPublishedFacets(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?string $brand = null,
-        ?string $storageCapacity = null,
-        ?string $memoryRam = null,
-        ?string $color = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $inStockOnly = null,
-    ): array {
+    public function collectPublishedFacets(ProductCatalogCriteria $criteria): array
+    {
         $base = $this->buildPublishedQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-            null,
+            $criteria->withoutSortAndPagination(),
             false,
         );
 

@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowBrandController extends AbstractController
 {
-    public function __construct(private readonly BrandRepositoryPort $brandRepository)
+    public function __construct(
+        private readonly BrandRepositoryPort $brandRepository,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -29,6 +32,6 @@ class ShowBrandController extends AbstractController
             return ApiResponse::error('Marque introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(CatalogFormatter::formatBrand($brand));
+        return ApiResponse::success($this->catalogFormatter->formatBrand($brand));
     }
 }

@@ -61,7 +61,7 @@ final class LoyaltyModuleCompletionTest extends TestCase
         $user->setLoyaltyPointsBalance(500);
         $em = $this->entityManager();
 
-        $controller = new MyLoyaltyController($this->loyalty($em));
+        $controller = new MyLoyaltyController($this->loyalty($em), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
         $controller->setContainer($this->container($user));
 
         self::assertSame(Response::HTTP_OK, $controller->show()->getStatusCode());
@@ -70,7 +70,7 @@ final class LoyaltyModuleCompletionTest extends TestCase
 
         $user = $this->user('success@example.com');
         $user->setLoyaltyPointsBalance(500);
-        $controller = new MyLoyaltyController($this->loyalty($this->entityManager()));
+        $controller = new MyLoyaltyController($this->loyalty($this->entityManager()), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
         $controller->setContainer($this->container($user));
         $converted = $controller->convert(Request::create('/', 'POST', [], [], [], [], '{"points":200}'));
         self::assertSame(Response::HTTP_CREATED, $converted->getStatusCode(), (string) $converted->getContent());

@@ -67,7 +67,7 @@ final class TradeInControllerListTest extends TestCase
         self::assertCount(1, $repository->findForAdmin(' iPhone ', TradeInStatus::SUBMITTED));
         self::assertCount(1, $repository->findForAdmin('Think', TradeInStatus::COMPLETED));
 
-        $admin = new ListTradeInsController($repository);
+        $admin = new ListTradeInsController($repository, new \App\Module\TradeIn\Application\Projection\TradeInFormatter());
         $adminPayload = json_decode((string) $admin(new Request(['q' => 'iPhone', 'status' => TradeInStatus::SUBMITTED->value]))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertCount(1, $adminPayload['data']['items']);
         self::assertSame('TR-1', $adminPayload['data']['items'][0]['reference']);

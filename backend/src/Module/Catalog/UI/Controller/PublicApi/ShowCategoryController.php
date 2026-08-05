@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\UI\Controller\PublicApi;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -21,6 +22,7 @@ class ShowCategoryController extends AbstractController
     public function __construct(
         private readonly CategoryService $categoryService,
         private readonly ProductQueryService $productService,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -32,12 +34,12 @@ class ShowCategoryController extends AbstractController
             return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $products = $this->productService->listPublished($slug, null);
+        $products = $this->productService->listPublished(new ProductCatalogCriteria(categorySlug: $slug));
 
         return ApiResponse::success([
-            'category' => CatalogFormatter::formatCategory($category),
+            'category' => $this->catalogFormatter->formatCategory($category),
             'products' => array_map(
-                static fn ($product) => CatalogFormatter::formatProduct($product),
+                fn ($product) => $this->catalogFormatter->formatProduct($product),
                 $products
             ),
         ]);

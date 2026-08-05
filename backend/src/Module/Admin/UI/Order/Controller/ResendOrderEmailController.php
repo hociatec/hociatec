@@ -28,6 +28,7 @@ final class ResendOrderEmailController extends AbstractController
         private readonly OrderNotificationEmailService $notifications,
         private readonly OrderEventLogger $events,
         private readonly DtoValidator $validator,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -68,7 +69,7 @@ final class ResendOrderEmailController extends AbstractController
             'Renvoi manuel d’email depuis l’admin: '.$scenario.'.',
         );
 
-        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
+        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
     }
 
     private function resendCurrentStatusEmail(Order $order): bool

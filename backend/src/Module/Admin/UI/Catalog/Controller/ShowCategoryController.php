@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowCategoryController extends AbstractController
 {
-    public function __construct(private readonly CategoryRepositoryPort $categoryRepository)
+    public function __construct(
+        private readonly CategoryRepositoryPort $categoryRepository,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -29,6 +32,6 @@ class ShowCategoryController extends AbstractController
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(CatalogFormatter::formatCategory($category, true));
+        return ApiResponse::success($this->catalogFormatter->formatCategory($category, true));
     }
 }

@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_VOUCHERS_MANAGER')]
 final class GetVoucherController extends AbstractController
 {
-    public function __construct(private readonly VoucherRepositoryPort $vouchers)
+    public function __construct(
+        private readonly VoucherRepositoryPort $vouchers,
+        private readonly VoucherFormatter $formatter,
+    )
     {
     }
 
@@ -29,7 +32,7 @@ final class GetVoucherController extends AbstractController
         }
 
         return ApiResponse::success([
-            'voucher' => VoucherFormatter::formatVoucher($voucher),
+            'voucher' => $this->formatter->formatVoucher($voucher),
         ]);
     }
 }

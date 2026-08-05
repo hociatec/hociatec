@@ -85,19 +85,27 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         $deletePromotion = new DeletePromotionHandler($persistence);
         $repository = new PromotionRepository($this->registry($em));
         $validator = $this->validator(2);
+        $formatter = new \App\Module\Promotion\Application\Projection\PromotionFormatter();
 
-        $create = new CreatePromotionController($createPromotion, $validator);
+        $create = new CreatePromotionController($createPromotion, $validator, $formatter);
         self::assertSame(Response::HTTP_BAD_REQUEST, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         $created = $create($this->jsonRequest($this->promotionPayload()));
         self::assertSame(Response::HTTP_CREATED, $created->getStatusCode());
         $promotionId = (int) $this->payload($created)['data']['promotion']['id'];
 
-        self::assertSame(Response::HTTP_OK, (new ListPromotionAudiencesController(new PromotionEngine($repository)))()->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new ListPromotionsController($repository))(Request::create('/?page=1&perPage=5'))->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, (new GetPromotionController($repository))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new GetPromotionController($repository))($promotionId)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ListPromotionAudiencesController(new PromotionEngine(
+            $repository,
+            new \App\Module\Promotion\Application\Projection\PromotionFormatter(),
+            new \App\Module\Promotion\Application\Provider\PromotionAudienceProvider(),
+            new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
+            new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
+            new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+        )))()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ListPromotionsController($repository, $formatter))(Request::create('/?page=1&perPage=5'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new GetPromotionController($repository, $formatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new GetPromotionController($repository, $formatter))($promotionId)->getStatusCode());
 
-        $update = new UpdatePromotionController($repository, $updatePromotion, $validator);
+        $update = new UpdatePromotionController($repository, $updatePromotion, $validator, $formatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(999, $this->jsonRequest($this->promotionPayload(), 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($promotionId, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $update($promotionId, $this->jsonRequest($this->promotionPayload(['name' => 'Updated']), 'PUT'))->getStatusCode());
@@ -117,8 +125,9 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         $updateVoucher = new UpdateVoucherHandler($persistence, $payload);
         $deleteVoucher = new DeleteVoucherHandler($persistence);
         $validator = $this->validator(5);
+        $formatter = new \App\Module\Voucher\Application\Projection\VoucherFormatter();
 
-        $create = new CreateVoucherController($createVoucher, $validator);
+        $create = new CreateVoucherController($createVoucher, $validator, $formatter);
         self::assertSame(Response::HTTP_BAD_REQUEST, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $create($this->jsonRequest($this->voucherPayload(['discountValue' => 101])))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $create($this->jsonRequest($this->voucherPayload(['code' => 'BADDATE', 'startsAt' => 'bad', 'endsAt' => ''])))->getStatusCode());
@@ -126,11 +135,11 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_CREATED, $created->getStatusCode());
         $voucherId = (int) $this->payload($created)['data']['voucher']['id'];
 
-        self::assertSame(Response::HTTP_OK, (new ListVouchersController($repository))(Request::create('/?page=1&perPage=5'))->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, (new GetVoucherController($repository))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new GetVoucherController($repository))($voucherId)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ListVouchersController($repository, $formatter))(Request::create('/?page=1&perPage=5'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new GetVoucherController($repository, $formatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new GetVoucherController($repository, $formatter))($voucherId)->getStatusCode());
 
-        $update = new UpdateVoucherController($repository, $updateVoucher, $validator);
+        $update = new UpdateVoucherController($repository, $updateVoucher, $validator, $formatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $update(999, $this->jsonRequest($this->voucherPayload(), 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($voucherId, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $update($voucherId, $this->jsonRequest($this->voucherPayload(['startsAt' => '2026-08-10', 'endsAt' => '2026-08-01']), 'PUT'))->getStatusCode());
@@ -160,9 +169,10 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         $service = $this->tradeInService($em);
         $validator = $this->validator(8);
 
-        self::assertSame(Response::HTTP_OK, (new ListTradeInsController($repository))(Request::create('/?q=TR-ADM&status=submitted'))->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, (new ShowTradeInController($repository))(999)->getStatusCode());
-        self::assertSame(Response::HTTP_OK, (new ShowTradeInController($repository))((int) $submitted->getId())->getStatusCode());
+        $tradeInFormatter = new \App\Module\TradeIn\Application\Projection\TradeInFormatter();
+        self::assertSame(Response::HTTP_OK, (new ListTradeInsController($repository, $tradeInFormatter))(Request::create('/?q=TR-ADM&status=submitted'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, (new ShowTradeInController($repository, $tradeInFormatter))(999)->getStatusCode());
+        self::assertSame(Response::HTTP_OK, (new ShowTradeInController($repository, $tradeInFormatter))((int) $submitted->getId())->getStatusCode());
 
         $status = new UpdateTradeInStatusController($repository, $service, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $status(999, $this->jsonRequest(['status' => TradeInStatus::UNDER_REVIEW->value], 'PUT'))->getStatusCode());

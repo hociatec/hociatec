@@ -10,6 +10,7 @@ use App\Module\Admin\UI\Catalog\Controller\UpdateBrandController;
 use App\Module\Admin\UI\Catalog\Controller\UpdateCategoryController;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -36,14 +37,15 @@ final class AdminCatalogWriteControllersTest extends TestCase
         $service = new BrandService($repository, $this->createMock(ProductRepository::class), $this->persistence(), Validation::createValidator());
         $validator = $this->validator();
 
-        $create = new CreateBrandController($service, $validator);
+        $catalogFormatter = new CatalogFormatter();
+        $create = new CreateBrandController($service, $validator, $catalogFormatter);
         self::assertSame(400, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(422, $create($this->jsonRequest(['name' => 'Duplicate']))->getStatusCode());
         $created = $create($this->jsonRequest(['name' => ' Framework ']));
         self::assertSame(201, $created->getStatusCode());
         self::assertSame('Framework', $this->payload($created)['data']['name']);
 
-        $update = new UpdateBrandController($repository, $service, $validator);
+        $update = new UpdateBrandController($repository, $service, $validator, $catalogFormatter);
         self::assertSame(404, $update(404, $this->jsonRequest([], 'PUT'))->getStatusCode());
         self::assertSame(400, $update(5, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(422, $update(5, $this->jsonRequest(['name' => 'Duplicate'], 'PUT'))->getStatusCode());
@@ -63,7 +65,8 @@ final class AdminCatalogWriteControllersTest extends TestCase
         $service = new CategoryService($repository, $this->persistence(), Validation::createValidator());
         $validator = $this->validator();
 
-        $create = new CreateCategoryController($service, $validator);
+        $catalogFormatter = new CatalogFormatter();
+        $create = new CreateCategoryController($service, $validator, $catalogFormatter);
         self::assertSame(400, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
         self::assertSame(422, $create($this->jsonRequest(['name' => 'Duplicate']))->getStatusCode());
         self::assertSame(422, $create($this->jsonRequest(['name' => 'Valid', 'slug' => 'used']))->getStatusCode());
@@ -77,7 +80,7 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame('new-category', $this->payload($created)['data']['slug']);
         self::assertFalse($this->payload($created)['data']['isVisible']);
 
-        $update = new UpdateCategoryController($repository, $service, $validator);
+        $update = new UpdateCategoryController($repository, $service, $validator, $catalogFormatter);
         self::assertSame(404, $update(404, $this->jsonRequest([], 'PUT'))->getStatusCode());
         self::assertSame(400, $update(7, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
         $updated = $update(7, $this->jsonRequest([

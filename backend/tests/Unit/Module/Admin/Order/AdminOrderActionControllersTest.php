@@ -52,22 +52,22 @@ final class AdminOrderActionControllersTest extends TestCase
         $actor = $this->persistUser('admin-order@example.test');
         $order = $this->persistOrder($actor);
 
-        $metadata = $this->payload((new ListOrderMetadataController())());
+        $metadata = $this->payload((new ListOrderMetadataController(new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())))());
         self::assertSame(Order::STATUS_PENDING, $metadata['data']['statuses'][0]['value']);
 
-        $status = new UpdateOrderStatusController($this->orders(), $this->statusUpdater(true), $this->validator());
+        $status = new UpdateOrderStatusController($this->orders(), $this->statusUpdater(true), $this->validator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
         $status->setContainer($this->container($actor));
         self::assertSame(404, $status(999, $this->jsonRequest(['status' => Order::STATUS_CONFIRMED], 'PATCH'))->getStatusCode());
         self::assertSame(400, $status((int) $order->getId(), $this->jsonRequest(['status' => 'unknown'], 'PATCH'))->getStatusCode());
 
-        $conflict = new UpdateOrderStatusController($this->orders(), $this->statusUpdater(false), $this->validator());
+        $conflict = new UpdateOrderStatusController($this->orders(), $this->statusUpdater(false), $this->validator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
         $conflict->setContainer($this->container($actor));
         self::assertSame(409, $conflict((int) $order->getId(), $this->jsonRequest(['status' => Order::STATUS_CONFIRMED], 'PATCH'))->getStatusCode());
 
         $updatedStatus = $this->payload($status((int) $order->getId(), $this->jsonRequest(['status' => Order::STATUS_CONFIRMED], 'PATCH')));
         self::assertSame(Order::STATUS_CONFIRMED, $updatedStatus['data']['order']['status']);
 
-        $delivery = new UpdateOrderDeliveryController($this->orders(), $this->deliveryUpdater(), $this->validator());
+        $delivery = new UpdateOrderDeliveryController($this->orders(), $this->deliveryUpdater(), $this->validator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
         $delivery->setContainer($this->container($actor));
         self::assertSame(404, $delivery(999, $this->jsonRequest(['status' => Order::DELIVERY_STATUS_SHIPPED], 'PATCH'))->getStatusCode());
         self::assertSame(400, $delivery((int) $order->getId(), $this->jsonRequest(['status' => 'lost'], 'PATCH'))->getStatusCode());
@@ -97,7 +97,7 @@ final class AdminOrderActionControllersTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->method('dispatch')->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
 
-        return new OrderStatusUpdater(new DoctrineUnitOfWork($this->entityManager()), $workflow, $bus, $this->eventLogger());
+        return new OrderStatusUpdater(new DoctrineUnitOfWork($this->entityManager()), $workflow, $bus, $this->eventLogger(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow());
     }
 
     private function deliveryUpdater(): OrderDeliveryUpdater

@@ -86,7 +86,15 @@ final class AdminUserControllersTest extends TestCase
         $voucherEntityManager->flush();
         $vouchers = $this->voucherRepository($voucherEntityManager);
 
-        $controller = new ShowCustomerController($users, $addresses, $orders, $vouchers);
+        $controller = new ShowCustomerController(
+            $users,
+            $addresses,
+            $orders,
+            $vouchers,
+            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            new \App\Module\User\Application\Projection\ShippingAddressFormatter(),
+            new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
+        );
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(42)->getStatusCode());
 
@@ -189,6 +197,7 @@ final class AdminUserControllersTest extends TestCase
             $users,
             $customerVoucherHandler,
             $this->validator(3),
+            new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
         );
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(42, Request::create('/', 'POST'))->getStatusCode());

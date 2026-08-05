@@ -16,6 +16,7 @@ final class CartFormatter
     public function __construct(
         private readonly PromotionEngine $promotionEngine,
         private readonly VoucherEngine $voucherEngine,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -44,7 +45,7 @@ final class CartFormatter
 
             $items[] = [
                 'id' => $item->getId(),
-                'product' => CatalogFormatter::formatProduct($product),
+                'product' => $this->catalogFormatter->formatProduct($product),
                 'quantity' => $quantity,
                 'linePriceCents' => $linePrice,
                 'rentalMonths' => $rentalMonths,

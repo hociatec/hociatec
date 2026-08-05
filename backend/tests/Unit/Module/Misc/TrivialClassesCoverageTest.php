@@ -88,7 +88,7 @@ final class TrivialClassesCoverageTest extends TestCase
 
     public function testSmallControllersReturnSuccessPayloads(): void
     {
-        $orderResponse = (new ListOrderMetadataController())();
+        $orderResponse = (new ListOrderMetadataController(new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())))();
         self::assertSame(Response::HTTP_OK, $orderResponse->getStatusCode());
         self::assertStringContainsString('"statuses"', (string) $orderResponse->getContent());
 
@@ -96,7 +96,7 @@ final class TrivialClassesCoverageTest extends TestCase
         self::assertSame(Response::HTTP_OK, $quoteResponse->getStatusCode());
         self::assertStringContainsString('"brouillon"', mb_strtolower((string) $quoteResponse->getContent()));
 
-        $tradeInResponse = (new ListTradeInMetadataController(new TradeInMetadataFormatter()))();
+        $tradeInResponse = (new ListTradeInMetadataController(new TradeInMetadataFormatter(new \App\Module\TradeIn\Application\Projection\TradeInFormatter())))();
         self::assertSame(Response::HTTP_OK, $tradeInResponse->getStatusCode());
         self::assertStringContainsString('"paymentMethods"', (string) $tradeInResponse->getContent());
     }

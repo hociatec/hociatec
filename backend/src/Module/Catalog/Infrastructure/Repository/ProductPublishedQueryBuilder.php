@@ -4,23 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use Doctrine\ORM\QueryBuilder;
 
 trait ProductPublishedQueryBuilder
 {
     private function buildPublishedQuery(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured,
-        ?string $sellingType,
-        ?string $brand,
-        ?string $storageCapacity,
-        ?string $memoryRam,
-        ?string $color,
-        ?int $minPriceCents,
-        ?int $maxPriceCents,
-        ?bool $inStockOnly,
-        ?string $sort,
+        ProductCatalogCriteria $criteria,
         bool $withSort,
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('p')
@@ -32,28 +22,17 @@ trait ProductPublishedQueryBuilder
             ->setParameter('published', true)
             ->setParameter('visible', true);
 
-        if (true === $onlyFeatured) {
+        if (true === $criteria->onlyFeatured) {
             $qb
                 ->andWhere('p.publication.isFeaturedHome = :featured')
                 ->setParameter('featured', true);
         }
 
-        $this->applyPublishedFilters(
-            $qb,
-            $categorySlug,
-            $sellingType,
-            $brand,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-            $minPriceCents,
-            $maxPriceCents,
-            $inStockOnly,
-        );
-        $this->applySearchFilter($qb, $search, $sort, $withSort);
+        $this->applyPublishedFilters($qb, $criteria);
+        $this->applySearchFilter($qb, $criteria->search, $criteria->sort, $withSort);
 
         if ($withSort) {
-            $this->applyPublishedSort($qb, $sort, $search);
+            $this->applyPublishedSort($qb, $criteria->sort, $criteria->search);
         }
 
         return $qb;

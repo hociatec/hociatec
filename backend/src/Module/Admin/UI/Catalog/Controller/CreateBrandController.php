@@ -22,7 +22,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class CreateBrandController extends AbstractController
 {
-    public function __construct(private readonly BrandService $brandService, private readonly DtoValidator $validator)
+    public function __construct(
+        private readonly BrandService $brandService,
+        private readonly DtoValidator $validator,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -45,6 +49,6 @@ class CreateBrandController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(CatalogFormatter::formatBrand($brand), 'La marque a bien été créée.');
+        return ApiResponse::created($this->catalogFormatter->formatBrand($brand), 'La marque a bien été créée.');
     }
 }

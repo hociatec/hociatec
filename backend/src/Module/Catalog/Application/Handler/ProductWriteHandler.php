@@ -28,7 +28,7 @@ final readonly class ProductWriteHandler
         private ProductGalleryUpdater $gallery,
         private ProductDiscountApplicator $discounts,
         private CatalogCacheInvalidator $cacheInvalidator,
-        private ProductAttributeWriter $attributes = new ProductAttributeWriter(),
+        private ProductAttributeWriter $attributes,
     ) {
     }
 

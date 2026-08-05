@@ -22,7 +22,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class CreateCategoryController extends AbstractController
 {
-    public function __construct(private readonly CategoryService $categoryService, private readonly DtoValidator $validator)
+    public function __construct(
+        private readonly CategoryService $categoryService,
+        private readonly DtoValidator $validator,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -45,6 +49,6 @@ class CreateCategoryController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(CatalogFormatter::formatCategory($category, true), 'La catégorie a bien été créée.');
+        return ApiResponse::created($this->catalogFormatter->formatCategory($category, true), 'La catégorie a bien été créée.');
     }
 }

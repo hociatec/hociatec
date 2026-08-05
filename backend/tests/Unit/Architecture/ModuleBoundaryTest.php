@@ -524,6 +524,8 @@ final class ModuleBoundaryTest extends TestCase
             \App\Module\Catalog\Application\DTO\ProductWriteCommand::class => ['__construct' => 5, 'forCreate' => 4, 'forUpdate' => 5],
             \App\Module\Catalog\Application\Handler\ProductWriteHandler::class => ['create' => 1, 'update' => 1],
             \App\Module\Catalog\Application\Writer\ProductAttributeWriter::class => ['create' => 4, 'update' => 5],
+            \App\Module\Catalog\Application\Workflow\ProductVariantService::class => ['createVariantCopy' => 1],
+            \App\Module\Catalog\Application\Factory\ProductVariantFactory::class => ['createVariantCopy' => 1],
         ];
         $violations = [];
 
@@ -533,6 +535,42 @@ final class ModuleBoundaryTest extends TestCase
                 $count = $reflection->getMethod($method)->getNumberOfParameters();
                 if ($count > $limit) {
                     $violations[] = $class.'::'.$method.' has '.$count.' parameters';
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testProductListUseCasesUseCriteriaObjectsInsteadOfLongPositionalSignatures(): void
+    {
+        $expectations = [
+            \App\Module\Catalog\Application\Port\ProductCatalogRepository::class => [
+                'findAllForAdmin' => \App\Module\Catalog\Application\Query\ProductAdminCriteria::class,
+                'countForAdmin' => \App\Module\Catalog\Application\Query\ProductAdminCriteria::class,
+                'findPublished' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'findPublishedListProjection' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'countPublished' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'collectPublishedFacets' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+            ],
+            \App\Module\Catalog\Application\Workflow\ProductQueryService::class => [
+                'listForAdmin' => \App\Module\Catalog\Application\Query\ProductAdminCriteria::class,
+                'countForAdmin' => \App\Module\Catalog\Application\Query\ProductAdminCriteria::class,
+                'listPublished' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'listPublishedProjection' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'countPublished' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+                'collectPublishedFacets' => \App\Module\Catalog\Application\Query\ProductCatalogCriteria::class,
+            ],
+        ];
+        $violations = [];
+
+        foreach ($expectations as $class => $methods) {
+            $reflection = new \ReflectionClass($class);
+            foreach ($methods as $method => $criteriaClass) {
+                $parameters = $reflection->getMethod($method)->getParameters();
+                $type = $parameters[0]?->getType();
+                if (1 !== count($parameters) || !$type instanceof \ReflectionNamedType || $criteriaClass !== $type->getName()) {
+                    $violations[] = $class.'::'.$method;
                 }
             }
         }
@@ -568,6 +606,33 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('current()', $provider);
         self::assertStringContainsString('bump($operation)', $invalidator);
         self::assertStringNotContainsString('->clear()', $invalidator);
+    }
+
+    public function testCatalogFormattersAreInjectedInsteadOfCalledStatically(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach ([
+                'CatalogFormatter::',
+                'OrderFormatter::',
+                'ProductCatalogListProjectionFormatter::',
+                'ProductReviewFormatter::',
+                'PromotionFormatter::',
+                'QuoteFormatter::',
+                'ShippingAddressFormatter::',
+                'TradeInFormatter::',
+                'VoucherFormatter::',
+            ] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
     }
 
     public function testControllersDoNotCallExternalServicesDirectly(): void

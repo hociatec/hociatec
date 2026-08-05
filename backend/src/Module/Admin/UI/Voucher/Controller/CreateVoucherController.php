@@ -25,6 +25,7 @@ final class CreateVoucherController extends AbstractController
     public function __construct(
         private readonly CreateVoucherHandler $createVoucher,
         private readonly DtoValidator $validator,
+        private readonly VoucherFormatter $formatter,
     ) {
     }
 
@@ -45,7 +46,7 @@ final class CreateVoucherController extends AbstractController
         }
 
         return ApiResponse::created([
-            'voucher' => VoucherFormatter::formatVoucher($voucher),
+            'voucher' => $this->formatter->formatVoucher($voucher),
         ], 'Le bon de réduction a bien été créé.');
     }
 

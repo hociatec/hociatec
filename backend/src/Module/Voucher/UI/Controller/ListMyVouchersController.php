@@ -19,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class ListMyVouchersController extends AbstractController
 {
-    public function __construct(private readonly VoucherRepositoryPort $vouchers)
+    public function __construct(
+        private readonly VoucherRepositoryPort $vouchers,
+        private readonly VoucherFormatter $formatter,
+    )
     {
     }
 
@@ -33,7 +36,7 @@ final class ListMyVouchersController extends AbstractController
 
         return ApiResponse::paginated(
             array_map(
-                static fn ($voucher): array => VoucherFormatter::formatVoucher($voucher),
+                fn ($voucher): array => $this->formatter->formatVoucher($voucher),
                 $this->vouchers->findByRecipientUserId($userId, $pagination->perPage, $pagination->offset()),
             ),
             $pagination->metadata($this->vouchers->countByRecipientUserId($userId)),

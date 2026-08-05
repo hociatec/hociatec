@@ -22,6 +22,8 @@ class ShowProductController extends AbstractController
     public function __construct(
         private readonly ProductQueryService $productService,
         private readonly ProductRatingRepositoryPort $ratings,
+        private readonly CatalogFormatter $catalogFormatter,
+        private readonly ProductReviewFormatter $productReviewFormatter,
     ) {
     }
 
@@ -33,13 +35,13 @@ class ShowProductController extends AbstractController
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $data = CatalogFormatter::formatProduct($product);
+        $data = $this->catalogFormatter->formatProduct($product);
 
         if ($product->getReviewsCount() > 0) {
             $latestReviews = $this->ratings->findPublishedByProduct($product, 3, 0);
             if ([] !== $latestReviews) {
                 $data['reviews']['items'] = array_map(
-                    static fn ($rating) => ProductReviewFormatter::formatRating($rating),
+                    fn ($rating) => $this->productReviewFormatter->formatRating($rating),
                     $latestReviews,
                 );
             }

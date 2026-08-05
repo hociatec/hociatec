@@ -21,6 +21,7 @@ use App\Module\Cart\Application\DTO\ApplyCartVoucherInput;
 use App\Module\Cart\Application\DTO\UpdateCartItemInput;
 use App\Module\Catalog\Application\DTO\ProductSearchCriteria;
 use App\Module\Catalog\Application\DTO\ShareProductInput;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Order\Application\DTO\CheckoutInput;
 use App\Module\Order\Domain\Enum\DeliveryStatus;
@@ -133,7 +134,7 @@ final class DtoAndEnumCoverageTest extends TestCase
 
         $criteria = new ProductSearchCriteria(3, 20, 'phones', 'iphone', true, 'sale', 'Apple', '256Go', '8Go', 'Black', 10000, 20000, true, 'price_desc');
         self::assertSame(40, $criteria->offset());
-        self::assertSame(['phones', 'iphone', true, 'sale', 'Apple', '256Go', '8Go', 'Black', 10000, 20000, true], $criteria->filterArguments());
+        self::assertEquals(new ProductCatalogCriteria('phones', 'iphone', true, 'sale', 'Apple', '256Go', '8Go', 'Black', 10000, 20000, true, 'price_desc', 20, 40), $criteria->criteria());
 
         $share = ShareProductInput::fromPayload(['email' => '  Ada@Example.COM ']);
         self::assertSame('ada@example.com', $share->email);

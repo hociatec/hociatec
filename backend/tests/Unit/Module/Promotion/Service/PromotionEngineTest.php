@@ -8,9 +8,14 @@ use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Promotion\Application\Calculator\CartSubtotalCalculator;
+use App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;
+use App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
+use App\Module\Promotion\Application\Provider\PromotionAudienceProvider;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -18,7 +23,7 @@ final class PromotionEngineTest extends TestCase
 {
     public function testAudienceDefinitionsExposeExpectedDefaults(): void
     {
-        $engine = new PromotionEngine($this->createMock(PromotionRepository::class));
+        $engine = $this->engine($this->createMock(PromotionRepository::class));
 
         $definitions = $engine->getAudienceDefinitions();
 
@@ -52,7 +57,7 @@ final class PromotionEngineTest extends TestCase
             'lastOrderAt' => new \DateTimeImmutable('-120 days'),
         ]);
 
-        $summary = (new PromotionEngine($repository))->calculateForSubtotal(50000, $user);
+        $summary = $this->engine($repository)->calculateForSubtotal(50000, $user);
 
         self::assertSame(50000, $summary['subtotalPriceCents']);
         self::assertSame(10000, $summary['discountAmountCents']);
@@ -68,7 +73,7 @@ final class PromotionEngineTest extends TestCase
             $this->promotion('Fixe', 'fixed', Promotion::TYPE_FIXED_CENTS, 2000, 'all_users'),
         ]);
 
-        $summary = (new PromotionEngine($repository))->calculateForSubtotal(0, null);
+        $summary = $this->engine($repository)->calculateForSubtotal(0, null);
 
         self::assertSame(0, $summary['subtotalPriceCents']);
         self::assertSame(0, $summary['discountAmountCents']);
@@ -102,7 +107,7 @@ final class PromotionEngineTest extends TestCase
             'lastOrderAt' => null,
         ]);
 
-        $summary = (new PromotionEngine($repository))->calculateCartSummary($cart, $user);
+        $summary = $this->engine($repository)->calculateCartSummary($cart, $user);
 
         self::assertSame(35000, $summary['subtotalPriceCents']);
         self::assertSame(3500, $summary['discountAmountCents']);
@@ -124,5 +129,17 @@ final class PromotionEngineTest extends TestCase
         $promotion->setEndsAt(new \DateTimeImmutable('+1 day'));
 
         return $promotion;
+    }
+
+    private function engine(PromotionRepository $repository): PromotionEngine
+    {
+        return new PromotionEngine(
+            $repository,
+            new PromotionFormatter(),
+            new PromotionAudienceProvider(),
+            new CartSubtotalCalculator(),
+            new PromotionDiscountCalculator(),
+            new PromotionEligibilityPolicy(),
+        );
     }
 }

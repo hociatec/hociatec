@@ -12,11 +12,14 @@ use App\Module\Rating\Domain\Entity\ProductRating;
 
 final class OrderFormatter
 {
-    private function __construct()
+    public function __construct(
+        private readonly ProductReviewFormatter $productReviewFormatter,
+        private readonly OrderStatusWorkflow $statusWorkflow,
+    )
     {
     }
 
-    public static function formatStatusLabel(string $status): string
+    public function formatStatusLabel(string $status): string
     {
         return match ($status) {
             Order::STATUS_PENDING => 'En attente',
@@ -28,17 +31,17 @@ final class OrderFormatter
     }
 
     /** @return list<array{value: string, label: string}> */
-    public static function statusOptions(): array
+    public function statusOptions(): array
     {
         $options = [];
-        foreach ((new OrderStatusWorkflow())->statuses() as $status) {
-            $options[] = ['value' => $status, 'label' => self::formatStatusLabel($status)];
+        foreach ($this->statusWorkflow->statuses() as $status) {
+            $options[] = ['value' => $status, 'label' => $this->formatStatusLabel($status)];
         }
 
         return $options;
     }
 
-    public static function formatDeliveryStatusLabel(string $deliveryStatus): string
+    public function formatDeliveryStatusLabel(string $deliveryStatus): string
     {
         return match ($deliveryStatus) {
             Order::DELIVERY_STATUS_PREPARING => 'Préparation en cours',
@@ -51,7 +54,7 @@ final class OrderFormatter
         };
     }
 
-    public static function formatInvoiceStatusLabel(string $invoiceStatus): string
+    public function formatInvoiceStatusLabel(string $invoiceStatus): string
     {
         return match ($invoiceStatus) {
             Order::INVOICE_STATUS_ISSUED => 'Émise',
@@ -66,7 +69,7 @@ final class OrderFormatter
      *
      * @return array<string, mixed>
      */
-    public static function formatOrder(Order $order, array $ratingsByOrderItemId = [], array $extra = []): array
+    public function formatOrder(Order $order, array $ratingsByOrderItemId = [], array $extra = []): array
     {
         $items = [];
         $pendingReviews = 0;
@@ -95,16 +98,16 @@ final class OrderFormatter
                 'lineVatCents' => $item->getLineVatCents(),
                 'linePriceCents' => $line,
                 'canReview' => $canReview,
-                'review' => $hasReview ? ProductReviewFormatter::formatRating($rating, true) : null,
+                'review' => $hasReview ? $this->productReviewFormatter->formatRating($rating, true) : null,
             ];
         }
 
         $status = $order->getStatus();
-        $statusLabel = self::formatStatusLabel($status);
-        $allowedNextStatuses = (new OrderStatusWorkflow())->nextStatuses($status);
+        $statusLabel = $this->formatStatusLabel($status);
+        $allowedNextStatuses = $this->statusWorkflow->nextStatuses($status);
 
         $deliveryStatus = $order->getDeliveryStatus();
-        $deliveryStatusLabel = self::formatDeliveryStatusLabel($deliveryStatus);
+        $deliveryStatusLabel = $this->formatDeliveryStatusLabel($deliveryStatus);
         $appliedPromotionName = $order->getAppliedPromotionName();
         $appliedPromotion = null !== $appliedPromotionName && !str_starts_with($appliedPromotionName, 'Conversion devis ')
             ? [
@@ -121,7 +124,7 @@ final class OrderFormatter
             'status' => $status,
             'statusLabel' => $statusLabel,
             'allowedNextStatuses' => array_map(static fn (string $nextStatus): string => $nextStatus, $allowedNextStatuses),
-            'allowedNextStatusDetails' => array_map(static fn (string $nextStatus): array => ['value' => $nextStatus, 'label' => self::formatStatusLabel($nextStatus)], $allowedNextStatuses),
+            'allowedNextStatusDetails' => array_map(fn (string $nextStatus): array => ['value' => $nextStatus, 'label' => $this->formatStatusLabel($nextStatus)], $allowedNextStatuses),
             'subtotalPriceCents' => $order->getSubtotalPriceCents(),
             'discountAmountCents' => $order->getDiscountAmountCents(),
             'totalPriceCents' => $order->getTotalPriceCents(),
@@ -148,7 +151,7 @@ final class OrderFormatter
             'invoice' => [
                 'number' => $order->getInvoiceNumber(),
                 'status' => $order->getInvoiceStatus(),
-                'statusLabel' => self::formatInvoiceStatusLabel($order->getInvoiceStatus()),
+                'statusLabel' => $this->formatInvoiceStatusLabel($order->getInvoiceStatus()),
                 'issuedAt' => $order->getInvoicedAt()?->format(DATE_ATOM),
                 'billingName' => $order->getBillingName(),
                 'billingCompany' => $order->getBillingCompany(),

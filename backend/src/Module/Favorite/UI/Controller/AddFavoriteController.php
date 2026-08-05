@@ -22,6 +22,7 @@ class AddFavoriteController extends AbstractController
     public function __construct(
         private readonly ProductRepositoryPort $products,
         private readonly FavoriteService $favorites,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -40,7 +41,7 @@ class AddFavoriteController extends AbstractController
 
         $payload = [
             'favorite' => [
-                'product' => CatalogFormatter::formatProduct($favorite->getProduct()),
+                'product' => $this->catalogFormatter->formatProduct($favorite->getProduct()),
                 'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
             ],
             'alreadyFavorite' => false === $created,

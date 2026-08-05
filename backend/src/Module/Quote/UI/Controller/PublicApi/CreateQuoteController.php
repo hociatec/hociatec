@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\PublicApi;
 
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
@@ -23,7 +22,7 @@ class CreateQuoteController extends AbstractController
 {
     public function __construct(
         private readonly QuoteDomainService $quoteService,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
     ) {
     }
 
@@ -41,6 +40,6 @@ class CreateQuoteController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::created(QuoteFormatter::formatQuote($quote, $this->calculator), 'Votre devis a bien été enregistré.');
+        return ApiResponse::created($this->formatter->formatQuote($quote), 'Votre devis a bien été enregistré.');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Query\ProductAdminCriteria;
 use App\Module\Catalog\Domain\Entity\Product;
 use Doctrine\ORM\QueryBuilder;
 
@@ -12,103 +13,60 @@ trait ProductAdminQueries
     /**
      * @return list<Product>
      */
-    public function findAllForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-        ?string $sort = null,
-        int $limit = 100,
-        int $offset = 0,
-    ): array {
-        $qb = $this->createAdminQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $minPriceCents,
-            $maxPriceCents,
-            $lowStockOnly,
-            $sort,
-        );
+    public function findAllForAdmin(ProductAdminCriteria $criteria): array
+    {
+        $qb = $this->createAdminQuery($criteria);
 
-        $qb->setFirstResult(max(0, $offset));
-        $qb->setMaxResults(max(1, min(100, $limit)));
+        $qb->setFirstResult(max(0, $criteria->offset));
+        $qb->setMaxResults(max(1, min(100, $criteria->limit)));
 
         return $qb
             ->getQuery()
             ->getResult();
     }
 
-    public function countForAdmin(
-        ?string $categorySlug = null,
-        ?string $search = null,
-        ?bool $onlyFeatured = null,
-        ?string $sellingType = null,
-        ?int $minPriceCents = null,
-        ?int $maxPriceCents = null,
-        ?bool $lowStockOnly = null,
-    ): int {
-        return (int) $this->createAdminQuery(
-            $categorySlug,
-            $search,
-            $onlyFeatured,
-            $sellingType,
-            $minPriceCents,
-            $maxPriceCents,
-            $lowStockOnly,
-            null,
-        )
+    public function countForAdmin(ProductAdminCriteria $criteria): int
+    {
+        return (int) $this->createAdminQuery($criteria->withoutSortAndPagination())
             ->select('COUNT(p.id)')
             ->resetDQLPart('orderBy')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    private function createAdminQuery(
-        ?string $categorySlug,
-        ?string $search,
-        ?bool $onlyFeatured,
-        ?string $sellingType,
-        ?int $minPriceCents,
-        ?int $maxPriceCents,
-        ?bool $lowStockOnly,
-        ?string $sort,
-    ): QueryBuilder {
+    private function createAdminQuery(ProductAdminCriteria $criteria): QueryBuilder
+    {
         $qb = $this->createQueryBuilder('p')
             ->addSelect('c', 'b')
             ->leftJoin('p.category', 'c')
             ->leftJoin('p.brandReference', 'b');
 
-        if (true === $onlyFeatured) {
+        if (true === $criteria->onlyFeatured) {
             $qb->andWhere('p.publication.isFeaturedHome = :featured')->setParameter('featured', true);
         }
 
-        if (null !== $categorySlug && '' !== $categorySlug) {
-            $qb->andWhere('c.slug = :adminCategory')->setParameter('adminCategory', $categorySlug);
+        if (null !== $criteria->categorySlug && '' !== $criteria->categorySlug) {
+            $qb->andWhere('c.slug = :adminCategory')->setParameter('adminCategory', $criteria->categorySlug);
         }
 
-        if (null !== $sellingType && \in_array($sellingType, ['sale', 'rental'], true)) {
-            $qb->andWhere('p.pricing.sellingType = :adminSellingType')->setParameter('adminSellingType', $sellingType);
+        if (null !== $criteria->sellingType && \in_array($criteria->sellingType, ['sale', 'rental'], true)) {
+            $qb->andWhere('p.pricing.sellingType = :adminSellingType')->setParameter('adminSellingType', $criteria->sellingType);
         }
 
-        if (null !== $minPriceCents && $minPriceCents >= 0) {
-            $qb->andWhere('p.pricing.priceCents >= :adminMinPrice')->setParameter('adminMinPrice', $minPriceCents);
+        if (null !== $criteria->minPriceCents && $criteria->minPriceCents >= 0) {
+            $qb->andWhere('p.pricing.priceCents >= :adminMinPrice')->setParameter('adminMinPrice', $criteria->minPriceCents);
         }
 
-        if (null !== $maxPriceCents && $maxPriceCents >= 0) {
-            $qb->andWhere('p.pricing.priceCents <= :adminMaxPrice')->setParameter('adminMaxPrice', $maxPriceCents);
+        if (null !== $criteria->maxPriceCents && $criteria->maxPriceCents >= 0) {
+            $qb->andWhere('p.pricing.priceCents <= :adminMaxPrice')->setParameter('adminMaxPrice', $criteria->maxPriceCents);
         }
 
-        if (true === $lowStockOnly) {
+        if (true === $criteria->lowStockOnly) {
             $qb->andWhere('p.inventory.stock <= p.inventory.lowStockThreshold');
         }
 
-        $this->applySearchFilter($qb, $search, $sort, null !== $sort);
-        $this->applyPublishedSort($qb, $sort, $search);
+        $this->applySearchFilter($qb, $criteria->search, $criteria->sort, null !== $criteria->sort);
+        $this->applyPublishedSort($qb, $criteria->sort, $criteria->search);
 
         return $qb;
     }

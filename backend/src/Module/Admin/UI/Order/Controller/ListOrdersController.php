@@ -24,6 +24,7 @@ final class ListOrdersController extends AbstractController
     public function __construct(
         private readonly OrderRepositoryPort $orders,
         private readonly OrderEventRepositoryPort $events,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -37,13 +38,13 @@ final class ListOrdersController extends AbstractController
         $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);
 
         $items = array_map(
-            static function (Order $order) use ($issueEventsByOrderId): array {
+            function (Order $order) use ($issueEventsByOrderId): array {
                 $issueReasons = OrderIssueInspector::getOperationalIssues(
                     $order,
                     $issueEventsByOrderId[$order->getId() ?? 0] ?? [],
                 );
 
-                return OrderFormatter::formatOrder($order, [], [
+                return $this->orderFormatter->formatOrder($order, [], [
                     'hasIssues' => [] !== $issueReasons,
                     'issueReasons' => $issueReasons,
                 ]);

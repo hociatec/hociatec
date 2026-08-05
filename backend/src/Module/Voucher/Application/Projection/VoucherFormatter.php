@@ -8,14 +8,10 @@ use App\Module\Voucher\Domain\Entity\Voucher;
 
 final class VoucherFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, mixed>
      */
-    public static function formatVoucher(Voucher $voucher): array
+    public function formatVoucher(Voucher $voucher): array
     {
         return [
             'id' => $voucher->getId(),
@@ -38,7 +34,7 @@ final class VoucherFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatCartVoucher(Voucher $voucher, int $discountAmountCents): array
+    public function formatCartVoucher(Voucher $voucher, int $discountAmountCents): array
     {
         return [
             'id' => $voucher->getId(),

@@ -23,6 +23,7 @@ final readonly class CreateProductController
     public function __construct(
         private ProductFormRequestMapper $forms,
         private ProductWriteHandler $products,
+        private CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -41,6 +42,6 @@ final readonly class CreateProductController
             );
         }
 
-        return ApiResponse::created(CatalogFormatter::formatProduct($product, true));
+        return ApiResponse::created($this->catalogFormatter->formatProduct($product, true));
     }
 }

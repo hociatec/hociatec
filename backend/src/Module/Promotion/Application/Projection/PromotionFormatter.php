@@ -8,14 +8,10 @@ use App\Module\Promotion\Domain\Entity\Promotion;
 
 final class PromotionFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, mixed>
      */
-    public static function formatPromotion(Promotion $promotion): array
+    public function formatPromotion(Promotion $promotion): array
     {
         return [
             'id' => $promotion->getId(),

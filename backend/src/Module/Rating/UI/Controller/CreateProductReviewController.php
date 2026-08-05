@@ -26,6 +26,7 @@ class CreateProductReviewController extends AbstractController
         private readonly OrderRepositoryPort $orders,
         private readonly ProductRatingService $reviews,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly ProductReviewFormatter $formatter,
     ) {
     }
 
@@ -66,7 +67,7 @@ class CreateProductReviewController extends AbstractController
         }
 
         return ApiResponse::success([
-            'review' => ProductReviewFormatter::formatRating($rating, true),
+            'review' => $this->formatter->formatRating($rating, true),
         ]);
     }
 }

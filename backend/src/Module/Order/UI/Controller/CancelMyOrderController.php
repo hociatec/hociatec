@@ -25,6 +25,7 @@ class CancelMyOrderController extends AbstractController
         private readonly OrderRepositoryPort $orders,
         private readonly OrderWorkflowService $workflow,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -47,6 +48,6 @@ class CancelMyOrderController extends AbstractController
 
         $this->workflow->cancel($order);
 
-        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
+        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
     }
 }

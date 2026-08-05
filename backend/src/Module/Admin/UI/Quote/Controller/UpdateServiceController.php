@@ -25,6 +25,7 @@ final readonly class UpdateServiceController
         private ServiceOfferingRepositoryPort $repository,
         private QuoteServiceFormMapper $forms,
         private UpdateQuoteServiceHandler $updateService,
+        private QuoteFormatter $formatter,
     ) {
     }
 
@@ -43,6 +44,6 @@ final readonly class UpdateServiceController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::success(QuoteFormatter::formatService($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');
+        return ApiResponse::success($this->formatter->formatService($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');
     }
 }

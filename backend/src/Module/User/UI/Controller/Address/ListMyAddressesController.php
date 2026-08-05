@@ -19,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAddressesController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepositoryPort $addresses)
+    public function __construct(
+        private readonly ShippingAddressRepositoryPort $addresses,
+        private readonly ShippingAddressFormatter $formatter,
+    )
     {
     }
 
@@ -30,7 +33,7 @@ class ListMyAddressesController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $items = array_map(
-            fn ($a) => ShippingAddressFormatter::toArray($a),
+            fn ($a) => $this->formatter->toArray($a),
             $this->addresses->findAllForUser($user, $pagination->perPage, $pagination->offset())
         );
 

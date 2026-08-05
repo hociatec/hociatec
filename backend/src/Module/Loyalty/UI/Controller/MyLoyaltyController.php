@@ -21,7 +21,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class MyLoyaltyController extends AbstractController
 {
-    public function __construct(private readonly LoyaltyService $loyalty)
+    public function __construct(
+        private readonly LoyaltyService $loyalty,
+        private readonly VoucherFormatter $voucherFormatter,
+    )
     {
     }
 
@@ -54,7 +57,7 @@ final class MyLoyaltyController extends AbstractController
 
         return ApiResponse::created([
             'loyalty' => $this->formatLoyalty($user),
-            'voucher' => VoucherFormatter::formatVoucher($voucher),
+            'voucher' => $this->voucherFormatter->formatVoucher($voucher),
         ]);
     }
 

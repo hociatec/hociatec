@@ -19,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_TRADE_INS_MANAGER')]
 final class ListTradeInsController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepositoryPort $requests)
+    public function __construct(
+        private readonly TradeInRequestRepositoryPort $requests,
+        private readonly TradeInFormatter $formatter,
+    )
     {
     }
 
@@ -32,6 +35,6 @@ final class ListTradeInsController extends AbstractController
         $items = $this->requests->findForAdmin($search, $status, $pagination->perPage, $pagination->offset());
         $total = $this->requests->countForAdmin($search, $status);
 
-        return ApiResponse::paginated(array_map(static fn ($item) => TradeInFormatter::format($item), $items), $pagination->metadata($total));
+        return ApiResponse::paginated(array_map(fn ($item) => $this->formatter->format($item), $items), $pagination->metadata($total));
     }
 }

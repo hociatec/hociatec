@@ -24,6 +24,7 @@ class CreateAddressController extends AbstractController
     public function __construct(
         private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
+        private readonly ShippingAddressFormatter $formatter,
     ) {
     }
 
@@ -45,6 +46,6 @@ class CreateAddressController extends AbstractController
         $isDefault = isset($payload['isDefault']) ? (bool) $payload['isDefault'] : false;
         $this->writer->saveWithDefaultPolicy($user, $address, $isDefault);
 
-        return ApiResponse::createdItem('address', ShippingAddressFormatter::toArray($address));
+        return ApiResponse::createdItem('address', $this->formatter->toArray($address));
     }
 }

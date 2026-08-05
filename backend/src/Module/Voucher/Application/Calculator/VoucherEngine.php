@@ -15,6 +15,7 @@ final class VoucherEngine
 {
     public function __construct(
         private readonly VoucherLookupPort $vouchers,
+        private readonly VoucherFormatter $formatter,
         private readonly ?ClockInterface $clock = null,
     ) {
     }
@@ -84,7 +85,7 @@ final class VoucherEngine
                 if ($this->isVoucherEligible($voucher, $subtotalPriceCents, $now, $user)) {
                     $discountAmount = $this->computeDiscountAmount($voucher, $subtotalPriceCents);
                     if ($discountAmount > 0) {
-                        $appliedVoucher = VoucherFormatter::formatCartVoucher($voucher, $discountAmount);
+                        $appliedVoucher = $this->formatter->formatCartVoucher($voucher, $discountAmount);
                         $status = 'applied';
                     } else {
                         $status = 'ineligible';

@@ -79,6 +79,7 @@ final class AdminOperationsControllersTest extends TestCase
             $this->supportRequests(),
             $this->quotes(),
             $formatter,
+            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
         ));
         self::assertSame(404, $timeline(999)->getStatusCode());
         $timelinePayload = $this->payload($timeline((int) $customer->getId()));
@@ -178,7 +179,10 @@ final class AdminOperationsControllersTest extends TestCase
 
     private function formatter(): AdminOperationsFormatter
     {
-        return new AdminOperationsFormatter(new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->orders(), $this->orderEvents()));
+        return new AdminOperationsFormatter(
+            new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->orders(), $this->orderEvents()),
+            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+        );
     }
 
     private function registry(): ManagerRegistry

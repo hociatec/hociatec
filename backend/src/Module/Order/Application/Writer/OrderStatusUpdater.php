@@ -23,12 +23,14 @@ final readonly class OrderStatusUpdater
         private WorkflowInterface $stateMachine,
         private MessageBusInterface $bus,
         private OrderEventLogger $events,
+        private OrderFormatter $orderFormatter,
+        private OrderStatusWorkflow $workflow,
     ) {
     }
 
     public function update(Order $order, string $status, ?User $actor): Order
     {
-        if (!in_array($status, (new OrderStatusWorkflow())->statuses(), true)) {
+        if (!in_array($status, $this->workflow->statuses(), true)) {
             throw new \InvalidArgumentException('Statut invalide.');
         }
 
@@ -54,8 +56,8 @@ final readonly class OrderStatusUpdater
             'status_changed',
             sprintf(
                 'Statut : %s -> %s',
-                OrderFormatter::formatStatusLabel($oldStatus),
-                OrderFormatter::formatStatusLabel($order->getStatus()),
+                $this->orderFormatter->formatStatusLabel($oldStatus),
+                $this->orderFormatter->formatStatusLabel($order->getStatus()),
             ),
         );
         $this->bus->dispatch(new OrderStatusChangedMessage(

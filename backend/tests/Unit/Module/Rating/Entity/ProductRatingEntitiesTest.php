@@ -52,7 +52,7 @@ final class ProductRatingEntitiesTest extends TestCase
         $rating->touch();
         self::assertGreaterThanOrEqual($originalUpdatedAt, $rating->getUpdatedAt());
 
-        $formatted = ProductReviewFormatter::formatRating($rating, true);
+        $formatted = (new ProductReviewFormatter())->formatRating($rating, true);
 
         self::assertSame(501, $formatted['id']);
         self::assertSame(5, $formatted['score']);
@@ -72,7 +72,7 @@ final class ProductRatingEntitiesTest extends TestCase
         $orderItem = new OrderItem('Phone', 'PH-1', 10000, 1);
         $rating = new ProductRating($product, $orderItem, $user, 3);
 
-        $formatted = ProductReviewFormatter::formatRating($rating);
+        $formatted = (new ProductReviewFormatter())->formatRating($rating);
 
         self::assertSame('Client', $formatted['author']['displayName']);
         self::assertArrayNotHasKey('orderItemId', $formatted);

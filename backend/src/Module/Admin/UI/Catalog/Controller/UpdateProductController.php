@@ -26,6 +26,7 @@ final readonly class UpdateProductController
         private ProductRepositoryPort $productRepository,
         private ProductFormRequestMapper $forms,
         private ProductWriteHandler $products,
+        private CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -49,6 +50,6 @@ final readonly class UpdateProductController
             );
         }
 
-        return ApiResponse::success(CatalogFormatter::formatProduct($product, true));
+        return ApiResponse::success($this->catalogFormatter->formatProduct($product, true));
     }
 }

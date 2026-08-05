@@ -20,7 +20,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListFavoritesController extends AbstractController
 {
-    public function __construct(private readonly FavoriteService $favorites)
+    public function __construct(
+        private readonly FavoriteService $favorites,
+        private readonly CatalogFormatter $catalogFormatter,
+    )
     {
     }
 
@@ -32,9 +35,9 @@ class ListFavoritesController extends AbstractController
         $user = $this->getUser();
 
         $items = array_map(
-            static fn (Favorite $favorite) => [
+            fn (Favorite $favorite) => [
                 'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
-                'product' => CatalogFormatter::formatProduct($favorite->getProduct()),
+                'product' => $this->catalogFormatter->formatProduct($favorite->getProduct()),
             ],
             $this->favorites->listForUser($user, $pagination->perPage, $pagination->offset()),
         );

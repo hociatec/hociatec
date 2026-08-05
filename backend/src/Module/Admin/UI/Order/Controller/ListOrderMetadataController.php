@@ -15,8 +15,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ORDERS_MANAGER')]
 final class ListOrderMetadataController extends AbstractController
 {
+    public function __construct(private readonly OrderFormatter $orderFormatter)
+    {
+    }
+
     public function __invoke(): JsonResponse
     {
-        return ApiResponse::successItem('statuses', OrderFormatter::statusOptions());
+        return ApiResponse::successItem('statuses', $this->orderFormatter->statusOptions());
     }
 }

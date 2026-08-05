@@ -29,6 +29,7 @@ final class UpdateOrderDeliveryController extends AbstractController
         private readonly OrderRepositoryPort $orders,
         private readonly OrderDeliveryUpdater $delivery,
         private readonly DtoValidator $validator,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -56,6 +57,6 @@ final class UpdateOrderDeliveryController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
+        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
     }
 }

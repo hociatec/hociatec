@@ -33,7 +33,7 @@ final class VoucherEngineTest extends TestCase
             };
         });
 
-        $engine = new VoucherEngine($repository);
+        $engine = new VoucherEngine($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         self::assertSame('none', $engine->calculateForSubtotal(10000, null)['voucherCodeStatus']);
         self::assertSame('invalid', $engine->calculateForSubtotal(10000, null, 'unknown')['voucherCodeStatus']);
@@ -67,7 +67,7 @@ final class VoucherEngineTest extends TestCase
             };
         });
 
-        $engine = new VoucherEngine($repository);
+        $engine = new VoucherEngine($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $percent = $engine->calculateForSubtotal(20000, $user, ' percent20 ');
         self::assertSame('applied', $percent['voucherCodeStatus']);
@@ -113,7 +113,7 @@ final class VoucherEngineTest extends TestCase
             $this->voucher('Voucher 10', 'VOUCHER10', Voucher::TYPE_FIXED_CENTS, 10000)
         );
 
-        $summary = (new VoucherEngine($repository))->calculateCartSummary($cart, null);
+        $summary = (new VoucherEngine($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter()))->calculateCartSummary($cart, null);
 
         self::assertSame(40000, $summary['subtotalPriceCents']);
         self::assertSame(10000, $summary['discountAmountCents']);
@@ -148,7 +148,7 @@ final class VoucherEngineTest extends TestCase
             };
         });
 
-        $engine = new VoucherEngine($repository);
+        $engine = new VoucherEngine($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $explicit = $engine->calculateCartSummary($cart, null, 'direct');
         self::assertSame('DIRECT', $explicit['enteredVoucherCode']);
@@ -169,7 +169,7 @@ final class VoucherEngineTest extends TestCase
 
     public function testComputeDiscountAmountReturnsZeroForNonPositiveSubtotal(): void
     {
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
         $method = new \ReflectionMethod($engine, 'computeDiscountAmount');
         $method->setAccessible(true);
 
@@ -180,7 +180,7 @@ final class VoucherEngineTest extends TestCase
 
     public function testCalculateForSubtotalRejectsNegativeSubtotal(): void
     {
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Le sous-total ne peut pas etre negatif.');
@@ -203,7 +203,7 @@ final class VoucherEngineTest extends TestCase
                 default => null,
             };
         });
-        $engine = new VoucherEngine($repository, new MockClock($now));
+        $engine = new VoucherEngine($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter(), new MockClock($now));
 
         self::assertSame('applied', $engine->calculateForSubtotal(10000, null, 'STARTS_NOW')['voucherCodeStatus']);
         self::assertSame('applied', $engine->calculateForSubtotal(10000, null, 'ENDS_NOW')['voucherCodeStatus']);
@@ -218,7 +218,7 @@ final class VoucherEngineTest extends TestCase
         $this->setPrivateProperty($item, 'quantity', 0);
         $cart->addItem($item);
 
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('La quantite doit etre superieure ou egale a 1.');
@@ -236,7 +236,7 @@ final class VoucherEngineTest extends TestCase
         $this->setPrivateProperty($item, 'rentalMonths', 0);
         $cart->addItem($item);
 
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class));
+        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('La duree de location doit etre superieure ou egale a 1 mois.');

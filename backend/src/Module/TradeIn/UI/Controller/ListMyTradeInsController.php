@@ -19,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class ListMyTradeInsController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepositoryPort $requests)
+    public function __construct(
+        private readonly TradeInRequestRepositoryPort $requests,
+        private readonly TradeInFormatter $formatter,
+    )
     {
     }
 
@@ -31,6 +34,6 @@ final class ListMyTradeInsController extends AbstractController
         $user = $this->getUser();
         $items = $this->requests->findByUser($user, $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::paginated(array_map(static fn ($item) => TradeInFormatter::format($item), $items), $pagination->metadata($this->requests->countByUser($user)));
+        return ApiResponse::paginated(array_map(fn ($item) => $this->formatter->format($item), $items), $pagination->metadata($this->requests->countByUser($user)));
     }
 }

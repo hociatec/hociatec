@@ -35,6 +35,7 @@ final class CheckoutExistingOrderController extends AbstractController
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly DtoValidator $dtoValidator,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -52,7 +53,7 @@ final class CheckoutExistingOrderController extends AbstractController
         }
 
         if (Order::STATUS_CONFIRMED === $order->getStatus() || Order::STATUS_DELIVERED === $order->getStatus()) {
-            return ApiResponse::successItem('order', OrderFormatter::formatOrder($order));
+            return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
         }
 
         if (Order::STATUS_PENDING !== $order->getStatus()) {

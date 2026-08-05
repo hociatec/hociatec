@@ -254,12 +254,11 @@ final class UserSupportingTypesTest extends TestCase
 
         $user = $this->user();
         $address = new ShippingAddress($user, 'Home', '1 rue', '75001', 'Paris');
-        self::assertSame('Home', ShippingAddressFormatter::toArray($address)['name']);
+        self::assertSame('Home', (new ShippingAddressFormatter())->toArray($address)['name']);
 
         foreach ([
             VerificationTokenHasher::class,
             UserUniqueConstraintViolationDetector::class,
-            ShippingAddressFormatter::class,
         ] as $className) {
             $reflection = new \ReflectionClass($className);
             $instance = $reflection->newInstanceWithoutConstructor();

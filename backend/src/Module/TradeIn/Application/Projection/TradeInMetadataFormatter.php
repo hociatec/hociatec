@@ -8,6 +8,10 @@ use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 
 final class TradeInMetadataFormatter
 {
+    public function __construct(private readonly TradeInFormatter $tradeIns)
+    {
+    }
+
     /** @return list<array{value: string, label: string}> */
     public function categories(): array
     {
@@ -23,7 +27,7 @@ final class TradeInMetadataFormatter
     /** @return list<array{value: string, label: string}> */
     public function statuses(): array
     {
-        return array_map(fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => TradeInFormatter::statusLabel($status)], TradeInStatus::cases());
+        return array_map(fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => $this->tradeIns->statusLabel($status)], TradeInStatus::cases());
     }
 
     /** @return list<array{value: string, label: string}> */

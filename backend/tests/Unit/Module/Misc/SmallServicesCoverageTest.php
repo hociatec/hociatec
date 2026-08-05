@@ -180,33 +180,34 @@ final class SmallServicesCoverageTest extends TestCase
             ->setVoucherCode('CODE')
             ->setAdminNote('note');
 
-        $formatter = new TradeInMetadataFormatter();
+        $tradeInFormatter = new TradeInFormatter();
+        $formatter = new TradeInMetadataFormatter($tradeInFormatter);
         self::assertNotEmpty($formatter->categories());
         self::assertNotEmpty($formatter->conditions());
         self::assertNotEmpty($formatter->statuses());
         self::assertNotEmpty($formatter->paymentMethods());
         self::assertNotEmpty($formatter->paymentStatuses());
 
-        $public = TradeInFormatter::format($request, false);
+        $public = $tradeInFormatter->format($request, false);
         self::assertArrayNotHasKey('contact', $public);
         self::assertSame('En cours d’étude', $public['statusLabel']);
         self::assertSame('Smartphone', $public['categoryLabel']);
         self::assertSame('Bon état', $public['conditionLabel']);
 
-        $private = TradeInFormatter::format($request, true);
+        $private = $tradeInFormatter->format($request, true);
         self::assertSame('Ada', $private['contact']['firstName']);
         self::assertTrue($private['ribAvailable']);
         self::assertTrue($private['receiptAvailable']);
         self::assertSame(['under_review', 'offer_sent', 'cancelled'], $private['allowedNextStatuses']);
 
         $request->setStatus(TradeInStatus::ACCEPTED);
-        self::assertSame(['accepted', 'received', 'cancelled'], TradeInFormatter::format($request, false)['allowedNextStatuses']);
+        self::assertSame(['accepted', 'received', 'cancelled'], $tradeInFormatter->format($request, false)['allowedNextStatuses']);
 
         $request->setStatus(TradeInStatus::COMPLETED);
-        $completed = TradeInFormatter::format($request, false);
+        $completed = $tradeInFormatter->format($request, false);
         self::assertSame(['completed'], $completed['allowedNextStatuses']);
-        self::assertSame('completed', TradeInFormatter::conditionLabel('completed'));
-        self::assertSame('mystery', TradeInFormatter::categoryLabel('mystery'));
+        self::assertSame('completed', $tradeInFormatter->conditionLabel('completed'));
+        self::assertSame('mystery', $tradeInFormatter->categoryLabel('mystery'));
     }
 
     public function testTrainingMetadataFormatterCachesCategoriesAndFormats(): void

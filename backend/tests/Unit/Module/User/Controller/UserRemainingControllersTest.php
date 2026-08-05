@@ -63,10 +63,11 @@ final class UserRemainingControllersTest extends TestCase
         $entityManager->expects(self::exactly(3))->method('flush');
         $writer = new \App\Module\User\Application\Writer\ShippingAddressWriter($repo, new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($entityManager));
 
-        $create = new class($writer, $validator, $user) extends CreateAddressController {
-            public function __construct(\App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
+        $addressFormatter = new \App\Module\User\Application\Projection\ShippingAddressFormatter();
+        $create = new class($writer, $validator, $addressFormatter, $user) extends CreateAddressController {
+            public function __construct(\App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, \App\Module\User\Application\Projection\ShippingAddressFormatter $formatter, private User $user)
             {
-                parent::__construct($writer, $validator);
+                parent::__construct($writer, $validator, $formatter);
             }
             protected function getUser(): ?User { return $this->user; }
         };
@@ -88,10 +89,10 @@ final class UserRemainingControllersTest extends TestCase
         ], JSON_THROW_ON_ERROR)));
         self::assertSame(201, $createdB->getStatusCode());
 
-        $update = new class($repo, $writer, $validator, $user) extends UpdateAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, private User $user)
+        $update = new class($repo, $writer, $validator, $addressFormatter, $user) extends UpdateAddressController {
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, \App\Module\User\Application\Projection\ShippingAddressFormatter $formatter, private User $user)
             {
-                parent::__construct($addresses, $writer, $validator);
+                parent::__construct($addresses, $writer, $validator, $formatter);
             }
             protected function getUser(): ?User { return $this->user; }
         };

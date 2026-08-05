@@ -27,6 +27,7 @@ class UpdateCategoryController extends AbstractController
         private readonly CategoryRepositoryPort $categoryRepository,
         private readonly CategoryService $categoryService,
         private readonly DtoValidator $validator,
+        private readonly CatalogFormatter $catalogFormatter,
     ) {
     }
 
@@ -55,6 +56,6 @@ class UpdateCategoryController extends AbstractController
             return ApiResponse::internalError($exception->getMessage());
         }
 
-        return ApiResponse::success(CatalogFormatter::formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');
+        return ApiResponse::success($this->catalogFormatter->formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');
     }
 }

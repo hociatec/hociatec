@@ -17,7 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_TRADE_INS_MANAGER')]
 final class ShowTradeInController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepositoryPort $requests)
+    public function __construct(
+        private readonly TradeInRequestRepositoryPort $requests,
+        private readonly TradeInFormatter $formatter,
+    )
     {
     }
 
@@ -25,6 +28,6 @@ final class ShowTradeInController extends AbstractController
     {
         $request = $this->requests->find($id);
 
-        return null === $request ? ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND) : ApiResponse::successItem('item', TradeInFormatter::format($request));
+        return null === $request ? ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND) : ApiResponse::successItem('item', $this->formatter->format($request));
     }
 }

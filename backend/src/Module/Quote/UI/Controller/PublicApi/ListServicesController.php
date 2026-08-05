@@ -18,7 +18,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimited('public_api')]
 class ListServicesController extends AbstractController
 {
-    public function __construct(private readonly ServiceOfferingRepositoryPort $serviceRepository)
+    public function __construct(
+        private readonly ServiceOfferingRepositoryPort $serviceRepository,
+        private readonly QuoteFormatter $formatter,
+    )
     {
     }
 
@@ -28,7 +31,7 @@ class ListServicesController extends AbstractController
         $services = $this->serviceRepository->findPaginated($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(static fn ($s) => QuoteFormatter::formatService($s), $services),
+            array_map(fn ($s) => $this->formatter->formatService($s), $services),
             $pagination->metadata($this->serviceRepository->countAll()),
         );
     }

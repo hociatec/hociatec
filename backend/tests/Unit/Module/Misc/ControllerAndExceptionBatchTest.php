@@ -112,7 +112,7 @@ final class ControllerAndExceptionBatchTest extends TestCase
                 };
             });
 
-        $controller = new GetServiceController($repository);
+        $controller = new GetServiceController($repository, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())));
 
         $missing = $controller(99);
         $missingPayload = json_decode((string) $missing->getContent(), true, 512, JSON_THROW_ON_ERROR);

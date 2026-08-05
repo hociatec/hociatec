@@ -23,6 +23,7 @@ class ListMyOrdersController extends AbstractController
     public function __construct(
         private readonly OrderRepositoryPort $orders,
         private readonly ProductRatingRepositoryPort $ratings,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -45,7 +46,7 @@ class ListMyOrdersController extends AbstractController
         $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
 
         $items = array_map(
-            fn ($o) => OrderFormatter::formatOrder($o, $ratings),
+            fn ($o) => $this->orderFormatter->formatOrder($o, $ratings),
             $orders,
         );
 

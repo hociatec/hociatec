@@ -54,7 +54,7 @@ final class ListMyVouchersControllerTest extends TestCase
         $container->method('has')->with('security.token_storage')->willReturn(true);
         $container->method('get')->with('security.token_storage')->willReturn($storage);
 
-        $controller = new ListMyVouchersController($repository);
+        $controller = new ListMyVouchersController($repository, new \App\Module\Voucher\Application\Projection\VoucherFormatter());
         $controller->setContainer($container);
 
         $payload = json_decode((string) $controller->__invoke()->getContent(), true, 512, JSON_THROW_ON_ERROR);

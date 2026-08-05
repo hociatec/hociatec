@@ -27,6 +27,7 @@ final class CreateCustomerVoucherController extends AbstractController
         private readonly UserRepositoryPort $users,
         private readonly CreateCustomerVoucherForCustomerHandler $createVoucher,
         private readonly DtoValidator $validator,
+        private readonly VoucherFormatter $formatter,
     ) {
     }
 
@@ -61,7 +62,7 @@ final class CreateCustomerVoucherController extends AbstractController
         }
 
         return ApiResponse::created([
-            'voucher' => VoucherFormatter::formatVoucher($created->voucher),
+            'voucher' => $this->formatter->formatVoucher($created->voucher),
             'emailSent' => $created->emailSent,
         ]);
     }

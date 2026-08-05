@@ -24,6 +24,7 @@ class GetServiceController extends AbstractController
 {
     public function __construct(
         private readonly ServiceOfferingRepositoryPort $serviceRepository,
+        private readonly QuoteFormatter $formatter,
     ) {
     }
 
@@ -34,6 +35,6 @@ class GetServiceController extends AbstractController
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success(QuoteFormatter::formatService($service));
+        return ApiResponse::success($this->formatter->formatService($service));
     }
 }

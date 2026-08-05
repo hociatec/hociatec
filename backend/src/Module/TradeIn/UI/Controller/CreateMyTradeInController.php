@@ -23,7 +23,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CreateMyTradeInController extends AbstractController
 {
-    public function __construct(private readonly TradeInService $service, private readonly DtoValidator $validator, private readonly ProductRepositoryPort $products)
+    public function __construct(
+        private readonly TradeInService $service,
+        private readonly DtoValidator $validator,
+        private readonly ProductRepositoryPort $products,
+        private readonly TradeInFormatter $formatter,
+    )
     {
     }
 
@@ -43,6 +48,6 @@ final class CreateMyTradeInController extends AbstractController
             return ApiResponse::error('Produit de catalogue introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::created(TradeInFormatter::format($this->service->create($input, $user, $product, $rib)), 'Votre demande de reprise a bien été enregistrée.');
+        return ApiResponse::created($this->formatter->format($this->service->create($input, $user, $product, $rib)), 'Votre demande de reprise a bien été enregistrée.');
     }
 }

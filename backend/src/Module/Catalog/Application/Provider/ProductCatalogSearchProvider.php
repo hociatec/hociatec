@@ -16,6 +16,7 @@ final readonly class ProductCatalogSearchProvider
     public function __construct(
         private ProductQueryService $products,
         private CatalogCacheVersion $cacheVersion,
+        private ProductCatalogListProjectionFormatter $formatter,
         #[Autowire(service: 'app.catalog_cache')]
         private CacheInterface $cache,
     ) {
@@ -30,20 +31,18 @@ final readonly class ProductCatalogSearchProvider
             'version' => $this->cacheVersion->current(),
             'page' => $criteria->page,
             'perPage' => $criteria->perPage,
-            'filters' => $criteria->filterArguments(),
-            'sort' => $criteria->sort,
+            'criteria' => $criteria->criteria()->cacheKeyPayload(),
         ], JSON_THROW_ON_ERROR));
 
         $result = $this->cache->get($cacheKey, function () use ($criteria): array {
-            $filters = $criteria->filterArguments();
-            $items = $this->products->listPublishedProjection(
-                ...[...$filters, $criteria->sort, $criteria->perPage, $criteria->offset()],
-            );
-            $total = $this->products->countPublished(...$filters);
+            $catalogCriteria = $criteria->criteria();
+            $filterCriteria = $catalogCriteria->withoutSortAndPagination();
+            $items = $this->products->listPublishedProjection($catalogCriteria);
+            $total = $this->products->countPublished($filterCriteria);
 
             return [
                 'items' => array_map(
-                    static fn (array $product): array => ProductCatalogListProjectionFormatter::format($product),
+                    fn (array $product): array => $this->formatter->format($product),
                     $items,
                 ),
                 'meta' => [
@@ -52,7 +51,7 @@ final readonly class ProductCatalogSearchProvider
                     'total' => $total,
                     'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
                 ],
-                'facets' => $this->products->collectPublishedFacets(...$filters),
+                'facets' => $this->products->collectPublishedFacets($filterCriteria),
             ];
         });
 

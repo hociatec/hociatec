@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Factory;
 
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\DTO\ProductVariantCopyData;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
 
@@ -16,53 +17,44 @@ final readonly class ProductVariantFactory
     ) {
     }
 
-    public function createVariantCopy(
-        Product $template,
-        string $baseName,
-        string $baseSku,
-        ?string $baseSlug,
-        string $variantGroup,
-        ?string $color,
-        ?string $storageCapacity,
-        int $stock,
-        int $index,
-    ): Product {
+    public function createVariantCopy(ProductVariantCopyData $data): Product
+    {
         $variantProduct = new Product(
-            $this->buildVariantName($baseName, $color, $storageCapacity),
-            $this->buildVariantSlug($baseSlug ?? $baseName, $color, $storageCapacity, $index),
-            $this->buildVariantSku($baseSku, $color, $storageCapacity, $index),
-            $template->getDescription(),
-            $template->getPriceCents(),
-            $stock,
-            $template->getCategory(),
+            $this->buildVariantName($data->baseName, $data->color, $data->storageCapacity),
+            $this->buildVariantSlug($data->baseSlug ?? $data->baseName, $data->color, $data->storageCapacity, $data->position),
+            $this->buildVariantSku($data->baseSku, $data->color, $data->storageCapacity, $data->position),
+            $data->template->getDescription(),
+            $data->template->getPriceCents(),
+            $data->stock,
+            $data->template->getCategory(),
         );
 
         return $variantProduct
-            ->setShortDescription($template->getShortDescription())
-            ->setIsPublished($template->isPublished())
-            ->setIsFeaturedHome($template->isFeaturedHome())
-            ->setImageAlt($template->getImageAlt())
-            ->setBrandReference($template->getBrandReference())
-            ->setVariantGroup($variantGroup)
-            ->setVariantPosition($index)
-            ->setReleaseYear($template->getReleaseYear())
-            ->setStorageCapacity($storageCapacity)
-            ->setMemoryRam($template->getMemoryRam())
-            ->setColor($color)
-            ->setSellingType($template->getSellingType())
-            ->setDiscountEnabled($template->isDiscountEnabled())
-            ->setDiscountType($template->getDiscountType())
-            ->setDiscountValue($template->getDiscountValue())
-            ->setDiscountStartsAt($template->getDiscountStartsAt())
-            ->setDiscountEndsAt($template->getDiscountEndsAt())
-            ->setImageName($template->getImageName())
-            ->setImageSize($template->getImageSize())
-            ->setGalleryImage2Name($template->getGalleryImage2Name())
-            ->setGalleryImage2Size($template->getGalleryImage2Size())
-            ->setGalleryImage3Name($template->getGalleryImage3Name())
-            ->setGalleryImage3Size($template->getGalleryImage3Size())
-            ->setGalleryImage4Name($template->getGalleryImage4Name())
-            ->setGalleryImage4Size($template->getGalleryImage4Size());
+            ->setShortDescription($data->template->getShortDescription())
+            ->setIsPublished($data->template->isPublished())
+            ->setIsFeaturedHome($data->template->isFeaturedHome())
+            ->setImageAlt($data->template->getImageAlt())
+            ->setBrandReference($data->template->getBrandReference())
+            ->setVariantGroup($data->variantGroup)
+            ->setVariantPosition($data->position)
+            ->setReleaseYear($data->template->getReleaseYear())
+            ->setStorageCapacity($data->storageCapacity)
+            ->setMemoryRam($data->template->getMemoryRam())
+            ->setColor($data->color)
+            ->setSellingType($data->template->getSellingType())
+            ->setDiscountEnabled($data->template->isDiscountEnabled())
+            ->setDiscountType($data->template->getDiscountType())
+            ->setDiscountValue($data->template->getDiscountValue())
+            ->setDiscountStartsAt($data->template->getDiscountStartsAt())
+            ->setDiscountEndsAt($data->template->getDiscountEndsAt())
+            ->setImageName($data->template->getImageName())
+            ->setImageSize($data->template->getImageSize())
+            ->setGalleryImage2Name($data->template->getGalleryImage2Name())
+            ->setGalleryImage2Size($data->template->getGalleryImage2Size())
+            ->setGalleryImage3Name($data->template->getGalleryImage3Name())
+            ->setGalleryImage3Size($data->template->getGalleryImage3Size())
+            ->setGalleryImage4Name($data->template->getGalleryImage4Name())
+            ->setGalleryImage4Size($data->template->getGalleryImage4Size());
     }
 
     private function buildVariantName(string $baseName, ?string $color, ?string $storageCapacity): string

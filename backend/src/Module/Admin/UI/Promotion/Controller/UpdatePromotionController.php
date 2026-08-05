@@ -26,6 +26,7 @@ final class UpdatePromotionController extends AbstractController
         private readonly PromotionRepositoryPort $promotions,
         private readonly UpdatePromotionHandler $updatePromotion,
         private readonly DtoValidator $validator,
+        private readonly PromotionFormatter $formatter,
     ) {
     }
 
@@ -47,7 +48,7 @@ final class UpdatePromotionController extends AbstractController
         $this->updatePromotion->update($promotion, $input);
 
         return ApiResponse::success([
-            'promotion' => PromotionFormatter::formatPromotion($promotion),
+            'promotion' => $this->formatter->formatPromotion($promotion),
         ], JsonResponse::HTTP_OK, 'La promotion a bien été mise à jour.');
     }
 }

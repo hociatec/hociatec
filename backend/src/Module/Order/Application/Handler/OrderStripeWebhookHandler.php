@@ -6,39 +6,23 @@ namespace App\Module\Order\Application\Handler;
 
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\Order\Application\Resolver\StripeCheckoutSessionResolver;
 use App\Module\Order\Application\Resolver\StripePaymentFailureResolver;
 use App\Module\Order\Application\Workflow\OrderService;
-use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Shared\Application\UnitOfWork;
 
 final class OrderStripeWebhookHandler
 {
-    private StripePaymentFailureResolver $failureResolver;
-
-    private StripeCheckoutSessionExpirer $sessionExpirer;
-
-    private StripeCheckoutSessionResolver $checkoutResolver;
-
-    private StripePaymentIntentFailedHandler $paymentIntentFailedHandler;
-
     public function __construct(
         private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private readonly OrderRepositoryPort $orders,
         private readonly OrderService $orderCreator,
-        private readonly StripeApiClient $stripe,
         private readonly UnitOfWork $persistence,
-        ?StripePaymentFailureResolver $failureResolver = null,
-        ?StripeCheckoutSessionExpirer $sessionExpirer = null,
-        ?StripeCheckoutSessionResolver $checkoutResolver = null,
-        ?StripePaymentIntentFailedHandler $paymentIntentFailedHandler = null,
+        private readonly StripePaymentFailureResolver $failureResolver,
+        private readonly StripeCheckoutSessionExpirer $sessionExpirer,
+        private readonly StripePaymentIntentFailedHandler $paymentIntentFailedHandler,
     ) {
-        $this->failureResolver = $failureResolver ?? new StripePaymentFailureResolver($this->stripe);
-        $this->sessionExpirer = $sessionExpirer ?? new StripeCheckoutSessionExpirer($this->stripe);
-        $this->checkoutResolver = $checkoutResolver ?? new StripeCheckoutSessionResolver($this->checkoutSessions);
-        $this->paymentIntentFailedHandler = $paymentIntentFailedHandler ?? new StripePaymentIntentFailedHandler($this->checkoutResolver, $this->failureResolver, $this->sessionExpirer, $this->persistence);
     }
 
     /**

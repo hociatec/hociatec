@@ -21,6 +21,7 @@ final readonly class CustomerTimelineProvider
         private SupportRequestRepositoryPort $supportRequests,
         private QuoteRepositoryPort $quotes,
         private AdminOperationsFormatter $formatter,
+        private OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -52,10 +53,10 @@ final readonly class CustomerTimelineProvider
      */
     private function orders(User $customer): array
     {
-        return array_map(static fn ($order): array => [
+        return array_map(fn ($order): array => [
             'type' => 'order',
             'label' => 'Commande '.$order->getNumber(),
-            'description' => OrderFormatter::formatStatusLabel($order->getStatus()).' · '.$order->getTotalPriceCents() / 100 .' €',
+            'description' => $this->orderFormatter->formatStatusLabel($order->getStatus()).' · '.$order->getTotalPriceCents() / 100 .' €',
             'date' => $order->getCreatedAt()->format(DATE_ATOM),
             'href' => '/admin/orders/'.$order->getId(),
         ], $this->orders->findBy(['user' => $customer], ['createdAt' => 'DESC']));

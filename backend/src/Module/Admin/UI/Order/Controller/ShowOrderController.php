@@ -25,6 +25,7 @@ final class ShowOrderController extends AbstractController
         private readonly OrderRepositoryPort $orders,
         private readonly OrderEventRepositoryPort $events,
         private readonly OrderCheckoutSessionRepositoryPort $payments,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -39,7 +40,7 @@ final class ShowOrderController extends AbstractController
         $issueReasons = OrderIssueInspector::getOperationalIssues($order, $events);
 
         return ApiResponse::success([
-            'order' => OrderFormatter::formatOrder($order, [], [
+            'order' => $this->orderFormatter->formatOrder($order, [], [
                 'hasIssues' => [] !== $issueReasons,
                 'issueReasons' => $issueReasons,
             ]),

@@ -35,6 +35,7 @@ final readonly class QuoteToOrderConverter
         private OrderNotificationEmailService $notifications,
         private OrderEventLogger $events,
         private OperationsPersistence $persistence,
+        private OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -56,7 +57,7 @@ final readonly class QuoteToOrderConverter
         [$emailSent, $emailError] = $this->sendNotification($order);
 
         return [
-            'order' => OrderFormatter::formatOrder($order),
+            'order' => $this->orderFormatter->formatOrder($order),
             'emailNotificationSent' => $emailSent,
             'emailNotificationError' => $emailError,
         ];

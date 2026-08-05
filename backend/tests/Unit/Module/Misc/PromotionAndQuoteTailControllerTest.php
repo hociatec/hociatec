@@ -35,12 +35,13 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
         $promotions->expects(self::once())->method('findBy')->with([], ['updatedAt' => 'DESC'], 20, 20)->willReturn([$promotion]);
         $promotions->expects(self::once())->method('count')->with([])->willReturn(21);
 
-        $get = new GetPromotionController($promotions);
+        $promotionFormatter = new \App\Module\Promotion\Application\Projection\PromotionFormatter();
+        $get = new GetPromotionController($promotions, $promotionFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $get(404)->getStatusCode());
         $getPayload = json_decode((string) $get(4)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('summer', $getPayload['data']['promotion']['slug']);
 
-        $list = new ListPromotionsController($promotions);
+        $list = new ListPromotionsController($promotions, $promotionFormatter);
         $listPayload = json_decode((string) $list(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $listPayload['data']['meta']['page']);
         self::assertSame('Summer', $listPayload['data']['items'][0]['name']);
@@ -55,6 +56,7 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
                 Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
                 new ConstraintViolationFormatter(),
             ),
+            $promotionFormatter,
         );
 
         self::assertSame(Response::HTTP_BAD_REQUEST, $controller(new Request(content: '{"name":'))->getStatusCode());

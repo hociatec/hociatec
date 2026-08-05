@@ -8,14 +8,10 @@ use App\Module\Rating\Domain\Entity\ProductRating;
 
 final class ProductReviewFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, mixed>
      */
-    public static function formatRating(ProductRating $rating, bool $withOrderItem = false): array
+    public function formatRating(ProductRating $rating, bool $withOrderItem = false): array
     {
         $comment = $rating->getComment();
         $user = $rating->getUser();

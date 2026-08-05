@@ -87,7 +87,7 @@ final class AdminDashboardProvidersTest extends TestCase
         $orders->method('findRecentForAdmin')->with(6)->willReturn([$order]);
         $orders->method('findPendingPaymentForAdmin')->with(8)->willReturn([$order]);
         $events = $this->orderEvents();
-        $activity = new DashboardActivityProvider($orders, $events);
+        $activity = new DashboardActivityProvider($orders, $events, new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
 
         $payment = (new OrderCheckoutSession('pay-token', $user, 'cart-token', 44, 'stripe-session', 'https://checkout.test'))
             ->setTotalPriceCents(12000)
@@ -102,7 +102,13 @@ final class AdminDashboardProvidersTest extends TestCase
         $quotes->method('findAcceptedWaitingForConversion')->with(8)->willReturn([$quote]);
         $quotes->method('findRecentByStatuses')->with([Quote::STATUS_REFUSED], 4)->willReturn([]);
         $quotes->method('findRecentlyEmailed')->with(4)->willReturn([]);
-        $notifications = new DashboardNotificationsProvider($quotes, new QuoteCalculator(), $orders, $events);
+        $notifications = new DashboardNotificationsProvider(
+            $quotes,
+            $orders,
+            $events,
+            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())),
+        );
 
         $customers = $this->createMock(UserRepository::class);
         $customers->method('findAdminCustomerRows')->with(null, 'highest_spent', 5)->willReturn([['email' => 'top@example.test']]);

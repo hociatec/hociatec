@@ -7,7 +7,6 @@ namespace App\Module\Admin\Application\Dashboard\Provider;
 use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\Quote;
@@ -16,9 +15,10 @@ final readonly class DashboardNotificationsProvider
 {
     public function __construct(
         private QuoteRepositoryPort $quotes,
-        private QuoteCalculator $quoteCalculator,
         private OrderRepositoryPort $orders,
         private OrderEventRepositoryPort $events,
+        private OrderFormatter $orderFormatter,
+        private QuoteFormatter $quoteFormatter,
     ) {
     }
 
@@ -50,7 +50,7 @@ final readonly class DashboardNotificationsProvider
     {
         return array_map(fn (Quote $quote): array => [
             ...$this->quoteNotification($quote, 'quote_accepted', 'action', 'Devis accepté à convertir'),
-            'quote' => QuoteFormatter::formatQuote($quote, $this->quoteCalculator),
+            'quote' => $this->quoteFormatter->formatQuote($quote),
         ], $this->quotes->findAcceptedWaitingForConversion(8));
     }
 
@@ -81,7 +81,7 @@ final readonly class DashboardNotificationsProvider
      */
     private function pendingOrders(): array
     {
-        return array_map(static fn ($order): array => [
+        return array_map(fn ($order): array => [
             'id' => 'order-pending-'.$order->getId(),
             'type' => 'order_pending_payment',
             'severity' => 'action',
@@ -94,7 +94,7 @@ final readonly class DashboardNotificationsProvider
                 'id' => $order->getId(),
                 'number' => $order->getNumber(),
             ],
-            'order' => OrderFormatter::formatOrder($order),
+            'order' => $this->orderFormatter->formatOrder($order),
         ], $this->orders->findPendingPaymentForAdmin(8));
     }
 

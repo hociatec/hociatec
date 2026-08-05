@@ -80,7 +80,7 @@ final class CartVoucherServiceTest extends TestCase
 
         return new CartVoucherService(
             $provider,
-            new VoucherEngine($this->voucherLookup($voucher)),
+            new VoucherEngine($this->voucherLookup($voucher), new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
             $persistence,
         );
     }

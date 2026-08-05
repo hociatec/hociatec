@@ -10,14 +10,10 @@ use App\Module\Catalog\Domain\Entity\Product;
 
 final class CatalogFormatter
 {
-    private function __construct()
-    {
-    }
-
     /**
      * @return array<string, mixed>
      */
-    public static function formatCategory(Category $category, bool $includeCounts = false): array
+    public function formatCategory(Category $category, bool $includeCounts = false): array
     {
         $data = [
             'id' => $category->getId(),
@@ -39,7 +35,7 @@ final class CatalogFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatBrand(Brand $brand, ?int $productsCount = null): array
+    public function formatBrand(Brand $brand, ?int $productsCount = null): array
     {
         $data = [
             'id' => $brand->getId(),
@@ -58,9 +54,9 @@ final class CatalogFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatProduct(Product $product, bool $includePrivateFields = false): array
+    public function formatProduct(Product $product, bool $includePrivateFields = false): array
     {
-        $gallery = self::formatGallery($product);
+        $gallery = $this->formatGallery($product);
 
         $data = [
             'id' => $product->getId(),
@@ -85,7 +81,7 @@ final class CatalogFormatter
             'stock' => $product->getStock(),
             'isPublished' => $product->isPublished(),
             'isFeaturedHome' => $product->isFeaturedHome(),
-            'imageUrl' => $gallery[0]['url'] ?? self::resolveImageUrlFromName($product->getImageName()),
+            'imageUrl' => $gallery[0]['url'] ?? $this->resolveImageUrlFromName($product->getImageName()),
             'imageAlt' => $product->getImageAlt(),
             'createdAt' => $product->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $product->getUpdatedAt()->format(DATE_ATOM),
@@ -129,7 +125,7 @@ final class CatalogFormatter
     /**
      * @return list<array{position:int,url:string,alt:string,isPrimary:bool}>
      */
-    private static function formatGallery(Product $product): array
+    private function formatGallery(Product $product): array
     {
         $items = [];
 
@@ -140,7 +136,7 @@ final class CatalogFormatter
                 continue;
             }
 
-            $url = self::resolveImageUrlFromName($fileName);
+            $url = $this->resolveImageUrlFromName($fileName);
 
             if (null === $url) {
                 continue;
@@ -157,7 +153,7 @@ final class CatalogFormatter
         return $items;
     }
 
-    private static function resolveImageUrlFromName(?string $fileName): ?string
+    private function resolveImageUrlFromName(?string $fileName): ?string
     {
         if (null === $fileName || '' === $fileName) {
             return null;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteStatusInput;
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
@@ -26,7 +25,7 @@ final class UpdateQuoteStatusController extends AbstractController
 {
     public function __construct(
         private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteCalculator $calculator,
+        private readonly QuoteFormatter $formatter,
         private readonly QuoteWorkflowService $workflow,
         private readonly DtoValidator $validator,
     ) {
@@ -50,6 +49,6 @@ final class UpdateQuoteStatusController extends AbstractController
 
         $this->workflow->setStatus($quote, $status);
 
-        return ApiResponse::success(QuoteFormatter::formatQuote($quote, $this->calculator), JsonResponse::HTTP_OK, 'Le statut du devis a bien été mis à jour.');
+        return ApiResponse::success($this->formatter->formatQuote($quote), JsonResponse::HTTP_OK, 'Le statut du devis a bien été mis à jour.');
     }
 }

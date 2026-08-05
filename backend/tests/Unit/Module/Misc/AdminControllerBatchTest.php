@@ -13,6 +13,7 @@ use App\Module\Admin\UI\Promotion\Controller\DeletePromotionController;
 use App\Module\Admin\UI\Promotion\Controller\ListPromotionAudiencesController;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Application\Workflow\BrandService;
@@ -38,7 +39,8 @@ final class AdminControllerBatchTest extends TestCase
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $brand, $brand, $brand);
 
-        $showBrand = new ShowBrandController($brandRepo);
+        $catalogFormatter = new CatalogFormatter();
+        $showBrand = new ShowBrandController($brandRepo, $catalogFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $showBrand(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $showBrand(1)->getStatusCode());
 
@@ -78,7 +80,7 @@ final class AdminControllerBatchTest extends TestCase
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $category);
 
-        $showCategory = new ShowCategoryController($categoryRepo);
+        $showCategory = new ShowCategoryController($categoryRepo, $catalogFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $showCategory(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $showCategory(5)->getStatusCode());
 
@@ -108,14 +110,21 @@ final class AdminControllerBatchTest extends TestCase
         $listRepo2 = $this->createMock(CategoryRepository::class);
         $listRepo2->expects(self::once())->method('findAllForAdmin')->willReturn([$category]);
         $listService = new CategoryService($listRepo2, new CatalogPersistence($this->createMock(EntityManagerInterface::class)), Validation::createValidator());
-        $list = new ListCategoriesController($listService);
+        $list = new ListCategoriesController($listService, $catalogFormatter);
         $payload = json_decode((string) $list()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('phones', $payload['data']['items'][0]['slug']);
     }
 
     public function testPromotionAdminControllersHandleAudiencesAndDelete(): void
     {
-        $promotionEngine = new PromotionEngine($this->createMock(PromotionRepository::class));
+        $promotionEngine = new PromotionEngine(
+            $this->createMock(PromotionRepository::class),
+            new \App\Module\Promotion\Application\Projection\PromotionFormatter(),
+            new \App\Module\Promotion\Application\Provider\PromotionAudienceProvider(),
+            new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
+            new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
+            new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+        );
         $audiences = new ListPromotionAudiencesController($promotionEngine);
         $audiencesPayload = json_decode((string) $audiences()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertArrayHasKey('all_users', $audiencesPayload['data']['items']);

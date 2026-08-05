@@ -10,12 +10,12 @@ use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 final class TradeInFormatter
 {
     /** @return array<string,mixed> */
-    public static function format(TradeInRequest $request, bool $private = true): array
+    public function format(TradeInRequest $request, bool $private = true): array
     {
         $data = [
-            'id' => $request->getId(), 'reference' => $request->getReference(), 'status' => $request->getStatus()->value, 'statusLabel' => self::statusLabel($request->getStatus()), 'allowedNextStatuses' => array_map(static fn (TradeInStatus $status): string => $status->value, self::nextStatuses($request->getStatus())), 'allowedNextStatusDetails' => array_map(static fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => self::statusLabel($status)], self::nextStatuses($request->getStatus())),
-            'category' => $request->getCategory(), 'categoryLabel' => self::categoryLabel($request->getCategory()), 'productName' => $request->getProductName(), 'purchasePriceCents' => $request->getPurchasePriceCents(), 'purchaseYear' => $request->getPurchaseYear(), 'brand' => $request->getBrand(), 'model' => $request->getModel(),
-            'conditionGrade' => $request->getConditionGrade(), 'conditionLabel' => self::conditionLabel($request->getConditionGrade()), 'functional' => $request->isFunctional(), 'hasAccessories' => $request->hasAccessories(), 'hasProofOfPurchase' => $request->hasProofOfPurchase(),
+            'id' => $request->getId(), 'reference' => $request->getReference(), 'status' => $request->getStatus()->value, 'statusLabel' => $this->statusLabel($request->getStatus()), 'allowedNextStatuses' => array_map(fn (TradeInStatus $status): string => $status->value, $this->nextStatuses($request->getStatus())), 'allowedNextStatusDetails' => array_map(fn (TradeInStatus $status): array => ['value' => $status->value, 'label' => $this->statusLabel($status)], $this->nextStatuses($request->getStatus())),
+            'category' => $request->getCategory(), 'categoryLabel' => $this->categoryLabel($request->getCategory()), 'productName' => $request->getProductName(), 'purchasePriceCents' => $request->getPurchasePriceCents(), 'purchaseYear' => $request->getPurchaseYear(), 'brand' => $request->getBrand(), 'model' => $request->getModel(),
+            'conditionGrade' => $request->getConditionGrade(), 'conditionLabel' => $this->conditionLabel($request->getConditionGrade()), 'functional' => $request->isFunctional(), 'hasAccessories' => $request->hasAccessories(), 'hasProofOfPurchase' => $request->hasProofOfPurchase(),
             'description' => $request->getDescription(), 'catalogProductId' => $request->getCatalogProductId(), 'catalogProductName' => $request->getCatalogProductName(), 'estimatedMinCents' => $request->getEstimatedMinCents(), 'estimatedMaxCents' => $request->getEstimatedMaxCents(),
             'offerCents' => $request->getOfferCents(), 'finalOfferCents' => $request->getFinalOfferCents(), 'paymentMethod' => $request->getPaymentMethod(), 'paymentStatus' => $request->getPaymentStatus(), 'transactionReference' => $request->getTransactionReference(), 'paidAt' => $request->getPaidAt()?->format(DATE_ATOM), 'ribAvailable' => null !== $request->getRibPath(), 'ribOriginalName' => $request->getRibOriginalName(), 'receiptAvailable' => null !== $request->getReceiptPath(), 'voucherCode' => $request->getVoucherCode(), 'closedAt' => $request->getClosedAt()?->format(DATE_ATOM), 'adminNote' => $request->getAdminNote(), 'offerExpiresAt' => $request->getOfferExpiresAt()?->format(DATE_ATOM), 'createdAt' => $request->getCreatedAt()->format(DATE_ATOM),
         ];
@@ -26,7 +26,7 @@ final class TradeInFormatter
         return $data;
     }
 
-    public static function statusLabel(TradeInStatus $status): string
+    public function statusLabel(TradeInStatus $status): string
     {
         return match ($status) {
             TradeInStatus::SUBMITTED => 'Demande reçue',
@@ -42,7 +42,7 @@ final class TradeInFormatter
         };
     }
 
-    public static function conditionLabel(string $condition): string
+    public function conditionLabel(string $condition): string
     {
         return [
             'comme_neuf' => 'Comme neuf',
@@ -53,7 +53,7 @@ final class TradeInFormatter
         ][$condition] ?? $condition;
     }
 
-    public static function categoryLabel(string $category): string
+    public function categoryLabel(string $category): string
     {
         return [
             'smartphone' => 'Smartphone', 'ordinateur' => 'Ordinateur', 'tablette' => 'Tablette', 'console' => 'Console', 'appareil-photo' => 'Appareil photo', 'audio' => 'Audio', 'electromenager' => 'Électroménager', 'autre' => 'Autre',
@@ -61,7 +61,7 @@ final class TradeInFormatter
     }
 
     /** @return list<TradeInStatus> */
-    private static function nextStatuses(TradeInStatus $status): array
+    private function nextStatuses(TradeInStatus $status): array
     {
         return match ($status) {
             TradeInStatus::SUBMITTED => [TradeInStatus::SUBMITTED, TradeInStatus::UNDER_REVIEW, TradeInStatus::OFFER_SENT, TradeInStatus::CANCELLED],

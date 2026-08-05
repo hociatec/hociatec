@@ -24,6 +24,7 @@ final class CheckoutSessionStatusController extends AbstractController
         private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private readonly OrderRepositoryPort $orders,
         private readonly OrderAccessPolicy $accessPolicy,
+        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -46,7 +47,7 @@ final class CheckoutSessionStatusController extends AbstractController
             'status' => $checkout->getStatus(),
             'checkoutSessionId' => $checkout->getStripeSessionId(),
             'orderId' => $order?->getId(),
-            'order' => null !== $order ? OrderFormatter::formatOrder($order) : null,
+            'order' => null !== $order ? $this->orderFormatter->formatOrder($order) : null,
         ]);
     }
 }
