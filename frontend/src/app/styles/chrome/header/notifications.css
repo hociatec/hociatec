@@ -33,7 +33,7 @@
 
 .site-header__notifications-panel {
   position: absolute;
-  z-index: 35;
+  z-index: var(--z-dropdown);
   top: calc(100% + 10px);
   right: 0;
   width: min(360px, calc(100vw - 2rem));

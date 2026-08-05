@@ -548,18 +548,6 @@ Exemple :
     }
 
 
-9.3 Établir une échelle de z-index
-----------------------------------
-
-Sans échelle, les projets finissent par utiliser des valeurs arbitraires.
-
-    --z-dropdown: 100;
-    --z-sticky: 200;
-    --z-overlay: 900;
-    --z-dialog: 1000;
-    --z-toast: 1100;
-
-
 9.4 Réduire les CSS spécifiques aux pages
 -----------------------------------------
 

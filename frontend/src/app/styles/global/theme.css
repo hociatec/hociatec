@@ -35,4 +35,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --z-content: 1;
+  --z-content-raised: 2;
+  --z-dialog-overlay: 900;
+  --z-dialog: 1000;
+  --z-header: 1100;
+  --z-dropdown: 1200;
+  --z-skip-link: 1300;
 }

@@ -51,7 +51,7 @@ textarea {
   position: absolute;
   top: 0.75rem;
   left: 1rem;
-  z-index: 200;
+  z-index: var(--z-skip-link);
   transform: translateY(-160%);
   border-radius: 999px;
   background: var(--hocia-ink);

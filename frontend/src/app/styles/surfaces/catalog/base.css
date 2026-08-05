@@ -138,7 +138,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1;
+  z-index: var(--z-content);
 }
 
 .catalog-product-card__excerpt {
@@ -184,7 +184,7 @@
 
 .catalog-product-card__actions-container {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-content-raised);
   display: flex;
   align-items: center;
   gap: 0.5rem;

@@ -114,7 +114,7 @@
   background: rgba(2, 6, 23, 0.7);
   backdrop-filter: blur(6px);
   animation: dialogFadeIn 0.25s ease forwards;
-  z-index: 20;
+  z-index: var(--z-dialog-overlay);
 }
 
 .alert-dialog__content {
@@ -132,7 +132,7 @@
   box-shadow: 0 32px 70px rgba(8, 47, 73, 0.55);
   padding: 2rem 1.75rem;
   animation: dialogSlideUp 0.28s ease forwards;
-  z-index: 21;
+  z-index: var(--z-dialog);
 }
 
 .alert-dialog__header {
