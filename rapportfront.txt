@@ -516,18 +516,6 @@ Créer des conventions :
 - erreur silencieuse : uniquement si réellement non importante.
 
 
-7.4 Ajouter un Error Boundary
------------------------------
-
-Le projet doit posséder au minimum :
-- un Error Boundary global ;
-- éventuellement un Error Boundary par grande route ;
-- un fallback d’administration ;
-- un identifiant d’erreur.
-
-Un composant qui plante ne devrait pas rendre toute l’application blanche.
-
-
 7.5 Fournir une action Réessayer
 --------------------------------
 
@@ -1468,11 +1456,10 @@ Choisir une convention stable :
 2. Générer les types depuis OpenAPI.
 3. Unifier les composants UI.
 4. Découper les gros contrôleurs et composants.
-5. Ajouter un Error Boundary.
-6. Ajouter l’annulation des requêtes.
-7. Tester auth, paiement, commande et permissions.
-8. Ajouter Playwright et MSW.
-9. Ajouter l’observabilité applicative.
+5. Ajouter l’annulation des requêtes.
+6. Tester auth, paiement, commande et permissions.
+7. Ajouter Playwright et MSW.
+8. Ajouter l’observabilité applicative.
 
 Travaux structurels
 -------------------

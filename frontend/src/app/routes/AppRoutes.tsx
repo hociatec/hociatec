@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { LoadingState } from '@/shared/components/ui/page-state';
+import { RouteErrorBoundary } from '@/shared/components/system/ErrorBoundary';
 import { adminRoutes, protectedRoutes, publicRoutes, renderRoutes } from './AppRouteConfig';
 
 const RouteFallback = () => (
@@ -12,12 +13,14 @@ const RouteFallback = () => (
 );
 
 export const AppRoutes = () => (
-  <Suspense fallback={<RouteFallback />}>
-    <Routes>
-      {renderRoutes(publicRoutes, 'public')}
-      {renderRoutes(protectedRoutes, 'protected')}
-      {renderRoutes([adminRoutes], 'admin')}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  </Suspense>
+  <RouteErrorBoundary>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        {renderRoutes(publicRoutes, 'public')}
+        {renderRoutes(protectedRoutes, 'protected')}
+        {renderRoutes([adminRoutes], 'admin')}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
+  </RouteErrorBoundary>
 );
