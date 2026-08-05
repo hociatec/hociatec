@@ -8,7 +8,6 @@ const CSRF_TOKEN_PATH = '/api/csrf-token';
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 const CSRF_EXCLUDED_PREFIXES = [
   '/api/auth/login',
-  '/api/auth/logout',
   '/api/auth/refresh',
   '/api/auth/register',
   '/api/auth/verify',
@@ -18,6 +17,11 @@ const CSRF_EXCLUDED_PREFIXES = [
 
 let csrfToken: string | null = null;
 let csrfTokenRequest: Promise<string> | null = null;
+
+export const clearCsrfToken = () => {
+  csrfToken = null;
+  csrfTokenRequest = null;
+};
 
 const isUnsafeMethod = (method?: string) => UNSAFE_METHODS.has((method ?? 'get').toLowerCase());
 
@@ -67,3 +71,14 @@ export const shouldAttachCsrfToken = (
   !isCsrfTokenRequest(url) &&
   !isCsrfExcludedRequest(url) &&
   !headers.has(CSRF_HEADER_NAME);
+
+export const isCsrfFailureResponse = (status?: number, data?: unknown) => {
+  if (status === 419) return true;
+  if (status !== 403 || typeof data !== 'object' || data === null) return false;
+
+  const payload = data as { code?: unknown; message?: unknown };
+  const code = typeof payload.code === 'string' ? payload.code.toLowerCase() : '';
+  const message = typeof payload.message === 'string' ? payload.message.toLowerCase() : '';
+
+  return code.includes('csrf') || message.includes('csrf');
+};

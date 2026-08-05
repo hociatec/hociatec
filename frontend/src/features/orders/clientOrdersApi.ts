@@ -2,6 +2,7 @@ import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
+import { parseCheckoutRedirect, parseOrder } from './orderValidation';
 
 export interface CheckoutRedirectDto {
   mode: 'redirect';
@@ -19,10 +20,10 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
   if (isApiOk(data)) {
     const payload = data.data;
     if ('mode' in payload && payload.mode === 'redirect') {
-      return payload;
+      return parseCheckoutRedirect(payload);
     }
 
-    return 'order' in payload ? payload.order : payload;
+    return parseOrder('order' in payload ? payload.order : payload);
   }
 
   const message = data.status === 'error' ? data.message : 'Échec de validation de la commande';
@@ -41,10 +42,10 @@ export const checkoutExistingOrder = async (
   if (isApiOk(data)) {
     const payload = data.data;
     if ('mode' in payload && payload.mode === 'redirect') {
-      return payload;
+      return parseCheckoutRedirect(payload);
     }
 
-    return 'order' in payload ? payload.order : payload;
+    return parseOrder('order' in payload ? payload.order : payload);
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible de lancer le règlement';
@@ -68,11 +69,9 @@ export const fetchCheckoutSessionStatus = async (
     }>
   >(`/api/orders/checkout/sessions/${encodeURIComponent(stripeSessionId)}`);
   if (isApiOk(data)) {
-    return data.data as {
-      status: string;
-      checkoutSessionId: string;
-      orderId?: number | null;
-      order?: OrderDto | null;
+    return {
+      ...data.data,
+      order: data.data.order ? parseOrder(data.data.order) : null,
     };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de vérifier le paiement';
@@ -82,7 +81,7 @@ export const fetchCheckoutSessionStatus = async (
 export const fetchMyOrders = async (): Promise<OrderDto[]> => {
   const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[] }>>('/api/orders/me');
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data.items.map(parseOrder);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);
@@ -91,7 +90,7 @@ export const fetchMyOrders = async (): Promise<OrderDto[]> => {
 export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
   const { data } = await httpClient.get<ApiResponse<{ order: OrderDto }>>(`/api/orders/${orderId}`);
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message = data.status === 'error' ? data.message : 'Commande introuvable';
   throw new Error(message);
@@ -102,7 +101,7 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
     `/api/orders/${orderId}/cancel`,
   );
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message = data.status === 'error' ? data.message : "Impossible d'annuler la commande";
   throw new Error(message);

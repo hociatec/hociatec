@@ -122,7 +122,6 @@ export const createAdminQuoteService = async (payload: QuoteServiceInput) =>
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         '/api/admin/services',
         toServiceFormData(payload),
-        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
     ).data,
   );
@@ -132,7 +131,6 @@ export const updateAdminQuoteService = async (id: number, payload: Partial<Quote
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         `/api/admin/services/${id}`,
         toServiceFormData(payload),
-        { headers: { 'Content-Type': 'multipart/form-data' } },
       )
     ).data,
   );

@@ -9,6 +9,7 @@ import {
   type PaginationMeta,
 } from '@/features/news/api/newsApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { hasPermission } from '@/features/auth/lib/permissions';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 
 const formatMessageDate = (value: string) =>
@@ -22,7 +23,7 @@ const formatMessageDate = (value: string) =>
 
 export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();
-  const isAdmin = user?.roles.includes('ROLE_ADMIN') ?? false;
+  const isAdmin = hasPermission(user, 'news.comments.moderate');
   const [comments, setComments] = useState<NewsCommentDto[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);

@@ -11,6 +11,7 @@ import {
   submitOrderItemReview,
   type OrderDto,
 } from '@/features/orders/api';
+import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 
 export type ReviewFormState = {
   score: number;
@@ -134,7 +135,7 @@ export const useOrderDetail = () => {
     try {
       const result = await checkoutExistingOrder(order.id);
       if ('checkoutUrl' in result) {
-        window.location.assign(result.checkoutUrl);
+        redirectToTrustedUrl(result.checkoutUrl);
         return;
       }
 

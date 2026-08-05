@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { hasPermission } from '@/features/auth/lib/permissions';
 import { useCart } from '@/features/cart/hooks/useCart';
 import { AccountNotifications } from '../../notifications/AccountNotifications';
 import { UserAccountMenu } from '../../ui/user-account-menu';
@@ -22,7 +23,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
   const searchId = useId();
 
   const isAuthenticated = status === 'authenticated' && Boolean(user);
-  const isAdmin = (user?.roles ?? []).includes('ROLE_ADMIN');
+  const isAdmin = hasPermission(user, 'admin.access');
 
   const profileActive = isAnyPathActive(pathname, [
     '/mon-espace',

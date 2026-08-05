@@ -163,11 +163,6 @@ export const createProduct = async (payload: UpsertProductPayload) => {
   const { data } = await httpClient.post<ApiResponse<CatalogProduct>>(
     '/api/admin/catalog/products',
     formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    },
   );
 
   if (isApiOk(data)) {
@@ -184,11 +179,6 @@ export const updateProduct = async (id: number, payload: UpsertProductPayload) =
   const { data } = await httpClient.post<ApiResponse<CatalogProduct>>(
     `/api/admin/catalog/products/${id}`,
     formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    },
   );
 
   if (data.status === 'success') {

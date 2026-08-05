@@ -1,7 +1,8 @@
-import { httpClient } from '../../../shared/lib/httpClient';
+import { clearCsrfToken, httpClient } from '../../../shared/lib/httpClient';
 import axios from 'axios';
 import type { ApiResponse } from '../../../shared/types/api';
 import type { AuthUser } from '../../../shared/types/auth';
+import { parseAuthUser } from '../lib/authValidation';
 
 export interface RegisterPayload {
   email: string;
@@ -95,6 +96,7 @@ export const registerUser = async (payload: RegisterPayload): Promise<AuthOperat
 export const loginUser = async (payload: LoginPayload): Promise<AuthOperationResult<AuthSession>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/login', payload);
+    clearCsrfToken();
     return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);
@@ -104,6 +106,7 @@ export const loginUser = async (payload: LoginPayload): Promise<AuthOperationRes
 export const refreshUserSession = async (): Promise<AuthOperationResult<AuthSession>> => {
   try {
     const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/refresh');
+    clearCsrfToken();
     return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);
@@ -116,6 +119,8 @@ export const logoutUser = async () => {
     return unwrapResponse(data);
   } catch (error) {
     return rethrowApiError(error);
+  } finally {
+    clearCsrfToken();
   }
 };
 
@@ -129,7 +134,7 @@ export const fetchCurrentUser = async (): Promise<AuthUser | null> => {
 
   const { authenticated: _authenticated, ...user } = payload;
 
-  return user;
+  return parseAuthUser(user);
 };
 
 export interface UpdateProfilePayload {
@@ -146,7 +151,7 @@ export interface UpdateProfilePayload {
 export const updateProfile = async (payload: UpdateProfilePayload) => {
   const { data } = await httpClient.put<ApiResponse<AuthUser>>('/api/auth/profile', payload);
 
-  return unwrapResponse(data);
+  return parseAuthUser(unwrapResponse(data));
 };
 
 export const deleteAccount = async () => {

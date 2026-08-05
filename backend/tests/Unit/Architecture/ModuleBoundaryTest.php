@@ -364,6 +364,34 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationLayerDoesNotDependOnInfrastructureOrDoctrineDetails(): void
+    {
+        $forbiddenPatterns = [
+            '/\buse\s+App\\\\(?:Module\\\\[^;]+|Shared)\\\\Infrastructure\\\\[^;]+;/',
+            '/(?<![A-Za-z0-9_\\\\])App\\\\(?:Module\\\\[^;]+|Shared)\\\\Infrastructure\\\\[A-Za-z0-9_\\\\]+/',
+            '/\buse\s+Doctrine\\\\ORM\\\\EntityManagerInterface;/',
+            '/(?<![A-Za-z0-9_\\\\])Doctrine\\\\ORM\\\\EntityManagerInterface(?![A-Za-z0-9_\\\\])/',
+            '/\buse\s+Doctrine\\\\DBAL\\\\LockMode;/',
+            '/(?<![A-Za-z0-9_\\\\])Doctrine\\\\DBAL\\\\LockMode(?![A-Za-z0-9_\\\\])/',
+        ];
+        $violations = [];
+
+        foreach ($this->applicationLayerPhpFiles() as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach ($forbiddenPatterns as $pattern) {
+                if (preg_match_all($pattern, $source, $matches)) {
+                    foreach ($matches[0] as $match) {
+                        $violations[] = $this->relativePath($path).': '.$match;
+                    }
+                }
+            }
+        }
+
+        self::assertSame([], array_values(array_unique($violations)));
+    }
+
     public function testUiLayerDoesNotImportModuleInfrastructure(): void
     {
         $violations = [];
@@ -769,6 +797,26 @@ final class ModuleBoundaryTest extends TestCase
             if ($file instanceof \SplFileInfo && $file->isFile() && 'php' === $file->getExtension()) {
                 $paths[] = $file->getPathname();
             }
+        }
+
+        sort($paths);
+
+        return $paths;
+    }
+
+    /** @return list<string> */
+    private function applicationLayerPhpFiles(): array
+    {
+        $paths = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (str_contains($this->relativePath($path), '/Application/')) {
+                $paths[] = $path;
+            }
+        }
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Shared/Application') as $path) {
+            $paths[] = $path;
         }
 
         sort($paths);

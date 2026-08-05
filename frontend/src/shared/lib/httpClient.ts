@@ -3,7 +3,13 @@ import axios, { AxiosHeaders, isAxiosError } from 'axios';
 import { API_BASE_URL } from '../config/appConfig';
 import { createApiResponseError } from './httpErrors';
 import { createAuthSessionRefresher, isAuthRefreshRequest, type RetriableRequestConfig } from './http/authRefresh';
-import { CSRF_HEADER_NAME, fetchCsrfToken, shouldAttachCsrfToken } from './http/csrf';
+import {
+  clearCsrfToken,
+  CSRF_HEADER_NAME,
+  fetchCsrfToken,
+  isCsrfFailureResponse,
+  shouldAttachCsrfToken,
+} from './http/csrf';
 import { getPersistedCartToken } from './http/tokens';
 
 export {
@@ -19,14 +25,11 @@ export {
   persistCartToken,
   purgeLegacyAuthLocalStorage,
 } from './http/tokens';
-export { shouldAttachCsrfToken } from './http/csrf';
+export { clearCsrfToken, isCsrfFailureResponse, shouldAttachCsrfToken } from './http/csrf';
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 const refreshAuthSession = createAuthSessionRefresher(httpClient);
@@ -57,11 +60,32 @@ httpClient.interceptors.response.use(
     return response;
   },
   async (error: unknown) => {
-    if (!isAxiosError(error) || error.response?.status !== 401 || !error.config) {
+    if (!isAxiosError(error) || !error.config) {
       throw error;
     }
 
     const originalRequest = error.config as RetriableRequestConfig;
+    if (
+      isCsrfFailureResponse(error.response?.status, error.response?.data) &&
+      !originalRequest._retryAfterCsrfRefresh
+    ) {
+      originalRequest._retryAfterCsrfRefresh = true;
+      clearCsrfToken();
+
+      const headers =
+        originalRequest.headers instanceof AxiosHeaders
+          ? originalRequest.headers
+          : new AxiosHeaders(originalRequest.headers);
+      headers.delete(CSRF_HEADER_NAME);
+      originalRequest.headers = headers;
+
+      return httpClient(originalRequest);
+    }
+
+    if (error.response?.status !== 401) {
+      throw error;
+    }
+
     if (originalRequest._retryAfterAuthRefresh || isAuthRefreshRequest(originalRequest.url)) {
       throw error;
     }

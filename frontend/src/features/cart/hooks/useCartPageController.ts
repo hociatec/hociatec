@@ -6,6 +6,7 @@ import { useCart } from '@/features/cart/hooks/useCart';
 import type { CartItem as CartLine } from '@/features/cart/types/cart';
 import { useCartCheckout } from '@/features/cart/hooks/useCartCheckout';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 
@@ -178,7 +179,7 @@ export const useCartPageController = () => {
       return;
     }
 
-    void checkoutState.checkout((url) => window.location.assign(url))
+    void checkoutState.checkout(redirectToTrustedUrl)
       .then((order) => {
         if (order) {
           resetAfterCheckout();

@@ -1,0 +1,2013 @@
+AUDIT COMPLET DU FRONTEND
+Frontend React / TypeScript connecté à une API PHP
+===================================================
+
+CONTEXTE
+--------
+
+L’archive analysée contient environ :
+- 585 fichiers ;
+- 44 000 lignes TypeScript/TSX ;
+- 7 500 lignes CSS.
+
+Le frontend possède un bon socle, mais il est désormais assez volumineux pour nécessiter des règles d’architecture beaucoup plus strictes. Les principaux risques sont la dispersion des responsabilités, la duplication, le manque de tests et plusieurs fragilités autour de l’authentification, du CSRF et des contrats avec l’API PHP.
+
+Limite de l’analyse :
+L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
+
+
+1. SÉCURITÉ CRITIQUE
+=====================
+
+1.7 Ne pas faire confiance aux types TypeScript pour les données API
+--------------------------------------------------------------------
+
+TypeScript vérifie le code à la compilation, pas les données reçues du PHP.
+
+Cette écriture :
+
+    const response = await httpClient.get<Order>('/orders/123');
+
+ne garantit pas que le serveur renvoie réellement un Order.
+
+Correction recommandée :
+
+    const OrderSchema = z.object({
+      id: z.string(),
+      status: z.enum(['pending', 'paid', 'cancelled']),
+      total: z.number().nonnegative(),
+    });
+
+    const order = OrderSchema.parse(response.data);
+
+À appliquer au minimum sur :
+- utilisateur connecté ;
+- commandes ;
+- paiements ;
+- devis ;
+- droits ;
+- produits administrables ;
+- URLs de paiement ;
+- imports et exports.
+
+
+1.8 Vérifier le stockage du token panier
+----------------------------------------
+
+Le frontend utilise un X-Cart-Token persistant.
+
+Ce token ne doit jamais :
+- donner accès aux données personnelles du client ;
+- permettre de lire un panier uniquement par connaissance de l’identifiant ;
+- être prédictible ;
+- rester valable indéfiniment ;
+- devenir un substitut à une session authentifiée.
+
+Le backend doit générer un token aléatoire suffisamment long, le faire expirer et éventuellement le hacher en base.
+
+
+1.9 Encadrer les données dans localStorage
+------------------------------------------
+
+L’adresse e-mail mémorisée sur la page de connexion est acceptable fonctionnellement, mais elle reste une donnée personnelle accessible à tous les scripts exécutés sur le domaine.
+
+Il faut :
+- informer clairement l’utilisateur ;
+- ne rien enregistrer de plus sensible ;
+- supprimer la valeur lors d’un changement de compte ;
+- limiter sa durée de conservation si possible.
+
+Ne jamais stocker dans localStorage :
+- JWT ;
+- token de session ;
+- mot de passe ;
+- permissions considérées comme fiables ;
+- données de paiement ;
+- informations administratives sensibles.
+
+
+1.10 Ne pas exposer les détails techniques du backend
+-----------------------------------------------------
+
+Le frontend possède plusieurs mécanismes pour afficher les erreurs provenant de l’API.
+
+Il faut vérifier que les messages PHP ne puissent pas afficher :
+- stack traces ;
+- requêtes SQL ;
+- chemins serveur ;
+- noms de tables ;
+- configuration interne ;
+- informations de fournisseurs ;
+- détails d’exception.
+
+En production, le frontend doit afficher un message métier et éventuellement un requestId.
+
+
+2. AUTHENTIFICATION ET SESSIONS
+===============================
+
+2.1 Supprimer le double mécanisme de renouvellement
+---------------------------------------------------
+
+Le renouvellement de session est géré à deux endroits.
+
+Dans shared/lib/httpClient.ts, l’intercepteur traite les 401.
+
+Dans features/auth/context/AuthContext.tsx, loadUser() effectue également :
+
+    await refreshUserSession();
+    const currentUser = await fetchCurrentUser();
+
+Cela complexifie le comportement et peut générer :
+- des requêtes supplémentaires ;
+- des renouvellements en double ;
+- des différences selon l’appel ;
+- des états d’authentification incohérents.
+
+Architecture recommandée :
+
+Le client HTTP doit gérer :
+- les 401 ;
+- le refresh ;
+- la mutualisation des refresh concurrents ;
+- une seule répétition de la requête.
+
+AuthContext doit gérer uniquement :
+- user ;
+- status ;
+- login ;
+- logout ;
+- mise à jour du profil.
+
+
+2.2 Ne pas transformer toutes les erreurs en déconnexion
+--------------------------------------------------------
+
+Dans AuthContext, une erreur non liée à l’authentification aboutit à :
+
+    setUser(null);
+    setStatus('unauthenticated');
+
+Ainsi, une panne réseau, une erreur 500 ou un timeout peut donner l’impression que l’utilisateur a été déconnecté.
+
+Correction recommandée :
+
+    type AuthStatus =
+      | 'idle'
+      | 'loading'
+      | 'authenticated'
+      | 'unauthenticated'
+      | 'unavailable';
+
+Une panne temporaire ne doit pas supprimer immédiatement l’état d’authentification local.
+
+
+2.3 Éviter les changements d’état après démontage
+-------------------------------------------------
+
+loadUser() et plusieurs autres hooks asynchrones peuvent terminer après le démontage du composant.
+
+Utiliser :
+- AbortController ;
+- le signal de React Query ;
+- une vérification d’annulation ;
+- une architecture de requêtes centralisée.
+
+C’est particulièrement pertinent avec les 260 occurrences de useEffect détectées.
+
+
+2.4 Rendre logout réellement asynchrone
+---------------------------------------
+
+Actuellement :
+
+    logout: () => void;
+
+et :
+
+    void logoutUser().catch(...)
+
+L’interface considère donc la déconnexion comme terminée immédiatement, même si le backend n’a pas invalidé la session.
+
+Proposition :
+
+    logout: () => Promise<void>;
+
+Puis :
+
+    const logout = async () => {
+      clearLocalSessionState();
+
+      try {
+        await logoutUser();
+      } finally {
+        queryClient.clear();
+      }
+    };
+
+
+2.5 Vider le cache React Query à la déconnexion
+-----------------------------------------------
+
+Aucun nettoyage global du QueryClient n’apparaît dans AuthContext.
+
+Cela peut laisser en mémoire des données du compte précédent :
+- commandes ;
+- profil ;
+- tickets ;
+- campagnes bêta ;
+- informations administratives.
+
+Correction :
+
+    queryClient.clear();
+
+Ou supprimer sélectivement les données liées à l’utilisateur.
+
+
+2.6 Vider les autres contextes à la déconnexion
+-----------------------------------------------
+
+Le panier, les favoris et d’autres états globaux doivent être resynchronisés lors :
+- de la connexion ;
+- de la déconnexion ;
+- du changement d’utilisateur ;
+- de la suppression du compte.
+
+Éviter que l’état du compte A soit brièvement visible après connexion au compte B.
+
+
+2.7 Éviter console.debug avec des erreurs d’authentification
+------------------------------------------------------------
+
+Dans AuthContext :
+
+    console.debug('No active authentication session to refresh.', refreshError);
+
+Selon l’erreur Axios, cela peut afficher des informations de requête ou de réponse.
+
+En production, passer par un logger contrôlé avec filtrage des données sensibles.
+
+
+2.8 Synchroniser les onglets
+----------------------------
+
+Si l’utilisateur se déconnecte dans un onglet, les autres onglets peuvent rester affichés comme connectés.
+
+Utiliser :
+- BroadcastChannel ;
+- un événement storage ;
+- ou une vérification légère lors du retour au premier plan.
+
+Ne pas oublier de vider les caches dans tous les onglets.
+
+
+3. CLIENT HTTP ET CONTRAT API
+=============================
+
+3.1 Unifier le format des réponses PHP
+--------------------------------------
+
+Le frontend semble accepter plusieurs formes :
+- succès HTTP classique ;
+- erreur HTTP ;
+- erreur métier dans une réponse HTTP 200 ;
+- réponses enveloppées ;
+- réponses directement typées.
+
+Le fait que l’intercepteur appelle createApiResponseError(response.data) sur toutes les réponses indique qu’une réponse 200 peut contenir une erreur métier.
+
+Cela rend le protocole ambigu.
+
+Format recommandé pour un succès :
+
+    {
+      "data": {},
+      "meta": {},
+      "message": null
+    }
+
+Format recommandé pour une erreur :
+
+    {
+      "error": {
+        "code": "ORDER_NOT_PAYABLE",
+        "message": "Cette commande ne peut plus être payée.",
+        "fields": {},
+        "requestId": "req_123"
+      }
+    }
+
+Avec des statuts HTTP corrects :
+- 400 requête invalide ;
+- 401 non authentifié ;
+- 403 interdit ;
+- 404 introuvable ;
+- 409 conflit ;
+- 422 validation ;
+- 429 limite ;
+- 500 serveur.
+
+
+3.2 Centraliser complètement le décodage des erreurs
+----------------------------------------------------
+
+Le projet possède plusieurs fonctions et traitements autour des erreurs :
+- createApiResponseError ;
+- getHttpErrorMessage ;
+- getHttpErrorMessageAsync ;
+- traitements Axios spécifiques ;
+- constructions manuelles dans les pages.
+
+Il faut éviter que chaque fonctionnalité interprète différemment le backend.
+
+Créer un type central :
+
+    interface AppError {
+      kind:
+        | 'network'
+        | 'authentication'
+        | 'authorization'
+        | 'validation'
+        | 'conflict'
+        | 'rate_limit'
+        | 'server'
+        | 'unknown';
+      code?: string;
+      message: string;
+      fields?: Record<string, string[]>;
+      requestId?: string;
+      status?: number;
+    }
+
+Puis une fonction unique :
+
+    normalizeHttpError(error: unknown): AppError
+
+
+3.3 Ajouter des timeouts
+------------------------
+
+Le client Axios ne définit pas de timeout.
+
+Une requête peut donc sembler bloquée très longtemps.
+
+Correction :
+
+    axios.create({
+      baseURL: API_BASE_URL,
+      withCredentials: true,
+      timeout: 15_000,
+    });
+
+Prévoir des timeouts différents pour :
+- requêtes standards ;
+- uploads ;
+- exports ;
+- génération de sauvegardes ;
+- opérations longues.
+
+
+3.4 Ajouter l’annulation des requêtes
+-------------------------------------
+
+Les recherches, filtres et chargements de pages doivent annuler les requêtes devenues inutiles.
+
+Axios accepte AbortSignal :
+
+    httpClient.get('/products', { signal });
+
+React Query fournit directement un signal à queryFn.
+
+
+3.5 Gérer explicitement le statut 429
+-------------------------------------
+
+Le frontend doit prévoir :
+- un message clair ;
+- la lecture éventuelle de Retry-After ;
+- un blocage temporaire du bouton ;
+- l’absence de répétition agressive.
+
+C’est particulièrement important pour :
+- login ;
+- mot de passe oublié ;
+- contact ;
+- création de compte ;
+- génération de documents ;
+- campagnes marketing.
+
+
+3.6 Ne pas retenter automatiquement toutes les mutations
+--------------------------------------------------------
+
+Le QueryClient global définit actuellement :
+
+    retry: false
+
+C’est prudent, mais trop général.
+
+La bonne stratégie dépend de la requête :
+- GET idempotent : une ou deux nouvelles tentatives possibles ;
+- création de commande : pas de retry aveugle ;
+- paiement : jamais sans clé d’idempotence ;
+- mise à jour simple : selon le cas ;
+- recherche : retry léger possible.
+
+Configurer les retries par domaine.
+
+
+3.7 Utiliser des clés d’idempotence côté backend
+------------------------------------------------
+
+Pour les actions sensibles :
+- création de commande ;
+- paiement ;
+- envoi d’e-mail ;
+- création de devis ;
+- remboursement ;
+- réservation ;
+- génération de facture.
+
+Le frontend devrait envoyer une clé :
+
+    Idempotency-Key: 6b26...
+
+Le backend PHP doit garantir qu’un double clic ou une répétition réseau ne duplique pas l’opération.
+
+
+3.8 Générer le client depuis OpenAPI
+------------------------------------
+
+Le nombre important de modules API augmente le risque de divergence.
+
+Mettre en place :
+1. une spécification OpenAPI côté PHP ;
+2. la génération des types TypeScript ;
+3. éventuellement la génération des méthodes clientes ;
+4. une validation CI du contrat.
+
+Cela évite les différences de :
+- noms de champs ;
+- valeurs d’énumération ;
+- nullabilité ;
+- pagination ;
+- formats de date ;
+- statuts d’erreur.
+
+
+3.9 Uniformiser les dates
+-------------------------
+
+Il faut définir une convention API unique :
+- dates absolues en ISO 8601 UTC ;
+- dates sans heure au format YYYY-MM-DD ;
+- pas de dates localisées dans les données brutes ;
+- conversion locale uniquement dans l’UI.
+
+Exemple :
+
+    {
+      "createdAt": "2026-08-05T01:30:00Z"
+    }
+
+Éviter les chaînes PHP comme :
+
+    05/08/2026 03:30
+
+qui sont ambiguës et difficiles à parser correctement.
+
+
+3.10 Uniformiser les montants
+-----------------------------
+
+Ne pas utiliser des flottants pour les montants financiers.
+
+Préférer :
+
+    {
+      "amount": 12990,
+      "currency": "EUR"
+    }
+
+où 12990 représente 129,90 €.
+
+Créer une fonction centrale de formatage avec Intl.NumberFormat.
+
+
+4. REACT QUERY ET GESTION DES DONNÉES
+=====================================
+
+4.1 React Query est encore sous-utilisé
+---------------------------------------
+
+Le projet contient :
+- environ 716 occurrences de useState ;
+- environ 260 occurrences de useEffect.
+
+React Query est bien utilisé dans les fonctionnalités bêta, mais beaucoup d’autres domaines semblent conserver une gestion manuelle des chargements.
+
+Cela entraîne souvent :
+- duplication des états loading/error/data ;
+- absence de cache ;
+- requêtes concurrentes ;
+- données périmées ;
+- invalidations oubliées ;
+- code plus difficile à tester.
+
+Correction :
+
+Utiliser React Query pour toutes les données serveur :
+- commandes ;
+- devis ;
+- produits ;
+- catégories ;
+- rendez-vous ;
+- favoris ;
+- formations ;
+- profil ;
+- audits ;
+- listes administratives.
+
+
+4.2 Créer une convention de clés de requête
+-------------------------------------------
+
+Éviter les chaînes dispersées.
+
+    export const orderKeys = {
+      all: ['orders'] as const,
+      lists: () => [...orderKeys.all, 'list'] as const,
+      list: (filters: OrderFilters) =>
+        [...orderKeys.lists(), filters] as const,
+      details: () => [...orderKeys.all, 'detail'] as const,
+      detail: (id: string) =>
+        [...orderKeys.details(), id] as const,
+    };
+
+Cela facilite les invalidations.
+
+
+4.3 Définir staleTime par domaine
+---------------------------------
+
+Toutes les données n’ont pas la même durée de validité.
+
+Exemples :
+- catégories : plusieurs minutes ;
+- fiche produit : une à cinq minutes ;
+- commande en cours de paiement : quelques secondes ;
+- permissions : durée de session ou courte ;
+- contenu légal : longue durée ;
+- données admin opérationnelles : courte durée.
+
+
+4.4 Ne pas désactiver globalement refetchOnWindowFocus
+------------------------------------------------------
+
+Le projet configure :
+
+    refetchOnWindowFocus: false
+
+pour toutes les requêtes.
+
+Cela évite certains rechargements gênants, mais empêche aussi la mise à jour de données importantes après un retour dans l’onglet.
+
+Choisir par requête :
+
+    refetchOnWindowFocus: true
+
+pour :
+- commandes ;
+- paiements ;
+- audits ;
+- tableaux de bord ;
+- tickets ;
+- réservations.
+
+
+4.5 Gérer l’optimistic update avec prudence
+-------------------------------------------
+
+Pour les favoris, quantités ou statuts simples, une mise à jour optimiste peut améliorer l’UX.
+
+Mais il faut systématiquement prévoir :
+- sauvegarde de l’état précédent ;
+- rollback ;
+- message d’erreur ;
+- invalidation finale.
+
+Ne pas utiliser d’optimistic update pour les paiements ou opérations irréversibles.
+
+
+4.6 Utiliser les mutations plutôt que des états manuels
+-------------------------------------------------------
+
+Les actions comme :
+- annulation ;
+- suppression ;
+- validation ;
+- création ;
+- modification ;
+
+doivent utiliser useMutation.
+
+Cela centralise :
+- isPending ;
+- erreurs ;
+- invalidations ;
+- notifications ;
+- désactivation des boutons.
+
+
+5. ARCHITECTURE DU PROJET
+=========================
+
+5.1 Définir des frontières de modules
+-------------------------------------
+
+L’organisation par features est bonne, mais elle doit être renforcée par des règles.
+
+Architecture recommandée :
+
+    app/
+    features/
+    shared/
+
+Règles :
+- shared ne dépend jamais de features ;
+- une feature n’importe pas les internals d’une autre feature ;
+- les dépendances inter-features passent par un publicApi.ts ;
+- app compose les features ;
+- les pages ne sont pas importées par les composants.
+
+Ajouter des règles ESLint avec no-restricted-imports ou un outil comme Dependency Cruiser.
+
+
+5.2 Généraliser les publicApi.ts
+--------------------------------
+
+Le catalogue possède déjà un publicApi.ts, mais cette convention ne semble pas généralisée.
+
+Chaque domaine devrait exposer uniquement ce qui est public :
+
+    export { ProductsPage } from './pages/ProductsPage';
+    export { useProduct } from './hooks/useProduct';
+    export type { Product } from './types';
+
+Interdire les imports profonds inter-domaines.
+
+
+5.3 Fusionner les deux systèmes de composants UI
+------------------------------------------------
+
+Il existe :
+
+    src/components/ui
+    src/shared/components/ui
+
+Cette duplication rend la source officielle ambiguë.
+
+Choisir une seule destination :
+
+    src/shared/ui
+
+Puis organiser :
+
+    shared/ui/actions
+    shared/ui/forms
+    shared/ui/feedback
+    shared/ui/overlays
+    shared/ui/navigation
+    shared/ui/data-display
+
+
+5.4 Réduire les fichiers fourre-tout
+------------------------------------
+
+Plusieurs fichiers sont importants en taille :
+- AdminTradeInDetailsSections.tsx
+- AdminBetaTestersPage.tsx
+- AdminBugReportDetailDialog.tsx
+- ProductsListPage.tsx
+- AdminDashboardOperationalSections.tsx
+- RegisterFormFields.tsx
+- useAdminTradeInsPage.ts
+- useAdminBugReportsController.ts
+- useAdminBetaCampaignsController.ts
+
+Un gros fichier n’est pas automatiquement mauvais, mais ces fichiers semblent susceptibles de cumuler :
+- récupération des données ;
+- transformation ;
+- état local ;
+- validation ;
+- rendu ;
+- dialogues ;
+- actions ;
+- permissions.
+
+Correction recommandée :
+
+    AdminTradeInDetails/
+      AdminTradeInHeader.tsx
+      AdminTradeInCustomerSection.tsx
+      AdminTradeInDeviceSection.tsx
+      AdminTradeInValuationSection.tsx
+      AdminTradeInHistory.tsx
+      useAdminTradeInDetails.ts
+      adminTradeInMappers.ts
+
+
+5.5 Éviter les hooks contrôleurs trop massifs
+---------------------------------------------
+
+Les hooks comme useAdmin...Controller sont utiles, mais peuvent devenir des composants invisibles contenant toute l’application.
+
+Découper entre :
+- requêtes ;
+- mutations ;
+- état de filtres ;
+- dialogues ;
+- sélection ;
+- formulaires ;
+- logique métier.
+
+Exemple :
+
+    useBugReportQueries
+    useBugReportMutations
+    useBugReportFilters
+    useBugReportSelection
+
+
+5.6 Ne pas réexporter toute une feature sans contrôle
+-----------------------------------------------------
+
+features/catalog/publicApi.ts fait partie des fichiers importants en taille. Un fichier public trop volumineux peut :
+- masquer les dépendances ;
+- créer des cycles ;
+- charger involontairement beaucoup de code ;
+- rendre les imports imprécis.
+
+Créer plusieurs points d’entrée si nécessaire :
+
+    features/catalog/public
+    features/catalog/admin
+    features/catalog/types
+
+
+5.7 Détecter les dépendances circulaires
+----------------------------------------
+
+Avec 585 fichiers, des cycles sont probables.
+
+Ajouter en CI :
+- madge ;
+- dependency-cruiser ;
+- ou une règle ESLint dédiée.
+
+Les cycles entre contextes, APIs et utilitaires peuvent produire des valeurs undefined selon l’ordre d’import.
+
+
+5.8 Réduire les imports globaux de CSS
+--------------------------------------
+
+Si les styles de toutes les fonctionnalités sont chargés depuis main.tsx ou un fichier global, l’utilisateur télécharge du CSS inutile.
+
+Charger le CSS au niveau de la route ou du composant lorsque cela est possible.
+
+
+6. QUALITÉ TYPESCRIPT
+=====================
+
+6.1 Bon point : aucune occurrence évidente de any
+-------------------------------------------------
+
+L’analyse ne montre pas d’usage explicite notable de any. C’est positif.
+
+Il faut toutefois vérifier le tsconfig, absent de l’archive.
+
+Activer idéalement :
+
+    {
+      "strict": true,
+      "noUncheckedIndexedAccess": true,
+      "exactOptionalPropertyTypes": true,
+      "noImplicitOverride": true,
+      "noFallthroughCasesInSwitch": true,
+      "useUnknownInCatchVariables": true
+    }
+
+
+6.2 Réduire les Record<string, unknown>
+---------------------------------------
+
+Certains contrôleurs utilisent :
+
+    useQuery<Record<string, unknown>>
+
+Cela signifie que le contrat métier n’est pas réellement décrit.
+
+Créer des interfaces précises, surtout pour les tableaux de bord.
+
+
+6.3 Utiliser des unions discriminées
+------------------------------------
+
+Pour les états complexes :
+
+    type LoadState<T> =
+      | { status: 'idle' }
+      | { status: 'loading' }
+      | { status: 'success'; data: T }
+      | { status: 'error'; error: AppError };
+
+C’est plus sûr que plusieurs booléens pouvant devenir incohérents.
+
+
+6.4 Ne pas dupliquer les enums frontend/backend
+-----------------------------------------------
+
+Les statuts de :
+- commandes ;
+- devis ;
+- audits ;
+- remboursements ;
+- campagnes ;
+- tickets ;
+
+doivent provenir d’une source contractuelle commune.
+
+Sinon, le PHP peut ajouter un statut que le frontend ne reconnaît pas.
+
+
+6.5 Utiliser des types opaques pour les identifiants
+----------------------------------------------------
+
+Tous les identifiants en string sont interchangeables par erreur.
+
+Créer des types :
+
+    type OrderId = string & { readonly __brand: 'OrderId' };
+    type ProductId = string & { readonly __brand: 'ProductId' };
+
+Ce n’est pas obligatoire partout, mais utile dans les domaines sensibles.
+
+
+6.6 Séparer DTO et modèles d’affichage
+--------------------------------------
+
+Le type renvoyé par l’API ne doit pas forcément être le type utilisé dans le composant.
+
+Créer :
+- OrderDto ;
+- Order ;
+- OrderViewModel.
+
+Une fonction de mapping permet de normaliser les dates, montants et valeurs optionnelles.
+
+
+7. GESTION DES ERREURS
+======================
+
+7.1 Éliminer les catch {} silencieux
+------------------------------------
+
+Plusieurs fichiers contiennent des blocs vides :
+- ResetPasswordPage.tsx
+- ActivationPage.tsx
+- ForgotPasswordPage.tsx
+- RegisterPage.tsx
+- LoginPage.tsx
+- ContactPage.tsx
+- pages d’audit ;
+- hooks de devis ;
+- pages bêta.
+
+Un catch {} masque :
+- les régressions ;
+- les erreurs de toast ;
+- les erreurs de stockage ;
+- les problèmes de navigation ;
+- les erreurs métier inattendues.
+
+Correction minimale :
+
+    catch (error) {
+      logger.warn('Unable to display notification', { error });
+    }
+
+Ou supprimer le try/catch si l’opération ne devrait pas échouer.
+
+
+7.2 Éviter les composants écrits sur une seule ligne
+----------------------------------------------------
+
+RegisterPage.tsx contient des séquences très condensées.
+
+Cela nuit à :
+- la revue de code ;
+- la couverture de tests ;
+- la lisibilité ;
+- la détection des branches.
+
+Reformater chaque étape en fonctions nommées.
+
+
+7.3 Centraliser les notifications
+---------------------------------
+
+De nombreux composants semblent décider eux-mêmes quand afficher un toast.
+
+Créer des conventions :
+- succès de mutation : toast bref ;
+- validation : erreur près du champ ;
+- erreur globale : bannière ;
+- erreur de chargement : état de page ;
+- suppression : confirmation et toast ;
+- erreur silencieuse : uniquement si réellement non importante.
+
+
+7.4 Ajouter un Error Boundary
+-----------------------------
+
+Le projet doit posséder au minimum :
+- un Error Boundary global ;
+- éventuellement un Error Boundary par grande route ;
+- un fallback d’administration ;
+- un identifiant d’erreur.
+
+Un composant qui plante ne devrait pas rendre toute l’application blanche.
+
+
+7.5 Fournir une action Réessayer
+--------------------------------
+
+Les états d’erreur réseau doivent afficher une action explicite :
+
+    <Button onClick={() => refetch()}>
+      Réessayer
+    </Button>
+
+Pas seulement un message statique.
+
+
+7.6 Afficher le requestId du backend
+------------------------------------
+
+Exemple :
+
+    Une erreur est survenue.
+    Référence : req_01J...
+
+C’est essentiel pour relier une erreur affichée au log PHP correspondant.
+
+
+8. FORMULAIRES ET VALIDATION
+============================
+
+8.1 Uniformiser la bibliothèque de formulaires
+----------------------------------------------
+
+Le grand nombre de pages et de formulaires suggère une gestion possiblement hétérogène.
+
+Standardiser autour de :
+- React Hook Form ;
+- Zod ;
+- composants de champs communs ;
+- mapping des erreurs 422.
+
+
+8.2 Afficher les erreurs serveur au niveau des champs
+-----------------------------------------------------
+
+Le PHP devrait renvoyer :
+
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "fields": {
+          "email": ["Cette adresse est déjà utilisée."],
+          "password": ["Le mot de passe est trop court."]
+        }
+      }
+    }
+
+Le frontend doit relier ces erreurs aux champs correspondants.
+
+
+8.3 Ne pas dupliquer les règles métier uniquement côté frontend
+---------------------------------------------------------------
+
+La validation frontend améliore l’UX, mais le PHP doit refaire toutes les vérifications.
+
+Exemples :
+- quantité disponible ;
+- montant ;
+- réduction ;
+- statut de commande ;
+- format de fichier ;
+- droits ;
+- créneau disponible ;
+- date limite ;
+- prix actuel.
+
+
+8.4 Désactiver correctement les doubles soumissions
+---------------------------------------------------
+
+Tous les boutons de formulaire doivent utiliser l’état réel de mutation :
+
+    disabled={mutation.isPending}
+
+Mais il faut aussi une idempotence backend, car la désactivation visuelle ne suffit pas.
+
+
+8.5 Gérer le focus sur la première erreur
+-----------------------------------------
+
+Après validation :
+- focus sur le premier champ invalide ;
+- message global pour lecteurs d’écran ;
+- aria-describedby ;
+- aria-invalid.
+
+
+8.6 Ne pas effacer les formulaires après une erreur
+---------------------------------------------------
+
+Conserver les données déjà saisies, sauf champs sensibles comme les mots de passe lorsque nécessaire.
+
+
+8.7 Protéger les modifications non sauvegardées
+------------------------------------------------
+
+Sur les formulaires administratifs longs :
+- avertissement lors de la navigation ;
+- distinction entre état initial et état modifié ;
+- sauvegarde automatique éventuelle ;
+- brouillons côté serveur si nécessaire.
+
+
+9. CSS ET DESIGN SYSTEM
+=======================
+
+9.1 Trop d’overrides
+--------------------
+
+La présence de fichiers comme :
+- feature-overrides.css
+- responsive/admin-overrides.css
+- divers styles d’état et surcharges
+
+indique une cascade devenue difficile à contrôler.
+
+Les overrides successifs finissent souvent par créer une guerre de spécificité.
+
+Correction :
+- utiliser des tokens ;
+- utiliser des composants ;
+- utiliser CSS Modules ;
+- colocaliser les styles ;
+- utiliser des classes d’état explicites ;
+- réduire les sélecteurs imbriqués.
+
+
+9.2 Centraliser les tokens
+--------------------------
+
+Définir une source unique pour :
+- couleurs ;
+- espacements ;
+- rayons ;
+- ombres ;
+- typographie ;
+- z-index ;
+- transitions ;
+- breakpoints.
+
+Exemple :
+
+    :root {
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.75rem;
+      --z-dialog: 1000;
+    }
+
+
+9.3 Établir une échelle de z-index
+----------------------------------
+
+Sans échelle, les projets finissent par utiliser des valeurs arbitraires.
+
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 900;
+    --z-dialog: 1000;
+    --z-toast: 1100;
+
+
+9.4 Réduire les CSS spécifiques aux pages
+-----------------------------------------
+
+CatalogProductCards.css, RegisterPage.css et d’autres fichiers sont particulièrement volumineux.
+
+Extraire les styles réutilisables dans des composants.
+
+
+9.5 Ajouter Stylelint
+---------------------
+
+Configurer :
+- ordre des propriétés ;
+- sélecteurs invalides ;
+- doublons ;
+- spécificité excessive ;
+- couleurs directes interdites si tokens disponibles ;
+- propriétés inconnues.
+
+
+9.6 Tester les résolutions intermédiaires
+-----------------------------------------
+
+Ne pas tester uniquement mobile et desktop.
+
+Vérifier :
+- 320 px ;
+- 375 px ;
+- 768 px ;
+- 1024 px ;
+- 1280 px ;
+- 1440 px ;
+- zoom navigateur à 200 %.
+
+Les interfaces administratives et tableaux sont particulièrement sensibles.
+
+
+9.7 Prévoir le mode impression
+------------------------------
+
+Pour :
+- commandes ;
+- devis ;
+- factures ;
+- audits ;
+- fiches administratives.
+
+Ajouter des styles @media print.
+
+
+10. ACCESSIBILITÉ
+=================
+
+10.1 Auditer tous les dialogues
+-------------------------------
+
+Les composants de dialogue doivent gérer :
+- role="dialog" ou alertdialog ;
+- aria-modal ;
+- titre accessible ;
+- description ;
+- piégeage du focus ;
+- fermeture par Échap ;
+- retour du focus ;
+- blocage du scroll ;
+- ordre de tabulation.
+
+
+10.2 Vérifier les boutons à icône
+---------------------------------
+
+Tout bouton sans texte visible doit avoir :
+
+    aria-label="Supprimer le produit"
+
+Le title seul ne suffit pas.
+
+
+10.3 Ne pas utiliser la couleur seule
+-------------------------------------
+
+Les statuts doivent posséder :
+- texte ;
+- icône éventuellement ;
+- couleur.
+
+Exemple : « Paiement échoué » et pas uniquement une pastille rouge.
+
+
+10.4 Contrôler les annonces aria-live
+-------------------------------------
+
+Le composant AccessibilityAnnouncer est un bon signal.
+
+Il faut éviter :
+- annonces répétitives ;
+- annonces trop longues ;
+- relecture complète de la page ;
+- annonces lors de simples mouvements visuels.
+
+
+10.5 Respecter prefers-reduced-motion
+-------------------------------------
+
+Désactiver ou réduire :
+- animations de modales ;
+- transitions importantes ;
+- loaders animés ;
+- défilements automatiques.
+
+
+10.6 Vérifier le contraste
+--------------------------
+
+Particulièrement pour :
+- textes gris ;
+- placeholders ;
+- badges ;
+- états désactivés ;
+- erreurs ;
+- boutons secondaires ;
+- liens visités.
+
+
+10.7 Ajouter des tests automatisés Axe
+--------------------------------------
+
+À intégrer dans les tests de composants ou Playwright.
+
+Les tests automatisés ne remplacent pas un audit clavier manuel, mais détectent beaucoup d’erreurs simples.
+
+
+11. PERFORMANCE
+===============
+
+11.1 Analyser le bundle réel
+----------------------------
+
+Sans configuration Vite, il n’est pas possible de mesurer le poids.
+
+Ajouter un visualiseur de bundle et surveiller :
+- bundle initial ;
+- bundle admin ;
+- bibliothèques de dates ;
+- éditeurs HTML ;
+- composants de graphiques ;
+- icônes ;
+- CSS global.
+
+
+11.2 Isoler complètement l’administration
+-----------------------------------------
+
+L’application admin doit être chargée paresseusement.
+
+Un utilisateur public ne doit pas télécharger :
+- pages admin ;
+- tableaux ;
+- outils marketing ;
+- gestion des sauvegardes ;
+- fonctionnalités bêta internes.
+
+
+11.3 Éviter les fichiers index qui annulent le tree-shaking
+-----------------------------------------------------------
+
+Un index.ts exportant toutes les pages peut pousser le bundler à analyser ou inclure davantage de modules.
+
+Vérifier les imports réels avec le rapport de bundle.
+
+
+11.4 Virtualiser les grandes listes
+-----------------------------------
+
+Pour :
+- produits ;
+- clients ;
+- commandes ;
+- tickets ;
+- audits ;
+- historiques.
+
+Utiliser pagination serveur ou virtualisation.
+
+Ne jamais charger des milliers d’éléments dans le DOM.
+
+
+11.5 Déplacer les filtres lourds côté serveur
+---------------------------------------------
+
+Le frontend ne doit pas télécharger toutes les données pour filtrer localement.
+
+Le backend doit supporter :
+- pagination ;
+- tri ;
+- recherche ;
+- filtres ;
+- champs sélectionnés.
+
+
+11.6 Optimiser les images
+-------------------------
+
+Pour le catalogue :
+- WebP ou AVIF ;
+- dimensions fixes ;
+- srcset ;
+- lazy loading ;
+- placeholder ;
+- compression ;
+- CDN si nécessaire.
+
+Exemple :
+
+    <img
+      loading="lazy"
+      decoding="async"
+      width={400}
+      height={300}
+    />
+
+
+11.7 Éviter les re-rendus massifs des contextes
+-----------------------------------------------
+
+AuthContext, CartContext, Toast et autres providers entourent toute l’application.
+
+Vérifier que chaque changement ne rerend pas inutilement un grand arbre.
+
+Solutions :
+- séparer état et actions ;
+- découper les contextes ;
+- utiliser des sélecteurs ;
+- mémoriser correctement les valeurs ;
+- placer les providers au niveau nécessaire.
+
+
+11.8 Éviter le polling lorsque non nécessaire
+---------------------------------------------
+
+Plusieurs hooks utilisent setInterval :
+- audits admin ;
+- détail d’audit ;
+- audits client ;
+- liste d’audits.
+
+Il faut vérifier :
+- nettoyage de l’intervalle ;
+- arrêt lorsque l’onglet est masqué ;
+- arrêt une fois l’opération terminée ;
+- absence de polling simultané ;
+- backoff en cas d’erreur ;
+- intervalle raisonnable.
+
+React Query peut gérer cela avec refetchInterval.
+
+
+11.9 Éviter les requêtes en cascade
+-----------------------------------
+
+Une page ne devrait pas faire :
+1. requête utilisateur ;
+2. puis requête catégorie ;
+3. puis requête produits ;
+4. puis requête détails de chaque produit.
+
+Le backend peut fournir un endpoint adapté ou le frontend peut paralléliser les appels indépendants.
+
+
+12. TESTS
+=========
+
+12.1 Couverture actuellement trop faible
+----------------------------------------
+
+Seulement quelques tests sont présents :
+- shared/lib/httpClient.test.ts
+- admin/utils/adminRoutes.test.ts
+- catalog/utils/groupProducts.test.ts
+- catalog/utils/productDisplay.test.ts
+
+Pour 585 fichiers, c’est insuffisant.
+
+
+12.2 Tester le client HTTP en profondeur
+----------------------------------------
+
+Cas obligatoires :
+- ajout du token panier ;
+- ajout CSRF uniquement pour méthodes sensibles ;
+- exclusion CSRF pour l’endpoint de token ;
+- 401 puis refresh réussi ;
+- plusieurs 401 simultanés ;
+- un seul refresh réel ;
+- refresh échoué ;
+- pas de boucle infinie ;
+- requête de refresh elle-même en 401 ;
+- renouvellement CSRF ;
+- réponse métier en HTTP 200 ;
+- upload FormData ;
+- timeout ;
+- annulation.
+
+
+12.3 Tester l’authentification
+------------------------------
+
+Parcours :
+- session existante ;
+- session absente ;
+- session expirée ;
+- panne réseau ;
+- login réussi ;
+- login refusé ;
+- logout backend réussi ;
+- logout backend échoué ;
+- suppression de compte ;
+- connexion d’un autre utilisateur ;
+- synchronisation entre onglets.
+
+
+12.4 Tester les permissions
+---------------------------
+
+Chaque route d’administration doit avoir des tests pour :
+- utilisateur anonyme ;
+- client ;
+- rôle partiel ;
+- administrateur complet ;
+- permission révoquée pendant la session.
+
+
+12.5 Tester les formulaires
+---------------------------
+
+Vérifier :
+- validation locale ;
+- erreurs 422 ;
+- conservation des valeurs ;
+- focus sur l’erreur ;
+- double soumission ;
+- upload invalide ;
+- échec réseau ;
+- succès.
+
+
+12.6 Ajouter MSW
+----------------
+
+Mock Service Worker permet de simuler l’API PHP à un niveau proche du réseau réel.
+
+Cela évite de mocker directement toutes les fonctions API et permet de tester :
+- headers ;
+- cookies simulés ;
+- statuts ;
+- latence ;
+- erreurs ;
+- réponses incorrectes.
+
+
+12.7 Ajouter Playwright
+-----------------------
+
+Parcours end-to-end prioritaires :
+1. inscription ;
+2. activation ;
+3. connexion ;
+4. ajout au panier ;
+5. commande ;
+6. paiement simulé ;
+7. consultation commande ;
+8. demande de devis ;
+9. réservation ;
+10. connexion administrateur ;
+11. gestion produit ;
+12. changement de statut ;
+13. déconnexion.
+
+
+12.8 Ajouter des tests visuels
+------------------------------
+
+Utile pour :
+- catalogue ;
+- formulaires ;
+- tableaux admin ;
+- dialogues ;
+- responsive ;
+- pages légales.
+
+
+12.9 Ajouter des tests de contrat
+---------------------------------
+
+La CI PHP peut publier un OpenAPI. La CI frontend valide que :
+- les types sont à jour ;
+- aucun endpoint utilisé n’a disparu ;
+- aucune réponse n’a changé de manière incompatible.
+
+
+13. OBSERVABILITÉ ET PRODUCTION
+===============================
+
+13.1 Remplacer les console.error
+--------------------------------
+
+Le projet utilise encore plusieurs console.error.
+
+Créer un service :
+
+    logger.error('Unable to load current user', {
+      error,
+      requestId,
+      route,
+    });
+
+En développement : console.
+En production : outil de monitoring avec filtrage.
+
+
+13.2 Ajouter une solution de suivi d’erreurs
+--------------------------------------------
+
+Sentry ou équivalent peut suivre :
+- erreurs React ;
+- erreurs réseau ;
+- source maps ;
+- version déployée ;
+- route ;
+- navigateur ;
+- performance.
+
+Ne pas enregistrer :
+- mots de passe ;
+- tokens ;
+- données bancaires ;
+- messages privés ;
+- données sensibles des formulaires.
+
+
+13.3 Ajouter les Web Vitals
+---------------------------
+
+Mesurer :
+- LCP ;
+- CLS ;
+- INP ;
+- TTFB.
+
+Puis corréler les régressions avec les versions de déploiement.
+
+
+13.4 Ajouter un identifiant de version
+--------------------------------------
+
+Afficher ou transmettre :
+- frontendVersion ;
+- commitSha ;
+- buildDate ;
+- environment.
+
+Cela permet de savoir quel code a produit une erreur.
+
+
+13.5 Ajouter un système de feature flags
+----------------------------------------
+
+Pour les fonctionnalités risquées ou bêta :
+- activation par environnement ;
+- activation par compte ;
+- désactivation rapide ;
+- expiration des flags.
+
+Éviter les conditions dispersées dans le code.
+
+
+14. CONFIGURATION ET ENVIRONNEMENTS
+==================================
+
+14.1 Simplifier API_BASE_URL
+----------------------------
+
+appConfig.ts contient des domaines codés en dur :
+
+    hostname === 'hociatec.fr'
+
+et tente également de lire globalThis.process.
+
+Dans une application Vite navigateur, cela est inutilement complexe.
+
+Correction :
+
+    export const API_BASE_URL =
+      import.meta.env.VITE_API_BASE_URL ?? '/api';
+
+Idéalement, utiliser /api avec un reverse proxy.
+
+
+14.2 Valider les variables d’environnement
+------------------------------------------
+
+Créer un schéma :
+
+    const EnvSchema = z.object({
+      VITE_API_BASE_URL: z.string().url(),
+      VITE_APP_ENV: z.enum(['development', 'staging', 'production']),
+    });
+
+Échouer clairement au démarrage si une variable obligatoire manque.
+
+
+14.3 Séparer développement, préproduction et production
+-------------------------------------------------------
+
+Prévoir :
+- .env.development ;
+- .env.staging ;
+- .env.production.
+
+Ne pas déduire l’environnement uniquement depuis le hostname.
+
+
+14.4 Ne pas exposer de secrets dans les variables Vite
+------------------------------------------------------
+
+Toutes les variables VITE_* sont intégrées au bundle et lisibles par l’utilisateur.
+
+Ne jamais y placer :
+- secret Stripe ;
+- clé privée ;
+- mot de passe SMTP ;
+- secret JWT ;
+- token d’administration.
+
+
+15. SEO ET MÉTADONNÉES
+======================
+
+15.1 Centraliser les métadonnées
+--------------------------------
+
+useMetaTags.ts est utile, mais il faut vérifier :
+- titre unique ;
+- canonical correct ;
+- description ;
+- Open Graph ;
+- Twitter Cards ;
+- robots ;
+- URL absolue ;
+- image sociale.
+
+
+15.2 Ne pas indexer les pages privées
+-------------------------------------
+
+Ajouter noindex aux pages :
+- compte ;
+- commandes ;
+- devis ;
+- admin ;
+- connexion ;
+- panier ;
+- paiement ;
+- bêta.
+
+Le serveur doit également empêcher l’indexation lorsque pertinent.
+
+
+15.3 Vérifier le rendu des pages publiques
+------------------------------------------
+
+Une SPA pure peut être moins efficace pour le SEO des produits et catégories.
+
+Pour un catalogue public important, envisager :
+- SSR ;
+- pré-rendu ;
+- génération statique ;
+- sitemap produit ;
+- données structurées JSON-LD.
+
+
+15.4 Ajouter les données structurées
+------------------------------------
+
+Pour les produits :
+- Product ;
+- Offer ;
+- BreadcrumbList ;
+- éventuellement Organization.
+
+Les données doivent correspondre exactement au contenu visible.
+
+
+16. EXPÉRIENCE UTILISATEUR
+==========================
+
+16.1 Uniformiser tous les états de page
+---------------------------------------
+
+Chaque page chargée depuis l’API doit posséder :
+- skeleton ou chargement ;
+- erreur ;
+- état vide ;
+- contenu ;
+- permission refusée ;
+- ressource introuvable.
+
+Créer des composants communs :
+
+    PageLoading
+    PageError
+    EmptyState
+    ForbiddenState
+    NotFoundState
+
+
+16.2 Distinguer erreur vide et vraie absence de données
+-------------------------------------------------------
+
+Ne jamais afficher « Aucun élément » après une requête qui a échoué.
+
+Un tableau vide et une erreur réseau sont deux situations différentes.
+
+
+16.3 Ajouter des confirmations adaptées
+---------------------------------------
+
+Une confirmation ne doit pas être systématique pour chaque action.
+
+Elle est nécessaire pour :
+- suppression ;
+- remboursement ;
+- annulation irréversible ;
+- envoi marketing ;
+- changement critique de statut ;
+- restauration de sauvegarde.
+
+Pour les actions réversibles, préférer parfois « Annuler » dans un toast.
+
+
+16.4 Empêcher les actions incompatibles
+---------------------------------------
+
+Les boutons doivent dépendre du véritable état métier.
+
+Exemple : ne pas afficher « Payer » si la commande est :
+- annulée ;
+- remboursée ;
+- expirée ;
+- déjà payée ;
+- bloquée.
+
+Le backend doit naturellement refaire ce contrôle.
+
+
+16.5 Afficher des dates et heures explicites
+--------------------------------------------
+
+Pour les rendez-vous et opérations :
+
+    5 août 2026 à 14:30, heure de Paris
+
+et pas seulement :
+
+    05/08 14:30
+
+Ajouter le fuseau lorsque cela peut être ambigu.
+
+
+16.6 Prévoir les connexions lentes
+----------------------------------
+
+Afficher une progression et ne pas laisser un bouton paraître bloqué.
+
+Pour les opérations longues :
+- message de traitement ;
+- polling contrôlé ;
+- possibilité de quitter la page ;
+- notification lorsque terminé si le système le permet.
+
+
+17. ADMINISTRATION
+==================
+
+17.1 Ajouter une traçabilité des actions
+----------------------------------------
+
+Toute action administrateur sensible doit produire un audit backend :
+- qui ;
+- quoi ;
+- quand ;
+- ancienne valeur ;
+- nouvelle valeur ;
+- adresse IP ou contexte pertinent ;
+- requestId.
+
+Le frontend peut afficher cet historique, mais ne doit pas en être la source.
+
+
+17.2 Séparer lecture et modification
+------------------------------------
+
+Les pages de détail administratives ne doivent pas mettre toutes les données directement en édition.
+
+Préférer :
+- mode lecture ;
+- bouton Modifier ;
+- validation ;
+- annulation ;
+- indication de sauvegarde.
+
+
+17.3 Gérer les modifications concurrentes
+-----------------------------------------
+
+Deux administrateurs peuvent modifier la même ressource.
+
+Utiliser :
+- un champ version ;
+- updatedAt ;
+- ETag / If-Match ;
+- ou un mécanisme de verrouillage optimiste.
+
+En cas de conflit, retourner 409 Conflict.
+
+
+17.4 Paginer les historiques
+----------------------------
+
+Les audits, commentaires, commandes et événements ne doivent pas être chargés intégralement.
+
+Pagination curseur recommandée pour les historiques.
+
+
+17.5 Encadrer les exports
+-------------------------
+
+Pour CSV, PDF et sauvegardes :
+- permissions strictes ;
+- expiration des URLs ;
+- protection contre l’injection CSV ;
+- limites de volume ;
+- suivi des exports ;
+- traitement asynchrone côté serveur si lourd.
+
+Les valeurs CSV commençant par =, +, - ou @ doivent être neutralisées.
+
+
+18. MAINTENABILITÉ
+==================
+
+18.1 Ajouter une documentation d’architecture
+---------------------------------------------
+
+Créer un document expliquant :
+- structure des features ;
+- règles d’import ;
+- client HTTP ;
+- gestion des erreurs ;
+- authentification ;
+- React Query ;
+- design system ;
+- tests ;
+- conventions API.
+
+
+18.2 Ajouter une checklist de revue de code
+-------------------------------------------
+
+Exemples :
+- permissions vérifiées côté backend ;
+- aucune donnée sensible dans le stockage ;
+- erreur gérée ;
+- loading et état vide ;
+- tests ajoutés ;
+- accessibilité ;
+- pas de requête en boucle ;
+- invalidation du cache ;
+- responsive ;
+- traduction et formatage.
+
+
+18.3 Ajouter des limites automatiques
+-------------------------------------
+
+Des règles peuvent signaler :
+- fichiers trop longs ;
+- fonctions trop complexes ;
+- trop de branches ;
+- trop de paramètres ;
+- imports interdits ;
+- dépendances circulaires.
+
+Ne pas imposer aveuglément une limite, mais utiliser les alertes pour guider les refactorisations.
+
+
+18.4 Supprimer le code mort
+---------------------------
+
+Avec 585 fichiers, mettre en place :
+- détection des exports inutilisés ;
+- détection des dépendances inutilisées ;
+- détection du CSS inutilisé ;
+- suppression des anciennes variantes de composants.
+
+Outils possibles :
+- knip ;
+- depcheck ;
+- analyse de couverture ;
+- rapport CSS.
+
+
+18.5 Standardiser les noms
+--------------------------
+
+Choisir une convention stable :
+- *Api.ts pour les appels ;
+- use*Query.ts ;
+- use*Mutation.ts ;
+- *Page.tsx ;
+- *Dialog.tsx ;
+- *.types.ts ;
+- *.schema.ts ;
+- *.mapper.ts.
+
+Éviter le mélange entre api.ts, cartApi.ts, operationsApiShared.ts, etc., sans règle explicite.
+
+
+19. PRIORITÉS CONCRÈTES
+======================
+
+À corriger immédiatement
+------------------------
+1. Validation stricte des URLs de redirection.
+2. Réinitialisation du CSRF lors des changements de session.
+3. Suppression du Content-Type JSON global pour les uploads.
+4. Nettoyage du cache React Query à la déconnexion.
+5. Suppression du double refresh d’authentification.
+6. Distinction entre panne réseau et utilisateur non authentifié.
+7. Vérification exhaustive des permissions côté PHP.
+8. Audit de la prévisualisation HTML et des liens externes.
+9. Format d’erreur API unique.
+10. Suppression des catch {} silencieux.
+
+À faire ensuite
+---------------
+1. Généraliser React Query.
+2. Générer les types depuis OpenAPI.
+3. Unifier les composants UI.
+4. Découper les gros contrôleurs et composants.
+5. Ajouter un Error Boundary.
+6. Ajouter timeouts et annulation.
+7. Tester auth, paiement, commande et permissions.
+8. Ajouter Playwright et MSW.
+9. Ajouter observabilité et request IDs.
+10. Simplifier la configuration des environnements.
+
+Travaux structurels
+-------------------
+1. Règles d’import entre features.
+2. publicApi.ts homogènes.
+3. Détection des cycles.
+4. Design system centralisé.
+5. Réduction des CSS d’override.
+6. Documentation d’architecture.
+7. Audit de performance du bundle.
+8. Tests d’accessibilité.
+9. Optimisation des listes et images.
+10. CI complète : typecheck, lint, tests, build, analyse des dépendances.
+
+
+20. ÉVALUATION FINALE
+=====================
+
+Organisation fonctionnelle : 8/10
+TypeScript : 8/10
+Intégration API PHP : 7/10
+Authentification : 7/10
+Sécurité frontend : 6,5/10
+Gestion des données : 6,5/10
+Maintenabilité : 6,5/10
+Gestion des erreurs : 6/10
+Accessibilité : 7/10
+Performance : 6,5/10
+Tests : 3/10
+Observabilité : 4/10
+
+Note globale actuelle estimée : 6,8 à 7,3/10.
+
+CONCLUSION
+----------
+
+Le projet est déjà sérieux et bien plus structuré qu’un frontend improvisé. Son principal problème est désormais son échelle : il a grandi plus vite que ses garanties automatiques.
+
+Pour atteindre un niveau réellement robuste en production, la priorité doit aller :
+- à la sécurité des flux ;
+- au contrat API ;
+- aux tests ;
+- à la réduction des responsabilités dispersées ;
+- à l’unification des composants et conventions ;
+- à l’observabilité ;
+- à l’automatisation des contrôles de qualité.

@@ -1,9 +1,10 @@
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { hasPermission } from '@/features/auth/lib/permissions';
 
 export const useRequireAdmin = () => {
   const { user, status } = useAuth();
 
-  const isAdmin = (user?.roles ?? []).includes('ROLE_ADMIN');
+  const isAdmin = hasPermission(user, 'admin.access');
 
   const loading = status === 'loading' || status === 'idle';
 

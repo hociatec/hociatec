@@ -15,6 +15,7 @@ export type MarketingTemplate = {
   scenarioKey: string;
   subjectTemplate: string;
   htmlBody: string;
+  previewHtmlBody: string;
   textBody: string | null;
   isActive: boolean;
   createdAt?: string;

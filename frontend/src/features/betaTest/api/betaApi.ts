@@ -15,7 +15,7 @@ export const fetchMyBugReports = async (params:{page?:number;perPage?:number}={}
 export const fetchMyBugReport = async (id:number) => unwrap((await httpClient.get<ApiResponse<{report:BugReport}>>(`/api/beta/reports/${id}`)).data).report;
 export const updateMyBetaProfile = async (payload: Record<string, unknown>) => unwrap((await httpClient.put<ApiResponse<Record<string, unknown>>>('/api/beta/profile', payload)).data);
 export const leaveBetaProgram = async () => unwrap((await httpClient.delete<ApiResponse<Record<string, unknown>>>('/api/beta/profile')).data);
-export const createBugReport = async (payload: {title:string;description:string;expectedBehavior?:string;actualBehavior?:string;severity:string;campaignId?:number;pageUrl?:string;screenshots?:File[]}) => { const data=new FormData(); Object.entries(payload).forEach(([key,value])=>{if(key!=='screenshots'&&value!==undefined)data.append(key,String(value));}); payload.screenshots?.forEach(file=>data.append('screenshots[]',file)); return unwrap((await httpClient.post<ApiResponse<{id:number}>>('/api/beta/reports', data, {headers:{'Content-Type':'multipart/form-data'}})).data); };
+export const createBugReport = async (payload: {title:string;description:string;expectedBehavior?:string;actualBehavior?:string;severity:string;campaignId?:number;pageUrl?:string;screenshots?:File[]}) => { const data=new FormData(); Object.entries(payload).forEach(([key,value])=>{if(key!=='screenshots'&&value!==undefined)data.append(key,String(value));}); payload.screenshots?.forEach(file=>data.append('screenshots[]',file)); return unwrap((await httpClient.post<ApiResponse<{id:number}>>('/api/beta/reports', data)).data); };
 
 export interface BugReportComment {
   id: number;

@@ -8,6 +8,7 @@ import {
 } from '../api/trainingsApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { isWeekendDate } from '../lib/trainingDetail';
+import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 
 export const useTrainingDetail = () => {
   const { slug = '' } = useParams();
@@ -64,7 +65,7 @@ export const useTrainingDetail = () => {
     try {
       const response = await enrollTrainingSession(session.id, `${slot.date}T${slot.time}:00`);
       if (response.data.checkoutUrl) {
-        window.location.href = response.data.checkoutUrl;
+        redirectToTrustedUrl(response.data.checkoutUrl);
         return;
       }
       setMessage(response.message ?? 'Votre inscription a bien été enregistrée.');

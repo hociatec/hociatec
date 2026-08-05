@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 
-import { ApiResponseError, createApiResponseError, getHttpErrorMessage, getHttpErrorMessageAsync, shouldAttachCsrfToken } from './httpClient';
+import {
+  ApiResponseError,
+  createApiResponseError,
+  getHttpErrorMessage,
+  getHttpErrorMessageAsync,
+  isCsrfFailureResponse,
+  shouldAttachCsrfToken,
+} from './httpClient';
 
 describe('getHttpErrorMessage', () => {
   it('prefers the API message when present', () => {
@@ -60,10 +67,16 @@ describe('shouldAttachCsrfToken', () => {
     expect(shouldAttachCsrfToken('post', '/api/auth/register')).toBe(false);
     expect(shouldAttachCsrfToken('post', '/api/auth/login')).toBe(false);
     expect(shouldAttachCsrfToken('post', '/api/auth/refresh')).toBe(false);
-    expect(shouldAttachCsrfToken('post', '/api/auth/logout')).toBe(false);
   });
 
   it('attaches a CSRF token to protected unsafe API requests', () => {
     expect(shouldAttachCsrfToken('post', '/api/auth/profile')).toBe(true);
+    expect(shouldAttachCsrfToken('post', '/api/auth/logout')).toBe(true);
+  });
+
+  it('detects explicit CSRF failures only', () => {
+    expect(isCsrfFailureResponse(419)).toBe(true);
+    expect(isCsrfFailureResponse(403, { message: 'Jeton CSRF invalide ou manquant.' })).toBe(true);
+    expect(isCsrfFailureResponse(403, { message: 'Accès interdit.' })).toBe(false);
   });
 });

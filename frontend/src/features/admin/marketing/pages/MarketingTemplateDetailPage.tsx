@@ -106,7 +106,7 @@ export const MarketingTemplateDetailPage = () => {
                 }
               />
 
-              <MarketingTemplateHtmlPreview name={template.name} htmlBody={template.htmlBody} />
+              <MarketingTemplateHtmlPreview name={template.name} htmlBody={template.previewHtmlBody} />
 
               <div className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-brand-900">Version texte</h2>

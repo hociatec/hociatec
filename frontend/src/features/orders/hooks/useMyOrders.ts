@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import {
   buildOrderInvoiceFilename,
   cancelMyOrder,
@@ -32,7 +33,7 @@ export const useMyOrders = () => {
     try {
       const result = await checkoutExistingOrder(orderId);
       if ('checkoutUrl' in result) {
-        window.location.assign(result.checkoutUrl);
+        redirectToTrustedUrl(result.checkoutUrl);
         return;
       }
       setOrders((previous) => previous.map((order) => (order.id === orderId ? result : order)));
