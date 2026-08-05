@@ -11,9 +11,9 @@ use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,7 +31,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
 
     public function testFormatServiceBuildsDurationLabelAndVatRate(): void
     {
-        $service = new QuoteServiceEntity('Audit sécurité', 25000, 2000);
+        $service = new ServiceOffering('Audit sécurité', 25000, 2000);
         $this->setId($service, 14);
         $service
             ->setDescription('Audit complet')
@@ -54,7 +54,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
 
     public function testFormatServiceOmitsDurationLabelWhenDurationDataIsIncomplete(): void
     {
-        $service = new QuoteServiceEntity('Hotline', 5000, 550);
+        $service = new ServiceOffering('Hotline', 5000, 550);
         $payload = QuoteFormatter::formatService($service);
 
         self::assertNull($payload['durationValue']);

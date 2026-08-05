@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Application\Workflow;
 
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
@@ -17,7 +17,7 @@ use Symfony\Component\Mime\Email;
 final class VoucherNotificationEmailService
 {
     public function __construct(
-        private readonly EmailTemplateRepository $templates,
+        private readonly EmailTemplateRepositoryPort $templates,
         private readonly MailerInterface $mailer,
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly LoggerInterface $logger,

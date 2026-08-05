@@ -6,14 +6,14 @@ namespace App\Module\Rating\Application\Provider;
 
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
+use App\Module\Order\Application\Port\OrderItemRepositoryPort;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
 
 class PendingReviewResolver
 {
     public function __construct(
-        private readonly OrderItemRepository $orderItems,
+        private readonly OrderItemRepositoryPort $orderItems,
     ) {
     }
 

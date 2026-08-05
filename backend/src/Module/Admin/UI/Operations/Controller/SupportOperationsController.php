@@ -8,7 +8,7 @@ use App\Module\Admin\Application\Operations\DTO\SupportCreateInput;
 use App\Module\Admin\Application\Operations\DTO\SupportReplyInput;
 use App\Module\Admin\Application\Operations\DTO\SupportUpdateInput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Service\SupportOperationsService;
+use App\Module\Admin\Application\Operations\Workflow\SupportOperationsService;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;

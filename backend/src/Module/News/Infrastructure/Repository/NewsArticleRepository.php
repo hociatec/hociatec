@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\News\Infrastructure\Repository;
 
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
+
 use App\Module\News\Domain\Entity\NewsArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<NewsArticle> */
-final class NewsArticleRepository extends ServiceEntityRepository
+final class NewsArticleRepository extends ServiceEntityRepository implements NewsArticleRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

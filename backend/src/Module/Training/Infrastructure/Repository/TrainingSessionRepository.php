@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Infrastructure\Repository;
 
+use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
+
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -11,7 +13,7 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TrainingSession> */
-class TrainingSessionRepository extends ServiceEntityRepository
+class TrainingSessionRepository extends ServiceEntityRepository implements TrainingSessionRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

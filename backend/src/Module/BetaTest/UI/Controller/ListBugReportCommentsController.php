@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Infrastructure\Http\BugReportCommentFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportCommentRepository;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
+use App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
@@ -22,8 +22,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListBugReportCommentsController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepository $reports,
-        private readonly BugReportCommentRepository $comments,
+        private readonly BugReportRepositoryPort $reports,
+        private readonly BugReportCommentRepositoryPort $comments,
         private readonly BugReportAccessPolicy $accessPolicy,
         private readonly BugReportCommentFormatter $formatter,
     ) {

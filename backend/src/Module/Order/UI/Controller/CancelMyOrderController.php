@@ -8,7 +8,7 @@ use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CancelMyOrderController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderWorkflowService $workflow,
         private readonly OrderAccessPolicy $accessPolicy,
     ) {

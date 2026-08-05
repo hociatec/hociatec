@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Infrastructure\Repository;
 
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
+
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
@@ -13,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<ProductRating>
  */
-class ProductRatingRepository extends ServiceEntityRepository
+class ProductRatingRepository extends ServiceEntityRepository implements ProductRatingRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\Admin\Application\User\DTO\CustomerAdminProfileInput;
-use App\Module\Admin\Application\User\Service\UpdateCustomerAdminProfileHandler;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Admin\Application\User\Handler\UpdateCustomerAdminProfileHandler;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateCustomerAdminProfileController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
         private readonly UpdateCustomerAdminProfileHandler $updateProfile,
         private readonly DtoValidator $validator,
     ) {

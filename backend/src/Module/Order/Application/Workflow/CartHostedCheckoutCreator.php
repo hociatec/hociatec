@@ -40,28 +40,36 @@ final readonly class CartHostedCheckoutCreator
             'cart_token' => $cart->getToken(),
             'user_id' => (string) ($user->getId() ?? 0),
         ];
-        $session = $this->stripe->createCheckoutSession([
-            'mode' => 'payment',
-            'success_url' => $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => $frontendUrl.'/panier?payment=cancelled',
-            'customer_email' => $user->getEmail(),
-            'client_reference_id' => $localToken,
-            'locale' => 'fr',
-            'payment_method_types' => ['card'],
-            'metadata' => $metadata,
-            'payment_intent_data' => ['metadata' => $metadata],
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'eur',
-                    'product_data' => [
-                        'name' => 'Commande Hociatec',
-                        'description' => sprintf('%d article(s)', count($items)),
+        $session = $this->stripe->createCheckoutSession(
+            [
+                'mode' => 'payment',
+                'success_url' => $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => $frontendUrl.'/panier?payment=cancelled',
+                'customer_email' => $user->getEmail(),
+                'client_reference_id' => $localToken,
+                'locale' => 'fr',
+                'payment_method_types' => ['card'],
+                'metadata' => $metadata,
+                'payment_intent_data' => ['metadata' => $metadata],
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'product_data' => [
+                            'name' => 'Commande Hociatec',
+                            'description' => sprintf('%d article(s)', count($items)),
+                        ],
+                        'unit_amount' => (int) $summary['totalPriceCents'],
                     ],
-                    'unit_amount' => (int) $summary['totalPriceCents'],
-                ],
-                'quantity' => 1,
-            ]],
-        ]);
+                    'quantity' => 1,
+                ]],
+            ],
+            'cart_checkout:'.hash('sha256', implode('|', [
+                $cart->getToken(),
+                (string) ($user->getId() ?? $user->getEmail()),
+                (string) $address->getId(),
+                (string) $summary['totalPriceCents'],
+            ])),
+        );
 
         $checkout = new OrderCheckoutSession(
             $localToken,

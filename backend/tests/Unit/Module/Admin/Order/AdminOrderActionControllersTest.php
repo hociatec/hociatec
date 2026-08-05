@@ -13,7 +13,7 @@ use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\Application\Writer\OrderDeliveryUpdater;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Application\Persistence\OrderEventPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Application\Writer\OrderStatusUpdater;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;

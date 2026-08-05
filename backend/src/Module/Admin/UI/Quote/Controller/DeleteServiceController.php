@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler;
+use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteServiceController extends AbstractController
 {
     public function __construct(
-        private readonly ServiceRepository $serviceRepository,
+        private readonly ServiceOfferingRepositoryPort $serviceRepository,
         private readonly DeleteQuoteServiceHandler $deleteService,
     ) {
     }

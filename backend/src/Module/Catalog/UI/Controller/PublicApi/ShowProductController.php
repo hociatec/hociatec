@@ -7,7 +7,7 @@ namespace App\Module\Catalog\UI\Controller\PublicApi;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ class ShowProductController extends AbstractController
 {
     public function __construct(
         private readonly ProductQueryService $productService,
-        private readonly ProductRatingRepository $ratings,
+        private readonly ProductRatingRepositoryPort $ratings,
     ) {
     }
 

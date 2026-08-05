@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\Admin\Application\BetaTest\Service\DeleteBetaCampaignHandler;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
+use App\Module\Admin\Application\BetaTest\Handler\DeleteBetaCampaignHandler;
+use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeleteCampaignController extends AbstractController
 {
     public function __construct(
-        private readonly BetaCampaignRepository $campaigns,
+        private readonly BetaCampaignRepositoryPort $campaigns,
         private readonly DeleteBetaCampaignHandler $deleteCampaign,
     ) {
     }

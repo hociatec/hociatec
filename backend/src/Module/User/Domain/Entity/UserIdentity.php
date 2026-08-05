@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Domain\Entity;
 
-use App\Domain\Normalization\EmailNormalizer;
+use App\Shared\Domain\Normalization\EmailNormalizer;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]

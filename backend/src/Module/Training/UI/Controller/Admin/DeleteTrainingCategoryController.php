@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Module\Training\Application\Writer\TrainingWriter;
-use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
-use App\Module\Training\Infrastructure\Repository\TrainingRepository;
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
+use App\Module\Training\Application\Port\TrainingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,8 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteTrainingCategoryController extends AbstractController
 {
     public function __construct(
-        private readonly TrainingCategoryRepository $categories,
-        private readonly TrainingRepository $trainings,
+        private readonly TrainingCategoryRepositoryPort $categories,
+        private readonly TrainingRepositoryPort $trainings,
         private readonly TrainingWriter $writer,
     ) {
     }

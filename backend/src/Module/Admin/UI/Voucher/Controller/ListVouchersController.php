@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Voucher\Controller;
 
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ListVouchersController extends AbstractController
 {
-    public function __construct(private readonly VoucherRepository $vouchers)
+    public function __construct(private readonly VoucherRepositoryPort $vouchers)
     {
     }
 

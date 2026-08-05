@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ShowTradeInController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepository $requests)
+    public function __construct(private readonly TradeInRequestRepositoryPort $requests)
     {
     }
 

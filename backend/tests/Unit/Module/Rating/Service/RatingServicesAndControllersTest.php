@@ -23,7 +23,7 @@ use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\Rating\Application\Workflow\ProductRatingService;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
-use App\Module\Rating\Application\Persistence\RatingPersistence;
+use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;

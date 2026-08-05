@@ -28,12 +28,12 @@ final readonly class QuoteEmailDeliveryService
      *
      * @return array{to:string, attachmentIncluded:bool, transport:string}
      */
-    public function deliver(Quote $quote, string $recipient, array $content): array
+    public function deliver(Quote $quote, string $recipient, array $content, ?string $idempotencyKey = null): array
     {
         $pdf = $this->generatePdf($quote, $recipient);
 
         try {
-            $this->mailer->send($this->createEmail($quote, $recipient, $content, $pdf));
+            $this->mailer->send($this->createEmail($quote, $recipient, $content, $pdf, $idempotencyKey));
 
             return [
                 'to' => $recipient,
@@ -68,7 +68,7 @@ final readonly class QuoteEmailDeliveryService
     }
 
     /** @param array{subject: string, text: string, html: string} $content */
-    private function createEmail(Quote $quote, string $recipient, array $content, ?string $pdf): Email
+    private function createEmail(Quote $quote, string $recipient, array $content, ?string $pdf, ?string $idempotencyKey): Email
     {
         $recipientName = trim((string) $quote->getCustomerName());
         $email = (new Email())
@@ -77,6 +77,10 @@ final readonly class QuoteEmailDeliveryService
             ->subject($content['subject'])
             ->text($content['text'])
             ->html($content['html']);
+
+        if (null !== $idempotencyKey && '' !== $idempotencyKey) {
+            $email->getHeaders()->addTextHeader('X-Hociatec-Idempotency-Key', $idempotencyKey);
+        }
 
         if (null !== $pdf) {
             $email->attach($pdf, sprintf('%s.pdf', $quote->getNumber()), 'application/pdf');

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -14,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Product>
  */
-class ProductRepository extends ServiceEntityRepository implements ProductCatalogRepository
+class ProductRepository extends ServiceEntityRepository implements ProductCatalogRepository, ProductRepositoryPort
 {
     use ProductAdminQueries;
     use ProductCatalogFacetProjection;

@@ -13,8 +13,8 @@ use App\Module\Auth\UI\Controller\ActivationRedirectController;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Quote\UI\Controller\PublicApi\GetServiceController;
-use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\Rating\Application\Exception\ProductReviewException;
 use App\Module\Training\UI\Controller\Admin\ListTrainingCategoriesController as AdminListTrainingCategoriesController;
 use App\Module\Training\UI\Controller\PublicApi\ListTrainingCategoriesController as PublicListTrainingCategoriesController;
@@ -101,10 +101,10 @@ final class ControllerAndExceptionBatchTest extends TestCase
 
     public function testGetServiceControllerHandlesFoundAndNotFound(): void
     {
-        $repository = $this->createMock(ServiceRepository::class);
+        $repository = $this->createMock(ServiceOfferingRepository::class);
         $repository->expects(self::exactly(2))
             ->method('find')
-            ->willReturnCallback(function (int $id): ?QuoteServiceEntity {
+            ->willReturnCallback(function (int $id): ?ServiceOffering {
                 return match ($id) {
                     99 => null,
                     7 => $this->serviceEntity(),
@@ -127,9 +127,9 @@ final class ControllerAndExceptionBatchTest extends TestCase
         self::assertSame(20, $foundPayload['data']['vatRate']);
     }
 
-    private function serviceEntity(): QuoteServiceEntity
+    private function serviceEntity(): ServiceOffering
     {
-        $service = new QuoteServiceEntity('Audit SEO', 15000, 2000);
+        $service = new ServiceOffering('Audit SEO', 15000, 2000);
         $service
             ->setDescription('Desc')
             ->setUnit('heure')

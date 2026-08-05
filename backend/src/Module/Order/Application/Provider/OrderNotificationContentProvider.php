@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Provider;
 
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 
 final readonly class OrderNotificationContentProvider
 {
     public function __construct(
-        private EmailTemplateRepository $templates,
+        private EmailTemplateRepositoryPort $templates,
         private QuoteRepositoryPort $quotes,
         private string $frontendUrl,
     ) {

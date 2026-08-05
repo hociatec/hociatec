@@ -60,4 +60,46 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('$secure,', $source);
         self::assertStringContainsString('true,', $source);
     }
+
+    public function testProductionSecurityHeadersAndDeploymentChecksAreDocumented(): void
+    {
+        $headers = file_get_contents(__DIR__.'/../../../../deploy/nginx/frontend-security-headers.conf');
+        $productionCheck = file_get_contents(__DIR__.'/../../../../tools/production_check.sh');
+        self::assertIsString($headers);
+        self::assertIsString($productionCheck);
+
+        self::assertStringContainsString('Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"', $headers);
+        self::assertStringContainsString('Content-Security-Policy', $headers);
+        self::assertStringContainsString("frame-ancestors 'none'", $headers);
+        self::assertStringContainsString('X-Content-Type-Options "nosniff"', $headers);
+
+        foreach (['APP_ENV prod', 'APP_DEBUG', 'APP_SECRET', 'TRUSTED_HOSTS', 'TRUSTED_PROXIES', 'CORS_ALLOW_ORIGIN', 'STRIPE_SECRET_KEY'] as $requiredCheck) {
+            self::assertStringContainsString($requiredCheck, $productionCheck);
+        }
+        self::assertStringContainsString("forbid_env_pattern CORS_ALLOW_ORIGIN 'localhost|127\\.0\\.0\\.1|\\.\\*|\\*'", $productionCheck);
+        self::assertStringContainsString("require_env_pattern APP_FRONTEND_URL '^https://'", $productionCheck);
+        self::assertStringContainsString('require_command clamscan', $productionCheck);
+        self::assertStringContainsString('upload_max_filesize', $productionCheck);
+        self::assertStringContainsString('post_max_size', $productionCheck);
+        self::assertStringContainsString('public/uploads/invoices', $productionCheck);
+        self::assertStringContainsString('var/private', $productionCheck);
+    }
+
+    public function testPrivateDocumentsAndUploadLimitsAreGuardedInCode(): void
+    {
+        $tradeInStorage = file_get_contents(__DIR__.'/../../../src/Module/TradeIn/Application/Storage/TradeInPrivateFileStorage.php');
+        $invoiceStorageCommand = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Command/SecureInvoiceStorageCommand.php');
+        $jsonPayload = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/JsonPayload.php');
+        self::assertIsString($tradeInStorage);
+        self::assertIsString($invoiceStorageCommand);
+        self::assertIsString($jsonPayload);
+
+        self::assertStringContainsString('private const MAX_RIB_BYTES = 5_242_880', $tradeInStorage);
+        self::assertStringContainsString('var/private/trade-ins', $tradeInStorage);
+        self::assertStringContainsString('0600', $tradeInStorage);
+        self::assertStringContainsString('resolvePrivateDocumentPath', $tradeInStorage);
+        self::assertStringContainsString('var/private/invoices', $invoiceStorageCommand);
+        self::assertStringContainsString('private/invoices/', $invoiceStorageCommand);
+        self::assertStringContainsString('private const MAX_BYTES = 1_048_576', $jsonPayload);
+    }
 }

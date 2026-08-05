@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
-use App\Module\Admin\Application\TradeIn\Service\DeleteTradeInRequestHandler;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\Admin\Application\TradeIn\Handler\DeleteTradeInRequestHandler;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeleteTradeInController extends AbstractController
 {
     public function __construct(
-        private readonly TradeInRequestRepository $requests,
+        private readonly TradeInRequestRepositoryPort $requests,
         private readonly DeleteTradeInRequestHandler $deleteRequest,
     ) {
     }

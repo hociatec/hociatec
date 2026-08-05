@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
-use App\Module\Admin\Application\User\Service\CreateCustomerVoucherHandler as CreateCustomerVoucherForCustomerHandler;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Admin\Application\User\Handler\CreateCustomerVoucherHandler as CreateCustomerVoucherForCustomerHandler;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateCustomerVoucherController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
         private readonly CreateCustomerVoucherForCustomerHandler $createVoucher,
         private readonly DtoValidator $validator,
     ) {

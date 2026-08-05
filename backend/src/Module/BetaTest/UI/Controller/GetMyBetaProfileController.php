@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\Infrastructure\Http\BetaProfileResponseFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\UI\Http\BetaProfileResponseFormatter;
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class GetMyBetaProfileController extends AbstractController
 {
     public function __construct(
-        private readonly BetaTesterProfileRepository $profiles,
+        private readonly BetaTesterProfileRepositoryPort $profiles,
         private readonly BetaProfileResponseFormatter $formatter,
     ) {
     }

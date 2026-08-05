@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Order\Application\Persistence\OrderPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Order\Domain\Entity\Order;
 
 final readonly class OrderWorkflowService

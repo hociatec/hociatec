@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Workflow;
 
-use App\Domain\Normalization\EmailNormalizer;
+use App\Shared\Domain\Normalization\EmailNormalizer;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use App\Module\User\Application\Port\UserRepositoryPort;

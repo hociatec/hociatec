@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Infrastructure\Repository;
 
+use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
+
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
@@ -12,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<WorkingDayConfiguration>
  */
-class WorkingDayConfigurationRepository extends ServiceEntityRepository
+class WorkingDayConfigurationRepository extends ServiceEntityRepository implements WorkingDayConfigurationRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

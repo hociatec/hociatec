@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Admin\Application\Catalog\Service\ProductFormValueNormalizer;
+use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Quote\Application\Projection\QuoteFormatter;

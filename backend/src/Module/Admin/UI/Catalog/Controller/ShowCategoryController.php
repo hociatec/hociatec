@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CATALOG_MANAGER')]
 class ShowCategoryController extends AbstractController
 {
-    public function __construct(private readonly CategoryRepository $categoryRepository)
+    public function __construct(private readonly CategoryRepositoryPort $categoryRepository)
     {
     }
 

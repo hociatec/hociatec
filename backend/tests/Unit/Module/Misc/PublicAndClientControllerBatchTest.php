@@ -13,11 +13,11 @@ use App\Module\Order\UI\Controller\CancelMyOrderController;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Application\Persistence\OrderPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Quote\UI\Controller\PublicApi\ListServicesController;
-use App\Module\Quote\Domain\Entity\Service;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -28,11 +28,11 @@ final class PublicAndClientControllerBatchTest extends TestCase
 {
     public function testPublicServicesAndFavoritesControllers(): void
     {
-        $service = new Service('Audit', 12000, 2000);
+        $service = new ServiceOffering('Audit', 12000, 2000);
         $this->setId($service, 3);
         $service->setDescription('Desc')->setUnit('jour')->setDurationValue(2)->setDurationUnit('day');
 
-        $services = $this->createMock(ServiceRepository::class);
+        $services = $this->createMock(ServiceOfferingRepository::class);
         $services->expects(self::once())->method('findPaginated')->with(20, 20)->willReturn([$service]);
         $services->expects(self::once())->method('countAll')->willReturn(21);
 

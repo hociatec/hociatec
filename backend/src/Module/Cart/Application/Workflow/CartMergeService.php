@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Cart\Application\Workflow;
 
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class CartMergeService
 {
     public function __construct(
-        private readonly CartSessionRepository $carts,
+        private readonly CartSessionRepositoryPort $carts,
         private readonly DoctrineUnitOfWork $persistence,
     ) {
     }

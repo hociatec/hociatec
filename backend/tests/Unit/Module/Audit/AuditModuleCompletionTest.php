@@ -23,7 +23,7 @@ use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
-use App\Module\Audit\Application\Persistence\AuditPersistence;
+use App\Module\Audit\Infrastructure\Persistence\AuditPersistence;
 use App\Module\Audit\Application\Provider\AuditTemplateProvider;
 use App\Module\Audit\Application\Workflow\CreateAuditRequestService;
 use App\Module\User\Domain\Entity\User;

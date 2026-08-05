@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Port\StockMovementRepositoryPort;
+
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<StockMovement>
  */
-final class StockMovementRepository extends ServiceEntityRepository
+final class StockMovementRepository extends ServiceEntityRepository implements StockMovementRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

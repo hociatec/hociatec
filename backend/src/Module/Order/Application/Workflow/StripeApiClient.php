@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
+use App\Module\Order\Application\Port\StripeRefundClient;
 use App\Shared\Infrastructure\Http\ExternalServiceException;
 
-final class StripeApiClient
+final class StripeApiClient implements StripeRefundClient
 {
     private const BASE_URL = 'https://api.stripe.com/v1';
 
@@ -19,9 +20,9 @@ final class StripeApiClient
      *
      * @return array<string, mixed>
      */
-    public function createCheckoutSession(array $payload): array
+    public function createCheckoutSession(array $payload, ?string $idempotencyKey = null): array
     {
-        return $this->request('POST', '/checkout/sessions', $payload);
+        return $this->request('POST', '/checkout/sessions', $payload, $idempotencyKey);
     }
 
     /** @return array<string, mixed> */
@@ -31,9 +32,9 @@ final class StripeApiClient
     }
 
     /** @return array<string, mixed> */
-    public function expireCheckoutSession(string $sessionId): array
+    public function expireCheckoutSession(string $sessionId, ?string $idempotencyKey = null): array
     {
-        return $this->request('POST', '/checkout/sessions/'.rawurlencode($sessionId).'/expire');
+        return $this->request('POST', '/checkout/sessions/'.rawurlencode($sessionId).'/expire', [], $idempotencyKey);
     }
 
     /** @return array<string, mixed> */
@@ -47,9 +48,9 @@ final class StripeApiClient
      *
      * @return array<string, mixed>
      */
-    public function createRefund(array $payload): array
+    public function createRefund(array $payload, ?string $idempotencyKey = null): array
     {
-        return $this->request('POST', '/refunds', $payload);
+        return $this->request('POST', '/refunds', $payload, $idempotencyKey);
     }
 
     /**
@@ -58,7 +59,7 @@ final class StripeApiClient
      *
      * @return array<string, mixed>
      */
-    private function request(string $method, string $path, array $payload = []): array
+    private function request(string $method, string $path, array $payload = [], ?string $idempotencyKey = null): array
     {
         if ('' === $this->secretKey) {
             throw new ExternalServiceException('Le service de paiement est momentanément indisponible.');
@@ -79,10 +80,15 @@ final class StripeApiClient
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($curl, CURLOPT_USERPWD, $this->secretKey.':');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+        $headers = [
             'Accept: application/json',
             'Content-Type: application/x-www-form-urlencoded',
-        ]);
+        ];
+        if ('GET' !== $method && null !== $idempotencyKey && '' !== trim($idempotencyKey)) {
+            $headers[] = 'Idempotency-Key: '.trim($idempotencyKey);
+        }
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
 
         if ('GET' !== $method) {

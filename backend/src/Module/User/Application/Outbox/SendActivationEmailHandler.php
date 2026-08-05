@@ -37,6 +37,6 @@ final readonly class SendActivationEmailHandler implements OutboxEventHandler
             return;
         }
 
-        $this->activationEmails->sendActivationEmail($user, $token);
+        $this->activationEmails->sendActivationEmail($user, $token, $event->getKey());
     }
 }

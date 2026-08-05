@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\User\Controller;
 
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ListCustomersController extends AbstractController
 {
-    public function __construct(private readonly UserRepository $users)
+    public function __construct(private readonly UserRepositoryPort $users)
     {
     }
 

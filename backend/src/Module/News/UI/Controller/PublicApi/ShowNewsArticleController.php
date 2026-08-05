@@ -6,7 +6,7 @@ namespace App\Module\News\UI\Controller\PublicApi;
 
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Workflow\NewsArticleViewTracker;
-use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class ShowNewsArticleController
 {
     public function __construct(
-        private NewsArticleRepository $articles,
+        private NewsArticleRepositoryPort $articles,
         private NewsFormatter $formatter,
         private NewsArticleViewTracker $views,
     ) {

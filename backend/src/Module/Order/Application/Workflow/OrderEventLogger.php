@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Order\Application\Persistence\OrderEventPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\User\Domain\Entity\User;

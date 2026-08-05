@@ -6,14 +6,14 @@ namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
-use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
+use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
+use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 
 final class AvailabilityService
 {
     public function __construct(
-        private readonly WorkingDayConfigurationRepository $workingDayRepository,
-        private readonly AppointmentRepository $appointmentRepository,
+        private readonly WorkingDayConfigurationRepositoryPort $workingDayRepository,
+        private readonly AppointmentRepositoryPort $appointmentRepository,
     ) {
     }
 

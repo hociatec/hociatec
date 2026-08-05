@@ -9,7 +9,7 @@ use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class RefuseMyQuoteController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteRepository $quotes,
+        private readonly QuoteRepositoryPort $quotes,
         private readonly QuoteCalculator $calculator,
         private readonly QuoteWorkflowService $workflow,
         private readonly QuoteAccessPolicy $accessPolicy,

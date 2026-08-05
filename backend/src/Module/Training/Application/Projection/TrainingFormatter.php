@@ -8,12 +8,12 @@ use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
 use App\Module\Training\Domain\Entity\TrainingSession;
-use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 
 final class TrainingFormatter
 {
     public function __construct(
-        private readonly TrainingEnrollmentRepository $enrollments,
+        private readonly TrainingEnrollmentRepositoryPort $enrollments,
         private readonly TrainingMetadataFormatter $metadata,
     ) {
     }

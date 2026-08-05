@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\System;
 
 use App\Module\System\UI\Controller\HealthController;
 use App\Module\System\UI\Controller\MetricsController;
+use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
 use Doctrine\DBAL\Connection;
@@ -49,7 +50,7 @@ final class SystemControllersTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::once())->method('executeQuery')->with('SELECT 1')->willReturn($result);
 
-        $local = (new MetricsController($connection, '', $this->outboxEvents()))(
+        $local = (new MetricsController($connection, '', new PrometheusMetricContractProvider(), $this->outboxEvents()))(
             Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '127.0.0.1'])
         );
 
@@ -57,6 +58,14 @@ final class SystemControllersTest extends TestCase
         self::assertStringContainsString('hociatec_metrics_endpoint_up 1', (string) $local->getContent());
         self::assertStringContainsString('hociatec_observability_pipeline_info{format="prometheus",logs="json",request_id="enabled"} 1', (string) $local->getContent());
         self::assertStringContainsString('hociatec_database_up 1', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_http_request_duration_seconds_count 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_http_responses_total{status_class="4xx"} 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_http_responses_total{status_class="5xx"} 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_payment_failed_total 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_pdf_generation_duration_seconds_count 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_email_failures_total 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_sql_slow_queries_total 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_admin_sensitive_actions_total 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_pending_events 3', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_oldest_pending_age_seconds 42', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_failed_events 1', (string) $local->getContent());
@@ -65,13 +74,13 @@ final class SystemControllersTest extends TestCase
 
         $failingConnection = $this->createMock(Connection::class);
         $failingConnection->expects(self::once())->method('executeQuery')->willThrowException(new DbalException('db down'));
-        $degraded = (new MetricsController($failingConnection, ''))(
+        $degraded = (new MetricsController($failingConnection, '', new PrometheusMetricContractProvider()))(
             Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '127.0.0.1'])
         );
         self::assertSame(Response::HTTP_OK, $degraded->getStatusCode());
         self::assertStringContainsString('hociatec_database_up 0', (string) $degraded->getContent());
 
-        $denied = (new MetricsController($this->createMock(Connection::class), ''))(
+        $denied = (new MetricsController($this->createMock(Connection::class), '', new PrometheusMetricContractProvider()))(
             Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10'])
         );
 

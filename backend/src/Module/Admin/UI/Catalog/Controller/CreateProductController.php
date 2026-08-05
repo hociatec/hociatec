@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
-use App\Module\Admin\Application\Catalog\Service\ProductFormRequestMapper;
+use App\Module\Admin\Application\Catalog\Mapper\ProductFormRequestMapper;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\ProductService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;

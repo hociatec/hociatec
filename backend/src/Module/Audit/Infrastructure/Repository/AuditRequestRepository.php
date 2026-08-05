@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Infrastructure\Repository;
 
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
+
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<AuditRequest>
  */
-class AuditRequestRepository extends ServiceEntityRepository
+class AuditRequestRepository extends ServiceEntityRepository implements AuditRequestRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

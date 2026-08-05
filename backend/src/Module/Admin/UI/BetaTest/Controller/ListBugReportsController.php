@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/admin/beta-reports', methods: ['GET'])] #[IsGranted('ROLE_ADMIN')]
 final class ListBugReportsController extends AbstractController
 {
-    public function __construct(private readonly BugReportRepository $reports, private readonly BugReportResponseFormatter $formatter)
+    public function __construct(private readonly BugReportRepositoryPort $reports, private readonly BugReportResponseFormatter $formatter)
     {
     }
 

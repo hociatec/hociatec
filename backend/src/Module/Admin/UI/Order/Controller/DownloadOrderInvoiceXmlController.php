@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Order\Controller;
 use App\Module\Order\Application\Factory\InvoiceDownloadNameBuilder;
 use App\Module\Order\Application\Workflow\OrderInvoiceDocumentService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DownloadOrderInvoiceXmlController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderInvoiceDocumentService $documents,
         private readonly InvoiceDownloadNameBuilder $nameBuilder,
         private readonly AttachmentResponseFactory $attachments,

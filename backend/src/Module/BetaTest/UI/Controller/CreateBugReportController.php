@@ -7,8 +7,8 @@ namespace App\Module\BetaTest\UI\Controller;
 use App\Module\BetaTest\Application\Writer\BugReportWriter;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
-use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -24,8 +24,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateBugReportController extends AbstractController
 {
     public function __construct(
-        private readonly BetaCampaignRepository $campaigns,
-        private readonly BetaTesterProfileRepository $profiles,
+        private readonly BetaCampaignRepositoryPort $campaigns,
+        private readonly BetaTesterProfileRepositoryPort $profiles,
         private readonly BugReportWriter $writer,
     ) {
     }

@@ -20,10 +20,10 @@ use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Application\Quote\Service\CreateQuoteServiceHandler;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceFormApplier;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
+use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -32,14 +32,14 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
@@ -73,7 +73,7 @@ final class AdminQuoteCompletionTest extends TestCase
     {
         $em = $this->entityManager();
         $quoteRepository = new QuoteRepository($this->registry($em));
-        $serviceRepository = new ServiceRepository($this->registry($em));
+        $serviceRepository = new ServiceOfferingRepository($this->registry($em));
         $calculator = new QuoteCalculator();
         $quoteService = $this->quoteService($em);
         $emailService = $this->emailService($em);
@@ -171,9 +171,9 @@ final class AdminQuoteCompletionTest extends TestCase
         self::assertSame(Response::HTTP_NOT_FOUND, (new DeleteQuoteController($quoteRepository, $quoteService))(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new DeleteQuoteController($quoteRepository, $quoteService))($quoteId)->getStatusCode());
 
-        $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
+        $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler(
             $serviceRepository,
-            new \App\Module\Quote\Application\Persistence\QuotePersistence($em),
+            new \App\Module\Quote\Infrastructure\Persistence\QuotePersistence($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());
@@ -317,7 +317,7 @@ final class AdminQuoteCompletionTest extends TestCase
         (new SchemaTool($em))->createSchema([
             $em->getClassMetadata(Quote::class),
             $em->getClassMetadata(QuoteItem::class),
-            $em->getClassMetadata(QuoteServiceEntity::class),
+            $em->getClassMetadata(ServiceOffering::class),
             $em->getClassMetadata(OutboxEvent::class),
             $em->getClassMetadata(User::class),
             $em->getClassMetadata(AccountNotificationEvent::class),

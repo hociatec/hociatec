@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Workflow;
 
-use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
+use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 
@@ -15,7 +15,7 @@ final readonly class DeleteAccountService
 {
     public function __construct(
         private OrderRepositoryPort $orders,
-        private RefreshTokenRepository $refreshTokens,
+        private RefreshTokenRepositoryPort $refreshTokens,
         private UserPersistence $persistence,
         private TransactionManager $transactions,
     ) {

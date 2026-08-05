@@ -22,7 +22,7 @@ final readonly class PasswordResetEmailService
     ) {
     }
 
-    public function send(User $user, string $token): void
+    public function send(User $user, string $token, ?string $idempotencyKey = null): void
     {
         $frontendUrl = rtrim($this->frontendUrl, '/');
         $resetLink = $frontendUrl.'/reset-password/'.$token;
@@ -48,6 +48,10 @@ final readonly class PasswordResetEmailService
                 ->subject($content['subject'])
                 ->html($content['html'])
                 ->text($content['text']);
+
+            if (null !== $idempotencyKey && '' !== $idempotencyKey) {
+                $email->getHeaders()->addTextHeader('X-Hociatec-Idempotency-Key', $idempotencyKey);
+            }
 
             $this->mailer->send($email);
         } catch (\RuntimeException $exception) {

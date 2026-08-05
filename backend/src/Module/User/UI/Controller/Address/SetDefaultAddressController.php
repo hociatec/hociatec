@@ -6,7 +6,7 @@ namespace App\Module\User\UI\Controller\Address;
 
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class SetDefaultAddressController extends AbstractController
 {
-    public function __construct(private readonly ShippingAddressRepository $addresses, private readonly ShippingAddressWriter $writer)
+    public function __construct(private readonly ShippingAddressRepositoryPort $addresses, private readonly ShippingAddressWriter $writer)
     {
     }
 

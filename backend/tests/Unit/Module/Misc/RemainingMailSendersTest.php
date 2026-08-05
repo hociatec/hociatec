@@ -93,8 +93,11 @@ final class RemainingMailSendersTest extends TestCase
         $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['findOneByEmailInsensitive'])->getMock();
         $repository->expects(self::exactly(2))->method('findOneByEmailInsensitive')->willReturn($user);
 
+        $eventKey = 'auth.password_reset.'.hash('sha256', 'current-token');
         $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(Email::class));
+        $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email) use ($eventKey): bool {
+            return $eventKey === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
+        }));
         $emails = new PasswordResetEmailService(
             $mailer,
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
@@ -105,7 +108,7 @@ final class RemainingMailSendersTest extends TestCase
 
         $handler = new SendPasswordResetEmailHandler($repository, $emails);
         self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail()])));
-        $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'current-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
+        $handler->handle(new OutboxEvent($eventKey, 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
         $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'stale-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
     }
 

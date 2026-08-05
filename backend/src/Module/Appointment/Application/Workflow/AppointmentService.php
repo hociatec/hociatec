@@ -9,8 +9,8 @@ use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException
 use App\Module\Appointment\Application\Handler\ChangeAppointmentStatusHandler;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
-use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
-use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
+use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
+use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -18,8 +18,8 @@ use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 final class AppointmentService
 {
     public function __construct(
-        private readonly AppointmentRepository $appointmentRepository,
-        private readonly WorkingDayConfigurationRepository $workingDayRepository,
+        private readonly AppointmentRepositoryPort $appointmentRepository,
+        private readonly WorkingDayConfigurationRepositoryPort $workingDayRepository,
         private readonly AvailabilityService $availabilityService,
         private readonly ChangeAppointmentStatusHandler $changeAppointmentStatus,
         private readonly DoctrineUnitOfWork $persistence,

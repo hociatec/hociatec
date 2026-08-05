@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\Admin\Application\BetaTest\Service\ChangeBetaTesterStatusHandler;
+use App\Module\Admin\Application\BetaTest\Handler\ChangeBetaTesterStatusHandler;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateBetaTesterController extends AbstractController
 {
     public function __construct(
-        private readonly BetaTesterProfileRepository $profiles,
+        private readonly BetaTesterProfileRepositoryPort $profiles,
         private readonly ChangeBetaTesterStatusHandler $changeTesterStatus,
     ) {
     }

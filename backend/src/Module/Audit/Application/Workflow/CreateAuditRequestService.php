@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Application\Workflow;
 
-use App\Module\Audit\Application\Persistence\AuditPersistence;
+use App\Module\Audit\Infrastructure\Persistence\AuditPersistence;
 use App\Module\Audit\Application\Provider\AuditTemplateProvider;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditRequest;

@@ -15,7 +15,7 @@ use App\Module\Notification\Application\Notification\ComputedAccountNotification
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;

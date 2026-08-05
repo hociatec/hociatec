@@ -23,7 +23,7 @@ final readonly class AccountActivationEmailService
     ) {
     }
 
-    public function sendActivationEmail(User $user, string $rawToken): void
+    public function sendActivationEmail(User $user, string $rawToken, ?string $idempotencyKey = null): void
     {
         $frontendUrl = rtrim($this->frontendUrl, '/');
         $verifyLink = $frontendUrl.'/activation/'.$rawToken;
@@ -57,6 +57,10 @@ final readonly class AccountActivationEmailService
             ->subject($content['subject'])
             ->html($content['html'])
             ->text($content['text']);
+
+        if (null !== $idempotencyKey && '' !== $idempotencyKey) {
+            $email->getHeaders()->addTextHeader('X-Hociatec-Idempotency-Key', $idempotencyKey);
+        }
 
         try {
             $this->mailer->send($email);

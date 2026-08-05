@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
-use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListTrainingCategoriesController extends AbstractController
 {
-    public function __construct(private readonly TrainingCategoryRepository $categories, private readonly TrainingCategoryFormatter $formatter)
+    public function __construct(private readonly TrainingCategoryRepositoryPort $categories, private readonly TrainingCategoryFormatter $formatter)
     {
     }
 

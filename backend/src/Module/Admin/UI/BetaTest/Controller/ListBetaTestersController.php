@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ListBetaTestersController extends AbstractController
 {
-    public function __construct(private readonly BetaTesterProfileRepository $profiles)
+    public function __construct(private readonly BetaTesterProfileRepositoryPort $profiles)
     {
     }
 

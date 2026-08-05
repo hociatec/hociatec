@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Operations\Controller;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Service\FulfillmentOperationsService;
+use App\Module\Admin\Application\Operations\Workflow\FulfillmentOperationsService;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;

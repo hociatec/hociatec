@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Workflow\TradeInService;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CreateMyTradeInController extends AbstractController
 {
-    public function __construct(private readonly TradeInService $service, private readonly DtoValidator $validator, private readonly ProductRepository $products)
+    public function __construct(private readonly TradeInService $service, private readonly DtoValidator $validator, private readonly ProductRepositoryPort $products)
     {
     }
 

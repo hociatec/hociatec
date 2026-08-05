@@ -6,7 +6,7 @@ namespace App\Module\Notification\Application\Provider;
 
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Domain\Entity\AuditRequest;
-use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;
@@ -14,7 +14,7 @@ use App\Module\User\Domain\Entity\User;
 final readonly class AuditNotificationProvider implements ComputedAccountNotificationProviderInterface
 {
     public function __construct(
-        private AuditRequestRepository $audits,
+        private AuditRequestRepositoryPort $audits,
         private AuditMetadataFormatter $auditMetadata,
         private AccountNotificationFormatter $formatter,
     ) {

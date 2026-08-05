@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\Admin\Application\BetaTest\Service\AssignBugReportHandler;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\Admin\Application\BetaTest\Handler\AssignBugReportHandler;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,8 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AssignBugReportController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepository $reports,
-        private readonly UserRepository $users,
+        private readonly BugReportRepositoryPort $reports,
+        private readonly UserRepositoryPort $users,
         private readonly AssignBugReportHandler $assignBugReport,
     ) {
     }

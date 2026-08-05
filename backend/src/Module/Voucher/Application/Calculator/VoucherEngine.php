@@ -8,13 +8,13 @@ use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use Psr\Clock\ClockInterface;
 
 final class VoucherEngine
 {
     public function __construct(
-        private readonly VoucherLookupInterface $vouchers,
+        private readonly VoucherLookupPort $vouchers,
         private readonly ?ClockInterface $clock = null,
     ) {
     }

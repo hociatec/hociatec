@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Operations\Controller;
 
 use App\Module\Admin\Application\Operations\DTO\BulkOrderStatusInput;
-use App\Module\Admin\Application\Operations\Service\BulkOrderStatusService;
+use App\Module\Admin\Application\Operations\Workflow\BulkOrderStatusService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;

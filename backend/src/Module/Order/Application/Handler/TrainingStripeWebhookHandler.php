@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Handler;
 
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
-use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class TrainingStripeWebhookHandler
 {
     public function __construct(
-        private readonly TrainingEnrollmentRepository $enrollments,
+        private readonly TrainingEnrollmentRepositoryPort $enrollments,
         private readonly DoctrineUnitOfWork $persistence,
     ) {
     }

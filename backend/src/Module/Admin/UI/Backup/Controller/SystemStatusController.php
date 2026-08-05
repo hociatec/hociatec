@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Backup\Controller;
 
-use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

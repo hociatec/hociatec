@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,8 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ListMyOrdersController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
-        private readonly ProductRatingRepository $ratings,
+        private readonly OrderRepositoryPort $orders,
+        private readonly ProductRatingRepositoryPort $ratings,
     ) {
     }
 

@@ -7,7 +7,7 @@ namespace App\Module\Notification\Application\Notification;
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
-use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
@@ -19,7 +19,7 @@ use Symfony\Component\Mime\Email;
 final readonly class UserCommunicationNotifier
 {
     public function __construct(
-        private AccountNotificationEventRepository $notifications,
+        private AccountNotificationEventRepositoryPort $notifications,
         private DoctrineUnitOfWork $persistence,
         private MailerInterface $mailer,
         private MessageBusInterface $bus,

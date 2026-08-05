@@ -17,7 +17,7 @@ use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Provider\QuoteCreatedEmailContentProvider;
 use App\Module\Quote\Application\Workflow\QuoteEmailDeliveryService;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
@@ -158,7 +158,9 @@ final class QuoteAdditionalServicesTest extends TestCase
         $quotes->expects(self::once())->method('find')->with(700)->willReturn($quote);
 
         $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(\Symfony\Component\Mime\Email::class));
+        $mailer->expects(self::once())->method('send')->with(self::callback(static function (\Symfony\Component\Mime\Email $email): bool {
+            return 'quote-email-700' === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
+        }));
         $delivery = new QuoteEmailDeliveryService(
             new QuoteCalculator(),
             $this->pdfService('%PDF-1.4'),

@@ -9,7 +9,7 @@ use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\Service as QuoteServiceEntity;
+use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
 
 final class QuoteFormatter
 {
@@ -20,7 +20,7 @@ final class QuoteFormatter
     /**
      * @return array<string, mixed>
      */
-    public static function formatService(QuoteServiceEntity $service): array
+    public static function formatService(ServiceOffering $service): array
     {
         $durationValue = $service->getDurationValue();
         $durationUnit = $service->getDurationUnit();
@@ -115,7 +115,7 @@ final class QuoteFormatter
         ];
     }
 
-    private static function formatServiceImageUrl(QuoteServiceEntity $service): ?string
+    private static function formatServiceImageUrl(ServiceOffering $service): ?string
     {
         if (null !== $service->getImageName() && '' !== trim($service->getImageName())) {
             return sprintf('/uploads/services/%s', ltrim($service->getImageName(), '/'));

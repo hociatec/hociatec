@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Appointment\Controller;
 use App\Module\Admin\Application\Appointment\DTO\PrestationInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Workflow\PrestationService;
-use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdatePrestationController extends AbstractController
 {
     public function __construct(
-        private readonly PrestationRepository $prestationRepository,
+        private readonly PrestationRepositoryPort $prestationRepository,
         private readonly PrestationService $prestationService,
         private readonly DtoValidator $validator,
     ) {

@@ -7,7 +7,7 @@ namespace App\Module\Audit\UI\Controller\Client;
 use App\Module\Audit\Application\Port\AuditPdfRenderer;
 use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Domain\Security\AuditAccessPolicy;
-use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GeneratePdfController extends AbstractController
 {
     public function __construct(
-        private readonly AuditRequestRepository $audits,
+        private readonly AuditRequestRepositoryPort $audits,
         private readonly AuditPdfRenderer $pdf,
         private readonly AuditEventLogger $events,
         private readonly AttachmentResponseFactory $attachments,

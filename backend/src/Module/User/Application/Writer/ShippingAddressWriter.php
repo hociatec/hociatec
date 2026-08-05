@@ -6,13 +6,13 @@ namespace App\Module\User\Application\Writer;
 
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class ShippingAddressWriter
 {
     public function __construct(
-        private ShippingAddressRepository $addresses,
+        private ShippingAddressRepositoryPort $addresses,
         private DoctrineUnitOfWork $unitOfWork,
     ) {
     }

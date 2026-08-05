@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\UI\Controller\PublicApi;
 
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimited('public_api')]
 class GetServiceController extends AbstractController
 {
-    public function __construct(private readonly ServiceRepository $serviceRepository)
+    public function __construct(private readonly ServiceOfferingRepositoryPort $serviceRepository)
     {
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Domain\Normalization;
 
-use App\Domain\Normalization\EmailNormalizer;
+use App\Shared\Domain\Normalization\EmailNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class EmailNormalizerTest extends TestCase

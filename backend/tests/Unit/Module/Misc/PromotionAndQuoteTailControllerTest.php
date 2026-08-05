@@ -12,8 +12,8 @@ use App\Module\Promotion\Application\Handler\CreatePromotionHandler;
 use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
-use App\Module\Quote\Domain\Entity\Service;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -74,16 +74,16 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
 
     public function testDeleteServiceController(): void
     {
-        $serviceEntity = new Service('Audit', 10000, 2000);
+        $serviceEntity = new ServiceOffering('Audit', 10000, 2000);
         $this->setId($serviceEntity, 7);
 
-        $services = $this->createMock(ServiceRepository::class);
+        $services = $this->createMock(ServiceOfferingRepository::class);
         $services->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $serviceEntity);
         $services->expects(self::once())->method('delete')->with($serviceEntity);
 
-        $controller = new DeleteServiceController($services, new \App\Module\Admin\Application\Quote\Service\DeleteQuoteServiceHandler(
+        $controller = new DeleteServiceController($services, new \App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler(
             $services,
-            new \App\Module\Quote\Application\Persistence\QuotePersistence($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
+            new \App\Module\Quote\Infrastructure\Persistence\QuotePersistence($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(7)->getStatusCode());

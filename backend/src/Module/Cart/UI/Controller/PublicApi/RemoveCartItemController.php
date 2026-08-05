@@ -6,7 +6,7 @@ namespace App\Module\Cart\UI\Controller\PublicApi;
 
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartService;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -21,7 +21,7 @@ class RemoveCartItemController extends AbstractController
 {
     public function __construct(
         private readonly CartService $cartService,
-        private readonly ProductRepository $productRepository,
+        private readonly ProductRepositoryPort $productRepository,
         private readonly CartFormatter $cartFormatter,
     ) {
     }

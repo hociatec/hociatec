@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Domain\Entity\Service;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class UpdateServiceController
 {
     public function __construct(
-        private ServiceRepository $repository,
+        private ServiceOfferingRepositoryPort $repository,
         private QuoteServiceFormMapper $forms,
         private UpdateQuoteServiceHandler $updateService,
     ) {
@@ -31,7 +31,7 @@ final readonly class UpdateServiceController
     public function __invoke(Request $request, int $id): JsonResponse
     {
         $service = $this->repository->find($id);
-        if (!$service instanceof Service) {
+        if (!$service instanceof ServiceOffering) {
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 

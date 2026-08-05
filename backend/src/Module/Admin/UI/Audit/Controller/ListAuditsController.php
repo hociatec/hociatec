@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Audit\Controller;
 
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
-use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ListAuditsController extends AbstractController
 {
     public function __construct(
-        private readonly AuditRequestRepository $repository,
+        private readonly AuditRequestRepositoryPort $repository,
         private readonly AuditMetadataFormatter $metadata,
     ) {
     }

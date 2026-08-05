@@ -29,6 +29,48 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testControllersDoNotImportInfrastructureRepositories(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\Repository\\\\[^;]+;/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $this->relativePath($path).': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testControllersKeepHttpMappersInUiNamespace(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\Http\\\\[^;]*(?:Formatter|Mapper);/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $this->relativePath($path).': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testTransactionBoundaryIsSeparatedFromUnitOfWork(): void
     {
         $violations = [];
@@ -158,9 +200,12 @@ final class ModuleBoundaryTest extends TestCase
             $relativePath = $this->relativePath($path);
             if (
                 str_contains($relativePath, '/Application/Dto')
-                || str_contains($relativePath, '/Application/Input')
-                || str_contains($relativePath, '/Application/Command')
-                || str_contains($relativePath, '/Application/Query')
+                || str_contains($relativePath, '/Application/input')
+                || str_contains($relativePath, '/Application/command')
+                || str_contains($relativePath, '/Application/query')
+                || str_contains($relativePath, '/Application/result')
+                || str_contains($relativePath, '/Application/viewModel')
+                || str_contains($relativePath, '/Application/viewmodel')
             ) {
                 $violations[] = $this->relativePath($path);
             }
@@ -232,34 +277,11 @@ final class ModuleBoundaryTest extends TestCase
 
     public function testApplicationLayerDoesNotUseGenericServiceBucketInMainModules(): void
     {
-        $allowedPrefixes = [
-            'src/Module/Admin/Application/Backup/Service/',
-            'src/Module/Admin/Application/BetaTest/Service/',
-            'src/Module/Admin/Application/Catalog/Service/',
-            'src/Module/Admin/Application/Marketing/Service/',
-            'src/Module/Admin/Application/Operations/Service/',
-            'src/Module/Admin/Application/Payment/Service/',
-            'src/Module/Admin/Application/Quote/Service/',
-            'src/Module/Admin/Application/TradeIn/Service/',
-            'src/Module/Admin/Application/User/Service/',
-        ];
         $violations = [];
 
         foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
             $relativePath = $this->relativePath($path);
-            if (!str_contains($relativePath, '/Application/Service/')) {
-                continue;
-            }
-
-            $allowed = false;
-            foreach ($allowedPrefixes as $prefix) {
-                if (str_starts_with($relativePath, $prefix)) {
-                    $allowed = true;
-                    break;
-                }
-            }
-
-            if (!$allowed) {
+            if (str_contains($relativePath, '/Application/Service/')) {
                 $violations[] = $relativePath;
             }
         }
@@ -298,16 +320,40 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationLayerDoesNotImportInfrastructureRepositories(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/Application/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\Repository\\\\[^;]+;/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $relativePath.': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testLargeAggregateRepositoriesKeepQueryConcernsSplit(): void
     {
         $limits = [
             __DIR__.'/../../../src/Module/User/Infrastructure/Repository/UserRepository.php' => 180,
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderRepository.php' => 140,
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderCheckoutSessionRepository.php' => 130,
         ];
         $requiredHelpers = [
             __DIR__.'/../../../src/Module/User/Infrastructure/Repository/UserAdminCustomerQueries.php',
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderAdminQueries.php',
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderOperationsMetricsQueries.php',
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderCheckoutSessionDashboardQueries.php',
         ];
         $violations = [];
 
@@ -328,12 +374,72 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testDomainEntityTraitsStayFocused(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_contains($path, '/Domain/Entity/') || !str_ends_with($path, 'Trait.php')) {
+                continue;
+            }
+
+            $lines = file($path);
+            self::assertIsArray($lines);
+            if (count($lines) > 180) {
+                $violations[] = $this->relativePath($path).': '.count($lines).' lines';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testFormerLargeDomainTraitsAreReplacedByComposedObjects(): void
+    {
+        $expectations = [
+            __DIR__.'/../../../src/Module/Catalog/Domain/Entity/Product.php' => [
+                'forbidden' => ['ProductGalleryActionsTrait', 'ProductGalleryImagesTrait'],
+                'required' => ['?ProductGallery $gallery'],
+            ],
+            __DIR__.'/../../../src/Module/Order/Domain/Entity/OrderCheckoutSession.php' => [
+                'forbidden' => ['OrderCheckoutBillingTrait', 'OrderCheckoutCustomerIdentityTrait', 'OrderCheckoutShippingTrait'],
+                'required' => ['CheckoutCustomerSnapshot $customer', 'CheckoutShippingSnapshot $shipping', 'CheckoutBillingSnapshot $billing'],
+            ],
+            __DIR__.'/../../../src/Module/TradeIn/Domain/Entity/TradeInRequest.php' => [
+                'forbidden' => [
+                    'TradeInRequestApplicantViewTrait',
+                    'TradeInRequestEstimateViewTrait',
+                    'TradeInRequestLifecycleViewTrait',
+                    'TradeInRequestProductViewTrait',
+                    'TradeInRequestSettlementViewTrait',
+                ],
+                'required' => ['TradeInApplicant', 'TradeInProductSnapshot', 'TradeInEstimate', 'TradeInClosure', 'TradeInPrivateDocument'],
+            ],
+        ];
+
+        $violations = [];
+        foreach ($expectations as $path => $rules) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+            foreach ($rules['forbidden'] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($path).': '.$forbidden;
+                }
+            }
+            foreach ($rules['required'] as $required) {
+                if (!str_contains($source, $required)) {
+                    $violations[] = $this->relativePath($path).': missing '.$required;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testArchitectureNamingConventionDocumentsSuffixes(): void
     {
         $doc = file_get_contents(__DIR__.'/../../../docs/architecture-naming.md');
         self::assertIsString($doc);
 
-        foreach (['DTO', 'Command', 'Query', 'ResponseMapper', 'Handler', 'Provider', 'Projection', 'Calculator', 'Policy', 'Workflow', 'Mapper', 'Gateway', 'Repository', 'Service', 'Manager'] as $suffix) {
+        foreach (['DTO', 'Input', 'Command', 'Query', 'Result', 'ViewModel', 'ResponseMapper', 'Handler', 'Provider', 'Projection', 'Calculator', 'Policy', 'Workflow', 'Mapper', 'Gateway', 'Repository', 'Service', 'Manager'] as $suffix) {
             self::assertStringContainsString($suffix, $doc);
         }
     }

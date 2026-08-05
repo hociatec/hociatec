@@ -9,9 +9,9 @@ use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\StripeCheckoutService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiValidationException;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -30,8 +30,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CheckoutExistingOrderController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
-        private readonly ShippingAddressRepository $addresses,
+        private readonly OrderRepositoryPort $orders,
+        private readonly ShippingAddressRepositoryPort $addresses,
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly DtoValidator $dtoValidator,
         private readonly OrderAccessPolicy $accessPolicy,

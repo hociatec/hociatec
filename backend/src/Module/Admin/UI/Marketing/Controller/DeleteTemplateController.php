@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Module\Admin\Application\Marketing\Service\DeleteEmailTemplateHandler;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Admin\Application\Marketing\Handler\DeleteEmailTemplateHandler;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +19,7 @@ final class DeleteTemplateController extends AbstractController
 {
     public function __construct(
         private readonly DeleteEmailTemplateHandler $deleteTemplate,
-        private readonly EmailTemplateRepository $templates,
+        private readonly EmailTemplateRepositoryPort $templates,
     ) {
     }
 

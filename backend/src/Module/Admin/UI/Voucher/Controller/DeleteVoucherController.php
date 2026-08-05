@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Voucher\Controller;
 
 use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeleteVoucherController extends AbstractController
 {
     public function __construct(
-        private readonly VoucherRepository $vouchers,
+        private readonly VoucherRepositoryPort $vouchers,
         private readonly DeleteVoucherHandler $deleteVoucher,
     ) {
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Promotion\Infrastructure\Repository;
 
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
+
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\User\Domain\Entity\User;
@@ -13,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Promotion>
  */
-class PromotionRepository extends ServiceEntityRepository
+class PromotionRepository extends ServiceEntityRepository implements PromotionRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

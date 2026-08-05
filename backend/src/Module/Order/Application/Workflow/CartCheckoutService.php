@@ -13,7 +13,7 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 
 final readonly class CartCheckoutService
 {
@@ -21,7 +21,7 @@ final readonly class CartCheckoutService
         private StripeCheckoutService $stripe,
         private OrderRepositoryPort $orders,
         private CartService $carts,
-        private ShippingAddressRepository $addresses,
+        private ShippingAddressRepositoryPort $addresses,
     ) {
     }
 

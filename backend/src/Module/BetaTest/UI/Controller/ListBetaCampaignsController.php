@@ -6,8 +6,8 @@ namespace App\Module\BetaTest\UI\Controller;
 
 use App\Module\BetaTest\Application\Provider\BetaCampaignProvider;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
-use App\Module\BetaTest\Infrastructure\Http\BetaCampaignResponseFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
+use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListBetaCampaignsController extends AbstractController
 {
     public function __construct(
-        private readonly BetaTesterProfileRepository $profiles,
+        private readonly BetaTesterProfileRepositoryPort $profiles,
         private readonly BetaCampaignProvider $campaigns,
         private readonly BetaCampaignResponseFormatter $formatter,
     ) {

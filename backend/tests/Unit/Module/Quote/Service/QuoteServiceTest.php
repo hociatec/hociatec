@@ -11,7 +11,7 @@ use App\Module\Quote\Application\DTO\QuoteItemPayload;
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;

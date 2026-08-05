@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Infrastructure\Repository;
 
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
@@ -13,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<BugReport>
  */
-final class BugReportRepository extends ServiceEntityRepository
+final class BugReportRepository extends ServiceEntityRepository implements BugReportRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

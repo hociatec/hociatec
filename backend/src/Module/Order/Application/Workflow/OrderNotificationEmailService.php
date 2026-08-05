@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Order\Application\Persistence\OrderPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Domain\Entity\Order;
 use Symfony\Component\Mailer\MailerInterface;

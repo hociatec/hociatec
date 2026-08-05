@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Infrastructure\Http\BugReportResponseFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ShowBugReportController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepository $reports,
+        private readonly BugReportRepositoryPort $reports,
         private readonly BugReportResponseFormatter $formatter,
         private readonly BugReportAccessPolicy $accessPolicy,
     ) {

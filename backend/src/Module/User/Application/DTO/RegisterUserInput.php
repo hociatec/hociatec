@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\DTO;
 
-use App\Domain\Normalization\EmailNormalizer;
+use App\Shared\Domain\Normalization\EmailNormalizer;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;

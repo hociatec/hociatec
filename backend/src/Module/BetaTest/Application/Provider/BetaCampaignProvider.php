@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Application\Provider;
 
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
+use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class BetaCampaignProvider
 {
     public function __construct(
-        private BetaCampaignRepository $campaigns,
+        private BetaCampaignRepositoryPort $campaigns,
         private DoctrineUnitOfWork $persistence,
     ) {
     }

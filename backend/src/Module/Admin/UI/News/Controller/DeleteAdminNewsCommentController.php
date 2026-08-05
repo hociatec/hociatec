@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\News\Controller;
 
 use App\Module\News\Application\Writer\NewsArticleWriter;
-use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
+use App\Module\News\Application\Port\NewsCommentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final readonly class DeleteAdminNewsCommentController
 {
-    public function __construct(private NewsCommentRepository $comments, private NewsArticleWriter $writer)
+    public function __construct(private NewsCommentRepositoryPort $comments, private NewsArticleWriter $writer)
     {
     }
 

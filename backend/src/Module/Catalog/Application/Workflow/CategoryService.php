@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
-use App\Module\Catalog\Application\Persistence\CatalogPersistence;
+use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Shared\Infrastructure\Text\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -17,7 +17,7 @@ final class CategoryService
     use Slugifier;
 
     public function __construct(
-        private readonly CategoryRepository $categoryRepository,
+        private readonly CategoryRepositoryPort $categoryRepository,
         private readonly CatalogPersistence $persistence,
         private readonly ValidatorInterface $validator,
     ) {

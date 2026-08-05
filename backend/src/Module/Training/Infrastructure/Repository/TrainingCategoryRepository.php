@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Infrastructure\Repository;
 
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
+
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TrainingCategory> */
-class TrainingCategoryRepository extends ServiceEntityRepository
+class TrainingCategoryRepository extends ServiceEntityRepository implements TrainingCategoryRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

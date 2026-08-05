@@ -6,7 +6,7 @@ namespace App\Module\Quote\Application\Mapper;
 
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Factory\QuoteItemFactory;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 

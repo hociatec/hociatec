@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
-use App\Module\Admin\Application\BetaTest\Service\CreateBetaCampaignHandler;
+use App\Module\Admin\Application\BetaTest\Handler\CreateBetaCampaignHandler;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiValidationException;
 use App\Shared\Infrastructure\Validation\DtoValidator;

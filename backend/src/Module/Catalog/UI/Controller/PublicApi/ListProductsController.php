@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\UI\Controller\PublicApi;
 
 use App\Module\Catalog\Application\Provider\ProductCatalogSearchProvider;
-use App\Module\Catalog\Infrastructure\Http\ProductSearchRequestMapper;
+use App\Module\Catalog\UI\Http\ProductSearchRequestMapper;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Infrastructure\Backup\Command;
 
-use App\Module\Admin\Application\Backup\Service\RunBackupHandler;
-use App\Module\Admin\Application\Backup\Service\RunDueBackupsHandler;
+use App\Module\Admin\Application\Backup\Handler\RunBackupHandler;
+use App\Module\Admin\Application\Backup\Handler\RunDueBackupsHandler;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

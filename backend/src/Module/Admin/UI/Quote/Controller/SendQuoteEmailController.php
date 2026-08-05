@@ -9,7 +9,7 @@ use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -31,7 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class SendQuoteEmailController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteRepository $quoteRepository,
+        private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteEmailService $quoteEmailService,
         private readonly QuoteWorkflowService $workflow,
         private readonly LoggerInterface $logger,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
-use App\Module\Order\Application\Persistence\OrderPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
 use App\Module\Order\Domain\Entity\Order;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -24,6 +24,10 @@ final class OrderInvoiceDocumentService
 
     public function ensureGenerated(Order $order): void
     {
+        if ($this->documentsExist($order)) {
+            return;
+        }
+
         $this->calculator->snapshot($order);
         $totals = $this->calculator->computeTotals($order);
         $baseName = $order->getInvoiceNumber() ?: $order->getNumber();
@@ -112,5 +116,15 @@ final class OrderInvoiceDocumentService
         }
 
         return $this->projectDir.'/var/private/invoices/'.$filename;
+    }
+
+    private function documentsExist(Order $order): bool
+    {
+        if (null === $order->getInvoicePdfPath() || null === $order->getInvoiceXmlPath()) {
+            return false;
+        }
+
+        return is_file($this->resolvePath($order->getInvoicePdfPath()))
+            && is_file($this->resolvePath($order->getInvoiceXmlPath()));
     }
 }

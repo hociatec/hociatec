@@ -61,6 +61,17 @@ require_file() {
     fi
 }
 
+require_command() {
+    local command_name="$1"
+    local label="$2"
+
+    if command -v "$command_name" >/dev/null 2>&1; then
+        ok "$label"
+    else
+        fail "$label"
+    fi
+}
+
 require_env_value() {
     local name="$1"
     local required="${2:-1}"
@@ -190,6 +201,21 @@ require_env_pattern MESSENGER_TRANSPORT_DSN '^doctrine://|^amqp://|^redis://' "u
 
 require_file "$BACKEND_DIR/config/jwt/private.pem" "JWT private key exists"
 require_file "$BACKEND_DIR/config/jwt/public.pem" "JWT public key exists"
+
+section "Server security"
+require_command clamscan "ClamAV scanner is available for uploaded documents"
+php -r 'exit((int) ini_get("upload_max_filesize") <= 8 ? 0 : 1);' \
+    && ok "PHP upload_max_filesize is capped to 8M or less" \
+    || fail "PHP upload_max_filesize must be capped to 8M or less"
+php -r 'exit((int) ini_get("post_max_size") <= 10 ? 0 : 1);' \
+    && ok "PHP post_max_size is capped to 10M or less" \
+    || fail "PHP post_max_size must be capped to 10M or less"
+forbid_path "$BACKEND_DIR/public/uploads/invoices" "Invoice documents are not stored under public/uploads"
+if [[ -d "$BACKEND_DIR/var/private" ]]; then
+    ok "Private document storage directory exists outside public"
+else
+    warn "Private document storage directory will be created outside public on first secure write"
+fi
 
 section "Backend"
 run "Production env cache is generated" composer dump-env prod

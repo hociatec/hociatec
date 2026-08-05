@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Marketing\Infrastructure\Repository;
 
+use App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort;
+
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<EmailCampaign>
  */
-class EmailCampaignRepository extends ServiceEntityRepository
+class EmailCampaignRepository extends ServiceEntityRepository implements EmailCampaignRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

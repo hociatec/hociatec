@@ -8,13 +8,13 @@ use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Provider\PromotionAudienceProvider;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 
 final class PromotionEngine
 {
     public function __construct(
-        private readonly PromotionRepository $promotions,
+        private readonly PromotionRepositoryPort $promotions,
         private readonly PromotionAudienceProvider $audiences = new PromotionAudienceProvider(),
         private readonly CartSubtotalCalculator $cartSubtotal = new CartSubtotalCalculator(),
         private readonly PromotionDiscountCalculator $discounts = new PromotionDiscountCalculator(),

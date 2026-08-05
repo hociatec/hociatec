@@ -9,7 +9,7 @@ use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
-use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
+use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateAppointmentStatusController extends AbstractController
 {
     public function __construct(
-        private readonly AppointmentRepository $appointmentRepository,
+        private readonly AppointmentRepositoryPort $appointmentRepository,
         private readonly AppointmentService $appointmentService,
         private readonly AppointmentFormatter $appointmentFormatter,
         private readonly DtoValidator $dtoValidator,

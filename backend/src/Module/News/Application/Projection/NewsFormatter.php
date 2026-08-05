@@ -6,11 +6,11 @@ namespace App\Module\News\Application\Projection;
 
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
-use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
+use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 
 final readonly class NewsFormatter
 {
-    public function __construct(private NewsArticleViewRepository $views)
+    public function __construct(private NewsArticleViewRepositoryPort $views)
     {
     }
 

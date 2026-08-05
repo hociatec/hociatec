@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\PublicApi;
 
 use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Infrastructure\Repository\TrainingRepository;
+use App\Module\Training\Application\Port\TrainingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ListTrainingsController extends AbstractController
 {
     public function __construct(
-        private readonly TrainingRepository $trainings,
+        private readonly TrainingRepositoryPort $trainings,
         private readonly TrainingFormatter $formatter,
     ) {
     }

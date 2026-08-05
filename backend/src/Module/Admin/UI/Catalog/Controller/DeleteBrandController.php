@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
+use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteBrandController extends AbstractController
 {
     public function __construct(
-        private readonly BrandRepository $brandRepository,
+        private readonly BrandRepositoryPort $brandRepository,
         private readonly BrandService $brandService,
     ) {
     }

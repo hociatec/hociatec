@@ -4,10 +4,12 @@ Use suffixes consistently so class names describe responsibility.
 
 ## Data Objects
 
-- `DTO`: typed data crossing an application boundary. It may normalize raw HTTP payloads and carry Symfony validation constraints, but it must not be used as a domain entity.
-- `Input`: avoid as a directory for new code. If the name is useful for a single class, keep it as an HTTP-facing DTO and convert it before domain logic.
-- `Command`: reserved for console or message commands under `Infrastructure`, or for explicit application command objects if a command bus is introduced.
-- `Query`: reserved for explicit read requests if a query bus is introduced. Read-side services currently use `Provider` or `Projection`.
+- `DTO`: generic compatibility suffix for existing typed data crossing an application boundary. New code should prefer a narrower suffix below when the role is clear.
+- `Input`: HTTP-facing validated data created from a request body, query string, or multipart payload.
+- `Command`: an explicit write intent passed to an application handler or workflow.
+- `Query`: an explicit read request passed to a provider or query handler.
+- `Result`: an application result returned by a workflow when the shape is not a transport response.
+- `ViewModel`: a UI-facing representation when a screen needs a stable read model independent of Doctrine entities.
 
 ## Mapping
 

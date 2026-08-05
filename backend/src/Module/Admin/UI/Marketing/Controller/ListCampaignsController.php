@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Module\Marketing\Infrastructure\Http\EmailCampaignResponseFormatter;
-use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
+use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
+use App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListCampaignsController extends AbstractController
 {
     public function __construct(
-        private readonly EmailCampaignRepository $campaigns,
+        private readonly EmailCampaignRepositoryPort $campaigns,
         private readonly EmailCampaignResponseFormatter $formatter,
     ) {
     }

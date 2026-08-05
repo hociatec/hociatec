@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
-use App\Module\Marketing\Infrastructure\Http\EmailCampaignResponseFormatter;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -23,7 +23,7 @@ final class SendCampaignController extends AbstractController
 {
     public function __construct(
         private readonly MarketingCampaignService $campaignService,
-        private readonly EmailTemplateRepository $templates,
+        private readonly EmailTemplateRepositoryPort $templates,
         private readonly DtoValidator $validator,
         private readonly MarketingRequestMapper $requests,
         private readonly EmailCampaignResponseFormatter $formatter,

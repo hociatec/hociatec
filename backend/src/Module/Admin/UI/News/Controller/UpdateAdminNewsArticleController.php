@@ -8,7 +8,7 @@ use App\Module\News\Application\DTO\NewsArticleInput;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
-use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final readonly class UpdateAdminNewsArticleController
 {
-    public function __construct(private NewsArticleRepository $articles, private NewsArticleWriter $writer, private NewsFormatter $formatter)
+    public function __construct(private NewsArticleRepositoryPort $articles, private NewsArticleWriter $writer, private NewsFormatter $formatter)
     {
     }
 

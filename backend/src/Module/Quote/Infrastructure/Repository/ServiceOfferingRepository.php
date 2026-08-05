@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Quote\Infrastructure\Repository;
+
+use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
+
+use App\Module\Quote\Domain\Entity\ServiceOffering;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<ServiceOffering>
+ */
+class ServiceOfferingRepository extends ServiceEntityRepository implements ServiceOfferingRepositoryPort
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, ServiceOffering::class);
+    }
+
+    /** @return list<ServiceOffering> */
+    public function findPaginated(int $limit, int $offset): array
+    {
+        return $this->createQueryBuilder('s')
+            ->orderBy('s.title', 'ASC')
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->setFirstResult(max(0, $offset))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function delete(ServiceOffering $service): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->remove($service);
+    }
+}

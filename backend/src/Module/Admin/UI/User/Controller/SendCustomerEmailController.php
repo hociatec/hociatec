@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\Admin\Application\User\DTO\CustomerEmailInput;
 use App\Module\User\Application\Workflow\AdminCustomerEmailService;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class SendCustomerEmailController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
         private readonly AdminCustomerEmailService $emails,
         private readonly DtoValidator $validator,
     ) {

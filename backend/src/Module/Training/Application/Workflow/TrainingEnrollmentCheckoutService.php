@@ -10,8 +10,8 @@ use App\Module\Training\Application\Exception\TrainingSessionUnavailableExceptio
 use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingSession;
-use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
-use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
+use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -19,8 +19,8 @@ use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 final readonly class TrainingEnrollmentCheckoutService
 {
     public function __construct(
-        private TrainingSessionRepository $sessions,
-        private TrainingEnrollmentRepository $enrollments,
+        private TrainingSessionRepositoryPort $sessions,
+        private TrainingEnrollmentRepositoryPort $enrollments,
         private TrainingSlotValidator $slots,
         private StripeApiClient $stripe,
         private DoctrineUnitOfWork $persistence,

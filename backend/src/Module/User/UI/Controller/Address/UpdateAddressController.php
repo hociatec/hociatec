@@ -8,7 +8,7 @@ use App\Module\User\Application\DTO\ShippingAddressInput;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdateAddressController extends AbstractController
 {
     public function __construct(
-        private readonly ShippingAddressRepository $addresses,
+        private readonly ShippingAddressRepositoryPort $addresses,
         private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
     ) {

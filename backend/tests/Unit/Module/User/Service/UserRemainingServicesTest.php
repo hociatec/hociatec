@@ -30,7 +30,7 @@ use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdatePersonalInformationService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
@@ -342,7 +342,9 @@ final class UserRemainingServicesTest extends TestCase
         $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $repository->expects(self::once())->method('find')->with(42)->willReturn($user);
         $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())->method('send')->with(self::isInstanceOf(Email::class));
+        $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email): bool {
+            return 'activation-42' === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
+        }));
         $emails = new AccountActivationEmailService(
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
             $mailer,

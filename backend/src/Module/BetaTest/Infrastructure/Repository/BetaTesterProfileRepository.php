@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Infrastructure\Repository;
 
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
+
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<BetaTesterProfile>
  */
-final class BetaTesterProfileRepository extends ServiceEntityRepository
+final class BetaTesterProfileRepository extends ServiceEntityRepository implements BetaTesterProfileRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

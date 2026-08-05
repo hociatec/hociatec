@@ -6,13 +6,13 @@ namespace App\Module\News\Application\Workflow;
 
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsArticleView;
-use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
+use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class NewsArticleViewTracker
 {
     public function __construct(
-        private NewsArticleViewRepository $views,
+        private NewsArticleViewRepositoryPort $views,
         private DoctrineUnitOfWork $persistence,
     ) {
     }

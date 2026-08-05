@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Appointment\UI\Controller\PublicApi;
 
 use App\Module\Appointment\Application\Workflow\AvailabilityService;
-use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +20,7 @@ class PublicAvailabilityController extends AbstractController
 {
     public function __construct(
         private readonly AvailabilityService $availabilityService,
-        private readonly PrestationRepository $prestationRepository,
+        private readonly PrestationRepositoryPort $prestationRepository,
     ) {
     }
 

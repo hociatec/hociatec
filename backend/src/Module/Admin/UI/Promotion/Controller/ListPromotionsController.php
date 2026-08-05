@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Promotion\Controller;
 
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class ListPromotionsController extends AbstractController
 {
-    public function __construct(private readonly PromotionRepository $promotions)
+    public function __construct(private readonly PromotionRepositoryPort $promotions)
     {
     }
 

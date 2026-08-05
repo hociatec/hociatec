@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Voucher\Controller;
 use App\Module\Admin\Application\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateVoucherController extends AbstractController
 {
     public function __construct(
-        private readonly VoucherRepository $vouchers,
+        private readonly VoucherRepositoryPort $vouchers,
         private readonly UpdateVoucherHandler $updateVoucher,
         private readonly DtoValidator $validator,
     ) {

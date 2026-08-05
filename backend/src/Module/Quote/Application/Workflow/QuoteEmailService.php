@@ -6,7 +6,7 @@ namespace App\Module\Quote\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Outbox\Application\Outbox;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;

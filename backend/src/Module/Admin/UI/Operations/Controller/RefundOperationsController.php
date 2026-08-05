@@ -8,7 +8,7 @@ use App\Module\Admin\Application\Operations\DTO\RefundCreateInput;
 use App\Module\Admin\Application\Operations\DTO\RefundProcessInput;
 use App\Module\Admin\Application\Operations\DTO\RefundUpdateInput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Service\RefundOperationsService;
+use App\Module\Admin\Application\Operations\Workflow\RefundOperationsService;
 use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;

@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Order\Controller;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderInvoiceDocumentService;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class RetryOrderInvoiceController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderInvoiceDocumentService $documents,
         private readonly OrderEventLogger $events,
     ) {

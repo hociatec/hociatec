@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Module\Admin\Application\Marketing\Service\EmailTemplateWriter;
+use App\Module\Admin\Application\Marketing\Writer\EmailTemplateWriter;
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
-use App\Module\Marketing\Infrastructure\Http\EmailTemplateResponseFormatter;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Marketing\UI\Http\EmailTemplateResponseFormatter;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateTemplateController extends AbstractController
 {
     public function __construct(
-        private readonly EmailTemplateRepository $templates,
+        private readonly EmailTemplateRepositoryPort $templates,
         private readonly EmailTemplateWriter $writer,
         private readonly DtoValidator $validator,
         private readonly MarketingRequestMapper $requests,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Factory;
 
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
 use App\Module\Order\Domain\Entity\Order;
@@ -27,7 +27,7 @@ final readonly class CartOrderCreator
         private OrderInvoiceCalculator $invoiceCalculator,
         private PromotionEngine $promotionEngine,
         private VoucherEngine $voucherEngine,
-        private CartSessionRepository $carts,
+        private CartSessionRepositoryPort $carts,
         private ProductCatalogRepository $products,
     ) {
     }

@@ -42,7 +42,7 @@ use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
 use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
-use App\Module\TradeIn\Application\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\User\Domain\Entity\User;
@@ -196,9 +196,9 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
         self::assertSame(Response::HTTP_CONFLICT, $closure((int) $submitted->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid'], 'POST'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $closure((int) $inspected->getId(), $this->jsonRequest(['finalOfferCents' => 1000, 'paymentMethod' => 'cash', 'paymentStatus' => 'paid', 'transactionReference' => 'TX'], 'POST'))->getStatusCode());
 
-        $delete = new DeleteTradeInController($repository, new \App\Module\Admin\Application\TradeIn\Service\DeleteTradeInRequestHandler(
+        $delete = new DeleteTradeInController($repository, new \App\Module\Admin\Application\TradeIn\Handler\DeleteTradeInRequestHandler(
             $repository,
-            new \App\Module\TradeIn\Application\Persistence\TradeInPersistence($em),
+            new \App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete((int) $submitted->getId())->getStatusCode());

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;
 use PHPUnit\Framework\TestCase;
 
 final class MaintenanceModeServiceTest extends TestCase

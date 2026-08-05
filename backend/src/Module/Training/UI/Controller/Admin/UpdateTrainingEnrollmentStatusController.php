@@ -7,7 +7,7 @@ namespace App\Module\Training\UI\Controller\Admin;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
-use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,7 +29,7 @@ class UpdateTrainingEnrollmentStatusController extends AbstractController
     ];
 
     public function __construct(
-        private readonly TrainingEnrollmentRepository $enrollments,
+        private readonly TrainingEnrollmentRepositoryPort $enrollments,
         private readonly TrainingFormatter $formatter,
         private readonly TrainingWriter $writer,
     ) {

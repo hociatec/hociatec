@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Quote\Entity;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\Service;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -90,7 +90,7 @@ final class QuoteEntitiesTest extends TestCase
 
     public function testServiceMutatorsAndTouch(): void
     {
-        $service = new Service('Audit', 12000, 2000);
+        $service = new ServiceOffering('Audit', 12000, 2000);
         $updatedAt = $service->getUpdatedAt();
 
         $service

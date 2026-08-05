@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Admin\Payment;
 use App\Module\Admin\UI\Payment\Controller\ListPaymentsController;
 use App\Module\Admin\UI\Payment\Controller\ShowPaymentController;
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
-use App\Module\Admin\Application\Payment\Service\StripePaymentDetailsProvider;
+use App\Module\Admin\Application\Payment\Provider\StripePaymentDetailsProvider;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
 use App\Module\Order\Application\Workflow\StripeApiClient;

@@ -10,7 +10,7 @@ use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\UserUniqueConstraintViolationDetector;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;

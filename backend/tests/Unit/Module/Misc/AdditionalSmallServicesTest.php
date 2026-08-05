@@ -12,7 +12,7 @@ use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Application\Persistence\OrderEventPersistence;
+use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Training\Domain\Entity\Training;

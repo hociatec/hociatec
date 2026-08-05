@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Audit\Controller;
 
 use App\Module\Admin\Application\Audit\DTO\ChecklistItemInput;
 use App\Module\Audit\Application\Workflow\AuditEventLogger;
-use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
-use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Port\AuditChecklistItemRepositoryPort;
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,8 +22,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdateChecklistItemController extends AbstractController
 {
     public function __construct(
-        private readonly AuditRequestRepository $audits,
-        private readonly AuditChecklistItemRepository $items,
+        private readonly AuditRequestRepositoryPort $audits,
+        private readonly AuditChecklistItemRepositoryPort $items,
         private readonly AuditEventLogger $events,
         private readonly DtoValidator $validator,
     ) {

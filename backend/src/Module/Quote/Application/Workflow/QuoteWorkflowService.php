@@ -6,7 +6,7 @@ namespace App\Module\Quote\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 

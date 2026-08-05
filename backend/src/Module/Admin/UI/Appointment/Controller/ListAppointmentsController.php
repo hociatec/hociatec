@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Appointment\Controller;
 
 use App\Module\Appointment\Domain\Entity\Appointment;
-use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
+use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListAppointmentsController extends AbstractController
 {
-    public function __construct(private readonly AppointmentRepository $appointmentRepository)
+    public function __construct(private readonly AppointmentRepositoryPort $appointmentRepository)
     {
     }
 

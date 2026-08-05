@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
+use App\Module\Catalog\Application\Port\BrandRepositoryPort;
+
 use App\Module\Catalog\Domain\Entity\Brand;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Brand>
  */
-class BrandRepository extends ServiceEntityRepository
+class BrandRepository extends ServiceEntityRepository implements BrandRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

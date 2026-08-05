@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Provider;
 
-use App\Module\Catalog\Application\DTO\ProductSearchCriteria;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogQuery;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -22,7 +22,7 @@ final readonly class ProductCatalogSearchProvider
     /**
      * @return array<string, mixed>
      */
-    public function search(ProductSearchCriteria $criteria): array
+    public function search(ProductCatalogQuery $criteria): array
     {
         $cacheKey = 'catalog_'.hash('xxh128', (string) json_encode([
             'page' => $criteria->page,

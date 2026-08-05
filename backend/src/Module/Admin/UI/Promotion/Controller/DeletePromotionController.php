@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Promotion\Controller;
 
 use App\Module\Promotion\Application\Handler\DeletePromotionHandler;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DeletePromotionController extends AbstractController
 {
     public function __construct(
-        private readonly PromotionRepository $promotions,
+        private readonly PromotionRepositoryPort $promotions,
         private readonly DeletePromotionHandler $deletePromotion,
     ) {
     }

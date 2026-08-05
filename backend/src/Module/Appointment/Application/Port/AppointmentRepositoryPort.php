@@ -1,0 +1,9 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Module\Appointment\Application\Port;
+
+interface AppointmentRepositoryPort
+{
+}

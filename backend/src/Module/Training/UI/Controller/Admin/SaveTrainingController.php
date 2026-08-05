@@ -8,7 +8,7 @@ use App\Module\Training\Application\DTO\TrainingInput;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\Training;
-use App\Module\Training\Infrastructure\Repository\TrainingRepository;
+use App\Module\Training\Application\Port\TrainingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class SaveTrainingController extends AbstractController
 {
     public function __construct(
-        private readonly TrainingRepository $trainings,
+        private readonly TrainingRepositoryPort $trainings,
         private readonly TrainingWriter $writer,
         private readonly TrainingFormatter $formatter,
         private readonly DtoValidator $validator,

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Infrastructure\Repository;
 
+use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
+
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -13,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<CartSession>
  */
-final class CartSessionRepository extends ServiceEntityRepository
+final class CartSessionRepository extends ServiceEntityRepository implements CartSessionRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

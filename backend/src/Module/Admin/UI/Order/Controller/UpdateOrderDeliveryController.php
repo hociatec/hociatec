@@ -8,7 +8,7 @@ use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Writer\OrderDeliveryUpdater;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiValidationException;
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateOrderDeliveryController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderDeliveryUpdater $delivery,
         private readonly DtoValidator $validator,
     ) {

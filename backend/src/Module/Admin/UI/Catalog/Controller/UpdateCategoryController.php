@@ -8,7 +8,7 @@ use App\Module\Admin\Application\Catalog\DTO\CategoryInput;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
+use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdateCategoryController extends AbstractController
 {
     public function __construct(
-        private readonly CategoryRepository $categoryRepository,
+        private readonly CategoryRepositoryPort $categoryRepository,
         private readonly CategoryService $categoryService,
         private readonly DtoValidator $validator,
     ) {

@@ -12,7 +12,7 @@ use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;

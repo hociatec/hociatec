@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Infrastructure\Repository;
 
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
+
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Voucher>
  */
-final class VoucherRepository extends ServiceEntityRepository implements VoucherLookupInterface, VoucherRepositoryPort
+final class VoucherRepository extends ServiceEntityRepository implements VoucherLookupInterface, VoucherRepositoryPort, VoucherLookupPort
 {
     public function __construct(ManagerRegistry $registry)
     {

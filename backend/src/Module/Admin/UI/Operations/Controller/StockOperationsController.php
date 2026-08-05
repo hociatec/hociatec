@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Operations\Controller;
 use App\Module\Admin\Application\Operations\DTO\StockMovementInput;
 use App\Module\Admin\Application\Operations\DTO\UpdateLowStockThresholdInput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Service\StockOperationsService;
+use App\Module\Admin\Application\Operations\Workflow\StockOperationsService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;

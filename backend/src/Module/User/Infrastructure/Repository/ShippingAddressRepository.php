@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\User\Infrastructure\Repository;
 
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
+
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -12,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<ShippingAddress>
  */
-class ShippingAddressRepository extends ServiceEntityRepository
+class ShippingAddressRepository extends ServiceEntityRepository implements ShippingAddressRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

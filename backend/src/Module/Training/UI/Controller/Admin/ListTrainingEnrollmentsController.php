@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class ListTrainingEnrollmentsController extends AbstractController
 {
-    public function __construct(private readonly TrainingEnrollmentRepository $enrollments, private readonly TrainingFormatter $formatter)
+    public function __construct(private readonly TrainingEnrollmentRepositoryPort $enrollments, private readonly TrainingFormatter $formatter)
     {
     }
 

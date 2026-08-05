@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,9 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class BugReportDashboardController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepository $reports,
-        private readonly BetaCampaignRepository $campaigns,
-        private readonly UserRepository $users,
+        private readonly BugReportRepositoryPort $reports,
+        private readonly BetaCampaignRepositoryPort $campaigns,
+        private readonly UserRepositoryPort $users,
     ) {
     }
 

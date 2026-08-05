@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\News\Infrastructure\Repository;
 
+use App\Module\News\Application\Port\NewsCommentRepositoryPort;
+
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<NewsComment> */
-final class NewsCommentRepository extends ServiceEntityRepository
+final class NewsCommentRepository extends ServiceEntityRepository implements NewsCommentRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

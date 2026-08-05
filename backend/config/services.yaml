@@ -71,8 +71,32 @@ services:
     App\Module\Catalog\Application\Port\ProductCatalogRepository:
         alias: App\Module\Catalog\Infrastructure\Repository\ProductRepository
 
+    App\Module\Catalog\Application\Port\ProductRepositoryPort:
+        alias: App\Module\Catalog\Infrastructure\Repository\ProductRepository
+
+    App\Module\Catalog\Application\Port\CategoryRepositoryPort:
+        alias: App\Module\Catalog\Infrastructure\Repository\CategoryRepository
+
+    App\Module\Catalog\Application\Port\BrandRepositoryPort:
+        alias: App\Module\Catalog\Infrastructure\Repository\BrandRepository
+
+    App\Module\Catalog\Application\Port\StockMovementRepositoryPort:
+        alias: App\Module\Catalog\Infrastructure\Repository\StockMovementRepository
+
+    App\Module\Auth\Application\Port\RefreshTokenRepositoryPort:
+        alias: App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository
+
+    App\Module\Cart\Application\Port\CartSessionRepositoryPort:
+        alias: App\Module\Cart\Infrastructure\Repository\CartSessionRepository
+
+    App\Module\Favorite\Application\Port\FavoriteRepositoryPort:
+        alias: App\Module\Favorite\Infrastructure\Repository\FavoriteRepository
+
     App\Module\User\Application\Port\UserRepositoryPort:
         alias: App\Module\User\Infrastructure\Repository\UserRepository
+
+    App\Module\User\Application\Port\ShippingAddressRepositoryPort:
+        alias: App\Module\User\Infrastructure\Repository\ShippingAddressRepository
 
     App\Module\Order\Application\Port\OrderRepositoryPort:
         alias: App\Module\Order\Infrastructure\Repository\OrderRepository
@@ -86,11 +110,98 @@ services:
     App\Module\Order\Application\Port\OrderEventRepositoryPort:
         alias: App\Module\Order\Infrastructure\Repository\OrderEventRepository
 
+    App\Module\Order\Application\Port\OrderItemRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\OrderItemRepository
+
+    App\Module\Order\Application\Port\StripeWebhookEventRepositoryPort:
+        alias: App\Module\Order\Infrastructure\Repository\StripeWebhookEventRepository
+
     App\Module\Quote\Application\Port\QuoteRepositoryPort:
         alias: App\Module\Quote\Infrastructure\Repository\QuoteRepository
 
+    App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort:
+        alias: App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository
+
+    App\Module\Voucher\Application\Port\VoucherRepositoryPort:
+        alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository
+
+    App\Module\Voucher\Application\Port\VoucherLookupPort:
+        alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository
+
+    App\Module\Rating\Application\Port\ProductRatingRepositoryPort:
+        alias: App\Module\Rating\Infrastructure\Repository\ProductRatingRepository
+
+    App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort:
+        alias: App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository
+
     App\Module\Support\Application\Port\SupportRequestRepositoryPort:
         alias: App\Module\Support\Infrastructure\Repository\SupportRequestRepository
+
+    App\Module\Appointment\Application\Port\AppointmentRepositoryPort:
+        alias: App\Module\Appointment\Infrastructure\Repository\AppointmentRepository
+
+    App\Module\Appointment\Application\Port\PrestationRepositoryPort:
+        alias: App\Module\Appointment\Infrastructure\Repository\PrestationRepository
+
+    App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort:
+        alias: App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository
+
+    App\Module\Audit\Application\Port\AuditChecklistItemRepositoryPort:
+        alias: App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository
+
+    App\Module\Audit\Application\Port\AuditEventRepositoryPort:
+        alias: App\Module\Audit\Infrastructure\Repository\AuditEventRepository
+
+    App\Module\Audit\Application\Port\AuditRequestRepositoryPort:
+        alias: App\Module\Audit\Infrastructure\Repository\AuditRequestRepository
+
+    App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort:
+        alias: App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository
+
+    App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort:
+        alias: App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository
+
+    App\Module\BetaTest\Application\Port\BugReportActivityRepositoryPort:
+        alias: App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository
+
+    App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort:
+        alias: App\Module\BetaTest\Infrastructure\Repository\BugReportCommentRepository
+
+    App\Module\BetaTest\Application\Port\BugReportRepositoryPort:
+        alias: App\Module\BetaTest\Infrastructure\Repository\BugReportRepository
+
+    App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort:
+        alias: App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository
+
+    App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort:
+        alias: App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository
+
+    App\Module\News\Application\Port\NewsArticleRepositoryPort:
+        alias: App\Module\News\Infrastructure\Repository\NewsArticleRepository
+
+    App\Module\News\Application\Port\NewsCommentRepositoryPort:
+        alias: App\Module\News\Infrastructure\Repository\NewsCommentRepository
+
+    App\Module\News\Application\Port\NewsArticleViewRepositoryPort:
+        alias: App\Module\News\Infrastructure\Repository\NewsArticleViewRepository
+
+    App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort:
+        alias: App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository
+
+    App\Module\Promotion\Application\Port\PromotionRepositoryPort:
+        alias: App\Module\Promotion\Infrastructure\Repository\PromotionRepository
+
+    App\Module\Training\Application\Port\TrainingCategoryRepositoryPort:
+        alias: App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository
+
+    App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort:
+        alias: App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository
+
+    App\Module\Training\Application\Port\TrainingRepositoryPort:
+        alias: App\Module\Training\Infrastructure\Repository\TrainingRepository
+
+    App\Module\Training\Application\Port\TrainingSessionRepositoryPort:
+        alias: App\Module\Training\Infrastructure\Repository\TrainingSessionRepository
 
     App\Module\Outbox\Application\OutboxAlertNotifier:
         alias: App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier
@@ -125,23 +236,23 @@ services:
                 beta_report_create: '@limiter.beta_report_create'
                 beta_report_comment: '@limiter.beta_report_comment'
 
-    App\Module\Admin\Application\Backup\Service\MaintenanceModeService:
+    App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\BackupStatusProvider:
+    App\Module\Admin\Application\Backup\Provider\BackupStatusProvider:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\BackupStateStore:
+    App\Module\Admin\Application\Backup\State\BackupStateStore:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\BackupFileStorage:
+    App\Module\Admin\Application\Backup\Storage\BackupFileStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\DatabaseBackupDumper:
+    App\Module\Admin\Application\Backup\Dumper\DatabaseBackupDumper:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
@@ -154,7 +265,7 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Service\BackupEncryptionService:
+    App\Module\Admin\Application\Backup\Workflow\BackupEncryptionService:
         arguments:
             $keyFile: '%env(BACKUP_ENCRYPTION_KEY_FILE)%'
 

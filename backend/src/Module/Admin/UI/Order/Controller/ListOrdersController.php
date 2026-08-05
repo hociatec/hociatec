@@ -7,8 +7,8 @@ namespace App\Module\Admin\UI\Order\Controller;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderEventRepositoryPort;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,8 +22,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListOrdersController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
-        private readonly OrderEventRepository $events,
+        private readonly OrderRepositoryPort $orders,
+        private readonly OrderEventRepositoryPort $events,
     ) {
     }
 

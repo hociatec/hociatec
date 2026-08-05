@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Payment\Controller;
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Infrastructure\Repository\OrderCheckoutSessionRepository;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListPaymentsController extends AbstractController
 {
     public function __construct(
-        private readonly OrderCheckoutSessionRepository $payments,
+        private readonly OrderCheckoutSessionRepositoryPort $payments,
         private readonly StripeCheckoutSessionSyncService $stripeSync,
         private readonly AdminPaymentFormatter $formatter,
     ) {
@@ -45,7 +45,7 @@ final class ListPaymentsController extends AbstractController
         }
 
         if ('' !== $query) {
-            $qb->andWhere('p.customerEmail LIKE :q OR p.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
+            $qb->andWhere('p.customer.customerEmail LIKE :q OR p.customer.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
                 ->setParameter('q', '%'.$query.'%');
         }
 

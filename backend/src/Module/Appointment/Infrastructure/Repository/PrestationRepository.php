@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Infrastructure\Repository;
 
+use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
+
 use App\Module\Appointment\Domain\Entity\Prestation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Prestation>
  */
-class PrestationRepository extends ServiceEntityRepository
+class PrestationRepository extends ServiceEntityRepository implements PrestationRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

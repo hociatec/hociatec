@@ -15,7 +15,7 @@ use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Auth\Infrastructure\Security\AuthenticationFailureHandler;
 use App\Module\Auth\Infrastructure\Security\AuthenticationSuccessHandler;
 use App\Module\Auth\Application\Workflow\PasswordResetService;
-use App\Module\Auth\Application\Persistence\RefreshTokenPersistence;
+use App\Module\Auth\Infrastructure\Persistence\RefreshTokenPersistence;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;

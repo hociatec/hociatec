@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Promotion\Controller;
 use App\Module\Promotion\Application\DTO\PromotionInput;
 use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdatePromotionController extends AbstractController
 {
     public function __construct(
-        private readonly PromotionRepository $promotions,
+        private readonly PromotionRepositoryPort $promotions,
         private readonly UpdatePromotionHandler $updatePromotion,
         private readonly DtoValidator $validator,
     ) {

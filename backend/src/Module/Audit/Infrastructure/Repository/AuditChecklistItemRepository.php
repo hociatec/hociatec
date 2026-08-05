@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Infrastructure\Repository;
 
+use App\Module\Audit\Application\Port\AuditChecklistItemRepositoryPort;
+
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -11,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<AuditChecklistItem>
  */
-class AuditChecklistItemRepository extends ServiceEntityRepository
+class AuditChecklistItemRepository extends ServiceEntityRepository implements AuditChecklistItemRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

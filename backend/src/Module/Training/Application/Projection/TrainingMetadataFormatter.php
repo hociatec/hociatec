@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Projection;
 
-use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 
 final class TrainingMetadataFormatter
 {
     /** @var array<string, array{id: int|null, name: string, slug: string}|null>|null */
     private ?array $categories = null;
 
-    public function __construct(private readonly TrainingCategoryRepository $categoryRepository)
+    public function __construct(private readonly TrainingCategoryRepositoryPort $categoryRepository)
     {
     }
 

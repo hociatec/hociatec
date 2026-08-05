@@ -25,7 +25,7 @@ use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\Application\Workflow\DeleteAccountService;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
-use App\Module\User\Application\Persistence\UserPersistence;
+use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;

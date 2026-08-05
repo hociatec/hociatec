@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AddFavoriteController extends AbstractController
 {
     public function __construct(
-        private readonly ProductRepository $products,
+        private readonly ProductRepositoryPort $products,
         private readonly FavoriteService $favorites,
     ) {
     }

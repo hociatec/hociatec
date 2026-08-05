@@ -44,28 +44,35 @@ final readonly class OrderHostedCheckoutCreator
             'order_id' => (string) $orderId,
             'user_id' => (string) ($user->getId() ?? 0),
         ];
-        $session = $this->stripe->createCheckoutSession([
-            'mode' => 'payment',
-            'success_url' => $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => $frontendUrl.'/orders/'.$orderId.'?payment=cancelled',
-            'customer_email' => $user->getEmail(),
-            'client_reference_id' => $localToken,
-            'locale' => 'fr',
-            'payment_method_types' => ['card'],
-            'metadata' => $metadata,
-            'payment_intent_data' => ['metadata' => $metadata],
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'eur',
-                    'product_data' => [
-                        'name' => 'Commande '.$order->getNumber(),
-                        'description' => sprintf('%d ligne(s)', count($items)),
+        $session = $this->stripe->createCheckoutSession(
+            [
+                'mode' => 'payment',
+                'success_url' => $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => $frontendUrl.'/orders/'.$orderId.'?payment=cancelled',
+                'customer_email' => $user->getEmail(),
+                'client_reference_id' => $localToken,
+                'locale' => 'fr',
+                'payment_method_types' => ['card'],
+                'metadata' => $metadata,
+                'payment_intent_data' => ['metadata' => $metadata],
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'product_data' => [
+                            'name' => 'Commande '.$order->getNumber(),
+                            'description' => sprintf('%d ligne(s)', count($items)),
+                        ],
+                        'unit_amount' => $order->getTotalPriceCents(),
                     ],
-                    'unit_amount' => $order->getTotalPriceCents(),
-                ],
-                'quantity' => 1,
-            ]],
-        ]);
+                    'quantity' => 1,
+                ]],
+            ],
+            'order_checkout:'.hash('sha256', implode('|', [
+                (string) $orderId,
+                $order->getNumber(),
+                (string) $order->getTotalPriceCents(),
+            ])),
+        );
 
         $checkout = new OrderCheckoutSession(
             $localToken,

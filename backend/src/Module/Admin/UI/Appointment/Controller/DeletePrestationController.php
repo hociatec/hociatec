@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Appointment\Controller;
 
 use App\Module\Appointment\Application\Workflow\PrestationService;
-use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeletePrestationController extends AbstractController
 {
     public function __construct(
-        private readonly PrestationRepository $prestationRepository,
+        private readonly PrestationRepositoryPort $prestationRepository,
         private readonly PrestationService $prestationService,
     ) {
     }

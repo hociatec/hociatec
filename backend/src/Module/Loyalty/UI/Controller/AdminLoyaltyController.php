@@ -7,7 +7,7 @@ namespace App\Module\Loyalty\UI\Controller;
 use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\Pagination;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class AdminLoyaltyController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $users,
+        private readonly UserRepositoryPort $users,
         private readonly LoyaltyService $loyalty,
     ) {
     }

@@ -8,7 +8,7 @@ use App\Module\Notification\Application\Notification\ComputedAccountNotification
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
-use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class AccountNotificationProvider
@@ -17,7 +17,7 @@ final readonly class AccountNotificationProvider
      * @param iterable<ComputedAccountNotificationProviderInterface> $computedProviders
      */
     public function __construct(
-        private AccountNotificationEventRepository $events,
+        private AccountNotificationEventRepositoryPort $events,
         private AccountNotificationFormatter $formatter,
         private iterable $computedProviders,
     ) {

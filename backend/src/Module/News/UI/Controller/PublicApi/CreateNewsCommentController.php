@@ -8,7 +8,7 @@ use App\Module\News\Application\DTO\CreateNewsCommentInput;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsCommentWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
-use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateNewsCommentController extends AbstractController
 {
     public function __construct(
-        private readonly NewsArticleRepository $articles,
+        private readonly NewsArticleRepositoryPort $articles,
         private readonly NewsCommentWriter $writer,
         private readonly NewsFormatter $formatter,
     ) {

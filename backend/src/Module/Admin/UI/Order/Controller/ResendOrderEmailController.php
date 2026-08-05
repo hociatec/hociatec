@@ -9,7 +9,7 @@ use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ResendOrderEmailController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepository $orders,
+        private readonly OrderRepositoryPort $orders,
         private readonly OrderNotificationEmailService $notifications,
         private readonly OrderEventLogger $events,
         private readonly DtoValidator $validator,

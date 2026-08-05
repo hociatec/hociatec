@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\News\UI\Controller\PublicApi;
 
 use App\Module\News\Application\Projection\NewsFormatter;
-use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final readonly class ListNewsArticlesController
 {
     public function __construct(
-        private NewsArticleRepository $articles,
+        private NewsArticleRepositoryPort $articles,
         private NewsFormatter $formatter,
     ) {
     }

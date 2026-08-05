@@ -7,8 +7,8 @@ namespace App\Module\BetaTest\UI\Controller;
 use App\Module\BetaTest\Application\Writer\BugReportCommentWriter;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Infrastructure\Http\BugReportCommentFormatter;
-use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
+use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
+use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateBugReportCommentController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepository $reports,
+        private readonly BugReportRepositoryPort $reports,
         private readonly BugReportAccessPolicy $accessPolicy,
         private readonly BugReportCommentWriter $writer,
         private readonly BugReportCommentFormatter $formatter,

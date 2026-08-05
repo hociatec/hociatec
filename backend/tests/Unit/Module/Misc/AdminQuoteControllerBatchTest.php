@@ -12,17 +12,17 @@ use App\Module\Admin\UI\Quote\Controller\ListServicesController;
 use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Application\Quote\Service\CreateQuoteServiceHandler;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceFormApplier;
-use App\Module\Admin\Application\Quote\Service\QuoteServiceFormMapper;
-use App\Module\Admin\Application\Quote\Service\UpdateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
+use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Domain\Entity\Service;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Infrastructure\Repository\ServiceRepository;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -78,8 +78,8 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
     public function testServiceCatalogControllers(): void
     {
-        $repository = $this->createMock(ServiceRepository::class);
-        $service = new Service('Audit', 12000, 2000);
+        $repository = $this->createMock(ServiceOfferingRepository::class);
+        $service = new ServiceOffering('Audit', 12000, 2000);
         $this->setId($service, 12);
         $service
             ->setDescription('Desc')
@@ -109,7 +109,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertSame('Audit', $listPayload['data']['items'][0]['title']);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Service::class));
+        $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(ServiceOffering::class));
         $entityManager->expects(self::exactly(2))->method('flush');
         $formApplier = new QuoteServiceFormApplier();
         $createServiceHandler = new CreateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier);
@@ -234,7 +234,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         try {
             $updateService->update(
-                new Service('Audit', 1000, 2000),
+                new ServiceOffering('Audit', 1000, 2000),
                 new QuoteServiceFormData('Audit', null, 'hour', 2, null, 1000, null, false, null, null, null, true, true)
             );
             self::fail('Expected invalid duration exception.');
@@ -244,7 +244,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
 
         try {
             $updateService->update(
-                new Service('Audit', 1000, 2000),
+                new ServiceOffering('Audit', 1000, 2000),
                 new QuoteServiceFormData('Audit', null, null, null, null, -1, null, false, null, null, null, false, false)
             );
             self::fail('Expected invalid price exception.');
@@ -279,7 +279,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertTrue($created->updatesBillingMode);
         self::assertTrue($created->updatesDuration);
 
-        $service = (new Service('Base', 1000, 2000))
+        $service = (new ServiceOffering('Base', 1000, 2000))
             ->setDescription('Desc')
             ->setUnit('jour')
             ->setDurationValue(3)

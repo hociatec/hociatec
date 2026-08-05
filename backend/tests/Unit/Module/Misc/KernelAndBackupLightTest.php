@@ -6,7 +6,8 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Kernel;
 use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
-use App\Module\Admin\Application\Backup\Service\MaintenanceModeService;
+use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;
+use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
 use App\Module\System\UI\Controller\MetricsController;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
@@ -38,7 +39,7 @@ final class KernelAndBackupLightTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::never())->method('executeQuery');
 
-        $denied = (new MetricsController($connection, 'secret'))(
+        $denied = (new MetricsController($connection, 'secret', new PrometheusMetricContractProvider()))(
             Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10'])
         );
 
@@ -52,7 +53,7 @@ final class KernelAndBackupLightTest extends TestCase
 
         $request = Request::create('/metrics', 'GET', server: ['REMOTE_ADDR' => '203.0.113.10']);
         $request->headers->set('X-Metrics-Token', 'secret');
-        $response = (new MetricsController($connection, 'secret'))($request);
+        $response = (new MetricsController($connection, 'secret', new PrometheusMetricContractProvider()))($request);
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertStringContainsString('hociatec_database_up 0', (string) $response->getContent());

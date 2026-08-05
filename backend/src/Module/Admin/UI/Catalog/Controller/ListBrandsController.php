@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Catalog\Controller;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Domain\Entity\Brand;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ class ListBrandsController extends AbstractController
 {
     public function __construct(
         private readonly BrandService $brandService,
-        private readonly ProductRepository $productRepository,
+        private readonly ProductRepositoryPort $productRepository,
     ) {
     }
 

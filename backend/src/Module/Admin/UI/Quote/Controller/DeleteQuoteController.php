@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DeleteQuoteController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteRepository $quoteRepository,
+        private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteDomainService $quoteService,
     ) {
     }

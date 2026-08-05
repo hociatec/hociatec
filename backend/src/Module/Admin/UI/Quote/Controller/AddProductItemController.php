@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteProductItemInput;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,8 +26,8 @@ class AddProductItemController extends AbstractController
 {
     public function __construct(
         private readonly QuoteWorkflowService $workflow,
-        private readonly QuoteRepository $quoteRepository,
-        private readonly ProductRepository $productRepository,
+        private readonly QuoteRepositoryPort $quoteRepository,
+        private readonly ProductRepositoryPort $productRepository,
         private readonly QuoteCalculator $calculator,
         private readonly DtoValidator $validator,
     ) {

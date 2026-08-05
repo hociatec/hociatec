@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class DownloadTradeInDocumentController extends AbstractController
 {
     public function __construct(
-        private readonly TradeInRequestRepository $requests,
+        private readonly TradeInRequestRepositoryPort $requests,
         private readonly TradeInPrivateFileStorage $files,
         private readonly AttachmentResponseFactory $attachments,
     ) {

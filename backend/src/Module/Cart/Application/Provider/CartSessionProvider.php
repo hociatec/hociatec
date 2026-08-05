@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Cart\Application\Provider;
 
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
+use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final readonly class CartSessionProvider
 {
     public function __construct(
-        private CartSessionRepository $cartSessions,
+        private CartSessionRepositoryPort $cartSessions,
         private DoctrineUnitOfWork $persistence,
     ) {
     }

@@ -7,7 +7,7 @@ namespace App\Module\Quote\UI\Controller\Client;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class GenerateMyQuotePdfController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteRepository $quoteRepository,
+        private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteCalculator $calculator,
         private readonly QuotePdfRenderer $pdfService,
         private readonly AttachmentResponseFactory $attachments,

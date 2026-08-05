@@ -12,7 +12,7 @@ use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Application\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\UI\Controller\Address\DeleteAddressController;

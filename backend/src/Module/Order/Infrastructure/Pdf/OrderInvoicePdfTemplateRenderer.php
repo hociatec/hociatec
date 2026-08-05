@@ -9,24 +9,6 @@ use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 
 final class OrderInvoicePdfTemplateRenderer
 {
-    private const ISSUER_NAME = 'Hociatec';
-    private const ISSUER_LEGAL_FORM = 'SASU';
-    private const ISSUER_EMAIL = 'contact@hociatec.fr';
-    private const ISSUER_ADDRESS_LINES = [
-        '2 allée Anatoli Vaisser',
-        '92600 Asnières-sur-Seine',
-        'France',
-    ];
-    private const ISSUER_SIREN = '934 814 559';
-    private const ISSUER_SIRET = '934 814 559 00019';
-    private const ISSUER_VAT = 'FR93934814559';
-    private const ISSUER_RCS = 'RCS Nanterre 934 814 559';
-    private const PAYMENT_TERMS = 'Paiement à 30 jours fin de mois.';
-    private const EARLY_PAYMENT_DISCOUNT = 'Aucun escompte accordé pour paiement anticipé.';
-    private const LATE_PENALTY = 'Pénalités de retard exigibles au taux BCE + 10 points.';
-    private const RECOVERY_FEE = 'Indemnité forfaitaire pour frais de recouvrement : 40 EUR.';
-    private const OPERATION_NATURE = 'Livraison de biens';
-
     public function __construct(private readonly PdfHtmlFormatter $formatter)
     {
     }
@@ -50,60 +32,14 @@ final class OrderInvoicePdfTemplateRenderer
         $deliveryDate = $this->formatDate($order->getCreatedAt()->format('Y-m-d'));
         $dueAt = $this->formatDate($order->getInvoicedAt()?->modify('+30 days')->format('Y-m-d'));
         $orderNumber = $this->escape($order->getNumber());
-        $issuerLines = implode('', array_map(
-            static fn (string $line): string => '<p>'.htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</p>',
-            self::ISSUER_ADDRESS_LINES,
-        ));
-
-        $customerDisplayName = $this->resolveCustomerName($order);
-        $customerName = '' !== $customerDisplayName ? $this->escape($customerDisplayName) : '-';
-        $customerCompany = $order->getBillingCompany() ? '<p>Société : '.$this->escape($order->getBillingCompany()).'</p>' : '<p>Client : particulier</p>';
-        $customerSiren = $order->getBillingCompanySiren() ? '<p>SIREN client : '.$this->escape($order->getBillingCompanySiren()).'</p>' : '';
-        $customerVatNumber = $order->getBillingCompanyVatNumber() ? '<p>TVA client : '.$this->escape($order->getBillingCompanyVatNumber()).'</p>' : '';
-        $customerAddress = $order->getBillingAddress() ? $this->formatMultilineAddress($order->getBillingAddress()) : '';
-        $customerCity = trim(sprintf('%s %s', (string) $order->getBillingPostalCode(), (string) $order->getBillingCity()));
-        $customerCityHtml = '' !== $customerCity ? '<p>'.$this->escape($customerCity).'</p>' : '';
-        $customerEmail = $order->getBillingEmail() ? '<p>Email : '.$this->escape($order->getBillingEmail()).'</p>' : '';
-        $customerPhone = '' !== trim($order->getUser()->getPhoneNumber()) ? '<p>Téléphone : '.$this->escape($order->getUser()->getPhoneNumber()).'</p>' : '';
-
-        $deliveryHtml = '';
-        if (
-            null !== $order->getShippingAddress()
-            && trim((string) $order->getShippingAddress()) !== trim((string) $order->getBillingAddress())
-        ) {
-            $deliveryCity = trim(sprintf('%s %s', (string) $order->getShippingPostalCode(), (string) $order->getShippingCity()));
-            $deliveryHtml = sprintf(
-                '<dt>Adresse de livraison</dt><dd>%s%s%s</dd>',
-                $order->getShippingName() ? $this->escape($order->getShippingName()).'<br>' : '',
-                $this->escape($order->getShippingAddress()),
-                '' !== $deliveryCity ? '<br>'.$this->escape($deliveryCity) : '',
-            );
-        }
-
-        $rows = '';
-        foreach ($totals['items'] as $item) {
-            $rows .= sprintf(
-                '<tr><td>%s</td><td>%s</td><td class="num">%s</td><td class="num">%s</td><td class="num">%s %%</td><td class="num">%s</td><td class="num">%s</td><td class="num">%s</td></tr>',
-                $this->escape((string) $item['name']),
-                $this->escape((string) $item['sku']),
-                (int) $item['quantity'],
-                $this->formatMoney((int) $item['unitPriceHtCents']),
-                number_format(((int) $item['vatRateBps']) / 100, 2, ',', ' '),
-                $this->formatMoney((int) $item['lineSubtotalHtCents']),
-                $this->formatMoney((int) $item['lineVatCents']),
-                $this->formatMoney((int) $item['lineTotalTtcCents']),
-            );
-        }
-
-        $taxRows = '';
-        foreach ($totals['taxBreakdown'] as $taxLine) {
-            $taxRows .= sprintf(
-                '<tr><td>%s %%</td><td class="num">%s</td><td class="num">%s</td></tr>',
-                number_format(((int) $taxLine['rateBps']) / 100, 2, ',', ' '),
-                $this->formatMoney((int) $taxLine['taxableCents']),
-                $this->formatMoney((int) $taxLine['taxCents']),
-            );
-        }
+        $css = OrderInvoicePdfStyles::documentCss();
+        $issuer = new OrderInvoicePdfIssuerBlock($this->formatter);
+        $issuerLines = $issuer->addressLines();
+        $issuerLegalDetails = $issuer->legalDetails();
+        $customer = (new OrderInvoicePdfCustomerBlock($this->formatter))->build($order);
+        $rowBuilder = new OrderInvoicePdfRows($this->formatter);
+        $rows = $rowBuilder->items($totals['items']);
+        $taxRows = $rowBuilder->taxes($totals['taxBreakdown']);
 
         return <<<HTML
 <!DOCTYPE html>
@@ -115,24 +51,7 @@ final class OrderInvoicePdfTemplateRenderer
   <meta name="generator" content="WeasyPrint PDF/UA">
   <title>Facture {$invoiceNumber}</title>
   <style>
-    @page { size: A4; margin: 18mm; }
-    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #0f172a; }
-    h1, h2 { margin: 0 0 10px; color: #0f172a; }
-    h1 { font-size: 22pt; }
-    h2 { font-size: 13pt; margin-top: 24px; }
-    p { margin: 0 0 8px; }
-    address { font-style: normal; }
-    address p { margin: 0 0 6px; }
-    .section-card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; background: #fff; }
-    .meta-list { margin: 0; padding: 0; }
-    .meta-list dt { font-weight: 700; margin-top: 8px; }
-    .meta-list dd { margin: 2px 0 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    caption { text-align: left; font-weight: 700; margin-bottom: 8px; }
-    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; vertical-align: top; text-align: left; }
-    thead th { background: #e2e8f0; font-weight: 700; }
-    .num { text-align: right; white-space: nowrap; }
-    .legal-note { font-size: 10pt; color: #334155; }
+    {$css}
   </style>
 </head>
 <body>
@@ -145,28 +64,23 @@ final class OrderInvoicePdfTemplateRenderer
     <section class="section-card">
       <h2>Émetteur</h2>
       <address>
-        <p><strong>{$this->escape(self::ISSUER_NAME)}</strong></p>
+        <p><strong>{$this->escape(OrderInvoiceIssuerProfile::NAME)}</strong></p>
         {$issuerLines}
-        <p>Email : {$this->escape(self::ISSUER_EMAIL)}</p>
-        <p>Forme juridique : {$this->escape(self::ISSUER_LEGAL_FORM)}</p>
-        <p>SIREN : {$this->escape(self::ISSUER_SIREN)}</p>
-        <p>SIRET : {$this->escape(self::ISSUER_SIRET)}</p>
-        <p>{$this->escape(self::ISSUER_RCS)}</p>
-        <p>TVA intracommunautaire : {$this->escape(self::ISSUER_VAT)}</p>
+        {$issuerLegalDetails}
       </address>
     </section>
 
     <section class="section-card">
       <h2>Client destinataire</h2>
       <address>
-        <p><strong>{$customerName}</strong></p>
-        {$customerCompany}
-        {$customerSiren}
-        {$customerVatNumber}
-        {$customerAddress}
-        {$customerCityHtml}
-        {$customerEmail}
-        {$customerPhone}
+        <p><strong>{$customer['name']}</strong></p>
+        {$customer['company']}
+        {$customer['siren']}
+        {$customer['vatNumber']}
+        {$customer['address']}
+        {$customer['city']}
+        {$customer['email']}
+        {$customer['phone']}
       </address>
     </section>
 
@@ -182,7 +96,7 @@ final class OrderInvoicePdfTemplateRenderer
         <dt>Date d'échéance</dt>
         <dd>{$dueAt}</dd>
         <dt>Nature de l'opération</dt>
-        <dd>{$this->escape(self::OPERATION_NATURE)}</dd>
+        <dd>{$this->escape(OrderInvoiceIssuerProfile::OPERATION_NATURE)}</dd>
         <dt>Référence de commande</dt>
         <dd>{$orderNumber}</dd>
         <dt>Bon de commande</dt>
@@ -191,7 +105,7 @@ final class OrderInvoicePdfTemplateRenderer
         <dd>{$this->escape($order->getCurrencyCode())}</dd>
         <dt>Format électronique</dt>
         <dd>{$this->escape($order->getElectronicFormat())}</dd>
-        {$deliveryHtml}
+        {$customer['delivery']}
       </dl>
     </section>
 
@@ -247,10 +161,10 @@ final class OrderInvoicePdfTemplateRenderer
 
     <section class="section-card legal-note">
       <h2>Paiement et pénalités</h2>
-      <p>{$this->escape(self::PAYMENT_TERMS)}</p>
-      <p>{$this->escape(self::EARLY_PAYMENT_DISCOUNT)}</p>
-      <p>{$this->escape(self::LATE_PENALTY)}</p>
-      <p>{$this->escape(self::RECOVERY_FEE)}</p>
+      <p>{$this->escape(OrderInvoiceIssuerProfile::PAYMENT_TERMS)}</p>
+      <p>{$this->escape(OrderInvoiceIssuerProfile::EARLY_PAYMENT_DISCOUNT)}</p>
+      <p>{$this->escape(OrderInvoiceIssuerProfile::LATE_PENALTY)}</p>
+      <p>{$this->escape(OrderInvoiceIssuerProfile::RECOVERY_FEE)}</p>
     </section>
   </main>
 </body>
@@ -258,33 +172,9 @@ final class OrderInvoicePdfTemplateRenderer
 HTML;
     }
 
-    private function formatMoney(int $cents): string
-    {
-        return $this->formatter->money($cents);
-    }
+    private function formatMoney(int $cents): string { return $this->formatter->money($cents); }
 
-    private function formatDate(?string $date): string
-    {
-        return $this->formatter->date($date, true);
-    }
+    private function formatDate(?string $date): string { return $this->formatter->date($date, true); }
 
-    private function escape(string $value): string
-    {
-        return $this->formatter->escape($value);
-    }
-
-    private function resolveCustomerName(Order $order): string
-    {
-        $billingName = trim((string) $order->getBillingName());
-        if ('' !== $billingName) {
-            return $billingName;
-        }
-
-        return trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName());
-    }
-
-    private function formatMultilineAddress(string $value): string
-    {
-        return $this->formatter->paragraphsFromLines($value);
-    }
+    private function escape(string $value): string { return $this->formatter->escape($value); }
 }

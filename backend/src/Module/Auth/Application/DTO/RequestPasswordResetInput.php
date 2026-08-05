@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\DTO;
 
-use App\Domain\Normalization\EmailNormalizer;
+use App\Shared\Domain\Normalization\EmailNormalizer;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class RequestPasswordResetInput

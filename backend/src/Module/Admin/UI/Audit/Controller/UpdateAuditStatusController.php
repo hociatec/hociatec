@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Audit\Controller;
 
 use App\Module\Admin\Application\Audit\DTO\AuditStatusInput;
 use App\Module\Audit\Application\Workflow\AuditEventLogger;
-use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdateAuditStatusController extends AbstractController
 {
     public function __construct(
-        private readonly AuditRequestRepository $repository,
+        private readonly AuditRequestRepositoryPort $repository,
         private readonly AuditEventLogger $events,
         private readonly DtoValidator $validator,
     ) {

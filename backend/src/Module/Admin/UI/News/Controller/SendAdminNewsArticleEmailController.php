@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\News\Controller;
 
 use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
-use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final readonly class SendAdminNewsArticleEmailController
 {
-    public function __construct(private NewsArticleRepository $articles, private NewsArticleWriter $writer)
+    public function __construct(private NewsArticleRepositoryPort $articles, private NewsArticleWriter $writer)
     {
     }
 

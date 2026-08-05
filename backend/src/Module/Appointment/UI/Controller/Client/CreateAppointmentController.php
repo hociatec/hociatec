@@ -9,7 +9,7 @@ use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Workflow\AppointmentService;
-use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -28,7 +28,7 @@ class CreateAppointmentController extends AbstractController
     public function __construct(
         private readonly AppointmentService $appointmentService,
         private readonly AppointmentFormatter $appointmentFormatter,
-        private readonly PrestationRepository $prestationRepository,
+        private readonly PrestationRepositoryPort $prestationRepository,
         private readonly DtoValidator $dtoValidator,
     ) {
     }

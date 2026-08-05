@@ -11,7 +11,7 @@ use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UpdateQuoteController extends AbstractController
 {
     public function __construct(
-        private readonly QuoteRepository $quoteRepository,
+        private readonly QuoteRepositoryPort $quoteRepository,
         private readonly QuoteDomainService $quoteService,
         private readonly QuoteCalculator $calculator,
         private readonly QuoteEmailService $quoteEmailService,

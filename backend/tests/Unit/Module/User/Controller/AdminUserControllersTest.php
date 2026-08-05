@@ -109,7 +109,7 @@ final class AdminUserControllersTest extends TestCase
 
         $controller = new UpdateCustomerAdminProfileController(
             $users,
-            new \App\Module\Admin\Application\User\Service\UpdateCustomerAdminProfileHandler($users, new DoctrineUnitOfWork($this->entityManager([User::class]))),
+            new \App\Module\Admin\Application\User\Handler\UpdateCustomerAdminProfileHandler($users, new DoctrineUnitOfWork($this->entityManager([User::class]))),
             $this->validator(2),
         );
 
@@ -178,7 +178,7 @@ final class AdminUserControllersTest extends TestCase
         $entityManager = $this->entityManager([Voucher::class]);
         $voucherRepository = $this->voucherRepository($entityManager);
         $manager = new CreateVoucherHandler(new DoctrineUnitOfWork($entityManager), new VoucherPayload($voucherRepository));
-        $customerVoucherHandler = new \App\Module\Admin\Application\User\Service\CreateCustomerVoucherHandler(
+        $customerVoucherHandler = new \App\Module\Admin\Application\User\Handler\CreateCustomerVoucherHandler(
             $manager,
             $this->voucherNotifications(),
             $voucherRepository,

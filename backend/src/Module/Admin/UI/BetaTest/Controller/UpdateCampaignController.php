@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\DTO\UpdateBetaCampaignInput;
-use App\Module\Admin\Application\BetaTest\Service\UpdateBetaCampaignHandler;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
+use App\Module\Admin\Application\BetaTest\Handler\UpdateBetaCampaignHandler;
+use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiValidationException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UpdateCampaignController extends AbstractController
 {
     public function __construct(
-        private readonly BetaCampaignRepository $campaigns,
+        private readonly BetaCampaignRepositoryPort $campaigns,
         private readonly UpdateBetaCampaignHandler $updateCampaign,
         private readonly DtoValidator $validator,
     ) {

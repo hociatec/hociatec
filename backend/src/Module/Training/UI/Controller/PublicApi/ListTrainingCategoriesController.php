@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\PublicApi;
 
 use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
-use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[RateLimited('public_api')]
 class ListTrainingCategoriesController extends AbstractController
 {
-    public function __construct(private readonly TrainingCategoryRepository $categories, private readonly TrainingCategoryFormatter $formatter)
+    public function __construct(private readonly TrainingCategoryRepositoryPort $categories, private readonly TrainingCategoryFormatter $formatter)
     {
     }
 

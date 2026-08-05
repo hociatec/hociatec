@@ -45,6 +45,6 @@ final readonly class SendPasswordResetEmailHandler implements OutboxEventHandler
             return;
         }
 
-        $this->emails->send($user, $token);
+        $this->emails->send($user, $token, $event->getKey());
     }
 }

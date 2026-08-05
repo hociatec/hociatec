@@ -39,6 +39,6 @@ final readonly class SendQuoteCreatedEmailHandler implements OutboxEventHandler
             return;
         }
 
-        $this->delivery->deliver($quote, $recipient, $this->content->build($quote));
+        $this->delivery->deliver($quote, $recipient, $this->content->build($quote), $event->getKey());
     }
 }

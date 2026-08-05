@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Rating\Application\Writer;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 class ProductReviewStatsUpdater
 {
     public function __construct(
-        private readonly ProductRatingRepository $ratings,
+        private readonly ProductRatingRepositoryPort $ratings,
         private readonly DoctrineUnitOfWork $persistence,
     ) {
     }

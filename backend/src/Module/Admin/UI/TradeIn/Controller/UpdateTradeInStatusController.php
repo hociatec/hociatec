@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInStatusInput;
 use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class UpdateTradeInStatusController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepository $requests, private readonly TradeInService $service, private readonly DtoValidator $validator)
+    public function __construct(private readonly TradeInRequestRepositoryPort $requests, private readonly TradeInService $service, private readonly DtoValidator $validator)
     {
     }
 

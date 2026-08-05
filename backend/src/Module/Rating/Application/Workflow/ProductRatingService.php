@@ -8,16 +8,16 @@ use App\Module\Comment\Domain\Entity\ProductComment;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Application\Exception\ProductReviewException;
-use App\Module\Rating\Application\Persistence\RatingPersistence;
+use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Rating\Domain\Entity\ProductRating;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 
 class ProductRatingService
 {
     public function __construct(
-        private readonly ProductRatingRepository $ratings,
+        private readonly ProductRatingRepositoryPort $ratings,
         private readonly ProductReviewStatsUpdater $statsUpdater,
         private readonly RatingPersistence $persistence,
     ) {
