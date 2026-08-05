@@ -17,6 +17,11 @@ const SUCCESS_CLASS_HINTS = [
   'booking__alert--success',
 ];
 
+const MAX_ANNOUNCEMENT_LENGTH = 180;
+
+const normalizeAnnouncementText = (value: string | null | undefined) =>
+  (value ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_ANNOUNCEMENT_LENGTH);
+
 const isErrorAlert = (element: Element) =>
   ERROR_CLASS_HINTS.some((className) => element.classList.contains(className)) ||
   /erreur|impossible|échou|echec|invalide|introuvable|required|obligatoire/i.test(
@@ -34,9 +39,12 @@ const annotateAlert = (element: Element) => {
     return;
   }
 
-  if (element.textContent?.trim() === '') {
+  const announcement = normalizeAnnouncementText(element.textContent);
+  if (announcement === '') {
     return;
   }
+
+  element.setAttribute('aria-label', element.getAttribute('aria-label') ?? announcement);
 
   if (isErrorAlert(element)) {
     element.setAttribute('role', element.getAttribute('role') ?? 'alert');
@@ -76,6 +84,7 @@ const focusPageHeading = () => {
 export const AccessibilityAnnouncer = () => {
   const location = useLocation();
   const previousPathRef = useRef<string | null>(null);
+  const previousAnnouncementRef = useRef('');
   const [routeAnnouncement, setRouteAnnouncement] = useState('');
 
   useEffect(() => {
@@ -134,7 +143,13 @@ export const AccessibilityAnnouncer = () => {
         /* noop */
       }
 
-      setRouteAnnouncement(announcement);
+      const normalizedAnnouncement = normalizeAnnouncementText(announcement);
+      if (normalizedAnnouncement && normalizedAnnouncement !== previousAnnouncementRef.current) {
+        previousAnnouncementRef.current = normalizedAnnouncement;
+        setRouteAnnouncement(normalizedAnnouncement);
+      } else {
+        setRouteAnnouncement('');
+      }
       focusPageHeading();
     }, 120);
 

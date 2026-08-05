@@ -69,7 +69,13 @@ export const AdminBugReportsTable = ({
             <td className="p-4">
               <div className="flex flex-wrap gap-2">
                 <button className="inline-flex items-center gap-1 rounded bg-stone-100 px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200" onClick={() => onOpen(report)}><MessageSquare size={14} /> Suivre</button>
-                <button className="rounded bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100" onClick={() => onDelete(report.id)}><Trash2 size={14} /></button>
+                <button
+                  className="rounded bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  onClick={() => onDelete(report.id)}
+                  aria-label={`Supprimer le signalement ${report.title}`}
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                </button>
               </div>
             </td>
           </tr>
