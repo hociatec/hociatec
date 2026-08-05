@@ -10,6 +10,7 @@ import { RegisterIntro } from '@/features/auth/components/RegisterIntro';
 import { RegisterFormFields } from '@/features/auth/components/RegisterFormFields';
 import { useToast } from '@/shared/components/ui/toast';
 import { logger } from '@/shared/lib/logger';
+import { isFeatureEnabled } from '@/shared/config/featureFlags';
 
 import './RegisterPage.css';
 
@@ -83,7 +84,8 @@ export const RegisterPage = () => {
 
   const navigate = useNavigate();
   const toast = useToast();
-  const isBetaTester = new URLSearchParams(window.location.search).get('beta') === '1';
+  const isBetaTester =
+    isFeatureEnabled('betaProgram') && new URLSearchParams(window.location.search).get('beta') === '1';
   const [form, setForm] = useState<FormState>(() => createInitialForm(isBetaTester));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -10,16 +10,25 @@ import {
   Package,
   UserRound,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyBetaProfile } from '@/features/betaTest/api/betaApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DashboardAuditCard } from './DashboardAuditCard';
 import { betaQueryKeys } from '@/shared/lib/queryKeys';
+import { isFeatureEnabled } from '@/shared/config/featureFlags';
+
+interface DashboardDestination {
+  icon: ReactNode;
+  title: string;
+  to: string;
+}
 
 export const DashboardAccessLinks = () => {
   const { status, user } = useAuth();
   const isAuthenticated = status === 'authenticated' && Boolean(user);
+  const isBetaProgramEnabled = isFeatureEnabled('betaProgram');
 
   const { data: betaProfile } = useQuery({
     queryKey: betaQueryKeys.profile(),
@@ -30,17 +39,22 @@ export const DashboardAccessLinks = () => {
 
   const isBetaTester = Boolean(betaProfile);
 
-  const destinations = [
+  const destinations: DashboardDestination[] = [
     { icon: <Package />, title: 'Commandes', to: '/orders/me' },
     { icon: <FileText />, title: 'Devis', to: '/quotes/me' },
     { icon: <CalendarDays />, title: 'Rendez-vous', to: '/appointments/me' },
     { icon: <GraduationCap />, title: 'Formations', to: '/trainings/me' },
     { icon: <BadgePercent />, title: 'Bons', to: '/vouchers/me' },
     { icon: <Package />, title: 'Reprises', to: '/reprises' },
-    isBetaTester
-      ? { icon: <FlaskConical />, title: 'Espace Bêta', to: '/beta' }
-      : { icon: <FlaskConical />, title: 'Devenir Bêta-testeur', to: '/beta-test' },
   ];
+
+  if (isBetaProgramEnabled) {
+    destinations.push(
+      isBetaTester
+        ? { icon: <FlaskConical />, title: 'Espace Bêta', to: '/beta' }
+        : { icon: <FlaskConical />, title: 'Devenir Bêta-testeur', to: '/beta-test' },
+    );
+  }
 
   return (
     <>

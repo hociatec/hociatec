@@ -1096,18 +1096,6 @@ Mesurer :
 Puis corréler les régressions avec les versions de déploiement.
 
 
-13.5 Ajouter un système de feature flags
-----------------------------------------
-
-Pour les fonctionnalités risquées ou bêta :
-- activation par environnement ;
-- activation par compte ;
-- désactivation rapide ;
-- expiration des flags.
-
-Éviter les conditions dispersées dans le code.
-
-
 14. CONFIGURATION ET ENVIRONNEMENTS
 ==================================
 

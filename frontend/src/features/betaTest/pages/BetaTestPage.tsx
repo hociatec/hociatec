@@ -2,12 +2,27 @@ import { Link } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { isFeatureEnabled } from '@/shared/config/featureFlags';
 
 export const BetaTestPage = () => {
   useDocumentTitle('Programme bêta');
   const { status } = useAuth();
+  const isBetaProgramEnabled = isFeatureEnabled('betaProgram');
   const isAuthenticated = status === 'authenticated';
   const targetLink = isAuthenticated ? '/beta/profile' : '/register?beta=1';
+
+  if (!isBetaProgramEnabled) {
+    return (
+      <SiteLayout headerVariant="light">
+        <main className="container mx-auto max-w-4xl p-4 md:p-8">
+          <h1 className="mb-4 text-3xl font-semibold md:text-4xl">Programme bêta fermé</h1>
+          <p className="max-w-2xl text-base leading-7 text-stone-700">
+            Les inscriptions au programme bêta sont temporairement suspendues.
+          </p>
+        </main>
+      </SiteLayout>
+    );
+  }
 
   return (
     <SiteLayout headerVariant="light">

@@ -23,10 +23,15 @@ import {
 import { BetaDashboardPage, BetaProfilePage } from './PublicRoutePages';
 import type { AppRouteDefinition } from './RouteDefinition';
 import { protectedElement } from './RouteDefinition';
+import { isFeatureEnabled } from '@/shared/config/featureFlags';
 
 export const protectedRoutes: AppRouteDefinition[] = [
-  { path: '/beta', element: protectedElement(<BetaDashboardPage />) },
-  { path: '/beta/profile', element: protectedElement(<BetaProfilePage />) },
+  ...(isFeatureEnabled('betaProgram')
+    ? [
+        { path: '/beta', element: protectedElement(<BetaDashboardPage />) },
+        { path: '/beta/profile', element: protectedElement(<BetaProfilePage />) },
+      ]
+    : []),
   { path: '/quotes/me', element: protectedElement(<MyQuotesPage />) },
   { path: '/quotes/me/:quoteId', element: protectedElement(<MyQuoteDetailPage />) },
   { path: '/orders/me', element: protectedElement(<MyOrdersPage />) },
