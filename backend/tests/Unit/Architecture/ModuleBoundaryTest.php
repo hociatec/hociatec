@@ -463,6 +463,40 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testProductWriteUseCasesDoNotExposeLongPositionalSignatures(): void
+    {
+        $limits = [
+            \App\Module\Admin\Application\Catalog\DTO\ProductWriteData::class => ['__construct' => 4],
+            \App\Module\Catalog\Application\DTO\ProductWriteCommand::class => ['__construct' => 5, 'forCreate' => 4, 'forUpdate' => 5],
+            \App\Module\Catalog\Application\Handler\ProductWriteHandler::class => ['create' => 1, 'update' => 1],
+            \App\Module\Catalog\Application\Writer\ProductAttributeWriter::class => ['create' => 4, 'update' => 5],
+        ];
+        $violations = [];
+
+        foreach ($limits as $class => $methods) {
+            $reflection = new \ReflectionClass($class);
+            foreach ($methods as $method => $limit) {
+                $count = $reflection->getMethod($method)->getNumberOfParameters();
+                if ($count > $limit) {
+                    $violations[] = $class.'::'.$method.' has '.$count.' parameters';
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testProductWriteHandlerSeparatesCacheInvalidationFromDatabaseTransaction(): void
+    {
+        $handler = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Handler/ProductWriteHandler.php');
+        self::assertIsString($handler);
+
+        self::assertStringNotContainsString('CacheItemPoolInterface', $handler);
+        self::assertStringNotContainsString('->clear()', $handler);
+        self::assertStringContainsString('CatalogCacheInvalidator', $handler);
+        self::assertStringContainsString('invalidateAfterWrite', $handler);
+    }
+
     public function testDomainEntityTraitsStayFocused(): void
     {
         $violations = [];
@@ -571,6 +605,8 @@ final class ModuleBoundaryTest extends TestCase
     {
         $allowed = [
             'src/Module/Outbox/Application/OutboxDispatcher.php',
+            'src/Shared/Infrastructure/Doctrine/DoctrineTransactionManager.php',
+            'src/Shared/Infrastructure/Transaction/InMemoryTransactionSideEffectRegistry.php',
         ];
         $violations = [];
         foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {

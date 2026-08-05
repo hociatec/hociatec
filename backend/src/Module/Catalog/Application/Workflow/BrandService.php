@@ -25,9 +25,14 @@ final class BrandService
     /**
      * @return list<Brand>
      */
-    public function listForAdmin(): array
+    public function listForAdmin(int $limit = 50, int $offset = 0): array
     {
-        return $this->brandRepository->findAllForAdmin();
+        return $this->brandRepository->findAllForAdmin($limit, $offset);
+    }
+
+    public function countForAdmin(): int
+    {
+        return $this->brandRepository->countForAdmin();
     }
 
     public function create(string $name): Brand

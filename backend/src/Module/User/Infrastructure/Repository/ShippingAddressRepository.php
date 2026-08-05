@@ -39,15 +39,27 @@ class ShippingAddressRepository extends ServiceEntityRepository implements Shipp
     }
 
     /** @return list<ShippingAddress> */
-    public function findAllForUser(User $user): array
+    public function findAllForUser(User $user, int $limit = 20, int $offset = 0): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.user = :user')
             ->setParameter('user', $user)
             ->orderBy('a.isDefault', 'DESC')
             ->addOrderBy('a.id', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countForUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->andWhere('a.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findOneForUser(int $id, User $user): ?ShippingAddress

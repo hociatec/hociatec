@@ -18,9 +18,9 @@ class PendingReviewResolver
     /**
      * @return list<array<string, mixed>>
      */
-    public function resolve(User $user): array
+    public function resolve(User $user, int $limit = 20, int $offset = 0): array
     {
-        $items = $this->orderItems->findPendingReviewItemsForUser($user);
+        $items = $this->orderItems->findPendingReviewItemsForUser($user, $limit, $offset);
 
         $pending = [];
         foreach ($items as $item) {
@@ -44,5 +44,10 @@ class PendingReviewResolver
         }
 
         return $pending;
+    }
+
+    public function count(User $user): int
+    {
+        return $this->orderItems->countPendingReviewItemsForUser($user);
     }
 }

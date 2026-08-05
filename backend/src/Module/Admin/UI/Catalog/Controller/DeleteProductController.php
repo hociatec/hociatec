@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Module\Catalog\Application\Workflow\ProductService;
-use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Module\Catalog\Application\Handler\ProductWriteHandler;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ class DeleteProductController extends AbstractController
 {
     public function __construct(
         private readonly ProductRepositoryPort $productRepository,
-        private readonly ProductService $productService,
+        private readonly ProductWriteHandler $products,
     ) {
     }
 
@@ -33,7 +33,7 @@ class DeleteProductController extends AbstractController
         }
 
         try {
-            $this->productService->delete($product);
+            $this->products->delete($product);
         } catch (CatalogOperationException $exception) {
             return ApiResponse::internalError($exception->getMessage());
         }

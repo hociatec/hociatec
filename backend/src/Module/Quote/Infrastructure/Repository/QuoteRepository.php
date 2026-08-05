@@ -59,39 +59,48 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
     /**
      * @return list<Quote>
      */
-    public function findBySearch(?string $search, ?string $statusCode): array
+    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0): array
     {
-        $qb = $this->createQueryBuilder('q')
-            ->orderBy('q.createdAt', 'DESC');
+        return $this->createSearchQuery($search, $statusCode)
+            ->orderBy('q.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
 
-        if (null !== $search && '' !== $search) {
-            $qb->andWhere('q.number LIKE :term OR q.customerName LIKE :term OR q.customerEmail LIKE :term')
-                ->setParameter('term', '%'.$search.'%');
-        }
-
-        if (null !== $statusCode) {
-            $statusCode = trim($statusCode);
-            if ('' !== $statusCode && 'all' !== strtolower($statusCode)) {
-                $qb->andWhere('q.status = :status')
-                    ->setParameter('status', $statusCode);
-            }
-        }
-
-        return $qb->getQuery()->getResult();
+    public function countBySearch(?string $search, ?string $statusCode): int
+    {
+        return (int) $this->createSearchQuery($search, $statusCode)
+            ->select('COUNT(q.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /** @return list<Quote> */
-    public function findByCustomerEmail(string $email): array
+    public function findByCustomerEmail(string $email, int $limit = 20, int $offset = 0): array
     {
         /** @var list<Quote> $quotes */
         $quotes = $this->createQueryBuilder('q')
             ->andWhere('LOWER(q.customerEmail) = LOWER(:email)')
             ->setParameter('email', $email)
             ->orderBy('q.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
 
         return $quotes;
+    }
+
+    public function countByCustomerEmail(string $email): int
+    {
+        return (int) $this->createQueryBuilder('q')
+            ->select('COUNT(q.id)')
+            ->andWhere('LOWER(q.customerEmail) = LOWER(:email)')
+            ->setParameter('email', $email)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -136,5 +145,25 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
             ->setMaxResults(max(1, $limit))
             ->getQuery()
             ->getResult();
+    }
+
+    private function createSearchQuery(?string $search, ?string $statusCode): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('q');
+
+        if (null !== $search && '' !== trim($search)) {
+            $qb->andWhere('q.number LIKE :term OR q.customerName LIKE :term OR q.customerEmail LIKE :term')
+                ->setParameter('term', '%'.trim($search).'%');
+        }
+
+        if (null !== $statusCode) {
+            $statusCode = trim($statusCode);
+            if ('' !== $statusCode && 'all' !== strtolower($statusCode)) {
+                $qb->andWhere('q.status = :status')
+                    ->setParameter('status', $statusCode);
+            }
+        }
+
+        return $qb;
     }
 }

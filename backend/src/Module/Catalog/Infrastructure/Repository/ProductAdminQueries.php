@@ -21,8 +21,8 @@ trait ProductAdminQueries
         ?int $maxPriceCents = null,
         ?bool $lowStockOnly = null,
         ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
+        int $limit = 100,
+        int $offset = 0,
     ): array {
         $qb = $this->createAdminQuery(
             $categorySlug,
@@ -35,13 +35,8 @@ trait ProductAdminQueries
             $sort,
         );
 
-        if (null !== $offset) {
-            $qb->setFirstResult(max(0, $offset));
-        }
-
-        if (null !== $limit) {
-            $qb->setMaxResults(max(1, $limit));
-        }
+        $qb->setFirstResult(max(0, $offset));
+        $qb->setMaxResults(max(1, min(100, $limit)));
 
         return $qb
             ->getQuery()

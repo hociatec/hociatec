@@ -52,6 +52,9 @@ services:
     App\Shared\Application\UnitOfWork:
         alias: App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork
 
+    App\Shared\Application\TransactionSideEffectRegistry:
+        alias: App\Shared\Infrastructure\Transaction\InMemoryTransactionSideEffectRegistry
+
     App\Module\Admin\Application\Operations\Persistence\OperationsPersistence:
         alias: App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence
 
@@ -218,6 +221,9 @@ services:
 
     App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort:
         alias: App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository
+
+    App\Module\Marketing\Application\Port\EmailCampaignRecipientRepositoryPort:
+        alias: App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository
 
     App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort:
         alias: App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository

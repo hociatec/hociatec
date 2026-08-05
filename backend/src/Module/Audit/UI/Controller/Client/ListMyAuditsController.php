@@ -8,8 +8,10 @@ use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,14 +25,16 @@ class ListMyAuditsController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
-        $items = $this->repository->findByUser($user);
+        $items = $this->repository->findByUser($user, $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::success([
-            'items' => array_map(function ($a) {
+        return ApiResponse::paginated(
+            array_map(function ($a) {
                 return [
                     'id' => $a->getId(),
                     'number' => $a->getNumber(),
@@ -42,6 +46,7 @@ class ListMyAuditsController extends AbstractController
                     'createdAt' => $a->getCreatedAt()->format(DATE_ATOM),
                 ];
             }, $items),
-        ]);
+            $pagination->metadata($this->repository->countByUser($user)),
+        );
     }
 }

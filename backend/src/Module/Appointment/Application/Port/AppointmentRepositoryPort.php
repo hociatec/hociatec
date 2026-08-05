@@ -27,5 +27,15 @@ interface AppointmentRepositoryPort
     public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end): array;
 
     /** @return list<Appointment> */
-    public function findForUser(User $user, ?string $status = null): array;
+    public function findForUser(User $user, ?string $status = null, int $limit = 20, int $offset = 0): array;
+
+    /** @return list<Appointment> */
+    public function findUpcomingForUser(User $user, \DateTimeImmutable $now, int $limit = 20, int $offset = 0): array;
+
+    public function countUpcomingForUser(User $user, \DateTimeImmutable $now): int;
+
+    /** @return list<Appointment> */
+    public function findPastForUser(User $user, \DateTimeImmutable $now, int $limit = 20, int $offset = 0): array;
+
+    public function countPastForUser(User $user, \DateTimeImmutable $now): int;
 }

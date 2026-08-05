@@ -9,6 +9,8 @@ use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class GroupedLowStockCounter
 {
+    private const BATCH_SIZE = 100;
+
     public function __construct(private ProductCatalogRepository $products)
     {
     }
@@ -16,16 +18,23 @@ final readonly class GroupedLowStockCounter
     public function countPublished(int $threshold): int
     {
         $groups = [];
+        $offset = 0;
 
-        /** @var Product $product */
-        foreach ($this->products->findAllForAdmin() as $product) {
-            if (!$product->isPublished()) {
-                continue;
+        do {
+            $page = $this->products->findAllForAdmin(limit: self::BATCH_SIZE, offset: $offset);
+
+            /** @var Product $product */
+            foreach ($page as $product) {
+                if (!$product->isPublished()) {
+                    continue;
+                }
+
+                $key = $this->groupKey($product);
+                $groups[$key] = ($groups[$key] ?? 0) + $product->getStock();
             }
 
-            $key = $this->groupKey($product);
-            $groups[$key] = ($groups[$key] ?? 0) + $product->getStock();
-        }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
 
         return count(array_filter(
             $groups,

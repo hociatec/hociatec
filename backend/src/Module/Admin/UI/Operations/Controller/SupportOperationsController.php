@@ -14,6 +14,7 @@ use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\Pagination;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,9 +31,15 @@ final readonly class SupportOperationsController
     }
 
     #[Route('', name: 'api_admin_operations_support_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(?Request $request = null): JsonResponse
     {
-        return ApiResponse::successItem('items', $this->support->list());
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request);
+
+        return ApiResponse::paginated(
+            $this->support->list($pagination->perPage, $pagination->offset()),
+            $pagination->metadata($this->support->count()),
+        );
     }
 
     #[Route('', name: 'api_admin_operations_support_create', methods: ['POST'])]

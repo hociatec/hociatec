@@ -23,9 +23,14 @@ final class PrestationService
     /**
      * @return list<Prestation>
      */
-    public function list(): array
+    public function list(int $limit = 50, int $offset = 0): array
     {
-        return $this->prestationRepository->findAllOrderedByName();
+        return $this->prestationRepository->findAllOrderedByName($limit, $offset);
+    }
+
+    public function count(): int
+    {
+        return $this->prestationRepository->countAll();
     }
 
     public function create(string $name, int $durationMinutes, int $priceCents): Prestation

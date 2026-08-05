@@ -18,5 +18,7 @@ interface TrainingCategoryRepositoryPort
     public function findOneBy(array $criteria, ?array $orderBy = null): ?TrainingCategory;
 
     /** @return list<TrainingCategory> */
-    public function findOrdered(bool $activeOnly = false): array;
+    public function findOrdered(bool $activeOnly = false, int $limit = 50, int $offset = 0): array;
+
+    public function countOrdered(bool $activeOnly = false): int;
 }

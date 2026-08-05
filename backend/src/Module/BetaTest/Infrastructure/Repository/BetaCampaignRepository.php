@@ -29,4 +29,33 @@ final class BetaCampaignRepository extends ServiceEntityRepository implements Be
 
         return $campaign instanceof BetaCampaign ? $campaign : null;
     }
+
+    /** @return list<BetaCampaign> */
+    public function findOpenForReports(\DateTimeImmutable $now, int $limit = 20, int $offset = 0): array
+    {
+        return $this->createOpenForReportsQuery($now)
+            ->orderBy('c.startsAt', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countOpenForReports(\DateTimeImmutable $now): int
+    {
+        return (int) $this->createOpenForReportsQuery($now)
+            ->select('COUNT(c.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createOpenForReportsQuery(\DateTimeImmutable $now): \Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.status = :status')
+            ->andWhere('c.startsAt IS NULL OR c.startsAt <= :now')
+            ->andWhere('c.endsAt IS NULL OR c.endsAt >= :now')
+            ->setParameter('status', BetaCampaign::STATUS_ACTIVE)
+            ->setParameter('now', $now);
+    }
 }

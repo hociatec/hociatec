@@ -12,10 +12,14 @@ interface CategoryRepositoryPort
     public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Category;
 
     /** @return list<Category> */
-    public function findAllVisibleOrdered(): array;
+    public function findAllVisibleOrdered(int $limit = 50, int $offset = 0): array;
+
+    public function countVisible(): int;
 
     /** @return list<Category> */
-    public function findAllForAdmin(): array;
+    public function findAllForAdmin(int $limit = 50, int $offset = 0): array;
+
+    public function countForAdmin(): int;
 
     public function findOneVisibleBySlug(string $slug): ?Category;
 

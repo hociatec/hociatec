@@ -49,7 +49,7 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
     /**
      * @return list<Favorite>
      */
-    public function findFavoritesForUser(User $user): array
+    public function findFavoritesForUser(User $user, int $limit = 20, int $offset = 0): array
     {
         return $this->createQueryBuilder('f')
             ->addSelect('p', 'c')
@@ -58,7 +58,19 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
             ->andWhere('f.user = :user')
             ->setParameter('user', $user)
             ->orderBy('f.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countFavoritesForUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('f')
+            ->select('COUNT(f.id)')
+            ->andWhere('f.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

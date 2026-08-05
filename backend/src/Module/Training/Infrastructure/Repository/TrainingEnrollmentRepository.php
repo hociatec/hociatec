@@ -77,8 +77,13 @@ class TrainingEnrollmentRepository extends ServiceEntityRepository implements Tr
     }
 
     /** @return list<TrainingEnrollment> */
-    public function findForUser(User $user): array
+    public function findForUser(User $user, int $limit = 20, int $offset = 0): array
     {
-        return $this->findBy(['user' => $user], ['createdAt' => 'DESC']);
+        return $this->findBy(['user' => $user], ['createdAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset));
+    }
+
+    public function countForUser(User $user): int
+    {
+        return $this->count(['user' => $user]);
     }
 }

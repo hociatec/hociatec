@@ -21,9 +21,14 @@ class FavoriteService
     /**
      * @return list<Favorite>
      */
-    public function listForUser(User $user): array
+    public function listForUser(User $user, int $limit = 20, int $offset = 0): array
     {
-        return $this->favorites->findFavoritesForUser($user);
+        return $this->favorites->findFavoritesForUser($user, $limit, $offset);
+    }
+
+    public function countForUser(User $user): int
+    {
+        return $this->favorites->countFavoritesForUser($user);
     }
 
     /**

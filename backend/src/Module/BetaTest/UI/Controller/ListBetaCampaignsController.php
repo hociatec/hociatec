@@ -10,8 +10,10 @@ use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -25,8 +27,10 @@ final class ListBetaCampaignsController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 10, 50);
         $user = $this->getUser();
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
@@ -34,12 +38,15 @@ final class ListBetaCampaignsController extends AbstractController
 
         $profile = $this->profiles->findOneByUser($user);
         if (null === $profile || BetaTesterProfile::STATUS_ACCEPTED !== $profile->getStatus()) {
-            return ApiResponse::success(['items' => []]);
+            return ApiResponse::paginated([], $pagination->metadata(0));
         }
 
         $now = new \DateTimeImmutable();
-        $campaigns = $this->campaigns->openCampaigns();
+        $campaigns = $this->campaigns->openCampaigns($pagination->perPage, $pagination->offset());
 
-        return ApiResponse::successItem('items', array_map(fn ($campaign) => $this->formatter->format($campaign, $now), $campaigns));
+        return ApiResponse::paginated(
+            array_map(fn ($campaign) => $this->formatter->format($campaign, $now), $campaigns),
+            $pagination->metadata($this->campaigns->countOpenCampaigns()),
+        );
     }
 }

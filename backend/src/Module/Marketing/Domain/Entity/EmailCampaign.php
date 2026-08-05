@@ -42,6 +42,18 @@ class EmailCampaign
     #[ORM\Column(type: 'integer')]
     private int $recipientsCount = 0;
 
+    #[ORM\Column(type: 'integer')]
+    private int $pendingCount = 0;
+
+    #[ORM\Column(type: 'integer')]
+    private int $sentCount = 0;
+
+    #[ORM\Column(type: 'integer')]
+    private int $failedCount = 0;
+
+    #[ORM\Column(type: 'integer')]
+    private int $skippedCount = 0;
+
     #[ORM\Column(length: 180, nullable: true)]
     private ?string $createdByEmail = null;
 
@@ -137,6 +149,54 @@ class EmailCampaign
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    public function getPendingCount(): int
+    {
+        return $this->pendingCount;
+    }
+
+    public function getSentCount(): int
+    {
+        return $this->sentCount;
+    }
+
+    public function getFailedCount(): int
+    {
+        return $this->failedCount;
+    }
+
+    public function getSkippedCount(): int
+    {
+        return $this->skippedCount;
+    }
+
+    public function registerRecipientStatus(string $status): void
+    {
+        $this->incrementStatus($status);
+        if (EmailCampaignRecipient::STATUS_SKIPPED !== $status) {
+            ++$this->recipientsCount;
+        }
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function transitionRecipientStatus(string $from, string $to): void
+    {
+        if ($from === $to) {
+            return;
+        }
+
+        $this->decrementStatus($from);
+        $this->incrementStatus($to);
+
+        if (EmailCampaignRecipient::STATUS_SKIPPED === $from && EmailCampaignRecipient::STATUS_SKIPPED !== $to) {
+            ++$this->recipientsCount;
+        }
+        if (EmailCampaignRecipient::STATUS_SKIPPED !== $from && EmailCampaignRecipient::STATUS_SKIPPED === $to) {
+            $this->recipientsCount = max(0, $this->recipientsCount - 1);
+        }
+
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     public function getCreatedByEmail(): ?string
     {
         return $this->createdByEmail;
@@ -161,5 +221,27 @@ class EmailCampaign
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function incrementStatus(string $status): void
+    {
+        match ($status) {
+            EmailCampaignRecipient::STATUS_PENDING => ++$this->pendingCount,
+            EmailCampaignRecipient::STATUS_SENT => ++$this->sentCount,
+            EmailCampaignRecipient::STATUS_FAILED => ++$this->failedCount,
+            EmailCampaignRecipient::STATUS_SKIPPED => ++$this->skippedCount,
+            default => throw new \InvalidArgumentException('Statut de destinataire marketing inconnu.'),
+        };
+    }
+
+    private function decrementStatus(string $status): void
+    {
+        match ($status) {
+            EmailCampaignRecipient::STATUS_PENDING => $this->pendingCount = max(0, $this->pendingCount - 1),
+            EmailCampaignRecipient::STATUS_SENT => $this->sentCount = max(0, $this->sentCount - 1),
+            EmailCampaignRecipient::STATUS_FAILED => $this->failedCount = max(0, $this->failedCount - 1),
+            EmailCampaignRecipient::STATUS_SKIPPED => $this->skippedCount = max(0, $this->skippedCount - 1),
+            default => throw new \InvalidArgumentException('Statut de destinataire marketing inconnu.'),
+        };
     }
 }

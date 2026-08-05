@@ -14,7 +14,9 @@ interface ShippingAddressRepositoryPort
     public function delete(ShippingAddress $address): void;
 
     /** @return list<ShippingAddress> */
-    public function findAllForUser(User $user): array;
+    public function findAllForUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countForUser(User $user): int;
 
     public function findOneForUser(int $id, User $user): ?ShippingAddress;
 

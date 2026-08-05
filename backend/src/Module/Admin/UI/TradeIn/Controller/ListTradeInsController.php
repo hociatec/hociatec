@@ -8,6 +8,7 @@ use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,9 +25,13 @@ final class ListTradeInsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
+        $pagination = Pagination::fromRequest($request);
         $statusValue = $request->query->get('status');
         $status = is_string($statusValue) ? TradeInStatus::tryFrom($statusValue) : null;
+        $search = is_string($request->query->get('q')) ? $request->query->get('q') : null;
+        $items = $this->requests->findForAdmin($search, $status, $pagination->perPage, $pagination->offset());
+        $total = $this->requests->countForAdmin($search, $status);
 
-        return ApiResponse::successItem('items', array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findForAdmin(is_string($request->query->get('q')) ? $request->query->get('q') : null, $status)));
+        return ApiResponse::paginated(array_map(static fn ($item) => TradeInFormatter::format($item), $items), $pagination->metadata($total));
     }
 }

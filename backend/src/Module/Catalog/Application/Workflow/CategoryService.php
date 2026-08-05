@@ -26,9 +26,14 @@ final class CategoryService
     /**
      * @return list<Category>
      */
-    public function listVisible(): array
+    public function listVisible(int $limit = 50, int $offset = 0): array
     {
-        return $this->categoryRepository->findAllVisibleOrdered();
+        return $this->categoryRepository->findAllVisibleOrdered($limit, $offset);
+    }
+
+    public function countVisible(): int
+    {
+        return $this->categoryRepository->countVisible();
     }
 
     public function findVisibleBySlug(string $slug): ?Category
@@ -39,9 +44,14 @@ final class CategoryService
     /**
      * @return list<Category>
      */
-    public function listForAdmin(): array
+    public function listForAdmin(int $limit = 50, int $offset = 0): array
     {
-        return $this->categoryRepository->findAllForAdmin();
+        return $this->categoryRepository->findAllForAdmin($limit, $offset);
+    }
+
+    public function countForAdmin(): int
+    {
+        return $this->categoryRepository->countForAdmin();
     }
 
     public function create(string $name, ?string $slug, ?string $description, bool $isVisible): Category

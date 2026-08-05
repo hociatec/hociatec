@@ -254,6 +254,8 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         $builder->method('andWhere')->willReturnSelf();
         $builder->method('setParameter')->willReturnSelf();
         $builder->method('orderBy')->willReturnSelf();
+        $builder->method('setFirstResult')->willReturnSelf();
+        $builder->method('setMaxResults')->willReturnSelf();
         $builder->method('getQuery')->willReturn($query);
 
         return $builder;

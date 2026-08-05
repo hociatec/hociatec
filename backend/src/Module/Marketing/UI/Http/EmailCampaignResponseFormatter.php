@@ -18,6 +18,10 @@ final readonly class EmailCampaignResponseFormatter
             'criteria' => $campaign->getCriteria(),
             'subjectSnapshot' => $campaign->getSubjectSnapshot(),
             'recipientsCount' => $campaign->getRecipientsCount(),
+            'pendingCount' => $campaign->getPendingCount(),
+            'sentCount' => $campaign->getSentCount(),
+            'failedCount' => $campaign->getFailedCount(),
+            'skippedCount' => $campaign->getSkippedCount(),
             'createdByEmail' => $campaign->getCreatedByEmail(),
             'sentAt' => $campaign->getSentAt()->format(DATE_ATOM),
             'template' => $campaign->getTemplate() ? [
@@ -34,6 +38,10 @@ final readonly class EmailCampaignResponseFormatter
             'id' => $campaign->getId(),
             'name' => $campaign->getName(),
             'recipientsCount' => $campaign->getRecipientsCount(),
+            'pendingCount' => $campaign->getPendingCount(),
+            'sentCount' => $campaign->getSentCount(),
+            'failedCount' => $campaign->getFailedCount(),
+            'skippedCount' => $campaign->getSkippedCount(),
             'sentAt' => $campaign->getSentAt()->format(DATE_ATOM),
         ];
     }

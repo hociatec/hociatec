@@ -33,25 +33,47 @@ class CategoryRepository extends ServiceEntityRepository implements CategoryRepo
     /**
      * @return list<Category>
      */
-    public function findAllVisibleOrdered(): array
+    public function findAllVisibleOrdered(int $limit = 50, int $offset = 0): array
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.isVisible = :visible')
             ->setParameter('visible', true)
             ->orderBy('c.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countVisible(): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.isVisible = :visible')
+            ->setParameter('visible', true)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
      * @return list<Category>
      */
-    public function findAllForAdmin(): array
+    public function findAllForAdmin(int $limit = 50, int $offset = 0): array
     {
         return $this->createQueryBuilder('c')
             ->orderBy('c.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countForAdmin(): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findOneVisibleBySlug(string $slug): ?Category

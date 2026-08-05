@@ -24,5 +24,7 @@ interface AuditRequestRepositoryPort
     public function count(array $criteria): int;
 
     /** @return list<AuditRequest> */
-    public function findByUser(User $user): array;
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countByUser(User $user): int;
 }

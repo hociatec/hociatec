@@ -15,5 +15,7 @@ interface FavoriteRepositoryPort
     public function existsForUserAndProduct(User $user, Product $product): bool;
 
     /** @return list<Favorite> */
-    public function findFavoritesForUser(User $user): array;
+    public function findFavoritesForUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countFavoritesForUser(User $user): int;
 }

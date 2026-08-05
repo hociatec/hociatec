@@ -25,8 +25,8 @@ final readonly class ProductQueryService
         ?int $maxPriceCents = null,
         ?bool $lowStockOnly = null,
         ?string $sort = null,
-        ?int $limit = null,
-        ?int $offset = null,
+        int $limit = 100,
+        int $offset = 0,
     ): array {
         return $this->products->findAllForAdmin(
             $categorySlug,

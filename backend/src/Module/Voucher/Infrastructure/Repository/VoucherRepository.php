@@ -71,13 +71,25 @@ final class VoucherRepository extends ServiceEntityRepository implements Voucher
     /**
      * @return list<Voucher>
      */
-    public function findByRecipientUserId(int $userId): array
+    public function findByRecipientUserId(int $userId, int $limit = 20, int $offset = 0): array
     {
         return $this->createQueryBuilder('v')
             ->andWhere('v.recipientUserId = :userId')
             ->setParameter('userId', $userId)
             ->orderBy('v.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByRecipientUserId(int $userId): int
+    {
+        return (int) $this->createQueryBuilder('v')
+            ->select('COUNT(v.id)')
+            ->andWhere('v.recipientUserId = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

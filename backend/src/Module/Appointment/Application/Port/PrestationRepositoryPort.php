@@ -12,7 +12,9 @@ interface PrestationRepositoryPort
     public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Prestation;
 
     /** @return list<Prestation> */
-    public function findAllOrderedByName(): array;
+    public function findAllOrderedByName(int $limit = 50, int $offset = 0): array;
+
+    public function countAll(): int;
 
     public function remove(Prestation $prestation): void;
 }

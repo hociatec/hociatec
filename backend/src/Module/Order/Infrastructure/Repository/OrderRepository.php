@@ -72,14 +72,26 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     /**
      * @return list<Order>
      */
-    public function findByUser(User $user): array
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user)
             ->orderBy('o.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->andWhere('o.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function hasActiveForUser(User $user): bool

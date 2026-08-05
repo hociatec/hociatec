@@ -33,5 +33,7 @@ interface TrainingEnrollmentRepositoryPort
     public function findOneByStripeSessionId(string $stripeSessionId): ?TrainingEnrollment;
 
     /** @return list<TrainingEnrollment> */
-    public function findForUser(User $user): array;
+    public function findForUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countForUser(User $user): int;
 }

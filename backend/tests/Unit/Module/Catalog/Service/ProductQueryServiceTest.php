@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
+use App\Module\Admin\Application\Catalog\Mapper\ProductAdminListQueryMapper;
+use App\Module\Admin\UI\Catalog\Controller\ListProductsController;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 final class ProductQueryServiceTest extends TestCase
 {
@@ -30,6 +33,33 @@ final class ProductQueryServiceTest extends TestCase
 
         self::assertSame([$product], $service->listForAdmin('phones', 'iphone', true, 'rental', 1000, 2000, true, 'price_desc', 25, 50));
         self::assertSame(7, $service->countForAdmin('phones', 'iphone', true, 'rental', 1000, 2000, true));
+    }
+
+    public function testAdminProductListUsesBoundedPaginationWithoutFilters(): void
+    {
+        $repository = $this->createMock(ProductRepository::class);
+        $product = new Product('Phone', 'phone', 'PH-1', 'Desc', 10000, 2, new Category('Phones', 'phones'));
+
+        $repository->expects(self::once())
+            ->method('findAllForAdmin')
+            ->with(null, null, null, null, null, null, false, null, 12, 0)
+            ->willReturn([$product]);
+        $repository->expects(self::once())
+            ->method('countForAdmin')
+            ->with(null, null, null, null, null, null, false)
+            ->willReturn(101);
+
+        $controller = new ListProductsController(
+            new ProductQueryService($repository),
+            new ProductAdminListQueryMapper(),
+        );
+
+        $payload = json_decode((string) $controller(new Request())->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(1, $payload['data']['meta']['page']);
+        self::assertSame(12, $payload['data']['meta']['perPage']);
+        self::assertSame(101, $payload['data']['meta']['total']);
+        self::assertSame(9, $payload['data']['meta']['totalPages']);
     }
 
     public function testPublishedQueriesDelegateFiltersFacetsAndSlugLookup(): void

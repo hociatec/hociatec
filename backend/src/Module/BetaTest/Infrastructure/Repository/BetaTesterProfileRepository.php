@@ -37,4 +37,45 @@ final class BetaTesterProfileRepository extends ServiceEntityRepository implemen
 
         return $result instanceof BetaTesterProfile ? $result : null;
     }
+
+    /** @return list<BetaTesterProfile> */
+    public function findForAdminList(string $search = '', string $status = '', string $accessibility = '', int $limit = 20, int $offset = 0): array
+    {
+        return $this->createAdminListQuery($search, $status, $accessibility)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countForAdminList(string $search = '', string $status = '', string $accessibility = ''): int
+    {
+        return (int) $this->createAdminListQuery($search, $status, $accessibility)
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createAdminListQuery(string $search, string $status, string $accessibility): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->join('p.user', 'u')
+            ->addSelect('u');
+
+        if ('' !== trim($search)) {
+            $qb->andWhere('LOWER(u.identity.firstName) LIKE :search OR LOWER(u.identity.lastName) LIKE :search OR LOWER(u.identity.email) LIKE :search')
+                ->setParameter('search', '%'.mb_strtolower(trim($search)).'%');
+        }
+
+        if ('' !== trim($status)) {
+            $qb->andWhere('p.status = :status')->setParameter('status', trim($status));
+        }
+
+        if ('' !== trim($accessibility)) {
+            $qb->andWhere('p.accessibilityNeed = :accessibility')->setParameter('accessibility', trim($accessibility));
+        }
+
+        return $qb;
+    }
 }

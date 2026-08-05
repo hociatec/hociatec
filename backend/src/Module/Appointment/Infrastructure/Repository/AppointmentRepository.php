@@ -51,12 +51,14 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
     /**
      * @return list<Appointment>
      */
-    public function findForUser(User $user, ?string $status = null): array
+    public function findForUser(User $user, ?string $status = null, int $limit = 20, int $offset = 0): array
     {
         $qb = $this->createQueryBuilder('a')
             ->andWhere('a.user = :user')
             ->setParameter('user', $user)
-            ->orderBy('a.startAt', 'DESC');
+            ->orderBy('a.startAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)));
 
         if (null !== $status) {
             $qb->andWhere('a.status = :status')
@@ -64,5 +66,57 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    /** @return list<Appointment> */
+    public function findUpcomingForUser(User $user, \DateTimeImmutable $now, int $limit = 20, int $offset = 0): array
+    {
+        return $this->createUserPeriodQuery($user, $now, true)
+            ->orderBy('a.startAt', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countUpcomingForUser(User $user, \DateTimeImmutable $now): int
+    {
+        return $this->countUserPeriod($user, $now, true);
+    }
+
+    /** @return list<Appointment> */
+    public function findPastForUser(User $user, \DateTimeImmutable $now, int $limit = 20, int $offset = 0): array
+    {
+        return $this->createUserPeriodQuery($user, $now, false)
+            ->orderBy('a.startAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countPastForUser(User $user, \DateTimeImmutable $now): int
+    {
+        return $this->countUserPeriod($user, $now, false);
+    }
+
+    private function countUserPeriod(User $user, \DateTimeImmutable $now, bool $upcoming): int
+    {
+        return (int) $this->createUserPeriodQuery($user, $now, $upcoming)
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createUserPeriodQuery(User $user, \DateTimeImmutable $now, bool $upcoming): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->andWhere('a.user = :user')
+            ->setParameter('user', $user)
+            ->setParameter('now', $now);
+
+        $qb->andWhere($upcoming ? 'a.startAt >= :now' : 'a.startAt < :now');
+
+        return $qb;
     }
 }

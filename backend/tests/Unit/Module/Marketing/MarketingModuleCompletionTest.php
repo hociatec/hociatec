@@ -8,15 +8,19 @@ use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
+use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
 use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
 use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
 use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery;
 use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery;
+use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository;
+use App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
@@ -25,6 +29,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -77,6 +82,8 @@ final class MarketingModuleCompletionTest extends TestCase
 
         self::assertInstanceOf(EmailCampaign::class, $campaign);
         self::assertSame(1, $campaign->getRecipientsCount());
+        self::assertSame(1, $campaign->getPendingCount());
+        self::assertSame(1, $campaign->getSkippedCount());
         self::assertSame('admin@example.com', $campaign->getCreatedByEmail());
     }
 
@@ -139,6 +146,43 @@ final class MarketingModuleCompletionTest extends TestCase
         self::assertNotSame('', $context['days_since_last_order']);
     }
 
+    public function testMarketingRecipientWorkerMarksSentAndIgnoresReplay(): void
+    {
+        $em = $this->entityManager();
+        $user = $this->user('news-worker@example.com', [CommunicationPreferences::NEWS_EMAIL]);
+        $campaign = new EmailCampaign('Worker campaign', 'all_verified_users', [], 'Bonjour {{first_name}}', '<p>{{email}}</p>', null, 0, 'admin@example.com');
+        $recipient = EmailCampaignRecipient::pending($campaign, $user);
+        $em->persist($user);
+        $em->persist($campaign);
+        $em->persist($recipient);
+        $em->flush();
+
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::once())
+            ->method('send')
+            ->with(self::callback(static fn (Email $email): bool => 'Bonjour Ada' === $email->getSubject()));
+
+        $handler = new SendMarketingCampaignRecipientEmailHandler(
+            new EmailCampaignRecipientRepository($this->registry($em)),
+            new UserRepository($this->registry($em)),
+            new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'),
+            new MarketingTemplateRenderer(),
+            $this->notifier($em),
+            new DoctrineUnitOfWork($em),
+            $mailer,
+            $this->createMock(LoggerInterface::class),
+            'noreply@example.com',
+        );
+
+        $message = new MarketingCampaignRecipientEmailMessage((int) $campaign->getId(), (int) $user->getId());
+        $handler($message);
+        $handler($message);
+
+        self::assertSame(EmailCampaignRecipient::STATUS_SENT, $recipient->getStatus());
+        self::assertSame(0, $campaign->getPendingCount());
+        self::assertSame(1, $campaign->getSentCount());
+    }
+
     private function campaignService(EntityManager $em, MailerInterface $mailer): MarketingCampaignService
     {
         $persistence = new DoctrineUnitOfWork($em);
@@ -149,6 +193,7 @@ final class MarketingModuleCompletionTest extends TestCase
             new MarketingCampaignSender(
                 $audiences,
                 $this->notifier($em),
+                new EmailCampaignRecipientRepository($this->registry($em)),
                 $persistence,
                 new class implements MessageBusInterface {
                     public function dispatch(object $message, array $stamps = []): Envelope
@@ -199,6 +244,7 @@ final class MarketingModuleCompletionTest extends TestCase
             $em->getClassMetadata(Product::class),
             $em->getClassMetadata(EmailTemplate::class),
             $em->getClassMetadata(EmailCampaign::class),
+            $em->getClassMetadata(EmailCampaignRecipient::class),
             $em->getClassMetadata(AccountNotificationEvent::class),
         ]);
 

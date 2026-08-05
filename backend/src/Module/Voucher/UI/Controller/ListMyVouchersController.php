@@ -8,8 +8,10 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,16 +23,20 @@ final class ListMyVouchersController extends AbstractController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 12, 50);
         /** @var User $user */
         $user = $this->getUser();
+        $userId = (int) $user->getId();
 
-        return ApiResponse::success([
-            'items' => array_map(
+        return ApiResponse::paginated(
+            array_map(
                 static fn ($voucher): array => VoucherFormatter::formatVoucher($voucher),
-                $this->vouchers->findByRecipientUserId((int) $user->getId()),
+                $this->vouchers->findByRecipientUserId($userId, $pagination->perPage, $pagination->offset()),
             ),
-        ]);
+            $pagination->metadata($this->vouchers->countByRecipientUserId($userId)),
+        );
     }
 }

@@ -30,5 +30,7 @@ interface VoucherRepositoryPort
     public function save(Voucher $voucher): void;
 
     /** @return list<Voucher> */
-    public function findByRecipientUserId(int $userId): array;
+    public function findByRecipientUserId(int $userId, int $limit = 20, int $offset = 0): array;
+
+    public function countByRecipientUserId(int $userId): int;
 }

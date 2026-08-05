@@ -9,6 +9,10 @@ use App\Module\Admin\Application\Catalog\Mapper\ProductDiscountRequestMapper;
 use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
 use App\Module\Admin\Application\Catalog\Mapper\ProductGalleryRequestMapper;
 use App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser;
+use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
+use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
+use App\Module\Catalog\Application\DTO\ProductGalleryWriteData;
+use App\Module\Catalog\Application\DTO\ProductVariantWriteData;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -28,45 +32,49 @@ final class ProductAdminHelpersTest extends TestCase
         $endsAt = new \DateTimeImmutable('2026-08-31');
 
         $data = new ProductWriteData(
-            'Phone',
-            'SKU-1',
-            'phone',
-            'Desc',
-            'Short',
-            1000,
-            4,
-            true,
-            false,
-            $category,
-            [$file, null, null, null],
-            'Alt',
-            [0, 2],
-            true,
-            'sale',
-            $brand,
-            'group-a',
-            2026,
-            '256 Go',
-            '8 Go',
-            'Black',
-            [['color' => 'Black', 'storageCapacity' => '256 Go', 'stock' => 4]],
-            true,
-            'fixed_cents',
-            500,
-            $startsAt,
-            $endsAt,
+            core: new ProductCoreWriteData(
+                name: 'Phone',
+                sku: 'SKU-1',
+                slug: 'phone',
+                description: 'Desc',
+                shortDescription: 'Short',
+                priceCents: 1000,
+                stock: 4,
+                isPublished: true,
+                isFeaturedHome: false,
+                category: $category,
+                imageAlt: 'Alt',
+                sellingType: 'sale',
+                brand: $brand,
+            ),
+            gallery: new ProductGalleryWriteData(files: [$file, null, null, null], toRemove: [0, 2], removeMainImage: true),
+            variant: new ProductVariantWriteData(
+                group: 'group-a',
+                releaseYear: 2026,
+                storageCapacity: '256 Go',
+                memoryRam: '8 Go',
+                color: 'Black',
+                definitions: [['color' => 'Black', 'storageCapacity' => '256 Go', 'stock' => 4]],
+            ),
+            discount: new ProductDiscountWriteData(
+                enabled: true,
+                type: 'fixed_cents',
+                value: 500,
+                startsAt: $startsAt,
+                endsAt: $endsAt,
+            ),
         );
 
         $create = $data->toCreateCommand();
         self::assertNull($create->product);
-        self::assertSame('Phone', $create->name);
-        self::assertSame([], $create->galleryToRemove);
-        self::assertFalse($create->removeImage);
+        self::assertSame('Phone', $create->core->name);
+        self::assertSame([], $create->gallery->toRemove);
+        self::assertFalse($create->gallery->removeMainImage);
 
         $update = $data->toUpdateCommand($product);
         self::assertSame($product, $update->product);
-        self::assertSame([0, 2], $update->galleryToRemove);
-        self::assertTrue($update->removeImage);
+        self::assertSame([0, 2], $update->gallery->toRemove);
+        self::assertTrue($update->gallery->removeMainImage);
     }
 
     public function testFormValueNormalizerCoversBooleanOptionalPriceAndDateCases(): void

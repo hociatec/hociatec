@@ -34,13 +34,25 @@ class AuditRequestRepository extends ServiceEntityRepository implements AuditReq
     /**
      * @return list<AuditRequest>
      */
-    public function findByUser(User $user): array
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array
     {
         return $this->createQueryBuilder('a')
             ->andWhere('a.client = :u')
             ->setParameter('u', $user)
             ->orderBy('a.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->andWhere('a.client = :u')
+            ->setParameter('u', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

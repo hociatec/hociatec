@@ -24,11 +24,31 @@ class OrderItemRepository extends ServiceEntityRepository implements OrderItemRe
     }
 
     /** @return list<OrderItem> */
-    public function findPendingReviewItemsForUser(User $user): array
+    public function findPendingReviewItemsForUser(User $user, int $limit = 20, int $offset = 0): array
     {
         /** @var list<OrderItem> $items */
-        $items = $this->createQueryBuilder('oi')
+        $items = $this->createPendingReviewsQuery($user)
             ->addSelect('o', 'p')
+            ->orderBy('o.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+
+        return $items;
+    }
+
+    public function countPendingReviewItemsForUser(User $user): int
+    {
+        return (int) $this->createPendingReviewsQuery($user)
+            ->select('COUNT(oi.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createPendingReviewsQuery(User $user): \Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('oi')
             ->join('oi.order', 'o')
             ->leftJoin('oi.product', 'p')
             ->leftJoin(ProductRating::class, 'r', 'WITH', 'r.orderItem = oi')
@@ -37,11 +57,6 @@ class OrderItemRepository extends ServiceEntityRepository implements OrderItemRe
             ->andWhere('r.id IS NULL')
             ->andWhere('p IS NOT NULL')
             ->setParameter('user', $user)
-            ->setParameter('status', Order::STATUS_DELIVERED)
-            ->orderBy('o.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-
-        return $items;
+            ->setParameter('status', Order::STATUS_DELIVERED);
     }
 }

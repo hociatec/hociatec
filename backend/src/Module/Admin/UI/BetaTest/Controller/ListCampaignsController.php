@@ -11,8 +11,10 @@ use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -28,16 +30,19 @@ final class ListCampaignsController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request);
         $now = new \DateTimeImmutable();
-        $campaigns = $this->campaigns->findBy([], ['createdAt' => 'DESC']);
+        $campaigns = $this->campaigns->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
         $this->closeElapsedCampaigns->closeElapsed($campaigns, $now);
+        $total = $this->campaigns->count([]);
 
         $acceptedProfilesCount = $this->profiles->count(['status' => BetaTesterProfile::STATUS_ACCEPTED]);
 
-        return ApiResponse::success(['items' => array_map(function ($c) use ($now, $acceptedProfilesCount) {
-            $reports = $this->reports->findBy(['campaign' => $c], ['createdAt' => 'DESC']);
+        return ApiResponse::paginated(array_map(function ($c) use ($now, $acceptedProfilesCount) {
+            $reports = $this->reports->findBy(['campaign' => $c], ['createdAt' => 'DESC'], 20);
 
             return [
                 'id' => $c->getId(),
@@ -51,6 +56,6 @@ final class ListCampaignsController extends AbstractController
                 'reportCount' => count($reports),
                 'reports' => array_map(fn ($report) => $this->reportFormatter->format($report), $reports),
             ];
-        }, $campaigns)]);
+        }, $campaigns), $pagination->metadata($total));
     }
 }

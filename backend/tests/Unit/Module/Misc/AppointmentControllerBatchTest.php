@@ -53,9 +53,10 @@ final class AppointmentControllerBatchTest extends TestCase
 
         $listRepository = $this->getMockBuilder(PrestationRepository::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['findAllOrderedByName'])
+            ->onlyMethods(['findAllOrderedByName', 'countAll'])
             ->getMock();
         $listRepository->expects(self::exactly(2))->method('findAllOrderedByName')->willReturn([$prestation]);
+        $listRepository->expects(self::once())->method('countAll')->willReturn(1);
         $persistence = new PrestationPersistence($this->createMock(EntityManagerInterface::class));
         $service = new PrestationService($listRepository, $persistence, Validation::createValidator());
 

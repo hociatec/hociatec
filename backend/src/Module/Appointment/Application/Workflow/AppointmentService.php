@@ -55,9 +55,9 @@ final class AppointmentService
     /**
      * @return array{upcoming: list<Appointment>, past: list<Appointment>}
      */
-    public function getAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null): array
+    public function getAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null, int $limit = 20, int $offset = 0): array
     {
-        $appointments = $this->appointmentRepository->findForUser($user);
+        $appointments = $this->appointmentRepository->findForUser($user, limit: $limit, offset: $offset);
         $now ??= new \DateTimeImmutable();
 
         $future = [];
@@ -74,6 +74,30 @@ final class AppointmentService
         return [
             'upcoming' => $future,
             'past' => $past,
+        ];
+    }
+
+    /**
+     * @return array{upcoming: list<Appointment>, past: list<Appointment>}
+     */
+    public function getPaginatedAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null, int $limit = 20, int $offset = 0): array
+    {
+        $now ??= new \DateTimeImmutable();
+
+        return [
+            'upcoming' => $this->appointmentRepository->findUpcomingForUser($user, $now, $limit, $offset),
+            'past' => $this->appointmentRepository->findPastForUser($user, $now, $limit, $offset),
+        ];
+    }
+
+    /** @return array{upcoming:int,past:int} */
+    public function countAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null): array
+    {
+        $now ??= new \DateTimeImmutable();
+
+        return [
+            'upcoming' => $this->appointmentRepository->countUpcomingForUser($user, $now),
+            'past' => $this->appointmentRepository->countPastForUser($user, $now),
         ];
     }
 

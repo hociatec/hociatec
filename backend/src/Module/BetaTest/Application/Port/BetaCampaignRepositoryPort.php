@@ -11,6 +11,9 @@ interface BetaCampaignRepositoryPort
 {
     public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BetaCampaign;
 
+    /** @param array<string, mixed> $criteria */
+    public function count(array $criteria): int;
+
     /**
      * @param array<string, mixed>       $criteria
      * @param array<string, string>|null $orderBy
@@ -18,4 +21,9 @@ interface BetaCampaignRepositoryPort
      * @return list<BetaCampaign>
      */
     public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
+
+    /** @return list<BetaCampaign> */
+    public function findOpenForReports(\DateTimeImmutable $now, int $limit = 20, int $offset = 0): array;
+
+    public function countOpenForReports(\DateTimeImmutable $now): int;
 }

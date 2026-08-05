@@ -4,125 +4,68 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Writer;
 
-use App\Module\Catalog\Domain\Entity\Brand;
-use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final class ProductAttributeWriter
 {
     public function create(
-        string $name,
+        ProductWriteCommand $command,
         string $slug,
         string $sku,
-        string $description,
-        ?string $shortDescription,
-        int $priceCents,
-        int $stock,
-        bool $isPublished,
-        bool $isFeaturedHome,
-        Category $category,
-        ?string $imageAlt,
-        ?string $sellingType,
-        ?Brand $brand,
         string $variantGroup,
-        ?int $releaseYear,
-        ?string $storageCapacity,
-        ?string $memoryRam,
-        ?string $color,
     ): Product {
-        $product = new Product($name, $slug, $sku, $description, $priceCents, $stock, $category);
+        $product = new Product(
+            $command->core->name,
+            $slug,
+            $sku,
+            $command->core->description,
+            $command->core->priceCents,
+            $command->core->stock,
+            $command->core->category,
+        );
 
-        return $this->applySharedFields(
-            $product,
-            $shortDescription,
-            $isPublished,
-            $isFeaturedHome,
-            $imageAlt,
-            $sellingType,
-            $brand,
-            $variantGroup,
-            $releaseYear,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-        )->setVariantPosition(1);
+        return $this->applySharedFields($product, $command, $variantGroup)->setVariantPosition(1);
     }
 
     public function update(
         Product $product,
-        string $name,
+        ProductWriteCommand $command,
         string $slug,
         string $sku,
-        string $description,
-        ?string $shortDescription,
-        int $priceCents,
-        int $stock,
-        bool $isPublished,
-        bool $isFeaturedHome,
-        Category $category,
-        ?string $imageAlt,
-        ?string $sellingType,
-        ?Brand $brand,
         string $variantGroup,
-        ?int $releaseYear,
-        ?string $storageCapacity,
-        ?string $memoryRam,
-        ?string $color,
     ): Product {
         $product
-            ->setName($name)
+            ->setName($command->core->name)
             ->setSlug($slug)
             ->setSku($sku)
-            ->setDescription($description)
-            ->setPriceCents($priceCents)
-            ->setStock($stock)
-            ->setCategory($category);
+            ->setDescription($command->core->description)
+            ->setPriceCents($command->core->priceCents)
+            ->setStock($command->core->stock)
+            ->setCategory($command->core->category);
 
-        return $this->applySharedFields(
-            $product,
-            $shortDescription,
-            $isPublished,
-            $isFeaturedHome,
-            $imageAlt,
-            $sellingType,
-            $brand,
-            $variantGroup,
-            $releaseYear,
-            $storageCapacity,
-            $memoryRam,
-            $color,
-        )->setVariantPosition($product->getVariantPosition() > 0 ? $product->getVariantPosition() : 1);
+        return $this->applySharedFields($product, $command, $variantGroup)
+            ->setVariantPosition($product->getVariantPosition() > 0 ? $product->getVariantPosition() : 1);
     }
 
     private function applySharedFields(
         Product $product,
-        ?string $shortDescription,
-        bool $isPublished,
-        bool $isFeaturedHome,
-        ?string $imageAlt,
-        ?string $sellingType,
-        ?Brand $brand,
+        ProductWriteCommand $command,
         string $variantGroup,
-        ?int $releaseYear,
-        ?string $storageCapacity,
-        ?string $memoryRam,
-        ?string $color,
     ): Product {
         $product
-            ->setShortDescription($shortDescription)
-            ->setIsPublished($isPublished)
-            ->setIsFeaturedHome($isFeaturedHome)
-            ->setImageAlt($imageAlt)
-            ->setBrandReference($brand)
+            ->setShortDescription($command->core->shortDescription)
+            ->setIsPublished($command->core->isPublished)
+            ->setIsFeaturedHome($command->core->isFeaturedHome)
+            ->setImageAlt($command->core->imageAlt)
+            ->setBrandReference($command->core->brand)
             ->setVariantGroup($variantGroup)
-            ->setReleaseYear($releaseYear)
-            ->setStorageCapacity($storageCapacity)
-            ->setMemoryRam($memoryRam)
-            ->setColor($color);
+            ->setReleaseYear($command->variant->releaseYear)
+            ->setStorageCapacity($command->variant->storageCapacity)
+            ->setMemoryRam($command->variant->memoryRam)
+            ->setColor($command->variant->color);
 
-        if (null !== $sellingType) {
-            $product->setSellingType($sellingType);
-        }
+        $product->setSellingType($command->core->sellingType);
 
         return $product;
     }

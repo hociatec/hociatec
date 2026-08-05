@@ -19,10 +19,14 @@ interface QuoteRepositoryPort
     public function findOneBy(array $criteria, ?array $orderBy = null): ?Quote;
 
     /** @return list<Quote> */
-    public function findBySearch(?string $search, ?string $statusCode): array;
+    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0): array;
+
+    public function countBySearch(?string $search, ?string $statusCode): int;
 
     /** @return list<Quote> */
-    public function findByCustomerEmail(string $email): array;
+    public function findByCustomerEmail(string $email, int $limit = 20, int $offset = 0): array;
+
+    public function countByCustomerEmail(string $email): int;
 
     public function findConvertedQuoteForOrder(Order $order): ?Quote;
 

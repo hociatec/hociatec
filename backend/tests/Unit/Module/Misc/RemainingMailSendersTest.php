@@ -9,6 +9,9 @@ use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
+use App\Module\Marketing\Application\Port\EmailCampaignRecipientRepositoryPort;
+use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
@@ -145,12 +148,15 @@ final class RemainingMailSendersTest extends TestCase
         $entityManager->expects(self::once())
             ->method('createQueryBuilder')
             ->willReturn($this->queryBuilderMock($audienceQuery));
-        $entityManager->expects(self::once())
+        $entityManager->expects(self::exactly(3))
             ->method('persist')
-            ->with(self::callback(static function (object $campaign): bool {
-                return $campaign instanceof \App\Module\Marketing\Domain\Entity\EmailCampaign
-                    && 'Campagne' === $campaign->getName()
-                    && 0 === $campaign->getRecipientsCount();
+            ->with(self::callback(static function (object $entity): bool {
+                if ($entity instanceof \App\Module\Marketing\Domain\Entity\EmailCampaign) {
+                    return 'Campagne' === $entity->getName()
+                        && 0 === $entity->getRecipientsCount();
+                }
+
+                return $entity instanceof EmailCampaignRecipient;
             }));
         $entityManager->expects(self::exactly(2))->method('flush');
 
@@ -161,16 +167,26 @@ final class RemainingMailSendersTest extends TestCase
         $messageBus->expects(self::once())
             ->method('dispatch')
             ->with(self::callback(static function (object $message): bool {
-                return $message instanceof MarketingCampaignRecipientEmailMessage
-                    && 'Sujet {{first_name}}' === $message->subject
-                    && '<p>{{first_name}}</p>' === $message->htmlBody
-                    && 'Texte {{first_name}}' === $message->textBody;
+                return $message instanceof MarketingCampaignRecipientEmailMessage;
             }))
             ->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
+
+        $recipients = new class implements EmailCampaignRecipientRepositoryPort {
+            public function findOneForCampaignAndUser(EmailCampaign $campaign, User $user): ?EmailCampaignRecipient
+            {
+                return null;
+            }
+
+            public function findOneForCampaignAndUserIds(int $campaignId, int $userId): ?EmailCampaignRecipient
+            {
+                return null;
+            }
+        };
 
         $sender = new MarketingCampaignSender(
             new MarketingAudienceProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery($entityManager), new EmailTemplateScenarioProvider()),
             $this->notifier(),
+            $recipients,
             new DoctrineUnitOfWork($entityManager),
             $messageBus,
         );
@@ -188,6 +204,8 @@ final class RemainingMailSendersTest extends TestCase
 
         self::assertSame('Campagne', $campaign->getName());
         self::assertSame(1, $campaign->getRecipientsCount());
+        self::assertSame(1, $campaign->getPendingCount());
+        self::assertSame(1, $campaign->getSkippedCount());
     }
 
     /** @param array<string, mixed> $results */

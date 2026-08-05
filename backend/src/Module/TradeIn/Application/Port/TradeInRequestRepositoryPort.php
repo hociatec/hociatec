@@ -14,10 +14,14 @@ interface TradeInRequestRepositoryPort
     public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TradeInRequest;
 
     /** @return list<TradeInRequest> */
-    public function findByUser(User $user): array;
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countByUser(User $user): int;
 
     /** @return list<TradeInRequest> */
-    public function findForAdmin(?string $search = null, ?TradeInStatus $status = null): array;
+    public function findForAdmin(?string $search = null, ?TradeInStatus $status = null, int $limit = 20, int $offset = 0): array;
+
+    public function countForAdmin(?string $search = null, ?TradeInStatus $status = null): int;
 
     public function delete(TradeInRequest $request): void;
 }

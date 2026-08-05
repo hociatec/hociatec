@@ -8,8 +8,10 @@ use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -23,13 +25,16 @@ class ListMyTrainingEnrollmentsController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
 
-        return ApiResponse::success([
-            'items' => array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $this->enrollments->findForUser($user)),
-        ]);
+        return ApiResponse::paginated(
+            array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $this->enrollments->findForUser($user, $pagination->perPage, $pagination->offset())),
+            $pagination->metadata($this->enrollments->countForUser($user)),
+        );
     }
 }

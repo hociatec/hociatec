@@ -33,12 +33,22 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
     /**
      * @return list<Brand>
      */
-    public function findAllForAdmin(): array
+    public function findAllForAdmin(int $limit = 50, int $offset = 0): array
     {
         return $this->createQueryBuilder('b')
             ->orderBy('b.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countForAdmin(): int
+    {
+        return (int) $this->createQueryBuilder('b')
+            ->select('COUNT(b.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function existsWithName(string $name, ?int $excludeId = null): bool

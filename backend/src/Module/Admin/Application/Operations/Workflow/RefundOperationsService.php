@@ -37,9 +37,14 @@ final readonly class RefundOperationsService
     }
 
     /** @return list<array<string, mixed>> */
-    public function list(): array
+    public function list(int $limit = 20, int $offset = 0): array
     {
-        return array_map($this->formatter->refund(...), $this->refunds->findBy([], ['updatedAt' => 'DESC']));
+        return array_map($this->formatter->refund(...), $this->refunds->findBy([], ['updatedAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset)));
+    }
+
+    public function count(): int
+    {
+        return $this->refunds->count([]);
     }
 
     /** @return array<string, mixed> */

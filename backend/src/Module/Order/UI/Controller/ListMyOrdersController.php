@@ -9,8 +9,10 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -24,11 +26,13 @@ class ListMyOrdersController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
-        $orders = $this->orders->findByUser($user);
+        $orders = $this->orders->findByUser($user, $pagination->perPage, $pagination->offset());
+        $total = $this->orders->countByUser($user);
         $orderItemIds = [];
         foreach ($orders as $order) {
             foreach ($order->getItems() as $item) {
@@ -45,6 +49,6 @@ class ListMyOrdersController extends AbstractController
             $orders,
         );
 
-        return ApiResponse::successItem('items', $items);
+        return ApiResponse::paginated($items, $pagination->metadata($total));
     }
 }

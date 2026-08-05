@@ -9,6 +9,7 @@ use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ final class ListPaymentsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
+        $pagination = Pagination::fromRequest($request);
         $status = $request->query->get('status');
         $query = trim((string) $request->query->get('q', ''));
 
@@ -35,10 +37,10 @@ final class ListPaymentsController extends AbstractController
             $this->stripeSync->syncRecentOpenPayments();
         }
 
-        $items = $this->payments->findForAdminList(is_string($status) ? $status : null, $query);
+        $statusFilter = is_string($status) ? $status : null;
+        $items = $this->payments->findForAdminList($statusFilter, $query, $pagination->perPage, $pagination->offset());
+        $total = $this->payments->countForAdminList($statusFilter, $query);
 
-        return ApiResponse::success([
-            'items' => array_map($this->formatter->summary(...), $items),
-        ]);
+        return ApiResponse::paginated(array_map($this->formatter->summary(...), $items), $pagination->metadata($total));
     }
 }

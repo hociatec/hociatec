@@ -36,16 +36,33 @@ class TrainingCategoryRepository extends ServiceEntityRepository implements Trai
     }
 
     /** @return list<TrainingCategory> */
-    public function findOrdered(bool $activeOnly = false): array
+    public function findOrdered(bool $activeOnly = false, int $limit = 50, int $offset = 0): array
     {
-        $qb = $this->createQueryBuilder('c')
+        return $this->orderedQuery($activeOnly)
             ->orderBy('c.position', 'ASC')
-            ->addOrderBy('c.name', 'ASC');
+            ->addOrderBy('c.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countOrdered(bool $activeOnly = false): int
+    {
+        return (int) $this->orderedQuery($activeOnly)
+            ->select('COUNT(c.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function orderedQuery(bool $activeOnly = false): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('c');
 
         if ($activeOnly) {
             $qb->andWhere('c.isActive = true');
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 }

@@ -8,8 +8,10 @@ use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,11 +23,14 @@ final class ListMyTradeInsController extends AbstractController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
+        $items = $this->requests->findByUser($user, $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::successItem('items', array_map(static fn ($item) => TradeInFormatter::format($item), $this->requests->findByUser($user)));
+        return ApiResponse::paginated(array_map(static fn ($item) => TradeInFormatter::format($item), $items), $pagination->metadata($this->requests->countByUser($user)));
     }
 }

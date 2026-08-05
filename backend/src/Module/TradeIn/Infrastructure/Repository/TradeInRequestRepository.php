@@ -30,15 +30,48 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
     }
 
     /** @return list<TradeInRequest> */
-    public function findByUser(User $user): array
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array
     {
-        return $this->createQueryBuilder('r')->andWhere('r.user = :user')->setParameter('user', $user)->orderBy('r.createdAt', 'DESC')->getQuery()->getResult();
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('r.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->andWhere('r.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /** @return list<TradeInRequest> */
-    public function findForAdmin(?string $search = null, ?TradeInStatus $status = null): array
+    public function findForAdmin(?string $search = null, ?TradeInStatus $status = null, int $limit = 20, int $offset = 0): array
     {
-        $qb = $this->createQueryBuilder('r')->orderBy('r.createdAt', 'DESC');
+        $qb = $this->createAdminQuery($search, $status)->orderBy('r.createdAt', 'DESC');
+        $qb->setFirstResult(max(0, $offset))->setMaxResults(max(1, min(100, $limit)));
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countForAdmin(?string $search = null, ?TradeInStatus $status = null): int
+    {
+        return (int) $this->createAdminQuery($search, $status)
+            ->select('COUNT(r.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createAdminQuery(?string $search = null, ?TradeInStatus $status = null): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('r');
         if (null !== $search && '' !== trim($search)) {
             $qb->andWhere('r.reference LIKE :search OR r.email LIKE :search OR r.productName LIKE :search')->setParameter('search', '%'.trim($search).'%');
         }
@@ -46,7 +79,7 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
             $qb->andWhere('r.status = :status')->setParameter('status', $status);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 
     public function delete(TradeInRequest $request): void

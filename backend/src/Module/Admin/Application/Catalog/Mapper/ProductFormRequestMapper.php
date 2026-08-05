@@ -8,11 +8,15 @@ use App\Module\Admin\Application\Catalog\DTO\ProductWriteData;
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
 use App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser;
+use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
+use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
+use App\Module\Catalog\Application\DTO\ProductGalleryWriteData;
+use App\Module\Catalog\Application\DTO\ProductVariantWriteData;
+use App\Module\Catalog\Application\Port\BrandRepositoryPort;
+use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Application\Port\BrandRepositoryPort;
-use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -57,33 +61,41 @@ final readonly class ProductFormRequestMapper
             $discount = $this->discount->map($request);
 
             return new ProductWriteData(
-                trim((string) $request->request->get('name', $product?->getName() ?? '')),
-                strtoupper(trim((string) $request->request->get('sku', $product?->getSku() ?? ''))),
-                ProductFormValueNormalizer::optionalString($request->request->get('slug', $product?->getSlug())),
-                (string) $request->request->get('description', $product?->getDescription() ?? ''),
-                ProductFormValueNormalizer::optionalString($request->request->get('shortDescription', $product?->getShortDescription())),
-                $priceCents,
-                (int) $request->request->get('stock', $product?->getStock() ?? 0),
-                ProductFormValueNormalizer::boolean($request->request->get('isPublished', $product?->isPublished() ?? '1')),
-                ProductFormValueNormalizer::boolean($request->request->get('isFeaturedHome', $product?->isFeaturedHome() ?? false)),
-                $category,
-                $this->gallery->files($request),
-                ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
-                null === $product ? [] : $this->gallery->removals($request),
-                null !== $product && ProductFormValueNormalizer::boolean($request->request->get('removeImage', false)),
-                (string) $request->request->get('sellingType', $product?->getSellingType() ?? 'sale'),
-                $brand,
-                ProductFormValueNormalizer::optionalString($request->request->get('variantGroup', $product?->getVariantGroup())),
-                ProductFormValueNormalizer::optionalInt($request->request->get('releaseYear', $product?->getReleaseYear())),
-                ProductFormValueNormalizer::optionalString($request->request->get('storageCapacity', $product?->getStorageCapacity())),
-                ProductFormValueNormalizer::optionalString($request->request->get('memoryRam', $product?->getMemoryRam())),
-                ProductFormValueNormalizer::optionalString($request->request->get('color', $product?->getColor())),
-                $this->variants->parse($request->request->get('variants')),
-                $discount['enabled'],
-                $discount['type'],
-                $discount['value'],
-                $discount['startsAt'],
-                $discount['endsAt'],
+                core: new ProductCoreWriteData(
+                    name: trim((string) $request->request->get('name', $product?->getName() ?? '')),
+                    sku: strtoupper(trim((string) $request->request->get('sku', $product?->getSku() ?? ''))),
+                    slug: ProductFormValueNormalizer::optionalString($request->request->get('slug', $product?->getSlug())),
+                    description: (string) $request->request->get('description', $product?->getDescription() ?? ''),
+                    shortDescription: ProductFormValueNormalizer::optionalString($request->request->get('shortDescription', $product?->getShortDescription())),
+                    priceCents: $priceCents,
+                    stock: (int) $request->request->get('stock', $product?->getStock() ?? 0),
+                    isPublished: ProductFormValueNormalizer::boolean($request->request->get('isPublished', $product?->isPublished() ?? '1')),
+                    isFeaturedHome: ProductFormValueNormalizer::boolean($request->request->get('isFeaturedHome', $product?->isFeaturedHome() ?? false)),
+                    category: $category,
+                    imageAlt: ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
+                    sellingType: (string) $request->request->get('sellingType', $product?->getSellingType() ?? 'sale'),
+                    brand: $brand,
+                ),
+                gallery: new ProductGalleryWriteData(
+                    files: $this->gallery->files($request),
+                    toRemove: null === $product ? [] : $this->gallery->removals($request),
+                    removeMainImage: null !== $product && ProductFormValueNormalizer::boolean($request->request->get('removeImage', false)),
+                ),
+                variant: new ProductVariantWriteData(
+                    group: ProductFormValueNormalizer::optionalString($request->request->get('variantGroup', $product?->getVariantGroup())),
+                    releaseYear: ProductFormValueNormalizer::optionalInt($request->request->get('releaseYear', $product?->getReleaseYear())),
+                    storageCapacity: ProductFormValueNormalizer::optionalString($request->request->get('storageCapacity', $product?->getStorageCapacity())),
+                    memoryRam: ProductFormValueNormalizer::optionalString($request->request->get('memoryRam', $product?->getMemoryRam())),
+                    color: ProductFormValueNormalizer::optionalString($request->request->get('color', $product?->getColor())),
+                    definitions: $this->variants->parse($request->request->get('variants')),
+                ),
+                discount: new ProductDiscountWriteData(
+                    enabled: $discount['enabled'],
+                    type: $discount['type'],
+                    value: $discount['value'],
+                    startsAt: $discount['startsAt'],
+                    endsAt: $discount['endsAt'],
+                ),
             );
         } catch (ProductFormRequestException $exception) {
             throw $exception;

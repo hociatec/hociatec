@@ -28,17 +28,11 @@ final class ListBetaTestersController extends AbstractController
         $search = mb_strtolower(trim((string) $request->query->get('search', '')));
         $status = (string) $request->query->get('status', '');
         $accessibility = (string) $request->query->get('accessibility', '');
-        $items = array_filter($this->profiles->findBy([], ['createdAt' => 'DESC']), static function (BetaTesterProfile $profile) use ($search, $status, $accessibility): bool {
-            $user = $profile->getUser();
-            $hay = mb_strtolower($user->getFirstName().' '.$user->getLastName().' '.$user->getEmail());
-
-            return ('' === $search || str_contains($hay, $search)) && ('' === $status || $profile->getStatus() === $status) && ('' === $accessibility || $profile->getAccessibilityNeed() === $accessibility);
-        });
         $pagination = Pagination::fromRequest($request);
-        $all = array_values($items);
-        $pageItems = array_slice($all, $pagination->offset(), $pagination->perPage);
+        $pageItems = $this->profiles->findForAdminList($search, $status, $accessibility, $pagination->perPage, $pagination->offset());
+        $total = $this->profiles->countForAdminList($search, $status, $accessibility);
 
-        return ApiResponse::paginated(array_map([$this, 'format'], $pageItems), $pagination->metadata(count($all)));
+        return ApiResponse::paginated(array_map([$this, 'format'], $pageItems), $pagination->metadata($total));
     }
 
     /**

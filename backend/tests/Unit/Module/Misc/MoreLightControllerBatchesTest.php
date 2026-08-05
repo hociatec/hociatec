@@ -31,9 +31,10 @@ final class MoreLightControllerBatchesTest extends TestCase
         $user = $this->user('ada@example.com');
         $resolver = $this->getMockBuilder(PendingReviewResolver::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['resolve'])
+            ->onlyMethods(['resolve', 'count'])
             ->getMock();
-        $resolver->expects(self::once())->method('resolve')->with($user)->willReturn([['orderItemId' => 1]]);
+        $resolver->expects(self::once())->method('resolve')->with($user, 10, 0)->willReturn([['orderItemId' => 1]]);
+        $resolver->expects(self::once())->method('count')->with($user)->willReturn(1);
 
         $pending = new class($resolver, $user) extends ListPendingReviewsController {
             public function __construct(PendingReviewResolver $resolver, private readonly User $user)

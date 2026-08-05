@@ -24,4 +24,9 @@ interface BetaTesterProfileRepositoryPort
     public function count(array $criteria): int;
 
     public function findOneByUser(User $user): ?BetaTesterProfile;
+
+    /** @return list<BetaTesterProfile> */
+    public function findForAdminList(string $search = '', string $status = '', string $accessibility = '', int $limit = 20, int $offset = 0): array;
+
+    public function countForAdminList(string $search = '', string $status = '', string $accessibility = ''): int;
 }

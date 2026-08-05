@@ -66,25 +66,25 @@ final class ProductFormRequestMapperTest extends TestCase
             'discountEndsAt' => '2026-08-31',
         ]));
 
-        self::assertSame('iPhone', $data->name);
-        self::assertSame('IP-15', $data->sku);
-        self::assertSame('iphone-15', $data->slug);
-        self::assertSame(1250, $data->priceCents);
-        self::assertTrue($data->isPublished);
-        self::assertTrue($data->isFeaturedHome);
-        self::assertSame($category, $data->category);
-        self::assertSame($brand, $data->brand);
-        self::assertSame('iphones', $data->variantGroup);
-        self::assertSame(2025, $data->releaseYear);
-        self::assertSame('256 Go', $data->storageCapacity);
-        self::assertSame('8 Go', $data->memoryRam);
-        self::assertSame('Noir', $data->color);
-        self::assertSame([['color' => 'Blue', 'storageCapacity' => '128 Go', 'stock' => 3]], $data->variantDefinitions);
-        self::assertTrue($data->discountEnabled);
-        self::assertSame('fixed_cents', $data->discountType);
-        self::assertSame(999, $data->discountValue);
-        self::assertSame('2026-08-01', $data->discountStartsAt?->format('Y-m-d'));
-        self::assertSame('2026-08-31', $data->discountEndsAt?->format('Y-m-d'));
+        self::assertSame('iPhone', $data->core->name);
+        self::assertSame('IP-15', $data->core->sku);
+        self::assertSame('iphone-15', $data->core->slug);
+        self::assertSame(1250, $data->core->priceCents);
+        self::assertTrue($data->core->isPublished);
+        self::assertTrue($data->core->isFeaturedHome);
+        self::assertSame($category, $data->core->category);
+        self::assertSame($brand, $data->core->brand);
+        self::assertSame('iphones', $data->variant->group);
+        self::assertSame(2025, $data->variant->releaseYear);
+        self::assertSame('256 Go', $data->variant->storageCapacity);
+        self::assertSame('8 Go', $data->variant->memoryRam);
+        self::assertSame('Noir', $data->variant->color);
+        self::assertSame([['color' => 'Blue', 'storageCapacity' => '128 Go', 'stock' => 3]], $data->variant->definitions);
+        self::assertTrue($data->discount->enabled);
+        self::assertSame('fixed_cents', $data->discount->type);
+        self::assertSame(999, $data->discount->value);
+        self::assertSame('2026-08-01', $data->discount->startsAt?->format('Y-m-d'));
+        self::assertSame('2026-08-31', $data->discount->endsAt?->format('Y-m-d'));
     }
 
     public function testUpdateUsesProductFallbacksAndGalleryRemovals(): void
@@ -122,13 +122,13 @@ final class ProductFormRequestMapperTest extends TestCase
             'removeImage' => 'true',
         ]), $product);
 
-        self::assertSame('Old', $data->name);
-        self::assertSame('OLD-1', $data->sku);
-        self::assertSame('old', $data->slug);
-        self::assertSame([0, 3], $data->galleryToRemove);
-        self::assertTrue($data->removeImage);
-        self::assertSame('sale', $data->sellingType);
-        self::assertSame($brand, $data->brand);
+        self::assertSame('Old', $data->core->name);
+        self::assertSame('OLD-1', $data->core->sku);
+        self::assertSame('old', $data->core->slug);
+        self::assertSame([0, 3], $data->gallery->toRemove);
+        self::assertTrue($data->gallery->removeMainImage);
+        self::assertSame('sale', $data->core->sellingType);
+        self::assertSame($brand, $data->core->brand);
     }
 
     public function testMapperRejectsNegativePriceMissingCategoryInvalidBrandAndBadDiscountDate(): void

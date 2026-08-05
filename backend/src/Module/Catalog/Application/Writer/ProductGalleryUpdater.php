@@ -13,7 +13,7 @@ final class ProductGalleryUpdater
      * @param array<int, UploadedFile|null> $files
      * @param array<int, int|string>        $indexesToRemove
      */
-    public function update(Product $product, array $files, array $indexesToRemove): void
+    public function stage(Product $product, array $files, array $indexesToRemove): void
     {
         $removals = array_unique(array_map(static fn ($value): int => (int) $value, $indexesToRemove));
 

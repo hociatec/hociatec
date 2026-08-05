@@ -21,7 +21,9 @@ interface OrderRepositoryPort
     public function hasActiveForUser(User $user): bool;
 
     /** @return list<Order> */
-    public function findByUser(User $user): array;
+    public function findByUser(User $user, int $limit = 20, int $offset = 0): array;
+
+    public function countByUser(User $user): int;
 
     /** @return list<Order> */
     public function findRecentForAdmin(int $limit = 8): array;

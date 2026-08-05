@@ -42,7 +42,9 @@ interface OrderCheckoutSessionRepositoryPort
     public function findRecentByOrderId(int $orderId, int $limit = 5): array;
 
     /** @return list<OrderCheckoutSession> */
-    public function findForAdminList(?string $status, string $query): array;
+    public function findForAdminList(?string $status, string $query, int $limit = 20, int $offset = 0): array;
+
+    public function countForAdminList(?string $status, string $query): int;
 
     /**
      * @param array<string, mixed>       $criteria

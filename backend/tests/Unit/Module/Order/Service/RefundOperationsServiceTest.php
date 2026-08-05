@@ -147,9 +147,14 @@ final class RefundOperationsServiceTest extends TestCase
                 return false;
             }
 
-            public function findByUser(User $user): array
+            public function findByUser(User $user, int $limit = 20, int $offset = 0): array
             {
                 return [];
+            }
+
+            public function countByUser(User $user): int
+            {
+                return 0;
             }
 
             public function findRecentForAdmin(int $limit = 8): array
@@ -287,9 +292,14 @@ final class RefundOperationsServiceTest extends TestCase
                 return [];
             }
 
-            public function findForAdminList(?string $status, string $query): array
+            public function findForAdminList(?string $status, string $query, int $limit = 20, int $offset = 0): array
             {
                 return [];
+            }
+
+            public function countForAdminList(?string $status, string $query): int
+            {
+                return 0;
             }
 
             public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array

@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Application\Catalog\Mapper\ProductFormRequestMapper;
+use App\Module\Catalog\Application\Handler\ProductWriteHandler;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Application\Workflow\ProductService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +22,7 @@ final readonly class CreateProductController
 {
     public function __construct(
         private ProductFormRequestMapper $forms,
-        private ProductService $products,
+        private ProductWriteHandler $products,
     ) {
     }
 

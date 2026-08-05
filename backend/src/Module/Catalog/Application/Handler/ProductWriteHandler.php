@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Handler;
 
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\Cache\CatalogCacheInvalidator;
 use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
@@ -15,8 +16,6 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
-use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class ProductWriteHandler
 {
@@ -28,54 +27,39 @@ final readonly class ProductWriteHandler
         private ProductVariantBatchCreator $variantBatch,
         private ProductGalleryUpdater $gallery,
         private ProductDiscountApplicator $discounts,
-        #[Autowire(service: 'app.catalog_cache')]
-        private CacheItemPoolInterface $catalogCache,
+        private CatalogCacheInvalidator $cacheInvalidator,
         private ProductAttributeWriter $attributes = new ProductAttributeWriter(),
     ) {
     }
 
     public function create(ProductWriteCommand $command): Product
     {
-        $normalizedSku = strtoupper($command->sku);
-        $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variantGroup, $command->name, $command->variantDefinitions);
+        $normalizedSku = strtoupper($command->core->sku);
+        $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group, $command->core->name, $command->variant->definitions);
 
-        $this->rules->assertValidData($command->name, $normalizedSku, $command->description, $command->shortDescription, $command->priceCents, $command->stock);
+        $this->rules->assertValidData($command->core->name, $normalizedSku, $command->core->description, $command->core->shortDescription, $command->core->priceCents, $command->core->stock);
         $this->rules->assertUniqueness($normalizedSku, null);
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, null, $command->color, $command->storageCapacity, $command->variantDefinitions);
+        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, null, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
 
         $product = $this->attributes->create(
-            $command->name,
-            $this->rules->resolveSlug($command->slug, $command->name, null),
+            $command,
+            $this->rules->resolveSlug($command->core->slug, $command->core->name, null),
             $normalizedSku,
-            $command->description,
-            $command->shortDescription,
-            $command->priceCents,
-            $command->stock,
-            $command->isPublished,
-            $command->isFeaturedHome,
-            $command->category,
-            $command->imageAlt,
-            $command->sellingType,
-            $command->brand,
             $resolvedVariantGroup,
-            $command->releaseYear,
-            $command->storageCapacity,
-            $command->memoryRam,
-            $command->color,
         );
 
-        $this->discounts->applyOnCreate($product, $command->discountEnabled, $command->discountType, $command->discountValue, $command->discountStartsAt, $command->discountEndsAt);
+        $this->discounts->applyOnCreate($product, $command->discount->enabled, $command->discount->type, $command->discount->value, $command->discount->startsAt, $command->discount->endsAt);
 
         try {
             $this->transactions->transactional(function () use ($product, $command, $resolvedVariantGroup): void {
-                $this->gallery->update($product, $command->galleryFiles, []);
+                $this->gallery->stage($product, $command->gallery->files, []);
                 $this->persistence->persist($product);
-                $this->variantBatch->forNewProduct($product, $command->name, $command->sku, $command->slug, $resolvedVariantGroup, $command->stock, $command->variantDefinitions);
+                $this->variantBatch->forNewProduct($product, $command->core->name, $command->core->sku, $command->core->slug, $resolvedVariantGroup, $command->core->stock, $command->variant->definitions);
             });
-            $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer le produit.', $exception);
         }
+        $this->cacheInvalidator->invalidateAfterWrite('create');
 
         return $product;
     }
@@ -87,50 +71,36 @@ final readonly class ProductWriteHandler
             throw new \InvalidArgumentException('Produit introuvable.');
         }
 
-        $normalizedSku = strtoupper($command->sku);
-        $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variantGroup ?? $product->getVariantGroup(), $command->name, []);
+        $normalizedSku = strtoupper($command->core->sku);
+        $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group ?? $product->getVariantGroup(), $command->core->name, []);
 
-        $this->rules->assertValidData($command->name, $normalizedSku, $command->description, $command->shortDescription, $command->priceCents, $command->stock);
+        $this->rules->assertValidData($command->core->name, $normalizedSku, $command->core->description, $command->core->shortDescription, $command->core->priceCents, $command->core->stock);
         $this->rules->assertUniqueness($normalizedSku, $product->getId());
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, $product, $command->color, $command->storageCapacity, $command->variantDefinitions);
+        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, $product, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
 
         $this->attributes->update(
             $product,
-            $command->name,
-            $this->rules->resolveSlug($command->slug, $command->name, $product->getId()),
+            $command,
+            $this->rules->resolveSlug($command->core->slug, $command->core->name, $product->getId()),
             $normalizedSku,
-            $command->description,
-            $command->shortDescription,
-            $command->priceCents,
-            $command->stock,
-            $command->isPublished,
-            $command->isFeaturedHome,
-            $command->category,
-            $command->imageAlt,
-            $command->sellingType,
-            $command->brand,
             $resolvedVariantGroup,
-            $command->releaseYear,
-            $command->storageCapacity,
-            $command->memoryRam,
-            $command->color,
         );
-        $this->discounts->applyOnUpdate($product, $command->discountEnabled, $command->discountType, $command->discountValue, $command->discountStartsAt, $command->discountEndsAt);
+        $this->discounts->applyOnUpdate($product, $command->discount->enabled, $command->discount->type, $command->discount->value, $command->discount->startsAt, $command->discount->endsAt);
 
-        $galleryToRemove = $command->galleryToRemove;
-        if ($command->removeImage) {
+        $galleryToRemove = $command->gallery->toRemove;
+        if ($command->gallery->removeMainImage) {
             $galleryToRemove[] = 0;
         }
 
         try {
             $this->transactions->transactional(function () use ($product, $command, $resolvedVariantGroup, $galleryToRemove): void {
-                $this->gallery->update($product, $command->galleryFiles, $galleryToRemove);
-                $this->variantBatch->forExistingProduct($product, $command->name, $command->sku, $command->slug, $resolvedVariantGroup, $command->stock, $command->variantDefinitions);
+                $this->gallery->stage($product, $command->gallery->files, $galleryToRemove);
+                $this->variantBatch->forExistingProduct($product, $command->core->name, $command->core->sku, $command->core->slug, $resolvedVariantGroup, $command->core->stock, $command->variant->definitions);
             });
-            $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour le produit.', $exception);
         }
+        $this->cacheInvalidator->invalidateAfterWrite('update');
 
         return $product;
     }
@@ -141,9 +111,9 @@ final readonly class ProductWriteHandler
             $this->transactions->transactional(function () use ($product): void {
                 $this->persistence->remove($product);
             });
-            $this->catalogCache->clear();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer le produit.', $exception);
         }
+        $this->cacheInvalidator->invalidateAfterWrite('delete');
     }
 }

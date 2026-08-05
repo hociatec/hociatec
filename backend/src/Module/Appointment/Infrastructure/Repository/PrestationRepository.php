@@ -33,12 +33,22 @@ class PrestationRepository extends ServiceEntityRepository implements Prestation
     /**
      * @return list<Prestation>
      */
-    public function findAllOrderedByName(): array
+    public function findAllOrderedByName(int $limit = 50, int $offset = 0): array
     {
         return $this->createQueryBuilder('p')
             ->orderBy('p.name', 'ASC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
             ->getQuery()
             ->getResult();
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function remove(Prestation $prestation): void

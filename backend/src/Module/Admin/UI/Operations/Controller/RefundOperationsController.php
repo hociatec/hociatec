@@ -15,6 +15,7 @@ use App\Module\Order\Application\DTO\RefundUpdateData;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\Pagination;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,9 +33,15 @@ final class RefundOperationsController extends AbstractController
     }
 
     #[Route('', name: 'api_admin_operations_refunds_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(?Request $request = null): JsonResponse
     {
-        return ApiResponse::successItem('items', $this->refunds->list());
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request);
+
+        return ApiResponse::paginated(
+            $this->refunds->list($pagination->perPage, $pagination->offset()),
+            $pagination->metadata($this->refunds->count()),
+        );
     }
 
     #[Route('', name: 'api_admin_operations_refunds_create', methods: ['POST'])]

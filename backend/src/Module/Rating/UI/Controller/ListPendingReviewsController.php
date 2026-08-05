@@ -7,8 +7,10 @@ namespace App\Module\Rating\UI\Controller;
 use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -21,13 +23,16 @@ class ListPendingReviewsController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(?Request $request = null): JsonResponse
     {
+        $request ??= new Request();
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
 
-        return ApiResponse::success([
-            'items' => $this->resolver->resolve($user),
-        ]);
+        return ApiResponse::paginated(
+            $this->resolver->resolve($user, $pagination->perPage, $pagination->offset()),
+            $pagination->metadata($this->resolver->count($user)),
+        );
     }
 }

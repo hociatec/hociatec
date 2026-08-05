@@ -9,8 +9,10 @@ use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -24,15 +26,17 @@ class ListMyQuotesController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
+        $pagination = Pagination::fromRequest($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
+        $quotes = $this->quotes->findByCustomerEmail($user->getEmail(), $pagination->perPage, $pagination->offset());
         $items = array_map(
             fn ($q) => QuoteFormatter::formatQuote($q, $this->calculator),
-            $this->quotes->findByCustomerEmail($user->getEmail()),
+            $quotes,
         );
 
-        return ApiResponse::successItem('items', $items);
+        return ApiResponse::paginated($items, $pagination->metadata($this->quotes->countByCustomerEmail($user->getEmail())));
     }
 }
