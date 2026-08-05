@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { Clock3, Mail, MapPin } from 'lucide-react';
+import { Clock3, Facebook, Instagram, Linkedin, Mail, MapPin, Music2, Twitter } from 'lucide-react';
 import { CONTACT_EMAIL } from '@/shared/config/seoConfig';
 
 const legalLinks = [
@@ -19,6 +19,14 @@ const openingHours = [
   { key: 'dimanche', label: 'Dimanche', hours: 'Fermé' },
 ];
 
+const socialLinks = [
+  { href: 'https://www.facebook.com/hociatec', label: 'Facebook', Icon: Facebook },
+  { href: 'https://www.linkedin.com/company/hociatec', label: 'LinkedIn', Icon: Linkedin },
+  { href: 'https://www.tiktok.com/@hociatec', label: 'TikTok', Icon: Music2 },
+  { href: 'https://x.com/hociatec', label: 'X', Icon: Twitter },
+  { href: 'https://www.instagram.com/hociatec', label: 'Instagram', Icon: Instagram },
+];
+
 export const SiteFooter = () => {
   const currentDayKey = new Intl.DateTimeFormat('fr-FR', {
     weekday: 'long',
@@ -31,11 +39,22 @@ export const SiteFooter = () => {
     <footer className="site-footer">
       <div className="site-footer__container">
         <div className="site-footer__grid">
-          <div className="site-footer__column site-footer__brand">
-            <h2>Hociatec</h2>
-            <p className="site-footer__tagline">
-              Informatique, réparation et services numériques pour particuliers et professionnels.
-            </p>
+          <div className="site-footer__column">
+            <h2>Réseaux sociaux</h2>
+            <nav className="site-footer__social-links" aria-label="Réseaux sociaux">
+              {socialLinks.map(({ href, label, Icon }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="site-footer__link site-footer__social-link"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Icon aria-hidden="true" />
+                  <span>{label}</span>
+                </a>
+              ))}
+            </nav>
           </div>
 
           <div className="site-footer__column" aria-label="À propos">

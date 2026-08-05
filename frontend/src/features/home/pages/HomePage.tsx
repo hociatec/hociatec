@@ -5,6 +5,7 @@ import { useHomeFeaturedProducts } from '@/features/home/hooks/useHomeFeaturedPr
 import { useHomeFeaturedServices } from '@/features/home/hooks/useHomeFeaturedServices';
 import { useHomeLatestNews } from '@/features/home/hooks/useHomeLatestNews';
 import { HomeFeaturedProductCard } from '@/features/home/components/HomeFeaturedProductCard';
+import { HomeFeaturedServicesCarousel } from '@/features/home/components/HomeFeaturedServicesCarousel';
 import {
   ORGANIZATION_SCHEMA,
   WEBSITE_SCHEMA,
@@ -12,7 +13,6 @@ import {
   LOCAL_BUSINESS_SCHEMA,
 } from '@/shared/config/seoConfig';
 import {
-  HomeFeaturedServiceCard,
   HomeNewsCard,
   HomeNewsHeading,
   HomeProductsHeading,
@@ -55,11 +55,7 @@ export const HomePage = () => {
             </div>
           )}
           {!loadingServices && !errorServices && services.length > 0 && (
-            <div className="home-products__grid">
-              {services.map((service) => (
-                <HomeFeaturedServiceCard key={service.id} service={service} />
-              ))}
-            </div>
+            <HomeFeaturedServicesCarousel services={services} />
           )}
         </section>
 
@@ -77,8 +73,12 @@ export const HomePage = () => {
           )}
           {!loadingProducts && !errorProducts && products.length > 0 && (
             <div className="home-products__grid">
-              {products.map((product) => (
-                <HomeFeaturedProductCard key={product.id} product={product} />
+              {products.map((product, index) => (
+                <HomeFeaturedProductCard
+                  key={product.id}
+                  product={product}
+                  imageLoading={index < 6 ? 'eager' : 'lazy'}
+                />
               ))}
             </div>
           )}

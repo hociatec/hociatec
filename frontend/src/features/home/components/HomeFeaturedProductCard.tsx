@@ -7,7 +7,13 @@ import { getCatalogProductDisplayName } from '@/features/catalog/publicApi';
 import { ProductActionToolbar, ProductMetaBadges } from '@/features/catalog/uiApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
-export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }) => {
+export const HomeFeaturedProductCard = ({
+  product,
+  imageLoading = 'lazy',
+}: {
+  product: CatalogProduct;
+  imageLoading?: 'eager' | 'lazy';
+}) => {
   const [imageFailed, setImageFailed] = useState(false);
   const productDisplayName = getCatalogProductDisplayName(product);
   const compactSpecs = [
@@ -30,7 +36,7 @@ export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }
             alt={product.imageAlt ?? productDisplayName}
             width={400}
             height={300}
-            loading="lazy"
+            loading={imageLoading}
             decoding="async"
             onError={() => setImageFailed(true)}
           />

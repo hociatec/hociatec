@@ -5,6 +5,95 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.home-services-carousel {
+  display: grid;
+  gap: 1rem;
+}
+
+.home-services-carousel__viewport {
+  margin-inline: -0.6rem;
+  overflow: hidden;
+  padding: 0.35rem 0.6rem 0.9rem;
+}
+
+.home-services-carousel__track {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.home-services-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+.home-services-carousel__slide {
+  flex: 0 0 calc((100% - 3rem) / 3);
+  scroll-snap-align: start;
+}
+
+.home-services-carousel__controls {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+.home-services-carousel__button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(18, 17, 15, 0.12);
+  border-radius: 999px;
+  box-shadow: var(--hocia-shadow-sm);
+  color: var(--hocia-ink);
+  cursor: pointer;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+  width: 42px;
+}
+
+.home-services-carousel__button:hover {
+  border-color: rgba(243, 154, 32, 0.54);
+  box-shadow: var(--hocia-shadow-md);
+  transform: translateY(-2px);
+}
+
+.home-services-carousel__button svg {
+  height: 18px;
+  width: 18px;
+}
+
+.home-services-carousel__dots {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.home-services-carousel__dot {
+  background: rgba(18, 17, 15, 0.2);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  height: 8px;
+  padding: 0;
+  transition:
+    background 0.2s ease,
+    width 0.2s ease;
+  width: 8px;
+}
+
+.home-services-carousel__dot.is-active {
+  background: linear-gradient(90deg, var(--hocia-orange), var(--hocia-cyan));
+  width: 24px;
+}
+
 .home-news__grid {
   display: grid;
   gap: 1.5rem;
@@ -110,5 +199,20 @@
   .home-products__grid,
   .home-news__grid {
     grid-template-columns: 1fr;
+  }
+
+  .home-services-carousel__slide {
+    flex-basis: min(78vw, 360px);
+  }
+}
+
+@media (max-width: 560px) {
+  .home-services-carousel__viewport {
+    margin-inline: -0.2rem;
+    padding-inline: 0.2rem;
+  }
+
+  .home-services-carousel__slide {
+    flex-basis: 100%;
   }
 }

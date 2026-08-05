@@ -1,8 +1,9 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
 
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { toOrderId } from '@/shared/types/ids';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,20 +15,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/shared/components/ui/alert-dialog';
+import { OrderDetailsDialog } from '@/features/orders/components/OrderDetailsDialog';
 import { useMyOrders } from '../hooks/useMyOrders';
 
 export const MyOrdersPage = () => {
   useDocumentTitle('Mes commandes');
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
   const {
     orders,
     ordersState,
     isLoading,
     error,
+    cancellingOrderId,
     payingOrderId,
     handlePayOrder,
     handleCancelOrder,
     handleDownloadInvoice,
+    handleDownloadInvoicePdf,
+    handleDownloadInvoiceXml,
     retry,
   } = useMyOrders();
 
@@ -89,12 +95,13 @@ export const MyOrdersPage = () => {
                     <td className="px-4 py-3">{o.pendingReviewsLabel}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Link
+                        <button
+                          type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                          to={o.detailPath}
+                          onClick={() => setSelectedOrderId(o.id)}
                         >
                           Voir le détail
-                        </Link>
+                        </button>
 
                         {o.canPay && (
                           <button
@@ -160,6 +167,17 @@ export const MyOrdersPage = () => {
             </table>
           </div>
         )}
+        <OrderDetailsDialog
+          orderId={selectedOrderId}
+          open={selectedOrderId !== null}
+          payingOrderId={payingOrderId}
+          cancellingOrderId={cancellingOrderId}
+          onClose={() => setSelectedOrderId(null)}
+          onPayOrder={(orderId) => void handlePayOrder(toOrderId(orderId))}
+          onCancelOrder={(orderId) => void handleCancelOrder(toOrderId(orderId))}
+          onDownloadInvoicePdf={(order) => void handleDownloadInvoicePdf(order)}
+          onDownloadInvoiceXml={(order) => void handleDownloadInvoiceXml(order)}
+        />
       </div>
     </SiteLayout>
   );

@@ -112,8 +112,9 @@
   border-radius: 16px;
   cursor: default;
   display: grid;
-  grid-template-rows: 180px 1fr;
+  grid-template-rows: 220px 1fr;
   overflow: hidden;
+  position: relative;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -130,16 +131,25 @@
 
 .catalog-product-card__image {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 18px;
+  transition: transform 0.24s ease;
   width: 100%;
 }
 
 .catalog-product-card__image-link {
-  background: #f8fbff;
+  background:
+    radial-gradient(circle at 18% 14%, rgba(243, 154, 32, 0.16), transparent 9rem),
+    radial-gradient(circle at 82% 88%, rgba(0, 168, 181, 0.15), transparent 10rem),
+    linear-gradient(135deg, #fff8ef, #f4fbfd);
   display: block;
   height: 100%;
   text-decoration: none;
   width: 100%;
+}
+
+.catalog-product-card:hover .catalog-product-card__image {
+  transform: scale(1.045);
 }
 
 .catalog-product-card__placeholder {
@@ -162,7 +172,7 @@
 .catalog-product-card__content {
   display: grid;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 20px;
 }
 
 .catalog-product-card__header {
@@ -309,11 +319,12 @@
 }
 
 .catalog-product-card__footer {
-  align-items: center;
+  align-items: stretch;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
   justify-content: space-between;
+  margin-top: auto;
 }
 
 .catalog-product-card__footer-main {
@@ -350,7 +361,7 @@
 }
 
 .catalog-product-card__actions {
-  align-items: center;
+  align-items: stretch;
   display: flex;
   gap: 8px;
   margin-left: auto;
@@ -368,7 +379,7 @@
 }
 
 .product-action-toolbar {
-  align-items: center;
+  align-items: stretch;
   display: flex;
   gap: 8px;
   width: 100%;
@@ -385,22 +396,21 @@
 
 .catalog-product-card__actions .catalog-cart-button {
   line-height: 1.05;
-  min-height: 42px;
-  padding: 0 12px;
+  min-height: 46px;
+  padding: 0 14px;
   white-space: normal;
   width: 100%;
 }
 
-.catalog-product-card__actions .product-action-toolbar > button {
+.catalog-product-card__actions .product-action-toolbar__button {
   border-radius: 12px;
   flex: 0 0 42px;
-  height: 42px;
-  justify-content: center;
+  min-height: 46px;
   padding: 0;
   width: 42px;
 }
 
-.catalog-product-card__actions .product-action-toolbar > button span {
+.catalog-product-card__actions .product-action-toolbar__button span {
   border: 0;
   clip: rect(0 0 0 0);
   height: 1px;
@@ -442,8 +452,8 @@
   color: var(--hocia-ink);
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 600;
-  padding: 8px 16px;
+  font-weight: 850;
+  padding: 9px 16px;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;

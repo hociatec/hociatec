@@ -81,7 +81,7 @@ final class CatalogFormatter
             'stock' => $product->getStock(),
             'isPublished' => $product->isPublished(),
             'isFeaturedHome' => $product->isFeaturedHome(),
-            'imageUrl' => $gallery[0]['url'] ?? $this->resolveImageUrlFromName($product->getImageName()),
+            'imageUrl' => $gallery[0]['url'] ?? $product->getImageExternalUrl() ?? $this->resolveImageUrlFromName($product->getImageName()),
             'imageAlt' => $product->getImageAlt(),
             'createdAt' => $product->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $product->getUpdatedAt()->format(DATE_ATOM),
@@ -100,6 +100,7 @@ final class CatalogFormatter
         if ($includePrivateFields) {
             $data['imageName'] = $product->getImageName();
             $data['imageSize'] = $product->getImageSize();
+            $data['imageExternalUrl'] = $product->getImageExternalUrl();
             $data['galleryMeta'] = array_map(
                 static fn (int $position) => [
                     'position' => $position,
@@ -129,7 +130,18 @@ final class CatalogFormatter
     {
         $items = [];
 
-        foreach ([0, 1, 2, 3] as $position) {
+        $hasExternalImage = null !== $product->getImageExternalUrl() && '' !== trim($product->getImageExternalUrl());
+
+        if ($hasExternalImage) {
+            $items[] = [
+                'position' => 0,
+                'url' => $product->getImageExternalUrl(),
+                'alt' => $product->getImageAlt() ?? $product->getName(),
+                'isPrimary' => true,
+            ];
+        }
+
+        foreach ($hasExternalImage ? [1, 2, 3] : [0, 1, 2, 3] as $position) {
             $fileName = $product->getGalleryImageNameByPosition($position);
 
             if (null === $fileName) {

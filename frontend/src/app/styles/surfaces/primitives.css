@@ -160,6 +160,40 @@ fieldset.register-form__field {
   color: #111827;
 }
 
+.product-action-toolbar__button {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(229, 216, 200, 1);
+  border-radius: 999px;
+  color: var(--hocia-ink-soft);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 750;
+  gap: 6px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 12px;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.product-action-toolbar__button:hover {
+  background: var(--hocia-surface-soft);
+  border-color: rgba(243, 154, 32, 0.42);
+  color: var(--hocia-ink);
+  transform: translateY(-1px);
+}
+
+.product-action-toolbar__button svg {
+  height: 16px;
+  width: 16px;
+}
+
 .button-compact {
   font-size: 0.9rem;
   padding: 8px 12px;

@@ -61,6 +61,7 @@ trait ProductPublicQueries
                 'p.publication.isFeaturedHome AS isFeaturedHome',
                 'p.imageName AS imageName',
                 'p.imageAlt AS imageAlt',
+                'p.imageExternalUrl AS imageExternalUrl',
                 'p.galleryImage2Name AS galleryImage2Name',
                 'p.galleryImage3Name AS galleryImage3Name',
                 'p.galleryImage4Name AS galleryImage4Name',

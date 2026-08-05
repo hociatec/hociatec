@@ -51,7 +51,7 @@ final class ProductCatalogListProjectionFormatter
             'stock' => (int) $product['stock'],
             'isPublished' => (bool) $product['isPublished'],
             'isFeaturedHome' => (bool) $product['isFeaturedHome'],
-            'imageUrl' => $gallery[0]['url'] ?? $this->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
+            'imageUrl' => $gallery[0]['url'] ?? $this->resolveExternalImageUrl($product) ?? $this->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
             'imageAlt' => $imageAlt,
             'createdAt' => $product['createdAt'] instanceof \DateTimeInterface ? $product['createdAt']->format(DATE_ATOM) : null,
             'updatedAt' => $product['updatedAt'] instanceof \DateTimeInterface ? $product['updatedAt']->format(DATE_ATOM) : null,
@@ -88,7 +88,21 @@ final class ProductCatalogListProjectionFormatter
     private function formatGallery(array $product, string $alt): array
     {
         $items = [];
-        foreach ([0 => 'imageName', 1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name'] as $position => $key) {
+        $externalImageUrl = $this->resolveExternalImageUrl($product);
+        if (null !== $externalImageUrl) {
+            $items[] = [
+                'position' => 0,
+                'url' => $externalImageUrl,
+                'alt' => $alt,
+                'isPrimary' => true,
+            ];
+        }
+
+        $imageColumns = null === $externalImageUrl
+            ? [0 => 'imageName', 1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name']
+            : [1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name'];
+
+        foreach ($imageColumns as $position => $key) {
             $fileName = null !== $product[$key] ? (string) $product[$key] : null;
             $url = $this->resolveImageUrlFromName($fileName);
             if (null === $url) {
@@ -113,5 +127,19 @@ final class ProductCatalogListProjectionFormatter
         }
 
         return sprintf('/uploads/products/%s', ltrim($fileName, '/'));
+    }
+
+    /**
+     * @param array<string, mixed> $product
+     */
+    private function resolveExternalImageUrl(array $product): ?string
+    {
+        $url = $product['imageExternalUrl'] ?? null;
+
+        if (null === $url || '' === trim((string) $url)) {
+            return null;
+        }
+
+        return (string) $url;
     }
 }

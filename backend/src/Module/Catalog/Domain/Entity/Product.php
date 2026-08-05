@@ -60,6 +60,9 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageAlt = null;
 
+    #[ORM\Column(length: 2048, nullable: true)]
+    private ?string $imageExternalUrl = null;
+
     #[Vich\UploadableField(mapping: 'product_images', fileNameProperty: 'galleryImage2Name', size: 'galleryImage2Size')]
     private ?object $galleryImage2File = null;
 
@@ -213,6 +216,8 @@ class Product
     public function setImageSize(?int $imageSize): self { $this->gallery()->changeImageSize($imageSize); return $this; }
     public function getImageAlt(): ?string { return $this->gallery()->imageAlt(); }
     public function setImageAlt(?string $imageAlt): self { $this->gallery()->changeImageAlt($imageAlt); return $this; }
+    public function getImageExternalUrl(): ?string { return $this->imageExternalUrl; }
+    public function setImageExternalUrl(?string $imageExternalUrl): self { $this->imageExternalUrl = $imageExternalUrl; return $this; }
 
     public function setGalleryImageFile(int $position, ?object $file): self
     {

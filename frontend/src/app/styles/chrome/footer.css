@@ -44,7 +44,8 @@
 .site-footer__contact-list,
 .site-footer__links,
 .site-footer__about-info,
-.site-footer__about-links {
+.site-footer__about-links,
+.site-footer__social-links {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -62,17 +63,12 @@
   padding-top: 0.8rem;
 }
 
-.site-footer__brand {
-  max-width: 20rem;
-}
-
 .site-footer__hours-column {
   border-top: 1px solid rgba(226, 232, 240, 0.12);
   grid-column: 1 / -1;
   padding-top: 1.25rem;
 }
 
-.site-footer__tagline,
 .site-footer__bottom p {
   color: rgba(226, 232, 240, 0.76);
   line-height: 1.6;
@@ -113,6 +109,10 @@
   height: 16px;
   margin-top: 0.12rem;
   width: 16px;
+}
+
+.site-footer__social-link svg {
+  color: #f39a20;
 }
 
 .site-footer__link--static {
@@ -162,10 +162,6 @@
 @media (max-width: 1080px) {
   .site-footer__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .site-footer__brand {
-    max-width: none;
   }
 
   .site-footer__hours {

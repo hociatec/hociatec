@@ -23,7 +23,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
         <button
           type="button"
           onClick={() => window.open(facebookShareUrl, '_blank', 'noopener,noreferrer')}
-          className="inline-flex items-center gap-1 rounded-full border border-brand-100 px-3 py-1.5 text-sm text-stone-700 hover:bg-brand-50"
+          className="product-action-toolbar__button"
           title="Partager sur Facebook"
           aria-label="Partager sur Facebook"
         >
@@ -35,7 +35,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
           onClick={() => {
             setIsShareDialogOpen(true);
           }}
-          className="inline-flex items-center gap-1 rounded-full border border-brand-100 px-3 py-1.5 text-sm text-stone-700 hover:bg-brand-50"
+          className="product-action-toolbar__button"
           title="Partager par e-mail"
           aria-label="Partager par e-mail"
           aria-haspopup="dialog"

@@ -8,6 +8,7 @@ use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class CatalogFormatterTest extends TestCase
@@ -105,6 +106,7 @@ final class CatalogFormatterTest extends TestCase
         self::assertSame('/uploads/products/back.jpg', $formatted['gallery'][2]['url']);
         self::assertSame('main.jpg', $formatted['imageName']);
         self::assertSame(1234, $formatted['imageSize']);
+        self::assertNull($formatted['imageExternalUrl']);
         self::assertSame([
             ['position' => 0, 'name' => 'main.jpg'],
             ['position' => 1, 'name' => 'side.jpg'],
@@ -139,6 +141,73 @@ final class CatalogFormatterTest extends TestCase
             'alt' => 'iPad',
             'isPrimary' => true,
         ]], $formatted['gallery']);
+    }
+
+    public function testFormatProductUsesExternalImageAsPrimaryVisual(): void
+    {
+        $category = new Category('Phones', 'phones');
+        $product = new Product('iPhone externe', 'iphone-externe', 'IPH-EXT', 'Phone', 70000, 4, $category);
+        $product
+            ->setImageName('missing-local.png')
+            ->setGalleryImage2Name('side.jpg')
+            ->setImageAlt('iPhone externe')
+            ->setImageExternalUrl('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg');
+
+        $formatted = (new CatalogFormatter())->formatProduct($product, true);
+
+        self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['imageUrl']);
+        self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['gallery'][0]['url']);
+        self::assertSame(0, $formatted['gallery'][0]['position']);
+        self::assertTrue($formatted['gallery'][0]['isPrimary']);
+        self::assertSame('/uploads/products/side.jpg', $formatted['gallery'][1]['url']);
+        self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['imageExternalUrl']);
+    }
+
+    public function testListProjectionUsesExternalImageAsPrimaryVisual(): void
+    {
+        $formatted = (new ProductCatalogListProjectionFormatter())->format([
+            'id' => 1,
+            'name' => 'iPhone 13',
+            'slug' => 'iphone-13',
+            'sku' => 'IPH-13',
+            'shortDescription' => null,
+            'description' => 'Phone',
+            'priceCents' => 70000,
+            'sellingType' => 'sale',
+            'brandId' => null,
+            'brand' => 'Apple',
+            'variantGroup' => null,
+            'variantPosition' => 1,
+            'releaseYear' => 2021,
+            'storageCapacity' => '256 Go',
+            'memoryRam' => null,
+            'color' => 'Bleu',
+            'stock' => 5,
+            'isPublished' => true,
+            'isFeaturedHome' => true,
+            'imageName' => 'missing-local.png',
+            'imageAlt' => 'iPhone 13 bleu',
+            'imageExternalUrl' => 'https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg',
+            'galleryImage2Name' => 'side.jpg',
+            'galleryImage3Name' => null,
+            'galleryImage4Name' => null,
+            'reviewsCount' => 0,
+            'reviewsAverage' => 0,
+            'discountEnabled' => false,
+            'discountType' => null,
+            'discountValue' => null,
+            'discountStartsAt' => null,
+            'discountEndsAt' => null,
+            'createdAt' => new \DateTimeImmutable(),
+            'updatedAt' => new \DateTimeImmutable(),
+            'categoryId' => 10,
+            'categoryName' => 'Phones',
+            'categorySlug' => 'phones',
+        ]);
+
+        self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['imageUrl']);
+        self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['gallery'][0]['url']);
+        self::assertSame('/uploads/products/side.jpg', $formatted['gallery'][1]['url']);
     }
 
     private function setEntityId(object $entity, int $id): void
