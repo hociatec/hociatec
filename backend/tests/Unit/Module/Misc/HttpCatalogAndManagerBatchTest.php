@@ -16,6 +16,7 @@ use App\Module\Catalog\UI\Controller\PublicApi\ListProductsController;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
 use App\Module\Catalog\UI\Http\ProductSearchRequestMapper;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Provider\ProductCatalogSearchProvider;
@@ -31,6 +32,7 @@ use App\Shared\Infrastructure\Http\JsonPayload;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,7 +89,7 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
 
         $products = $this->createMock(ProductRepository::class);
         $products->expects(self::once())
-            ->method('findPublished')
+            ->method('findPublishedListProjection')
             ->with(
                 'phones',
                 'iphone',
@@ -104,7 +106,44 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
                 48,
                 0
             )
-            ->willReturn([$product]);
+            ->willReturn([[
+                'id' => 12,
+                'name' => 'iPhone',
+                'slug' => 'iphone',
+                'sku' => 'IP-1',
+                'shortDescription' => 'Short',
+                'description' => 'Desc',
+                'priceCents' => 199900,
+                'sellingType' => 'rental',
+                'brandId' => 9,
+                'brand' => 'Apple',
+                'variantGroup' => null,
+                'variantPosition' => 0,
+                'releaseYear' => null,
+                'storageCapacity' => '256 Go',
+                'memoryRam' => '8 Go',
+                'color' => 'Noir',
+                'stock' => 4,
+                'isPublished' => false,
+                'isFeaturedHome' => false,
+                'imageName' => 'iphone.jpg',
+                'imageAlt' => 'iPhone',
+                'galleryImage2Name' => null,
+                'galleryImage3Name' => null,
+                'galleryImage4Name' => null,
+                'reviewsCount' => 0,
+                'reviewsAverage' => 0.0,
+                'discountEnabled' => false,
+                'discountType' => null,
+                'discountValue' => null,
+                'discountStartsAt' => null,
+                'discountEndsAt' => null,
+                'createdAt' => new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
+                'updatedAt' => new \DateTimeImmutable('2026-07-02T10:00:00+00:00'),
+                'categoryId' => 5,
+                'categoryName' => 'Phones',
+                'categorySlug' => 'phones',
+            ]]);
         $products->expects(self::once())
             ->method('countPublished')
             ->with('phones', 'iphone', true, 'rental', 'apple', '256 Go', '8 Go', 'Noir', 1050, 2000, true)
@@ -114,9 +153,10 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
             ->with('phones', 'iphone', true, 'rental', 'apple', '256 Go', '8 Go', 'Noir', 1050, 2000, true)
             ->willReturn(['brands' => ['Apple']]);
 
+        $cache = new ArrayAdapter();
         $controller = new ListProductsController(
             new ProductSearchRequestMapper(),
-            new ProductCatalogSearchProvider(new ProductQueryService($products), new ArrayAdapter()),
+            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), $cache),
         );
 
         $request = new Request([

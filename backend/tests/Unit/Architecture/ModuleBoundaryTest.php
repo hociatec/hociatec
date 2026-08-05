@@ -551,6 +551,55 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('invalidateAfterWrite', $handler);
     }
 
+    public function testCatalogListReadsUseScalarProjectionAndVersionedCache(): void
+    {
+        $provider = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Provider/ProductCatalogSearchProvider.php');
+        $repository = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Infrastructure/Repository/ProductPublicQueries.php');
+        $invalidator = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Cache/CatalogCacheInvalidator.php');
+        self::assertIsString($provider);
+        self::assertIsString($repository);
+        self::assertIsString($invalidator);
+
+        self::assertStringContainsString('listPublishedProjection', $provider);
+        self::assertStringContainsString('ProductCatalogListProjectionFormatter', $provider);
+        self::assertStringContainsString('findPublishedListProjection', $repository);
+        self::assertStringContainsString('getArrayResult()', $repository);
+        self::assertStringContainsString('CatalogCacheVersion', $provider);
+        self::assertStringContainsString('current()', $provider);
+        self::assertStringContainsString('bump($operation)', $invalidator);
+        self::assertStringNotContainsString('->clear()', $invalidator);
+    }
+
+    public function testControllersDoNotCallExternalServicesDirectly(): void
+    {
+        $forbiddenPatterns = [
+            '/\buse\s+Symfony\\\\Component\\\\Mailer\\\\MailerInterface;/',
+            '/\buse\s+Symfony\\\\Contracts\\\\HttpClient\\\\HttpClientInterface;/',
+            '/\buse\s+App\\\\Module\\\\Order\\\\Application\\\\Workflow\\\\StripeApiClient;/',
+            '/\buse\s+App\\\\Module\\\\Order\\\\Application\\\\Port\\\\StripeRefundClient;/',
+            '/->mailer->send\s*\(/',
+            '/->send\s*\(\s*\$email/',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach ($forbiddenPatterns as $pattern) {
+                if (preg_match($pattern, $source, $match)) {
+                    $violations[] = $this->relativePath($path).': '.$match[0];
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testDomainEntityTraitsStayFocused(): void
     {
         $violations = [];

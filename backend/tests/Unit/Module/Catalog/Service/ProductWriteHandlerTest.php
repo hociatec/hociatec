@@ -10,6 +10,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
 use App\Module\Catalog\Application\Cache\CatalogCacheInvalidator;
+use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
 use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
 use App\Module\Catalog\Application\DTO\ProductGalleryWriteData;
@@ -26,6 +27,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validation;
 
@@ -35,7 +37,7 @@ final class ProductWriteHandlerTest extends TestCase
     {
         $productRepository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache = new ArrayAdapter();
 
         $service = $this->service($productRepository, $entityManager, $cache);
         $category = new Category('Phones', 'phones');
@@ -69,7 +71,6 @@ final class ProductWriteHandlerTest extends TestCase
                 $persisted[] = $entity;
             });
         $entityManager->expects(self::once())->method('flush');
-        $cache->expects(self::once())->method('clear')->willReturn(true);
 
         $product = $service->create(ProductWriteCommand::forCreate(
             new ProductCoreWriteData(
@@ -131,13 +132,14 @@ final class ProductWriteHandlerTest extends TestCase
         self::assertSame('Black', $variant->getColor());
         self::assertSame('256 Go', $variant->getStorageCapacity());
         self::assertNull($variant->getImageName());
+        self::assertSame(2, (new CatalogCacheVersion($cache, new NullLogger()))->current());
     }
 
     public function testUpdateAppliesRequestedChangesCreatesNewVariantAndRemovesMainImage(): void
     {
         $productRepository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache = new ArrayAdapter();
 
         $service = $this->service($productRepository, $entityManager, $cache);
         $category = new Category('Phones', 'phones');
@@ -181,7 +183,6 @@ final class ProductWriteHandlerTest extends TestCase
                 $persisted[] = $entity;
             });
         $entityManager->expects(self::once())->method('flush');
-        $cache->expects(self::once())->method('clear')->willReturn(true);
 
         $updated = $service->update(ProductWriteCommand::forUpdate(
             $product,
@@ -253,28 +254,34 @@ final class ProductWriteHandlerTest extends TestCase
         self::assertSame('updated-phone-silver-512-go', $variant->getSlug());
         self::assertSame(2, $variant->getVariantPosition());
         self::assertSame(6, $variant->getStock());
+        self::assertSame(2, (new CatalogCacheVersion($cache, new NullLogger()))->current());
     }
 
     public function testDeleteRemovesProductFlushesAndClearsCache(): void
     {
         $productRepository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache = new ArrayAdapter();
         $service = $this->service($productRepository, $entityManager, $cache);
         $product = new Product('Phone', 'phone', 'SKU', 'Desc', 1000, 1, new Category('Phones', 'phones'));
 
         $entityManager->expects(self::once())->method('remove')->with($product);
         $entityManager->expects(self::once())->method('flush');
-        $cache->expects(self::once())->method('clear')->willReturn(true);
 
         $service->delete($product);
+        self::assertSame(2, (new CatalogCacheVersion($cache, new NullLogger()))->current());
     }
 
     public function testCommittedProductWriteDoesNotFailWhenCacheInvalidationFails(): void
     {
         $productRepository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache = new class extends ArrayAdapter {
+            public function getItem(mixed $key): \Symfony\Component\Cache\CacheItem
+            {
+                throw new \RuntimeException('cache down');
+            }
+        };
 
         $service = $this->service($productRepository, $entityManager, $cache);
         $category = new Category('Phones', 'phones');
@@ -285,7 +292,6 @@ final class ProductWriteHandlerTest extends TestCase
 
         $entityManager->expects(self::once())->method('persist');
         $entityManager->expects(self::once())->method('flush');
-        $cache->expects(self::once())->method('clear')->willThrowException(new \RuntimeException('cache down'));
 
         $product = $service->create(ProductWriteCommand::forCreate(
             new ProductCoreWriteData(
@@ -356,7 +362,7 @@ final class ProductWriteHandlerTest extends TestCase
             $variantBatch,
             new ProductGalleryUpdater(),
             new ProductDiscountApplicator(),
-            new CatalogCacheInvalidator($cache, new NullLogger()),
+            new CatalogCacheInvalidator(new CatalogCacheVersion($cache, new NullLogger())),
         );
     }
 

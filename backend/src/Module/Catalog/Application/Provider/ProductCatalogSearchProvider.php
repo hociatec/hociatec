@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Provider;
 
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
+use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
 use App\Module\Catalog\Application\Query\ProductCatalogQuery;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -14,6 +15,7 @@ final readonly class ProductCatalogSearchProvider
 {
     public function __construct(
         private ProductQueryService $products,
+        private CatalogCacheVersion $cacheVersion,
         #[Autowire(service: 'app.catalog_cache')]
         private CacheInterface $cache,
     ) {
@@ -25,6 +27,7 @@ final readonly class ProductCatalogSearchProvider
     public function search(ProductCatalogQuery $criteria): array
     {
         $cacheKey = 'catalog_'.hash('xxh128', (string) json_encode([
+            'version' => $this->cacheVersion->current(),
             'page' => $criteria->page,
             'perPage' => $criteria->perPage,
             'filters' => $criteria->filterArguments(),
@@ -40,7 +43,7 @@ final readonly class ProductCatalogSearchProvider
 
             return [
                 'items' => array_map(
-                    static fn (array $product): array => CatalogFormatter::formatProductProjection($product),
+                    static fn (array $product): array => ProductCatalogListProjectionFormatter::format($product),
                     $items,
                 ),
                 'meta' => [
