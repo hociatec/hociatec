@@ -1,30 +1,42 @@
-import { useEffect, useMemo, useState } from 'react';
-import { deletePromotion, fetchPromotionAudiences, fetchPromotions, type Promotion } from '../api';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { deletePromotion, fetchPromotionAudiences, fetchPromotions } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { adminPromotionQueryKeys } from '@/shared/lib/queryKeys';
 
 export const usePromotionsList = () => {
   const confirm = useConfirm();
   const toast = useToast();
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [audiences, setAudiences] = useState<
-    Record<string, { label: string; description: string }>
-  >({});
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setLoading(true);
-    void Promise.all([fetchPromotions(), fetchPromotionAudiences()])
-      .then(([items, audienceItems]) => {
-        setPromotions(items);
-        setAudiences(audienceItems);
-      })
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger les promotions.')))
-      .finally(() => setLoading(false));
-  }, []);
+  const overviewQuery = useQuery({
+    queryKey: adminPromotionQueryKeys.overview(),
+    queryFn: async () => {
+      const [promotions, audiences] = await Promise.all([
+        fetchPromotions(),
+        fetchPromotionAudiences(),
+      ]);
+      return { promotions, audiences };
+    },
+  });
+  const promotions = overviewQuery.data?.promotions ?? [];
+  const audiences = overviewQuery.data?.audiences ?? {};
+  const deleteMutation = useMutation({
+    mutationFn: deletePromotion,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminPromotionQueryKeys.overview() });
+      toast.show(response.message ?? 'La promotion a bien été supprimée.', { variant: 'success' });
+    },
+    onError: (e) => {
+      const message = getHttpErrorMessage(e, 'Suppression impossible.');
+      setError(message);
+      toast.show(message, { variant: 'error' });
+    },
+  });
   const filteredPromotions = useMemo(() => {
     const term = query.trim().toLowerCase();
     return promotions.filter(
@@ -48,15 +60,7 @@ export const usePromotionsList = () => {
       }))
     )
       return;
-    try {
-      const response = await deletePromotion(promotionId);
-      setPromotions((items) => items.filter((item) => item.id !== promotionId));
-      toast.show(response.message ?? 'La promotion a bien été supprimée.', { variant: 'success' });
-    } catch (e) {
-      const message = getHttpErrorMessage(e, 'Suppression impossible.');
-      setError(message);
-      toast.show(message, { variant: 'error' });
-    }
+    deleteMutation.mutate(promotionId);
   };
   return {
     promotions,
@@ -65,8 +69,12 @@ export const usePromotionsList = () => {
     setQuery,
     statusFilter,
     setStatusFilter,
-    loading,
-    error,
+    loading: overviewQuery.isLoading,
+    error:
+      error ??
+      (overviewQuery.error
+        ? getHttpErrorMessage(overviewQuery.error, 'Impossible de charger les promotions.')
+        : null),
     filteredPromotions,
     handleDelete,
   };

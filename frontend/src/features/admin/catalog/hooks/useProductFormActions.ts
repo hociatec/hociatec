@@ -1,12 +1,13 @@
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createProduct, deleteProduct, updateProduct, type CatalogBrand, type CatalogProduct, type UpsertProductPayload } from '@/features/catalog/api';
 import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
 import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
 import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type UseProductFormActionsParams = {
   isEdit: boolean;
@@ -40,40 +41,52 @@ export const useProductFormActions = ({
   setGroupVariants,
 }: UseProductFormActionsParams) => {
   const navigate = useNavigate();
-  const [saving, setSaving] = useState(false);
-  const [deletingVariantId, setDeletingVariantId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const deleteVariantMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: (response, variantId) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.products() });
+      const remainingVariants = groupVariants.filter((item) => item.id !== variantId);
+      if (variantId === currentProductId) {
+        const nextVariant = remainingVariants[0] ?? null;
+        void navigate(
+          nextVariant
+            ? `/admin/catalog/products/${nextVariant.id}/edit`
+            : '/admin/catalog/products',
+        );
+        return;
+      }
+      setGroupVariants(remainingVariants);
+      onMessage(response.message ?? 'La variante a bien été supprimée.');
+    },
+    onError: (error) => onError(getHttpErrorMessage(error, 'Impossible de supprimer la variante.')),
+  });
+  const saveMutation = useMutation({
+    mutationFn: (payload: UpsertProductPayload) =>
+      isEdit && productId ? updateProduct(Number(productId), payload) : createProduct(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.products() });
+      onMessage(isEdit ? 'Produit mis à jour.' : 'Produit créé.');
+      if (!isEdit) {
+        resetForm();
+      }
+      setTimeout(() => navigate('/admin/catalog/products'), 800);
+    },
+    onError: (error) => onError(getHttpErrorMessage(error, "Impossible d'enregistrer le produit.")),
+  });
 
   const handleDeleteVariant = (variant: CatalogProduct) => {
-    if (groupVariants.length <= 1 || deletingVariantId !== null) return;
+    if (groupVariants.length <= 1 || deleteVariantMutation.isPending) return;
     if (!window.confirm(`Supprimer la variante ${formatVariantDetails(variant)} ?`)) return;
 
-    setDeletingVariantId(variant.id);
     onError(null);
     onMessage(null);
-
-    void deleteProduct(variant.id)
-      .then((response) => {
-        const remainingVariants = groupVariants.filter((item) => item.id !== variant.id);
-        if (variant.id === currentProductId) {
-          const nextVariant = remainingVariants[0] ?? null;
-          void navigate(
-            nextVariant
-              ? `/admin/catalog/products/${nextVariant.id}/edit`
-              : '/admin/catalog/products',
-          );
-          return;
-        }
-
-        setGroupVariants(remainingVariants);
-        onMessage(response.message ?? 'La variante a bien été supprimée.');
-      })
-      .catch((error) => onError(getHttpErrorMessage(error, 'Impossible de supprimer la variante.')))
-      .finally(() => setDeletingVariantId(null));
+    deleteVariantMutation.mutate(variant.id);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (saving) return;
+    if (saveMutation.isPending) return;
 
     const result = buildProductPayload({
       form,
@@ -96,24 +109,9 @@ export const useProductFormActions = ({
     }
 
     const payload: UpsertProductPayload = result.payload;
-    setSaving(true);
     onError(null);
     onMessage(null);
-
-    const action = isEdit && productId
-      ? updateProduct(Number(productId), payload)
-      : createProduct(payload);
-
-    void action
-      .then(() => {
-        onMessage(isEdit ? 'Produit mis à jour.' : 'Produit créé.');
-        if (!isEdit) {
-          resetForm();
-        }
-        setTimeout(() => navigate('/admin/catalog/products'), 800);
-      })
-      .catch((error) => onError(getHttpErrorMessage(error, "Impossible d'enregistrer le produit.")))
-      .finally(() => setSaving(false));
+    saveMutation.mutate(payload);
   };
 
   const navigateToProductList = () => navigate('/admin/catalog/products');
@@ -125,11 +123,11 @@ export const useProductFormActions = ({
   };
 
   return {
-    deletingVariantId,
+    deletingVariantId: deleteVariantMutation.variables ?? null,
     handleDeleteVariant,
     handleSubmit,
     navigateToProductList,
     navigateToVariant,
-    saving,
+    saving: saveMutation.isPending,
   };
 };

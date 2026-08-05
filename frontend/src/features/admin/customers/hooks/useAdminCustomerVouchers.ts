@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createCustomerVoucher,
   fetchAdminCustomerById,
@@ -10,6 +11,7 @@ import {
 import { deleteVoucher } from '@/features/admin/vouchers/api';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { adminCustomerQueryKeys, adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
 
 export type VoucherFormState = {
   name: string;
@@ -56,52 +58,85 @@ export const useAdminCustomerVouchers = () => {
   const customerId = Number(rawCustomerId);
   const confirm = useConfirm();
   const toast = useToast();
-  const [customer, setCustomer] = useState<AdminCustomerDetailDto | null>(null);
-  const [vouchers, setVouchers] = useState<AdminCustomerVoucherDto[]>([]);
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<VoucherFormState>(emptyVoucherForm);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const customerQuery = useQuery({
+    queryKey: adminCustomerQueryKeys.vouchers(Number.isFinite(customerId) ? customerId : null),
+    queryFn: () => fetchAdminCustomerById(customerId),
+    enabled: Number.isFinite(customerId) && customerId > 0,
+  });
+  const customer: AdminCustomerDetailDto | null = customerQuery.data?.customer ?? null;
+  const vouchers: AdminCustomerVoucherDto[] = customerQuery.data?.vouchers ?? [];
+  const createMutation = useMutation({
+    mutationFn: () => {
+      if (!customer) throw new Error('Client invalide.');
+      return createCustomerVoucher(customer.id, buildPayload(form));
+    },
+    onSuccess: (result) => {
+      setForm(emptyVoucherForm);
+      queryClient.setQueryData<Awaited<ReturnType<typeof fetchAdminCustomerById>>>(
+        adminCustomerQueryKeys.vouchers(customerId),
+        (current) =>
+          current
+            ? {
+                ...current,
+                vouchers: [result.voucher, ...current.vouchers],
+              }
+            : current,
+      );
+      toast.show(
+        `Bon ${result.voucher.code} créé${result.emailSent ? ' et envoyé par e-mail.' : '.'}`,
+        { variant: 'success' },
+      );
+    },
+    onError: (e) =>
+      toast.show(e instanceof Error ? e.message : 'Impossible de créer le bon de réduction.', {
+        variant: 'error',
+      }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteVoucher,
+    onSuccess: (response, voucherId) => {
+      queryClient.setQueryData<Awaited<ReturnType<typeof fetchAdminCustomerById>>>(
+        adminCustomerQueryKeys.vouchers(customerId),
+        (current) =>
+          current
+            ? {
+                ...current,
+                vouchers: current.vouchers.filter((item) => item.id !== voucherId),
+              }
+            : current,
+      );
+      void queryClient.invalidateQueries({ queryKey: adminVoucherQueryKeys.list() });
+      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', {
+        variant: 'success',
+      });
+    },
+    onError: (e) =>
+      toast.show(e instanceof Error ? e.message : 'Impossible de supprimer le bon.', {
+        variant: 'error',
+      }),
+  });
+
   useEffect(() => {
     if (!customerId) {
-      setStatus('error');
       setError('Client invalide.');
       return;
     }
-    setStatus('loading');
-    void fetchAdminCustomerById(customerId)
-      .then((data) => {
-        setCustomer(data.customer);
-        setVouchers(data.vouchers);
-        setForm((current) => ({
-          ...current,
-          name: current.name || `Offre client ${data.customer.lastName}`,
-        }));
-        setStatus('success');
-      })
-      .catch((e) => {
-        setStatus('error');
-        setError(e instanceof Error ? e.message : 'Impossible de charger ce client.');
-      });
   }, [customerId]);
+
+  useEffect(() => {
+    if (!customerQuery.data) return;
+    setForm((current) => ({
+      ...current,
+      name: current.name || `Offre client ${customerQuery.data.customer.lastName}`,
+    }));
+  }, [customerQuery.data]);
+
   const handleSubmit = () => {
     if (!customer) return;
-    setSaving(true);
-    void createCustomerVoucher(customer.id, buildPayload(form))
-      .then((result) => {
-        setForm(emptyVoucherForm);
-        setVouchers((items) => [result.voucher, ...items]);
-        toast.show(
-          `Bon ${result.voucher.code} créé${result.emailSent ? ' et envoyé par e-mail.' : '.'}`,
-          { variant: 'success' },
-        );
-      })
-      .catch((e) =>
-        toast.show(e instanceof Error ? e.message : 'Impossible de créer le bon de réduction.', {
-          variant: 'error',
-        }),
-      )
-      .finally(() => setSaving(false));
+    createMutation.mutate();
   };
   const handleDelete = async (voucherId: number) => {
     const voucher = vouchers.find((item) => item.id === voucherId);
@@ -114,24 +149,16 @@ export const useAdminCustomerVouchers = () => {
       }))
     )
       return;
-    try {
-      const response = await deleteVoucher(voucherId);
-      setVouchers((items) => items.filter((item) => item.id !== voucherId));
-      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', { variant: 'success' });
-    } catch (e) {
-      toast.show(e instanceof Error ? e.message : 'Impossible de supprimer le bon.', {
-        variant: 'error',
-      });
-    }
+    deleteMutation.mutate(voucherId);
   };
   return {
     customer,
     vouchers,
     form,
     setForm,
-    status,
-    error,
-    saving,
+    status: customerQuery.isLoading ? 'loading' : error || customerQuery.error ? 'error' : 'success',
+    error: error ?? customerQuery.error?.message ?? null,
+    saving: createMutation.isPending,
     handleSubmit,
     handleDelete,
   };

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router';
 
-import { fetchNewsArticle, type NewsArticleDto } from '@/features/news/api/newsApi';
+import { fetchNewsArticle } from '@/features/news/api/newsApi';
 import { NewsComments } from '@/features/news/components/NewsComments';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
@@ -9,6 +9,7 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { newsQueryKeys } from '@/shared/lib/queryKeys';
 
 const formatDate = (value: string | null) => (value ? formatOptionalFrenchDate(value) : 'Date non définie');
 
@@ -20,9 +21,13 @@ const normalizeSlugFromUrl = (value: string) =>
 export const NewsDetailPage = () => {
   const { slug: rawSlug = '' } = useParams();
   const slug = normalizeSlugFromUrl(rawSlug);
-  const [article, setArticle] = useState<NewsArticleDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const articleQuery = useQuery({
+    queryKey: newsQueryKeys.article(slug),
+    queryFn: ({ signal }) => fetchNewsArticle(slug, { signal }),
+    enabled: slug.length > 0,
+  });
+  const article = articleQuery.data ?? null;
+  const error = articleQuery.error instanceof Error ? articleQuery.error.message : null;
 
   useDocumentTitle(article ? article.title : 'Actualité');
   useMetaTags({
@@ -31,29 +36,6 @@ export const NewsDetailPage = () => {
     canonicalUrl: `${SITE_URL}/actualites/${slug}`,
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void fetchNewsArticle(slug, { signal: controller.signal })
-      .then((item) => {
-        if (!cancelled) setArticle(item);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [slug]);
-
   return (
     <SiteLayout headerVariant="light">
       <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-12">
@@ -61,7 +43,7 @@ export const NewsDetailPage = () => {
           Retour aux actualités
         </Link>
 
-        {loading ? (
+        {articleQuery.isLoading ? (
           <LoadingState>Chargement de l’actualité...</LoadingState>
         ) : error ? (
           <ErrorState>{error}</ErrorState>

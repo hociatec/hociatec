@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 import { searchPublicProducts } from '../api';
-import type { CatalogSearchFacets, CatalogSearchMeta } from '../apiTypes';
 import {
   ALL_CATALOG_FILTER,
   CATALOG_PAGE_SIZE,
@@ -11,6 +11,7 @@ import {
   normalizeCatalogSort,
   parseCatalogNumber,
 } from '../lib/catalogSearch';
+import { catalogQueryKeys } from '@/shared/lib/queryKeys';
 
 interface UseCatalogSearchOptions {
   category?: string;
@@ -22,13 +23,6 @@ export const useCatalogSearch = ({
   sellingType: fixedSellingType,
 }: UseCatalogSearchOptions = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState<
-    Awaited<ReturnType<typeof searchPublicProducts>>['items']
-  >([]);
-  const [meta, setMeta] = useState<CatalogSearchMeta>(emptyCatalogMeta);
-  const [facets, setFacets] = useState<CatalogSearchFacets>(emptyCatalogFacets);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const query = searchParams.get('q') ?? '';
   const category = normalizeCatalogFilter(searchParams.get('category'));
   const sellingType = normalizeCatalogFilter(searchParams.get('sellingType'));
@@ -43,6 +37,46 @@ export const useCatalogSearch = ({
   const minPrice = parseCatalogNumber(searchParams.get('minPrice'));
   const maxPrice = parseCatalogNumber(searchParams.get('maxPrice'));
   const page = Math.max(1, parseCatalogNumber(searchParams.get('page')) ?? 1);
+  const inStock = searchParams.get('inStock') === '1';
+  const searchPayload = useMemo(
+    () => ({
+      category: fixedCategory ?? (category !== ALL_CATALOG_FILTER ? category : undefined),
+      q: query.trim() || undefined,
+      sellingType:
+        fixedSellingType ??
+        (sellingType !== ALL_CATALOG_FILTER ? (sellingType as 'sale' | 'rental') : undefined),
+      brand: brand !== ALL_CATALOG_FILTER ? brand : undefined,
+      storageCapacity: storageCapacity !== ALL_CATALOG_FILTER ? storageCapacity : undefined,
+      memoryRam: memoryRam !== ALL_CATALOG_FILTER ? memoryRam : undefined,
+      color: color !== ALL_CATALOG_FILTER ? color : undefined,
+      minPrice: minPrice ?? undefined,
+      maxPrice: maxPrice ?? undefined,
+      inStock,
+      page,
+      perPage: CATALOG_PAGE_SIZE,
+      sort,
+    }),
+    [
+      brand,
+      category,
+      color,
+      fixedCategory,
+      fixedSellingType,
+      inStock,
+      maxPrice,
+      memoryRam,
+      minPrice,
+      page,
+      query,
+      sellingType,
+      sort,
+      storageCapacity,
+    ],
+  );
+  const catalogQuery = useQuery<Awaited<ReturnType<typeof searchPublicProducts>>, Error>({
+    queryKey: catalogQueryKeys.publicSearch(searchPayload),
+    queryFn: ({ signal }) => searchPublicProducts({ ...searchPayload, signal }),
+  });
 
   const updateParam = useCallback(
     (key: string, value: string | null) => {
@@ -75,71 +109,13 @@ export const useCatalogSearch = ({
     setSearchParams(next, { replace: true });
   }, [query, setSearchParams]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void searchPublicProducts({
-      category: fixedCategory ?? (category !== ALL_CATALOG_FILTER ? category : undefined),
-      q: query.trim() || undefined,
-      sellingType:
-        fixedSellingType ??
-        (sellingType !== ALL_CATALOG_FILTER ? (sellingType as 'sale' | 'rental') : undefined),
-      brand: brand !== ALL_CATALOG_FILTER ? brand : undefined,
-      storageCapacity: storageCapacity !== ALL_CATALOG_FILTER ? storageCapacity : undefined,
-      memoryRam: memoryRam !== ALL_CATALOG_FILTER ? memoryRam : undefined,
-      color: color !== ALL_CATALOG_FILTER ? color : undefined,
-      minPrice: minPrice ?? undefined,
-      maxPrice: maxPrice ?? undefined,
-      inStock: searchParams.get('inStock') === '1',
-      page,
-      perPage: CATALOG_PAGE_SIZE,
-      sort,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (cancelled) return;
-        setProducts(result.items);
-        setMeta(result.meta);
-        setFacets(result.facets);
-      })
-      .catch((reason: Error) => {
-        if (controller.signal.aborted || cancelled) return;
-        setError(reason.message || "Les produits n'ont pas pu être chargés.");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [
-    brand,
-    category,
-    color,
-    fixedCategory,
-    fixedSellingType,
-    maxPrice,
-    memoryRam,
-    minPrice,
-    page,
-    query,
-    searchParams,
-    sellingType,
-    sort,
-    storageCapacity,
-  ]);
-
   return useMemo(
     () => ({
-      products,
-      meta,
-      facets,
-      loading,
-      error,
+      products: catalogQuery.data?.items ?? [],
+      meta: catalogQuery.data?.meta ?? emptyCatalogMeta,
+      facets: catalogQuery.data?.facets ?? emptyCatalogFacets,
+      loading: catalogQuery.isLoading,
+      error: catalogQuery.error?.message ?? null,
       query,
       category,
       sellingType,
@@ -150,7 +126,7 @@ export const useCatalogSearch = ({
       sort,
       minPrice,
       maxPrice,
-      inStock: searchParams.get('inStock') === '1',
+      inStock,
       updateParam,
       updatePriceRange,
       resetFilters,
@@ -158,18 +134,16 @@ export const useCatalogSearch = ({
     [
       brand,
       category,
+      catalogQuery.data,
+      catalogQuery.error,
+      catalogQuery.isLoading,
       color,
-      error,
-      facets,
-      loading,
+      inStock,
       maxPrice,
       memoryRam,
-      meta,
       minPrice,
-      products,
       query,
       resetFilters,
-      searchParams,
       sellingType,
       sort,
       storageCapacity,

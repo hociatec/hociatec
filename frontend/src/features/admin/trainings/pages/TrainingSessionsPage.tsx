@@ -1,5 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import {
@@ -13,32 +14,32 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const TrainingSessionsPage = () => {
   useDocumentTitle('Admin - Sessions de formation');
 
-  const [sessions, setSessions] = useState<TrainingSessionDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const confirm = useConfirm();
-
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      setSessions(await fetchAdminTrainingSessions());
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de charger les sessions.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const queryClient = useQueryClient();
+  const sessionsQuery = useQuery<TrainingSessionDto[], Error>({
+    queryKey: adminTrainingQueryKeys.sessions(),
+    queryFn: fetchAdminTrainingSessions,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminTrainingSession,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      setMessage(response.message ?? 'La session a bien été supprimée.');
+    },
+  });
+  const sessions = sessionsQuery.data ?? [];
+  const error = sessionsQuery.error
+    ? getHttpErrorMessage(sessionsQuery.error, 'Impossible de charger les sessions.')
+    : deleteMutation.error
+      ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la session.')
+      : null;
 
   const handleDelete = async (session: TrainingSessionDto) => {
     const confirmed = await confirm({
@@ -52,13 +53,7 @@ export const TrainingSessionsPage = () => {
       return;
     }
 
-    try {
-      const response = await deleteAdminTrainingSession(session.id);
-      await load();
-      setMessage(response.message ?? 'La session a bien été supprimée.');
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de supprimer la session.'));
-    }
+    deleteMutation.mutate(session.id);
   };
 
   return (
@@ -78,7 +73,7 @@ export const TrainingSessionsPage = () => {
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       <AdminListState
-        loading={loading}
+        loading={sessionsQuery.isLoading}
         isEmpty={sessions.length === 0}
         loadingLabel="Chargement des sessions..."
         emptyLabel="Aucune session programmée."

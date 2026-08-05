@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteVoucher, fetchVouchers, type Voucher } from '@/features/admin/vouchers/api';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -10,27 +11,33 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
 
 export const VouchersPage = () => {
   useDocumentTitle('Admin - Bons de réduction');
   const toast = useToast();
   const confirm = useConfirm();
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchVouchers()
-      .then((items) => setVouchers(items))
-      .catch((err) => {
-        const message = getHttpErrorMessage(err, 'Impossible de charger les bons.');
-        setError(message);
-        toast.show(message, { variant: 'error' });
-      })
-      .finally(() => setLoading(false));
-  }, [toast]);
+  const vouchersQuery = useQuery<Voucher[], Error>({
+    queryKey: adminVoucherQueryKeys.list(),
+    queryFn: fetchVouchers,
+  });
+  const vouchers = vouchersQuery.data ?? [];
+  const deleteMutation = useMutation({
+    mutationFn: deleteVoucher,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminVoucherQueryKeys.list() });
+      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', {
+        variant: 'success',
+      });
+    },
+    onError: (err) => {
+      const message = getHttpErrorMessage(err, 'Suppression impossible.');
+      setError(message);
+      toast.show(message, { variant: 'error' });
+    },
+  });
 
   const handleDelete = async (voucherId: number) => {
     const voucher = vouchers.find((item) => item.id === voucherId);
@@ -45,15 +52,7 @@ export const VouchersPage = () => {
 
     if (!confirmed) return;
 
-    try {
-      const response = await deleteVoucher(voucherId);
-      setVouchers((current) => current.filter((item) => item.id !== voucherId));
-      toast.show(response.message ?? 'Le bon de réduction a bien été supprimé.', { variant: 'success' });
-    } catch (err) {
-      const message = getHttpErrorMessage(err, 'Suppression impossible.');
-      setError(message);
-      toast.show(message, { variant: 'error' });
-    }
+    deleteMutation.mutate(voucherId);
   };
 
   return (
@@ -71,10 +70,14 @@ export const VouchersPage = () => {
         </p>
       </div>
 
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || vouchersQuery.error) && (
+        <FeedbackMessage>
+          {error ?? getHttpErrorMessage(vouchersQuery.error, 'Impossible de charger les bons.')}
+        </FeedbackMessage>
+      )}
 
       <AdminListState
-        loading={loading}
+        loading={vouchersQuery.isLoading}
         isEmpty={vouchers.length === 0}
         loadingLabel="Chargement des bons..."
         emptyLabel="Aucun bon de réduction."

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
@@ -14,34 +15,36 @@ export const ActivationPage = () => {
   const [message, setMessage] = useState('');
   const toast = useToast();
   const firedRef = useRef(false);
+  const activationMutation = useMutation({
+    mutationFn: verifyAccount,
+    onSuccess: (res) => {
+      const msg = res.message ?? 'Votre compte a été activé.';
+      setMessage(msg);
+      setStatus('ok');
+      try {
+        toast.show(msg, { variant: 'success' });
+      } catch (error) {
+        logger.warn('Unable to display activation success toast.', { error });
+      }
+    },
+    onError: (err) => {
+      const details = (err as Error & { details?: string[] }).details;
+      const msg = details?.[0] ?? (err as Error).message;
+      setMessage(msg);
+      setStatus('error');
+      try {
+        toast.show(msg, { variant: 'error' });
+      } catch (error) {
+        logger.warn('Unable to display activation error toast.', { error });
+      }
+    },
+  });
 
   useEffect(() => {
     if (!token || firedRef.current) return;
     firedRef.current = true;
-
-    verifyAccount(token)
-      .then((res) => {
-        const msg = res.message ?? 'Votre compte a été activé.';
-        setMessage(msg);
-        setStatus('ok');
-        try {
-          toast.show(msg, { variant: 'success' });
-        } catch (error) {
-          logger.warn('Unable to display activation success toast.', { error });
-        }
-      })
-      .catch((err) => {
-        const details = (err as Error & { details?: string[] }).details;
-        const msg = details?.[0] ?? (err as Error).message;
-        setMessage(msg);
-        setStatus('error');
-        try {
-          toast.show(msg, { variant: 'error' });
-        } catch (error) {
-          logger.warn('Unable to display activation error toast.', { error });
-        }
-      });
-  }, [toast, token]);
+    activationMutation.mutate(token);
+  }, [activationMutation, token]);
 
   return (
     <SiteLayout headerVariant="light">

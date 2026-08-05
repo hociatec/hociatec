@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createBrand,
@@ -12,6 +13,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type BrandFormState = {
   name: string;
@@ -25,36 +27,38 @@ export const BrandFormPage = () => {
   const { brandId } = useParams();
   const isEdit = Boolean(brandId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une marque' : 'Admin - Nouvelle marque');
 
   const [form, setForm] = useState<BrandFormState>(emptyForm);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const brandQuery = useQuery<CatalogBrand, Error>({
+    queryKey: adminCatalogQueryKeys.brand(brandId ? Number(brandId) : null),
+    queryFn: () => fetchAdminBrand(Number(brandId)),
+    enabled: isEdit,
+  });
+  const saveMutation = useMutation({
+    mutationFn: (payload: UpsertBrandPayload) =>
+      isEdit ? updateBrand(Number(brandId), payload) : createBrand(payload),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.brands() });
+      setMessage(
+        response.message ??
+          (isEdit ? 'La marque a bien été mise à jour.' : 'La marque a bien été créée.'),
+      );
+      if (!isEdit) setForm(emptyForm);
+      setTimeout(() => {
+        navigate('/admin/catalog/brands');
+      }, 600);
+    },
+    onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la marque.")),
+  });
 
   useEffect(() => {
-    if (!isEdit) {
-      return;
-    }
-
-    const loadBrand = async () => {
-      setInitialLoading(true);
-      setError(null);
-
-      try {
-        const brand = await fetchAdminBrand(Number(brandId));
-        populateForm(brand);
-      } catch (err) {
-        setError(getHttpErrorMessage(err, 'Impossible de charger la marque.'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    void loadBrand();
-  }, [brandId, isEdit]);
+    if (brandQuery.data) populateForm(brandQuery.data);
+  }, [brandQuery.data]);
 
   const populateForm = (brand: CatalogBrand) => {
     setForm({ name: brand.name });
@@ -74,28 +78,9 @@ export const BrandFormPage = () => {
       return;
     }
 
-    setLoading(true);
     setError(null);
     setMessage(null);
-
-    try {
-      if (isEdit) {
-        const response = await updateBrand(Number(brandId), payload);
-        setMessage(response.message ?? 'La marque a bien été mise à jour.');
-      } else {
-        const response = await createBrand(payload);
-        setMessage(response.message ?? 'La marque a bien été créée.');
-        setForm(emptyForm);
-      }
-
-      setTimeout(() => {
-        navigate('/admin/catalog/brands');
-      }, 600);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la marque."));
-    } finally {
-      setLoading(false);
-    }
+    saveMutation.mutate(payload);
   };
 
   return (
@@ -112,10 +97,14 @@ export const BrandFormPage = () => {
         </button>
       }
     >
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || brandQuery.error) && (
+        <FeedbackMessage>
+          {error ?? getHttpErrorMessage(brandQuery.error, 'Impossible de charger la marque.')}
+        </FeedbackMessage>
+      )}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {initialLoading ? (
+      {brandQuery.isLoading ? (
         <LoadingState>Chargement de la marque...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
@@ -131,8 +120,8 @@ export const BrandFormPage = () => {
             />
           </label>
 
-          <button className="register-form__submit" type="submit" disabled={loading}>
-            {loading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
+          <button className="register-form__submit" type="submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
           </button>
         </form>
       )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchPublicTrainingCategories,
@@ -7,40 +7,25 @@ import {
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { trainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const usePublicTrainingsCatalogData = () => {
-  const [trainings, setTrainings] = useState<TrainingDto[]>([]);
-  const [categories, setCategories] = useState<TrainingCategoryDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery<{ trainings: TrainingDto[]; categories: TrainingCategoryDto[] }, Error>({
+    queryKey: trainingQueryKeys.publicCatalog(),
+    queryFn: async ({ signal }) => {
+      const [trainings, categories] = await Promise.all([
+        fetchPublicTrainings(undefined, { signal }),
+        fetchPublicTrainingCategories({ signal }),
+      ]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void Promise.all([
-      fetchPublicTrainings(undefined, { signal: controller.signal }),
-      fetchPublicTrainingCategories({ signal: controller.signal }),
-    ])
-      .then(([trainingItems, categoryItems]) => {
-        if (cancelled) return;
-        setTrainings(trainingItems);
-        setCategories(categoryItems);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled)
-          setError(getHttpErrorMessage(reason, 'Impossible de charger les formations.'));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, []);
+      return { trainings, categories };
+    },
+  });
 
-  return { trainings, categories, loading, error };
+  return {
+    trainings: query.data?.trainings ?? [],
+    categories: query.data?.categories ?? [],
+    loading: query.isLoading,
+    error: query.error ? getHttpErrorMessage(query.error, 'Impossible de charger les formations.') : null,
+  };
 };

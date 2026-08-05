@@ -1,33 +1,43 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deleteMarketingTemplate,
   fetchMarketingSegments,
   fetchMarketingTemplates,
-  type MarketingSegmentDefinition,
-  type MarketingTemplate,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
+import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+
 export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   const confirm = useConfirm();
-  const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
-  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
   const [scenarioFilter, setScenarioFilter] = useState('all');
   const [usageFilter, setUsageFilter] = useState(isTransactionalView ? 'transactional' : 'all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  useEffect(() => {
-    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments('templates')])
-      .then(([items, segmentItems]) => {
-        setTemplates(items);
-        setSegments(segmentItems);
-      })
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger les modèles.')))
-      .finally(() => setLoading(false));
-  }, []);
+  const listQuery = useQuery({
+    queryKey: adminMarketingQueryKeys.templates(),
+    queryFn: async () => {
+      const [templates, segments] = await Promise.all([
+        fetchMarketingTemplates(),
+        fetchMarketingSegments('templates'),
+      ]);
+      return { templates, segments };
+    },
+  });
+  const templates = listQuery.data?.templates ?? [];
+  const segments = listQuery.data?.segments ?? {};
+  const deleteMutation = useMutation({
+    mutationFn: deleteMarketingTemplate,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.templates() });
+      setMessage(response.message ?? 'Le modèle d’e-mail a bien été supprimé.');
+    },
+    onError: (e) => setError(getHttpErrorMessage(e, 'Suppression impossible.')),
+  });
   useEffect(() => {
     setUsageFilter(isTransactionalView ? 'transactional' : 'all');
   }, [isTransactionalView]);
@@ -70,18 +80,12 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
       }))
     )
       return;
-    try {
-      const response = await deleteMarketingTemplate(id);
-      setTemplates((items) => items.filter((item) => item.id !== id));
-      setMessage(response.message ?? 'Le modèle d’e-mail a bien été supprimé.');
-    } catch (e) {
-      setError(getHttpErrorMessage(e, 'Suppression impossible.'));
-    }
+    deleteMutation.mutate(id);
   };
   return {
     templates,
     segments,
-    loading,
+    loading: listQuery.isLoading,
     query,
     setQuery,
     scenarioFilter,
@@ -90,7 +94,9 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
     setUsageFilter,
     statusFilter,
     setStatusFilter,
-    error,
+    error:
+      error ??
+      (listQuery.error ? getHttpErrorMessage(listQuery.error, 'Impossible de charger les modèles.') : null),
     message,
     filteredTemplates,
     scenarioOptions,

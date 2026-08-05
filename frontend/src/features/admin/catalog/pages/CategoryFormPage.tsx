@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createCategory,
@@ -12,6 +13,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type CategoryFormState = {
   name: string;
@@ -39,36 +41,39 @@ export const CategoryFormPage = () => {
   const { categoryId } = useParams();
   const isEdit = Boolean(categoryId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une catégorie' : 'Admin - Nouvelle catégorie');
 
   const [form, setForm] = useState<CategoryFormState>(emptyForm);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const categoryQuery = useQuery<CatalogCategory, Error>({
+    queryKey: adminCatalogQueryKeys.category(categoryId ? Number(categoryId) : null),
+    queryFn: () => fetchAdminCategory(Number(categoryId)),
+    enabled: isEdit,
+  });
+  const saveMutation = useMutation({
+    mutationFn: (payload: UpsertCategoryPayload) =>
+      isEdit ? updateCategory(Number(categoryId), payload) : createCategory(payload),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.categories() });
+      setMessage(
+        response.message ??
+          (isEdit ? 'La catégorie a bien été mise à jour.' : 'La catégorie a bien été créée.'),
+      );
+      if (!isEdit) setForm(emptyForm);
+      setTimeout(() => {
+        navigate('/admin/catalog/categories');
+      }, 600);
+    },
+    onError: (err) =>
+      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie.")),
+  });
 
   useEffect(() => {
-    if (!isEdit) {
-      return;
-    }
-
-    const loadCategory = async () => {
-      setInitialLoading(true);
-      setError(null);
-
-      try {
-        const category = await fetchAdminCategory(Number(categoryId));
-        populateForm(category);
-      } catch (err) {
-        setError(getHttpErrorMessage(err, 'Impossible de charger la catégorie.'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    void loadCategory();
-  }, [isEdit, categoryId]);
+    if (categoryQuery.data) populateForm(categoryQuery.data);
+  }, [categoryQuery.data]);
 
   const populateForm = (category: CatalogCategory) => {
     setForm({
@@ -126,28 +131,9 @@ export const CategoryFormPage = () => {
       return;
     }
 
-    setLoading(true);
     setError(null);
     setMessage(null);
-
-    try {
-      if (isEdit) {
-        const response = await updateCategory(Number(categoryId), payload);
-        setMessage(response.message ?? 'La catégorie a bien été mise à jour.');
-      } else {
-        const response = await createCategory(payload);
-        setMessage(response.message ?? 'La catégorie a bien été créée.');
-        setForm(emptyForm);
-      }
-
-      setTimeout(() => {
-        navigate('/admin/catalog/categories');
-      }, 600);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie."));
-    } finally {
-      setLoading(false);
-    }
+    saveMutation.mutate(payload);
   };
 
   return (
@@ -164,10 +150,15 @@ export const CategoryFormPage = () => {
         </button>
       }
     >
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || categoryQuery.error) && (
+        <FeedbackMessage>
+          {error ??
+            getHttpErrorMessage(categoryQuery.error, 'Impossible de charger la catégorie.')}
+        </FeedbackMessage>
+      )}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {initialLoading ? (
+      {categoryQuery.isLoading ? (
         <LoadingState>Chargement de la catégorie...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
@@ -214,8 +205,8 @@ export const CategoryFormPage = () => {
             Catégorie visible
           </label>
 
-          <button className="register-form__submit" type="submit" disabled={loading}>
-            {loading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
+          <button className="register-form__submit" type="submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
           </button>
         </form>
       )}

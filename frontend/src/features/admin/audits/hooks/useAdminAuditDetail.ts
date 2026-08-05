@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import { useParams } from 'react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   adminDownloadAuditPdf,
   adminDownloadAuditSummaryPdf,
@@ -10,36 +11,30 @@ import {
   type AuditListItemDto,
 } from '@/features/audits/api/auditsApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
+import { auditQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminAuditDetail = () => {
   const { auditId } = useParams();
   const id = Number(auditId);
-  const [audit, setAudit] = useState<Awaited<ReturnType<typeof adminFetchAudit>> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const pendingTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
-  const pollTimer = useRef<number | null>(null);
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    void adminFetchAudit(id)
-      .then(setAudit)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Impossible de charger l’audit.'))
-      .finally(() => setLoading(false));
-  }, [id]);
-  useEffect(() => {
-    if (!id) return;
-    pollTimer.current = window.setInterval(() => {
-      if (!document.hidden && !Object.values(pendingTimers.current).some(Boolean))
-        void adminFetchAudit(id)
-          .then(setAudit)
-          .catch(() => undefined);
-    }, 10000);
-    return () => {
-      if (pollTimer.current) window.clearInterval(pollTimer.current);
-    };
-  }, [id]);
+  const auditQuery = useQuery<Awaited<ReturnType<typeof adminFetchAudit>>, Error>({
+    queryKey: auditQueryKeys.adminDetail(Number.isFinite(id) ? id : null),
+    queryFn: () => adminFetchAudit(id),
+    enabled: Number.isFinite(id) && id > 0,
+    refetchInterval: () =>
+      !document.hidden && !Object.values(pendingTimers.current).some(Boolean) ? 10000 : false,
+  });
+  const audit = auditQuery.data ?? null;
+  const setAudit = (
+    updater: SetStateAction<Awaited<ReturnType<typeof adminFetchAudit>> | null>,
+  ) => {
+    queryClient.setQueryData<Awaited<ReturnType<typeof adminFetchAudit>> | null>(
+      auditQueryKeys.adminDetail(Number.isFinite(id) ? id : null),
+      (current = null) => (typeof updater === 'function' ? updater(current) : updater),
+    );
+  };
   useEffect(
     () => () =>
       Object.values(pendingTimers.current).forEach((timer) => timer && clearTimeout(timer)),
@@ -117,8 +112,8 @@ export const useAdminAuditDetail = () => {
   };
   return {
     audit,
-    loading,
-    error,
+    loading: auditQuery.isLoading,
+    error: error ?? auditQuery.error?.message ?? null,
     grouped,
     updateStatus,
     updateItem,

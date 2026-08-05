@@ -1,31 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { fetchPublicCategories, type CatalogCategory } from '../api';
+import { catalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type MenuState = 'idle' | 'loading' | 'ready' | 'error';
 
 export const useCatalogMenu = () => {
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [status, setStatus] = useState<MenuState>('idle');
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery<CatalogCategory[], Error>({
+    queryKey: catalogQueryKeys.publicCategories(),
+    queryFn: fetchPublicCategories,
+  });
+  const status: MenuState = query.isLoading ? 'loading' : query.isError ? 'error' : 'ready';
 
-  useEffect(() => {
-    if (status !== 'idle') {
-      return;
-    }
-
-    setStatus('loading');
-
-    void fetchPublicCategories()
-      .then((items) => {
-        setCategories(items);
-        setStatus('ready');
-      })
-      .catch((err: Error) => {
-        setError(err.message || 'Impossible de charger les catégories.');
-        setStatus('error');
-      });
-  }, [status]);
-
-  return { categories, status, error };
+  return {
+    categories: query.data ?? [],
+    status,
+    error: query.error?.message ?? null,
+  };
 };

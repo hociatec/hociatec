@@ -1,20 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
 import { fetchMyVouchers, type MyVoucherDto } from '../api/vouchersApi';
+import { voucherQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useVouchers = () => {
-  const [vouchers, setVouchers] = useState<MyVoucherDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setLoading(true);
-    void fetchMyVouchers()
-      .then(setVouchers)
-      .catch((reason: unknown) =>
-        setError(
-          reason instanceof Error ? reason.message : 'Impossible de charger vos bons de réduction.',
-        ),
-      )
-      .finally(() => setLoading(false));
-  }, []);
-  return { vouchers, loading, error };
+  const query = useQuery<MyVoucherDto[], Error>({
+    queryKey: voucherQueryKeys.mine(),
+    queryFn: fetchMyVouchers,
+  });
+
+  return {
+    vouchers: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+  };
 };

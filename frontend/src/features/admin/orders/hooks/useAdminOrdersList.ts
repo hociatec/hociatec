@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { fetchAdminOrders, fetchAdminOrderMetadata, updateAdminOrderStatus, type OrderDto } from '@/features/orders/api';
@@ -9,12 +10,11 @@ import {
   type OrderStatus,
   type OrderStatusFilter,
 } from '../lib/adminOrderList';
+import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminOrdersList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<OrderStatusFilter>(
     (searchParams.get('status') as OrderStatusFilter | null) ?? 'all',
   );
@@ -33,23 +33,33 @@ export const useAdminOrdersList = () => {
     order: OrderDto;
   } | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  const [statusOptions, setStatusOptions] = useState<{ value: OrderStatus; label: string }[]>([]);
-  useEffect(() => {
-    void fetchAdminOrderMetadata().then((metadata) => setStatusOptions(metadata.statuses as { value: OrderStatus; label: string }[])).catch(() => undefined);
-  }, []);
-  useEffect(() => {
-    setStatus('loading');
-    setError(null);
-    void fetchAdminOrders(filter, health)
-      .then((items) => {
-        setOrders(items);
-        setStatus('success');
-      })
-      .catch((e) => {
-        setError(getHttpErrorMessage(e, 'Erreur'));
-        setStatus('error');
-      });
-  }, [filter, health]);
+  const metadataQuery = useQuery({
+    queryKey: adminOrderQueryKeys.metadata(),
+    queryFn: fetchAdminOrderMetadata,
+  });
+  const ordersQuery = useQuery<OrderDto[], Error>({
+    queryKey: adminOrderQueryKeys.list(filter, health),
+    queryFn: () => fetchAdminOrders(filter, health),
+  });
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, next }: { id: number; next: OrderStatus }) => updateAdminOrderStatus(id, next),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<OrderDto[]>(
+        adminOrderQueryKeys.list(filter, health),
+        (previous = []) => previous.map((order) => (order.id === updated.id ? updated : order)),
+      );
+      void queryClient.invalidateQueries({ queryKey: adminOrderQueryKeys.detail(updated.id) });
+      setEditing(null);
+      setUpdateError(null);
+    },
+    onError: (e) =>
+      setUpdateError(getHttpErrorMessage(e, 'Impossible de mettre à jour le statut.')),
+  });
+  const orders = ordersQuery.data ?? [];
+  const status = ordersQuery.isLoading ? 'loading' : ordersQuery.isError ? 'error' : 'success';
+  const error = ordersQuery.error ? getHttpErrorMessage(ordersQuery.error, 'Erreur') : null;
+  const statusOptions =
+    (metadataQuery.data?.statuses as { value: OrderStatus; label: string }[] | undefined) ?? [];
   useEffect(() => {
     const next = new URLSearchParams();
     if (filter !== 'all') next.set('status', filter);
@@ -68,17 +78,7 @@ export const useAdminOrdersList = () => {
       setUpdateError('Aucune transition disponible pour ce statut.');
       return;
     }
-    void updateAdminOrderStatus(editing.id, editing.next)
-      .then((updated) => {
-        setOrders((previous) =>
-          previous.map((order) => (order.id === updated.id ? updated : order)),
-        );
-        setEditing(null);
-        setUpdateError(null);
-      })
-      .catch((e) =>
-        setUpdateError(getHttpErrorMessage(e, 'Impossible de mettre à jour le statut.')),
-      );
+    updateStatusMutation.mutate({ id: editing.id, next: editing.next });
   };
   return {
     orders,

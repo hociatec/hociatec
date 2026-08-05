@@ -1,39 +1,33 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Dispatch, SetStateAction } from 'react';
 
 import {
   fetchAccountNotificationsReadState,
   type AccountNotificationsReadStateDto,
 } from '@/shared/api/accountNotifications';
+import { accountQueryKeys } from '@/shared/lib/queryKeys';
 import { emptyReadState } from './constants';
 
 export const useNotificationReadState = () => {
-  const [readState, setReadState] = useState<AccountNotificationsReadStateDto>(emptyReadState);
-  const [readStateLoading, setReadStateLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    setReadStateLoading(true);
-
-    void fetchAccountNotificationsReadState()
-      .then((nextReadState) => {
-        if (!cancelled) setReadState(nextReadState);
-      })
-      .catch(() => {
-        if (!cancelled) setReadState(emptyReadState);
-      })
-      .finally(() => {
-        if (!cancelled) setReadStateLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const queryClient = useQueryClient();
+  const readStateQuery = useQuery<AccountNotificationsReadStateDto, Error>({
+    queryKey: accountQueryKeys.notificationsReadState(),
+    queryFn: fetchAccountNotificationsReadState,
+  });
+  const readState = readStateQuery.data ?? emptyReadState;
+  const setReadState: Dispatch<SetStateAction<AccountNotificationsReadStateDto>> = (nextState) => {
+    queryClient.setQueryData<AccountNotificationsReadStateDto>(
+      accountQueryKeys.notificationsReadState(),
+      (current = emptyReadState) =>
+        typeof nextState === 'function' ? nextState(current) : nextState,
+    );
+  };
 
   return {
     dismissedKeys: useMemo(() => new Set(readState.dismissedKeys), [readState.dismissedKeys]),
     readState,
-    readStateLoading,
+    readStateLoading: readStateQuery.isLoading,
     seenKeys: useMemo(() => new Set(readState.seenKeys), [readState.seenKeys]),
     setReadState,
   };

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdminQuotes,
   deleteAdminQuote,
@@ -11,32 +12,85 @@ import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/api/adminQuotesApi';
+import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+
 export const useAdminQuotesList = () => {
   const toast = useToast();
   const confirm = useConfirm();
   const prompt = usePrompt();
-  const [quotes, setQuotes] = useState<QuoteDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
-  const [statusOptions, setStatusOptions] = useState<QuoteMetadataOption[]>([]);
-  useEffect(() => {
-    void fetchAdminQuoteMetadata().then((metadata) => setStatusOptions(metadata.statuses)).catch(() => undefined);
-  }, []);
-  useEffect(() => {
-    setLoading(true);
-    void fetchAdminQuotes({
+  const metadataQuery = useQuery({
+    queryKey: adminQuoteQueryKeys.metadata(),
+    queryFn: fetchAdminQuoteMetadata,
+  });
+  const quotesQuery = useQuery<QuoteDto[], Error>({
+    queryKey: adminQuoteQueryKeys.list(search, filterStatus),
+    queryFn: () =>
+      fetchAdminQuotes({
       q: search.trim() || undefined,
       status: filterStatus,
-    })
-      .then(setQuotes)
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger les devis.')))
-      .finally(() => setLoading(false));
-  }, [search, filterStatus]);
+      }),
+  });
+  const quotes = quotesQuery.data ?? [];
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminQuote,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
+      setMessage(response.message ?? 'Le devis a bien été supprimé.');
+      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
+    },
+    onError: (e) => {
+      const msg = getHttpErrorMessage(e, 'Suppression impossible.');
+      setError(msg);
+      toast.show(msg, { variant: 'error' });
+    },
+  });
+  const duplicateMutation = useMutation({
+    mutationFn: duplicateAdminQuote,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
+      setMessage(response.message ?? 'Le devis a bien été dupliqué.');
+    },
+    onError: (e) => {
+      const msg = getHttpErrorMessage(e, 'Duplication impossible.');
+      setError(msg);
+      toast.show(msg, { variant: 'error' });
+    },
+  });
+  const sendEmailMutation = useMutation({
+    mutationFn: ({ id, to }: { id: number; to: string }) => sendAdminQuoteEmail(id, to),
+    onSuccess: (response, { id }) => {
+      queryClient.setQueryData<QuoteDto[]>(
+        adminQuoteQueryKeys.list(search, filterStatus),
+        (items = []) =>
+          items.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  statusCode: response.statusCode ?? 'sent',
+                  statusLabel: response.statusLabel ?? item.statusLabel,
+                  status: response.statusCode ?? 'sent',
+                  sentAt: new Date().toISOString(),
+                }
+              : item,
+          ),
+      );
+      const msg = getHttpErrorMessage(response, 'E-mail envoyé.');
+      setMessage(msg);
+      toast.show(msg, { variant: 'success' });
+    },
+    onError: (e) => {
+      const msg = getHttpErrorMessage(e, 'Envoi impossible.');
+      setError(msg);
+      toast.show(msg, { variant: 'error' });
+    },
+  });
   const filtered = useMemo(() => {
     const from = fromDate ? new Date(fromDate).getTime() : null;
     const to = toDate ? new Date(toDate).getTime() : null;
@@ -59,28 +113,10 @@ export const useAdminQuotesList = () => {
       }))
     )
       return;
-    try {
-      const response = await deleteAdminQuote(id);
-      setQuotes((items) => items.filter((item) => item.id !== id));
-      setMessage(response.message ?? 'Le devis a bien été supprimé.');
-      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
-    } catch (e) {
-      const msg = getHttpErrorMessage(e, 'Suppression impossible.');
-      setError(msg);
-      toast.show(msg, { variant: 'error' });
-    }
+    deleteMutation.mutate(id);
   };
   const handleDuplicate = async (id: number) => {
-    try {
-      setQuotes((items) => items);
-      const response = await duplicateAdminQuote(id);
-      setQuotes((items) => [response.data, ...items]);
-      setMessage(response.message ?? 'Le devis a bien été dupliqué.');
-    } catch (e) {
-      const msg = getHttpErrorMessage(e, 'Duplication impossible.');
-      setError(msg);
-      toast.show(msg, { variant: 'error' });
-    }
+    duplicateMutation.mutate(id);
   };
   const handleSendEmail = async (id: number) => {
     const quote = quotes.find((item) => item.id === id);
@@ -97,39 +133,21 @@ export const useAdminQuotesList = () => {
       cancelLabel: 'Annuler',
     });
     if (to === null) return;
-    try {
-      const response = await sendAdminQuoteEmail(id, to);
-      setQuotes((items) =>
-        items.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                statusCode: response.statusCode ?? 'sent',
-                statusLabel: response.statusLabel ?? item.statusLabel,
-                status: response.statusCode ?? 'sent',
-                sentAt: new Date().toISOString(),
-              }
-            : item,
-        ),
-      );
-      const msg = getHttpErrorMessage(response, 'E-mail envoyé.');
-      setMessage(msg);
-      toast.show(msg, { variant: 'success' });
-    } catch (e) {
-      const msg = getHttpErrorMessage(e, 'Envoi impossible.');
-      setError(msg);
-      toast.show(msg, { variant: 'error' });
-    }
+    sendEmailMutation.mutate({ id, to });
   };
   return {
-    loading,
-    error,
+    loading: quotesQuery.isLoading,
+    error:
+      error ??
+      (quotesQuery.error
+        ? getHttpErrorMessage(quotesQuery.error, 'Impossible de charger les devis.')
+        : null),
     message,
     search,
     setSearch,
     filterStatus,
     setFilterStatus,
-    statusOptions,
+    statusOptions: metadataQuery.data?.statuses ?? ([] as QuoteMetadataOption[]),
     fromDate,
     setFromDate,
     toDate,

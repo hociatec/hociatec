@@ -1,22 +1,20 @@
-import { useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
+import { type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import type { RegisterPayload } from '@/features/auth/api/authApi';
 import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/api/betaApi';
+import { betaQueryKeys } from '@/shared/lib/queryKeys';
 
 type FormState = RegisterPayload;
 type FieldChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
 
 export const RegisterFormFields = ({ form, setForm, handleChange, error, passwordHelpId, showPassword, showConfirmPassword, setShowPassword, setShowConfirmPassword, isBetaTester }: { form: FormState; setForm: Dispatch<SetStateAction<FormState>>; handleChange: FieldChange; error: string | null; passwordHelpId: string; showPassword: boolean; showConfirmPassword: boolean; setShowPassword: Dispatch<SetStateAction<boolean>>; setShowConfirmPassword: Dispatch<SetStateAction<boolean>>; isBetaTester?: boolean }) => {
-  const [choices, setChoices] = useState<BetaProfileChoices | null>(null);
-  const [choicesError, setChoicesError] = useState(false);
-
-  useEffect(() => {
-    if (!isBetaTester) return;
-
-    void fetchBetaProfileChoices()
-      .then(setChoices)
-      .catch(() => setChoicesError(true));
-  }, [isBetaTester]);
+  const choicesQuery = useQuery<BetaProfileChoices, Error>({
+    queryKey: betaQueryKeys.profileChoices(),
+    queryFn: fetchBetaProfileChoices,
+    enabled: Boolean(isBetaTester),
+  });
+  const choices = choicesQuery.data ?? null;
 
   return <>
     <div className="register-form__grid"><label className="register-form__field"><span>Prénom</span><input name="firstName" type="text" autoComplete="given-name" value={form.firstName} onChange={handleChange} maxLength={50} required /></label><label className="register-form__field"><span>Nom</span><input name="lastName" type="text" autoComplete="family-name" value={form.lastName} onChange={handleChange} maxLength={50} required /></label></div>
@@ -24,8 +22,8 @@ export const RegisterFormFields = ({ form, setForm, handleChange, error, passwor
     <div className="register-form__grid"><label className="register-form__field"><span>Date de naissance</span><input name="birthDate" type="date" value={form.birthDate} onChange={handleChange} required /></label><label className="register-form__field"><span>Numéro de téléphone</span><input name="phoneNumber" type="tel" autoComplete="tel" value={form.phoneNumber} onChange={handleChange} maxLength={20} required /></label><label className="register-form__field"><span>Sexe</span><select name="gender" value={form.gender} onChange={handleChange} required className="register-form__select"><option value="" disabled>Sélectionnez une option</option><option value="homme">Homme</option><option value="femme">Femme</option><option value="autre">Autre</option></select></label></div>
     <div className="register-form__grid"><PasswordField label="Mot de passe" name="password" value={form.password} visible={showPassword} onChange={handleChange} onToggle={() => setShowPassword((current) => !current)} helpId={passwordHelpId} error={error} /><PasswordField label="Confirmation" name="confirmPassword" value={form.confirmPassword} visible={showConfirmPassword} onChange={handleChange} onToggle={() => setShowConfirmPassword((current) => !current)} helpId={passwordHelpId} error={error} /></div>
     <div id={passwordHelpId} className="register-form__guidelines"><p>Le mot de passe doit respecter les critères suivants :</p><ul><li>Au moins 8 caractères</li><li>Au moins une lettre majuscule</li><li>Au moins un chiffre</li></ul></div>
-    {isBetaTester && !choices && !choicesError ? <p className="sr-only">Chargement des choix du profil bêta…</p> : null}
-    {isBetaTester && choicesError ? <p className="register-form__alert-detail">Impossible de charger les choix du profil bêta.</p> : null}
+    {isBetaTester && !choices && !choicesQuery.isError ? <p className="sr-only">Chargement des choix du profil bêta…</p> : null}
+    {isBetaTester && choicesQuery.isError ? <p className="register-form__alert-detail">Impossible de charger les choix du profil bêta.</p> : null}
     {isBetaTester && choices ? <BetaFields form={form} setForm={setForm} handleChange={handleChange} choices={choices} /> : null}
   </>;
 };

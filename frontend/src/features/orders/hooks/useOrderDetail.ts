@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
 import {
@@ -12,6 +13,7 @@ import {
   type OrderDto,
 } from '@/features/orders/api';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
+import { orderQueryKeys } from '@/shared/lib/queryKeys';
 
 export type ReviewFormState = {
   score: number;
@@ -25,13 +27,11 @@ export const useOrderDetail = () => {
   const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const id = Number(orderId);
 
-  const [order, setOrder] = useState<OrderDto | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
-  const [error, setError] = useState<string | null>(null);
   const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
   const [justConfirmed, setJustConfirmed] = useState(false);
-  const [paying, setPaying] = useState(false);
   const emptyReviewForm: ReviewFormState = {
     score: 0,
     comment: '',
@@ -40,20 +40,32 @@ export const useOrderDetail = () => {
     success: false,
   };
 
-  useEffect(() => {
-    if (!orderId) return;
-    setStatus('loading');
-    setError(null);
-    void fetchOrderById(Number(orderId))
-      .then((o) => {
-        setOrder(o);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Erreur');
-        setStatus('error');
-      });
-  }, [orderId]);
+  const orderQuery = useQuery<OrderDto, Error>({
+    queryKey: orderQueryKeys.detail(Number.isFinite(id) && id > 0 ? id : null),
+    queryFn: () => fetchOrderById(id),
+    enabled: Number.isFinite(id) && id > 0,
+  });
+  const order = orderQuery.data ?? null;
+  const updateOrderCache = (updated: OrderDto) => {
+    queryClient.setQueryData(orderQueryKeys.detail(updated.id), updated);
+    queryClient.setQueryData<OrderDto[]>(orderQueryKeys.mine(), (current = []) =>
+      current.map((item) => (item.id === updated.id ? updated : item)),
+    );
+  };
+  const payMutation = useMutation({
+    mutationFn: (orderId: number) => checkoutExistingOrder(orderId),
+    onSuccess: (result) => {
+      if ('checkoutUrl' in result) {
+        redirectToTrustedUrl(result.checkoutUrl);
+        return;
+      }
+      updateOrderCache(result);
+    },
+  });
+  const cancelMutation = useMutation({
+    mutationFn: cancelMyOrder,
+    onSuccess: updateOrderCache,
+  });
 
   useEffect(() => {
     setReviewForms({});
@@ -70,7 +82,10 @@ export const useOrderDetail = () => {
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   }, [location.pathname, location.search, location.state, navigate]);
 
-  const isLoading = status === 'loading';
+  const isLoading = orderQuery.isLoading;
+  const error =
+    orderQuery.error?.message ??
+    (payMutation.error instanceof Error ? payMutation.error.message : null);
   const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
 
   const getReviewForm = (orderItemId: number): ReviewFormState =>
@@ -105,19 +120,19 @@ export const useOrderDetail = () => {
         comment: form.comment || undefined,
       });
 
-      setOrder((prev) => {
-        if (!prev) return prev;
-        const updatedItems = prev.items.map((it) =>
+      const updatedOrder = (() => {
+        const updatedItems = order.items.map((it) =>
           it.orderItemId === orderItemId ? { ...it, canReview: false, review } : it,
         );
-        const nextPending = Math.max(0, (prev.pendingReviewsCount ?? 0) - 1);
+        const nextPending = Math.max(0, (order.pendingReviewsCount ?? 0) - 1);
         return {
-          ...prev,
+          ...order,
           items: updatedItems,
           pendingReviewsCount: nextPending,
           hasPendingReviews: nextPending > 0,
         };
-      });
+      })();
+      updateOrderCache(updatedOrder);
 
       updateReviewForm(orderItemId, { submitting: false, success: true });
     } catch (err) {
@@ -129,31 +144,12 @@ export const useOrderDetail = () => {
   const handlePayOrder = async () => {
     if (!order) return;
 
-    setPaying(true);
-    setError(null);
-
-    try {
-      const result = await checkoutExistingOrder(order.id);
-      if ('checkoutUrl' in result) {
-        redirectToTrustedUrl(result.checkoutUrl);
-        return;
-      }
-
-      setOrder(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Impossible de lancer le règlement.');
-    } finally {
-      setPaying(false);
-    }
+    payMutation.mutate(order.id);
   };
 
   const handleCancelOrder = async () => {
     if (!order) return;
-    try {
-      setOrder(await cancelMyOrder(order.id));
-    } catch {
-      /* The current order remains visible if cancellation fails. */
-    }
+    cancelMutation.mutate(order.id);
   };
   const handleDownloadInvoicePdf = () =>
     order ? downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order)) : undefined;
@@ -172,7 +168,7 @@ export const useOrderDetail = () => {
     isLoading,
     justConfirmed,
     order,
-    paying,
+    paying: payMutation.isPending,
     updateReviewForm,
   };
 };

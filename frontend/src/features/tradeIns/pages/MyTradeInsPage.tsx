@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -8,25 +9,24 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { downloadMyTradeInReceipt, fetchMyTradeIns, respondToTradeIn } from '../api';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import type { TradeInDto } from '../types';
+import { tradeInQueryKeys } from '@/shared/lib/queryKeys';
 
 export const MyTradeInsPage = () => {
   useDocumentTitle('Mes reprises');
-  const [items, setItems] = useState<TradeInDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const tradeInsQuery = useQuery<TradeInDto[], Error>({
+    queryKey: tradeInQueryKeys.mine(),
+    queryFn: fetchMyTradeIns,
+  });
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const items = tradeInsQuery.data ?? [];
 
-  useEffect(() => {
-    void fetchMyTradeIns()
-      .then(setItems)
-      .catch((e) => setError(getHttpErrorMessage(e)))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const respond = async (id: number, action: 'accept' | 'decline') => {
-    try {
-      await respondToTradeIn(id, action);
-      setItems((current) =>
+  const responseMutation = useMutation({
+    mutationFn: ({ id, action }: { id: number; action: 'accept' | 'decline' }) =>
+      respondToTradeIn(id, action).then(() => ({ id, action })),
+    onSuccess: ({ id, action }) => {
+      queryClient.setQueryData<TradeInDto[]>(tradeInQueryKeys.mine(), (current = []) =>
         current.map((item) =>
           item.id === id
             ? {
@@ -40,17 +40,24 @@ export const MyTradeInsPage = () => {
       setMessage(
         action === 'accept' ? 'Votre accord a été enregistré.' : 'Votre refus a été enregistré.',
       );
-    } catch (e) {
-      setError(getHttpErrorMessage(e));
-    }
+    },
+    onError: (responseError) => setError(getHttpErrorMessage(responseError)),
+  });
+
+  const receiptMutation = useMutation({
+    mutationFn: ({ id, reference }: { id: number; reference: string }) =>
+      downloadMyTradeInReceipt(id).then((blob) => ({ blob, reference })),
+    onSuccess: ({ blob, reference }) =>
+      downloadBlob(blob, `justificatif-reprise-${reference}.pdf`),
+    onError: (downloadError) => setError(getHttpErrorMessage(downloadError)),
+  });
+
+  const respond = async (id: number, action: 'accept' | 'decline') => {
+    responseMutation.mutate({ id, action });
   };
 
   const downloadReceipt = async (id: number, reference: string) => {
-    try {
-      downloadBlob(await downloadMyTradeInReceipt(id), `justificatif-reprise-${reference}.pdf`);
-    } catch (downloadError) {
-      setError(getHttpErrorMessage(downloadError));
-    }
+    receiptMutation.mutate({ id, reference });
   };
 
   return (
@@ -61,9 +68,13 @@ export const MyTradeInsPage = () => {
         description="Suivez vos demandes de reprise, les estimations reçues et les justificatifs disponibles."
       >
         {message ? <FeedbackMessage variant="success">{message}</FeedbackMessage> : null}
-        {loading ? <LoadingState>Chargement de vos demandes…</LoadingState> : null}
-        {error ? <ErrorState>{error}</ErrorState> : null}
-        {!loading && !error && items.length === 0 ? (
+        {tradeInsQuery.isLoading ? <LoadingState>Chargement de vos demandes…</LoadingState> : null}
+        {tradeInsQuery.error || error ? (
+          <ErrorState>
+            {error ?? getHttpErrorMessage(tradeInsQuery.error, 'Impossible de charger vos reprises.')}
+          </ErrorState>
+        ) : null}
+        {!tradeInsQuery.isLoading && !tradeInsQuery.error && !error && items.length === 0 ? (
           <EmptyState>Aucune demande de reprise pour le moment.</EmptyState>
         ) : null}
         <div className="space-y-4">

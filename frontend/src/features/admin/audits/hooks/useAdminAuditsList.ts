@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/api/auditsApi';
+import { auditQueryKeys } from '@/shared/lib/queryKeys';
 
 export const AUDIT_TYPES = [
   'all',
@@ -30,36 +32,18 @@ export const isAuditSort = (value: string): value is AuditSort =>
   AUDIT_SORTS.includes(value as AuditSort);
 
 export const useAdminAuditsList = () => {
-  const [items, setItems] = useState<AuditListItemDto[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const timer = useRef<number | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<AuditStatusFilter>('all');
   const [filterType, setFilterType] = useState<AuditTypeFilter>('all');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
   const [sort, setSort] = useState<AuditSort>('date_desc');
-  const load = () => {
-    setLoading(true);
-    setError(null);
-    void adminFetchAudits()
-      .then(setItems)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Impossible de charger les audits.'))
-      .finally(() => setLoading(false));
-  };
-  useEffect(() => {
-    load();
-    timer.current = window.setInterval(() => {
-      if (!document.hidden)
-        void adminFetchAudits()
-          .then(setItems)
-          .catch(() => undefined);
-    }, 15000);
-    return () => {
-      if (timer.current) window.clearInterval(timer.current);
-    };
-  }, []);
+  const auditsQuery = useQuery<AuditListItemDto[], Error>({
+    queryKey: auditQueryKeys.adminList(),
+    queryFn: adminFetchAudits,
+    refetchInterval: () => (document.hidden ? false : 15000),
+  });
+  const items = auditsQuery.data ?? [];
   const view = useMemo(() => {
     const q = search.trim().toLowerCase();
     const from = fromDate ? new Date(fromDate).getTime() : null;
@@ -86,8 +70,8 @@ export const useAdminAuditsList = () => {
     );
   }, [items, search, filterStatus, filterType, fromDate, toDate, sort]);
   return {
-    loading,
-    error,
+    loading: auditsQuery.isLoading,
+    error: auditsQuery.error?.message ?? null,
     search,
     setSearch,
     filterStatus,

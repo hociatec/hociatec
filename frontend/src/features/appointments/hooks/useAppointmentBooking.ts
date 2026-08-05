@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router';
 import type { DatesSetArg, CalendarApi } from '@fullcalendar/core';
 import type FullCalendar from '@fullcalendar/react';
@@ -7,6 +8,7 @@ import { bookAppointment, fetchAvailability, fetchPrestations } from '../api/app
 import type { AvailabilitySlot, Prestation } from '../types/appointments';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/shared/components/ui/toast';
+import { appointmentQueryKeys } from '@/shared/lib/queryKeys';
 
 const ymd = (date: Date) => format(startOfDay(date), 'yyyy-MM-dd');
 type BookingState = { bookingConfirm?: { prestationId: number; slot: AvailabilitySlot } };
@@ -15,48 +17,66 @@ export const useAppointmentBooking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
-  const [prestations, setPrestations] = useState<Prestation[]>([]);
-  const [prestationsError, setPrestationsError] = useState<string | null>(null);
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [availabilityRange, setAvailabilityRange] = useState<{ start: string; end: string } | null>(
+    null,
+  );
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
-  const [booking, setBooking] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'recap' | 'success'>('recap');
   const calendarRef = useRef<FullCalendar | null>(null);
+  const prestationsQuery = useQuery<Prestation[], Error>({
+    queryKey: appointmentQueryKeys.prestations(),
+    queryFn: fetchPrestations,
+  });
+  const availabilityQuery = useQuery<AvailabilitySlot[], Error>({
+    queryKey: appointmentQueryKeys.availability(
+      selectedPrestation?.id ?? null,
+      availabilityRange?.start ?? '',
+      availabilityRange?.end ?? '',
+    ),
+    queryFn: () =>
+      fetchAvailability({
+        start: availabilityRange?.start ?? '',
+        end: availabilityRange?.end ?? '',
+        prestationId: selectedPrestation?.id ?? 0,
+      }),
+    enabled: Boolean(selectedPrestation && availabilityRange),
+  });
+  const bookingMutation = useMutation({
+    mutationFn: bookAppointment,
+    onSuccess: () => {
+      setModalMode('success');
+      void queryClient.invalidateQueries({ queryKey: appointmentQueryKeys.mine() });
+    },
+  });
+  const prestations = prestationsQuery.data ?? [];
+  const prestationsError = prestationsQuery.error
+    ? prestationsQuery.error.message || 'Impossible de charger les prestations pour le moment.'
+    : null;
+
   useEffect(() => {
-    void fetchPrestations()
-      .then(setPrestations)
-      .catch((reason: Error) =>
-        setPrestationsError(
-          reason.message || 'Impossible de charger les prestations pour le moment.',
-        ),
-      );
-  }, []);
-  const loadAvailabilityForView = async (start: Date, end: Date) => {
-    if (!selectedPrestation) return;
-    try {
-      setSlots(
-        await fetchAvailability({
-          start: start.toISOString(),
-          end: end.toISOString(),
-          prestationId: selectedPrestation.id,
-        }),
-      );
-    } catch (reason) {
+    if (availabilityQuery.data) {
+      setSlots(availabilityQuery.data);
+    }
+  }, [availabilityQuery.data]);
+
+  useEffect(() => {
+    if (availabilityQuery.error) {
       toast.show(
-        reason instanceof Error
-          ? reason.message
-          : 'Impossible de charger les créneaux disponibles.',
+        availabilityQuery.error.message || 'Impossible de charger les créneaux disponibles.',
         { variant: 'error' },
       );
       setSlots([]);
     }
-  };
+  }, [availabilityQuery.error, toast]);
+
   const handleDatesSet = async (arg: DatesSetArg) => {
-    await loadAvailabilityForView(arg.start, arg.end);
+    setAvailabilityRange({ start: arg.start.toISOString(), end: arg.end.toISOString() });
   };
   const slotsByDay = useMemo(() => {
     const map = new Map<string, AvailabilitySlot[]>();
@@ -95,13 +115,7 @@ export const useAppointmentBooking = () => {
       });
       return;
     }
-    setBooking(true);
-    try {
-      await bookAppointment({ prestationId: selectedPrestation.id, startAt: selectedSlot.start });
-      setModalMode('success');
-    } finally {
-      setBooking(false);
-    }
+    bookingMutation.mutate({ prestationId: selectedPrestation.id, startAt: selectedSlot.start });
   };
   useEffect(() => {
     const bookingConfirm = (location.state as BookingState | null)?.bookingConfirm;
@@ -137,7 +151,7 @@ export const useAppointmentBooking = () => {
     setSelectedDate,
     selectedSlot,
     setSelectedSlot,
-    booking,
+    booking: bookingMutation.isPending,
     modalOpen,
     setModalOpen,
     modalMode,

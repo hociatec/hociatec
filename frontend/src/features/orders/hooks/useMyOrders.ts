@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import {
@@ -9,56 +10,54 @@ import {
   fetchMyOrders,
   type OrderDto,
 } from '../api';
+import { orderQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useMyOrders = () => {
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
-  const [error, setError] = useState<string | null>(null);
   const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
-  useEffect(() => {
-    setStatus('loading');
-    void fetchMyOrders()
-      .then((items) => {
-        setOrders(items);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(getHttpErrorMessage(e, 'Erreur lors du chargement'));
-        setStatus('error');
-      });
-  }, []);
-  const handlePayOrder = async (orderId: number) => {
-    setPayingOrderId(orderId);
-    setError(null);
-    try {
-      const result = await checkoutExistingOrder(orderId);
+  const queryClient = useQueryClient();
+  const ordersQuery = useQuery<OrderDto[], Error>({
+    queryKey: orderQueryKeys.mine(),
+    queryFn: fetchMyOrders,
+  });
+  const upsertOrderInCache = (updated: OrderDto) => {
+    queryClient.setQueryData<OrderDto[]>(orderQueryKeys.mine(), (current = []) =>
+      current.map((order) => (order.id === updated.id ? updated : order)),
+    );
+    queryClient.setQueryData(orderQueryKeys.detail(updated.id), updated);
+  };
+  const payMutation = useMutation({
+    mutationFn: (orderId: number) => checkoutExistingOrder(orderId),
+    onSuccess: (result) => {
       if ('checkoutUrl' in result) {
         redirectToTrustedUrl(result.checkoutUrl);
         return;
       }
-      setOrders((previous) => previous.map((order) => (order.id === orderId ? result : order)));
-    } catch (e) {
-      setError(getHttpErrorMessage(e, 'Impossible de lancer le règlement.'));
-    } finally {
-      setPayingOrderId(null);
-    }
+      upsertOrderInCache(result);
+    },
+    onSettled: () => setPayingOrderId(null),
+  });
+  const cancelMutation = useMutation({
+    mutationFn: cancelMyOrder,
+    onSuccess: upsertOrderInCache,
+  });
+  const handlePayOrder = async (orderId: number) => {
+    setPayingOrderId(orderId);
+    payMutation.mutate(orderId);
   };
   const handleCancelOrder = async (orderId: number) => {
-    try {
-      const cancelledOrder = await cancelMyOrder(orderId);
-      setOrders((previous) =>
-        previous.map((order) => (order.id === orderId ? cancelledOrder : order)),
-      );
-    } catch {
-      /* The dialog remains closed; the next refresh exposes the current status. */
-    }
+    cancelMutation.mutate(orderId);
   };
   const handleDownloadInvoice = (order: OrderDto) =>
     downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order));
   return {
-    orders,
-    isLoading: status === 'loading',
-    error,
+    orders: ordersQuery.data ?? [],
+    isLoading: ordersQuery.isLoading,
+    error:
+      ordersQuery.error
+        ? getHttpErrorMessage(ordersQuery.error, 'Erreur lors du chargement')
+        : payMutation.error
+          ? getHttpErrorMessage(payMutation.error, 'Impossible de lancer le règlement.')
+          : null,
     payingOrderId,
     handlePayOrder,
     handleCancelOrder,

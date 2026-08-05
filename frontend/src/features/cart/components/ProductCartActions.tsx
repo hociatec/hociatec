@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useMutation } from '@tanstack/react-query';
 
 import type { CatalogProduct } from '@/features/catalog/api';
 
@@ -70,6 +71,26 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
     }
   }, [cart, isRentalProduct, product.id]);
 
+  const removeMutation = useMutation({
+    mutationFn: (rentalMonthsValue: number | undefined) =>
+      removeItem(
+        product.id,
+        isRentalProduct && rentalMonthsValue ? { rentalMonths: rentalMonthsValue } : undefined,
+      ),
+    onSuccess: () => show(`Produit retiré du panier`, { variant: 'info', persistent: true }),
+    onError: () => show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }),
+  });
+  const addMutation = useMutation({
+    mutationFn: (rentalMonthsValue: number | undefined) =>
+      addItem(
+        product.id,
+        1,
+        isRentalProduct ? { rentalMonths: rentalMonthsValue } : undefined,
+      ),
+    onSuccess: () => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }),
+    onError: () => show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }),
+  });
+
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
@@ -79,28 +100,11 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       : undefined;
 
     if (isInCart) {
-      void removeItem(
-        product.id,
-        isRentalProduct && effectiveRentalMonths
-          ? { rentalMonths: effectiveRentalMonths }
-          : undefined,
-      )
-        .then(() => show(`Produit retiré du panier`, { variant: 'info', persistent: true }))
-        .catch(() =>
-          show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }),
-        );
+      removeMutation.mutate(effectiveRentalMonths);
       return;
     }
 
-    void addItem(
-      product.id,
-      1,
-      isRentalProduct ? { rentalMonths: effectiveRentalMonths } : undefined,
-    )
-      .then(() => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }))
-      .catch(() =>
-        show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }),
-      );
+    addMutation.mutate(effectiveRentalMonths);
   };
 
   return (

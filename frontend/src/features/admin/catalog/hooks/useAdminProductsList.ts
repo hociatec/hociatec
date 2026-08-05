@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 
 import {
   deleteProduct,
   fetchAdminCategories,
   fetchAdminProductsPage,
-  type AdminProductsPageMeta,
-  type CatalogCategory,
-  type CatalogProduct,
 } from '@/features/catalog/api';
 import { groupCatalogProducts } from '@/features/catalog/utils/groupProducts';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 const PRODUCTS_PER_PAGE = 12;
 const parseNumber = (value: string | null) => {
@@ -24,11 +23,7 @@ const parseNumber = (value: string | null) => {
 export const useAdminProductsList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [meta, setMeta] = useState<AdminProductsPageMeta | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(searchParams.get('search') ?? '');
   const [categoryValue, setCategoryValue] = useState(searchParams.get('category') ?? 'all');
@@ -52,16 +47,8 @@ export const useAdminProductsList = () => {
   );
   const [page, setPageValue] = useState(Math.max(1, Number(searchParams.get('page') ?? 1)));
 
-  useEffect(() => {
-    void fetchAdminCategories()
-      .then(setCategories)
-      .catch((reason) => setError(getHttpErrorMessage(reason, "Les catégories n'ont pas pu être chargées.")));
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchAdminProductsPage({
+  const productParams = useMemo(
+    () => ({
       page,
       perPage: PRODUCTS_PER_PAGE,
       search: searchValue.trim() || undefined,
@@ -70,26 +57,47 @@ export const useAdminProductsList = () => {
       sellingType: 'all' === sellingTypeValue ? undefined : sellingTypeValue,
       minPrice: minPriceValue ?? undefined,
       maxPrice: maxPriceValue ?? undefined,
-      stock: 'low' === stockValue ? 'low' : undefined,
+      stock: 'low' === stockValue ? ('low' as const) : undefined,
       sort: sortValue as Parameters<typeof fetchAdminProductsPage>[0]['sort'],
-    })
-      .then((result) => {
-        setProducts(result.items);
-        setMeta(result.meta);
-      })
-      .catch((reason) => setError(getHttpErrorMessage(reason, "Le catalogue admin n'a pas pu être chargé.")))
-      .finally(() => setLoading(false));
-  }, [
-    page,
-    searchValue,
-    categoryValue,
-    stockValue,
-    featuredValue,
-    sellingTypeValue,
-    minPriceValue,
-    maxPriceValue,
-    sortValue,
-  ]);
+    }),
+    [
+      page,
+      searchValue,
+      categoryValue,
+      featuredValue,
+      sellingTypeValue,
+      minPriceValue,
+      maxPriceValue,
+      stockValue,
+      sortValue,
+    ],
+  );
+  const categoriesQuery = useQuery({
+    queryKey: adminCatalogQueryKeys.categories(),
+    queryFn: fetchAdminCategories,
+  });
+  const productsQuery = useQuery({
+    queryKey: adminCatalogQueryKeys.productsPage(productParams),
+    queryFn: () => fetchAdminProductsPage(productParams),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.products() });
+      setMessage(response.message ?? 'Le produit a bien été supprimé du catalogue.');
+    },
+  });
+  const products = productsQuery.data?.items ?? [];
+  const meta = productsQuery.data?.meta ?? null;
+  const categories = categoriesQuery.data ?? [];
+  const error =
+    productsQuery.error
+      ? getHttpErrorMessage(productsQuery.error, "Le catalogue admin n'a pas pu être chargé.")
+      : categoriesQuery.error
+        ? getHttpErrorMessage(categoriesQuery.error, "Les catégories n'ont pas pu être chargées.")
+        : deleteMutation.error
+          ? getHttpErrorMessage(deleteMutation.error, "Le produit n'a pas pu être supprimé.")
+          : null;
 
   useEffect(() => {
     const next = new URLSearchParams();
@@ -180,21 +188,13 @@ export const useAdminProductsList = () => {
       }))
     )
       return;
-    setError(null);
     setMessage(null);
-    try {
-      const response = await deleteProduct(productId);
-      setProducts((items) => items.filter((item) => item.id !== productId));
-      setMeta((current) => current ? { ...current, total: Math.max(0, current.total - 1) } : current);
-      setMessage(response.message ?? 'Le produit a bien été supprimé du catalogue.');
-    } catch (reason) {
-      setError(getHttpErrorMessage(reason, "Le produit n'a pas pu être supprimé."));
-    }
+    deleteMutation.mutate(productId);
   };
 
   return {
     categories,
-    loading,
+    loading: productsQuery.isLoading || categoriesQuery.isLoading,
     error,
     message,
     search: searchValue,

@@ -1,5 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
@@ -10,33 +11,31 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
 
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Motifs de rendez-vous');
 
-  const [prestations, setPrestations] = useState<Prestation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const confirm = useConfirm();
-
-  const loadPrestations = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const items = await fetchAdminPrestations();
-      setPrestations(items);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Erreur lors du chargement des prestations'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadPrestations();
-  }, []);
+  const queryClient = useQueryClient();
+  const prestationsQuery = useQuery<Prestation[], Error>({
+    queryKey: adminAppointmentQueryKeys.prestations(),
+    queryFn: fetchAdminPrestations,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deletePrestation,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminAppointmentQueryKeys.prestations() });
+      setMessage(response.message ?? 'La prestation a bien été supprimée.');
+    },
+  });
+  const prestations = prestationsQuery.data ?? [];
+  const error = prestationsQuery.error
+    ? getHttpErrorMessage(prestationsQuery.error, 'Erreur lors du chargement des prestations')
+    : deleteMutation.error
+      ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la prestation')
+      : null;
 
   const handleDelete = async (prestationId: number) => {
     const prestation = prestations.find((item) => item.id === prestationId);
@@ -53,16 +52,8 @@ export const PrestationsListPage = () => {
       return;
     }
 
-    setError(null);
     setMessage(null);
-
-    try {
-      const response = await deletePrestation(prestationId);
-      await loadPrestations();
-      setMessage(response.message ?? 'La prestation a bien été supprimée.');
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de supprimer la prestation'));
-    }
+    deleteMutation.mutate(prestationId);
   };
 
   return (
@@ -94,7 +85,7 @@ export const PrestationsListPage = () => {
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       <AdminListState
-        loading={loading}
+        loading={prestationsQuery.isLoading}
         isEmpty={prestations.length === 0}
         loadingLabel="Chargement des motifs..."
         emptyLabel="Aucun motif enregistré."

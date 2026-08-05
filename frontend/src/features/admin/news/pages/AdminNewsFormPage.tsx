@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createAdminNewsArticle,
@@ -10,6 +11,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
 
 const slugify = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -19,6 +21,7 @@ export const AdminNewsFormPage = () => {
   const id = newsId ? Number(newsId) : null;
   const isEdit = Number.isFinite(id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   useDocumentTitle(isEdit ? 'Admin - Modifier une actualité' : 'Admin - Nouvelle actualité');
   const [payload, setPayload] = useState<NewsArticlePayload>({
     title: '',
@@ -30,11 +33,27 @@ export const AdminNewsFormPage = () => {
     publishedAt: null,
   });
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const articleQuery = useQuery({
+    queryKey: adminNewsQueryKeys.detail(isEdit ? id : null),
+    queryFn: () => fetchAdminNewsArticle(id ?? 0),
+    enabled: isEdit && Boolean(id),
+  });
+  const saveMutation = useMutation({
+    mutationFn: (nextPayload: NewsArticlePayload) =>
+      isEdit && id
+        ? updateAdminNewsArticle(id, nextPayload)
+        : createAdminNewsArticle(nextPayload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
+      navigate('/admin/news');
+    },
+    onError: (reason) =>
+      setError(reason instanceof Error ? reason.message : 'Enregistrement impossible.'),
+  });
 
   useEffect(() => {
-    if (!isEdit || !id) return;
-    void fetchAdminNewsArticle(id).then((article) =>
+    if (!articleQuery.data) return;
+    const article = articleQuery.data;
       setPayload({
         title: article.title,
         slug: article.slug,
@@ -43,9 +62,8 @@ export const AdminNewsFormPage = () => {
         category: article.category,
         isPublished: article.isPublished,
         publishedAt: article.publishedAt,
-      }),
-    );
-  }, [id, isEdit]);
+      });
+  }, [articleQuery.data]);
 
   const canSave = useMemo(() => payload.title.trim() && payload.slug.trim() && payload.excerpt.trim() && payload.content.trim(), [payload]);
 
@@ -55,22 +73,20 @@ export const AdminNewsFormPage = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSave) return;
-    setSaving(true);
     setError(null);
-    try {
-      if (isEdit && id) await updateAdminNewsArticle(id, payload);
-      else await createAdminNewsArticle(payload);
-      navigate('/admin/news');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Enregistrement impossible.');
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate(payload);
   };
 
   return (
     <PageContainer size="admin" title={isEdit ? 'Modifier une actualité' : 'Nouvelle actualité'}>
-      {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
+      {error || articleQuery.error ? (
+        <FeedbackMessage>
+          {error ??
+            (articleQuery.error instanceof Error
+              ? articleQuery.error.message
+              : 'Chargement impossible.')}
+        </FeedbackMessage>
+      ) : null}
       <form onSubmit={handleSubmit} className="grid gap-5 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
         <label className="grid gap-2 text-sm font-semibold text-brand-900">
           Titre
@@ -96,7 +112,7 @@ export const AdminNewsFormPage = () => {
           <input type="checkbox" checked={payload.isPublished} onChange={(e) => setField('isPublished', e.target.checked)} />
           Publier l’actualité
         </label>
-        <button type="submit" disabled={!canSave || saving} className="w-fit rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">
+        <button type="submit" disabled={!canSave || saveMutation.isPending} className="w-fit rounded-full bg-brand-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">
           Enregistrer
         </button>
       </form>

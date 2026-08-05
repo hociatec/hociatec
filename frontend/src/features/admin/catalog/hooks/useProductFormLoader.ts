@@ -1,4 +1,5 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchAdminBrands,
@@ -12,6 +13,7 @@ import {
 import { emptyProductForm, type ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 import { buildProductFormState } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type UseProductFormLoaderParams = {
   isEdit: boolean;
@@ -36,70 +38,70 @@ export const useProductFormLoader = ({
   const [brands, setBrands] = useState<CatalogBrand[]>([]);
   const [groupVariants, setGroupVariants] = useState<CatalogProduct[]>([]);
   const [currentVariantPosition, setCurrentVariantPosition] = useState(1);
-  const [initialLoading, setInitialLoading] = useState(false);
   const [loadedBrandQuery, setLoadedBrandQuery] = useState('');
+  const loaderQuery = useQuery({
+    queryKey: adminCatalogQueryKeys.productForm(isEdit && productId ? Number(productId) : null),
+    queryFn: async () => {
+      const [categoryList, brandList, product, adminProducts] = await Promise.all([
+        fetchAdminCategories(),
+        fetchAdminBrands(),
+        isEdit && productId ? fetchAdminProduct(Number(productId)) : Promise.resolve(null),
+        isEdit ? fetchAdminProducts() : Promise.resolve([]),
+      ]);
+      return { categoryList, brandList, product, adminProducts };
+    },
+  });
 
   useEffect(() => {
-    setInitialLoading(true);
     onError(null);
     onMessage(null);
+    if (!loaderQuery.data) return;
+    const { categoryList, brandList, product, adminProducts } = loaderQuery.data;
 
-    const load = async () => {
-      try {
-        const [categoryList, brandList, product, adminProducts] = await Promise.all([
-          fetchAdminCategories(),
-          fetchAdminBrands(),
-          isEdit && productId ? fetchAdminProduct(Number(productId)) : Promise.resolve(null),
-          isEdit ? fetchAdminProducts() : Promise.resolve([]),
-        ]);
+    setCategories(categoryList);
+    setBrands(brandList);
 
-        setCategories(categoryList);
-        setBrands(brandList);
+    if (product) {
+      hydrateProductForm({
+        product,
+        setCurrentVariantPosition,
+        setForm,
+        setLoadedBrandQuery,
+        galleryHydrate,
+        resetVariantRows,
+      });
+      setGroupVariants(resolveGroupVariants(product, adminProducts));
+      return;
+    }
 
-        if (product) {
-          hydrateProductForm({
-            product,
-            setCurrentVariantPosition,
-            setForm,
-            setLoadedBrandQuery,
-            galleryHydrate,
-            resetVariantRows,
-          });
-          setGroupVariants(resolveGroupVariants(product, adminProducts));
-          return;
-        }
-
-        if (categoryList.length > 0) {
-          setForm((previous) => ({ ...previous, categoryId: categoryList[0].id.toString() }));
-        } else {
-          setForm(emptyProductForm);
-        }
-        setLoadedBrandQuery('');
-        setGroupVariants([]);
-      } catch (error) {
-        onError(getHttpErrorMessage(error, 'Impossible de charger les données du produit.'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    void load();
+    if (categoryList.length > 0) {
+      setForm((previous) => ({ ...previous, categoryId: categoryList[0].id.toString() }));
+    } else {
+      setForm(emptyProductForm);
+    }
+    setLoadedBrandQuery('');
+    setGroupVariants([]);
   }, [
     galleryHydrate,
-    isEdit,
+    loaderQuery.data,
     onError,
     onMessage,
-    productId,
     resetVariantRows,
     setForm,
   ]);
+
+  useEffect(() => {
+    if (loaderQuery.error) {
+      onError(getHttpErrorMessage(loaderQuery.error, 'Impossible de charger les données du produit.'));
+    }
+  }, [loaderQuery.error, onError]);
 
   return {
     brands,
     categories,
     currentVariantPosition,
     groupVariants,
-    initialLoading,
+    initialLoading: loaderQuery.isLoading,
     loadedBrandQuery,
     setGroupVariants,
   };

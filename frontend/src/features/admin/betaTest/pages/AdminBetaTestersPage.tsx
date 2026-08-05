@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdminBetaTesters,
   exportAdminBetaTesters,
@@ -26,42 +27,44 @@ import {
   formatDate,
 } from '@/features/betaTest/lib/betaLabels';
 import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/api/betaApi';
+import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
 
 export const AdminBetaTestersPage = () => {
   const confirm = useConfirm();
-  const [testers, setTesters] = useState<AdminBetaTesterDto[]>([]);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedTester, setSelectedTester] = useState<AdminBetaTesterDto | null>(null);
-  const [choices, setChoices] = useState<BetaProfileChoices>({});
+  const testersQuery = useQuery<AdminBetaTesterDto[], Error>({
+    queryKey: adminBetaQueryKeys.testers(search, status),
+    queryFn: () => {
+      const query = `${search ? `&search=${encodeURIComponent(search)}` : ''}${status ? `&status=${status}` : ''}`;
+      return fetchAdminBetaTesters(query);
+    },
+  });
+  const choicesQuery = useQuery<BetaProfileChoices, Error>({
+    queryKey: adminBetaQueryKeys.profileChoices(),
+    queryFn: fetchBetaProfileChoices,
+  });
+  const testers = testersQuery.data ?? [];
+  const choices = choicesQuery.data ?? {};
+  const updateMutation = useMutation({
+    mutationFn: ({ id, nextStatus }: { id: number; nextStatus: string }) =>
+      updateAdminBetaTester(id, nextStatus),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.testers(search, status) }),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminBetaTester,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.testers(search, status) }),
+  });
   const formatChoiceList = (group: string, values: string[]) => {
     const labels = new Map((choices[group] ?? []).map((choice) => [choice.value, choice.label]));
     const readableValues = values.map((value) => labels.get(value) ?? value);
 
     return formatBetaList(readableValues);
   };
-
-  const reload = () => {
-    const query = `${search ? `&search=${encodeURIComponent(search)}` : ''}${status ? `&status=${status}` : ''}`;
-    setLoading(true);
-    void fetchAdminBetaTesters(query)
-      .then((t) => {
-        setTesters(t);
-        setError(null);
-      })
-      .catch((e) =>
-        setError(e instanceof Error ? e.message : 'Impossible de charger les données bêta.'),
-      )
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(reload, [search, status]);
-
-  useEffect(() => {
-    void fetchBetaProfileChoices().then(setChoices).catch(() => undefined);
-  }, []);
 
   return (
     <PageContainer size="admin" title="Espace bêta">
@@ -78,7 +81,17 @@ export const AdminBetaTestersPage = () => {
         </button>
       </div>
 
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(testersQuery.error || updateMutation.error || deleteMutation.error) && (
+        <FeedbackMessage>
+          {(
+            testersQuery.error ??
+            updateMutation.error ??
+            deleteMutation.error
+          ) instanceof Error
+            ? (testersQuery.error ?? updateMutation.error ?? deleteMutation.error)?.message
+            : 'Impossible de charger les données bêta.'}
+        </FeedbackMessage>
+      )}
 
       <FilterBar>
         <SearchFilter
@@ -103,7 +116,7 @@ export const AdminBetaTestersPage = () => {
       <section className="mb-10">
         <h2 className="mb-3 text-xl font-semibold">Bêta-testeurs</h2>
         <AdminListState
-          loading={loading}
+          loading={testersQuery.isLoading}
           isEmpty={testers.length === 0}
           loadingLabel="Chargement…"
           emptyLabel="Aucun bêta-testeur trouvé."
@@ -134,7 +147,9 @@ export const AdminBetaTestersPage = () => {
                       <select
                         value={t.status}
                         className="rounded border p-1 bg-white"
-                        onChange={(e) => void updateAdminBetaTester(t.id, e.target.value).then(reload)}
+                        onChange={(e) =>
+                          updateMutation.mutate({ id: t.id, nextStatus: e.target.value })
+                        }
                       >
                         {Object.entries(betaProfileStatusLabels).map(([value, label]) => (
                           <option key={value} value={value}>{label}</option>
@@ -159,7 +174,7 @@ export const AdminBetaTestersPage = () => {
                             confirmLabel: 'Supprimer',
                             cancelLabel: 'Annuler',
                           })) {
-                            void deleteAdminBetaTester(t.id).then(reload);
+                            deleteMutation.mutate(t.id);
                           }
                         }}
                       >

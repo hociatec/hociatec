@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import {
@@ -13,38 +13,33 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
+import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const TrainingEnrollmentsPage = () => {
   useDocumentTitle('Admin - Inscriptions formation');
 
-  const [enrollments, setEnrollments] = useState<TrainingEnrollmentDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      setEnrollments(await fetchAdminTrainingEnrollments());
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de charger les inscriptions.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const queryClient = useQueryClient();
+  const enrollmentsQuery = useQuery<TrainingEnrollmentDto[], Error>({
+    queryKey: adminTrainingQueryKeys.enrollments(),
+    queryFn: fetchAdminTrainingEnrollments,
+  });
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: TrainingEnrollmentStatus }) =>
+      updateAdminTrainingEnrollmentStatus(id, status),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.enrollments() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+    },
+  });
+  const enrollments = enrollmentsQuery.data ?? [];
+  const error = enrollmentsQuery.error
+    ? getHttpErrorMessage(enrollmentsQuery.error, 'Impossible de charger les inscriptions.')
+    : statusMutation.error
+      ? getHttpErrorMessage(statusMutation.error, 'Impossible de modifier le statut.')
+      : null;
 
   const handleStatus = async (id: number, status: TrainingEnrollmentStatus) => {
-    try {
-      await updateAdminTrainingEnrollmentStatus(id, status);
-      await load();
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de modifier le statut.'));
-    }
+    statusMutation.mutate({ id, status });
   };
 
   return (
@@ -60,7 +55,7 @@ export const TrainingEnrollmentsPage = () => {
       {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
       <AdminListState
-        loading={loading}
+        loading={enrollmentsQuery.isLoading}
         isEmpty={enrollments.length === 0}
         loadingLabel="Chargement des inscriptions..."
         emptyLabel="Aucune inscription."

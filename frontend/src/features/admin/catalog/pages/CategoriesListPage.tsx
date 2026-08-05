@@ -1,5 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/api';
@@ -9,34 +10,32 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
 
-  const [categories, setCategories] = useState<CatalogCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const confirm = useConfirm();
-
-  const loadCategories = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const items = await fetchAdminCategories();
-      setCategories(items);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de charger les catégories.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadCategories();
-  }, []);
+  const queryClient = useQueryClient();
+  const categoriesQuery = useQuery<CatalogCategory[], Error>({
+    queryKey: adminCatalogQueryKeys.categories(),
+    queryFn: fetchAdminCategories,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteCategory,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.categories() });
+      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
+    },
+  });
+  const categories = categoriesQuery.data ?? [];
+  const error = categoriesQuery.error
+    ? getHttpErrorMessage(categoriesQuery.error, 'Impossible de charger les catégories.')
+    : deleteMutation.error
+      ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la catégorie.')
+      : null;
 
   const handleDelete = async (categoryId: number) => {
     const category = categories.find((item) => item.id === categoryId);
@@ -53,16 +52,8 @@ export const CategoriesListPage = () => {
       return;
     }
 
-    setError(null);
     setMessage(null);
-
-    try {
-      const response = await deleteCategory(categoryId);
-      await loadCategories();
-      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de supprimer la catégorie.'));
-    }
+    deleteMutation.mutate(categoryId);
   };
 
   const filteredCategories = useMemo(() => {
@@ -103,7 +94,7 @@ export const CategoriesListPage = () => {
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       <AdminListState
-        loading={loading}
+        loading={categoriesQuery.isLoading}
         isEmpty={filteredCategories.length === 0}
         loadingLabel="Chargement des catégories..."
         emptyLabel="Aucune catégorie ne correspond à votre recherche."

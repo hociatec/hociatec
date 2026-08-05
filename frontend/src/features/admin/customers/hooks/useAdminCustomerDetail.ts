@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchAdminCustomerById,
   sendCustomerEmail,
   updateAdminCustomerAdminProfile,
   type AdminCustomerAddressDto,
-  type AdminCustomerDetailDto,
 } from '@/features/admin/customers/api';
 import { type OrderDto } from '@/features/orders/api';
 import { useToast } from '@/shared/components/ui/toast';
@@ -15,15 +15,13 @@ import {
   type EmailTemplatePreset,
   type OrderFilter,
 } from '@/features/admin/customers/components/customerDetailShared';
+import { adminCustomerQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminCustomerDetail = (customerId: number) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
-  const [customer, setCustomer] = useState<AdminCustomerDetailDto | null>(null);
-  const [addresses, setAddresses] = useState<AdminCustomerAddressDto[]>([]);
-  const [orders, setOrders] = useState<OrderDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all');
   const [adminNotes, setAdminNotes] = useState('');
@@ -32,33 +30,72 @@ export const useAdminCustomerDetail = (customerId: number) => {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailForm, setEmailForm] = useState<CustomerEmailFormState>({ subject: '', message: '' });
-  const [emailSending, setEmailSending] = useState(false);
   const emailOnlyView = searchParams.get('panel') === 'email';
+  const customerQuery = useQuery({
+    queryKey: adminCustomerQueryKeys.detail(customerId || null),
+    queryFn: () => fetchAdminCustomerById(customerId),
+    enabled: Boolean(customerId),
+  });
+  const customer = customerQuery.data?.customer ?? null;
+  const addresses: AdminCustomerAddressDto[] = customerQuery.data?.addresses ?? [];
+  const orders: OrderDto[] = customerQuery.data?.orders ?? [];
+  const saveProfileMutation = useMutation({
+    mutationFn: () =>
+      updateAdminCustomerAdminProfile(customerId, { adminNotes, adminTags: parsedTags }),
+    onSuccess: (result) => {
+      queryClient.setQueryData<Awaited<ReturnType<typeof fetchAdminCustomerById>>>(
+        adminCustomerQueryKeys.detail(customerId),
+        (current) =>
+          current
+            ? {
+                ...current,
+                customer: {
+                  ...current.customer,
+                  adminNotes: result.adminNotes ?? null,
+                  adminTags: result.adminTags,
+                },
+              }
+            : current,
+      );
+      setAdminNotes(result.adminNotes ?? '');
+      setAdminTagsInput(result.adminTags.join(', '));
+      setSaveState('saved');
+      setSaveMessage('Suivi interne enregistré.');
+    },
+    onError: (e) => {
+      setSaveState('error');
+      setSaveMessage(e instanceof Error ? e.message : 'Impossible d’enregistrer le suivi interne.');
+    },
+  });
+  const sendEmailMutation = useMutation({
+    mutationFn: () => sendCustomerEmail(customerId, emailForm),
+    onSuccess: (response) =>
+      toast.show(response.message ?? 'L’e-mail a bien été envoyé au client.', {
+        variant: 'success',
+      }),
+    onError: (e) =>
+      toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', {
+        variant: 'error',
+      }),
+  });
 
   useEffect(() => {
     if (!customerId) {
-      setStatus('error');
       setError('Client invalide.');
       return;
     }
-
-    setStatus('loading');
     setError(null);
-    void fetchAdminCustomerById(customerId)
-      .then((data) => {
-        setCustomer(data.customer);
-        setAddresses(data.addresses);
-        setOrders(data.orders);
-        setAdminNotes(data.customer.adminNotes ?? '');
-        setAdminTagsInput((data.customer.adminTags ?? []).join(', '));
-        setEmailForm({ subject: `Votre compte ${data.customer.fullName} sur Hociatec`, message: '' });
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setStatus('error');
-        setError(e instanceof Error ? e.message : 'Impossible de charger ce client.');
-      });
   }, [customerId]);
+
+  useEffect(() => {
+    if (!customerQuery.data) return;
+    setAdminNotes(customerQuery.data.customer.adminNotes ?? '');
+    setAdminTagsInput((customerQuery.data.customer.adminTags ?? []).join(', '));
+    setEmailForm({
+      subject: `Votre compte ${customerQuery.data.customer.fullName} sur Hociatec`,
+      message: '',
+    });
+  }, [customerQuery.data]);
 
   useEffect(() => {
     if (emailOnlyView) setEmailOpen(true);
@@ -102,29 +139,13 @@ export const useAdminCustomerDetail = (customerId: number) => {
 
   const handleSaveAdminProfile = () => {
     if (!customer) return;
-    setSaveState('saving');
     setSaveMessage(null);
-    void updateAdminCustomerAdminProfile(customer.id, { adminNotes, adminTags: parsedTags })
-      .then((result) => {
-        setCustomer((current) => current ? { ...current, adminNotes: result.adminNotes ?? null, adminTags: result.adminTags } : current);
-        setAdminNotes(result.adminNotes ?? '');
-        setAdminTagsInput(result.adminTags.join(', '));
-        setSaveState('saved');
-        setSaveMessage('Suivi interne enregistré.');
-      })
-      .catch((e: unknown) => {
-        setSaveState('error');
-        setSaveMessage(e instanceof Error ? e.message : 'Impossible d’enregistrer le suivi interne.');
-      });
+    saveProfileMutation.mutate();
   };
 
   const handleSendEmail = () => {
     if (!customer) return;
-    setEmailSending(true);
-    void sendCustomerEmail(customer.id, emailForm)
-      .then((response) => toast.show(response.message ?? 'L’e-mail a bien été envoyé au client.', { variant: 'success' }))
-      .catch((e: unknown) => toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', { variant: 'error' }))
-      .finally(() => setEmailSending(false));
+    sendEmailMutation.mutate();
   };
 
   const applyEmailPreset = (preset: EmailTemplatePreset) => {
@@ -134,8 +155,8 @@ export const useAdminCustomerDetail = (customerId: number) => {
   };
 
   return {
-    customer, addresses, orders, status, error, orderFilter, adminNotes, adminTagsInput,
-    saveState, saveMessage, emailOpen, emailForm, emailSending, emailOnlyView, latestOrder,
+    customer, addresses, orders, status: customerQuery.isLoading ? 'loading' : error || customerQuery.error ? 'error' : 'success', error: error ?? customerQuery.error?.message ?? null, orderFilter, adminNotes, adminTagsInput,
+    saveState: saveProfileMutation.isPending ? 'saving' : saveState, saveMessage, emailOpen, emailForm, emailSending: sendEmailMutation.isPending, emailOnlyView, latestOrder,
     filteredOrders, parsedTags, setAdminNotes, setAdminTagsInput, setEmailForm, setOrderFilter,
     closeEmailComposer, toggleEmailComposer, handleSaveAdminProfile, handleSendEmail, applyEmailPreset,
     navigate,

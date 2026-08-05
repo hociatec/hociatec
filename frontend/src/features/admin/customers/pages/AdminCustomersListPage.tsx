@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { fetchAdminCustomers, type AdminCustomerSummaryDto } from '@/features/admin/customers/api';
@@ -9,32 +10,22 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { adminCustomerQueryKeys } from '@/shared/lib/queryKeys';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';
 
 const normalizePhoneLink = (phoneNumber: string) => phoneNumber.replace(/[^+\d]/g, '');
 
 export const AdminCustomersListPage = () => {
-  const [customers, setCustomers] = useState<AdminCustomerSummaryDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('recent_order');
-
-  useEffect(() => {
-    setStatus('loading');
-    setError(null);
-
-    void fetchAdminCustomers(search, sort)
-      .then((items) => {
-        setCustomers(items);
-        setStatus('success');
-      })
-      .catch((e: unknown) => {
-        setError(e instanceof Error ? e.message : 'Impossible de charger les clients');
-        setStatus('error');
-      });
-  }, [search, sort]);
+  const customersQuery = useQuery<AdminCustomerSummaryDto[], Error>({
+    queryKey: adminCustomerQueryKeys.list(search, sort),
+    queryFn: () => fetchAdminCustomers(search, sort),
+  });
+  const customers = customersQuery.data ?? [];
+  const status = customersQuery.isLoading ? 'loading' : customersQuery.isError ? 'error' : 'success';
+  const error = customersQuery.error?.message ?? null;
 
   const verifiedCount = useMemo(
     () => customers.filter((customer) => customer.isVerified).length,

@@ -16,61 +16,6 @@ Limite de l’analyse :
 L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
 
 
-4. REACT QUERY ET GESTION DES DONNÉES
-=====================================
-
-4.1 React Query est encore sous-utilisé
----------------------------------------
-
-Le projet contient :
-- environ 716 occurrences de useState ;
-- environ 260 occurrences de useEffect.
-
-React Query est bien utilisé dans les fonctionnalités bêta, mais beaucoup d’autres domaines semblent conserver une gestion manuelle des chargements.
-
-Cela entraîne souvent :
-- duplication des états loading/error/data ;
-- absence de cache ;
-- requêtes concurrentes ;
-- données périmées ;
-- invalidations oubliées ;
-- code plus difficile à tester.
-
-Correction :
-
-Utiliser React Query pour toutes les données serveur :
-- commandes ;
-- devis ;
-- produits ;
-- catégories ;
-- rendez-vous ;
-- favoris ;
-- formations ;
-- profil ;
-- audits ;
-- listes administratives.
-
-
-4.6 Utiliser les mutations plutôt que des états manuels
--------------------------------------------------------
-
-Les actions comme :
-- annulation ;
-- suppression ;
-- validation ;
-- création ;
-- modification ;
-
-doivent utiliser useMutation.
-
-Cela centralise :
-- isPending ;
-- erreurs ;
-- invalidations ;
-- notifications ;
-- désactivation des boutons.
-
-
 5. ARCHITECTURE DU PROJET
 =========================
 

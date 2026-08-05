@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createPrestation,
@@ -13,6 +14,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
+import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
 
 type PrestationFormState = {
   name: string;
@@ -30,6 +32,7 @@ export const PrestationFormPage = () => {
   const { prestationId } = useParams();
   const isEdit = Boolean(prestationId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useDocumentTitle(
     isEdit
@@ -38,32 +41,34 @@ export const PrestationFormPage = () => {
   );
 
   const [form, setForm] = useState<PrestationFormState>(emptyForm);
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const prestationQuery = useQuery<Prestation, Error>({
+    queryKey: adminAppointmentQueryKeys.prestation(prestationId ? Number(prestationId) : null),
+    queryFn: () => fetchAdminPrestation(Number(prestationId)),
+    enabled: isEdit,
+  });
+  const saveMutation = useMutation({
+    mutationFn: (payload: UpsertPrestationPayload) =>
+      isEdit ? updatePrestation(Number(prestationId), payload) : createPrestation(payload),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminAppointmentQueryKeys.prestations() });
+      setMessage(
+        response.message ??
+          (isEdit ? 'La prestation a bien été mise à jour.' : 'La prestation a bien été créée.'),
+      );
+      if (!isEdit) setForm(emptyForm);
+      setTimeout(() => {
+        navigate('/admin/appointments/motifs');
+      }, 600);
+    },
+    onError: (err) =>
+      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la prestation")),
+  });
 
   useEffect(() => {
-    if (!isEdit) {
-      return;
-    }
-
-    const load = async () => {
-      setInitialLoading(true);
-      setError(null);
-
-      try {
-        const prestation = await fetchAdminPrestation(Number(prestationId));
-        populateForm(prestation);
-      } catch (err) {
-        setError(getHttpErrorMessage(err, 'Impossible de charger la prestation'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    void load();
-  }, [isEdit, prestationId]);
+    if (prestationQuery.data) populateForm(prestationQuery.data);
+  }, [prestationQuery.data]);
 
   const populateForm = (prestation: Prestation) => {
     setForm({
@@ -94,28 +99,9 @@ export const PrestationFormPage = () => {
       return;
     }
 
-    setLoading(true);
     setError(null);
     setMessage(null);
-
-    try {
-      if (isEdit) {
-        const response = await updatePrestation(Number(prestationId), payload);
-        setMessage(response.message ?? 'La prestation a bien été mise à jour.');
-      } else {
-        const response = await createPrestation(payload);
-        setMessage(response.message ?? 'La prestation a bien été créée.');
-        setForm(emptyForm);
-      }
-
-      setTimeout(() => {
-        navigate('/admin/appointments/motifs');
-      }, 600);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la prestation"));
-    } finally {
-      setLoading(false);
-    }
+    saveMutation.mutate(payload);
   };
 
   return (
@@ -140,10 +126,15 @@ export const PrestationFormPage = () => {
         </Link>
         .
       </p>
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || prestationQuery.error) && (
+        <FeedbackMessage>
+          {error ??
+            getHttpErrorMessage(prestationQuery.error, 'Impossible de charger la prestation')}
+        </FeedbackMessage>
+      )}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {initialLoading ? (
+      {prestationQuery.isLoading ? (
         <LoadingState>Chargement de la prestation...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
@@ -183,8 +174,8 @@ export const PrestationFormPage = () => {
             />
           </label>
 
-          <button type="submit" className="register-form__submit" disabled={loading}>
-            {loading ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
+          <button type="submit" className="register-form__submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}
           </button>
         </form>
       )}

@@ -1,27 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { fetchAdminDashboard, type AdminDashboardDto } from '@/features/admin/customers/api';
+import { adminDashboardQueryKeys } from '@/shared/lib/queryKeys';
+
+type AdminDashboardStatus = 'loading' | 'error' | 'success';
 
 export const useAdminDashboard = () => {
-  const [dashboard, setDashboard] = useState<AdminDashboardDto | null>(null);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery<AdminDashboardDto, Error>({
+    queryKey: adminDashboardQueryKeys.dashboard(),
+    queryFn: fetchAdminDashboard,
+  });
 
-  useEffect(() => {
-    void fetchAdminDashboard()
-      .then((data) => {
-        setDashboard(data);
-        setStatus('success');
-      })
-      .catch((reason: unknown) => {
-        setStatus('error');
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Les indicateurs d'administration n'ont pas pu être chargés.",
-        );
-      });
-  }, []);
+  const status: AdminDashboardStatus = query.isLoading ? 'loading' : query.isError ? 'error' : 'success';
 
-  return { dashboard, error, status };
+  return {
+    dashboard: query.data ?? null,
+    error:
+      query.error?.message ??
+      (query.isError ? "Les indicateurs d'administration n'ont pas pu être chargés." : null),
+    status,
+  };
 };

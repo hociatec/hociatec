@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 
-import { fetchNewsArticles, type NewsArticleDto, type PaginationMeta } from '@/features/news/api/newsApi';
+import { fetchNewsArticles } from '@/features/news/api/newsApi';
 import { NewsCard } from '@/features/news/components/NewsCard';
 import { NewsPagination } from '@/features/news/components/NewsPagination';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
@@ -9,15 +9,19 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { newsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const NewsListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1);
   const q = searchParams.get('q')?.trim() ?? '';
-  const [items, setItems] = useState<NewsArticleDto[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const articlesQuery = useQuery({
+    queryKey: newsQueryKeys.articlesPage(page, q),
+    queryFn: ({ signal }) => fetchNewsArticles({ page, q, signal }),
+  });
+  const items = articlesQuery.data?.items ?? [];
+  const meta = articlesQuery.data?.meta ?? null;
+  const error = articlesQuery.error instanceof Error ? articlesQuery.error.message : null;
 
   useDocumentTitle('Actualités');
   useMetaTags({
@@ -25,31 +29,6 @@ export const NewsListPage = () => {
     description: 'Retrouvez les actualités Hociatec, les nouveautés de service et les annonces importantes.',
     canonicalUrl: `${SITE_URL}/actualites`,
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void fetchNewsArticles({ page, q, signal: controller.signal })
-      .then((result) => {
-        if (cancelled) return;
-        setItems(result.items);
-        setMeta(result.meta);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [page, q]);
 
   const setPage = (nextPage: number) => {
     const next = new URLSearchParams(searchParams);
@@ -69,7 +48,7 @@ export const NewsListPage = () => {
           </p>
         </header>
 
-        {loading ? (
+        {articlesQuery.isLoading ? (
           <LoadingState>Chargement des actualités...</LoadingState>
         ) : error ? (
           <ErrorState>{error}</ErrorState>

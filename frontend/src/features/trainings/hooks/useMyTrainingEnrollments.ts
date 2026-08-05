@@ -1,23 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 import { fetchMyTrainingEnrollments, type TrainingEnrollmentDto } from '../api/trainingsApi';
+import { trainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useMyTrainingEnrollments = () => {
   const { enrollmentId } = useParams();
-  const [items, setItems] = useState<TrainingEnrollmentDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    void fetchMyTrainingEnrollments()
-      .then(setItems)
-      .catch((err: Error) => setError(err.message || 'Chargement impossible.'))
-      .finally(() => setLoading(false));
-  }, []);
+  const query = useQuery<TrainingEnrollmentDto[], Error>({
+    queryKey: trainingQueryKeys.myEnrollments(),
+    queryFn: fetchMyTrainingEnrollments,
+  });
+  const items = query.data ?? [];
   const enrollment = useMemo(
     () => items.find((item) => item.id === Number(enrollmentId)) ?? null,
     [items, enrollmentId],
   );
-  return { items, enrollment, loading, error };
+  return {
+    items,
+    enrollment,
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+  };
 };

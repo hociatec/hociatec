@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchAdminLoyaltyCustomers,
@@ -15,34 +16,54 @@ import {
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatEuroCents, formatFrenchNumber } from '@/shared/lib/formatters';
+import { adminLoyaltyQueryKeys } from '@/shared/lib/queryKeys';
 
 const pointsToEuroCents = (points: number) => Math.floor(Math.max(0, points) / 100) * 100;
 
 export const AdminLoyaltyPage = () => {
   const toast = useToast();
-  const [items, setItems] = useState<AdminLoyaltyCustomerDto[]>([]);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [drafts, setDrafts] = useState<Record<number, string>>({});
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const customersQuery = useQuery<AdminLoyaltyCustomerDto[], Error>({
+    queryKey: adminLoyaltyQueryKeys.customers(search),
+    queryFn: () => fetchAdminLoyaltyCustomers(search),
+  });
+  const items = customersQuery.data ?? [];
+  const updateMutation = useMutation({
+    mutationFn: ({ customerId, points }: { customerId: number; points: number }) =>
+      updateAdminLoyaltyCustomer(customerId, points),
+    onSuccess: (customer) => {
+      queryClient.setQueryData<AdminLoyaltyCustomerDto[]>(
+        adminLoyaltyQueryKeys.customers(search),
+        (current = []) =>
+          current.map((item) => (item.id === customer.data.id ? customer.data : item)),
+      );
+      setDrafts((current) => ({ ...current, [customer.data.id]: String(customer.data.points) }));
+      toast.show(customer.message ?? 'Le solde fidélité a bien été mis à jour.', {
+        variant: 'success',
+      });
+    },
+    onError: (error) => {
+      toast.show(error instanceof Error ? error.message : 'Impossible de mettre à jour ce solde.', {
+        variant: 'error',
+      });
+    },
+  });
 
   useEffect(() => {
-    setStatus('loading');
-    void fetchAdminLoyaltyCustomers(search)
-      .then((rows) => {
-        setItems(rows);
-        setDrafts(Object.fromEntries(rows.map((row) => [row.id, String(row.points)])));
-        setStatus('success');
-      })
-      .catch((error: unknown) => {
-        toast.show(
-          error instanceof Error ? error.message : 'Impossible de charger les soldes fidélité.',
-          {
-            variant: 'error',
-          },
-        );
-        setStatus('error');
+    if (customersQuery.data) {
+      setDrafts(Object.fromEntries(customersQuery.data.map((row) => [row.id, String(row.points)])));
+    }
+  }, [customersQuery.data]);
+
+  useEffect(() => {
+    if (customersQuery.error) {
+      toast.show(customersQuery.error.message || 'Impossible de charger les soldes fidélité.', {
+        variant: 'error',
       });
-  }, [search, toast]);
+    }
+  }, [customersQuery.error, toast]);
 
   const totals = useMemo(
     () =>
@@ -58,20 +79,7 @@ export const AdminLoyaltyPage = () => {
 
   const save = (customerId: number) => {
     const points = Math.max(0, Number.parseInt(drafts[customerId] ?? '0', 10) || 0);
-    void updateAdminLoyaltyCustomer(customerId, points)
-      .then((customer) => {
-        setItems((current) => current.map((item) => (item.id === customer.data.id ? customer.data : item)));
-        setDrafts((current) => ({ ...current, [customer.data.id]: String(customer.data.points) }));
-        toast.show(customer.message ?? 'Le solde fidélité a bien été mis à jour.', { variant: 'success' });
-      })
-      .catch((error: unknown) => {
-        toast.show(
-          error instanceof Error ? error.message : 'Impossible de mettre à jour ce solde.',
-          {
-            variant: 'error',
-          },
-        );
-      });
+    updateMutation.mutate({ customerId, points });
   };
 
   return (
@@ -87,7 +95,7 @@ export const AdminLoyaltyPage = () => {
       </div>
 
       <AdminListState
-        loading={status === 'loading'}
+        loading={customersQuery.isLoading}
         isEmpty={items.length === 0}
         loadingLabel="Chargement..."
         emptyLabel="Aucun client trouvé."

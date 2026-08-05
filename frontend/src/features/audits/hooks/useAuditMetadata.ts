@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { fetchAuditMetadata, type AuditMetadataDto } from '../api/auditsApi';
+import { auditQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAuditMetadata = () => {
-  const [metadata, setMetadata] = useState<AuditMetadataDto>({ types: [], statuses: [] });
+  const query = useQuery<AuditMetadataDto>({
+    queryKey: auditQueryKeys.metadata(),
+    queryFn: fetchAuditMetadata,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    void fetchAuditMetadata().then((value) => {
-      if (!cancelled) setMetadata(value);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return metadata;
+  return query.data ?? { types: [], statuses: [] };
 };

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteAdminNewsArticle, fetchAdminNewsArticles, sendAdminNewsArticleEmail, type NewsArticleDto } from '@/features/news/api/newsApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -7,39 +8,38 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const AdminNewsListPage = () => {
   useDocumentTitle('Admin - Actualités');
-  const [items, setItems] = useState<NewsArticleDto[]>([]);
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const reload = () => {
-    setLoading(true);
-    void fetchAdminNewsArticles({ q: query })
-      .then((result) => {
-        setItems(result.items);
-        setError(null);
-      })
-      .catch((reason) => setError(reason instanceof Error ? reason.message : 'Erreur de chargement.'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(reload, [query]);
+  const newsQuery = useQuery({
+    queryKey: adminNewsQueryKeys.list(query),
+    queryFn: () => fetchAdminNewsArticles({ q: query }),
+  });
+  const items: NewsArticleDto[] = newsQuery.data?.items ?? [];
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminNewsArticle,
+    onSuccess: () => {
+      setMessage('Actualité supprimée.');
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
+    },
+  });
+  const sendEmailMutation = useMutation({
+    mutationFn: sendAdminNewsArticleEmail,
+    onSuccess: () => setMessage('Envoi des e-mails d’actualité planifié.'),
+  });
 
   const handleDelete = async (article: NewsArticleDto) => {
     if (!window.confirm(`Supprimer l’actualité « ${article.title} » ?`)) return;
-    await deleteAdminNewsArticle(article.id);
-    setMessage('Actualité supprimée.');
-    reload();
+    deleteMutation.mutate(article.id);
   };
 
   const handleSendEmail = async (article: NewsArticleDto) => {
     if (!window.confirm(`Envoyer l’actualité « ${article.title} » par e-mail aux abonnés ?`)) return;
-    await sendAdminNewsArticleEmail(article.id);
-    setMessage('Envoi des e-mails d’actualité planifié.');
+    sendEmailMutation.mutate(article.id);
   };
 
   return (
@@ -49,11 +49,17 @@ export const AdminNewsListPage = () => {
       headerActions={<PrimaryLink to="/admin/news/new">Nouvelle actualité</PrimaryLink>}
     >
       {message ? <FeedbackMessage variant="success">{message}</FeedbackMessage> : null}
-      {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
+      {newsQuery.error || deleteMutation.error || sendEmailMutation.error ? (
+        <FeedbackMessage>
+          {(newsQuery.error ?? deleteMutation.error ?? sendEmailMutation.error) instanceof Error
+            ? (newsQuery.error ?? deleteMutation.error ?? sendEmailMutation.error)?.message
+            : 'Erreur de chargement.'}
+        </FeedbackMessage>
+      ) : null}
       <div className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
         <SearchFilter value={query} onChange={setQuery} placeholder="Rechercher une actualité..." />
       </div>
-      <AdminListState loading={loading} isEmpty={items.length === 0} loadingLabel="Chargement des actualités..." emptyLabel="Aucune actualité.">
+      <AdminListState loading={newsQuery.isLoading} isEmpty={items.length === 0} loadingLabel="Chargement des actualités..." emptyLabel="Aucune actualité.">
         <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>

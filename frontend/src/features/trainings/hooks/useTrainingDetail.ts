@@ -1,47 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
-import {
-  enrollTrainingSession,
-  fetchPublicTraining,
-  type TrainingDto,
-  type TrainingSessionDto,
-} from '../api/trainingsApi';
+import { enrollTrainingSession, fetchPublicTraining, type TrainingSessionDto } from '../api/trainingsApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { isWeekendDate } from '../lib/trainingDetail';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
+import { trainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useTrainingDetail = () => {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
   const { status } = useAuth();
-  const [training, setTraining] = useState<TrainingDto | null>(null);
-  const [sessions, setSessions] = useState<TrainingSessionDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
-  const [submittingId, setSubmittingId] = useState<number | null>(null);
+  const [pendingSessionId, setPendingSessionId] = useState<number | null>(null);
   const [slotForms, setSlotForms] = useState<Record<number, { date: string; time: string }>>({});
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void fetchPublicTraining(slug, { signal: controller.signal })
-      .then((data) => {
-        if (controller.signal.aborted) return;
-        setTraining(data.training);
-        setSessions(data.sessions);
-      })
-      .catch((err: Error) => {
-        if (!controller.signal.aborted) setError(err.message || 'Formation introuvable.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
+  const trainingQuery = useQuery({
+    queryKey: trainingQueryKeys.publicDetail(slug),
+    queryFn: ({ signal }) => fetchPublicTraining(slug, { signal }),
+    enabled: slug.length > 0,
+  });
+  const enrollMutation = useMutation({
+    mutationFn: ({ sessionId, startsAt }: { sessionId: number; startsAt: string }) =>
+      enrollTrainingSession(sessionId, startsAt),
+    onSuccess: (response) => {
+      if (response.data.checkoutUrl) {
+        redirectToTrustedUrl(response.data.checkoutUrl);
+        return;
+      }
 
-    return () => {
-      controller.abort();
-    };
-  }, [slug]);
+      setMessage(response.message ?? 'Votre inscription a bien été enregistrée.');
+      void queryClient.invalidateQueries({ queryKey: trainingQueryKeys.myEnrollments() });
+    },
+    onError: (err) => {
+      setMessage(err instanceof Error ? err.message : 'Inscription impossible.');
+    },
+    onSettled: () => setPendingSessionId(null),
+  });
+  const training = trainingQuery.data?.training ?? null;
+  const sessions = trainingQuery.data?.sessions ?? [];
+  const error = trainingQuery.error instanceof Error ? trainingQuery.error.message : null;
   const updateSlot = (
     sessionId: number,
     field: 'date' | 'time',
@@ -70,29 +68,18 @@ export const useTrainingDetail = () => {
       setMessage('Cette session est réservable uniquement du lundi au vendredi.');
       return;
     }
-    setSubmittingId(session.id);
+    setPendingSessionId(session.id);
     setMessage(null);
-    try {
-      const response = await enrollTrainingSession(session.id, `${slot.date}T${slot.time}:00`);
-      if (response.data.checkoutUrl) {
-        redirectToTrustedUrl(response.data.checkoutUrl);
-        return;
-      }
-      setMessage(response.message ?? 'Votre inscription a bien été enregistrée.');
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Inscription impossible.');
-    } finally {
-      setSubmittingId(null);
-    }
+    enrollMutation.mutate({ sessionId: session.id, startsAt: `${slot.date}T${slot.time}:00` });
   };
   return {
     slug,
     training,
     sessions,
-    loading,
+    loading: trainingQuery.isLoading,
     error,
     message,
-    submittingId,
+    submittingId: pendingSessionId,
     slotForms,
     updateSlot,
     handleEnroll,

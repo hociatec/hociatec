@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { fetchAdminProducts, type CatalogProduct } from '@/features/catalog/api';
 import {
@@ -20,6 +21,7 @@ import { useAdminQuoteItems } from './useAdminQuoteItems';
 import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { logger } from '@/shared/lib/logger';
+import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
 
 const toQuoteFormState = (quote: QuoteDto): AdminQuoteFormState => ({
   ...quote,
@@ -53,17 +55,28 @@ export const useAdminQuoteFormController = () => {
   const toast = useToast();
   const params = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isNew = params.quoteId === 'new' || !params.quoteId;
+  const quoteId = isNew ? null : Number(params.quoteId);
   const [quote, setQuote] = useState<AdminQuoteFormState | null>(null);
-  const [services, setServices] = useState<QuoteServiceDto[]>([]);
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalCandidate, setRentalCandidate] = useState<CatalogProduct | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const formOptionsQuery = useQuery({
+    queryKey: adminQuoteQueryKeys.formOptions(quoteId),
+    queryFn: async () => {
+      const [services, products, loadedQuote] = await Promise.all([
+        fetchAdminQuoteServices(),
+        fetchAdminProducts(),
+        isNew ? Promise.resolve(null) : fetchAdminQuote(Number(params.quoteId)),
+      ]);
+      return { services, products, loadedQuote };
+    },
+  });
+  const services: QuoteServiceDto[] = formOptionsQuery.data?.services ?? [];
+  const products: CatalogProduct[] = formOptionsQuery.data?.products ?? [];
 
   const trimmedSearchQuery = searchQuery.trim().toLowerCase();
   const filteredServices = useMemo(() => {
@@ -79,17 +92,9 @@ export const useAdminQuoteFormController = () => {
       .slice(0, 20);
   }, [products, trimmedSearchQuery]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [svc, prods, q] = await Promise.all([
-        fetchAdminQuoteServices(),
-        fetchAdminProducts(),
-        isNew ? Promise.resolve(null) : fetchAdminQuote(Number(params.quoteId)),
-      ]);
-      setServices(svc);
-      setProducts(prods);
+  useEffect(() => {
+    if (!formOptionsQuery.data) return;
+    const q = formOptionsQuery.data.loadedQuote;
       setQuote(
         q
           ? {
@@ -100,37 +105,19 @@ export const useAdminQuoteFormController = () => {
             }
           : createEmptyQuoteFormState(),
       );
-    } catch (e) {
-      const msg = getHttpErrorMessage(e, 'Échec de sauvegarde.');
-      setError(msg);
-      try {
-        toast.show(msg, { variant: 'error' });
-      } catch (toastError) {
-        logger.warn('Unable to display quote form load error toast.', { error: toastError });
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [isNew, params.quoteId]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  }, [formOptionsQuery.data]);
 
   const { addCustomItem, addItemFromProduct, addItemFromService, removeItem, total, updateItem } =
     useAdminQuoteItems({ products, quote, services, setQuote });
 
-  const save = async () => {
-    if (!quote) return;
-    setSaving(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const payload = adaptQuoteForSave(quote) as QuoteInput;
-      const saved = isNew
-        ? await createAdminQuote(payload)
-        : await updateAdminQuote(Number(params.quoteId), payload);
+  const saveMutation = useMutation({
+    mutationFn: (currentQuote: AdminQuoteFormState) => {
+      const payload = adaptQuoteForSave(currentQuote) as QuoteInput;
+      return isNew ? createAdminQuote(payload) : updateAdminQuote(Number(params.quoteId), payload);
+    },
+    onSuccess: (saved) => {
       if (isNew) navigate(`/admin/quotes/${saved.id}/edit`, { replace: true });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
       setQuote(toQuoteFormState(saved));
       const emailNotificationSent = saved.emailNotificationSent === true;
       const emailNotificationError =
@@ -148,7 +135,8 @@ export const useAdminQuoteFormController = () => {
       } catch (toastError) {
         logger.warn('Unable to display quote save success toast.', { error: toastError });
       }
-    } catch (e) {
+    },
+    onError: (e) => {
       const msg = getHttpErrorMessage(e, 'Échec de sauvegarde.');
       setError(msg);
       try {
@@ -156,19 +144,27 @@ export const useAdminQuoteFormController = () => {
       } catch (toastError) {
         logger.warn('Unable to display quote save error toast.', { error: toastError });
       }
-    } finally {
-      setSaving(false);
-    }
+    },
+  });
+
+  const pdfMutation = useMutation({
+    mutationFn: (currentQuote: AdminQuoteFormState) => generateAdminQuotePdf(currentQuote.id ?? 0),
+    onSuccess: (blob, currentQuote) => downloadBlob(blob, `${currentQuote.number ?? 'devis'}.pdf`),
+    onError: (e) => {
+      alert(getHttpErrorMessage(e, 'Impossible de générer le PDF.'));
+    },
+  });
+
+  const save = async () => {
+    if (!quote) return;
+    setError(null);
+    setMessage(null);
+    saveMutation.mutate(quote);
   };
 
   const handleGeneratePdf = async () => {
     if (!quote?.id) return;
-    try {
-      const blob = await generateAdminQuotePdf(quote.id);
-      downloadBlob(blob, `${quote.number ?? 'devis'}.pdf`);
-    } catch (e) {
-      alert(getHttpErrorMessage(e, 'Impossible de générer le PDF.'));
-    }
+    pdfMutation.mutate(quote);
   };
 
   const confirmRentalAdd = () => {
@@ -190,12 +186,14 @@ export const useAdminQuoteFormController = () => {
     addItemFromService,
     cancelRentalAdd,
     confirmRentalAdd,
-    error,
+    error:
+      error ??
+      (formOptionsQuery.error ? getHttpErrorMessage(formOptionsQuery.error, 'Échec de chargement.') : null),
     filteredProducts,
     filteredServices,
     handleGeneratePdf,
     isNew,
-    loading,
+    loading: formOptionsQuery.isLoading,
     message,
     products,
     quote,
@@ -203,7 +201,7 @@ export const useAdminQuoteFormController = () => {
     rentalCandidate,
     rentalDialogOpen,
     save,
-    saving,
+    saving: saveMutation.isPending,
     searchQuery,
     setQuote,
     setRentalCandidate,

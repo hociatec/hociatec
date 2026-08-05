@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
 import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
@@ -8,6 +9,7 @@ import {
   fetchPublicTrainings,
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
+import { searchQueryKeys } from '@/shared/lib/queryKeys';
 
 const normalize = (value: string | null | undefined) =>
   (value ?? '')
@@ -47,74 +49,62 @@ const initialState: GlobalSearchState = {
 };
 
 export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => {
-  const [state, setState] = useState<GlobalSearchState>(initialState);
+  const globalQuery = useQuery({
+    queryKey: searchQueryKeys.global(query, limit),
+    queryFn: async ({ signal }) => {
+      const [productResult, serviceItems, trainingItems, newsResult] = await Promise.all([
+        searchPublicProducts({
+          q: query || undefined,
+          page: 1,
+          perPage: limit,
+          sort: query ? 'relevance' : 'created_desc',
+          signal,
+        }),
+        fetchPublicQuoteServices({ signal }),
+        fetchPublicTrainings(undefined, { signal }),
+        fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit, signal }),
+      ]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setState((current) => ({ ...current, loading: true, error: null }));
+      return { productResult, serviceItems, trainingItems, newsResult };
+    },
+  });
 
-    const loadResults = async () => {
-      try {
-        const [productResult, serviceItems, trainingItems, newsResult] = await Promise.all([
-          searchPublicProducts({
-            q: query || undefined,
-            page: 1,
-            perPage: limit,
-            sort: query ? 'relevance' : 'created_desc',
-            signal: controller.signal,
-          }),
-          fetchPublicQuoteServices({ signal: controller.signal }),
-          fetchPublicTrainings(undefined, { signal: controller.signal }),
-          fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit, signal: controller.signal }),
-        ]);
+  return useMemo(() => {
+    if (!globalQuery.data) {
+      return {
+        ...initialState,
+        loading: globalQuery.isLoading,
+        error: globalQuery.error
+          ? globalQuery.error.message || 'Impossible de charger les résultats.'
+          : null,
+      };
+    }
 
-        if (cancelled) return;
+    const { productResult, serviceItems, trainingItems, newsResult } = globalQuery.data;
+    const filteredServices = serviceItems.filter((service) =>
+      matches(query, [service.title, service.description, service.unit, service.durationLabel]),
+    );
+    const filteredTrainings = trainingItems.filter((training) =>
+      matches(query, [
+        training.title,
+        training.shortDescription,
+        training.objective,
+        training.audience,
+        training.categoryDetails?.name,
+      ]),
+    );
 
-        const filteredServices = serviceItems.filter((service) =>
-          matches(query, [service.title, service.description, service.unit, service.durationLabel]),
-        );
-        const filteredTrainings = trainingItems.filter((training) =>
-          matches(query, [
-            training.title,
-            training.shortDescription,
-            training.objective,
-            training.audience,
-            training.categoryDetails?.name,
-          ]),
-        );
-
-        setState({
-          products: productResult.items,
-          productTotal: productResult.meta.total,
-          services: filteredServices.slice(0, limit),
-          serviceTotal: filteredServices.length,
-          trainings: filteredTrainings.slice(0, limit),
-          trainingTotal: filteredTrainings.length,
-          news: newsResult.items,
-          newsTotal: newsResult.meta.total,
-          loading: false,
-          error: null,
-        });
-      } catch (reason) {
-        if (controller.signal.aborted) return;
-        if (!cancelled) {
-          setState((current) => ({
-            ...current,
-            loading: false,
-            error:
-              reason instanceof Error ? reason.message : 'Impossible de charger les résultats.',
-          }));
-        }
-      }
+    return {
+      products: productResult.items,
+      productTotal: productResult.meta.total,
+      services: filteredServices.slice(0, limit),
+      serviceTotal: filteredServices.length,
+      trainings: filteredTrainings.slice(0, limit),
+      trainingTotal: filteredTrainings.length,
+      news: newsResult.items,
+      newsTotal: newsResult.meta.total,
+      loading: globalQuery.isLoading,
+      error: null,
     };
-
-    void loadResults();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [limit, query]);
-
-  return state;
+  }, [globalQuery.data, globalQuery.error, globalQuery.isLoading, limit, query]);
 };

@@ -1,5 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
@@ -9,34 +10,32 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 export const BrandsListPage = () => {
   useDocumentTitle('Admin - Marques');
 
-  const [brands, setBrands] = useState<CatalogBrand[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const confirm = useConfirm();
-
-  const loadBrands = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const items = await fetchAdminBrands();
-      setBrands(items);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de charger les marques.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadBrands();
-  }, []);
+  const queryClient = useQueryClient();
+  const brandsQuery = useQuery<CatalogBrand[], Error>({
+    queryKey: adminCatalogQueryKeys.brands(),
+    queryFn: fetchAdminBrands,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteBrand,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.brands() });
+      setMessage(response.message ?? 'La marque a bien été supprimée.');
+    },
+  });
+  const brands = brandsQuery.data ?? [];
+  const error = brandsQuery.error
+    ? getHttpErrorMessage(brandsQuery.error, 'Impossible de charger les marques.')
+    : deleteMutation.error
+      ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la marque.')
+      : null;
 
   const handleDelete = async (brand: CatalogBrand) => {
     const confirmed = await confirm({
@@ -50,16 +49,8 @@ export const BrandsListPage = () => {
       return;
     }
 
-    setError(null);
     setMessage(null);
-
-    try {
-      const response = await deleteBrand(brand.id);
-      await loadBrands();
-      setMessage(response.message ?? 'La marque a bien été supprimée.');
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de supprimer la marque.'));
-    }
+    deleteMutation.mutate(brand.id);
   };
 
   const filteredBrands = useMemo(() => {
@@ -96,7 +87,7 @@ export const BrandsListPage = () => {
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
       <AdminListState
-        loading={loading}
+        loading={brandsQuery.isLoading}
         isEmpty={filteredBrands.length === 0}
         loadingLabel="Chargement des marques..."
         emptyLabel="Aucune marque ne correspond à votre recherche."

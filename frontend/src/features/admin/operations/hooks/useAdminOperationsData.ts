@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchEmailLogs,
@@ -7,29 +8,14 @@ import {
   fetchRefunds,
   fetchStockMovements,
   fetchSupportRequests,
-  type EmailLogDto,
-  type FulfillmentOrderDto,
-  type OperationsOverviewDto,
-  type RefundRequestDto,
-  type StockMovementDto,
-  type SupportRequestDto,
 } from '@/features/admin/operations/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { adminOperationsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminOperationsData = () => {
-  const [overview, setOverview] = useState<OperationsOverviewDto | null>(null);
-  const [support, setSupport] = useState<SupportRequestDto[]>([]);
-  const [refunds, setRefunds] = useState<RefundRequestDto[]>([]);
-  const [stock, setStock] = useState<StockMovementDto[]>([]);
-  const [emails, setEmails] = useState<EmailLogDto[]>([]);
-  const [fulfillmentOrders, setFulfillmentOrders] = useState<FulfillmentOrderDto[]>([]);
-  const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
-  const [message, setMessage] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    setStatus('loading');
-    setMessage(null);
-    try {
+  const operationsQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.overview(),
+    queryFn: async () => {
       const [overviewData, supportData, refundData, stockData, emailData, fulfillmentData] =
         await Promise.all([
           fetchOperationsOverview(),
@@ -39,32 +25,37 @@ export const useAdminOperationsData = () => {
           fetchEmailLogs(),
           fetchFulfillmentOrders(),
         ]);
-      setOverview(overviewData);
-      setSupport(supportData);
-      setRefunds(refundData);
-      setStock(stockData);
-      setEmails(emailData);
-      setFulfillmentOrders(fulfillmentData);
-      setStatus('success');
-    } catch (error) {
-      setMessage(getHttpErrorMessage(error, 'Erreur de chargement.'));
-      setStatus('error');
-    }
-  }, []);
+      return {
+        overview: overviewData,
+        support: supportData,
+        refunds: refundData,
+        stock: stockData,
+        emails: emailData,
+        fulfillmentOrders: fulfillmentData,
+      };
+    },
+  });
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = useCallback(async () => {
+    await operationsQuery.refetch();
+  }, [operationsQuery]);
+  const status: 'loading' | 'error' | 'success' = operationsQuery.isLoading
+    ? 'loading'
+    : operationsQuery.error
+      ? 'error'
+      : 'success';
 
   return {
-    overview,
-    support,
-    refunds,
-    stock,
-    emails,
-    fulfillmentOrders,
+    overview: operationsQuery.data?.overview ?? null,
+    support: operationsQuery.data?.support ?? [],
+    refunds: operationsQuery.data?.refunds ?? [],
+    stock: operationsQuery.data?.stock ?? [],
+    emails: operationsQuery.data?.emails ?? [],
+    fulfillmentOrders: operationsQuery.data?.fulfillmentOrders ?? [],
     status,
-    message,
+    message: operationsQuery.error
+      ? getHttpErrorMessage(operationsQuery.error, 'Erreur de chargement.')
+      : null,
     refresh,
   };
 };

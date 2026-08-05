@@ -1,5 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import {
@@ -13,6 +14,7 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 const emptyForm = {
   id: null as number | null,
@@ -25,30 +27,46 @@ const emptyForm = {
 export const TrainingCategoriesPage = () => {
   useDocumentTitle('Admin - Catégories de formation');
 
-  const [categories, setCategories] = useState<TrainingCategoryDto[]>([]);
   const [form, setForm] = useState(emptyForm);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const confirm = useConfirm();
-
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      setCategories(await fetchAdminTrainingCategories());
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de charger les catégories.'));
-    } finally {
-      setLoading(false);
-    }
+  const queryClient = useQueryClient();
+  const categoriesQuery = useQuery<TrainingCategoryDto[], Error>({
+    queryKey: adminTrainingQueryKeys.categories(),
+    queryFn: fetchAdminTrainingCategories,
+  });
+  const invalidateCategories = () => {
+    void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.categories() });
+    void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
   };
-
-  useEffect(() => {
-    void load();
-  }, []);
+  const saveMutation = useMutation({
+    mutationFn: ({ id, payload }: { id?: number; payload: Parameters<typeof saveAdminTrainingCategory>[0] }) =>
+      saveAdminTrainingCategory(payload, id),
+    onSuccess: (response) => {
+      invalidateCategories();
+      setMessage(
+        response.message ?? (form.id ? 'La catégorie a bien été mise à jour.' : 'La catégorie a bien été créée.'),
+      );
+      reset();
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteAdminTrainingCategory,
+    onSuccess: (response, categoryId) => {
+      invalidateCategories();
+      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
+      if (form.id === categoryId) reset();
+    },
+  });
+  const categories = categoriesQuery.data ?? [];
+  const error = categoriesQuery.error
+    ? getHttpErrorMessage(categoriesQuery.error, 'Impossible de charger les catégories.')
+    : saveMutation.error
+      ? getHttpErrorMessage(saveMutation.error, "Impossible d'enregistrer la catégorie.")
+      : deleteMutation.error
+        ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la catégorie.')
+        : formError;
 
   const edit = (category: TrainingCategoryDto) => {
     setForm({
@@ -59,7 +77,7 @@ export const TrainingCategoriesPage = () => {
       isActive: category.isActive,
     });
     setMessage(null);
-    setError(null);
+    setFormError(null);
   };
 
   const reset = () => setForm(emptyForm);
@@ -68,32 +86,21 @@ export const TrainingCategoriesPage = () => {
     event.preventDefault();
 
     if (!form.name.trim()) {
-      setError('Le nom est requis.');
+      setFormError('Le nom est requis.');
       return;
     }
 
-    setSaving(true);
-    setError(null);
+    setFormError(null);
     setMessage(null);
-
-    try {
-      const response = await saveAdminTrainingCategory(
-        {
-          name: form.name,
-          slug: form.slug.trim() || undefined,
-          position: form.position,
-          isActive: form.isActive,
-        },
-        form.id ?? undefined,
-      );
-      await load();
-      setMessage(response.message ?? (form.id ? 'La catégorie a bien été mise à jour.' : 'La catégorie a bien été créée.'));
-      reset();
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie."));
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate({
+      id: form.id ?? undefined,
+      payload: {
+        name: form.name,
+        slug: form.slug.trim() || undefined,
+        position: form.position,
+        isActive: form.isActive,
+      },
+    });
   };
 
   const handleDelete = async (category: TrainingCategoryDto) => {
@@ -108,17 +115,8 @@ export const TrainingCategoriesPage = () => {
       return;
     }
 
-    setError(null);
     setMessage(null);
-
-    try {
-      const response = await deleteAdminTrainingCategory(category.id);
-      await load();
-      setMessage(response.message ?? 'La catégorie a bien été supprimée.');
-      if (form.id === category.id) reset();
-    } catch (err) {
-      setError(getHttpErrorMessage(err, 'Impossible de supprimer la catégorie.'));
-    }
+    deleteMutation.mutate(category.id);
   };
 
   return (
@@ -174,8 +172,8 @@ export const TrainingCategoriesPage = () => {
             Catégorie visible dans les filtres
           </label>
           <div className="flex flex-wrap gap-3">
-            <button type="submit" className="register-form__submit" disabled={saving}>
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+            <button type="submit" className="register-form__submit" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
             </button>
             {form.id ? (
               <button type="button" className="catalog-admin-actions__edit" onClick={reset}>
@@ -186,7 +184,7 @@ export const TrainingCategoriesPage = () => {
         </form>
 
         <AdminListState
-          loading={loading}
+          loading={categoriesQuery.isLoading}
           isEmpty={categories.length === 0}
           loadingLabel="Chargement des catégories..."
           emptyLabel="Aucune catégorie."

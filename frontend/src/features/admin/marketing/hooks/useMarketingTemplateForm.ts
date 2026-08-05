@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createMarketingTemplate,
   fetchMarketingSegments,
   fetchMarketingTemplate,
   updateMarketingTemplate,
-  type MarketingSegmentDefinition,
   type MarketingTemplatePayload,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+
 export const defaultMarketingTemplateForm: MarketingTemplatePayload = {
   name: '',
   slug: '',
@@ -22,37 +24,58 @@ export const useMarketingTemplateForm = () => {
   const { templateId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isEdit = Boolean(templateId);
   const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
   const [form, setForm] = useState<MarketingTemplatePayload>(defaultMarketingTemplateForm);
-  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
-  const [initialLoading, setInitialLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const segmentType = isTransactionalView ? 'transactional' : 'templates';
+  const segmentsQuery = useQuery({
+    queryKey: adminMarketingQueryKeys.segments(segmentType),
+    queryFn: () => fetchMarketingSegments(segmentType),
+  });
+  const templateQuery = useQuery({
+    queryKey: adminMarketingQueryKeys.template(templateId ? Number(templateId) : null),
+    queryFn: () => fetchMarketingTemplate(Number(templateId)),
+    enabled: isEdit && Boolean(templateId),
+  });
+  const saveMutation = useMutation({
+    mutationFn: (payload: MarketingTemplatePayload) =>
+      isEdit && templateId
+        ? updateMarketingTemplate(Number(templateId), payload)
+        : createMarketingTemplate(payload),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.templates() });
+      setMessage(
+        response.message ??
+          (isEdit
+            ? 'Le modèle d’e-mail a bien été mis à jour.'
+            : 'Le modèle d’e-mail a bien été créé.'),
+      );
+      window.setTimeout(
+        () =>
+          navigate(
+            isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates',
+          ),
+        500,
+      );
+    },
+    onError: (e) => setError(getHttpErrorMessage(e, 'Enregistrement impossible.')),
+  });
+
   useEffect(() => {
-    void fetchMarketingSegments(isTransactionalView ? 'transactional' : 'templates')
-      .then(setSegments)
-      .catch(() => undefined);
-  }, [isTransactionalView]);
-  useEffect(() => {
-    if (!isEdit || !templateId) return;
-    setInitialLoading(true);
-    void fetchMarketingTemplate(Number(templateId))
-      .then((template) =>
-        setForm({
-          name: template.name,
-          slug: template.slug,
-          scenarioKey: template.scenarioKey,
-          subjectTemplate: template.subjectTemplate,
-          htmlBody: template.htmlBody,
-          textBody: template.textBody ?? '',
-          isActive: template.isActive,
-        }),
-      )
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger le modèle.')))
-      .finally(() => setInitialLoading(false));
-  }, [isEdit, templateId]);
+    if (!templateQuery.data) return;
+    setForm({
+      name: templateQuery.data.name,
+      slug: templateQuery.data.slug,
+      scenarioKey: templateQuery.data.scenarioKey,
+      subjectTemplate: templateQuery.data.subjectTemplate,
+      htmlBody: templateQuery.data.htmlBody,
+      textBody: templateQuery.data.textBody ?? '',
+      isActive: templateQuery.data.isActive,
+    });
+  }, [templateQuery.data]);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (
@@ -64,28 +87,8 @@ export const useMarketingTemplateForm = () => {
       setError('Veuillez renseigner tous les champs obligatoires.');
       return;
     }
-    setLoading(true);
     setError(null);
-    try {
-      if (isEdit && templateId) {
-        const response = await updateMarketingTemplate(Number(templateId), form);
-        setMessage(response.message ?? 'Le modèle d’e-mail a bien été mis à jour.');
-      } else {
-        const response = await createMarketingTemplate(form);
-        setMessage(response.message ?? 'Le modèle d’e-mail a bien été créé.');
-      }
-      window.setTimeout(
-        () =>
-          navigate(
-            isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates',
-          ),
-        500,
-      );
-    } catch (e) {
-      setError(getHttpErrorMessage(e, 'Enregistrement impossible.'));
-    } finally {
-      setLoading(false);
-    }
+    saveMutation.mutate(form);
   };
   return {
     templateId,
@@ -93,10 +96,14 @@ export const useMarketingTemplateForm = () => {
     isTransactionalView,
     form,
     setForm,
-    segments,
-    initialLoading,
-    loading,
-    error,
+    segments: segmentsQuery.data ?? {},
+    initialLoading: templateQuery.isLoading,
+    loading: saveMutation.isPending,
+    error:
+      error ??
+      (templateQuery.error
+        ? getHttpErrorMessage(templateQuery.error, 'Impossible de charger le modèle.')
+        : null),
     message,
     handleSubmit,
     navigate,

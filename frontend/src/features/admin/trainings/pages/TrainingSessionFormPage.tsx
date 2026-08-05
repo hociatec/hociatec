@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchAdminTrainingSessions,
@@ -17,6 +18,7 @@ import {
   TrainingSessionFormFields,
   type TrainingSessionFormState,
 } from '@/features/admin/trainings/components/TrainingSessionFormFields';
+import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 const emptyForm: TrainingSessionFormState = {
   trainingId: 0,
@@ -36,31 +38,29 @@ export const TrainingSessionFormPage = () => {
   const { sessionId } = useParams();
   const isEdit = Boolean(sessionId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une session' : 'Admin - Nouvelle session');
 
-  const [trainings, setTrainings] = useState<TrainingDto[]>([]);
   const [form, setForm] = useState(emptyForm);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const formQuery = useQuery({
+    queryKey: adminTrainingQueryKeys.sessionForm(sessionId ? Number(sessionId) : null),
+    queryFn: async () => {
+      const [trainings, sessions] = await Promise.all([
+        fetchAdminTrainings(),
+        isEdit ? fetchAdminTrainingSessions() : Promise.resolve([]),
+      ]);
+      return { trainings, sessions };
+    },
+  });
+  const trainings: TrainingDto[] = formQuery.data?.trainings ?? [];
 
   useEffect(() => {
-    const load = async () => {
-      setInitialLoading(true);
-      setError(null);
-
-      try {
-        const [trainingItems, sessionItems] = await Promise.all([
-          fetchAdminTrainings(),
-          isEdit ? fetchAdminTrainingSessions() : Promise.resolve([]),
-        ]);
-
-        setTrainings(trainingItems);
-
-        if (isEdit && sessionId) {
-          const session = sessionItems.find((item) => item.id === Number(sessionId));
+    if (!formQuery.data) return;
+    if (isEdit && sessionId) {
+      const session = formQuery.data.sessions.find((item) => item.id === Number(sessionId));
 
           if (!session) {
             setError('Session introuvable.');
@@ -81,15 +81,28 @@ export const TrainingSessionFormPage = () => {
             status: session.status,
           });
         }
-      } catch (err) {
-        setError(getHttpErrorMessage(err, 'Impossible de charger les données de session.'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
+  }, [formQuery.data, isEdit, sessionId]);
 
-    void load();
-  }, [isEdit, sessionId]);
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      saveAdminTrainingSession(
+        {
+          ...form,
+          startsAt: `${form.startsAt}T00:00:00`,
+          endsAt: `${form.endsAt}T23:59:59`,
+          location: form.format === 'onsite' ? form.location.trim() || null : null,
+          meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
+        },
+        sessionId ? Number(sessionId) : undefined,
+      ),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      setMessage(response.message ?? (isEdit ? 'La session a bien été mise à jour.' : 'La session a bien été créée.'));
+      setTimeout(() => navigate('/admin/trainings/sessions'), 600);
+    },
+    onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la session.")),
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -104,28 +117,9 @@ export const TrainingSessionFormPage = () => {
       return;
     }
 
-    setSaving(true);
     setError(null);
     setMessage(null);
-
-    try {
-      const response = await saveAdminTrainingSession(
-        {
-          ...form,
-          startsAt: `${form.startsAt}T00:00:00`,
-          endsAt: `${form.endsAt}T23:59:59`,
-          location: form.format === 'onsite' ? form.location.trim() || null : null,
-          meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
-        },
-        sessionId ? Number(sessionId) : undefined,
-      );
-      setMessage(response.message ?? (isEdit ? 'La session a bien été mise à jour.' : 'La session a bien été créée.'));
-      setTimeout(() => navigate('/admin/trainings/sessions'), 600);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la session."));
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate();
   };
 
   return (
@@ -142,16 +136,20 @@ export const TrainingSessionFormPage = () => {
         </button>
       }
     >
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || formQuery.error) && (
+        <FeedbackMessage>
+          {error ?? getHttpErrorMessage(formQuery.error, 'Impossible de charger les données de session.')}
+        </FeedbackMessage>
+      )}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {initialLoading ? (
+      {formQuery.isLoading ? (
         <LoadingState>Chargement...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
           <TrainingSessionFormFields trainings={trainings} form={form} setForm={setForm} />
-          <button type="submit" className="register-form__submit" disabled={saving}>
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          <button type="submit" className="register-form__submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
           </button>
         </form>
       )}

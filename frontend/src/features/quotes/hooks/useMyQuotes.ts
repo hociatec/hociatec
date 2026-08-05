@@ -1,24 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteMyQuote, fetchMyQuotes, generateMyQuotePdf } from '../api/quotesApi';
 import type { QuoteDto } from '../types/quoteTypes';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { useToast } from '@/shared/components/ui/toast';
+import { quoteQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useMyQuotes = () => {
-  const [items, setItems] = useState<QuoteDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const toast = useToast();
-  useEffect(() => {
-    void fetchMyQuotes()
-      .then(setItems)
-      .catch((e) => setError(getHttpErrorMessage(e, 'Impossible de charger vos devis.')))
-      .finally(() => setLoading(false));
-  }, []);
+  const queryClient = useQueryClient();
+  const quotesQuery = useQuery({
+    queryKey: quoteQueryKeys.mine(),
+    queryFn: fetchMyQuotes,
+  });
+  const deleteMutation = useMutation({
+    mutationFn: deleteMyQuote,
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: quoteQueryKeys.mine() });
+      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
+      cancelDelete();
+    },
+    onError: (e) => {
+      toast.show(getHttpErrorMessage(e, 'Impossible de supprimer le devis.'), { variant: 'error' });
+    },
+  });
   const requestDelete = (id: number) => {
     setDeletingId(id);
     setConfirmOpen(true);
@@ -29,15 +38,7 @@ export const useMyQuotes = () => {
   };
   const confirmDelete = async () => {
     if (!deletingId) return;
-    try {
-      const response = await deleteMyQuote(deletingId);
-      setItems((list) => list.filter((quote) => quote.id !== deletingId));
-      toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
-    } catch (e) {
-      toast.show(getHttpErrorMessage(e, 'Impossible de supprimer le devis.'), { variant: 'error' });
-    } finally {
-      cancelDelete();
-    }
+    deleteMutation.mutate(deletingId);
   };
   const download = async (quote: QuoteDto) => {
     setDownloadingId(quote.id);
@@ -52,9 +53,9 @@ export const useMyQuotes = () => {
     }
   };
   return {
-    items,
-    loading,
-    error,
+    items: quotesQuery.data ?? [],
+    loading: quotesQuery.isLoading,
+    error: quotesQuery.error ? getHttpErrorMessage(quotesQuery.error, 'Impossible de charger vos devis.') : null,
     deletingId,
     downloadingId,
     confirmOpen,

@@ -1,46 +1,32 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 
-import {
-  fetchAdminPaymentById,
-  type AdminPaymentDetailDto,
-  type AdminPaymentLiveStripeDto,
-} from '@/features/orders/api';
+import { fetchAdminPaymentById } from '@/features/orders/api';
 import { PaymentDetailContent } from '@/features/admin/payments/components/PaymentDetailContent';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { adminPaymentQueryKeys } from '@/shared/lib/queryKeys';
 
 export const PaymentDetailPage = () => {
   const params = useParams();
   const navigate = useNavigate();
   const paymentId = Number(params.paymentId);
-  const [payment, setPayment] = useState<AdminPaymentDetailDto | null>(null);
-  const [liveStripe, setLiveStripe] = useState<AdminPaymentLiveStripeDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const paymentQuery = useQuery({
+    queryKey: adminPaymentQueryKeys.detail(Number.isFinite(paymentId) && paymentId > 0 ? paymentId : null),
+    queryFn: () => fetchAdminPaymentById(paymentId),
+    enabled: Number.isFinite(paymentId) && paymentId > 0,
+  });
+  const payment = paymentQuery.data?.payment ?? null;
+  const liveStripe = paymentQuery.data?.liveStripe ?? null;
+  const error =
+    !Number.isFinite(paymentId) || paymentId <= 0
+      ? 'Paiement invalide.'
+      : paymentQuery.error instanceof Error
+        ? paymentQuery.error.message || 'Impossible de charger le paiement.'
+        : null;
 
   useDocumentTitle(payment ? `Admin - Paiement ${payment.id}` : 'Admin - Paiement');
-
-  useEffect(() => {
-    if (!paymentId) {
-      setError('Paiement invalide.');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    void fetchAdminPaymentById(paymentId)
-      .then((data) => {
-        setPayment(data.payment);
-        setLiveStripe(data.liveStripe);
-      })
-      .catch((reason: unknown) =>
-        setError(reason instanceof Error ? reason.message : 'Impossible de charger le paiement.'),
-      )
-      .finally(() => setLoading(false));
-  }, [paymentId]);
 
   return (
     <PageContainer
@@ -56,7 +42,7 @@ export const PaymentDetailPage = () => {
         </button>
       }
     >
-      {loading ? <LoadingState>Chargement...</LoadingState> : null}
+      {paymentQuery.isLoading ? <LoadingState>Chargement...</LoadingState> : null}
       {error ? <FeedbackMessage>{error}</FeedbackMessage> : null}
       {payment ? <PaymentDetailContent payment={payment} liveStripe={liveStripe} /> : null}
     </PageContainer>

@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   fetchPublicCategory,
   searchPublicProducts,
-  type CatalogProduct,
   type CatalogSearchFacets,
   type CatalogSearchMeta,
   type CatalogSort,
   type CategoryWithProducts,
 } from '@/features/catalog/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { catalogQueryKeys } from '@/shared/lib/queryKeys';
 
 const emptyFacets: CatalogSearchFacets = {
   brands: [],
@@ -50,42 +51,8 @@ export const useCategoryData = ({
   perPage,
   sort,
 }: CategorySearchParams) => {
-  const [data, setData] = useState<CategoryWithProducts | null>(null);
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [meta, setMeta] = useState(initialMeta);
-  const [facets, setFacets] = useState(emptyFacets);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    const controller = new AbortController();
-    setError(null);
-    void fetchPublicCategory(slug, { signal: controller.signal })
-      .then((result) => {
-        if (!cancelled) setData(result);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled)
-          setError(
-            getHttpErrorMessage(reason, "Cette catégorie n'est pas disponible pour le moment."),
-          );
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [slug]);
-
-  useEffect(() => {
-    if (!slug) return;
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void searchPublicProducts({
+  const productsPayload = useMemo(
+    () => ({
       category: slug,
       q: search.trim() || undefined,
       brand: brand !== 'all' ? brand : undefined,
@@ -98,45 +65,48 @@ export const useCategoryData = ({
       page,
       perPage,
       sort,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        if (cancelled) return;
-        setProducts(result.items);
-        setMeta(result.meta);
-        setFacets(result.facets);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled)
-          setError(
-            getHttpErrorMessage(
-              reason,
-              "Les produits de cette catégorie n'ont pas pu être chargés.",
-            ),
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [
-    brand,
-    color,
-    inStock,
-    maxPrice,
-    memoryRam,
-    minPrice,
-    page,
-    perPage,
-    search,
-    slug,
-    sort,
-    storageCapacity,
-  ]);
+    }),
+    [
+      brand,
+      color,
+      inStock,
+      maxPrice,
+      memoryRam,
+      minPrice,
+      page,
+      perPage,
+      search,
+      slug,
+      sort,
+      storageCapacity,
+    ],
+  );
+  const categoryQuery = useQuery<CategoryWithProducts, Error>({
+    queryKey: catalogQueryKeys.publicCategory(slug ?? null),
+    queryFn: ({ signal }) => fetchPublicCategory(slug ?? '', { signal }),
+    enabled: Boolean(slug),
+  });
+  const productsQuery = useQuery<Awaited<ReturnType<typeof searchPublicProducts>>, Error>({
+    queryKey: catalogQueryKeys.publicCategoryProducts(productsPayload),
+    queryFn: ({ signal }) => searchPublicProducts({ ...productsPayload, signal }),
+    enabled: Boolean(slug),
+  });
+  const categoryError = categoryQuery.error
+    ? getHttpErrorMessage(categoryQuery.error, "Cette catégorie n'est pas disponible pour le moment.")
+    : null;
+  const productsError = productsQuery.error
+    ? getHttpErrorMessage(
+        productsQuery.error,
+        "Les produits de cette catégorie n'ont pas pu être chargés.",
+      )
+    : null;
 
-  return { data, products, meta, facets, loading, error };
+  return {
+    data: categoryQuery.data ?? null,
+    products: productsQuery.data?.items ?? [],
+    meta: productsQuery.data?.meta ?? initialMeta,
+    facets: productsQuery.data?.facets ?? emptyFacets,
+    loading: categoryQuery.isLoading || productsQuery.isLoading,
+    error: categoryError ?? productsError,
+  };
 };

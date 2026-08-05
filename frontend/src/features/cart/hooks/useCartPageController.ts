@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCart } from '@/features/cart/hooks/useCart';
@@ -29,7 +30,6 @@ export const useCartPageController = () => {
   const { show } = useToast();
   const confirm = useConfirm();
   const [promotionCode, setPromotionCode] = useState('');
-  const [isApplyingPromotionCode, setIsApplyingPromotionCode] = useState(false);
   const isLoading = status === 'loading';
   const hasItems = !!(cart && cart.items.length > 0);
   const isPromotionCodeEmpty = promotionCode.trim() === '';
@@ -38,6 +38,23 @@ export const useCartPageController = () => {
   useEffect(() => {
     setPromotionCode(cart?.enteredVoucherCode ?? '');
   }, [cart?.enteredVoucherCode]);
+
+  const applyPromotionMutation = useMutation({
+    mutationFn: (code: string) => applyVoucherCode(code),
+    onSuccess: () => show('Code promo appliqué au panier.', { variant: 'success' }),
+    onError: (reason) =>
+      show(getHttpErrorMessage(reason, "Impossible d'appliquer le bon de réduction."), {
+        variant: 'error',
+      }),
+  });
+  const clearPromotionMutation = useMutation({
+    mutationFn: (token: string | undefined) => clearVoucherCode(token),
+    onSuccess: () => show('Code promo retiré du panier.', { variant: 'success' }),
+    onError: (reason) =>
+      show(getHttpErrorMessage(reason, 'Impossible de supprimer le bon de réduction.'), {
+        variant: 'error',
+      }),
+  });
 
   const handleDecrease = useCallback(
     (item: CartLine) => {
@@ -130,28 +147,12 @@ export const useCartPageController = () => {
       return;
     }
 
-    setIsApplyingPromotionCode(true);
-    void applyVoucherCode(trimmed)
-      .then(() => show('Code promo appliqué au panier.', { variant: 'success' }))
-      .catch((reason) =>
-        show(getHttpErrorMessage(reason, "Impossible d'appliquer le bon de réduction."), {
-          variant: 'error',
-        }),
-      )
-      .finally(() => setIsApplyingPromotionCode(false));
-  }, [applyVoucherCode, promotionCode, show]);
+    applyPromotionMutation.mutate(trimmed);
+  }, [applyPromotionMutation, promotionCode, show]);
 
   const handleClearPromotionCode = useCallback(() => {
-    setIsApplyingPromotionCode(true);
-    void clearVoucherCode(cart?.token)
-      .then(() => show('Code promo retiré du panier.', { variant: 'success' }))
-      .catch((reason) =>
-        show(getHttpErrorMessage(reason, 'Impossible de supprimer le bon de réduction.'), {
-          variant: 'error',
-        }),
-      )
-      .finally(() => setIsApplyingPromotionCode(false));
-  }, [cart?.token, clearVoucherCode, show]);
+    clearPromotionMutation.mutate(cart?.token);
+  }, [cart?.token, clearPromotionMutation]);
 
   const handleRemoveItem = useCallback(
     (item: CartLine) => {
@@ -209,7 +210,7 @@ export const useCartPageController = () => {
     handleIncrease,
     handleRemoveItem,
     hasItems,
-    isApplyingPromotionCode,
+    isApplyingPromotionCode: applyPromotionMutation.isPending || clearPromotionMutation.isPending,
     isLoading,
     isProductPending,
     isPromotionCodeEmpty,

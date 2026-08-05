@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   convertMyLoyalty,
@@ -17,33 +18,29 @@ import type {
 } from '@/features/account/types/dashboard';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatOptionalEuroCents } from '@/shared/lib/formatters';
+import { accountQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useClientDashboard = () => {
   const toast = useToast();
-  const [data, setData] = useState<DashboardData>({
+  const queryClient = useQueryClient();
+  const [convertPoints, setConvertPoints] = useState('100');
+  const dashboardQuery = useQuery({
+    queryKey: accountQueryKeys.dashboard(),
+    queryFn: fetchDashboardData,
+  });
+  const data: DashboardData = dashboardQuery.data?.data ?? {
     quotes: [],
     appointments: [],
     trainings: [],
     pendingReviews: [],
     loyalty: emptyLoyalty,
-  });
-  const [convertPoints, setConvertPoints] = useState('100');
-  const [state, setState] = useState<DashboardLoadState>('loading');
-  const [conversionState, setConversionState] = useState<DashboardConversionState>('idle');
-  const [loadedAtMs, setLoadedAtMs] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetchDashboardData().then((result) => {
-      if (cancelled) return;
-      setData(result.data);
-      setLoadedAtMs(Date.now());
-      setState(result.hasError ? 'error' : 'success');
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  };
+  const state: DashboardLoadState = dashboardQuery.isLoading
+    ? 'loading'
+    : dashboardQuery.data?.hasError
+      ? 'error'
+      : 'success';
+  const loadedAtMs = dashboardQuery.dataUpdatedAt;
 
   useEffect(() => {
     if (data.loyalty.points <= 0) {
@@ -62,25 +59,35 @@ export const useClientDashboard = () => {
   const conversionPoints = normalizeConversionPoints(convertPoints);
   const conversionEuroCents =
     Math.floor(conversionPoints / data.loyalty.pointsPerEuroConverted) * 100;
+  const convertMutation = useMutation({
+    mutationFn: convertMyLoyalty,
+    onSuccess: (result) => {
+      queryClient.setQueryData<Awaited<ReturnType<typeof fetchDashboardData>>>(
+        accountQueryKeys.dashboard(),
+        (current) => ({
+          data: {
+            ...(current?.data ?? data),
+            loyalty: result.loyalty,
+          },
+          hasError: current?.hasError ?? false,
+        }),
+      );
+      setConvertPoints('100');
+      toast.show(
+        `Bon ${result.voucher.code} créé pour ${formatOptionalEuroCents(result.voucher.discountValue)}.`,
+        { variant: 'success' },
+      );
+    },
+    onError: (error) =>
+      toast.show(error instanceof Error ? error.message : 'Impossible de convertir vos points.', {
+        variant: 'error',
+      }),
+  });
 
   const handleConvert = () => {
-    setConversionState('saving');
-    void convertMyLoyalty(conversionPoints)
-      .then((result) => {
-        setData((current) => ({ ...current, loyalty: result.loyalty }));
-        setConvertPoints('100');
-        toast.show(
-          `Bon ${result.voucher.code} créé pour ${formatOptionalEuroCents(result.voucher.discountValue)}.`,
-          { variant: 'success' },
-        );
-      })
-      .catch((error: unknown) =>
-        toast.show(error instanceof Error ? error.message : 'Impossible de convertir vos points.', {
-          variant: 'error',
-        }),
-      )
-      .finally(() => setConversionState('idle'));
+    convertMutation.mutate(conversionPoints);
   };
+  const conversionState: DashboardConversionState = convertMutation.isPending ? 'saving' : 'idle';
 
   return {
     conversionEuroCents,

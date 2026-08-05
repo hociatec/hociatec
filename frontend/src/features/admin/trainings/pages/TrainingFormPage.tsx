@@ -1,6 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchAdminTrainingCategories,
@@ -17,6 +18,7 @@ import {
   TrainingFormFields,
   type TrainingFormState,
 } from '@/features/admin/trainings/components/TrainingFormFields';
+import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 const emptyForm: TrainingFormState = {
   title: '',
@@ -43,29 +45,29 @@ export const TrainingFormPage = () => {
   const { trainingId } = useParams();
   const isEdit = Boolean(trainingId);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une formation' : 'Admin - Nouvelle formation');
 
   const [form, setForm] = useState(emptyForm);
-  const [categories, setCategories] = useState<TrainingCategoryDto[]>([]);
-  const [initialLoading, setInitialLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const formQuery = useQuery({
+    queryKey: adminTrainingQueryKeys.trainingForm(trainingId ? Number(trainingId) : null),
+    queryFn: async () => {
+      const [categories, training] = await Promise.all([
+        fetchAdminTrainingCategories(),
+        isEdit && trainingId ? fetchAdminTraining(Number(trainingId)) : Promise.resolve(null),
+      ]);
+      return { categories, training };
+    },
+  });
+  const categories: TrainingCategoryDto[] = formQuery.data?.categories ?? [];
 
   useEffect(() => {
-    const load = async () => {
-      setInitialLoading(true);
-      setError(null);
-
-      try {
-        const [categoryItems, training] = await Promise.all([
-          fetchAdminTrainingCategories(),
-          isEdit && trainingId ? fetchAdminTraining(Number(trainingId)) : Promise.resolve(null),
-        ]);
-        setCategories(categoryItems);
-
-        if (training) {
+    if (!formQuery.data) return;
+    const { categories: categoryItems, training } = formQuery.data;
+    if (training) {
           setForm({
             title: training.title,
             shortDescription: training.shortDescription ?? '',
@@ -78,18 +80,12 @@ export const TrainingFormPage = () => {
             isActive: training.isActive,
             roadmap: training.roadmap.map((item) => item.title).join('\n'),
           });
-        } else if (categoryItems.length > 0) {
-          setForm((prev) => ({ ...prev, category: categoryItems[0].slug }));
-        }
-      } catch (err) {
-        setError(getHttpErrorMessage(err, 'Impossible de charger la formation.'));
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    void load();
-  }, [isEdit, trainingId]);
+      return;
+    }
+    if (categoryItems.length > 0) {
+      setForm((prev) => ({ ...prev, category: categoryItems[0].slug }));
+    }
+  }, [formQuery.data]);
 
   const handleFormatChange = (format: TrainingFormat, checked: boolean) => {
     setForm((prev) => {
@@ -100,6 +96,35 @@ export const TrainingFormPage = () => {
       return { ...prev, availableFormats: nextFormats };
     });
   };
+
+  const saveMutation = useMutation({
+    mutationFn: ({ priceCents }: { priceCents: number }) =>
+      saveAdminTraining(
+        {
+          title: form.title,
+          shortDescription: form.shortDescription.trim() || null,
+          objective: form.objective.trim() || null,
+          audience: form.audience.trim() || null,
+          category: form.category,
+          durationMinutes: form.durationMinutes,
+          priceCents,
+          availableFormats: form.availableFormats,
+          isActive: form.isActive,
+          roadmap: form.roadmap
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean),
+        },
+        trainingId ? Number(trainingId) : undefined,
+      ),
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.trainings() });
+      setMessage(response.message ?? (isEdit ? 'La formation a bien été mise à jour.' : 'La formation a bien été créée.'));
+      setTimeout(() => navigate('/admin/trainings'), 600);
+    },
+    onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la formation.")),
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -121,36 +146,9 @@ export const TrainingFormPage = () => {
       return;
     }
 
-    setSaving(true);
     setError(null);
     setMessage(null);
-
-    try {
-      const response = await saveAdminTraining(
-        {
-          title: form.title,
-          shortDescription: form.shortDescription.trim() || null,
-          objective: form.objective.trim() || null,
-          audience: form.audience.trim() || null,
-          category: form.category,
-          durationMinutes: form.durationMinutes,
-          priceCents,
-          availableFormats: form.availableFormats,
-          isActive: form.isActive,
-          roadmap: form.roadmap
-            .split('\n')
-            .map((line) => line.trim())
-            .filter(Boolean),
-        },
-        trainingId ? Number(trainingId) : undefined,
-      );
-      setMessage(response.message ?? (isEdit ? 'La formation a bien été mise à jour.' : 'La formation a bien été créée.'));
-      setTimeout(() => navigate('/admin/trainings'), 600);
-    } catch (err) {
-      setError(getHttpErrorMessage(err, "Impossible d'enregistrer la formation."));
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate({ priceCents });
   };
 
   return (
@@ -167,10 +165,14 @@ export const TrainingFormPage = () => {
         </button>
       }
     >
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || formQuery.error) && (
+        <FeedbackMessage>
+          {error ?? getHttpErrorMessage(formQuery.error, 'Impossible de charger la formation.')}
+        </FeedbackMessage>
+      )}
       {message && <FeedbackMessage variant="success">{message}</FeedbackMessage>}
 
-      {initialLoading ? (
+      {formQuery.isLoading ? (
         <LoadingState>Chargement de la formation...</LoadingState>
       ) : (
         <form onSubmit={handleSubmit} className="register-form-card form-card-grid">
@@ -180,8 +182,8 @@ export const TrainingFormPage = () => {
             setForm={setForm}
             onFormatChange={handleFormatChange}
           />
-          <button type="submit" className="register-form__submit" disabled={saving}>
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          <button type="submit" className="register-form__submit" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
           </button>
         </form>
       )}

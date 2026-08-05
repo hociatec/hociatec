@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import {
@@ -6,72 +7,53 @@ import {
   deleteAdminNewsComment,
   fetchNewsComments,
   type NewsCommentDto,
-  type PaginationMeta,
 } from '@/features/news/api/newsApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { hasPermission } from '@/features/auth/lib/permissions';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
+import { newsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();
   const isAdmin = hasPermission(user, 'news.comments.moderate');
-  const [comments, setComments] = useState<NewsCommentDto[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const commentsQuery = useQuery({
+    queryKey: newsQueryKeys.commentsPage(slug, page),
+    queryFn: ({ signal }) => fetchNewsComments(slug, page, { signal }),
+  });
+  const comments = commentsQuery.data?.items ?? [];
+  const meta = commentsQuery.data?.meta ?? null;
+  const error = commentsQuery.error instanceof Error ? commentsQuery.error.message : null;
 
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-    void fetchNewsComments(slug, page, { signal: controller.signal })
-      .then((result) => {
-        if (cancelled) return;
-        setComments(result.items);
-        setMeta(result.meta);
-      })
-      .catch((reason) => {
-        if (controller.signal.aborted) return;
-        if (!cancelled) setError(reason instanceof Error ? reason.message : 'Erreur de chargement.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+  const createMutation = useMutation({
+    mutationFn: (nextContent: string) => createNewsComment(slug, nextContent),
+    onSuccess: () => {
+      setContent('');
+      setPage(1);
+      void queryClient.invalidateQueries({ queryKey: newsQueryKeys.comments(slug) });
+    },
+  });
 
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [page, slug]);
+  const deleteMutation = useMutation({
+    mutationFn: (comment: NewsCommentDto) => deleteAdminNewsComment(comment.id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: newsQueryKeys.comments(slug) });
+    },
+  });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextContent = content.trim();
     if (nextContent.length < 3) return;
-    setSubmitting(true);
-    try {
-      const comment = await createNewsComment(slug, nextContent);
-      setContent('');
-      setPage(1);
-      setComments((current) => [comment, ...current]);
-      setMeta((current) =>
-        current ? { ...current, total: current.total + 1, totalPages: Math.max(1, current.totalPages) } : current,
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    await createMutation.mutateAsync(nextContent);
   };
 
   const handleDelete = async (comment: NewsCommentDto) => {
     if (!window.confirm('Supprimer ce commentaire ?')) return;
-    await deleteAdminNewsComment(comment.id);
-    setComments((current) => current.filter((item) => item.id !== comment.id));
-    setMeta((current) => (current ? { ...current, total: Math.max(0, current.total - 1) } : current));
+    await deleteMutation.mutateAsync(comment);
   };
 
   return (
@@ -80,7 +62,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
         Commentaires
       </h2>
 
-      {loading ? (
+      {commentsQuery.isLoading ? (
         <LoadingState>Chargement des commentaires...</LoadingState>
       ) : error ? (
         <ErrorState>{error}</ErrorState>
@@ -144,7 +126,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
           />
           <button
             type="submit"
-            disabled={submitting || content.trim().length < 3}
+            disabled={createMutation.isPending || content.trim().length < 3}
             className="w-fit rounded-full bg-brand-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             Publier le commentaire

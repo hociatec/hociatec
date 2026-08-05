@@ -1,20 +1,20 @@
-import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router';
 
-import { fetchSystemStatus, type MaintenanceStatusDto } from '@/features/admin/backups/api';
+import { fetchSystemStatus } from '@/features/admin/backups/api';
+import { systemQueryKeys } from '@/shared/lib/queryKeys';
 
 const ADMIN_ALLOWED_PREFIXES = ['/admin', '/login'];
 
 export const MaintenanceGate = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
-  const [maintenance, setMaintenance] = useState<MaintenanceStatusDto | null>(null);
-
-  useEffect(() => {
-    void fetchSystemStatus()
-      .then((status) => setMaintenance(status.maintenance))
-      .catch(() => setMaintenance(null));
-  }, []);
+  const { data } = useQuery({
+    queryKey: systemQueryKeys.status(),
+    queryFn: fetchSystemStatus,
+    retry: false,
+  });
+  const maintenance = data?.maintenance ?? null;
 
   const adminAllowed = ADMIN_ALLOWED_PREFIXES.some(
     (prefix) => location.pathname === prefix || location.pathname.startsWith(`${prefix}/`),

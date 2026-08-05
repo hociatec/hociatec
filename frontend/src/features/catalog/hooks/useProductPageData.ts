@@ -1,70 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { fetchPublicProduct, fetchPublicProducts, type CatalogProduct } from '../api';
 import { buildVariantGroupKey } from '../utils/productPageDisplay';
+import { catalogQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useProductPageData = (slug?: string) => {
-  const [product, setProduct] = useState<CatalogProduct | null>(null);
-  const [colorVariants, setColorVariants] = useState<CatalogProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const productQuery = useQuery<CatalogProduct, Error>({
+    queryKey: catalogQueryKeys.publicProduct(slug ?? null),
+    queryFn: ({ signal }) => fetchPublicProduct(slug ?? '', { signal }),
+    enabled: Boolean(slug),
+  });
+  const product = productQuery.data ?? null;
+  const colorVariantsQuery = useQuery<CatalogProduct[], Error>({
+    queryKey: catalogQueryKeys.publicProductColorVariants(product?.slug ?? null),
+    queryFn: ({ signal }) =>
+      fetchPublicProducts({
+        category: product?.category.slug,
+        sellingType: product?.sellingType,
+        sort: 'release_year_desc',
+        perPage: 100,
+        signal,
+      }),
+    enabled: Boolean(product),
+  });
+  const colorVariants = useMemo(() => {
+    if (!product) return [];
+    const variants = (colorVariantsQuery.data ?? []).filter(
+      (item) => buildVariantGroupKey(item) === buildVariantGroupKey(product),
+    );
+    return variants.length > 0 ? variants : [product];
+  }, [colorVariantsQuery.data, product]);
 
-  useEffect(() => {
-    if (!slug) return;
-    const controller = new AbortController();
-
-    if (product?.slug === slug) {
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void fetchPublicProduct(slug, { signal: controller.signal })
-      .then(setProduct)
-      .catch((err: Error) => {
-        if (!controller.signal.aborted) setError(err.message || 'Produit introuvable.');
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [slug, product?.slug]);
-
-  useEffect(() => {
-    if (!product) {
-      setColorVariants([]);
-      return;
-    }
-
-    const variantGroup = buildVariantGroupKey(product);
-    const controller = new AbortController();
-
-    void fetchPublicProducts({
-      category: product.category.slug,
-      sellingType: product.sellingType,
-      sort: 'release_year_desc',
-      perPage: 100,
-      signal: controller.signal,
-    })
-      .then((items) => {
-        if (controller.signal.aborted) return;
-        const variants = items.filter((item) => buildVariantGroupKey(item) === variantGroup);
-        setColorVariants(variants.length > 0 ? variants : [product]);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setColorVariants([product]);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [product]);
-
-  return { product, colorVariants, loading, error };
+  return {
+    product,
+    colorVariants,
+    loading: productQuery.isLoading,
+    error: productQuery.error?.message ?? null,
+  };
 };

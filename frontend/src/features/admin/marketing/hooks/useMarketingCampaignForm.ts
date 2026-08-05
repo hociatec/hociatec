@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchMarketingSegments,
@@ -8,7 +9,6 @@ import {
   sendMarketingCampaign,
   type MarketingAudiencePreview,
   type MarketingSegmentDefinition,
-  type MarketingTemplate,
 } from '@/features/admin/marketing/api';
 import { buildCampaignCriteria } from '@/features/admin/marketing/lib/buildCampaignCriteria';
 import { segmentAdvice } from '@/features/admin/marketing/lib/segmentAdvice';
@@ -17,40 +17,56 @@ import {
   type CampaignFormState,
 } from '@/features/admin/marketing/types/campaignForm';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useMarketingCampaignForm = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [templates, setTemplates] = useState<MarketingTemplate[]>([]);
-  const [segments, setSegments] = useState<Record<string, MarketingSegmentDefinition>>({});
   const [preview, setPreview] = useState<MarketingAudiencePreview | null>(null);
   const [form, setForm] = useState<CampaignFormState>(emptyCampaignForm);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    void Promise.all([fetchMarketingTemplates(), fetchMarketingSegments('campaigns')])
-      .then(([templateItems, segmentItems]) => {
-        if (cancelled) return;
-        setTemplates(templateItems.filter((item) => item.scenarioKey in segmentItems));
-        setSegments(segmentItems);
-      })
-      .catch((reason) => {
-        if (!cancelled)
-          setError(getHttpErrorMessage(reason, 'Impossible de charger le module marketing.'));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const optionsQuery = useQuery({
+    queryKey: adminMarketingQueryKeys.campaignFormOptions(),
+    queryFn: async () => {
+      const [templateItems, segments] = await Promise.all([
+        fetchMarketingTemplates(),
+        fetchMarketingSegments('campaigns'),
+      ]);
+      return {
+        templates: templateItems.filter((item) => item.scenarioKey in segments),
+        segments,
+      };
+    },
+  });
+  const templates = optionsQuery.data?.templates ?? [];
+  const segments: Record<string, MarketingSegmentDefinition> = optionsQuery.data?.segments ?? {};
+  const previewMutation = useMutation({
+    mutationFn: () => previewMarketingAudience(form.segmentKey, criteria),
+    onSuccess: (result) => {
+      setPreview(result.preview);
+      queryClient.setQueryData(adminMarketingQueryKeys.segments('campaigns'), result.segments);
+    },
+    onError: (reason) => setError(getHttpErrorMessage(reason, 'Prévisualisation impossible.')),
+  });
+  const sendMutation = useMutation({
+    mutationFn: () =>
+      sendMarketingCampaign({
+        name: form.name.trim(),
+        templateId: form.templateId ? Number(form.templateId) : null,
+        segmentKey: form.segmentKey,
+        criteria,
+        subject: form.subject,
+        htmlBody: form.htmlBody,
+        textBody: form.textBody || null,
+      }),
+    onSuccess: (sent) => {
+      void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.campaigns() });
+      void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.overview() });
+      setMessage(`Campagne envoyée à ${sent.recipientsCount} destinataire(s).`);
+    },
+    onError: (reason) => setError(getHttpErrorMessage(reason, 'Envoi impossible.')),
+  });
 
   useEffect(() => {
     const templateId = searchParams.get('templateId');
@@ -122,17 +138,8 @@ export const useMarketingCampaignForm = () => {
   const audienceAdvice = segmentAdvice[form.segmentKey] ?? segmentAdvice.all_verified_users;
 
   const handlePreview = async () => {
-    setPreviewLoading(true);
     setError(null);
-    try {
-      const result = await previewMarketingAudience(form.segmentKey, criteria);
-      setPreview(result.preview);
-      setSegments(result.segments);
-    } catch (reason) {
-      setError(getHttpErrorMessage(reason, 'Prévisualisation impossible.'));
-    } finally {
-      setPreviewLoading(false);
-    }
+    previewMutation.mutate();
   };
 
   const handleSend = async (event: FormEvent) => {
@@ -141,25 +148,9 @@ export const useMarketingCampaignForm = () => {
       setError('Veuillez renseigner le nom, l’objet et le contenu HTML.');
       return;
     }
-    setSaving(true);
     setError(null);
     setMessage(null);
-    try {
-      const sent = await sendMarketingCampaign({
-        name: form.name.trim(),
-        templateId: form.templateId ? Number(form.templateId) : null,
-        segmentKey: form.segmentKey,
-        criteria,
-        subject: form.subject,
-        htmlBody: form.htmlBody,
-        textBody: form.textBody || null,
-      });
-      setMessage(`Campagne envoyée à ${sent.recipientsCount} destinataire(s).`);
-    } catch (reason) {
-      setError(getHttpErrorMessage(reason, 'Envoi impossible.'));
-    } finally {
-      setSaving(false);
-    }
+    sendMutation.mutate();
   };
 
   return {
@@ -168,10 +159,14 @@ export const useMarketingCampaignForm = () => {
     preview,
     form,
     setForm,
-    loading,
-    saving,
-    previewLoading,
-    error,
+    loading: optionsQuery.isLoading,
+    saving: sendMutation.isPending,
+    previewLoading: previewMutation.isPending,
+    error:
+      error ??
+      (optionsQuery.error
+        ? getHttpErrorMessage(optionsQuery.error, 'Impossible de charger le module marketing.')
+        : null),
     message,
     activeTemplates,
     templatesForSegment,

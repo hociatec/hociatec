@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -8,7 +9,9 @@ import {
   fetchCommunicationPreferences,
   updateCommunicationPreferences,
   type CommunicationPreferenceChoice,
+  type CommunicationPreferencesPayload,
 } from '@/features/profile/api/communicationPreferencesApi';
+import { profileQueryKeys } from '@/shared/lib/queryKeys';
 
 const togglePreference = (preferences: string[], value: string, checked: boolean) =>
   checked
@@ -17,36 +20,33 @@ const togglePreference = (preferences: string[], value: string, checked: boolean
 
 export const CommunicationPreferencesPage = () => {
   useDocumentTitle('Préférences de communication');
+  const queryClient = useQueryClient();
   const [preferences, setPreferences] = useState<string[]>([]);
-  const [choices, setChoices] = useState<CommunicationPreferenceChoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const preferencesQuery = useQuery<CommunicationPreferencesPayload, Error>({
+    queryKey: profileQueryKeys.communicationPreferences(),
+    queryFn: fetchCommunicationPreferences,
+  });
+  const choices: CommunicationPreferenceChoice[] = preferencesQuery.data?.choices ?? [];
+  const loading = preferencesQuery.isLoading;
+  const saveMutation = useMutation({
+    mutationFn: updateCommunicationPreferences,
+    onSuccess: (payload) => {
+      queryClient.setQueryData(profileQueryKeys.communicationPreferences(), payload);
+      setPreferences(payload.preferences);
+      setMessage('Préférences enregistrées.');
+    },
+    onError: (reason) =>
+      setError(reason instanceof Error ? reason.message : 'Enregistrement impossible.'),
+  });
 
   useEffect(() => {
-    let cancelled = false;
-
-    void fetchCommunicationPreferences()
-      .then((payload) => {
-        if (cancelled) return;
-        setPreferences(payload.preferences);
-        setChoices(payload.choices);
-        setError(null);
-      })
-      .catch((reason) => {
-        if (!cancelled) {
-          setError(reason instanceof Error ? reason.message : 'Chargement impossible.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (preferencesQuery.data) {
+      setPreferences(preferencesQuery.data.preferences);
+      setError(null);
+    }
+  }, [preferencesQuery.data]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -58,17 +58,7 @@ export const CommunicationPreferencesPage = () => {
       return;
     }
 
-    setSaving(true);
-    try {
-      const payload = await updateCommunicationPreferences(preferences);
-      setPreferences(payload.preferences);
-      setChoices(payload.choices);
-      setMessage('Préférences enregistrées.');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Enregistrement impossible.');
-    } finally {
-      setSaving(false);
-    }
+    saveMutation.mutate(preferences);
   };
 
   return (
@@ -118,15 +108,19 @@ export const CommunicationPreferencesPage = () => {
           )}
 
           {message ? <p className="mt-4 text-sm font-semibold text-green-700">{message}</p> : null}
-          {error ? <p className="mt-4 text-sm font-semibold text-red-700">{error}</p> : null}
+          {preferencesQuery.error || error ? (
+            <p className="mt-4 text-sm font-semibold text-red-700">
+              {error ?? preferencesQuery.error?.message ?? 'Chargement impossible.'}
+            </p>
+          ) : null}
 
           <div className="mt-6 flex justify-end">
             <button
               type="submit"
-              disabled={loading || saving}
+              disabled={loading || saveMutation.isPending}
               className="rounded-lg bg-brand-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:opacity-60"
             >
-              {saving ? 'Enregistrement…' : 'Enregistrer mes préférences'}
+              {saveMutation.isPending ? 'Enregistrement…' : 'Enregistrer mes préférences'}
             </button>
           </div>
         </form>

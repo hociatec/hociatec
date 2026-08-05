@@ -1,12 +1,12 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createVoucher,
   fetchVoucher,
   updateVoucher,
-  type Voucher,
   type VoucherPayload,
 } from '@/features/admin/vouchers/api';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -22,6 +22,7 @@ import {
   VoucherFormFields,
   type VoucherFormState,
 } from '@/features/admin/vouchers/components/VoucherFormFields';
+import { adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
 
 const emptyForm: VoucherFormState = {
   name: '',
@@ -53,38 +54,32 @@ export const VoucherFormPage = () => {
   useDocumentTitle(isEdit ? 'Admin - Modifier un bon' : 'Admin - Nouveau bon');
   const navigate = useNavigate();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<VoucherFormState>(emptyForm);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const voucherQuery = useQuery({
+    queryKey: adminVoucherQueryKeys.detail(editingId),
+    queryFn: () => fetchVoucher(editingId ?? 0),
+    enabled: isEdit && editingId !== null,
+  });
 
   useEffect(() => {
-    if (!isEdit || editingId === null) return;
-    setLoading(true);
-    setError(null);
-    void fetchVoucher(editingId)
-      .then((voucher: Voucher) => {
-        setForm({
-          name: voucher.name,
-          code: voucher.code,
-          description: voucher.description ?? '',
-          discountType: voucher.discountType,
-          discountValue:
-            voucher.discountType === 'fixed_cents'
-              ? formatEuroInputFromCents(voucher.discountValue)
-              : String(voucher.discountValue),
-          isActive: voucher.isActive,
-          startsAt: formatApiDateForDateTimeInput(voucher.startsAt),
-          endsAt: formatApiDateForDateTimeInput(voucher.endsAt),
-        });
-      })
-      .catch((err) => {
-        const message = getHttpErrorMessage(err, 'Impossible de charger le bon.');
-        setError(message);
-        toast.show(message, { variant: 'error' });
-      })
-      .finally(() => setLoading(false));
-  }, [editingId, isEdit, toast]);
+    if (!voucherQuery.data) return;
+    const voucher = voucherQuery.data;
+    setForm({
+      name: voucher.name,
+      code: voucher.code,
+      description: voucher.description ?? '',
+      discountType: voucher.discountType,
+      discountValue:
+        voucher.discountType === 'fixed_cents'
+          ? formatEuroInputFromCents(voucher.discountValue)
+          : String(voucher.discountValue),
+      isActive: voucher.isActive,
+      startsAt: formatApiDateForDateTimeInput(voucher.startsAt),
+      endsAt: formatApiDateForDateTimeInput(voucher.endsAt),
+    });
+  }, [voucherQuery.data]);
 
   const payload = useMemo<VoucherPayload>(
     () => ({
@@ -103,29 +98,38 @@ export const VoucherFormPage = () => {
     [form],
   );
 
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: () => {
       const nextPayload = {
         ...payload,
         code: form.code.trim() || generateCode(form.name),
       };
       if (isEdit && editingId !== null) {
-        const response = await updateVoucher(editingId, nextPayload);
-        toast.show(response.message ?? 'Le bon de réduction a bien été mis à jour.', { variant: 'success' });
-      } else {
-        const response = await createVoucher(nextPayload);
-        toast.show(response.message ?? 'Le bon de réduction a bien été créé.', { variant: 'success' });
+        return updateVoucher(editingId, nextPayload);
       }
+      return createVoucher(nextPayload);
+    },
+    onSuccess: (response) => {
+      void queryClient.invalidateQueries({ queryKey: adminVoucherQueryKeys.list() });
+      toast.show(
+        response.message ??
+          (isEdit
+            ? 'Le bon de réduction a bien été mis à jour.'
+            : 'Le bon de réduction a bien été créé.'),
+        { variant: 'success' },
+      );
       navigate('/admin/vouchers');
-    } catch (err) {
+    },
+    onError: (err) => {
       const message = getHttpErrorMessage(err, 'Enregistrement impossible.');
       setError(message);
       toast.show(message, { variant: 'error' });
-    } finally {
-      setSaving(false);
-    }
+    },
+  });
+
+  const handleSave = async () => {
+    setError(null);
+    saveMutation.mutate();
   };
 
   return (
@@ -151,9 +155,13 @@ export const VoucherFormPage = () => {
         </p>
       </div>
 
-      {error && <FeedbackMessage>{error}</FeedbackMessage>}
+      {(error || voucherQuery.error) && (
+        <FeedbackMessage>
+          {error ?? getHttpErrorMessage(voucherQuery.error, 'Impossible de charger le bon.')}
+        </FeedbackMessage>
+      )}
 
-      {loading ? (
+      {voucherQuery.isLoading ? (
         <LoadingState>Chargement...</LoadingState>
       ) : (
         <form
@@ -166,8 +174,12 @@ export const VoucherFormPage = () => {
           <VoucherFormFields form={form} setForm={setForm} />
 
           <div className="flex gap-3">
-            <button type="submit" className="register-form__submit" disabled={saving}>
-              {saving ? 'Enregistrement...' : isEdit ? 'Mettre à jour le bon' : 'Créer le bon'}
+            <button type="submit" className="register-form__submit" disabled={saveMutation.isPending}>
+              {saveMutation.isPending
+                ? 'Enregistrement...'
+                : isEdit
+                  ? 'Mettre à jour le bon'
+                  : 'Créer le bon'}
             </button>
           </div>
         </form>
