@@ -12,6 +12,7 @@ import { deleteVoucher } from '@/features/admin/vouchers/api';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminCustomerQueryKeys, adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export type VoucherFormState = {
   name: string;
@@ -35,7 +36,7 @@ export const emptyVoucherForm: VoucherFormState = {
   endsAt: '',
   sendEmail: true,
 };
-const buildPayload = (form: VoucherFormState): CustomerVoucherPayload => ({
+const buildPayload = (form: VoucherFormState): CustomerVoucherPayload => omitUndefinedProperties({
   name: form.name.trim(),
   code: form.code.trim() || undefined,
   description: form.description.trim() || null,

@@ -30,7 +30,7 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiCreated<T> | ApiError;
 
 export interface ApiMutationResult<T> {
   data: T;
-  message?: string | null;
+  message?: string | null | undefined;
 }
 
 export const isApiOk = <T>(response: ApiResponse<T>): response is ApiSuccess<T> | ApiCreated<T> =>

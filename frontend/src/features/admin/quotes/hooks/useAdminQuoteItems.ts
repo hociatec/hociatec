@@ -17,8 +17,8 @@ const createProductQuoteItem = (product: CatalogProduct): QuoteItem => ({
   type: 'product',
   productId: product.id,
   name: product.name,
-  description: product.shortDescription ?? undefined,
-  unit: undefined,
+  description: product.shortDescription ?? null,
+  unit: null,
   quantity: 1,
   unitPriceCents: product.effectivePriceCents ?? product.priceCents,
   vatRate: 20,
@@ -78,7 +78,9 @@ export const useAdminQuoteItems = ({
       );
       if (index >= 0) {
         const next = [...current.items];
-        next[index] = { ...next[index], quantity: (next[index].quantity ?? 1) + 1 };
+        const currentItem = next[index];
+        if (!currentItem) return current;
+        next[index] = { ...currentItem, quantity: (currentItem.quantity ?? 1) + 1 };
         return { ...current, items: next };
       }
 
@@ -90,8 +92,8 @@ export const useAdminQuoteItems = ({
             type: 'service',
             serviceId: service.id,
             name: service.title,
-            description: service.description ?? undefined,
-            unit: service.unit ?? undefined,
+            description: service.description ?? null,
+            unit: service.unit ?? null,
             quantity: 1,
             unitPriceCents: service.priceCents,
             vatRate: Number(service.vatRate ?? 0),
@@ -117,7 +119,9 @@ export const useAdminQuoteItems = ({
       );
       if (index >= 0) {
         const next = [...current.items];
-        next[index] = { ...next[index], quantity: (next[index].quantity ?? 1) + 1 };
+        const currentItem = next[index];
+        if (!currentItem) return current;
+        next[index] = { ...currentItem, quantity: (currentItem.quantity ?? 1) + 1 };
         return { ...current, items: next };
       }
 

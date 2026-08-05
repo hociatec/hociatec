@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import { useAuth } from '../../auth/hooks/useAuth';
 import {
   extractErrorDetails,
@@ -114,11 +115,11 @@ export const useProfileController = () => {
     setIsSaving(true);
     setFeedback(null);
     try {
-      await updateProfile({
+      await updateProfile(omitUndefinedProperties({
         ...form,
         password: hasNewPassword ? form.password : undefined,
         currentPassword: requiresCurrentPassword ? form.currentPassword : undefined,
-      });
+      }));
       setFeedback({ type: 'success', message: 'Votre profil a été mis à jour avec succès.' });
       setIsEditing(false);
       setForm((previous) => ({ ...previous, password: '', currentPassword: '' }));

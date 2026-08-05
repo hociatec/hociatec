@@ -3,6 +3,7 @@ import { MessageSquare, Trash2 } from 'lucide-react';
 import type { AdminBugReportDashboardDto, AdminBugReportDto } from '../../api';
 import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/publicApi';
 import { bugReportBadgeClassName } from './adminBugReportUi';
+import { BUG_REPORT_STATUSES, isContractValue, type BugReportStatus } from '@/shared/contracts/statuses';
 
 interface AdminBugReportsTableProps {
   dashboard: AdminBugReportDashboardDto | undefined;
@@ -10,7 +11,7 @@ interface AdminBugReportsTableProps {
   onAssign: (id: number, assignedToId?: number | null) => void;
   onDelete: (id: number) => void;
   onOpen: (report: AdminBugReportDto) => void;
-  onStatusChange: (id: number, status: string) => void;
+  onStatusChange: (id: number, status: BugReportStatus) => void;
 }
 
 export const AdminBugReportsTable = ({
@@ -47,7 +48,15 @@ export const AdminBugReportsTable = ({
               </span>
             </td>
             <td className="p-4">
-              <select className="rounded-lg border border-stone-300 bg-white p-2 text-xs" value={report.status} onChange={(event) => onStatusChange(report.id, event.target.value)}>
+              <select
+                className="rounded-lg border border-stone-300 bg-white p-2 text-xs"
+                value={report.status}
+                onChange={(event) => {
+                  if (isContractValue(BUG_REPORT_STATUSES, event.target.value)) {
+                    onStatusChange(report.id, event.target.value);
+                  }
+                }}
+              >
                 {Object.entries(bugReportStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </td>

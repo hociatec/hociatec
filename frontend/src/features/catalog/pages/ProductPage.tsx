@@ -17,6 +17,7 @@ import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 import './CatalogPages.css';
 
@@ -32,14 +33,14 @@ export const ProductPage = () => {
       : undefined;
 
   useDocumentTitle(productDisplayName ? `${productDisplayName} - Catalogue` : 'Produit - Catalogue');
-  useMetaTags({
+  useMetaTags(omitUndefinedProperties({
     title: productDisplayName ? `${productDisplayName} — Catalogue` : 'Produit - Catalogue',
     description: product?.shortDescription ?? 'Une solution personnalisée pour vos besoins numériques.',
     imageUrl: product?.imageUrl ?? undefined,
     type: 'product',
     canonicalUrl,
     structuredData: productStructuredData,
-  });
+  }));
 
   const {
     activeSlide, visibleSlides, productDates, variantOptions, variantGroups,

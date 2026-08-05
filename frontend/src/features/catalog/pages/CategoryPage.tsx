@@ -13,6 +13,7 @@ import { useCategoryData } from '@/features/catalog/hooks/useCategoryData';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 import './CatalogPages.css';
 
@@ -97,13 +98,13 @@ export const CategoryPage = () => {
     : undefined;
 
   useDocumentTitle(data?.category ? `${data.category.name} - Catalogue` : 'Catalogue - Catégorie');
-  useMetaTags({
+  useMetaTags(omitUndefinedProperties({
     title: data?.category ? `${data.category.name} — Catalogue` : 'Catalogue - Catégorie',
     description: data?.category?.description ?? 'Découvrez nos solutions par catégorie.',
     type: 'website',
     canonicalUrl,
     structuredData: collectionSchema,
-  });
+  }));
 
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams);

@@ -1,4 +1,6 @@
-export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'refused' | 'expired';
+import type { QuoteStatus } from '@/shared/contracts/statuses';
+
+export type { QuoteStatus };
 export interface QuoteCustomerDto {
   name: string | null;
   email: string | null;
@@ -42,8 +44,8 @@ export interface QuoteDto {
   updatedAt: string;
   sentAt: string | null;
   convertedOrder: { id: number; number: string } | null;
-  emailNotificationSent?: boolean;
-  emailNotificationError?: string | null;
+  emailNotificationSent?: boolean | undefined;
+  emailNotificationError?: string | null | undefined;
 }
 export type AdminQuoteDto = QuoteDto;
 export interface QuoteServiceDto {
@@ -65,20 +67,20 @@ export interface AdminQuoteMutationDto {
 }
 export interface AdminQuoteEmailDto {
   sent: boolean;
-  statusCode?: QuoteStatus;
-  statusLabel?: string;
-  to?: string;
-  attachmentIncluded?: boolean;
-  transport?: string;
-  message?: string;
+  statusCode?: QuoteStatus | undefined;
+  statusLabel?: string | undefined;
+  to?: string | undefined;
+  attachmentIncluded?: boolean | undefined;
+  transport?: string | undefined;
+  message?: string | undefined;
 }
 export interface AdminQuoteStatusDto {
   quote: QuoteDto;
 }
 export interface QuoteToOrderDto {
   order: { id: number; number: string } & Record<string, unknown>;
-  emailNotificationSent?: boolean;
-  emailNotificationError?: string | null;
+  emailNotificationSent?: boolean | undefined;
+  emailNotificationError?: string | null | undefined;
 }
 export interface QuoteServiceMutationDto {
   service: QuoteServiceDto;

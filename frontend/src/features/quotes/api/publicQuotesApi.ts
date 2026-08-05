@@ -1,4 +1,4 @@
-import { httpClient } from '@/shared/lib/httpClient';
+import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import type { QuoteDto, QuoteInput, QuoteServiceDto } from '../types/quoteTypes';
 import { unwrapQuoteApiResult, unwrapQuoteApiData } from './quoteApiShared';
@@ -20,18 +20,20 @@ export const fetchPublicQuoteServices = async (
 ): Promise<QuoteServiceDto[]> =>
   unwrapQuoteApiData(
     (
-      await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/public/services', {
-        signal: options.signal,
-      })
+      await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>(
+        '/api/public/services',
+        requestSignalConfig(options.signal),
+      )
     ).data,
   ).items.map(parseQuoteService);
 export const fetchPublicQuoteService = async (id: number, options: RequestOptions = {}) =>
   parseQuoteService(
     unwrapQuoteApiData(
       (
-        await httpClient.get<ApiResponse<QuoteServiceDto>>(`/api/public/services/${id}`, {
-          signal: options.signal,
-        })
+        await httpClient.get<ApiResponse<QuoteServiceDto>>(
+          `/api/public/services/${id}`,
+          requestSignalConfig(options.signal),
+        )
       ).data,
     ),
   );

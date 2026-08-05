@@ -136,7 +136,7 @@ export type CatalogSort =
   | 'created_desc';
 
 export class CatalogApiError extends Error {
-  public readonly statusCode?: number;
+  public readonly statusCode?: number | undefined;
 
   constructor(message: string, statusCode?: number) {
     super(message);

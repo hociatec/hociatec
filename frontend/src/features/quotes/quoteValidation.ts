@@ -9,6 +9,7 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/apiValidation';
+import { isContractValue, QUOTE_STATUSES } from '@/shared/contracts/statuses';
 import type {
   AdminQuoteEmailDto,
   QuoteDto,
@@ -19,17 +20,16 @@ import type {
   QuoteToOrderDto,
 } from './types/quoteTypes';
 
-const QUOTE_STATUSES = new Set<QuoteStatus>(['draft', 'sent', 'accepted', 'refused', 'expired']);
 const QUOTE_ITEM_TYPES = new Set<QuoteItemDto['type']>(['service', 'product', 'custom']);
 const SERVICE_DURATION_UNITS = new Set(['hour', 'day']);
 
 const parseQuoteStatus = (value: unknown): QuoteStatus => {
   const status = requireString(value);
-  if (!QUOTE_STATUSES.has(status as QuoteStatus)) {
+  if (!isContractValue(QUOTE_STATUSES, status)) {
     throw new ApiContractError('Réponse devis invalide.');
   }
 
-  return status as QuoteStatus;
+  return status;
 };
 
 const parseLineTotals = (value: unknown): QuoteLineTotalsDto => {

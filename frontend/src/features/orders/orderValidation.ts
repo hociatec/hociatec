@@ -10,6 +10,7 @@ import {
   optionalString,
 } from '@/shared/lib/apiValidation';
 import { isTrustedRedirectUrl } from '@/shared/lib/redirects';
+import { isContractValue, ORDER_STATUSES } from '@/shared/contracts/statuses';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
@@ -25,8 +26,6 @@ import type {
   ProductReviewDto,
   CheckoutRedirectDto,
 } from './orderTypes';
-
-const ORDER_STATUSES = new Set(['pending', 'confirmed', 'delivered', 'cancelled']);
 
 const parseStatusOption = (value: unknown): OrderStatusOptionDto => {
   const item = requireRecord(value);
@@ -123,7 +122,7 @@ const parseProductReview = (value: unknown): ProductReviewDto => {
 export const parseOrder = (value: unknown): OrderDto => {
   const order = requireRecord(value);
   const status = requireString(order.status);
-  if (!ORDER_STATUSES.has(status)) {
+  if (!isContractValue(ORDER_STATUSES, status)) {
     throw new ApiContractError('Réponse commande invalide.');
   }
 
@@ -135,12 +134,12 @@ export const parseOrder = (value: unknown): OrderDto => {
     number: requireString(order.number),
     userId: optionalNumber(order.userId) ?? undefined,
     customerDisplayName: optionalString(order.customerDisplayName) ?? undefined,
-    status: status as OrderDto['status'],
+    status,
     statusLabel: optionalString(order.statusLabel) ?? undefined,
     allowedNextStatuses: requireArray(order.allowedNextStatuses).map((item) => {
       const nextStatus = requireString(item);
-      if (!ORDER_STATUSES.has(nextStatus)) throw new ApiContractError('Réponse commande invalide.');
-      return nextStatus as OrderDto['status'];
+      if (!isContractValue(ORDER_STATUSES, nextStatus)) throw new ApiContractError('Réponse commande invalide.');
+      return nextStatus;
     }),
     allowedNextStatusDetails: requireArray(order.allowedNextStatusDetails).map(parseStatusOption),
     subtotalPriceCents: optionalNumber(order.subtotalPriceCents) ?? undefined,

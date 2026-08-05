@@ -87,7 +87,8 @@ const extractStaticAdminTargets = (content: string) => {
 
   for (const pattern of patterns) {
     for (const match of content.matchAll(pattern)) {
-      targets.add(match[1].split(/[?#]/)[0]);
+      const target = match[1]?.split(/[?#]/)[0];
+      if (target) targets.add(target);
     }
   }
 

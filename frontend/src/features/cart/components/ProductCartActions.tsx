@@ -40,7 +40,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
 
   const hasProductInCart = isProductInCart(
     product.id,
-    isRentalProduct ? { rentalMonths: normalizedRentalMonths } : undefined,
+    isRentalProduct && normalizedRentalMonths ? { rentalMonths: normalizedRentalMonths } : undefined,
   );
   const isInCart = hasProductInCart;
   const currentQuantity = matchingItem?.quantity ?? 0;
@@ -85,7 +85,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       addItem(
         product.id,
         1,
-        isRentalProduct ? { rentalMonths: rentalMonthsValue } : undefined,
+        isRentalProduct && rentalMonthsValue ? { rentalMonths: rentalMonthsValue } : undefined,
       ),
     onSuccess: () => show(`Produit ajouté au panier`, { variant: 'success', persistent: true }),
     onError: () => show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }),

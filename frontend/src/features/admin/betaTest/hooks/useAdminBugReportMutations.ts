@@ -10,6 +10,7 @@ import {
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import type { BugReportStatus } from '@/shared/contracts/statuses';
 
 export const useAdminBugReportMutations = ({
   newCommentText,
@@ -40,7 +41,8 @@ export const useAdminBugReportMutations = ({
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) => updateAdminBugReportStatus(id, status),
+    mutationFn: ({ id, status }: { id: number; status: BugReportStatus }) =>
+      updateAdminBugReportStatus(id, status),
     onSuccess: () => {
       refreshReports();
       refreshSelectedReport();
@@ -108,10 +110,14 @@ export const useAdminBugReportMutations = ({
   return {
     duplicatePending: duplicateMutation.isPending,
     postCommentPending: postCommentMutation.isPending,
-    assignReport: (id: number, assignedToId?: number | null) => assignMutation.mutate({ id, assignedToId }),
+    assignReport: (id: number, assignedToId?: number | null) =>
+      assignMutation.mutate({
+        id,
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+      }),
     deleteReport: handleDelete,
     duplicateReport: (payload: { id: number; duplicateOfId: number; reason?: string }) => duplicateMutation.mutate(payload),
     postComment: () => postCommentMutation.mutate(),
-    updateReportStatus: (id: number, status: string) => updateStatusMutation.mutate({ id, status }),
+    updateReportStatus: (id: number, status: BugReportStatus) => updateStatusMutation.mutate({ id, status }),
   };
 };

@@ -75,7 +75,7 @@ export const AdminBugReportsPage = () => {
 
       <PaginationControls
         page={reports.page}
-        total={reports.meta?.total}
+        {...(reports.meta ? { total: reports.meta.total } : {})}
         totalLabel="signalement"
         totalPages={reports.meta?.totalPages ?? 1}
         onPageChange={reports.setPage}

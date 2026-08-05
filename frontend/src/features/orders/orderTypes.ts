@@ -1,15 +1,17 @@
+import type { OrderStatus } from '@/shared/contracts/statuses';
+
 export interface ProductReviewDto {
   id: number;
   score: number;
   status: string;
-  comment?: string | null;
+  comment?: string | null | undefined;
   createdAt: string;
-  publishedAt?: string | null;
-  orderItemId?: number;
+  publishedAt?: string | null | undefined;
+  orderItemId?: number | undefined;
   author?: {
     id: number;
     displayName: string;
-  };
+  } | undefined;
 }
 
 export interface OrderItemDto {
@@ -30,17 +32,17 @@ export interface OrderItemDto {
 export interface OrderInvoiceDto {
   number: string | null;
   status: string;
-  statusLabel?: string;
-  issuedAt?: string | null;
-  billingName?: string | null;
-  billingCompany?: string | null;
-  billingCompanySiren?: string | null;
-  billingCompanyVatNumber?: string | null;
-  purchaseOrderNumber?: string | null;
-  billingEmail?: string | null;
-  billingAddress?: string | null;
-  billingPostalCode?: string | null;
-  billingCity?: string | null;
+  statusLabel?: string | undefined;
+  issuedAt?: string | null | undefined;
+  billingName?: string | null | undefined;
+  billingCompany?: string | null | undefined;
+  billingCompanySiren?: string | null | undefined;
+  billingCompanyVatNumber?: string | null | undefined;
+  purchaseOrderNumber?: string | null | undefined;
+  billingEmail?: string | null | undefined;
+  billingAddress?: string | null | undefined;
+  billingPostalCode?: string | null | undefined;
+  billingCity?: string | null | undefined;
   currencyCode: string;
   electronicFormat: string;
 }
@@ -73,17 +75,17 @@ export interface OrderEventDto {
   actor?: {
     id: number | null;
     name: string | null;
-  };
+  } | undefined;
 }
 
 export interface OrderProcessingDto {
   invoicePdfGenerated: boolean;
   invoiceXmlGenerated: boolean;
-  orderCreatedEmailSentAt?: string | null;
-  invoiceEmailSentAt?: string | null;
-  statusConfirmedEmailSentAt?: string | null;
-  statusDeliveredEmailSentAt?: string | null;
-  statusCancelledEmailSentAt?: string | null;
+  orderCreatedEmailSentAt?: string | null | undefined;
+  invoiceEmailSentAt?: string | null | undefined;
+  statusConfirmedEmailSentAt?: string | null | undefined;
+  statusDeliveredEmailSentAt?: string | null | undefined;
+  statusCancelledEmailSentAt?: string | null | undefined;
 }
 
 export interface AdminPaymentDto {
@@ -110,13 +112,13 @@ export interface AdminPaymentDto {
 }
 
 export interface AdminPaymentDetailDto extends AdminPaymentDto {
-  shippingName?: string | null;
-  shippingAddress?: string | null;
-  shippingPostalCode?: string | null;
-  shippingCity?: string | null;
-  subtotalPriceCents?: number;
-  discountAmountCents?: number;
-  items?: Array<Record<string, unknown>>;
+  shippingName?: string | null | undefined;
+  shippingAddress?: string | null | undefined;
+  shippingPostalCode?: string | null | undefined;
+  shippingCity?: string | null | undefined;
+  subtotalPriceCents?: number | undefined;
+  discountAmountCents?: number | undefined;
+  items?: Array<Record<string, unknown>> | undefined;
 }
 
 export interface AdminPaymentLiveStripeDto {
@@ -152,7 +154,7 @@ export interface OrderDto {
   number: string;
   userId?: number;
   customerDisplayName?: string;
-  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
+  status: OrderStatus;
   statusLabel?: string;
   allowedNextStatuses: OrderDto['status'][];
   allowedNextStatusDetails: OrderStatusOptionDto[];

@@ -94,11 +94,12 @@ export const OrdersListPage = () => {
         <AdminOrdersTable
           orders={filteredOrders}
           onEditStatus={(order: OrderDto, options) => {
-            if (!options.length) return;
+            const nextStatus = options[0];
+            if (!nextStatus) return;
             setEditing({
               id: order.id,
               current: (order.status as OrderStatus) ?? 'pending',
-              next: options[0],
+              next: nextStatus,
               options,
               order,
             });

@@ -117,7 +117,7 @@ export const useOrderDetail = () => {
     try {
       const review = await submitOrderItemReview(order.id, orderItemId, {
         score: form.score,
-        comment: form.comment || undefined,
+        ...(form.comment ? { comment: form.comment } : {}),
       });
 
       const updatedOrder = (() => {

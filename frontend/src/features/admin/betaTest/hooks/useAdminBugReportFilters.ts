@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 import type { AdminBugReportDto } from '../api';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export const useAdminBugReportFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,14 +16,14 @@ export const useAdminBugReportFilters = () => {
     Number(searchParams.get('reportId') ?? 0) || null,
   );
 
-  const filters = {
+  const filters = omitUndefinedProperties({
     page,
     perPage: 12,
     status: statusFilter || undefined,
     severity: severityFilter || undefined,
     search: search.trim() || undefined,
     assignedTo: assignedFilter || undefined,
-  };
+  });
 
   const openModal = (report: AdminBugReportDto) => {
     setSelectedReportId(report.id);

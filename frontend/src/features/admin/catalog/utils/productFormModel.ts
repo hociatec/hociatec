@@ -1,5 +1,6 @@
 import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/features/catalog/adminApi';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { ProductFormState, VariantRowState } from './productFormConfig';
 import {
   buildVariantIdentityKey,
@@ -150,7 +151,7 @@ export const buildProductPayload = ({
   const removeGalleryPayload =
     galleryToRemove.length > 0 ? Array.from(new Set(galleryToRemove)) : undefined;
   return {
-    payload: {
+    payload: omitUndefinedProperties({
       sellingType: form.sellingType,
       brandId: selectedBrand.id,
       variantGroup: null,
@@ -182,6 +183,6 @@ export const buildProductPayload = ({
       discountStartsAt:
         form.discountEnabled && form.discountStartsAt ? form.discountStartsAt : undefined,
       discountEndsAt: form.discountEnabled && form.discountEndsAt ? form.discountEndsAt : undefined,
-    },
+    }) as UpsertProductPayload,
   };
 };

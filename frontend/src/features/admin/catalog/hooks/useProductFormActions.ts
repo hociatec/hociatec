@@ -11,7 +11,7 @@ import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type UseProductFormActionsParams = {
   isEdit: boolean;
-  productId?: string;
+  productId?: string | undefined;
   form: ProductFormState;
   brands: CatalogBrand[];
   variantRows: VariantRowState[];

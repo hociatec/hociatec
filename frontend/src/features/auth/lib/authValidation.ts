@@ -5,12 +5,13 @@ import {
   requireString,
   optionalString,
 } from '@/shared/lib/apiValidation';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { AuthUser } from '@/shared/types/auth';
 
 export const parseAuthUser = (value: unknown): AuthUser => {
   const user = requireRecord(value);
 
-  return {
+  return omitUndefinedProperties({
     id: requireNumber(user.id),
     email: requireString(user.email),
     firstName: requireString(user.firstName),
@@ -30,5 +31,5 @@ export const parseAuthUser = (value: unknown): AuthUser => {
       user.communicationPreferences === undefined
         ? undefined
         : requireArray(user.communicationPreferences).map((preference) => optionalString(preference) ?? ''),
-  };
+  });
 };

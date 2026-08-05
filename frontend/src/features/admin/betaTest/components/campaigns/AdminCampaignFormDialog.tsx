@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog';
 import type { CampaignFormState } from '../../lib/campaignForms';
+import { BETA_CAMPAIGN_STATUSES, isContractValue } from '@/shared/contracts/statuses';
 
 interface AdminCampaignFormDialogProps {
   description: string;
@@ -91,7 +92,11 @@ export const AdminCampaignFormDialog = ({
             <select
               className="w-full rounded-lg border border-brand-100 bg-white px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
               value={form.status}
-              onChange={(event) => onFormChange({ ...form, status: event.target.value })}
+              onChange={(event) => {
+                if (isContractValue(BETA_CAMPAIGN_STATUSES, event.target.value)) {
+                  onFormChange({ ...form, status: event.target.value });
+                }
+              }}
             >
               <option value="draft">Brouillon</option>
               <option value="active">Active</option>

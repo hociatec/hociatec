@@ -17,7 +17,7 @@ import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 
 type UseProductFormLoaderParams = {
   isEdit: boolean;
-  productId?: string;
+  productId?: string | undefined;
   setForm: Dispatch<SetStateAction<ProductFormState>>;
   galleryHydrate: (gallery: Array<{ position: number; url: string }>) => void;
   resetVariantRows: () => void;
@@ -74,8 +74,9 @@ export const useProductFormLoader = ({
       return;
     }
 
-    if (categoryList.length > 0) {
-      setForm((previous) => ({ ...previous, categoryId: categoryList[0].id.toString() }));
+    const firstCategory = categoryList[0];
+    if (firstCategory) {
+      setForm((previous) => ({ ...previous, categoryId: firstCategory.id.toString() }));
     } else {
       setForm(emptyProductForm);
     }

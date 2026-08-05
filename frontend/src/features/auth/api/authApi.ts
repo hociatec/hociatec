@@ -58,7 +58,7 @@ export interface PasswordResetPayload {
 
 export interface AuthOperationResult<T> {
   data: T;
-  message?: string | null;
+  message?: string | null | undefined;
 }
 
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {

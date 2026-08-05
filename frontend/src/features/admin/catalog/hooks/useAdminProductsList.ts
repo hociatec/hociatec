@@ -11,6 +11,7 @@ import { groupCatalogProducts } from '@/features/catalog/adminApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const PRODUCTS_PER_PAGE = 12;
 const parseNumber = (value: string | null) => {
@@ -48,7 +49,7 @@ export const useAdminProductsList = () => {
   const [page, setPageValue] = useState(Math.max(1, Number(searchParams.get('page') ?? 1)));
 
   const productParams = useMemo(
-    () => ({
+    () => omitUndefinedProperties({
       page,
       perPage: PRODUCTS_PER_PAGE,
       search: searchValue.trim() || undefined,

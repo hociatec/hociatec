@@ -1,9 +1,8 @@
 import { Link } from 'react-router';
 
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
-import { EmptyState, ErrorState } from '@/shared/components/ui/page-state';
+import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,13 +21,13 @@ export const MyOrdersPage = () => {
 
   const {
     orders,
+    ordersState,
     isLoading,
     error,
     payingOrderId,
     handlePayOrder,
     handleCancelOrder,
     handleDownloadInvoice,
-    canDownloadInvoice,
   } = useMyOrders();
 
   return (
@@ -42,13 +41,15 @@ export const MyOrdersPage = () => {
           </p>
         </header>
 
-        {error && <ErrorState>{error}</ErrorState>}
+        {ordersState.status === 'loading' && <LoadingState>Chargement des commandes...</LoadingState>}
+        {ordersState.status === 'error' && <ErrorState>{ordersState.error}</ErrorState>}
+        {ordersState.status !== 'error' && error && <ErrorState>{error}</ErrorState>}
 
-        {!isLoading && orders.length === 0 && (
+        {ordersState.status === 'success' && orders.length === 0 && (
           <EmptyState>Vous n&apos;avez pas encore de commande.</EmptyState>
         )}
 
-        {orders.length > 0 && (
+        {ordersState.status === 'success' && orders.length > 0 && (
           <div className="overflow-x-auto rounded-xl border border-brand-100 bg-white shadow-sm">
             <table className="w-full border-collapse text-left text-sm text-brand-900">
               <thead>
@@ -79,24 +80,20 @@ export const MyOrdersPage = () => {
                     <th scope="row" className="px-4 py-3 font-medium">
                       {o.number}
                     </th>
-                    <td className="px-4 py-3">{formatOptionalFrenchDate(o.createdAt)}</td>
-                    <td className="px-4 py-3">{formatEuroCents(o.totalPriceCents)}</td>
+                    <td className="px-4 py-3">{o.createdAtLabel}</td>
+                    <td className="px-4 py-3">{o.totalPriceLabel}</td>
                     <td className="px-4 py-3">{o.statusLabel}</td>
-                    <td className="px-4 py-3">
-                      {(o.pendingReviewsCount ?? 0) > 0
-                        ? `${o.pendingReviewsCount} produit${(o.pendingReviewsCount ?? 0) > 1 ? 's' : ''}`
-                        : 'Aucun'}
-                    </td>
+                    <td className="px-4 py-3">{o.pendingReviewsLabel}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                          to={`/orders/${o.id}`}
+                          to={o.detailPath}
                         >
                           Voir le détail
                         </Link>
 
-                        {o.status === 'pending' && (
+                        {o.canPay && (
                           <button
                             type="button"
                             className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
@@ -111,9 +108,9 @@ export const MyOrdersPage = () => {
                           type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={() => void handleDownloadInvoice(o)}
-                          disabled={!canDownloadInvoice(o)}
+                          disabled={!o.canDownloadInvoice}
                           title={
-                            !canDownloadInvoice(o)
+                            !o.canDownloadInvoice
                               ? 'La facture est disponible uniquement pour une commande réglée non annulée.'
                               : undefined
                           }
@@ -121,7 +118,7 @@ export const MyOrdersPage = () => {
                           Télécharger la facture
                         </button>
 
-                        {o.status === 'pending' && (
+                        {o.canCancel && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button

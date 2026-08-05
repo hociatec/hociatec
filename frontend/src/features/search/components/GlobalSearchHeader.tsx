@@ -54,13 +54,13 @@ export const GlobalSearchHeader = ({
       </button>
     </form>
     <div className="mt-4 flex flex-wrap gap-2" aria-label="Filtrer les résultats">
-      {[
+      {([
         ['all', 'Tout'],
         ['products', 'Produits'],
         ['services', 'Services'],
         ['trainings', 'Formations'],
         ['news', 'Actualités'],
-      ].map(([value, label]) => (
+      ] satisfies Array<[string, string]>).map(([value, label]) => (
         <button
           key={value}
           type="button"

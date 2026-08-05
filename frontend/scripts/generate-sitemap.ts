@@ -166,18 +166,24 @@ const collectDynamicEntries = async (apiBaseUrl: string): Promise<SitemapEntry[]
   ]);
 
   return [
-    ...categories.map((category) => ({
-      loc: `/catalogue/${category.slug}`,
-      lastmod: toLastmod(category.updatedAt),
-      changefreq: 'weekly' as const,
-      priority: '0.8',
-    })),
-    ...products.map((product) => ({
-      loc: `/catalogue/produits/${product.slug}`,
-      lastmod: toLastmod(product.updatedAt),
-      changefreq: 'weekly' as const,
-      priority: '0.8',
-    })),
+    ...categories.map((category) => {
+      const lastmod = toLastmod(category.updatedAt);
+      return {
+        loc: `/catalogue/${category.slug}`,
+        ...(lastmod ? { lastmod } : {}),
+        changefreq: 'weekly' as const,
+        priority: '0.8',
+      };
+    }),
+    ...products.map((product) => {
+      const lastmod = toLastmod(product.updatedAt);
+      return {
+        loc: `/catalogue/produits/${product.slug}`,
+        ...(lastmod ? { lastmod } : {}),
+        changefreq: 'weekly' as const,
+        priority: '0.8',
+      };
+    }),
     ...services.map((service) => ({
       loc: `/services/${service.id}`,
       changefreq: 'monthly' as const,

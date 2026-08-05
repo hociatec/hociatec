@@ -1,4 +1,4 @@
-import axios, { AxiosHeaders, isAxiosError } from 'axios';
+import axios, { AxiosHeaders, isAxiosError, type AxiosRequestConfig } from 'axios';
 
 import { API_BASE_URL, BUILD_INFO } from '../config/appConfig';
 import { createApiResponseError } from './httpErrors';
@@ -33,6 +33,9 @@ export const httpClient = axios.create({
   withCredentials: true,
   timeout: 15_000,
 });
+
+export const requestSignalConfig = (signal?: AbortSignal): AxiosRequestConfig =>
+  signal ? { signal } : {};
 
 const refreshAuthSession = createAuthSessionRefresher(httpClient);
 export const IDEMPOTENCY_HEADER_NAME = 'Idempotency-Key';

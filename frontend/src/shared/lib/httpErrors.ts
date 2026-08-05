@@ -12,19 +12,19 @@ export type AppErrorKind =
 
 export interface AppError {
   kind: AppErrorKind;
-  code?: string;
+  code?: string | undefined;
   message: string;
-  fields?: Record<string, string[]>;
-  requestId?: string;
-  retryAfterSeconds?: number;
-  status?: number;
+  fields?: Record<string, string[]> | undefined;
+  requestId?: string | undefined;
+  retryAfterSeconds?: number | undefined;
+  status?: number | undefined;
 }
 
 export class ApiResponseError extends Error {
   readonly details: string[];
-  readonly fields?: Record<string, string[]>;
-  readonly requestId?: string;
-  readonly code?: string;
+  readonly fields?: Record<string, string[]> | undefined;
+  readonly requestId?: string | undefined;
+  readonly code?: string | undefined;
 
   constructor(
     message: string,

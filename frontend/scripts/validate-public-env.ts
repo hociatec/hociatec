@@ -17,7 +17,7 @@ for (const file of ENV_FILES) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) return;
 
-    const [rawName, ...rawValueParts] = trimmed.split('=');
+    const [rawName = '', ...rawValueParts] = trimmed.split('=');
     const name = rawName.trim();
     const value = rawValueParts.join('=').trim();
 

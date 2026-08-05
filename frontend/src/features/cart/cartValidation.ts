@@ -62,21 +62,24 @@ const parseVoucher = (value: unknown): Cart['appliedVoucher'] => {
 export const parseCart = (value: unknown): Cart => {
   const cart = requireRecord(value);
   const voucherCodeStatus = optionalString(cart.voucherCodeStatus) ?? undefined;
+  const enteredVoucherCode = optionalString(cart.enteredVoucherCode);
   if (voucherCodeStatus !== undefined && !VOUCHER_STATUSES.has(voucherCodeStatus)) {
     throw new Error('Réponse panier invalide.');
   }
 
-  return {
+  const parsed: Cart = {
     token: requireString(cart.token),
     items: requireArray(cart.items).map((value) => {
       const item = requireRecord(value);
+
+      const rentalMonths = optionalNumber(item.rentalMonths);
 
       return {
         id: requireNumber(item.id),
         product: parseCatalogProduct(item.product),
         quantity: requireNumber(item.quantity),
         linePriceCents: requireNumber(item.linePriceCents),
-        rentalMonths: optionalNumber(item.rentalMonths) ?? undefined,
+        ...(rentalMonths !== undefined ? { rentalMonths } : {}),
       };
     }),
     totalQuantity: requireNumber(cart.totalQuantity),
@@ -89,8 +92,15 @@ export const parseCart = (value: unknown): Cart => {
         : parsePromotion(cart.appliedPromotion),
     eligiblePromotions: requireArray(cart.eligiblePromotions).map(parsePromotion),
     appliedVoucher: parseVoucher(cart.appliedVoucher),
-    enteredVoucherCode: optionalString(cart.enteredVoucherCode) ?? undefined,
-    voucherCodeStatus: voucherCodeStatus as Cart['voucherCodeStatus'],
     updatedAt: requireString(cart.updatedAt),
   };
+
+  if (enteredVoucherCode !== undefined) {
+    parsed.enteredVoucherCode = enteredVoucherCode;
+  }
+  if (voucherCodeStatus) {
+    parsed.voucherCodeStatus = voucherCodeStatus as NonNullable<Cart['voucherCodeStatus']>;
+  }
+
+  return parsed;
 };

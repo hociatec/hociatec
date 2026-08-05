@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import type { OrderStatus, OrderStatusFilter } from '@/shared/contracts/statuses';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
 import { parseOrder, parseOrderEvent, parseOrderProcessing } from './orderValidation';
 
@@ -10,7 +11,7 @@ export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> 
 };
 
 export const fetchAdminOrders = async (
-  status: 'all' | 'pending' | 'confirmed' | 'delivered' | 'cancelled' = 'all',
+  status: OrderStatusFilter = 'all',
   health: 'all' | 'issues' = 'all',
 ): Promise<OrderDto[]> => {
   const query = new URLSearchParams();
@@ -54,7 +55,7 @@ export const fetchAdminOrderById = async (
 
 export const updateAdminOrderStatus = async (
   orderId: number,
-  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled',
+  status: OrderStatus,
 ): Promise<OrderDto> => {
   const { data } = await httpClient.patch<ApiResponse<{ order: OrderDto }>>(
     `/api/admin/orders/${orderId}/status`,

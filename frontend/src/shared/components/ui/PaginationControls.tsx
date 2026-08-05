@@ -1,8 +1,8 @@
 interface PaginationControlsProps {
-  className?: string;
+  className?: string | undefined;
   page: number;
-  total?: number;
-  totalLabel?: string;
+  total?: number | undefined;
+  totalLabel?: string | undefined;
   totalPages: number;
   onPageChange: (updater: (page: number) => number) => void;
 }

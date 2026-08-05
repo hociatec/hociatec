@@ -91,7 +91,7 @@ export const BetaProfilePage = () => {
           <BetaProfileCheckboxGroup
             name="availability"
             label="Disponibilités"
-            options={choices.availability}
+            options={choices.availability ?? []}
             form={form}
             setForm={setForm}
             required
@@ -114,10 +114,10 @@ export const BetaProfilePage = () => {
             <BetaProfileCheckboxGroup name="technicalKnowledge" label="Connaissances techniques" options={choices.technicalKnowledge ?? []} form={form} setForm={setForm} required />
           </div>
 
-          <BetaProfileCheckboxGroup name="assistiveTools" label="Outils utilisés" options={choices.assistiveTools} form={form} setForm={setForm} required />
-          <BetaProfileCheckboxGroup name="devices" label="Matériel *" options={choices.devices} form={form} setForm={setForm} required />
-          <BetaProfileCheckboxGroup name="browsers" label="Navigateurs *" options={choices.browsers} form={form} setForm={setForm} required />
-          <BetaProfileCheckboxGroup name="testingTypes" label="Types de tests souhaités *" options={choices.testingTypes} form={form} setForm={setForm} required />
+          <BetaProfileCheckboxGroup name="assistiveTools" label="Outils utilisés" options={choices.assistiveTools ?? []} form={form} setForm={setForm} required />
+          <BetaProfileCheckboxGroup name="devices" label="Matériel *" options={choices.devices ?? []} form={form} setForm={setForm} required />
+          <BetaProfileCheckboxGroup name="browsers" label="Navigateurs *" options={choices.browsers ?? []} form={form} setForm={setForm} required />
+          <BetaProfileCheckboxGroup name="testingTypes" label="Types de tests souhaités *" options={choices.testingTypes ?? []} form={form} setForm={setForm} required />
 
           <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm">
             <input

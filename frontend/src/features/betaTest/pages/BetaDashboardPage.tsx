@@ -88,8 +88,12 @@ export const BetaDashboardPage = () => {
             dashboard.setIsCreateReportOpen(false);
             dashboard.setSelectedCampaign(null);
           }}
-          campaignId={dashboard.selectedCampaign?.id}
-          campaignName={dashboard.selectedCampaign?.name}
+          {...(dashboard.selectedCampaign
+            ? {
+                campaignId: dashboard.selectedCampaign.id,
+                campaignName: dashboard.selectedCampaign.name,
+              }
+            : {})}
         />
 
         <PaginationControls

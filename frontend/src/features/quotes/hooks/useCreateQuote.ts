@@ -75,7 +75,7 @@ export const useCreateQuote = () => {
           unitPriceCents: p.effectivePriceCents ?? p.priceCents,
           vatRate: 20,
           discountCents: 0,
-          rentalMonths: p.sellingType === 'rental' ? 1 : undefined,
+          ...(p.sellingType === 'rental' ? { rentalMonths: 1 } : {}),
         },
       ],
     }));

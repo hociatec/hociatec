@@ -62,7 +62,7 @@ const ErrorFallback = ({
 };
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = {
+  override state: ErrorBoundaryState = {
     error: null,
     errorId: null,
   };
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
+  override componentDidCatch(error: Error, info: ErrorInfo) {
     logger.error('React render tree failed.', {
       error,
       componentStack: info.componentStack,
@@ -82,7 +82,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
   }
 
-  componentDidUpdate(previousProps: ErrorBoundaryProps) {
+  override componentDidUpdate(previousProps: ErrorBoundaryProps) {
     if (this.state.error && previousProps.resetKey !== this.props.resetKey) {
       this.setState({ error: null, errorId: null });
     }
@@ -92,7 +92,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({ error: null, errorId: null });
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.error && this.state.errorId) {
       return (
         <ErrorFallback

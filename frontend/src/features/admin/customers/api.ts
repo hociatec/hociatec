@@ -254,7 +254,7 @@ export const createCustomerVoucher = async (
 export const sendCustomerEmail = async (
   customerId: number,
   payload: AdminCustomerEmailPayload,
-): Promise<{ message?: string }> => {
+): Promise<{ message?: string | undefined }> => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ sent: boolean }>>(
       `/api/admin/customers/${customerId}/send-email`,

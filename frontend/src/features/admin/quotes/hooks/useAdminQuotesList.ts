@@ -13,6 +13,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/publicApi';
 import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export const useAdminQuotesList = () => {
   const toast = useToast();
@@ -32,10 +33,10 @@ export const useAdminQuotesList = () => {
   const quotesQuery = useQuery<QuoteDto[], Error>({
     queryKey: adminQuoteQueryKeys.list(search, filterStatus),
     queryFn: () =>
-      fetchAdminQuotes({
-      q: search.trim() || undefined,
-      status: filterStatus,
-      }),
+      fetchAdminQuotes(omitUndefinedProperties({
+        q: search.trim() || undefined,
+        status: filterStatus,
+      })),
   });
   const quotes = quotesQuery.data ?? [];
   const deleteMutation = useMutation({
@@ -122,9 +123,9 @@ export const useAdminQuotesList = () => {
     const quote = quotes.find((item) => item.id === id);
     const to = await prompt({
       title: 'Envoyer le devis',
-      description: quote?.number
-        ? `Choisissez le destinataire du devis ${quote.number}.`
-        : undefined,
+      ...(quote?.number
+        ? { description: `Choisissez le destinataire du devis ${quote.number}.` }
+        : {}),
       label: 'Destinataire (e-mail)',
       defaultValue: quote?.customer?.email ?? '',
       inputType: 'email',

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog';
 import { adminBetaQueryKeys, betaQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 type BetaBugReportDialogProps = {
   open: boolean;
@@ -38,7 +39,7 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId, campaignName }:
   };
 
   const createMutation = useMutation({
-    mutationFn: () => createBugReport({ ...form, campaignId }),
+    mutationFn: () => createBugReport(omitUndefinedProperties({ ...form, campaignId })),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: betaQueryKeys.reports() });
       queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.bugReports() });

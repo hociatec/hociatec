@@ -2,11 +2,11 @@ import type { QuoteDto, QuoteInput, QuoteStatus } from '@/features/quotes/public
 import type { QuoteItem } from '@/features/quotes/publicApi';
 
 export type AdminQuoteFormState = {
-  id?: number;
-  number?: string;
+  id?: number | undefined;
+  number?: string | undefined;
   status: QuoteStatus;
-  statusCode?: QuoteStatus;
-  statusLabel?: string;
+  statusCode?: QuoteStatus | undefined;
+  statusLabel?: string | undefined;
   customer: NonNullable<QuoteInput['customer']>;
   items: QuoteItem[];
   discountCents: number;
@@ -14,11 +14,11 @@ export type AdminQuoteFormState = {
   conditions: string | null;
   validFrom: string | null;
   validUntil: string | null;
-  totals?: QuoteDto['totals'];
-  createdAt?: string;
-  updatedAt?: string;
-  sentAt?: string | null;
-  convertedOrder?: QuoteDto['convertedOrder'];
-  emailNotificationSent?: boolean;
-  emailNotificationError?: string | null;
+  totals?: QuoteDto['totals'] | undefined;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+  sentAt?: string | null | undefined;
+  convertedOrder?: QuoteDto['convertedOrder'] | undefined;
+  emailNotificationSent?: boolean | undefined;
+  emailNotificationError?: string | null | undefined;
 };

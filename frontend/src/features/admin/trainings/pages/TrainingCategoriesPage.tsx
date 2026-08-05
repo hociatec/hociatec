@@ -15,6 +15,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const emptyForm = {
   id: null as number | null,
@@ -93,13 +94,13 @@ export const TrainingCategoriesPage = () => {
     setFormError(null);
     setMessage(null);
     saveMutation.mutate({
-      id: form.id ?? undefined,
-      payload: {
+      ...(form.id !== null && form.id !== undefined ? { id: form.id } : {}),
+      payload: omitUndefinedProperties({
         name: form.name,
         slug: form.slug.trim() || undefined,
         position: form.position,
         isActive: form.isActive,
-      },
+      }),
     });
   };
 

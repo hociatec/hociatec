@@ -82,8 +82,9 @@ export const TrainingFormPage = () => {
           });
       return;
     }
-    if (categoryItems.length > 0) {
-      setForm((prev) => ({ ...prev, category: categoryItems[0].slug }));
+    const firstCategory = categoryItems[0];
+    if (firstCategory) {
+      setForm((prev) => ({ ...prev, category: firstCategory.slug }));
     }
   }, [formQuery.data]);
 

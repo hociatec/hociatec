@@ -41,8 +41,8 @@ export const MarketingTemplateEditor = ({
     </label>
     {segments[form.scenarioKey] ? (
       <div className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-4 text-sm text-stone-700">
-        <strong className="block text-brand-900">{segments[form.scenarioKey].label}</strong>
-        <span>{segments[form.scenarioKey].description}</span>
+        <strong className="block text-brand-900">{segments[form.scenarioKey]?.label}</strong>
+        <span>{segments[form.scenarioKey]?.description}</span>
       </div>
     ) : null}
     <label className="register-form__field">

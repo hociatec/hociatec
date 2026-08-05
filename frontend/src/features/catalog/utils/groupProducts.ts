@@ -47,6 +47,7 @@ export const groupCatalogProducts = (products: CatalogProduct[]): CatalogProduct
   return Array.from(groups.values()).map((items) => {
     const sorted = [...items].sort(compareVariantLead);
     const lead = sorted[0];
+    if (!lead) throw new Error('Groupe de produits invalide.');
 
     return {
       ...lead,

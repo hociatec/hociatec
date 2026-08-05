@@ -150,7 +150,7 @@ const parseFacetCount = (value: unknown): CatalogFacetCount => {
   return {
     value: requireString(facet.value),
     count: requireNumber(facet.count),
-    extra: optionalString(facet.extra) ?? undefined,
+    extra: optionalString(facet.extra) ?? null,
   };
 };
 

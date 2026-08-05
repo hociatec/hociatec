@@ -17,7 +17,7 @@ export const MarketingCampaignSidebar = ({ campaign }: { campaign: CampaignContr
     </div>
     <div className="register-form-card form-card-grid">
       <h2 className="text-xl font-semibold text-brand-900">Leviers conseillés</h2>
-      <div className="space-y-2 text-sm text-stone-600">{campaign.audienceAdvice.map((item) => <div key={item} className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">{item}</div>)}</div>
+      <div className="space-y-2 text-sm text-stone-600">{(campaign.audienceAdvice ?? []).map((item) => <div key={item} className="rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">{item}</div>)}</div>
     </div>
     <div className="register-form-card form-card-grid">
       <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold text-brand-900">Templates recommandés</h2><Link to="/admin/marketing/templates" className="text-sm font-semibold text-stone-700 hover:text-brand-900">Voir toute la bibliothèque</Link></div>

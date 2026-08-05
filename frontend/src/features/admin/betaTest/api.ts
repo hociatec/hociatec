@@ -1,11 +1,12 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 export interface AdminBetaTesterDto { id:number; userId:number; firstName:string; lastName:string; email:string; status:string; accessibilityNeed:string; availability:string[]; devices:string[]; browsers:string[]; testingTypes:string[]; assistiveTools:string[]; motivation:string; testingExperience:string[]; bugDescriptionAbility:string[]; technicalKnowledge:string[]; createdAt:string; }
 export interface PaginationMeta { page:number; perPage:number; total:number; totalPages:number; }
 export interface BetaAdminUserDto { id:number; name:string; email:string; }
-export interface AdminBugReportDto { id:number; title:string; description:string; expectedBehavior?:string|null; actualBehavior?:string|null; severity:string; status:string; pageUrl?:string|null; reporter:string; reporterId?:number; reporterName?:string; campaignId?:number|null; campaign?:string|null; assignedTo?:BetaAdminUserDto|null; duplicateOf?:{id:number;title:string}|null; duplicateReason?:string|null; attachments:string[]; attachmentUrls:string[]; createdAt:string; updatedAt?:string; lastAdminReplyAt?:string|null; lastReporterReplyAt?:string|null; }
-export interface AdminCampaignDto { id:number; name:string; description:string; status:string; startsAt?:string|null; endsAt?:string|null; createdAt:string; enrolledCount?:number; reportCount?:number; reports?:AdminBugReportDto[]; }
+export interface AdminBugReportDto { id:number; title:string; description:string; expectedBehavior?:string|null; actualBehavior?:string|null; severity:string; status:BugReportStatus; pageUrl?:string|null; reporter:string; reporterId?:number; reporterName?:string; campaignId?:number|null; campaign?:string|null; assignedTo?:BetaAdminUserDto|null; duplicateOf?:{id:number;title:string}|null; duplicateReason?:string|null; attachments:string[]; attachmentUrls:string[]; createdAt:string; updatedAt?:string; lastAdminReplyAt?:string|null; lastReporterReplyAt?:string|null; }
+export interface AdminCampaignDto { id:number; name:string; description:string; status:BetaCampaignStatus; startsAt?:string|null; endsAt?:string|null; createdAt:string; enrolledCount?:number; reportCount?:number; reports?:AdminBugReportDto[]; }
 export interface AdminBugReportActivityDto { id:number; action:string; fromValue?:string|null; toValue?:string|null; message?:string|null; createdAt:string; actor?:BetaAdminUserDto|null; }
 export interface AdminBugReportDashboardDto { stats:{openReports:number;criticalOrHigh:number;awaitingAdminReply:number;awaitingUserReply:number;recentFixed:number;activeCampaigns:number}; admins:BetaAdminUserDto[]; }
 const unwrap = <T>(response:ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
@@ -19,7 +20,7 @@ export const exportAdminBetaTesters = async () => { const response=await httpCli
 export const exportAdminBugReports = async (params:{status?:string;severity?:string;search?:string;assignedTo?:number|string;campaignId?:number|string}={}) => { const response=await httpClient.get('/api/admin/beta-reports/export',{params,responseType:'blob'}); const url=URL.createObjectURL(response.data); const link=document.createElement('a'); link.href=url; link.download='signalements-beta.csv'; link.click(); URL.revokeObjectURL(url); };
 export const updateAdminBetaTester = async (id:number, status:string) => { await httpClient.patch(`/api/admin/beta-testers/${id}`, { status }); };
 export const deleteAdminBetaTester = async (id:number) => { await httpClient.delete(`/api/admin/beta-testers/${id}`); };
-export const createAdminCampaign = async (payload:{name:string;description:string;status:string;startsAt?:string;endsAt?:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };
+export const createAdminCampaign = async (payload:{name:string;description:string;status:BetaCampaignStatus;startsAt?:string;endsAt?:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };
 
 export interface BugReportCommentDto {
   id: number;
@@ -34,8 +35,8 @@ export interface BugReportCommentDto {
   };
 }
 
-export const updateAdminBugReportStatus = async (id: number, status: string) => {
-  return unwrap((await httpClient.patch<ApiResponse<{ id: number; status: string }>>(`/api/admin/beta-reports/${id}/status`, { status })).data);
+export const updateAdminBugReportStatus = async (id: number, status: BugReportStatus) => {
+  return unwrap((await httpClient.patch<ApiResponse<{ id: number; status: BugReportStatus }>>(`/api/admin/beta-reports/${id}/status`, { status })).data);
 };
 
 export const assignAdminBugReport = async (id: number, assignedToId?: number | null) => {
@@ -62,7 +63,7 @@ export const createBugReportComment = async (id: number, content: string) => {
   return unwrap((await httpClient.post<ApiResponse<BugReportCommentDto>>(`/api/beta/reports/${id}/comments`, { content })).data);
 };
 
-export const updateAdminCampaign = async (id: number, payload: { name?: string; description?: string; status?: string; startsAt?:string; endsAt?:string }) => {
+export const updateAdminCampaign = async (id: number, payload: { name?: string; description?: string; status?: BetaCampaignStatus; startsAt?:string; endsAt?:string }) => {
   return unwrap((await httpClient.patch<ApiResponse<Record<string, unknown>>>(`/api/admin/beta-campaigns/${id}`, payload)).data);
 };
 

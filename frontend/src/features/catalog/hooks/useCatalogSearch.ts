@@ -12,6 +12,7 @@ import {
   parseCatalogNumber,
 } from '../lib/catalogSearch';
 import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 interface UseCatalogSearchOptions {
   category?: string;
@@ -39,7 +40,7 @@ export const useCatalogSearch = ({
   const page = Math.max(1, parseCatalogNumber(searchParams.get('page')) ?? 1);
   const inStock = searchParams.get('inStock') === '1';
   const searchPayload = useMemo(
-    () => ({
+    () => omitUndefinedProperties({
       category: fixedCategory ?? (category !== ALL_CATALOG_FILTER ? category : undefined),
       q: query.trim() || undefined,
       sellingType:

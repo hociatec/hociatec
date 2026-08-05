@@ -1,4 +1,4 @@
-import { httpClient } from '@/shared/lib/httpClient';
+import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export interface NewsArticleDto {
@@ -48,7 +48,10 @@ export const fetchNewsArticles = async ({
 } & RequestOptions = {}): Promise<{ items: NewsArticleDto[]; meta: PaginationMeta }> => {
   const { data } = await httpClient.get<
     ApiResponse<{ items: NewsArticleDto[]; meta: PaginationMeta }>
-  >('/api/public/news', { params: { page, perPage, q: q?.trim() || undefined }, signal });
+  >('/api/public/news', {
+    params: { page, perPage, ...(q?.trim() ? { q: q.trim() } : {}) },
+    ...requestSignalConfig(signal),
+  });
 
   if (isApiOk(data)) return data.data;
   throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les actualités.');
@@ -60,7 +63,7 @@ export const fetchNewsArticle = async (
 ): Promise<NewsArticleDto> => {
   const { data } = await httpClient.get<ApiResponse<{ article: NewsArticleDto }>>(
     `/api/public/news/${encodeURIComponent(slug)}`,
-    { signal: options.signal },
+    requestSignalConfig(options.signal),
   );
 
   if (isApiOk(data)) return data.data.article;
@@ -76,7 +79,7 @@ export const fetchNewsComments = async (
     ApiResponse<{ items: NewsCommentDto[]; meta: PaginationMeta }>
   >(`/api/public/news/${encodeURIComponent(slug)}/comments`, {
     params: { page, perPage: 10 },
-    signal: options.signal,
+    ...requestSignalConfig(options.signal),
   });
 
   if (isApiOk(data)) return data.data;

@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 
 type AdminOrderClientAccessProps = {
   orderId: number;
-  userId?: number;
+  userId?: number | undefined;
 };
 
 export const AdminOrderClientAccess = ({ orderId, userId }: AdminOrderClientAccessProps) => (

@@ -63,7 +63,7 @@ export const useProductGallery = () => {
       return;
     }
 
-    const fallback = initialGallery[index];
+    const fallback = initialGallery[index] ?? null;
     setGalleryPreviews((previous) =>
       previous.map((value, itemIndex) => (itemIndex === index ? fallback : value)),
     );

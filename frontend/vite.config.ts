@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { execSync } from 'node:child_process';
@@ -20,20 +20,21 @@ const readGitCommitSha = () => {
 };
 
 const shouldAnalyzeBundle = process.env.BUNDLE_ANALYZE === '1';
-
-export default defineConfig(() => ({
-  base: '/',
-  plugins: [
-    react(),
-    shouldAnalyzeBundle
-      ? visualizer({
+const plugins: PluginOption[] = [
+  react(),
+  ...(shouldAnalyzeBundle
+    ? [visualizer({
         filename: 'dist/bundle-stats.html',
         gzipSize: true,
         brotliSize: true,
         template: 'treemap',
-      })
-      : undefined,
-  ],
+      }) as PluginOption]
+    : []),
+];
+
+export default defineConfig(() => ({
+  base: '/',
+  plugins,
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(
       process.env.VITE_APP_VERSION ?? process.env.npm_package_version ?? '0.0.0',

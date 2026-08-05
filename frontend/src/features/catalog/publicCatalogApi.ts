@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
 
-import { getHttpErrorMessage, httpClient } from '@/shared/lib/httpClient';
+import { getHttpErrorMessage, httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
 import type {
@@ -46,7 +46,7 @@ export const fetchPublicCategory = async (slug: string, options: RequestOptions 
   try {
     const { data } = await httpClient.get<ApiResponse<CategoryWithProducts>>(
       `/api/public/catalog/categories/${slug}`,
-      { signal: options.signal },
+      requestSignalConfig(options.signal),
     );
 
     if (data.status === 'success') {
@@ -63,7 +63,7 @@ export const fetchPublicProduct = async (slug: string, options: RequestOptions =
   try {
     const { data } = await httpClient.get<ApiResponse<CatalogProduct>>(
       `/api/public/catalog/products/${slug}`,
-      { signal: options.signal },
+      requestSignalConfig(options.signal),
     );
 
     if (data.status === 'success') {
@@ -210,7 +210,7 @@ export const fetchPublicProducts = async (
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
       '/api/public/catalog/products',
-      { params: queryParams, signal: params.signal },
+      { params: queryParams, ...requestSignalConfig(params.signal) },
     );
 
     if (data.status === 'success') {
@@ -263,7 +263,7 @@ export const searchPublicProducts = async (
   try {
     const { data } = await httpClient.get<
       ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>
-    >('/api/public/catalog/products', { params: queryParams, signal: params.signal });
+    >('/api/public/catalog/products', { params: queryParams, ...requestSignalConfig(params.signal) });
 
     if (data.status === 'success') {
       return parseCatalogSearchPayload(data.data);

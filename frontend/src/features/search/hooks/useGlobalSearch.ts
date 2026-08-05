@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
+import { searchPublicProducts, type CatalogProduct, type CatalogSort } from '@/features/catalog/publicApi';
 import { fetchPublicQuoteServices } from '@/features/quotes/publicApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/publicApi';
@@ -10,6 +10,7 @@ import {
   type TrainingDto,
 } from '@/features/trainings/publicApi';
 import { searchQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const normalize = (value: string | null | undefined) =>
   (value ?? '')
@@ -53,16 +54,16 @@ export const useGlobalSearch = (query: string, limit = 6): GlobalSearchState => 
     queryKey: searchQueryKeys.global(query, limit),
     queryFn: async ({ signal }) => {
       const [productResult, serviceItems, trainingItems, newsResult] = await Promise.all([
-        searchPublicProducts({
+        searchPublicProducts(omitUndefinedProperties({
           q: query || undefined,
           page: 1,
           perPage: limit,
-          sort: query ? 'relevance' : 'created_desc',
+          sort: (query ? 'relevance' : 'created_desc') as CatalogSort,
           signal,
-        }),
+        })),
         fetchPublicQuoteServices({ signal }),
         fetchPublicTrainings(undefined, { signal }),
-        fetchNewsArticles({ q: query || undefined, page: 1, perPage: limit, signal }),
+        fetchNewsArticles(omitUndefinedProperties({ q: query || undefined, page: 1, perPage: limit, signal })),
       ]);
 
       return { productResult, serviceItems, trainingItems, newsResult };

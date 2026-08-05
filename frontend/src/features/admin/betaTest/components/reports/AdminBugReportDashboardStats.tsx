@@ -10,14 +10,14 @@ export const AdminBugReportDashboardStats = ({ dashboard }: AdminBugReportDashbo
 
   return (
     <section className="mb-6 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-      {[
+      {([
         ['Signalements ouverts', dashboard.stats.openReports],
         ['Critiques ou hauts', dashboard.stats.criticalOrHigh],
         ['Réponse admin attendue', dashboard.stats.awaitingAdminReply],
         ['Réponse client attendue', dashboard.stats.awaitingUserReply],
         ['Corrigés récemment', dashboard.stats.recentFixed],
         ['Campagnes actives', dashboard.stats.activeCampaigns],
-      ].map(([label, value]) => (
+      ] satisfies Array<[string, number]>).map(([label, value]) => (
         <MetricCard
           key={label}
           label={String(label)}

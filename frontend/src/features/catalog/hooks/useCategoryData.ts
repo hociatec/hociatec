@@ -11,6 +11,7 @@ import {
 } from '@/features/catalog/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const emptyFacets: CatalogSearchFacets = {
   brands: [],
@@ -23,7 +24,7 @@ const emptyFacets: CatalogSearchFacets = {
 const initialMeta: CatalogSearchMeta = { page: 1, perPage: 12, total: 0, totalPages: 1 };
 
 interface CategorySearchParams {
-  slug?: string;
+  slug?: string | undefined;
   search: string;
   brand: string;
   storageCapacity: string;
@@ -52,7 +53,7 @@ export const useCategoryData = ({
   sort,
 }: CategorySearchParams) => {
   const productsPayload = useMemo(
-    () => ({
+    () => omitUndefinedProperties({
       category: slug,
       q: search.trim() || undefined,
       brand: brand !== 'all' ? brand : undefined,

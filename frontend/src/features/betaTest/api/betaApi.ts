@@ -1,9 +1,11 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
-export interface BetaCampaign { id:number; name:string; description:string; status:string; startsAt?:string|null; endsAt?:string|null; }
+import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
+
+export interface BetaCampaign { id:number; name:string; description:string; status:BetaCampaignStatus; startsAt?:string|null; endsAt?:string|null; }
 export interface PaginationMeta { page:number; perPage:number; total:number; totalPages:number; }
-export interface BugReport { id:number; title:string; description:string; expectedBehavior?:string|null; actualBehavior?:string|null; severity:string; status:string; pageUrl?:string|null; campaignId?:number|null; campaign?:string|null; assignedTo?:{id:number;name:string;email:string}|null; duplicateOf?:{id:number;title:string}|null; duplicateReason?:string|null; attachments:string[]; attachmentUrls:string[]; createdAt:string; updatedAt?:string; lastAdminReplyAt?:string|null; lastReporterReplyAt?:string|null; }
+export interface BugReport { id:number; title:string; description:string; expectedBehavior?:string|null; actualBehavior?:string|null; severity:string; status:BugReportStatus; pageUrl?:string|null; campaignId?:number|null; campaign?:string|null; assignedTo?:{id:number;name:string;email:string}|null; duplicateOf?:{id:number;title:string}|null; duplicateReason?:string|null; attachments:string[]; attachmentUrls:string[]; createdAt:string; updatedAt?:string; lastAdminReplyAt?:string|null; lastReporterReplyAt?:string|null; }
 export type BetaChoice = { value: string; label: string };
 export type BetaProfileChoices = Record<string, BetaChoice[]>;
 export interface BetaProfileDto {

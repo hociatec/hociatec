@@ -69,8 +69,9 @@ describe('buildProductStructuredData', () => {
       'Laptop Pro',
       'https://hociatec.fr/catalogue/produits/laptop-pro',
     );
+    expect(productSchema).toBeDefined();
 
-    expect(productSchema.offers).toMatchObject({
+    expect(productSchema?.offers).toMatchObject({
       availability: 'https://schema.org/OutOfStock',
     });
   });

@@ -1,9 +1,10 @@
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
+import type { BetaCampaignStatus } from '@/shared/contracts/statuses';
 
 export interface CampaignFormState {
   name: string;
   description: string;
-  status: string;
+  status: BetaCampaignStatus;
   startsAt: string;
   endsAt: string;
 }

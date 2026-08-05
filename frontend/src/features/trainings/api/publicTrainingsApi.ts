@@ -1,4 +1,4 @@
-import { httpClient } from '@/shared/lib/httpClient';
+import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
 import type { TrainingCategoryDto, TrainingDto, TrainingSessionDto } from './trainingTypes';
@@ -14,7 +14,10 @@ export const fetchPublicTrainings = async (
   return trainingRequest(async () => {
     const res = await httpClient.get<ApiResponse<{ items: TrainingDto[] }>>(
       TRAINING_API_ROUTES.publicList,
-      { params: category ? { category } : undefined, signal: options.signal },
+      {
+        ...(category ? { params: { category } } : {}),
+        ...requestSignalConfig(options.signal),
+      },
     );
     return unwrapTrainingData(res.data).items;
   }, 'Impossible de charger les formations.');
@@ -26,7 +29,7 @@ export const fetchPublicTrainingCategories = async (
   return trainingRequest(async () => {
     const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
       TRAINING_API_ROUTES.publicCategories,
-      { signal: options.signal },
+      requestSignalConfig(options.signal),
     );
     return unwrapTrainingData(res.data).items;
   }, 'Impossible de charger les catégories de formation.');
@@ -39,7 +42,7 @@ export const fetchPublicTraining = async (
   return trainingRequest(async () => {
     const res = await httpClient.get<
       ApiResponse<{ training: TrainingDto; sessions: TrainingSessionDto[] }>
-    >(TRAINING_API_ROUTES.publicDetail(slug), { signal: options.signal });
+    >(TRAINING_API_ROUTES.publicDetail(slug), requestSignalConfig(options.signal));
     return unwrapTrainingData(res.data);
   }, 'Impossible de charger la formation.');
 };

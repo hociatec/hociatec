@@ -98,9 +98,9 @@ export const AppointmentStepTwo = ({
     </div>
     <FullCalendar
       ref={calendarRef}
-      plugins={plugins}
+      {...(plugins ? { plugins } : {})}
       initialView="dayGridMonth"
-      locales={locales}
+      {...(locales ? { locales } : {})}
       locale={locale}
       height="auto"
       dateClick={handleDateClick}
