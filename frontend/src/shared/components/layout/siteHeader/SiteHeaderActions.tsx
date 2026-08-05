@@ -54,7 +54,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
   const canSubmitSearch = search.trim().length > 0;
 
   const handleLogout = () => {
-    logout();
+    void logout();
     navigate('/');
   };
 

@@ -2,7 +2,7 @@ import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
-import { parseCheckoutRedirect, parseOrder } from './orderValidation';
+import { parseCheckoutRedirect, parseOrder, parsePendingReview } from './orderValidation';
 
 export interface CheckoutRedirectDto {
   mode: 'redirect';
@@ -145,7 +145,7 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
   );
 
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data.items.map(parsePendingReview);
   }
 
   const message =

@@ -8,6 +8,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { logger } from '@/shared/lib/logger';
 
 import './LoginPage.css';
 
@@ -55,7 +56,9 @@ export const ResetPasswordPage = () => {
       setError(nextError);
       try {
         toast.show(nextError, { variant: 'error' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password mismatch toast.', { error });
+      }
       return;
     }
 
@@ -65,7 +68,9 @@ export const ResetPasswordPage = () => {
       setError(nextError);
       try {
         toast.show(nextError, { variant: 'error' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password rule toast.', { error });
+      }
       return;
     }
 
@@ -77,7 +82,9 @@ export const ResetPasswordPage = () => {
       setMessage(nextMessage);
       try {
         toast.show(nextMessage, { variant: 'success' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password reset success toast.', { error });
+      }
       window.setTimeout(() => navigate('/login', { replace: true }), 1200);
     } catch (submissionError) {
       const nextError =
@@ -87,7 +94,9 @@ export const ResetPasswordPage = () => {
       setError(nextError);
       try {
         toast.show(nextError, { variant: 'error' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password reset error toast.', { error });
+      }
     } finally {
       setLoading(false);
     }

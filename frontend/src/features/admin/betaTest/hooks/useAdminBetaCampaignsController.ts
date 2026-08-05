@@ -13,6 +13,7 @@ import {
 import { emptyCampaignForm, type CampaignFormState } from '../lib/campaignForms';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
 
 const REPORTS_PER_PAGE = 6;
 
@@ -39,12 +40,12 @@ export const useAdminBetaCampaignsController = () => {
   });
 
   const { data: campaigns = [], isLoading, error } = useQuery({
-    queryKey: ['adminCampaigns'],
+    queryKey: adminBetaQueryKeys.campaigns(),
     queryFn: fetchAdminCampaigns,
   });
 
   const { data: commentsResult, isLoading: loadingComments } = useQuery({
-    queryKey: ['bugReportComments', selectedReportId, commentsPage],
+    queryKey: adminBetaQueryKeys.bugReportCommentsPage(selectedReportId, commentsPage),
     queryFn: () => fetchBugReportComments(selectedReportId!, commentsPage),
     enabled: selectedReportId !== null,
   });
@@ -52,7 +53,7 @@ export const useAdminBetaCampaignsController = () => {
   const createMutation = useMutation({
     mutationFn: (payload: CampaignFormState) => createAdminCampaign(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminCampaigns'] });
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.campaigns() });
       toast.show('La campagne bêta a été créée avec succès.', { variant: 'success' });
       setIsAddOpen(false);
       setAddForm(emptyCampaignForm());
@@ -66,7 +67,7 @@ export const useAdminBetaCampaignsController = () => {
     mutationFn: ({ id, payload }: { id: number; payload: CampaignFormState }) =>
       updateAdminCampaign(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminCampaigns'] });
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.campaigns() });
       toast.show('La campagne bêta a été mise à jour.', { variant: 'success' });
       setIsEditOpen(false);
       setSelectedCampaign(null);
@@ -79,7 +80,7 @@ export const useAdminBetaCampaignsController = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteAdminCampaign(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminCampaigns'] });
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.campaigns() });
       toast.show('La campagne bêta a été supprimée.', { variant: 'success' });
     },
     onError: (err) => {
@@ -91,7 +92,9 @@ export const useAdminBetaCampaignsController = () => {
     mutationFn: () => createBugReportComment(selectedReportId!, newCommentText),
     onSuccess: () => {
       setNewCommentText('');
-      queryClient.invalidateQueries({ queryKey: ['bugReportComments', selectedReportId] });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportComments(selectedReportId),
+      });
       toast.show('Message envoyé.', { variant: 'success' });
     },
     onError: (err) => {

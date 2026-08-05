@@ -12,6 +12,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
+import { adminBetaQueryKeys, betaQueryKeys } from '@/shared/lib/queryKeys';
 
 type BetaBugReportDialogProps = {
   open: boolean;
@@ -39,8 +40,8 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId, campaignName }:
   const createMutation = useMutation({
     mutationFn: () => createBugReport({ ...form, campaignId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['betaReports'] });
-      queryClient.invalidateQueries({ queryKey: ['adminBugReports'] });
+      queryClient.invalidateQueries({ queryKey: betaQueryKeys.reports() });
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.bugReports() });
       toast.show('Votre signalement a été transmis avec succès.', { variant: 'success' });
       closeDialog();
     },

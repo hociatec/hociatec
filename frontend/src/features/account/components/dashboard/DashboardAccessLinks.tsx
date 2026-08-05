@@ -15,13 +15,14 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchMyBetaProfile } from '@/features/betaTest/api/betaApi';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DashboardAuditCard } from './DashboardAuditCard';
+import { betaQueryKeys } from '@/shared/lib/queryKeys';
 
 export const DashboardAccessLinks = () => {
   const { status, user } = useAuth();
   const isAuthenticated = status === 'authenticated' && Boolean(user);
 
   const { data: betaProfile } = useQuery({
-    queryKey: ['betaProfile'],
+    queryKey: betaQueryKeys.profile(),
     queryFn: fetchMyBetaProfile,
     enabled: isAuthenticated,
     retry: false,

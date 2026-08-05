@@ -6,6 +6,8 @@ import {
   createApiResponseError,
   getHttpErrorMessage,
   getHttpErrorMessageAsync,
+  normalizeHttpError,
+  shouldAttachIdempotencyKey,
   isCsrfFailureResponse,
   shouldAttachCsrfToken,
 } from './httpClient';
@@ -27,6 +29,41 @@ describe('getHttpErrorMessage', () => {
     const error = new AxiosError('Network Error');
 
     expect(getHttpErrorMessage(error)).toContain('service est momentanément indisponible');
+  });
+
+  it('hides technical backend details and keeps the request id', () => {
+    const error = new AxiosError('Request failed', '500', undefined, undefined, {
+      data: {
+        error: {
+          message: 'SQLSTATE[23000]: SELECT password FROM users',
+          requestId: 'req_123',
+        },
+      },
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    });
+
+    expect(getHttpErrorMessage(error)).toBe(
+      'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants. Référence : req_123',
+    );
+  });
+
+  it('normalizes rate limit responses with Retry-After', () => {
+    const error = new AxiosError('Request failed', '429', undefined, undefined, {
+      data: { message: 'Trop de tentatives.' },
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: { 'retry-after': '12' },
+      config: { headers: new AxiosHeaders() },
+    });
+
+    expect(normalizeHttpError(error)).toMatchObject({
+      kind: 'rate_limit',
+      retryAfterSeconds: 12,
+      status: 429,
+    });
   });
 
   it('reads API messages from blob download errors', async () => {
@@ -78,5 +115,15 @@ describe('shouldAttachCsrfToken', () => {
     expect(isCsrfFailureResponse(419)).toBe(true);
     expect(isCsrfFailureResponse(403, { message: 'Jeton CSRF invalide ou manquant.' })).toBe(true);
     expect(isCsrfFailureResponse(403, { message: 'Accès interdit.' })).toBe(false);
+  });
+});
+
+describe('shouldAttachIdempotencyKey', () => {
+  it('attaches idempotency keys only to unsafe methods', () => {
+    expect(shouldAttachIdempotencyKey('get')).toBe(false);
+    expect(shouldAttachIdempotencyKey('head')).toBe(false);
+    expect(shouldAttachIdempotencyKey('post')).toBe(true);
+    expect(shouldAttachIdempotencyKey('patch')).toBe(true);
+    expect(shouldAttachIdempotencyKey('delete')).toBe(true);
   });
 });

@@ -7,6 +7,7 @@ import type {
   UpsertBrandPayload,
   UpsertCategoryPayload,
 } from './apiTypes';
+import { parseCatalogBrand, parseCatalogCategory } from './catalogValidation';
 
 export const fetchAdminCategories = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
@@ -14,7 +15,7 @@ export const fetchAdminCategories = async () => {
   );
 
   if (data.status === 'success') {
-    return data.data.items;
+    return data.data.items.map(parseCatalogCategory);
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les catégories.'));
@@ -26,7 +27,7 @@ export const fetchAdminCategory = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return parseCatalogCategory(data.data);
   }
 
   throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
@@ -39,7 +40,7 @@ export const createCategory = async (payload: UpsertCategoryPayload) => {
   );
 
   if (isApiOk(data)) {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogCategory>;
+    return { data: parseCatalogCategory(data.data), message: data.message } satisfies ApiMutationResult<CatalogCategory>;
   }
 
   throw new Error(extractErrorMessage(data, 'Création de catégorie impossible.'));
@@ -52,7 +53,7 @@ export const updateCategory = async (id: number, payload: UpsertCategoryPayload)
   );
 
   if (data.status === 'success') {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogCategory>;
+    return { data: parseCatalogCategory(data.data), message: data.message } satisfies ApiMutationResult<CatalogCategory>;
   }
 
   throw new Error(extractErrorMessage(data, 'Mise à jour de la catégorie impossible.'));
@@ -76,7 +77,7 @@ export const fetchAdminBrands = async () => {
   );
 
   if (data.status === 'success') {
-    return data.data.items;
+    return data.data.items.map(parseCatalogBrand);
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les marques.'));
@@ -88,7 +89,7 @@ export const fetchAdminBrand = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return parseCatalogBrand(data.data);
   }
 
   throw new Error(extractErrorMessage(data, 'Marque introuvable.'));
@@ -101,7 +102,7 @@ export const createBrand = async (payload: UpsertBrandPayload) => {
   );
 
   if (isApiOk(data)) {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogBrand>;
+    return { data: parseCatalogBrand(data.data), message: data.message } satisfies ApiMutationResult<CatalogBrand>;
   }
 
   throw new Error(extractErrorMessage(data, 'Création de la marque impossible.'));
@@ -114,7 +115,7 @@ export const updateBrand = async (id: number, payload: UpsertBrandPayload) => {
   );
 
   if (data.status === 'success') {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<CatalogBrand>;
+    return { data: parseCatalogBrand(data.data), message: data.message } satisfies ApiMutationResult<CatalogBrand>;
   }
 
   throw new Error(extractErrorMessage(data, 'Mise à jour de la marque impossible.'));

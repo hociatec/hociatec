@@ -19,6 +19,7 @@ import { type AdminQuoteFormState } from '@/features/admin/quotes/components/Adm
 import { useAdminQuoteItems } from './useAdminQuoteItems';
 import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
+import { logger } from '@/shared/lib/logger';
 
 const toQuoteFormState = (quote: QuoteDto): AdminQuoteFormState => ({
   ...quote,
@@ -104,7 +105,9 @@ export const useAdminQuoteFormController = () => {
       setError(msg);
       try {
         toast.show(msg, { variant: 'error' });
-      } catch {}
+      } catch (toastError) {
+        logger.warn('Unable to display quote form load error toast.', { error: toastError });
+      }
     } finally {
       setLoading(false);
     }
@@ -142,13 +145,17 @@ export const useAdminQuoteFormController = () => {
         toast.show(successMessage, {
           variant: emailNotificationSent ? 'success' : emailNotificationError ? 'info' : 'success',
         });
-      } catch {}
+      } catch (toastError) {
+        logger.warn('Unable to display quote save success toast.', { error: toastError });
+      }
     } catch (e) {
       const msg = getHttpErrorMessage(e, 'Échec de sauvegarde.');
       setError(msg);
       try {
         toast.show(msg, { variant: 'error' });
-      } catch {}
+      } catch (toastError) {
+        logger.warn('Unable to display quote save error toast.', { error: toastError });
+      }
     } finally {
       setSaving(false);
     }

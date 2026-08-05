@@ -14,6 +14,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { SITE_URL, LOCAL_BUSINESS_SCHEMA, CONTACT_EMAIL } from '@/shared/config/seoConfig';
 import { sendContactMessage } from '../api/contactApi';
+import { logger } from '@/shared/lib/logger';
 
 export const ContactPage = () => {
   useDocumentTitle('Contact');
@@ -63,7 +64,9 @@ export const ContactPage = () => {
         toast.show(response.message ?? 'Votre message a été envoyé.', {
           variant: 'success',
         });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display contact success toast.', { error });
+      }
       setSubmitSuccess(true);
       setSubmitSuccessMessage(response.message ?? null);
       setName('');
@@ -75,7 +78,9 @@ export const ContactPage = () => {
       setSubmitError(details?.[0] ?? (err as Error).message);
       try {
         toast.show(details?.[0] ?? (err as Error).message, { variant: 'error' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display contact error toast.', { error });
+      }
     } finally {
       setLoading(false);
     }

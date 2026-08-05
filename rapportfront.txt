@@ -65,203 +65,6 @@ Ce token ne doit jamais :
 
 Le backend doit générer un token aléatoire suffisamment long, le faire expirer et éventuellement le hacher en base.
 
-
-1.9 Encadrer les données dans localStorage
-------------------------------------------
-
-L’adresse e-mail mémorisée sur la page de connexion est acceptable fonctionnellement, mais elle reste une donnée personnelle accessible à tous les scripts exécutés sur le domaine.
-
-Il faut :
-- informer clairement l’utilisateur ;
-- ne rien enregistrer de plus sensible ;
-- supprimer la valeur lors d’un changement de compte ;
-- limiter sa durée de conservation si possible.
-
-Ne jamais stocker dans localStorage :
-- JWT ;
-- token de session ;
-- mot de passe ;
-- permissions considérées comme fiables ;
-- données de paiement ;
-- informations administratives sensibles.
-
-
-1.10 Ne pas exposer les détails techniques du backend
------------------------------------------------------
-
-Le frontend possède plusieurs mécanismes pour afficher les erreurs provenant de l’API.
-
-Il faut vérifier que les messages PHP ne puissent pas afficher :
-- stack traces ;
-- requêtes SQL ;
-- chemins serveur ;
-- noms de tables ;
-- configuration interne ;
-- informations de fournisseurs ;
-- détails d’exception.
-
-En production, le frontend doit afficher un message métier et éventuellement un requestId.
-
-
-2. AUTHENTIFICATION ET SESSIONS
-===============================
-
-2.1 Supprimer le double mécanisme de renouvellement
----------------------------------------------------
-
-Le renouvellement de session est géré à deux endroits.
-
-Dans shared/lib/httpClient.ts, l’intercepteur traite les 401.
-
-Dans features/auth/context/AuthContext.tsx, loadUser() effectue également :
-
-    await refreshUserSession();
-    const currentUser = await fetchCurrentUser();
-
-Cela complexifie le comportement et peut générer :
-- des requêtes supplémentaires ;
-- des renouvellements en double ;
-- des différences selon l’appel ;
-- des états d’authentification incohérents.
-
-Architecture recommandée :
-
-Le client HTTP doit gérer :
-- les 401 ;
-- le refresh ;
-- la mutualisation des refresh concurrents ;
-- une seule répétition de la requête.
-
-AuthContext doit gérer uniquement :
-- user ;
-- status ;
-- login ;
-- logout ;
-- mise à jour du profil.
-
-
-2.2 Ne pas transformer toutes les erreurs en déconnexion
---------------------------------------------------------
-
-Dans AuthContext, une erreur non liée à l’authentification aboutit à :
-
-    setUser(null);
-    setStatus('unauthenticated');
-
-Ainsi, une panne réseau, une erreur 500 ou un timeout peut donner l’impression que l’utilisateur a été déconnecté.
-
-Correction recommandée :
-
-    type AuthStatus =
-      | 'idle'
-      | 'loading'
-      | 'authenticated'
-      | 'unauthenticated'
-      | 'unavailable';
-
-Une panne temporaire ne doit pas supprimer immédiatement l’état d’authentification local.
-
-
-2.3 Éviter les changements d’état après démontage
--------------------------------------------------
-
-loadUser() et plusieurs autres hooks asynchrones peuvent terminer après le démontage du composant.
-
-Utiliser :
-- AbortController ;
-- le signal de React Query ;
-- une vérification d’annulation ;
-- une architecture de requêtes centralisée.
-
-C’est particulièrement pertinent avec les 260 occurrences de useEffect détectées.
-
-
-2.4 Rendre logout réellement asynchrone
----------------------------------------
-
-Actuellement :
-
-    logout: () => void;
-
-et :
-
-    void logoutUser().catch(...)
-
-L’interface considère donc la déconnexion comme terminée immédiatement, même si le backend n’a pas invalidé la session.
-
-Proposition :
-
-    logout: () => Promise<void>;
-
-Puis :
-
-    const logout = async () => {
-      clearLocalSessionState();
-
-      try {
-        await logoutUser();
-      } finally {
-        queryClient.clear();
-      }
-    };
-
-
-2.5 Vider le cache React Query à la déconnexion
------------------------------------------------
-
-Aucun nettoyage global du QueryClient n’apparaît dans AuthContext.
-
-Cela peut laisser en mémoire des données du compte précédent :
-- commandes ;
-- profil ;
-- tickets ;
-- campagnes bêta ;
-- informations administratives.
-
-Correction :
-
-    queryClient.clear();
-
-Ou supprimer sélectivement les données liées à l’utilisateur.
-
-
-2.6 Vider les autres contextes à la déconnexion
------------------------------------------------
-
-Le panier, les favoris et d’autres états globaux doivent être resynchronisés lors :
-- de la connexion ;
-- de la déconnexion ;
-- du changement d’utilisateur ;
-- de la suppression du compte.
-
-Éviter que l’état du compte A soit brièvement visible après connexion au compte B.
-
-
-2.7 Éviter console.debug avec des erreurs d’authentification
-------------------------------------------------------------
-
-Dans AuthContext :
-
-    console.debug('No active authentication session to refresh.', refreshError);
-
-Selon l’erreur Axios, cela peut afficher des informations de requête ou de réponse.
-
-En production, passer par un logger contrôlé avec filtrage des données sensibles.
-
-
-2.8 Synchroniser les onglets
-----------------------------
-
-Si l’utilisateur se déconnecte dans un onglet, les autres onglets peuvent rester affichés comme connectés.
-
-Utiliser :
-- BroadcastChannel ;
-- un événement storage ;
-- ou une vérification légère lors du retour au premier plan.
-
-Ne pas oublier de vider les caches dans tous les onglets.
-
-
 3. CLIENT HTTP ET CONTRAT API
 =============================
 
@@ -309,65 +112,6 @@ Avec des statuts HTTP corrects :
 - 500 serveur.
 
 
-3.2 Centraliser complètement le décodage des erreurs
-----------------------------------------------------
-
-Le projet possède plusieurs fonctions et traitements autour des erreurs :
-- createApiResponseError ;
-- getHttpErrorMessage ;
-- getHttpErrorMessageAsync ;
-- traitements Axios spécifiques ;
-- constructions manuelles dans les pages.
-
-Il faut éviter que chaque fonctionnalité interprète différemment le backend.
-
-Créer un type central :
-
-    interface AppError {
-      kind:
-        | 'network'
-        | 'authentication'
-        | 'authorization'
-        | 'validation'
-        | 'conflict'
-        | 'rate_limit'
-        | 'server'
-        | 'unknown';
-      code?: string;
-      message: string;
-      fields?: Record<string, string[]>;
-      requestId?: string;
-      status?: number;
-    }
-
-Puis une fonction unique :
-
-    normalizeHttpError(error: unknown): AppError
-
-
-3.3 Ajouter des timeouts
-------------------------
-
-Le client Axios ne définit pas de timeout.
-
-Une requête peut donc sembler bloquée très longtemps.
-
-Correction :
-
-    axios.create({
-      baseURL: API_BASE_URL,
-      withCredentials: true,
-      timeout: 15_000,
-    });
-
-Prévoir des timeouts différents pour :
-- requêtes standards ;
-- uploads ;
-- exports ;
-- génération de sauvegardes ;
-- opérations longues.
-
-
 3.4 Ajouter l’annulation des requêtes
 -------------------------------------
 
@@ -378,62 +122,6 @@ Axios accepte AbortSignal :
     httpClient.get('/products', { signal });
 
 React Query fournit directement un signal à queryFn.
-
-
-3.5 Gérer explicitement le statut 429
--------------------------------------
-
-Le frontend doit prévoir :
-- un message clair ;
-- la lecture éventuelle de Retry-After ;
-- un blocage temporaire du bouton ;
-- l’absence de répétition agressive.
-
-C’est particulièrement important pour :
-- login ;
-- mot de passe oublié ;
-- contact ;
-- création de compte ;
-- génération de documents ;
-- campagnes marketing.
-
-
-3.6 Ne pas retenter automatiquement toutes les mutations
---------------------------------------------------------
-
-Le QueryClient global définit actuellement :
-
-    retry: false
-
-C’est prudent, mais trop général.
-
-La bonne stratégie dépend de la requête :
-- GET idempotent : une ou deux nouvelles tentatives possibles ;
-- création de commande : pas de retry aveugle ;
-- paiement : jamais sans clé d’idempotence ;
-- mise à jour simple : selon le cas ;
-- recherche : retry léger possible.
-
-Configurer les retries par domaine.
-
-
-3.7 Utiliser des clés d’idempotence côté backend
-------------------------------------------------
-
-Pour les actions sensibles :
-- création de commande ;
-- paiement ;
-- envoi d’e-mail ;
-- création de devis ;
-- remboursement ;
-- réservation ;
-- génération de facture.
-
-Le frontend devrait envoyer une clé :
-
-    Idempotency-Key: 6b26...
-
-Le backend PHP doit garantir qu’un double clic ou une répétition réseau ne duplique pas l’opération.
 
 
 3.8 Générer le client depuis OpenAPI
@@ -528,62 +216,6 @@ Utiliser React Query pour toutes les données serveur :
 - profil ;
 - audits ;
 - listes administratives.
-
-
-4.2 Créer une convention de clés de requête
--------------------------------------------
-
-Éviter les chaînes dispersées.
-
-    export const orderKeys = {
-      all: ['orders'] as const,
-      lists: () => [...orderKeys.all, 'list'] as const,
-      list: (filters: OrderFilters) =>
-        [...orderKeys.lists(), filters] as const,
-      details: () => [...orderKeys.all, 'detail'] as const,
-      detail: (id: string) =>
-        [...orderKeys.details(), id] as const,
-    };
-
-Cela facilite les invalidations.
-
-
-4.3 Définir staleTime par domaine
----------------------------------
-
-Toutes les données n’ont pas la même durée de validité.
-
-Exemples :
-- catégories : plusieurs minutes ;
-- fiche produit : une à cinq minutes ;
-- commande en cours de paiement : quelques secondes ;
-- permissions : durée de session ou courte ;
-- contenu légal : longue durée ;
-- données admin opérationnelles : courte durée.
-
-
-4.4 Ne pas désactiver globalement refetchOnWindowFocus
-------------------------------------------------------
-
-Le projet configure :
-
-    refetchOnWindowFocus: false
-
-pour toutes les requêtes.
-
-Cela évite certains rechargements gênants, mais empêche aussi la mise à jour de données importantes après un retour dans l’onglet.
-
-Choisir par requête :
-
-    refetchOnWindowFocus: true
-
-pour :
-- commandes ;
-- paiements ;
-- audits ;
-- tableaux de bord ;
-- tickets ;
-- réservations.
 
 
 4.5 Gérer l’optimistic update avec prudence
@@ -870,50 +502,6 @@ Une fonction de mapping permet de normaliser les dates, montants et valeurs opti
 7. GESTION DES ERREURS
 ======================
 
-7.1 Éliminer les catch {} silencieux
-------------------------------------
-
-Plusieurs fichiers contiennent des blocs vides :
-- ResetPasswordPage.tsx
-- ActivationPage.tsx
-- ForgotPasswordPage.tsx
-- RegisterPage.tsx
-- LoginPage.tsx
-- ContactPage.tsx
-- pages d’audit ;
-- hooks de devis ;
-- pages bêta.
-
-Un catch {} masque :
-- les régressions ;
-- les erreurs de toast ;
-- les erreurs de stockage ;
-- les problèmes de navigation ;
-- les erreurs métier inattendues.
-
-Correction minimale :
-
-    catch (error) {
-      logger.warn('Unable to display notification', { error });
-    }
-
-Ou supprimer le try/catch si l’opération ne devrait pas échouer.
-
-
-7.2 Éviter les composants écrits sur une seule ligne
-----------------------------------------------------
-
-RegisterPage.tsx contient des séquences très condensées.
-
-Cela nuit à :
-- la revue de code ;
-- la couverture de tests ;
-- la lisibilité ;
-- la détection des branches.
-
-Reformater chaque étape en fonctions nommées.
-
-
 7.3 Centraliser les notifications
 ---------------------------------
 
@@ -950,17 +538,6 @@ Les états d’erreur réseau doivent afficher une action explicite :
     </Button>
 
 Pas seulement un message statique.
-
-
-7.6 Afficher le requestId du backend
-------------------------------------
-
-Exemple :
-
-    Une erreur est survenue.
-    Référence : req_01J...
-
-C’est essentiel pour relier une erreur affichée au log PHP correspondant.
 
 
 8. FORMULAIRES ET VALIDATION
@@ -1259,19 +836,6 @@ Ajouter un visualiseur de bundle et surveiller :
 - CSS global.
 
 
-11.2 Isoler complètement l’administration
------------------------------------------
-
-L’application admin doit être chargée paresseusement.
-
-Un utilisateur public ne doit pas télécharger :
-- pages admin ;
-- tableaux ;
-- outils marketing ;
-- gestion des sauvegardes ;
-- fonctionnalités bêta internes.
-
-
 11.3 Éviter les fichiers index qui annulent le tree-shaking
 -----------------------------------------------------------
 
@@ -1512,23 +1076,6 @@ La CI PHP peut publier un OpenAPI. La CI frontend valide que :
 13. OBSERVABILITÉ ET PRODUCTION
 ===============================
 
-13.1 Remplacer les console.error
---------------------------------
-
-Le projet utilise encore plusieurs console.error.
-
-Créer un service :
-
-    logger.error('Unable to load current user', {
-      error,
-      requestId,
-      route,
-    });
-
-En développement : console.
-En production : outil de monitoring avec filtrage.
-
-
 13.2 Ajouter une solution de suivi d’erreurs
 --------------------------------------------
 
@@ -1587,38 +1134,6 @@ Pour les fonctionnalités risquées ou bêta :
 
 14. CONFIGURATION ET ENVIRONNEMENTS
 ==================================
-
-14.1 Simplifier API_BASE_URL
-----------------------------
-
-appConfig.ts contient des domaines codés en dur :
-
-    hostname === 'hociatec.fr'
-
-et tente également de lire globalThis.process.
-
-Dans une application Vite navigateur, cela est inutilement complexe.
-
-Correction :
-
-    export const API_BASE_URL =
-      import.meta.env.VITE_API_BASE_URL ?? '/api';
-
-Idéalement, utiliser /api avec un reverse proxy.
-
-
-14.2 Valider les variables d’environnement
-------------------------------------------
-
-Créer un schéma :
-
-    const EnvSchema = z.object({
-      VITE_API_BASE_URL: z.string().url(),
-      VITE_APP_ENV: z.enum(['development', 'staging', 'production']),
-    });
-
-Échouer clairement au démarrage si une variable obligatoire manque.
-
 
 14.3 Séparer développement, préproduction et production
 -------------------------------------------------------
@@ -1943,15 +1458,9 @@ Choisir une convention stable :
 À corriger immédiatement
 ------------------------
 1. Validation stricte des URLs de redirection.
-2. Réinitialisation du CSRF lors des changements de session.
-3. Suppression du Content-Type JSON global pour les uploads.
-4. Nettoyage du cache React Query à la déconnexion.
-5. Suppression du double refresh d’authentification.
-6. Distinction entre panne réseau et utilisateur non authentifié.
-7. Vérification exhaustive des permissions côté PHP.
-8. Audit de la prévisualisation HTML et des liens externes.
-9. Format d’erreur API unique.
-10. Suppression des catch {} silencieux.
+2. Suppression du Content-Type JSON global pour les uploads.
+3. Vérification exhaustive des permissions côté PHP.
+4. Audit de la prévisualisation HTML et des liens externes.
 
 À faire ensuite
 ---------------
@@ -1960,11 +1469,10 @@ Choisir une convention stable :
 3. Unifier les composants UI.
 4. Découper les gros contrôleurs et composants.
 5. Ajouter un Error Boundary.
-6. Ajouter timeouts et annulation.
+6. Ajouter l’annulation des requêtes.
 7. Tester auth, paiement, commande et permissions.
 8. Ajouter Playwright et MSW.
-9. Ajouter observabilité et request IDs.
-10. Simplifier la configuration des environnements.
+9. Ajouter l’observabilité applicative.
 
 Travaux structurels
 -------------------

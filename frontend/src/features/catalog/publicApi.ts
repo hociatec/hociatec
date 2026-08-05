@@ -14,6 +14,13 @@ import type {
   ShareProductEmailPayload,
 } from './apiTypes';
 import { CatalogApiError } from './apiTypes';
+import {
+  parseCatalogCategory,
+  parseCatalogProduct,
+  parseCatalogProductsPayload,
+  parseCatalogSearchPayload,
+  parseCategoryWithProducts,
+} from './catalogValidation';
 
 export const fetchPublicCategories = async () => {
   try {
@@ -22,7 +29,7 @@ export const fetchPublicCategories = async () => {
     );
 
     if (data.status === 'success') {
-      return data.data.items;
+      return data.data.items.map(parseCatalogCategory);
     }
 
     throw new Error(extractErrorMessage(data, 'Impossible de charger les catégories.'));
@@ -38,7 +45,7 @@ export const fetchPublicCategory = async (slug: string) => {
     );
 
     if (data.status === 'success') {
-      return data.data;
+      return parseCategoryWithProducts(data.data);
     }
 
     throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
@@ -54,7 +61,7 @@ export const fetchPublicProduct = async (slug: string) => {
     );
 
     if (data.status === 'success') {
-      return data.data;
+      return parseCatalogProduct(data.data);
     }
 
     throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
@@ -201,7 +208,7 @@ export const fetchPublicProducts = async (
     );
 
     if (data.status === 'success') {
-      return data.data.items;
+      return parseCatalogProductsPayload(data.data).items;
     }
 
     throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
@@ -253,7 +260,7 @@ export const searchPublicProducts = async (
     >('/api/public/catalog/products', { params: queryParams });
 
     if (data.status === 'success') {
-      return data.data;
+      return parseCatalogSearchPayload(data.data);
     }
 
     throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));

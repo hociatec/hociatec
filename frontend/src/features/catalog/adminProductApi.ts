@@ -2,6 +2,7 @@ import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
 import type { CatalogProduct, CatalogSort, UpsertProductPayload } from './apiTypes';
+import { parseCatalogProduct, parseCatalogSearchMeta } from './catalogValidation';
 
 export interface AdminProductsPageMeta {
   page: number;
@@ -29,7 +30,7 @@ export const fetchAdminProducts = async () => {
   );
 
   if (data.status === 'success') {
-    return data.data.items;
+    return data.data.items.map(parseCatalogProduct);
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
@@ -41,7 +42,10 @@ export const fetchAdminProductsPage = async (params: AdminProductsPageParams) =>
   >('/api/admin/catalog/products', { params });
 
   if (data.status === 'success') {
-    return data.data;
+    return {
+      items: data.data.items.map(parseCatalogProduct),
+      meta: parseCatalogSearchMeta(data.data.meta),
+    };
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
@@ -53,7 +57,7 @@ export const fetchAdminProduct = async (id: number) => {
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return parseCatalogProduct(data.data);
   }
 
   throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
@@ -166,7 +170,7 @@ export const createProduct = async (payload: UpsertProductPayload) => {
   );
 
   if (isApiOk(data)) {
-    return data.data;
+    return parseCatalogProduct(data.data);
   }
 
   throw new Error(extractErrorMessage(data, 'Creation du produit impossible.'));
@@ -182,7 +186,7 @@ export const updateProduct = async (id: number, payload: UpsertProductPayload) =
   );
 
   if (data.status === 'success') {
-    return data.data;
+    return parseCatalogProduct(data.data);
   }
 
   throw new Error(extractErrorMessage(data, 'Mise à jour du produit impossible.'));

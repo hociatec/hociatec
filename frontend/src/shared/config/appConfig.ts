@@ -1,39 +1,27 @@
 export const PROJECT_TITLE = 'hociatec';
 
-const resolveDefaultApiBaseUrl = () => {
-  if (typeof window === 'undefined') {
-    return '/';
-  }
+export type AppEnv = 'development' | 'staging' | 'production' | 'test';
 
-  const { origin, hostname } = window.location;
-  if (hostname === 'hociatec.fr' || hostname === 'www.hociatec.fr') {
-    return 'https://api.hociatec.fr';
-  }
+const APP_ENVS = new Set<AppEnv>(['development', 'staging', 'production', 'test']);
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return '';
-  }
+const normalizeApiBaseUrl = (value: string | undefined) => {
+  const normalized = value?.trim().replace(/\/+$/, '') ?? '';
+  if (normalized === '') return '';
+  if (normalized.startsWith('/') && !normalized.startsWith('//')) return normalized;
 
-  return origin;
-};
-
-const resolveEnvValue = () => {
   try {
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-      return import.meta.env.VITE_API_BASE_URL;
-    }
+    return new URL(normalized).toString().replace(/\/+$/, '');
   } catch {
-    /* noop */
+    throw new Error('VITE_API_BASE_URL doit être vide, relatif ou être une URL absolue valide.');
   }
-
-  const globalProcess =
-    typeof globalThis !== 'undefined'
-      ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
-      : undefined;
-  const envValue = globalProcess?.env?.VITE_API_BASE_URL;
-  if (envValue) return envValue;
-
-  return undefined;
 };
 
-export const API_BASE_URL = resolveEnvValue() ?? resolveDefaultApiBaseUrl();
+const resolveAppEnv = (value: string | undefined): AppEnv => {
+  const normalized = value?.trim() || import.meta.env.MODE || 'development';
+  if (APP_ENVS.has(normalized as AppEnv)) return normalized as AppEnv;
+
+  throw new Error('VITE_APP_ENV doit valoir development, staging, production ou test.');
+};
+
+export const APP_ENV = resolveAppEnv(import.meta.env.VITE_APP_ENV);
+export const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);

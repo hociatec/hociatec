@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CartApiError, fetchCart } from '@/features/cart/api/cartApi';
 import type { Cart, CartStatus } from '@/features/cart/types/cart';
 import { clearCartToken, getPersistedCartToken } from '@/shared/lib/httpClient';
+import { subscribeAuthSessionEvents } from '@/shared/lib/authSessionEvents';
 
 export const useCartLifecycle = () => {
   const [cart, setCart] = useState<Cart | null>(null);
@@ -63,6 +64,19 @@ export const useCartLifecycle = () => {
     setError(null);
     setStatus('ready');
   }, []);
+
+  useEffect(
+    () =>
+      subscribeAuthSessionEvents((event) => {
+        if (event === 'logout' || event === 'account_deleted') {
+          resetAfterCheckout();
+          return;
+        }
+
+        void refresh();
+      }),
+    [refresh, resetAfterCheckout],
+  );
 
   return {
     cart,

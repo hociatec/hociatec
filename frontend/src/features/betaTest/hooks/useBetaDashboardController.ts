@@ -13,6 +13,7 @@ import {
 } from '../api/betaApi';
 import { isCampaignOpenForReports } from '../components/dashboard/betaDashboardUtils';
 import { useToast } from '@/shared/components/ui/toast';
+import { adminBetaQueryKeys, betaQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useBetaDashboardController = () => {
   const queryClient = useQueryClient();
@@ -31,19 +32,19 @@ export const useBetaDashboardController = () => {
     isLoading: isLoadingProfile,
     isError: isProfileError,
   } = useQuery<Record<string, unknown>>({
-    queryKey: ['betaProfile'],
+    queryKey: betaQueryKeys.profile(),
     queryFn: fetchMyBetaProfile,
     retry: false,
   });
 
   const { data: campaigns = [], error: campaignsError } = useQuery({
-    queryKey: ['betaCampaigns'],
+    queryKey: betaQueryKeys.campaigns(),
     queryFn: fetchBetaCampaigns,
     enabled: Boolean(profile),
   });
 
   const { data: reportsResult, error: reportsError } = useQuery({
-    queryKey: ['betaReports', reportPage],
+    queryKey: betaQueryKeys.reportsPage(reportPage),
     queryFn: () => fetchMyBugReports({ page: reportPage, perPage: 12 }),
     enabled: Boolean(profile),
   });
@@ -54,13 +55,13 @@ export const useBetaDashboardController = () => {
   const effectiveSelectedReportId = selectedReportId ?? requestedReportId;
 
   const { data: selectedReport } = useQuery({
-    queryKey: ['betaReport', effectiveSelectedReportId],
+    queryKey: betaQueryKeys.report(effectiveSelectedReportId),
     queryFn: () => fetchMyBugReport(effectiveSelectedReportId!),
     enabled: effectiveSelectedReportId !== null && Boolean(profile),
   });
 
   const { data: commentsResult, isLoading: loadingComments } = useQuery({
-    queryKey: ['myBugReportComments', effectiveSelectedReportId, commentPage],
+    queryKey: betaQueryKeys.reportCommentsPage(effectiveSelectedReportId, commentPage),
     queryFn: () => fetchBugReportComments(effectiveSelectedReportId!, commentPage),
     enabled: effectiveSelectedReportId !== null && Boolean(profile),
   });
@@ -69,8 +70,11 @@ export const useBetaDashboardController = () => {
     mutationFn: () => createBugReportComment(effectiveSelectedReportId!, newCommentText),
     onSuccess: () => {
       setNewCommentText('');
-      queryClient.invalidateQueries({ queryKey: ['myBugReportComments', effectiveSelectedReportId] });
-      queryClient.invalidateQueries({ queryKey: ['betaReports'] });
+      queryClient.invalidateQueries({
+        queryKey: betaQueryKeys.reportComments(effectiveSelectedReportId),
+      });
+      queryClient.invalidateQueries({ queryKey: betaQueryKeys.reports() });
+      queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.bugReports() });
       toast.show('Votre message a bien été envoyé.', { variant: 'success' });
     },
     onError: (err) => {

@@ -11,6 +11,7 @@ import {
 } from '../lib/betaProfileForm';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { logger } from '@/shared/lib/logger';
 
 export const BetaProfilePage = () => {
   const navigate = useNavigate();
@@ -28,10 +29,13 @@ export const BetaProfilePage = () => {
           const profile = await fetchMyBetaProfile();
           setForm(buildBetaProfileForm(profile));
           return;
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to load existing beta profile.', { error });
+        }
 
         setForm(emptyBetaProfileForm());
-      } catch {
+      } catch (error) {
+        logger.warn('Unable to load beta profile choices.', { error });
         setError('Impossible de charger les choix du profil bêta.');
       }
     };

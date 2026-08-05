@@ -8,6 +8,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { logger } from '@/shared/lib/logger';
 
 import './LoginPage.css';
 
@@ -36,7 +37,9 @@ export const ForgotPasswordPage = () => {
       setMessage(nextMessage);
       try {
         toast.show(nextMessage, { variant: 'success' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password reset request success toast.', { error });
+      }
     } catch (submissionError) {
       const nextError =
         submissionError instanceof Error
@@ -45,7 +48,9 @@ export const ForgotPasswordPage = () => {
       setError(nextError);
       try {
         toast.show(nextError, { variant: 'error' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display password reset request error toast.', { error });
+      }
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminBugReportsController = () => {
   const queryClient = useQueryClient();
@@ -46,12 +47,12 @@ export const useAdminBugReportsController = () => {
   };
 
   const { data: dashboard } = useQuery({
-    queryKey: ['adminBugReportDashboard'],
+    queryKey: adminBetaQueryKeys.bugReportDashboard(),
     queryFn: fetchAdminBugReportDashboard,
   });
 
   const { data: reportsResult, isLoading, error } = useQuery({
-    queryKey: ['adminBugReports', filters],
+    queryKey: adminBetaQueryKeys.bugReportsList(filters),
     queryFn: () => fetchAdminBugReports(filters),
   });
 
@@ -59,34 +60,36 @@ export const useAdminBugReportsController = () => {
   const meta = reportsResult?.meta ?? null;
 
   const { data: selectedReport } = useQuery({
-    queryKey: ['adminBugReport', selectedReportId],
+    queryKey: adminBetaQueryKeys.bugReport(selectedReportId),
     queryFn: () => fetchAdminBugReport(selectedReportId!),
     enabled: selectedReportId !== null,
   });
   const activeReport = reports.find((report) => report.id === selectedReportId) ?? selectedReport;
 
   const { data: commentsResult, isLoading: loadingComments } = useQuery({
-    queryKey: ['bugReportComments', selectedReportId, commentPage],
+    queryKey: adminBetaQueryKeys.bugReportCommentsPage(selectedReportId, commentPage),
     queryFn: () => fetchBugReportComments(selectedReportId!, commentPage),
     enabled: selectedReportId !== null,
   });
 
   const { data: activities = [] } = useQuery({
-    queryKey: ['bugReportActivity', selectedReportId],
+    queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
     queryFn: () => fetchBugReportActivity(selectedReportId!),
     enabled: selectedReportId !== null,
   });
 
   const refreshReports = () => {
-    queryClient.invalidateQueries({ queryKey: ['adminBugReports'] });
-    queryClient.invalidateQueries({ queryKey: ['adminBugReportDashboard'] });
+    queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.bugReports() });
+    queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.bugReportDashboard() });
   };
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => updateAdminBugReportStatus(id, status),
     onSuccess: () => {
       refreshReports();
-      queryClient.invalidateQueries({ queryKey: ['bugReportActivity', selectedReportId] });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
+      });
       toast.show('État mis à jour.', { variant: 'success' });
     },
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Mise à jour impossible.', { variant: 'error' }),
@@ -96,7 +99,9 @@ export const useAdminBugReportsController = () => {
     mutationFn: ({ id, assignedToId }: { id: number; assignedToId?: number | null }) => assignAdminBugReport(id, assignedToId),
     onSuccess: () => {
       refreshReports();
-      queryClient.invalidateQueries({ queryKey: ['bugReportActivity', selectedReportId] });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
+      });
       toast.show('Responsable mis à jour.', { variant: 'success' });
     },
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Assignation impossible.', { variant: 'error' }),
@@ -108,7 +113,9 @@ export const useAdminBugReportsController = () => {
       setDuplicateOfId('');
       setDuplicateReason('');
       refreshReports();
-      queryClient.invalidateQueries({ queryKey: ['bugReportActivity', selectedReportId] });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
+      });
       toast.show('Doublon enregistré.', { variant: 'success' });
     },
     onError: (err) => toast.show(err instanceof Error ? err.message : 'Rattachement impossible.', { variant: 'error' }),
@@ -128,8 +135,12 @@ export const useAdminBugReportsController = () => {
     mutationFn: () => createBugReportComment(selectedReportId!, newCommentText),
     onSuccess: () => {
       setNewCommentText('');
-      queryClient.invalidateQueries({ queryKey: ['bugReportComments', selectedReportId] });
-      queryClient.invalidateQueries({ queryKey: ['bugReportActivity', selectedReportId] });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportComments(selectedReportId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
+      });
       refreshReports();
       toast.show('Message envoyé.', { variant: 'success' });
     },

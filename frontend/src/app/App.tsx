@@ -9,6 +9,7 @@ import { PromptProvider } from '@/shared/components/ui/prompt';
 import { ToastProvider } from '@/shared/components/ui/toast';
 import { AccessibilityAnnouncer } from '@/shared/components/accessibility/AccessibilityAnnouncer';
 import { MaintenanceGate } from '@/shared/components/system/MaintenanceGate';
+import { normalizeHttpError } from '@/shared/lib/httpClient';
 
 export const AppProviders = () => (
   <AuthProvider>
@@ -30,7 +31,24 @@ export const AppProviders = () => (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
+      staleTime: 30_000,
+      retry: (failureCount, error) => {
+        const normalized = normalizeHttpError(error);
+        if (
+          normalized.kind === 'authentication' ||
+          normalized.kind === 'authorization' ||
+          normalized.kind === 'validation' ||
+          normalized.kind === 'conflict' ||
+          normalized.kind === 'rate_limit'
+        ) {
+          return false;
+        }
+
+        return failureCount < 1;
+      },
+    },
+    mutations: {
       retry: false,
     },
   },

@@ -4,6 +4,7 @@ import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpC
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 import type { Cart } from '../types/cart';
+import { parseCart } from '../cartValidation';
 
 export type CartErrorCode =
   'cart_not_found' | 'token_missing' | 'product_not_found' | 'voucher_code_missing' | 'unknown';
@@ -87,7 +88,7 @@ const toCartError = (error: unknown, fallback: string): never => {
 
 const handleCartResponse = (response: ApiResponse<CartPayload>, fallback: string) => {
   if (isApiOk(response)) {
-    const cart = response.data.cart;
+    const cart = parseCart(response.data.cart);
     persistCartToken(cart.token);
     return cart;
   }

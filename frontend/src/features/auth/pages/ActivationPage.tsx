@@ -5,6 +5,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { verifyAccount } from '../api/authApi';
+import { logger } from '@/shared/lib/logger';
 
 export const ActivationPage = () => {
   useDocumentTitle('Activation du compte');
@@ -25,7 +26,9 @@ export const ActivationPage = () => {
         setStatus('ok');
         try {
           toast.show(msg, { variant: 'success' });
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to display activation success toast.', { error });
+        }
       })
       .catch((err) => {
         const details = (err as Error & { details?: string[] }).details;
@@ -34,9 +37,11 @@ export const ActivationPage = () => {
         setStatus('error');
         try {
           toast.show(msg, { variant: 'error' });
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to display activation error toast.', { error });
+        }
       });
-  }, [token]);
+  }, [toast, token]);
 
   return (
     <SiteLayout headerVariant="light">

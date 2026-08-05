@@ -6,6 +6,7 @@ import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import type { AuditListItemDto } from '@/features/audits/api/auditsApi';
 import { useAuditMetadata } from '@/features/audits/hooks/useAuditMetadata';
 import { useAdminAuditDetail } from '../hooks/useAdminAuditDetail';
+import { logger } from '@/shared/lib/logger';
 
 export const AdminAuditDetailPage = () => {
   useDocumentTitle('Admin - Audit');
@@ -50,7 +51,9 @@ export const AdminAuditDetailPage = () => {
                 onClick={async () => {
                   try {
                     await downloadReport();
-                  } catch {}
+                  } catch (error) {
+                    logger.warn('Unable to download audit report.', { error });
+                  }
                 }}
               >
                 Télécharger le PDF
@@ -60,7 +63,9 @@ export const AdminAuditDetailPage = () => {
                 onClick={async () => {
                   try {
                     await downloadSummary();
-                  } catch {}
+                  } catch (error) {
+                    logger.warn('Unable to download audit summary.', { error });
+                  }
                 }}
               >
                 Télécharger la synthèse PDF

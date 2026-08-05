@@ -6,6 +6,7 @@ import type {
   AdminPaymentLiveStripeDto,
   OrderStatusOptionDto,
 } from './orderTypes';
+import { parseAdminPayment, parseAdminPaymentDetail, parseAdminPaymentLiveStripe } from './orderValidation';
 
 export const fetchAdminPaymentMetadata = async (): Promise<{ statuses: OrderStatusOptionDto[] }> => {
   const { data } = await httpClient.get<ApiResponse<{ statuses: OrderStatusOptionDto[] }>>('/api/admin/payments/metadata');
@@ -29,7 +30,7 @@ export const fetchAdminPayments = async (
     `/api/admin/payments${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data.items.map(parseAdminPayment);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les paiements';
   throw new Error(message);
@@ -46,8 +47,8 @@ export const fetchAdminPaymentById = async (
   >(`/api/admin/payments/${paymentId}`);
   if (isApiOk(data)) {
     return {
-      payment: data.data.payment,
-      liveStripe: data.data.liveStripe,
+      payment: parseAdminPaymentDetail(data.data.payment),
+      liveStripe: parseAdminPaymentLiveStripe(data.data.liveStripe),
     };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger le paiement';

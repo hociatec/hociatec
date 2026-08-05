@@ -1,6 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
+import { parseOrder, parseOrderEvent, parseOrderProcessing } from './orderValidation';
 
 export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> => {
   const { data } = await httpClient.get<ApiResponse<AdminOrderMetadataDto>>('/api/admin/orders/metadata');
@@ -24,7 +25,7 @@ export const fetchAdminOrders = async (
     `/api/admin/orders${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data.items.map(parseOrder);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);
@@ -42,9 +43,9 @@ export const fetchAdminOrderById = async (
   >(`/api/admin/orders/${orderId}`);
   if (isApiOk(data)) {
     return {
-      order: data.data.order,
-      events: data.data.events,
-      processing: data.data.processing,
+      order: parseOrder(data.data.order),
+      events: data.data.events.map(parseOrderEvent),
+      processing: parseOrderProcessing(data.data.processing),
     };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger la commande';
@@ -60,7 +61,7 @@ export const updateAdminOrderStatus = async (
     { status },
   );
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le statut';
   throw new Error(message);
@@ -81,7 +82,7 @@ export const updateAdminOrderDelivery = async (
     payload,
   );
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message =
     data.status === 'error' ? data.message : 'Impossible de mettre à jour la livraison';
@@ -93,7 +94,7 @@ export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto>
     `/api/admin/orders/${orderId}/retry-invoice`,
   );
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de regénérer la facture';
   throw new Error(message);
@@ -108,7 +109,7 @@ export const resendAdminOrderEmail = async (
     { scenario },
   );
   if (isApiOk(data)) {
-    return data.data.order;
+    return parseOrder(data.data.order);
   }
   const message = data.status === 'error' ? data.message : 'Impossible de renvoyer l’email';
   throw new Error(message);

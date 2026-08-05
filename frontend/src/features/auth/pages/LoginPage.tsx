@@ -9,6 +9,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
+import { logger } from '@/shared/lib/logger';
 
 import './LoginPage.css';
 
@@ -26,6 +27,13 @@ interface LocationState {
 
 const DEFAULT_AUTHENTICATED_PATH = '/mon-espace';
 const AUTH_PAGE_PATHS = new Set(['/login', '/register', '/forgot-password']);
+const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
+const REMEMBERED_EMAIL_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+
+interface RememberedEmailPayload {
+  email: string;
+  expiresAt: number;
+}
 
 const isSafeRedirectPath = (path?: string | null) =>
   Boolean(path?.startsWith('/') && !path.startsWith('//') && !AUTH_PAGE_PATHS.has(path));
@@ -43,8 +51,49 @@ const getAuthenticatedRedirect = (state: LocationState | null) => {
   return DEFAULT_AUTHENTICATED_PATH;
 };
 
+const readRememberedEmail = (): string | null => {
+  try {
+    const raw = window.localStorage.getItem(REMEMBERED_EMAIL_KEY);
+    if (!raw) return null;
+
+    const payload = JSON.parse(raw) as Partial<RememberedEmailPayload>;
+    if (typeof payload.email !== 'string' || typeof payload.expiresAt !== 'number') {
+      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      return null;
+    }
+
+    if (payload.expiresAt <= Date.now()) {
+      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      return null;
+    }
+
+    return payload.email;
+  } catch (error) {
+    logger.warn('Unable to read remembered login email.', { error });
+    return null;
+  }
+};
+
+const writeRememberedEmail = (email: string) => {
+  try {
+    window.localStorage.setItem(
+      REMEMBERED_EMAIL_KEY,
+      JSON.stringify({ email, expiresAt: Date.now() + REMEMBERED_EMAIL_TTL_MS }),
+    );
+  } catch (error) {
+    logger.warn('Unable to store remembered login email.', { error });
+  }
+};
+
+const clearRememberedEmail = () => {
+  try {
+    window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+  } catch (error) {
+    logger.warn('Unable to clear remembered login email.', { error });
+  }
+};
+
 export const LoginPage = () => {
-  const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
   useDocumentTitle('Connexion');
 
   const navigate = useNavigate();
@@ -68,15 +117,11 @@ export const LoginPage = () => {
   const parsedErrorDetails = errorDetails;
 
   useEffect(() => {
-    try {
-      const rememberedEmail = window.localStorage.getItem(REMEMBERED_EMAIL_KEY);
-      if (rememberedEmail) {
-        setForm((prev) => ({ ...prev, email: rememberedEmail, rememberMe: true }));
-      }
-    } catch {
-      /* noop */
+    const rememberedEmail = readRememberedEmail();
+    if (rememberedEmail) {
+      setForm((prev) => ({ ...prev, email: rememberedEmail, rememberMe: true }));
     }
-  }, [REMEMBERED_EMAIL_KEY]);
+  }, []);
 
   useEffect(() => {
     const state = location.state as LocationState | null;
@@ -87,9 +132,11 @@ export const LoginPage = () => {
         toast.show(state?.registrationMessage ?? 'Votre compte est prêt. Vous pouvez désormais vous connecter.', {
           variant: 'info',
         });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display registration notice toast.', { error });
+      }
     }
-  }, [location.state]);
+  }, [location.state, toast]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked, type } = event.target;
@@ -112,14 +159,10 @@ export const LoginPage = () => {
     setNotice(null);
 
     try {
-      try {
-        if (form.rememberMe) {
-          window.localStorage.setItem(REMEMBERED_EMAIL_KEY, form.email.trim());
-        } else {
-          window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-        }
-      } catch {
-        /* noop */
+      if (form.rememberMe) {
+        writeRememberedEmail(form.email.trim());
+      } else {
+        clearRememberedEmail();
       }
 
       const loginMessage = await login(form);
@@ -128,7 +171,9 @@ export const LoginPage = () => {
       const redirectTo = getAuthenticatedRedirect(state);
       try {
         toast.show(loginMessage ?? 'Connexion réussie.', { variant: 'success' });
-      } catch {}
+      } catch (error) {
+        logger.warn('Unable to display login success toast.', { error });
+      }
       try {
         window.sessionStorage.setItem(
           'hociatec.a11y.route-announcement',
@@ -136,13 +181,13 @@ export const LoginPage = () => {
             ? 'Connexion réussie. Vous êtes dans votre espace.'
             : 'Connexion réussie. Page demandée chargée.',
         );
-      } catch {
-        /* noop */
+      } catch (error) {
+        logger.warn('Unable to write route announcement.', { error });
       }
       navigate(redirectTo, { replace: true, state: redirectState });
     } catch (loginError) {
       setIsSubmitting(false);
-      console.error(loginError);
+      logger.warn('Login failed.', { error: loginError });
 
       if (isAxiosError(loginError) && loginError.response?.data?.message) {
         const msg = String(loginError.response.data.message);
@@ -153,18 +198,24 @@ export const LoginPage = () => {
         }
         try {
           toast.show(msg, { variant: 'error' });
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to display login error toast.', { error });
+        }
       } else if (loginError instanceof Error) {
         setError(loginError.message);
         try {
           toast.show(loginError.message, { variant: 'error' });
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to display login error toast.', { error });
+        }
       } else {
         const msg = 'Impossible de vérifier vos identifiants.';
         setError(msg);
         try {
           toast.show(msg, { variant: 'error' });
-        } catch {}
+        } catch (error) {
+          logger.warn('Unable to display login error toast.', { error });
+        }
       }
     }
   };

@@ -17,6 +17,7 @@ export {
   createApiResponseError,
   getHttpErrorMessage,
   getHttpErrorMessageAsync,
+  normalizeHttpError,
 } from './httpErrors';
 export {
   clearAuthToken,
@@ -30,9 +31,25 @@ export { clearCsrfToken, isCsrfFailureResponse, shouldAttachCsrfToken } from './
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 15_000,
 });
 
 const refreshAuthSession = createAuthSessionRefresher(httpClient);
+export const IDEMPOTENCY_HEADER_NAME = 'Idempotency-Key';
+
+export const shouldAttachIdempotencyKey = (method?: string) => {
+  const normalizedMethod = method?.toLowerCase() ?? 'get';
+
+  return ['post', 'put', 'patch', 'delete'].includes(normalizedMethod);
+};
+
+const createIdempotencyKey = () => {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+};
 
 httpClient.interceptors.request.use(async (config) => {
   const headers =
@@ -45,6 +62,10 @@ httpClient.interceptors.request.use(async (config) => {
 
   if (shouldAttachCsrfToken(config.method, config.url, headers)) {
     headers.set(CSRF_HEADER_NAME, await fetchCsrfToken());
+  }
+
+  if (shouldAttachIdempotencyKey(config.method) && !headers.has(IDEMPOTENCY_HEADER_NAME)) {
+    headers.set(IDEMPOTENCY_HEADER_NAME, createIdempotencyKey());
   }
 
   config.headers = headers;
