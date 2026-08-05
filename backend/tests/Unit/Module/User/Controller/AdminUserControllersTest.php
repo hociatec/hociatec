@@ -4,27 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Controller;
 
+use App\Module\Admin\Application\User\Provider\CustomerDetailsProvider;
 use App\Module\Admin\UI\User\Controller\CreateCustomerVoucherController;
 use App\Module\Admin\UI\User\Controller\ListCustomersController;
 use App\Module\Admin\UI\User\Controller\SendCustomerEmailController;
 use App\Module\Admin\UI\User\Controller\ShowCustomerController;
 use App\Module\Admin\UI\User\Controller\UpdateCustomerAdminProfileController;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\User\Application\Workflow\AdminCustomerEmailService;
-use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -86,7 +87,7 @@ final class AdminUserControllersTest extends TestCase
         $voucherEntityManager->flush();
         $vouchers = $this->voucherRepository($voucherEntityManager);
 
-        $controller = new ShowCustomerController(
+        $controller = new ShowCustomerController(new CustomerDetailsProvider(
             $users,
             $addresses,
             $orders,
@@ -94,7 +95,7 @@ final class AdminUserControllersTest extends TestCase
             new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
             new \App\Module\User\Application\Projection\ShippingAddressFormatter(),
             new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
-        );
+        ));
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(42)->getStatusCode());
 

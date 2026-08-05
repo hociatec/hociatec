@@ -56,7 +56,7 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/BetaTest/UI/Controller/ListMyBugReportsController.php' => ['findForUserPaginated($user'],
             'src/Module/BetaTest/UI/Controller/ShowBugReportController.php' => ['BugReportAccessPolicy'],
             'src/Module/Order/UI/Controller/CancelMyOrderController.php' => ['OrderAccessPolicy'],
-            'src/Module/Order/UI/Controller/CheckoutExistingOrderController.php' => ['OrderAccessPolicy', 'findOneForUser($addressId, $user)'],
+            'src/Module/Order/Application/Workflow/ExistingOrderCheckoutService.php' => ['OrderAccessPolicy', 'findOneForUser($addressId, $user)'],
             'src/Module/Order/UI/Controller/CheckoutSessionStatusController.php' => ['OrderAccessPolicy'],
             'src/Module/Order/UI/Controller/DownloadMyOrderInvoicePdfController.php' => ['OrderAccessPolicy'],
             'src/Module/Order/UI/Controller/DownloadMyOrderInvoiceXmlController.php' => ['OrderAccessPolicy'],

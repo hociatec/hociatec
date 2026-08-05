@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\User\Controller;
 
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\User\Application\Projection\ShippingAddressFormatter;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
-use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Module\Voucher\Application\Projection\VoucherFormatter;
-use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
+use App\Module\Admin\Application\User\Provider\CustomerDetailsProvider;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,68 +15,17 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_CUSTOMERS_MANAGER')]
 final class ShowCustomerController extends AbstractController
 {
-    public function __construct(
-        private readonly UserRepositoryPort $users,
-        private readonly ShippingAddressRepositoryPort $addresses,
-        private readonly OrderRepositoryPort $orders,
-        private readonly VoucherRepositoryPort $vouchers,
-        private readonly OrderFormatter $orderFormatter,
-        private readonly ShippingAddressFormatter $shippingAddressFormatter,
-        private readonly VoucherFormatter $voucherFormatter,
-    ) {
+    public function __construct(private readonly CustomerDetailsProvider $customers)
+    {
     }
 
     public function __invoke(int $userId): JsonResponse
     {
-        $user = $this->users->find($userId);
-        if (null === $user) {
+        $details = $this->customers->details($userId);
+        if (null === $details) {
             return ApiResponse::error('Client introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $orders = $this->orders->findByUser($user);
-        $addressRows = array_map(
-            fn ($address): array => $this->shippingAddressFormatter->toArray($address),
-            $this->addresses->findAllForUser($user),
-        );
-
-        $totalSpentCents = 0;
-        $lastOrderAt = null;
-        $lastOrderNumber = null;
-
-        foreach ($orders as $index => $order) {
-            $totalSpentCents += $order->getTotalPriceCents();
-            if (0 === $index) {
-                $lastOrderAt = $order->getCreatedAt()->format(DATE_ATOM);
-                $lastOrderNumber = $order->getNumber();
-            }
-        }
-
-        return ApiResponse::success([
-            'customer' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'fullName' => $user->getFullName(),
-                'phoneNumber' => $user->getPhoneNumber(),
-                'isVerified' => $user->isVerified(),
-                'adminNotes' => $user->getAdminNotes(),
-                'adminTags' => $user->getAdminTags(),
-                'createdAt' => $user->getCreatedAt()->format(DATE_ATOM),
-                'ordersCount' => count($orders),
-                'totalSpentCents' => $totalSpentCents,
-                'lastOrderAt' => $lastOrderAt,
-                'lastOrderNumber' => $lastOrderNumber,
-            ],
-            'addresses' => $addressRows,
-            'orders' => array_map(
-                fn ($order): array => $this->orderFormatter->formatOrder($order),
-                $orders,
-            ),
-            'vouchers' => array_map(
-                fn ($voucher): array => $this->voucherFormatter->formatVoucher($voucher),
-                $this->vouchers->findByRecipientUserId($userId),
-            ),
-        ]);
+        return ApiResponse::success($details);
     }
 }

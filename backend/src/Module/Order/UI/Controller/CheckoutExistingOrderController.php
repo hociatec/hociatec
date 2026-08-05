@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\DTO\CheckoutInput;
+use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Workflow\StripeCheckoutService;
-use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Workflow\ExistingOrderCheckoutService;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiValidationException;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\JsonRequestInput;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,70 +28,46 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CheckoutExistingOrderController extends AbstractController
 {
     public function __construct(
-        private readonly OrderRepositoryPort $orders,
-        private readonly ShippingAddressRepositoryPort $addresses,
-        private readonly StripeCheckoutService $stripeCheckout,
+        private readonly ExistingOrderCheckoutService $checkout,
         private readonly DtoValidator $dtoValidator,
-        private readonly OrderAccessPolicy $accessPolicy,
         private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
     public function __invoke(Request $request, int $orderId): JsonResponse
     {
-        $order = $this->orders->find($orderId);
-        if (!$order instanceof Order) {
-            return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        /** @var User $user */
-        $user = $this->getUser();
-        if (!$this->accessPolicy->canCheckout($user, $order)) {
-            return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        if (Order::STATUS_CONFIRMED === $order->getStatus() || Order::STATUS_DELIVERED === $order->getStatus()) {
-            return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
-        }
-
-        if (Order::STATUS_PENDING !== $order->getStatus()) {
-            return ApiResponse::error('Cette commande ne peut pas être réglée.', Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($order->getTotalPriceCents() <= 0 || $order->getItems()->isEmpty()) {
-            return ApiResponse::error('Cette commande ne contient rien à régler.', Response::HTTP_BAD_REQUEST);
-        }
-
         try {
-            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CheckoutInput::class);
+            $input = JsonRequestInput::decode($request, CheckoutInput::class);
             $this->dtoValidator->validate($input);
+            $result = $this->checkout->checkout($this->currentUser(), $orderId, $input->addressId);
+        } catch (CartCheckoutNotFoundException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (ApiValidationException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload de checkout invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (\InvalidArgumentException|\RuntimeException $exception) {
+            return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
         }
 
-        $addressId = $input->addressId ?? 0;
-        $shipping = $addressId > 0
-            ? $this->addresses->findOneForUser($addressId, $user)
-            : $this->addresses->findFirstForUser($user);
-
-        if (null === $shipping) {
-            return ApiResponse::error('Aucune adresse de livraison trouvée.', Response::HTTP_BAD_REQUEST);
-        }
-
-        try {
-            $checkout = $this->stripeCheckout->createHostedCheckoutForOrder($user, $order, $shipping);
-        } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
-        } catch (\RuntimeException $exception) {
-            return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        if (null !== $result->order) {
+            return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($result->order));
         }
 
         return ApiResponse::created([
             'mode' => 'redirect',
-            'checkoutUrl' => $checkout->getCheckoutUrl(),
-            'checkoutSessionId' => $checkout->getStripeSessionId(),
+            'checkoutUrl' => $result->checkout?->getCheckoutUrl(),
+            'checkoutSessionId' => $result->checkout?->getStripeSessionId(),
         ]);
+    }
+
+    private function currentUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
     }
 }
