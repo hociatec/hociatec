@@ -10,6 +10,7 @@ import {
   fetchMyBugReport,
   fetchMyBugReports,
   type BetaCampaign,
+  type BetaProfileDto,
 } from '../api/betaApi';
 import { isCampaignOpenForReports } from '../components/dashboard/betaDashboardUtils';
 import { useToast } from '@/shared/components/ui/toast';
@@ -31,7 +32,7 @@ export const useBetaDashboardController = () => {
     data: profile,
     isLoading: isLoadingProfile,
     isError: isProfileError,
-  } = useQuery<Record<string, unknown>>({
+  } = useQuery<BetaProfileDto>({
     queryKey: betaQueryKeys.profile(),
     queryFn: fetchMyBetaProfile,
     retry: false,

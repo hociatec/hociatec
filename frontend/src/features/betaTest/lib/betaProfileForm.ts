@@ -1,3 +1,5 @@
+import type { BetaProfileDto } from '@/features/betaTest/api/betaApi';
+
 export type EditableProfile = {
   motivation: string;
   testingExperience: string[];
@@ -30,7 +32,7 @@ export const listFromProfile = (value: unknown, fallback: string[] = []) => Arra
   ? value.filter((item): item is string => typeof item === 'string')
   : fallback;
 
-export const buildBetaProfileForm = (profile: Record<string, unknown>): EditableProfile => ({
+export const buildBetaProfileForm = (profile: BetaProfileDto): EditableProfile => ({
   motivation: String(profile.motivation ?? ''),
   testingExperience: listFromProfile(profile.testingExperience),
   bugDescriptionAbility: listFromProfile(profile.bugDescriptionAbility),

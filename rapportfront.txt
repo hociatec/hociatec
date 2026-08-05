@@ -329,18 +329,6 @@ Activer idéalement :
     }
 
 
-6.2 Réduire les Record<string, unknown>
----------------------------------------
-
-Certains contrôleurs utilisent :
-
-    useQuery<Record<string, unknown>>
-
-Cela signifie que le contrat métier n’est pas réellement décrit.
-
-Créer des interfaces précises, surtout pour les tableaux de bord.
-
-
 6.3 Utiliser des unions discriminées
 ------------------------------------
 
