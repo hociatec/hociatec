@@ -1,17 +1,17 @@
 .public-directory-page {
-  width: min(1120px, calc(100% - 3rem));
-  margin-inline: auto;
-  padding-block: 3rem 5rem;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
+  margin-inline: auto;
+  padding-block: 3rem 5rem;
+  width: min(1120px, calc(100% - 3rem));
 }
 
 .public-directory-page__hero,
 .public-directory-page__panel {
+  background: #ffffff;
   border: 1px solid var(--hocia-line);
   border-radius: var(--hocia-radius);
-  background: #ffffff;
   box-shadow: var(--hocia-shadow-sm);
   padding: clamp(1.25rem, 2.4vw, 2rem);
 }
@@ -21,10 +21,10 @@
 }
 
 .quote-builder {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
-  gap: 2rem;
   align-items: start;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
 }
 
 .quote-builder section {
@@ -34,15 +34,15 @@
 .quote-builder > :first-child,
 .quote-builder > :last-child {
   display: flex;
-  min-width: 0;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 .quote-builder > :first-child > section:first-child > div {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .quote-builder > :first-child > section:nth-child(2) {
@@ -52,10 +52,10 @@
 }
 
 .quote-builder .register-form__field {
+  color: var(--hocia-ink);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  color: var(--hocia-ink);
 }
 
 .quote-builder .register-form__field > span {
@@ -67,41 +67,41 @@
 }
 
 .quote-builder .register-form__field input {
-  width: 100%;
-  min-height: 2.75rem;
+  background: #ffffff;
   border: 1px solid var(--hocia-line);
   border-radius: 0.75rem;
-  background: #ffffff;
-  color: var(--hocia-ink);
-  padding: 0.72rem 0.9rem;
-  font-size: 0.95rem;
   box-shadow: none;
+  color: var(--hocia-ink);
+  font-size: 0.95rem;
+  min-height: 2.75rem;
+  padding: 0.72rem 0.9rem;
+  width: 100%;
 }
 
 .quote-builder .register-form__field input:focus {
-  outline: none;
   border-color: var(--hocia-orange);
   box-shadow: 0 0 0 3px rgba(247, 126, 44, 0.16);
+  outline: none;
 }
 
 .quote-builder .register-form__submit,
 .quote-builder .hero__button {
-  min-height: 2.9rem;
-  width: 100%;
+  background: linear-gradient(135deg, var(--hocia-orange), #f25d2a);
   border: 0;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--hocia-orange), #f25d2a);
+  box-shadow: 0 14px 28px rgba(242, 93, 42, 0.18);
   color: #ffffff;
   font-weight: 750;
+  min-height: 2.9rem;
   text-align: center;
-  box-shadow: 0 14px 28px rgba(242, 93, 42, 0.18);
+  width: 100%;
 }
 
 .quote-builder .hero__button--ghost {
-  border: 1px solid var(--hocia-line);
   background: #ffffff;
-  color: var(--hocia-ink);
+  border: 1px solid var(--hocia-line);
   box-shadow: none;
+  color: var(--hocia-ink);
 }
 
 .quote-builder .register-form__submit:disabled,
@@ -111,27 +111,27 @@
 }
 
 .quote-builder__small-button {
-  width: auto !important;
-  min-height: 2.25rem !important;
-  padding: 0.45rem 0.9rem !important;
   border-radius: 999px !important;
   font-size: 0.85rem !important;
+  min-height: 2.25rem !important;
+  padding: 0.45rem 0.9rem !important;
+  width: auto !important;
 }
 
 .quote-builder aside,
 .quote-builder > :last-child section {
+  background: #ffffff;
   border: 1px solid var(--hocia-line);
   border-radius: var(--hocia-radius);
-  background: #ffffff;
-  padding: 1.25rem;
   box-shadow: var(--hocia-shadow-sm);
+  padding: 1.25rem;
 }
 
 @media (max-width: 760px) {
   .public-directory-page {
-    width: min(100% - 2rem, 1120px);
-    padding-block: 2rem 4rem;
     gap: 1.5rem;
+    padding-block: 2rem 4rem;
+    width: min(100% - 2rem, 1120px);
   }
 
   .public-directory-page__hero,
@@ -140,8 +140,8 @@
   }
 
   .quote-builder {
-    grid-template-columns: 1fr;
     gap: 1.5rem;
+    grid-template-columns: 1fr;
   }
 
   .quote-builder > :first-child > section:first-child > div {

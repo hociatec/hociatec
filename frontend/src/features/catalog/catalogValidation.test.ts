@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ApiContractError } from '@/shared/lib/apiValidation';
+import { ApiContractError } from '@/shared/lib/contractValidation';
 import { parseCatalogProduct } from './catalogValidation';
 
 const makeProduct = (overrides: Record<string, unknown> = {}) => ({

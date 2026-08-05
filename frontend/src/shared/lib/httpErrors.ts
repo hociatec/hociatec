@@ -113,6 +113,36 @@ const normalizeFields = (fields: unknown) =>
       )
     : undefined;
 
+const resolveErrorKind = (status: number): AppErrorKind => {
+  const exactKinds: Record<number, AppErrorKind> = {
+    401: 'authentication',
+    403: 'authorization',
+    409: 'conflict',
+    422: 'validation',
+    429: 'rate_limit',
+  };
+
+  return exactKinds[status] ?? (status >= 500 ? 'server' : 'unknown');
+};
+
+const defaultMessages: Record<AppErrorKind, string> = {
+  authentication: 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.',
+  authorization: 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.',
+  conflict: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
+  network: 'Le service est momentanément indisponible. Vérifiez que le serveur API est démarré, puis réessayez.',
+  rate_limit: 'Trop de tentatives. Patientez quelques instants avant de réessayer.',
+  server: 'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants.',
+  unknown: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
+  validation: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
+};
+
+const resolveDefaultMessage = (kind: AppErrorKind, status: number, fallback: string) => {
+  if (status === 404) return 'La ressource demandée est introuvable.';
+  if (kind === 'conflict' || kind === 'unknown' || kind === 'validation') return fallback;
+
+  return defaultMessages[kind];
+};
+
 export const normalizeHttpError = (
   error: unknown,
   fallback = 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
@@ -159,31 +189,8 @@ export const normalizeHttpError = (
   const code = responseData?.error?.code ?? responseData?.code;
   const fields = responseData?.error?.fields ?? responseData?.fields;
 
-  const kind: AppErrorKind =
-    status === 401
-      ? 'authentication'
-      : status === 403
-        ? 'authorization'
-        : status === 409
-          ? 'conflict'
-          : status === 422
-            ? 'validation'
-            : status === 429
-              ? 'rate_limit'
-              : status >= 500
-                ? 'server'
-                : 'unknown';
-
-  const defaultMessage =
-    kind === 'rate_limit'
-      ? 'Trop de tentatives. Patientez quelques instants avant de réessayer.'
-      : kind === 'server'
-        ? 'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants.'
-        : kind === 'authentication' || kind === 'authorization'
-          ? 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.'
-          : status === 404
-            ? 'La ressource demandée est introuvable.'
-            : fallback;
+  const kind = resolveErrorKind(status);
+  const defaultMessage = resolveDefaultMessage(kind, status, fallback);
 
   return {
     kind,

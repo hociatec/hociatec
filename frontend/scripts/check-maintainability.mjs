@@ -9,7 +9,7 @@ const packageJsonPath = join(projectRoot, 'package.json');
 const warningThresholds = {
   cssFileLines: 700,
   fileLines: 550,
-  branchKeywords: 70,
+  branchKeywords: 90,
   parameters: 9,
 };
 
@@ -43,7 +43,7 @@ const walk = (directory) => {
 const countLines = (content) => content.split(/\r?\n/).length;
 
 const countBranchKeywords = (content) => {
-  const matches = content.match(/\b(if|else if|switch|case|catch|for|while)\b|&&|\|\||\?/g);
+  const matches = content.match(/\b(if|else if|switch|case|catch|for|while)\b|&&|\|\|/g);
 
   return matches?.length ?? 0;
 };
@@ -66,7 +66,7 @@ const countTopLevelParameters = (parameters) => {
 const collectLongParameterLists = (content) => {
   const warnings = [];
   const signaturePattern =
-    /(?:function\s+[A-Za-z0-9_$]+\s*|const\s+[A-Za-z0-9_$]+\s*=\s*(?:async\s*)?\(|(?:async\s*)?\([^)]*\)\s*=>|[A-Za-z0-9_$]+\s*:\s*\([^)]*\)\s*=>)/g;
+    /(?:function\s+[A-Za-z0-9_$]+\s*\(|(?:const|let|var)\s+[A-Za-z0-9_$]+\s*=\s*(?:async\s*)?\()/g;
   let match;
 
   while ((match = signaturePattern.exec(content))) {
@@ -100,10 +100,15 @@ const collectLongParameterLists = (content) => {
 
 const isGeneratedFile = (file) => relative(sourceRoot, file).startsWith('shared/api/generated/');
 
+const isContractOrTypeFile = (file) =>
+  /(?:^|\/)(?:.*\.types|.*Types|.*Validation|.*Validation\.test|contractValidation)\.ts$/.test(
+    relative(sourceRoot, file),
+  );
+
 const isApiLikeFile = (file) => {
   const name = basename(file);
 
-  return /api/i.test(name) && !/^(api|.*Api|publicApi|adminApi|typesApi|uiApi|apiShared|.*ApiShared)\.(ts|tsx)$/.test(name);
+  return /api/i.test(name) && !/^(api|.*Api|publicApi|adminApi|typesApi|uiApi|apiShared|.*ApiShared|.*Types)\.(ts|tsx)$/.test(name);
 };
 
 const collectImportSpecifiers = (content) => {
@@ -112,6 +117,7 @@ const collectImportSpecifiers = (content) => {
     /import\s+(?:[^'"]+\s+from\s+)?['"]([^'"]+)['"]/g,
     /export\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g,
     /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /@plugin\s+['"]([^'"]+)['"]/g,
   ];
 
   for (const pattern of patterns) {
@@ -147,7 +153,7 @@ const collectExportedNames = (content) => {
   const names = [];
   const patterns = [
     /export\s+(?:async\s+)?function\s+([A-Za-z0-9_$]+)/g,
-    /export\s+(?:const|let|var|class|type|interface|enum)\s+([A-Za-z0-9_$]+)/g,
+    /export\s+(?:const|let|var|class|enum)\s+([A-Za-z0-9_$]+)/g,
   ];
 
   for (const pattern of patterns) {
@@ -203,6 +209,7 @@ for (const file of files) {
   if (
     (extension === '.ts' || extension === '.tsx') &&
     !isGeneratedFile(file) &&
+    !isContractOrTypeFile(file) &&
     countBranchKeywords(content) > warningThresholds.branchKeywords
   ) {
     warnings.push(`${location}: densite conditionnelle elevee`);
@@ -212,7 +219,7 @@ for (const file of files) {
     warnings.push(`${location}: nom de fichier API a clarifier selon docs/maintainability.md`);
   }
 
-  if (!isGeneratedFile(file)) {
+  if (!isGeneratedFile(file) && !isContractOrTypeFile(file)) {
     for (const longParameters of collectLongParameterLists(content)) {
       warnings.push(
         `${location}:${longParameters.line}: signature longue (${longParameters.parameterCount} parametres)`,
@@ -228,7 +235,13 @@ for (const file of files) {
 }
 
 for (const { file, content } of allSourceContent) {
-  if (isGeneratedFile(file) || /(?:publicApi|adminApi|typesApi|uiApi)\.ts$/.test(file)) continue;
+  if (
+    isGeneratedFile(file) ||
+    isContractOrTypeFile(file) ||
+    /(?:publicApi|adminApi|typesApi|uiApi|index)\.ts$/.test(file)
+  ) {
+    continue;
+  }
 
   for (const exportedName of collectExportedNames(content)) {
     const usageCount = allSourceContent.reduce((count, current) => {

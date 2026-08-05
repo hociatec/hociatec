@@ -47,7 +47,6 @@ export interface QuoteDto {
   emailNotificationSent?: boolean | undefined;
   emailNotificationError?: string | null | undefined;
 }
-export type AdminQuoteDto = QuoteDto;
 export interface QuoteServiceDto {
   id: number;
   title: string;
@@ -62,9 +61,6 @@ export interface QuoteServiceDto {
   priceCents: number;
   vatRate: number;
 }
-export interface AdminQuoteMutationDto {
-  quote: QuoteDto;
-}
 export interface AdminQuoteEmailDto {
   sent: boolean;
   statusCode?: QuoteStatus | undefined;
@@ -74,16 +70,10 @@ export interface AdminQuoteEmailDto {
   transport?: string | undefined;
   message?: string | undefined;
 }
-export interface AdminQuoteStatusDto {
-  quote: QuoteDto;
-}
 export interface QuoteToOrderDto {
   order: { id: number; number: string } & Record<string, unknown>;
   emailNotificationSent?: boolean | undefined;
   emailNotificationError?: string | null | undefined;
-}
-export interface QuoteServiceMutationDto {
-  service: QuoteServiceDto;
 }
 export interface DeleteDto {
   id?: number;

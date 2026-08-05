@@ -8,7 +8,7 @@ import {
   optionalBoolean,
   optionalNumber,
   optionalString,
-} from '@/shared/lib/apiValidation';
+} from '@/shared/lib/contractValidation';
 import { isTrustedRedirectUrl } from '@/shared/lib/redirects';
 import { isContractValue, ORDER_STATUSES } from '@/shared/contracts/statuses';
 import type {

@@ -105,16 +105,6 @@ export const loginUser = async (payload: LoginPayload): Promise<AuthOperationRes
   }
 };
 
-export const refreshUserSession = async (): Promise<AuthOperationResult<AuthSession>> => {
-  try {
-    const { data } = await httpClient.post<ApiResponse<AuthSession>>('/api/auth/refresh');
-    clearCsrfToken();
-    return { data: unwrapResponse(data), message: data.message };
-  } catch (error) {
-    return rethrowApiError(error);
-  }
-};
-
 export const logoutUser = async () => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ message: string }>>('/api/auth/logout');

@@ -4,7 +4,7 @@ import {
   requireRecord,
   requireString,
   optionalString,
-} from '@/shared/lib/apiValidation';
+} from '@/shared/lib/contractValidation';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { AuthUser } from '@/shared/types/auth';
 

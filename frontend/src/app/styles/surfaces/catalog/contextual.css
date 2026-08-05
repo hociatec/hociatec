@@ -10,11 +10,11 @@
 
 .modal-container,
 .alert-dialog__content {
-  border-radius: var(--hocia-radius);
-  border: 1px solid var(--hocia-line);
   background: #ffffff;
-  color: var(--hocia-ink);
+  border: 1px solid var(--hocia-line);
+  border-radius: var(--hocia-radius);
   box-shadow: var(--hocia-shadow-lg);
+  color: var(--hocia-ink);
 }
 
 .alert-dialog__title {
@@ -26,18 +26,18 @@
 }
 
 .alert-dialog__button {
-  border-radius: 8px;
   background: #ffffff;
-  color: var(--hocia-ink);
   border-color: var(--hocia-line);
+  border-radius: 8px;
+  color: var(--hocia-ink);
 }
 
 .calendar-nav button,
 .slot-card,
 .booking__checkbox {
-  border-radius: 8px;
-  border: 1px solid var(--hocia-line);
   background: #ffffff;
+  border: 1px solid var(--hocia-line);
+  border-radius: 8px;
   color: var(--hocia-ink);
 }
 
@@ -50,8 +50,8 @@
 }
 
 .progress-bar {
-  border-radius: 999px;
   background: var(--hocia-surface-blue);
+  border-radius: 999px;
   color: var(--hocia-orange-dark);
   font-weight: 850;
   padding: 0.65rem 1rem;

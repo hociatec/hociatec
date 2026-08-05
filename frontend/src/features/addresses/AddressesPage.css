@@ -1,12 +1,12 @@
 .address-button {
-  display: inline-flex;
   align-items: center;
   border: 1px solid #cbd5e1;
   border-radius: 999px;
-  padding: 0.5rem 1rem;
   color: #475569;
+  display: inline-flex;
   font-size: 0.875rem;
   font-weight: 600;
+  padding: 0.5rem 1rem;
   transition: border-color 0.2s;
 }
 .address-button:hover {
@@ -21,15 +21,15 @@
   color: #dc2626;
 }
 .address-submit {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 999px;
   background: #172554;
-  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
   color: #fff;
+  display: inline-flex;
   font-size: 0.875rem;
   font-weight: 600;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
   transition: background-color 0.2s;
 }
 .address-submit:hover {

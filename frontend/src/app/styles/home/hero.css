@@ -9,58 +9,58 @@
 
 .home-products,
 .home-news {
-  width: min(1240px, calc(100% - 3rem));
   margin: 0 auto;
   padding-bottom: 5rem;
+  width: min(1240px, calc(100% - 3rem));
 }
 
 .home-section-heading {
-  max-width: 760px;
   margin-bottom: 2rem;
+  max-width: 760px;
 }
 
 .home-section-heading p {
-  margin: 0 0 1rem;
   color: var(--hocia-orange-dark);
   font-size: 0.85rem;
   font-weight: 900;
   letter-spacing: 0.15em;
+  margin: 0 0 1rem;
   text-transform: uppercase;
 }
 
 .home-section-heading h2 {
-  margin: 0;
   color: var(--hocia-ink);
   font-size: clamp(2rem, 3.3vw, 3rem);
   line-height: 1.08;
+  margin: 0;
 }
 
 .home-section-heading h2::after {
+  background: linear-gradient(90deg, var(--hocia-orange), var(--hocia-violet), var(--hocia-cyan));
+  border-radius: 999px;
   content: '';
   display: block;
-  width: 84px;
   height: 6px;
   margin-top: 1.25rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--hocia-orange), var(--hocia-violet), var(--hocia-cyan));
+  width: 84px;
 }
 
 .home-section-heading--row {
-  display: flex;
   align-items: end;
-  justify-content: space-between;
+  display: flex;
   gap: 1.5rem;
+  justify-content: space-between;
 }
 
 .home-button {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 52px;
   border-radius: 999px;
-  padding: 0.95rem 1.7rem;
+  display: inline-flex;
   font-size: 0.95rem;
   font-weight: 800;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0.95rem 1.7rem;
   text-decoration: none;
   transition:
     transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
@@ -73,10 +73,10 @@
 }
 
 .home-button--secondary {
-  border: 1.5px solid rgba(18, 17, 15, 0.12);
   background: #ffffff;
-  color: var(--hocia-ink);
+  border: 1.5px solid rgba(18, 17, 15, 0.12);
   box-shadow: var(--hocia-shadow-sm);
+  color: var(--hocia-ink);
 }
 
 .home-button--secondary:hover {
@@ -85,22 +85,22 @@
 }
 
 .home-service-card {
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--hocia-line);
   border-radius: var(--hocia-radius-lg);
-  background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--hocia-shadow-md);
 }
 
 .home-service-card--featured {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(250, 246, 240, 0.96));
+  border: 1px solid rgba(221, 209, 194, 0.92);
+  box-shadow:
+    0 18px 42px rgba(44, 31, 16, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   display: flex;
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
-  border: 1px solid rgba(221, 209, 194, 0.92);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(250, 246, 240, 0.96));
-  box-shadow:
-    0 18px 42px rgba(44, 31, 16, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition:
     transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1),
@@ -108,43 +108,43 @@
 }
 
 .home-service-card--featured:hover {
-  transform: translateY(-6px);
   border-color: rgba(243, 154, 32, 0.42);
   box-shadow:
     0 24px 54px rgba(44, 31, 16, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  transform: translateY(-6px);
 }
 
 .home-service-card__media {
-  display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 240px;
-  padding: 1.75rem;
-  border-bottom: 1px solid rgba(221, 209, 194, 0.86);
   background:
     radial-gradient(circle at top left, rgba(243, 154, 32, 0.2), transparent 9rem),
     radial-gradient(circle at bottom right, rgba(14, 165, 183, 0.18), transparent 10rem),
     linear-gradient(135deg, rgba(255, 248, 239, 0.98), rgba(244, 250, 255, 0.94));
+  border-bottom: 1px solid rgba(221, 209, 194, 0.86);
+  display: flex;
+  justify-content: center;
+  min-height: 240px;
+  padding: 1.75rem;
   text-decoration: none;
 }
 
 .home-service-card__media img {
-  width: 100%;
-  max-width: 250px;
-  max-height: 190px;
-  object-fit: contain;
   filter: drop-shadow(0 22px 28px rgba(70, 53, 34, 0.12));
+  max-height: 190px;
+  max-width: 250px;
+  object-fit: contain;
+  width: 100%;
 }
 
 .home-service-card__media-fallback {
-  width: 100%;
-  max-width: 220px;
-  height: 170px;
-  border-radius: 1.5rem;
   background:
     linear-gradient(135deg, rgba(243, 154, 32, 0.22), rgba(157, 92, 246, 0.18)),
     #fff;
+  border-radius: 1.5rem;
+  height: 170px;
+  max-width: 220px;
+  width: 100%;
 }
 
 .home-service-card__body {
@@ -153,28 +153,28 @@
 }
 
 .home-service-card--featured .home-service-card__body {
-  flex: 1;
   align-content: start;
+  flex: 1;
   padding: 1.35rem;
 }
 
 .home-service-card__body h3 {
-  margin: 0;
   color: var(--hocia-ink);
   font-size: 1.5rem;
   font-weight: 850;
+  margin: 0;
 }
 
 .home-service-card__body p {
-  margin: 0;
   color: var(--hocia-ink-soft);
   line-height: 1.7;
+  margin: 0;
 }
 
 .home-service-card__title {
   font-size: 1.32rem;
-  line-height: 1.22;
   letter-spacing: -0.02em;
+  line-height: 1.22;
 }
 
 .home-service-card__title a {
@@ -188,29 +188,29 @@
 }
 
 .home-service-card__description {
+  -webkit-box-orient: vertical;
+  color: var(--hocia-ink-soft);
   display: -webkit-box;
+  font-size: 0.96rem;
+  -webkit-line-clamp: 4;
+  line-height: 1.7;
   min-height: 6.8rem;
   overflow: hidden;
-  color: var(--hocia-ink-soft);
-  font-size: 0.96rem;
-  line-height: 1.7;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
 }
 
 .home-service-card__facts {
+  border-block: 1px solid rgba(228, 220, 210, 0.8);
   display: grid;
   gap: 0.65rem;
   margin: 0;
   padding: 0.9rem 0;
-  border-block: 1px solid rgba(228, 220, 210, 0.8);
 }
 
 .home-service-card__facts div {
-  display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  display: flex;
   gap: 1rem;
+  justify-content: space-between;
 }
 
 .home-service-card__facts dt {
@@ -220,19 +220,19 @@
 }
 
 .home-service-card__facts dd {
-  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  margin: 0;
   color: var(--hocia-ink);
+  display: inline-flex;
   font-size: 0.95rem;
   font-weight: 900;
+  gap: 0.4rem;
+  margin: 0;
   text-align: right;
 }
 
 .home-service-card__facts dd svg {
-  width: 18px;
-  height: 18px;
   color: var(--hocia-orange-dark);
   flex-shrink: 0;
+  height: 18px;
+  width: 18px;
 }

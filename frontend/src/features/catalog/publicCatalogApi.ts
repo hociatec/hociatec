@@ -26,6 +26,46 @@ type RequestOptions = {
   signal?: AbortSignal;
 };
 
+type PublicProductSearchParams = {
+  category?: string;
+  q?: string;
+  homepage?: boolean;
+  sellingType?: 'sale' | 'rental';
+  brand?: string;
+  storageCapacity?: string;
+  memoryRam?: string;
+  color?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  page?: number;
+  perPage?: number;
+  sort?: CatalogSort;
+} & RequestOptions;
+
+const hasValidNumber = (value: number | undefined) =>
+  value !== undefined && !Number.isNaN(value);
+
+const toPublicProductQueryParams = (params: PublicProductSearchParams) =>
+  Object.fromEntries(
+    [
+      ['category', params.category],
+      ['q', params.q],
+      ['homepage', params.homepage === undefined ? undefined : params.homepage ? '1' : '0'],
+      ['sellingType', params.sellingType],
+      ['brand', params.brand],
+      ['storageCapacity', params.storageCapacity],
+      ['memoryRam', params.memoryRam],
+      ['color', params.color],
+      ['minPrice', hasValidNumber(params.minPrice) ? String(params.minPrice) : undefined],
+      ['maxPrice', hasValidNumber(params.maxPrice) ? String(params.maxPrice) : undefined],
+      ['inStock', params.inStock === undefined ? undefined : params.inStock ? '1' : '0'],
+      ['page', params.page === undefined ? undefined : String(params.page)],
+      ['perPage', params.perPage === undefined ? undefined : String(params.perPage)],
+      ['sort', params.sort],
+    ].filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== ''),
+  );
+
 export const fetchPublicCategories = async () => {
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
@@ -132,80 +172,9 @@ export const fetchProductReviews = async (
 };
 
 export const fetchPublicProducts = async (
-  params: {
-    category?: string;
-    q?: string;
-    homepage?: boolean;
-    sellingType?: 'sale' | 'rental';
-    brand?: string;
-    storageCapacity?: string;
-    memoryRam?: string;
-    color?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    inStock?: boolean;
-    page?: number;
-    perPage?: number;
-    sort?: CatalogSort;
-  } & RequestOptions = {},
+  params: PublicProductSearchParams = {},
 ) => {
-  const queryParams: Record<string, string> = {};
-
-  if (params.category) {
-    queryParams.category = params.category;
-  }
-
-  if (params.q) {
-    queryParams.q = params.q;
-  }
-
-  if (params.homepage !== undefined) {
-    queryParams.homepage = params.homepage ? '1' : '0';
-  }
-
-  if (params.sellingType) {
-    queryParams.sellingType = params.sellingType;
-  }
-
-  if (params.brand) {
-    queryParams.brand = params.brand;
-  }
-
-  if (params.storageCapacity) {
-    queryParams.storageCapacity = params.storageCapacity;
-  }
-
-  if (params.memoryRam) {
-    queryParams.memoryRam = params.memoryRam;
-  }
-
-  if (params.color) {
-    queryParams.color = params.color;
-  }
-
-  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice)) {
-    queryParams.minPrice = String(params.minPrice);
-  }
-
-  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice)) {
-    queryParams.maxPrice = String(params.maxPrice);
-  }
-
-  if (params.inStock !== undefined) {
-    queryParams.inStock = params.inStock ? '1' : '0';
-  }
-
-  if (params.page !== undefined) {
-    queryParams.page = String(params.page);
-  }
-
-  if (params.perPage !== undefined) {
-    queryParams.perPage = String(params.perPage);
-  }
-
-  if (params.sort) {
-    queryParams.sort = params.sort;
-  }
+  const queryParams = toPublicProductQueryParams(params);
 
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
@@ -224,41 +193,9 @@ export const fetchPublicProducts = async (
 };
 
 export const searchPublicProducts = async (
-  params: {
-    category?: string;
-    q?: string;
-    homepage?: boolean;
-    sellingType?: 'sale' | 'rental';
-    brand?: string;
-    storageCapacity?: string;
-    memoryRam?: string;
-    color?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    inStock?: boolean;
-    page?: number;
-    perPage?: number;
-    sort?: CatalogSort;
-  } & RequestOptions = {},
+  params: PublicProductSearchParams = {},
 ) => {
-  const queryParams: Record<string, string> = {};
-
-  if (params.category) queryParams.category = params.category;
-  if (params.q) queryParams.q = params.q;
-  if (params.homepage !== undefined) queryParams.homepage = params.homepage ? '1' : '0';
-  if (params.sellingType) queryParams.sellingType = params.sellingType;
-  if (params.brand) queryParams.brand = params.brand;
-  if (params.storageCapacity) queryParams.storageCapacity = params.storageCapacity;
-  if (params.memoryRam) queryParams.memoryRam = params.memoryRam;
-  if (params.color) queryParams.color = params.color;
-  if (params.minPrice !== undefined && params.minPrice !== null && !Number.isNaN(params.minPrice))
-    queryParams.minPrice = String(params.minPrice);
-  if (params.maxPrice !== undefined && params.maxPrice !== null && !Number.isNaN(params.maxPrice))
-    queryParams.maxPrice = String(params.maxPrice);
-  if (params.inStock !== undefined) queryParams.inStock = params.inStock ? '1' : '0';
-  if (params.page !== undefined) queryParams.page = String(params.page);
-  if (params.perPage !== undefined) queryParams.perPage = String(params.perPage);
-  if (params.sort) queryParams.sort = params.sort;
+  const queryParams = toPublicProductQueryParams(params);
 
   try {
     const { data } = await httpClient.get<

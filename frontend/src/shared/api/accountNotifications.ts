@@ -45,22 +45,6 @@ export const fetchAccountNotificationsReadState =
     );
   };
 
-export const updateAccountNotificationsReadState = async (
-  seenSignature: string,
-): Promise<AccountNotificationsReadStateDto> => {
-  const { data } = await httpClient.patch<
-    ApiResponse<{ readState: AccountNotificationsReadStateDto }>
-  >('/api/account-notifications/me/read-state', { seenSignature });
-
-  if (isApiOk(data)) {
-    return data.data.readState;
-  }
-
-  throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de marquer les notifications comme lues',
-  );
-};
-
 export const markAccountNotificationsSeen = async (
   seenKeys: string[],
 ): Promise<AccountNotificationsReadStateDto> => {

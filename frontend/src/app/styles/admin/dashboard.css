@@ -4,45 +4,45 @@
 }
 
 .admin-dashboard__header {
-  display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  background: #ffffff;
   border: 1px solid #e6e8ec;
   border-radius: 12px;
-  background: #ffffff;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
   padding: 1.35rem;
 }
 
 .admin-dashboard__eyebrow {
-  margin: 0 0 0.35rem;
   color: #667085;
   font-size: 0.76rem;
   font-weight: 850;
   letter-spacing: 0.08em;
+  margin: 0 0 0.35rem;
   text-transform: uppercase;
 }
 
 .admin-dashboard__header h1 {
-  margin: 0;
   color: #101828;
   font-size: clamp(1.75rem, 2.4vw, 2.35rem);
   line-height: 1.05;
+  margin: 0;
 }
 
 .admin-dashboard__header p:not(.admin-dashboard__eyebrow) {
+  color: #667085;
   margin: 0.45rem 0 0;
   max-width: 58rem;
-  color: #667085;
 }
 
 .admin-dashboard__summary {
+  background: #f9fafb;
+  border: 1px solid #e6e8ec;
+  border-radius: 10px;
   display: grid;
   gap: 0.2rem;
   min-width: 150px;
-  border: 1px solid #e6e8ec;
-  border-radius: 10px;
-  background: #f9fafb;
   padding: 0.85rem 1rem;
   text-align: right;
 }
@@ -70,72 +70,72 @@
 }
 
 .admin-dashboard__quick-actions article {
-  display: grid;
-  min-height: 88px;
   align-items: center;
-  gap: 0.65rem;
+  background: #ffffff;
   border: 1px solid #e6e8ec;
   border-radius: 10px;
-  background: #ffffff;
-  padding: 0.75rem 0.9rem;
   color: #344054;
+  display: grid;
   font-size: 0.9rem;
   font-weight: 760;
+  gap: 0.65rem;
+  min-height: 88px;
+  padding: 0.75rem 0.9rem;
 }
 
 .admin-dashboard__quick-actions article > span {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 0.65rem;
 }
 
 .admin-dashboard__quick-actions a {
-  width: fit-content;
   border: 1px solid #fed7aa;
   border-radius: 8px;
-  padding: 0.42rem 0.72rem;
   color: #9a3412;
-  text-decoration: none;
   font-size: 0.78rem;
   font-weight: 800;
+  padding: 0.42rem 0.72rem;
+  text-decoration: none;
+  width: fit-content;
 }
 
 .admin-dashboard__quick-actions a:hover {
-  border-color: #fed7aa;
   background: #fff7ed;
+  border-color: #fed7aa;
   color: #9a3412;
 }
 
 .admin-dashboard__quick-actions svg {
-  width: 17px;
-  height: 17px;
-  flex: none;
   color: #c2410c;
+  flex: none;
+  height: 17px;
+  width: 17px;
 }
 
 .admin-dashboard__priority-section {
+  background: #fffaf5;
   border: 1px solid #fed7aa;
   border-radius: 12px;
-  background: #fffaf5;
   padding: 1rem;
 }
 
 .admin-dashboard__section-heading {
-  display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  display: flex;
   gap: 1rem;
+  justify-content: space-between;
 }
 
 .admin-dashboard__section-heading h2,
 .admin-dashboard__section-heading h3 {
-  margin: 0;
   color: #101828;
+  margin: 0;
 }
 
 .admin-dashboard__section-heading p {
-  margin: 0.25rem 0 0;
   color: #667085;
+  margin: 0.25rem 0 0;
 }
 
 .admin-dashboard__module-section {
@@ -150,26 +150,26 @@
 }
 
 .admin-dashboard__module {
-  display: grid;
   align-content: start;
-  gap: 0.8rem;
+  background: #ffffff;
   border: 1px solid #e6e8ec;
   border-radius: 12px;
-  background: #ffffff;
+  display: grid;
+  gap: 0.8rem;
   padding: 1rem;
 }
 
 .admin-dashboard__module h3 {
-  margin: 0;
   color: #101828;
   font-size: 1.02rem;
+  margin: 0;
 }
 
 .admin-dashboard__module p {
-  margin: 0.25rem 0 0;
   color: #667085;
   font-size: 0.88rem;
   line-height: 1.45;
+  margin: 0.25rem 0 0;
 }
 
 .admin-dashboard__module-links {
@@ -178,16 +178,16 @@
 }
 
 .admin-dashboard__module-links a {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.65rem;
   border-radius: 8px;
-  padding: 0.68rem 0.7rem;
   color: #344054;
-  text-decoration: none;
+  display: grid;
   font-size: 0.9rem;
   font-weight: 720;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.68rem 0.7rem;
+  text-decoration: none;
 }
 
 .admin-dashboard__module-links a:hover {
@@ -201,15 +201,15 @@
 }
 
 .admin-dashboard__module-header > svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
   color: #c2410c;
+  flex: none;
+  height: 20px;
   margin-top: 0.1rem;
+  width: 20px;
 }
 
 .admin-dashboard__module-links a > svg {
-  width: 16px;
-  height: 16px;
   color: #c2410c;
+  height: 16px;
+  width: 16px;
 }

@@ -6,7 +6,6 @@ import type {
   AppointmentPayload,
   AvailabilitySlot,
   Prestation,
-  WorkingDay,
 } from '../types/appointments';
 
 const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
@@ -25,22 +24,6 @@ export const fetchPrestations = async () => {
     throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des prestations'));
-  }
-};
-
-export const fetchSchedule = async () => {
-  try {
-    const { data } = await httpClient.get<ApiResponse<{ days: WorkingDay[] }>>(
-      '/api/public/appointments/schedule',
-    );
-
-    if (data.status === 'success') {
-      return data.data.days;
-    }
-
-    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement du planning'));
-  } catch (error) {
-    throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement du planning'));
   }
 };
 

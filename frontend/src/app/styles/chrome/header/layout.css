@@ -1,8 +1,8 @@
 .site-header {
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  backdrop-filter: blur(12px);
 }
 
 .site-header--transparent,
@@ -13,44 +13,44 @@
 }
 
 .site-header__container {
-  max-width: 1360px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: auto minmax(430px, max-content) minmax(0, 1fr);
   align-items: center;
-  padding: 0.7rem 1.5rem;
+  display: grid;
   gap: clamp(0.6rem, 1vw, 1rem);
+  grid-template-columns: auto minmax(430px, max-content) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1360px;
+  padding: 0.7rem 1.5rem;
 }
 
 .site-header__brand {
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
+  flex-shrink: 0;
   gap: 0.55rem;
   text-decoration: none;
-  flex-shrink: 0;
 }
 
 .site-header__brand-logo {
-  width: auto;
+  display: block;
   height: 42px;
   max-width: 42px;
   object-fit: contain;
-  display: block;
+  width: auto;
 }
 
 .site-header__nav,
 .site-header__actions {
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
   gap: 0.35rem;
   min-width: 0;
 }
 
 .site-header__account {
-  position: relative;
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
   gap: 0.35rem;
+  position: relative;
 }
 
 .site-header__account-label {
@@ -68,9 +68,9 @@
 }
 
 .site-header__actions {
+  flex-wrap: nowrap;
   justify-content: flex-end;
   margin-left: auto;
-  flex-wrap: nowrap;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
@@ -85,28 +85,28 @@
 .site-header__account-trigger,
 .site-header__logout-button,
 .site-header__admin-button {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  min-height: 42px;
-  padding: 0.5rem 0.72rem;
-  border-radius: var(--hocia-radius);
-  color: var(--hocia-ink-soft);
   background: transparent;
   border: 1px solid transparent;
+  border-radius: var(--hocia-radius);
   box-shadow: none;
+  color: var(--hocia-ink-soft);
+  cursor: pointer;
+  display: inline-flex;
   font-size: 0.88rem;
   font-weight: 700;
+  gap: 0.35rem;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.5rem 0.72rem;
   text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
   transition:
     background-color 0.18s ease,
     border-color 0.18s ease,
     color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.18s ease;
+  white-space: nowrap;
 }
 
 .site-header__link svg,
@@ -115,18 +115,18 @@
 .site-header__logout-button svg,
 .site-header__admin-button svg,
 .site-header__cta svg {
-  width: 18px;
-  height: 18px;
   flex-shrink: 0;
+  height: 18px;
+  width: 18px;
 }
 
 .site-header__link:hover,
 .site-header__menu-trigger:hover,
 .site-header__account-trigger:hover,
 .site-header__logout-button:hover {
-  color: var(--hocia-blue);
   background: rgba(243, 154, 32, 0.12);
   border-color: rgba(243, 154, 32, 0.32);
+  color: var(--hocia-blue);
   transform: translateY(-1px);
 }
 
@@ -140,19 +140,19 @@
 .site-header__link--ghost.site-header__link--active,
 .site-header__account-trigger--active,
 .site-header__admin-button--active {
-  color: var(--hocia-blue-dark);
   background: linear-gradient(135deg, rgba(255, 241, 216, 0.95), rgba(225, 249, 250, 0.82));
   border-color: rgba(243, 154, 32, 0.36);
   box-shadow: inset 0 -2px 0 rgba(239, 107, 58, 0.42);
+  color: var(--hocia-blue-dark);
 }
 
 .site-header__link--contact {
   background: rgba(243, 154, 32, 0.08);
   border: 1px solid rgba(243, 154, 32, 0.35);
-  color: var(--hocia-orange-dark);
   border-radius: 999px;
-  padding: 0.5rem 1rem;
   box-shadow: 0 4px 10px rgba(243, 154, 32, 0.05);
+  color: var(--hocia-orange-dark);
+  padding: 0.5rem 1rem;
 }
 
 .site-header__link--contact:hover {
@@ -164,24 +164,24 @@
 .site-header__link--contact-active {
   background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet)) !important;
   border-color: transparent !important;
-  color: #ffffff !important;
   box-shadow: 0 10px 20px rgba(169, 79, 22, 0.15) !important;
+  color: #ffffff !important;
 }
 
 .site-header__cta,
 .site-header__link--primary {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  min-height: 42px;
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
   background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet));
-  color: #ffffff;
+  border-radius: 999px;
   box-shadow: 0 14px 28px rgba(169, 79, 22, 0.24);
+  color: #ffffff;
+  display: inline-flex;
   font-size: 0.88rem;
   font-weight: 800;
+  gap: 0.35rem;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.5rem 0.9rem;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -215,8 +215,8 @@
   .site-header__admin-button,
   .site-header__cta,
   .site-header__notifications-button {
-    min-height: 40px;
     border-radius: 999px;
+    min-height: 40px;
   }
 
   .site-header__link--contact,

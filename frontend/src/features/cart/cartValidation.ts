@@ -6,7 +6,7 @@ import {
   requireString,
   optionalNumber,
   optionalString,
-} from '@/shared/lib/apiValidation';
+} from '@/shared/lib/contractValidation';
 import { parseCatalogProduct } from '@/features/catalog/publicApi';
 import type { Cart, CartPromotion } from './types/cart';
 

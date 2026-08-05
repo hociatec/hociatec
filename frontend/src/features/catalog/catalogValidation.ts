@@ -7,7 +7,7 @@ import {
   requireString,
   optionalNumber,
   optionalString,
-} from '@/shared/lib/apiValidation';
+} from '@/shared/lib/contractValidation';
 import type {
   CatalogBrand,
   CatalogCategory,

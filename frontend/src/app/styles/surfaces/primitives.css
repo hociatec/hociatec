@@ -1,23 +1,23 @@
 .app-background {
   align-items: flex-start;
-  padding: 3.5rem 1rem 5rem;
   background: transparent;
+  padding: 3.5rem 1rem 5rem;
 }
 
 .card,
 .register-form-card,
 .register-intro {
-  border-radius: var(--hocia-radius);
-  border: 1px solid var(--hocia-line);
   background: #ffffff;
-  color: var(--hocia-ink);
+  border: 1px solid var(--hocia-line);
+  border-radius: var(--hocia-radius);
   box-shadow: var(--hocia-shadow-md);
+  color: var(--hocia-ink);
 }
 
 .card {
-  width: 100%;
   max-width: 520px;
   padding: 2rem;
+  width: 100%;
 }
 
 .card--medium,
@@ -30,11 +30,11 @@
 }
 
 .card--admin {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   max-width: none;
   padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
 }
 
 .app-background--admin {
@@ -82,21 +82,21 @@
 }
 
 fieldset.register-form__field {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
   border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
 }
 
 .form-field input,
 .register-form__field input,
 .register-form__select,
 .catalog-cart-rental input {
-  border-radius: var(--hocia-radius-sm);
-  border: 1px solid var(--hocia-line);
   background: #ffffff;
-  color: var(--hocia-ink);
+  border: 1px solid var(--hocia-line);
+  border-radius: var(--hocia-radius-sm);
   box-shadow: none;
+  color: var(--hocia-ink);
 }
 
 .form-field input:focus,
@@ -111,18 +111,18 @@ fieldset.register-form__field {
 .register-form__submit,
 .catalog-cart-button,
 .alert-dialog__button--action {
-  border-radius: var(--hocia-radius);
   background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet));
-  color: #ffffff;
+  border-radius: var(--hocia-radius);
   box-shadow: 0 14px 28px rgba(169, 79, 22, 0.24);
+  color: #ffffff;
   font-weight: 800;
 }
 
 .button:hover,
 .register-form__submit:hover,
 .catalog-cart-button:hover:not(:disabled) {
-  transform: translateY(-1px);
   box-shadow: 0 18px 36px rgba(169, 79, 22, 0.28);
+  transform: translateY(-1px);
 }
 
 .link-button,
@@ -135,9 +135,9 @@ fieldset.register-form__field {
 
 .register-form__alert,
 .alert {
-  border-radius: 8px;
   background: #fff7ed;
   border-color: #fed7aa;
+  border-radius: 8px;
   color: #7c2d12;
 }
 
@@ -161,8 +161,8 @@ fieldset.register-form__field {
 }
 
 .button-compact {
-  padding: 8px 12px;
   font-size: 0.9rem;
+  padding: 8px 12px;
 }
 
 .form-card-grid {
@@ -176,37 +176,37 @@ fieldset.register-form__field {
 }
 
 .quote-detail-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  display: flex;
   flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
   margin-bottom: 1.5rem;
 }
 
 .quote-detail-title {
-  margin: 0.5rem 0 0;
+  color: var(--hocia-ink);
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 800;
-  color: var(--hocia-ink);
+  margin: 0.5rem 0 0;
 }
 
 .quote-actions-row {
   display: flex;
-  gap: 0.75rem;
   flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .quote-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .quote-two-column-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .quote-kpi-value {
@@ -235,15 +235,15 @@ fieldset.register-form__field {
 }
 
 .quote-stepper-stack {
+  align-items: flex-start;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 0.375rem;
 }
 
 .quote-stepper-row {
-  display: flex;
   align-items: center;
+  display: flex;
   gap: 0.375rem;
 }
 
@@ -253,8 +253,8 @@ fieldset.register-form__field {
 
 .quote-line-input,
 .quote-line-textarea {
-  width: 100%;
   min-width: 7rem;
+  width: 100%;
 }
 
 .quote-line-input--name {
@@ -262,8 +262,8 @@ fieldset.register-form__field {
 }
 
 .quote-line-input--unit {
-  width: 5.5rem;
   min-width: 5.5rem;
+  width: 5.5rem;
 }
 
 .quote-line-input--money {
@@ -271,6 +271,6 @@ fieldset.register-form__field {
 }
 
 .quote-line-input--rate {
-  width: 5rem;
   min-width: 5rem;
+  width: 5rem;
 }

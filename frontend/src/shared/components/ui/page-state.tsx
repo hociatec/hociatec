@@ -78,8 +78,6 @@ export const StableContent = ({
 
 export const EmptyState = ({ children }: PropsWithChildren) => <PageState>{children}</PageState>;
 
-export const PageLoading = LoadingState;
-
 export const ForbiddenState = ({
   children = 'Vous n’avez pas accès à cette page.',
 }: PropsWithChildren) => (
@@ -111,8 +109,6 @@ export const ErrorState = ({
     ) : null}
   </PageState>
 );
-
-export const PageError = ErrorState;
 
 export const FeedbackMessage = ({
   children,

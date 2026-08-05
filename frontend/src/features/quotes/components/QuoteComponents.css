@@ -1,11 +1,11 @@
 .quote-selection-empty {
+  background: #f8fafc;
   border: 1px dashed #cbd5e1;
   border-radius: 1rem;
-  background: #f8fafc;
-  padding: 2rem 1.25rem;
-  text-align: center;
   color: #475569;
   font-size: 0.875rem;
+  padding: 2rem 1.25rem;
+  text-align: center;
 }
 
 .quote-selection-list {
@@ -14,11 +14,11 @@
 }
 
 .quote-selection-card {
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
-  background: #ffffff;
-  padding: 1rem;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  padding: 1rem;
 }
 
 .quote-selection-card__header {
@@ -32,32 +32,32 @@
 }
 
 .quote-selection-card__title-row {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: 0.5rem;
 }
 
 .quote-selection-card__title {
-  margin: 0;
   color: #020617;
   font-size: 1rem;
   font-weight: 700;
+  margin: 0;
 }
 
 .quote-selection-card__badge {
-  border-radius: 999px;
   background: #f1f5f9;
-  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
   color: #475569;
   font-size: 0.75rem;
   font-weight: 700;
+  padding: 0.25rem 0.625rem;
 }
 
 .quote-selection-card__meta {
-  margin: 0.25rem 0 0;
   color: #475569;
   font-size: 0.875rem;
+  margin: 0.25rem 0 0;
 }
 
 .quote-selection-card__subtotal {
@@ -65,39 +65,39 @@
 }
 
 .quote-selection-card__subtotal-label {
-  margin: 0;
   color: #64748b;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
+  margin: 0;
   text-transform: uppercase;
 }
 
 .quote-selection-card__subtotal-value {
-  margin: 0.25rem 0 0;
   color: #020617;
   font-size: 1.125rem;
   font-weight: 700;
+  margin: 0.25rem 0 0;
 }
 
 .quote-selection-card__controls {
+  border-top: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
 }
 
 .quote-selection-card__steppers {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: 0.75rem;
 }
 
 .quote-selection-stepper {
-  display: inline-flex;
   align-items: center;
+  display: inline-flex;
   gap: 0.5rem;
 }
 
@@ -109,13 +109,13 @@
 
 .quote-selection-stepper__button,
 .quote-selection-stepper__input {
-  width: 2.25rem;
-  height: 2.25rem;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
-  background: #ffffff;
   color: #334155;
+  height: 2.25rem;
   text-align: center;
+  width: 2.25rem;
 }
 
 .quote-selection-stepper__button {
@@ -126,8 +126,8 @@
 }
 
 .quote-selection-stepper__button:hover {
-  border-color: #64748b;
   background: #f8fafc;
+  border-color: #64748b;
 }
 
 .quote-selection-stepper__unit {
@@ -136,31 +136,31 @@
 }
 
 .quote-selection-card__remove {
-  display: inline-flex;
-  min-height: 2.5rem;
   align-items: center;
-  justify-content: center;
+  background: #ffffff;
   border: 1px solid #fecaca;
   border-radius: 0.5rem;
-  background: #ffffff;
-  padding: 0 1rem;
   color: #b91c1c;
+  cursor: pointer;
+  display: inline-flex;
   font-size: 0.875rem;
   font-weight: 700;
-  cursor: pointer;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 1rem;
   transition:
     border-color 0.16s ease,
     background 0.16s ease;
 }
 
 .quote-selection-card__remove:hover {
-  border-color: #fca5a5;
   background: #fef2f2;
+  border-color: #fca5a5;
 }
 
 .quote-selection-empty {
-  border-color: var(--hocia-line) !important;
   background: var(--hocia-surface-soft) !important;
+  border-color: var(--hocia-line) !important;
   color: var(--hocia-muted) !important;
 }
 
@@ -198,17 +198,17 @@
 
 @media (min-width: 640px) {
   .quote-selection-card__controls {
+    align-items: center;
     flex-direction: row;
     flex-wrap: wrap;
-    align-items: center;
     justify-content: space-between;
   }
 }
 
 @media (min-width: 1024px) {
   .quote-selection-card__header {
-    flex-direction: row;
     align-items: flex-start;
+    flex-direction: row;
     justify-content: space-between;
   }
 

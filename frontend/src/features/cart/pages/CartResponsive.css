@@ -3,31 +3,31 @@
 .cart-page__empty {
   background: rgba(148, 163, 184, 0.12);
   border-radius: 16px;
-  padding: 32px;
+  color: var(--hocia-ink);
   display: grid;
   gap: 12px;
   justify-items: center;
-  color: var(--hocia-ink);
+  padding: 32px;
 }
 
 .cart-page__empty p {
-  margin: 0;
   font-weight: 600;
+  margin: 0;
 }
 
 .cart-page__empty-button {
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 42px;
+  background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet));
   border: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet));
-  color: #ffffff;
-  padding: 0.75rem 1rem;
-  font-weight: 800;
-  cursor: pointer;
   box-shadow: 0 14px 28px rgba(169, 79, 22, 0.22);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.75rem 1rem;
 }
 
 /* === RESPONSIVE === */

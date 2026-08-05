@@ -3,11 +3,11 @@
 }
 
 .site-header__menu-trigger {
-  display: inline-flex;
   align-items: center;
-  padding: 0.5rem 0.72rem;
   cursor: pointer;
+  display: inline-flex;
   list-style: none;
+  padding: 0.5rem 0.72rem;
 }
 
 .site-header__menu-trigger::-webkit-details-marker {
@@ -15,44 +15,44 @@
 }
 
 .site-header__menu-trigger::after {
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
   content: '';
-  width: 7px;
   height: 7px;
   margin-left: 0.55rem;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
   transform: rotate(45deg) translateY(-2px);
+  width: 7px;
 }
 
 .site-header__menu-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  min-width: 245px;
-  max-width: min(320px, calc(100vw - 1rem));
-  padding: 0.45rem;
+  background: #ffffff;
   border: 1px solid var(--hocia-line);
   border-radius: var(--hocia-radius);
-  background: #ffffff;
   box-shadow: var(--hocia-shadow-md);
   display: grid;
   gap: 0.2rem;
+  left: 0;
+  max-width: min(320px, calc(100vw - 1rem));
+  min-width: 245px;
+  padding: 0.45rem;
+  position: absolute;
+  top: calc(100% + 10px);
 }
 
 .site-header__menu-panel a {
-  display: flex;
   align-items: center;
-  gap: 0.7rem;
-  width: 100%;
+  background: transparent;
   border: 0;
   border-radius: 8px;
-  background: transparent;
   color: var(--hocia-ink);
-  padding: 0.75rem 0.8rem;
   cursor: pointer;
-  text-align: left;
+  display: flex;
   font-weight: 700;
+  gap: 0.7rem;
+  padding: 0.75rem 0.8rem;
+  text-align: left;
   text-decoration: none;
+  width: 100%;
 }
 
 .site-header__menu-panel a:hover,
@@ -62,20 +62,20 @@
 }
 
 .site-header__menu-panel svg {
-  width: 18px;
-  height: 18px;
   color: var(--hocia-blue);
+  height: 18px;
+  width: 18px;
 }
 
 @media (max-width: 760px) {
   .site-header__menu-panel {
-    position: fixed;
-    top: auto;
-    left: 0.625rem;
-    right: 0.625rem;
-    min-width: 0;
-    max-width: none;
     bottom: auto;
+    left: 0.625rem;
+    max-width: none;
+    min-width: 0;
+    position: fixed;
+    right: 0.625rem;
+    top: auto;
   }
 
   .site-header__menu-panel a {
