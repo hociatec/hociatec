@@ -179,20 +179,6 @@ Utiliser React Query pour toutes les données serveur :
 - listes administratives.
 
 
-4.5 Gérer l’optimistic update avec prudence
--------------------------------------------
-
-Pour les favoris, quantités ou statuts simples, une mise à jour optimiste peut améliorer l’UX.
-
-Mais il faut systématiquement prévoir :
-- sauvegarde de l’état précédent ;
-- rollback ;
-- message d’erreur ;
-- invalidation finale.
-
-Ne pas utiliser d’optimistic update pour les paiements ou opérations irréversibles.
-
-
 4.6 Utiliser les mutations plutôt que des états manuels
 -------------------------------------------------------
 

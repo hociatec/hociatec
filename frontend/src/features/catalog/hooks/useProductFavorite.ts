@@ -1,55 +1,101 @@
-import { useCallback, useEffect, useState } from 'react';
-import { addFavorite, fetchFavorites, removeFavorite } from '@/features/favorites/api/favoritesApi';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useProductFavorite = (productId?: number) => {
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import type { CatalogProduct } from '@/features/catalog/api';
+import {
+  addFavorite,
+  fetchFavorites,
+  removeFavorite,
+  type FavoriteDto,
+} from '@/features/favorites/api/favoritesApi';
+import { favoriteQueryKeys } from '@/shared/lib/queryKeys';
+
+export const useProductFavorite = (product?: CatalogProduct | null) => {
   const { status } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [statusState, setStatusState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
-  const [actionState, setActionState] = useState<'idle' | 'saving'>('idle');
-  useEffect(() => {
-    if (!productId || status !== 'authenticated') {
-      setIsFavorite(false);
-      setStatusState('idle');
-      return;
-    }
-    let active = true;
-    setStatusState('loading');
-    void fetchFavorites()
-      .then((items) => {
-        if (active) {
-          setIsFavorite(items.some((item) => item.product.id === productId));
-          setStatusState('ready');
-        }
-      })
-      .catch(() => {
-        if (active) setStatusState('error');
+  const queryClient = useQueryClient();
+  const productId = product?.id;
+  const favoritesQuery = useQuery({
+    queryKey: favoriteQueryKeys.all(),
+    queryFn: fetchFavorites,
+    enabled: Boolean(productId && status === 'authenticated'),
+  });
+  const isFavorite = Boolean(
+    productId && favoritesQuery.data?.some((item) => item.product.id === productId),
+  );
+  const removeMutation = useMutation({
+    mutationFn: removeFavorite,
+    onMutate: async (targetProductId) => {
+      await queryClient.cancelQueries({ queryKey: favoriteQueryKeys.all() });
+      const previousFavorites = queryClient.getQueryData<FavoriteDto[]>(favoriteQueryKeys.all());
+      queryClient.setQueryData<FavoriteDto[]>(favoriteQueryKeys.all(), (current = []) =>
+        current.filter((favorite) => favorite.product.id !== targetProductId),
+      );
+
+      return { previousFavorites };
+    },
+    onError: (_error, _targetProductId, context) => {
+      if (context?.previousFavorites) {
+        queryClient.setQueryData(favoriteQueryKeys.all(), context.previousFavorites);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: favoriteQueryKeys.all() });
+    },
+  });
+  const addMutation = useMutation({
+    mutationFn: addFavorite,
+    onMutate: async (targetProductId) => {
+      await queryClient.cancelQueries({ queryKey: favoriteQueryKeys.all() });
+      const previousFavorites = queryClient.getQueryData<FavoriteDto[]>(favoriteQueryKeys.all());
+      if (product && product.id === targetProductId) {
+        queryClient.setQueryData<FavoriteDto[]>(favoriteQueryKeys.all(), (current = []) =>
+          current.some((favorite) => favorite.product.id === targetProductId)
+            ? current
+            : [{ addedAt: new Date().toISOString(), product }, ...current],
+        );
+      }
+
+      return { previousFavorites };
+    },
+    onSuccess: (result, targetProductId) => {
+      queryClient.setQueryData<FavoriteDto[]>(favoriteQueryKeys.all(), (current = []) => {
+        const withoutTarget = current.filter((favorite) => favorite.product.id !== targetProductId);
+        return [result.favorite, ...withoutTarget];
       });
-    return () => {
-      active = false;
-    };
-  }, [productId, status]);
+    },
+    onError: (_error, _targetProductId, context) => {
+      if (context?.previousFavorites) {
+        queryClient.setQueryData(favoriteQueryKeys.all(), context.previousFavorites);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: favoriteQueryKeys.all() });
+    },
+  });
   const toggle = useCallback(async () => {
     if (!productId) return { alreadyFavorite: false };
-    setActionState('saving');
-    try {
-      if (isFavorite) {
-        await removeFavorite(productId);
-        setIsFavorite(false);
-        return { alreadyFavorite: false };
-      }
-      const result = await addFavorite(productId);
-      setIsFavorite(true);
-      return result;
-    } finally {
-      setActionState('idle');
+    if (isFavorite) {
+      await removeMutation.mutateAsync(productId);
+      return { alreadyFavorite: false };
     }
-  }, [isFavorite, productId]);
+
+    return addMutation.mutateAsync(productId);
+  }, [addMutation, isFavorite, productId, removeMutation]);
+  const favoriteStatus: 'idle' | 'loading' | 'ready' | 'error' =
+    status !== 'authenticated' || !productId
+      ? 'idle'
+      : favoritesQuery.isLoading
+        ? 'loading'
+        : favoritesQuery.isError
+          ? 'error'
+          : 'ready';
+
   return {
     isAuthenticated: status === 'authenticated',
     isFavorite,
-    favoriteStatus: statusState,
-    favoriteAction: actionState,
+    favoriteStatus,
+    favoriteAction: addMutation.isPending || removeMutation.isPending ? 'saving' : 'idle',
     toggle,
   };
 };

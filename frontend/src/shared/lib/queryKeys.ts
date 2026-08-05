@@ -9,6 +9,10 @@ export const betaQueryKeys = {
     [...betaQueryKeys.reportComments(id), { page }] as const,
 };
 
+export const favoriteQueryKeys = {
+  all: () => ['favorites'] as const,
+};
+
 export const adminBetaQueryKeys = {
   campaigns: () => ['admin', 'beta', 'campaigns'] as const,
   bugReports: () => ['admin', 'beta', 'bug-reports'] as const,

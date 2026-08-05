@@ -12,7 +12,7 @@ export const useProductPageInteractions = (product: CatalogProduct | null, color
   const [activeSlide, setActiveSlide] = useState(0);
   const [failedSlideUrls, setFailedSlideUrls] = useState<Set<string>>(() => new Set());
   const previousSlidesSignatureRef = useRef('');
-  const favorite = useProductFavorite(product?.id);
+  const favorite = useProductFavorite(product);
   const slides = useMemo(() => buildProductSlides(product, productDisplayName), [product, productDisplayName]);
   const visibleSlides = useMemo(() => slides.filter((slide) => !failedSlideUrls.has(slide.url)), [failedSlideUrls, slides]);
 
