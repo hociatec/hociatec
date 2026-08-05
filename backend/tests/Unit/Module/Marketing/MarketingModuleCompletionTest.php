@@ -14,11 +14,14 @@ use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
 use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
+use App\Module\Marketing\Application\Outbox\DispatchMarketingCampaignRecipientEmailHandler;
+use App\Module\Marketing\Application\Outbox\PrepareMarketingCampaignHandler;
 use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
 use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
 use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery;
 use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery;
+use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository;
 use App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
@@ -30,6 +33,9 @@ use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Outbox\Application\Outbox;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -81,10 +87,11 @@ final class MarketingModuleCompletionTest extends TestCase
         );
 
         self::assertInstanceOf(EmailCampaign::class, $campaign);
-        self::assertSame(1, $campaign->getRecipientsCount());
-        self::assertSame(1, $campaign->getPendingCount());
-        self::assertSame(1, $campaign->getSkippedCount());
+        self::assertSame(0, $campaign->getRecipientsCount());
+        self::assertSame(0, $campaign->getPendingCount());
+        self::assertSame(0, $campaign->getSkippedCount());
         self::assertSame('admin@example.com', $campaign->getCreatedByEmail());
+        self::assertSame(1, $em->getRepository(OutboxEvent::class)->count(['type' => 'marketing.campaign.prepare_requested']));
     }
 
     public function testRecipientContextProviderCoversEmptyOrderFallbacks(): void
@@ -183,6 +190,58 @@ final class MarketingModuleCompletionTest extends TestCase
         self::assertSame(1, $campaign->getSentCount());
     }
 
+    public function testMarketingCampaignPreparationOutboxCreatesRecipientsAndEmailOutboxEventsByCursor(): void
+    {
+        $em = $this->entityManager();
+        $optIn = $this->user('prep-news@example.com', [CommunicationPreferences::NEWS_EMAIL]);
+        $silent = $this->user('prep-silent@example.com', []);
+        $campaign = new EmailCampaign('Prepared campaign', 'all_verified_users', [], 'Bonjour', '<p>Body</p>', null, 0, 'admin@example.com');
+        $em->persist($optIn);
+        $em->persist($silent);
+        $em->persist($campaign);
+        $em->flush();
+
+        $persistence = new DoctrineUnitOfWork($em);
+        $handler = new PrepareMarketingCampaignHandler(
+            new EmailCampaignRepository($this->registry($em)),
+            new MarketingAudienceProvider(new DoctrineMarketingAudienceQuery($em), new EmailTemplateScenarioProvider()),
+            $this->notifier($em),
+            new EmailCampaignRecipientRepository($this->registry($em)),
+            new Outbox($persistence),
+            $persistence,
+        );
+
+        $handler->handle(new OutboxEvent(
+            PrepareMarketingCampaignHandler::prepareKey((int) $campaign->getId()),
+            PrepareMarketingCampaignHandler::TYPE,
+            ['campaignId' => (int) $campaign->getId(), 'lastUserId' => 0],
+        ));
+        $em->flush();
+
+        self::assertSame(1, $campaign->getRecipientsCount());
+        self::assertSame(1, $campaign->getPendingCount());
+        self::assertSame(1, $campaign->getSkippedCount());
+        self::assertSame(2, $em->getRepository(EmailCampaignRecipient::class)->count([]));
+        self::assertSame(1, $em->getRepository(OutboxEvent::class)->count(['type' => DispatchMarketingCampaignRecipientEmailHandler::TYPE]));
+    }
+
+    public function testMarketingRecipientEmailOutboxPublishesMessengerMessage(): void
+    {
+        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus->expects(self::once())
+            ->method('dispatch')
+            ->with(self::callback(static fn (object $message): bool => $message instanceof MarketingCampaignRecipientEmailMessage
+                && 42 === $message->campaignId
+                && 99 === $message->userId))
+            ->willReturnCallback(static fn (object $message, array $stamps = []): Envelope => new Envelope($message, $stamps));
+
+        (new DispatchMarketingCampaignRecipientEmailHandler($messageBus))->handle(new OutboxEvent(
+            PrepareMarketingCampaignHandler::recipientEmailKey(42, 99),
+            DispatchMarketingCampaignRecipientEmailHandler::TYPE,
+            ['campaignId' => 42, 'userId' => 99],
+        ));
+    }
+
     private function campaignService(EntityManager $em, MailerInterface $mailer): MarketingCampaignService
     {
         $persistence = new DoctrineUnitOfWork($em);
@@ -191,16 +250,9 @@ final class MarketingModuleCompletionTest extends TestCase
         return new MarketingCampaignService(
             $audiences,
             new MarketingCampaignSender(
-                $audiences,
-                $this->notifier($em),
-                new EmailCampaignRecipientRepository($this->registry($em)),
                 $persistence,
-                new class implements MessageBusInterface {
-                    public function dispatch(object $message, array $stamps = []): Envelope
-                    {
-                        return new Envelope($message, $stamps);
-                    }
-                },
+                new DoctrineTransactionManager($em),
+                new Outbox($persistence),
             ),
         );
     }
@@ -245,6 +297,7 @@ final class MarketingModuleCompletionTest extends TestCase
             $em->getClassMetadata(EmailTemplate::class),
             $em->getClassMetadata(EmailCampaign::class),
             $em->getClassMetadata(EmailCampaignRecipient::class),
+            $em->getClassMetadata(OutboxEvent::class),
             $em->getClassMetadata(AccountNotificationEvent::class),
         ]);
 

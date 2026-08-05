@@ -589,6 +589,48 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('invalidateAfterWrite', $handler);
     }
 
+    public function testMarketingCampaignLaunchUsesOutboxInsteadOfSynchronousRecipientPreparation(): void
+    {
+        $sender = file_get_contents(__DIR__.'/../../../src/Module/Marketing/Application/Notification/MarketingCampaignSender.php');
+        $prepareHandler = file_get_contents(__DIR__.'/../../../src/Module/Marketing/Application/Outbox/PrepareMarketingCampaignHandler.php');
+        $dispatchHandler = file_get_contents(__DIR__.'/../../../src/Module/Marketing/Application/Outbox/DispatchMarketingCampaignRecipientEmailHandler.php');
+        self::assertIsString($sender);
+        self::assertIsString($prepareHandler);
+        self::assertIsString($dispatchHandler);
+
+        self::assertStringContainsString('PrepareMarketingCampaignHandler::TYPE', $sender);
+        self::assertStringContainsString('TransactionManager', $sender);
+        self::assertStringNotContainsString('resolveRecipients(', $sender);
+        self::assertStringNotContainsString('messageBus->dispatch', $sender);
+        self::assertStringContainsString('resolveRecipientsAfterId', $prepareHandler);
+        self::assertStringContainsString('findExistingUserIdsForCampaign', $prepareHandler);
+        self::assertStringContainsString('recipientEmailKey', $prepareHandler);
+        self::assertStringContainsString('MessageBusInterface', $dispatchHandler);
+    }
+
+    public function testBackendTransactionConventionIsDocumented(): void
+    {
+        $doc = file_get_contents(__DIR__.'/../../../../docs/backend-transaction-conventions.md');
+        self::assertIsString($doc);
+
+        self::assertStringContainsString('UnitOfWork::commit()', $doc);
+        self::assertStringContainsString('TransactionManager::transactional()', $doc);
+        self::assertStringContainsString('outbox event', $doc);
+    }
+
+    public function testSecureInvoiceStorageCommandDoesNotLoadAllOrders(): void
+    {
+        $command = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Command/SecureInvoiceStorageCommand.php');
+        $repository = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderRepository.php');
+        self::assertIsString($command);
+        self::assertIsString($repository);
+
+        self::assertStringNotContainsString('findAll()', $command);
+        self::assertStringContainsString('findWithInvoiceDocumentsAfterId', $command);
+        self::assertStringContainsString('after-id', $command);
+        self::assertStringContainsString('o.id > :lastId', $repository);
+    }
+
     public function testCatalogListReadsUseScalarProjectionAndVersionedCache(): void
     {
         $provider = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Provider/ProductCatalogSearchProvider.php');

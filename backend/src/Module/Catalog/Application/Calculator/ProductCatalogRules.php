@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Calculator;
 
+use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Shared\Application\Text\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -19,22 +20,16 @@ final readonly class ProductCatalogRules
     ) {
     }
 
-    public function assertValidData(
-        string $name,
-        string $sku,
-        string $description,
-        ?string $shortDescription,
-        int $priceCents,
-        int $stock,
-    ): void {
+    public function assertValidData(ProductCoreWriteData $core, string $normalizedSku): void
+    {
         $violations = $this->validator->validate(
             [
-                'name' => $name,
-                'sku' => $sku,
-                'description' => $description,
-                'shortDescription' => $shortDescription,
-                'price' => $priceCents,
-                'stock' => $stock,
+                'name' => $core->name,
+                'sku' => $normalizedSku,
+                'description' => $core->description,
+                'shortDescription' => $core->shortDescription,
+                'price' => $core->priceCents,
+                'stock' => $core->stock,
             ],
             new Assert\Collection([
                 'name' => [

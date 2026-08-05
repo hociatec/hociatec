@@ -8,12 +8,8 @@ use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'marketing_email_campaign_recipients',
-    uniqueConstraints: [
-        new ORM\UniqueConstraint(name: 'uniq_marketing_campaign_recipient_user', columns: ['campaign_id', 'user_id']),
-    ],
-)]
+#[ORM\Table(name: 'marketing_email_campaign_recipients')]
+#[ORM\UniqueConstraint(name: 'uniq_marketing_campaign_recipient_user', columns: ['campaign_id', 'user_id'])]
 #[ORM\HasLifecycleCallbacks]
 class EmailCampaignRecipient
 {

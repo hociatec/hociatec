@@ -8,6 +8,8 @@ use App\Module\Marketing\Domain\Entity\EmailCampaign;
 
 interface EmailCampaignRepositoryPort
 {
+    public function find(mixed $id): ?EmailCampaign;
+
     /**
      * @param array<string, mixed>       $criteria
      * @param array<string, string>|null $orderBy

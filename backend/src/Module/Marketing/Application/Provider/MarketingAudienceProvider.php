@@ -52,6 +52,16 @@ final readonly class MarketingAudienceProvider
         return $this->audiences->resolveRecipients($segmentKey, $criteria, $limit, $offset);
     }
 
+    /**
+     * @param array<string, mixed> $criteria
+     *
+     * @return list<User>
+     */
+    public function resolveRecipientsAfterId(string $segmentKey, array $criteria, int $lastUserId, int $limit): array
+    {
+        return $this->audiences->resolveRecipientsAfterId($segmentKey, $criteria, $lastUserId, $limit);
+    }
+
     /** @param array<string, mixed> $criteria */
     private function describe(string $segmentKey, array $criteria): string
     {

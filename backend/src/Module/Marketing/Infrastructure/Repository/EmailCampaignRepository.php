@@ -19,4 +19,11 @@ class EmailCampaignRepository extends ServiceEntityRepository implements EmailCa
     {
         parent::__construct($registry, EmailCampaign::class);
     }
+
+    public function find(mixed $id, mixed $lockMode = null, ?int $lockVersion = null): ?EmailCampaign
+    {
+        $campaign = parent::find($id, $lockMode, $lockVersion);
+
+        return $campaign instanceof EmailCampaign ? $campaign : null;
+    }
 }

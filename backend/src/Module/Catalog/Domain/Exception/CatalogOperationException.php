@@ -11,7 +11,7 @@ final class CatalogOperationException extends \RuntimeException
         return new self($message);
     }
 
-    public static function failed(string $message, \RuntimeException $previous): self
+    public static function failed(string $message, \Throwable $previous): self
     {
         return new self($message, 0, $previous);
     }

@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Marketing\Infrastructure\Repository;
 
 use App\Module\Marketing\Application\Port\EmailCampaignRecipientRepositoryPort;
-use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
-use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,11 +19,6 @@ final class EmailCampaignRecipientRepository extends ServiceEntityRepository imp
         parent::__construct($registry, EmailCampaignRecipient::class);
     }
 
-    public function findOneForCampaignAndUser(EmailCampaign $campaign, User $user): ?EmailCampaignRecipient
-    {
-        return $this->findOneBy(['campaign' => $campaign, 'user' => $user]);
-    }
-
     public function findOneForCampaignAndUserIds(int $campaignId, int $userId): ?EmailCampaignRecipient
     {
         return $this->createQueryBuilder('recipient')
@@ -35,5 +28,24 @@ final class EmailCampaignRecipientRepository extends ServiceEntityRepository imp
             ->setParameter('userId', $userId)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findExistingUserIdsForCampaign(int $campaignId, array $userIds): array
+    {
+        if ([] === $userIds) {
+            return [];
+        }
+
+        /** @var list<array{userId:int|string}> $rows */
+        $rows = $this->createQueryBuilder('recipient')
+            ->select('IDENTITY(recipient.user) AS userId')
+            ->andWhere('IDENTITY(recipient.campaign) = :campaignId')
+            ->andWhere('IDENTITY(recipient.user) IN (:userIds)')
+            ->setParameter('campaignId', $campaignId)
+            ->setParameter('userIds', array_values(array_unique($userIds)))
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): int => (int) $row['userId'], $rows);
     }
 }

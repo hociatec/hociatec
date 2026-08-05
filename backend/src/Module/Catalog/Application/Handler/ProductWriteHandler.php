@@ -16,6 +16,8 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
+use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\ORM\Exception\ORMException;
 
 final readonly class ProductWriteHandler
 {
@@ -37,7 +39,7 @@ final readonly class ProductWriteHandler
         $normalizedSku = strtoupper($command->core->sku);
         $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group, $command->core->name, $command->variant->definitions);
 
-        $this->rules->assertValidData($command->core->name, $normalizedSku, $command->core->description, $command->core->shortDescription, $command->core->priceCents, $command->core->stock);
+        $this->rules->assertValidData($command->core, $normalizedSku);
         $this->rules->assertUniqueness($normalizedSku, null);
         $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, null, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
 
@@ -56,7 +58,7 @@ final readonly class ProductWriteHandler
                 $this->persistence->persist($product);
                 $this->variantBatch->forNewProduct($product, $command->core->name, $command->core->sku, $command->core->slug, $resolvedVariantGroup, $command->core->stock, $command->variant->definitions);
             });
-        } catch (\RuntimeException $exception) {
+        } catch (\RuntimeException|DBALException|ORMException $exception) {
             throw CatalogOperationException::failed('Impossible de créer le produit.', $exception);
         }
         $this->cacheInvalidator->invalidateAfterWrite('create');
@@ -74,7 +76,7 @@ final readonly class ProductWriteHandler
         $normalizedSku = strtoupper($command->core->sku);
         $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group ?? $product->getVariantGroup(), $command->core->name, []);
 
-        $this->rules->assertValidData($command->core->name, $normalizedSku, $command->core->description, $command->core->shortDescription, $command->core->priceCents, $command->core->stock);
+        $this->rules->assertValidData($command->core, $normalizedSku);
         $this->rules->assertUniqueness($normalizedSku, $product->getId());
         $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, $product, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
 
@@ -97,7 +99,7 @@ final readonly class ProductWriteHandler
                 $this->gallery->stage($product, $command->gallery->files, $galleryToRemove);
                 $this->variantBatch->forExistingProduct($product, $command->core->name, $command->core->sku, $command->core->slug, $resolvedVariantGroup, $command->core->stock, $command->variant->definitions);
             });
-        } catch (\RuntimeException $exception) {
+        } catch (\RuntimeException|DBALException|ORMException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour le produit.', $exception);
         }
         $this->cacheInvalidator->invalidateAfterWrite('update');
@@ -111,7 +113,7 @@ final readonly class ProductWriteHandler
             $this->transactions->transactional(function () use ($product): void {
                 $this->persistence->remove($product);
             });
-        } catch (\RuntimeException $exception) {
+        } catch (\RuntimeException|DBALException|ORMException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer le produit.', $exception);
         }
         $this->cacheInvalidator->invalidateAfterWrite('delete');

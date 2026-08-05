@@ -20,12 +20,46 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
 
     public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null, int $offset = 0): array
     {
+        $qb = $this->createAudienceQuery($segmentKey, $criteria)
+            ->orderBy('u.createdAt', 'DESC');
+
+        if (null !== $limit) {
+            $qb->setMaxResults($limit);
+        }
+        if ($offset > 0) {
+            $qb->setFirstResult($offset);
+        }
+
+        /** @var list<User> $users */
+        $users = $qb->getQuery()->getResult();
+
+        return $users;
+    }
+
+    public function resolveRecipientsAfterId(string $segmentKey, array $criteria, int $lastUserId, int $limit): array
+    {
+        $qb = $this->createAudienceQuery($segmentKey, $criteria)
+            ->andWhere('u.id > :lastUserId')
+            ->setParameter('lastUserId', max(0, $lastUserId))
+            ->orderBy('u.id', 'ASC')
+            ->setMaxResults(max(1, min(500, $limit)));
+
+        /** @var list<User> $users */
+        $users = $qb->getQuery()->getResult();
+
+        return $users;
+    }
+
+    /**
+     * @param array<string, mixed> $criteria
+     */
+    private function createAudienceQuery(string $segmentKey, array $criteria): QueryBuilder
+    {
         $qb = $this->entityManager->createQueryBuilder()
             ->select('DISTINCT u')
             ->from(User::class, 'u')
             ->andWhere('u.security.isVerified = :verified')
-            ->setParameter('verified', true)
-            ->orderBy('u.createdAt', 'DESC');
+            ->setParameter('verified', true);
 
         switch ($segmentKey) {
             case 'all_verified_users':
@@ -88,17 +122,7 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
                 throw new \InvalidArgumentException('Segment marketing inconnu.');
         }
 
-        if (null !== $limit) {
-            $qb->setMaxResults($limit);
-        }
-        if ($offset > 0) {
-            $qb->setFirstResult($offset);
-        }
-
-        /** @var list<User> $users */
-        $users = $qb->getQuery()->getResult();
-
-        return $users;
+        return $qb;
     }
 
     private function withMinimumOrders(QueryBuilder $qb, int $minimum): void

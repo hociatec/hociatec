@@ -8,15 +8,12 @@ use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
-use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
-use App\Module\Marketing\Application\Port\EmailCampaignRecipientRepositoryPort;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
+use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
 use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
-use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
@@ -26,7 +23,9 @@ use App\Module\Auth\Application\Outbox\SendPasswordResetEmailHandler;
 use App\Module\Auth\Application\Workflow\PasswordResetEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -136,59 +135,16 @@ final class RemainingMailSendersTest extends TestCase
 
     public function testMarketingCampaignSenderQueuesEligibleRecipientsAndPersistsCampaign(): void
     {
-        $optIn = $this->user('news@example.com');
-        $optIn->setIsVerified(true);
-        $optIn->setCommunicationPreferences([CommunicationPreferences::NEWS_EMAIL]);
-        $noOptIn = $this->user('off@example.com');
-        $noOptIn->setIsVerified(true);
-        $noOptIn->setCommunicationPreferences([CommunicationPreferences::EMAIL]);
-
-        $audienceQuery = $this->queryMock(['getResult' => [$optIn, $noOptIn]]);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())
-            ->method('createQueryBuilder')
-            ->willReturn($this->queryBuilderMock($audienceQuery));
-        $entityManager->expects(self::exactly(3))
-            ->method('persist')
-            ->with(self::callback(static function (object $entity): bool {
-                if ($entity instanceof \App\Module\Marketing\Domain\Entity\EmailCampaign) {
-                    return 'Campagne' === $entity->getName()
-                        && 0 === $entity->getRecipientsCount();
-                }
-
-                return $entity instanceof EmailCampaignRecipient;
-            }));
-        $entityManager->expects(self::exactly(2))->method('flush');
+        $entityManager = $this->entityManager();
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $mailer = $this->createMock(MailerInterface::class);
         $mailer->expects(self::never())->method('send');
 
-        $messageBus = $this->createMock(MessageBusInterface::class);
-        $messageBus->expects(self::once())
-            ->method('dispatch')
-            ->with(self::callback(static function (object $message): bool {
-                return $message instanceof MarketingCampaignRecipientEmailMessage;
-            }))
-            ->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
-
-        $recipients = new class implements EmailCampaignRecipientRepositoryPort {
-            public function findOneForCampaignAndUser(EmailCampaign $campaign, User $user): ?EmailCampaignRecipient
-            {
-                return null;
-            }
-
-            public function findOneForCampaignAndUserIds(int $campaignId, int $userId): ?EmailCampaignRecipient
-            {
-                return null;
-            }
-        };
-
         $sender = new MarketingCampaignSender(
-            new MarketingAudienceProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery($entityManager), new EmailTemplateScenarioProvider()),
-            $this->notifier(),
-            $recipients,
-            new DoctrineUnitOfWork($entityManager),
-            $messageBus,
+            $persistence,
+            new DoctrineTransactionManager($entityManager),
+            new Outbox($persistence),
         );
 
         $campaign = $sender->send(
@@ -203,9 +159,11 @@ final class RemainingMailSendersTest extends TestCase
         );
 
         self::assertSame('Campagne', $campaign->getName());
-        self::assertSame(1, $campaign->getRecipientsCount());
-        self::assertSame(1, $campaign->getPendingCount());
-        self::assertSame(1, $campaign->getSkippedCount());
+        self::assertSame(0, $campaign->getRecipientsCount());
+        self::assertSame(0, $campaign->getPendingCount());
+        self::assertSame(0, $campaign->getSkippedCount());
+        self::assertSame(1, $entityManager->getRepository(OutboxEvent::class)->count(['type' => 'marketing.campaign.prepare_requested']));
+        self::assertSame(0, $entityManager->getRepository(EmailCampaignRecipient::class)->count([]));
     }
 
     /** @param array<string, mixed> $results */
@@ -261,6 +219,10 @@ final class RemainingMailSendersTest extends TestCase
         $tool->createSchema([
             $entityManager->getClassMetadata(User::class),
             $entityManager->getClassMetadata(AccountNotificationEvent::class),
+            $entityManager->getClassMetadata(EmailTemplate::class),
+            $entityManager->getClassMetadata(EmailCampaign::class),
+            $entityManager->getClassMetadata(EmailCampaignRecipient::class),
+            $entityManager->getClassMetadata(OutboxEvent::class),
         ]);
         $this->entityManager = $entityManager;
 

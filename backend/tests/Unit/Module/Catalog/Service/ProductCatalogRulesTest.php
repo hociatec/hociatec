@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
@@ -15,7 +17,7 @@ final class ProductCatalogRulesTest extends TestCase
     {
         $rules = new ProductCatalogRules($this->createMock(ProductRepository::class), Validation::createValidator());
 
-        $rules->assertValidData('Téléphone', 'SKU-1', 'Description', 'Résumé court', 1000, 5);
+        $rules->assertValidData($this->core('Téléphone', 'sku-1', 'Description', 'Résumé court', 1000, 5), 'SKU-1');
 
         self::assertSame('telephone-pro', $rules->slugify(' Téléphone Pro '));
         self::assertSame('produit', $rules->slugify('***'));
@@ -26,7 +28,7 @@ final class ProductCatalogRulesTest extends TestCase
         $rules = new ProductCatalogRules($this->createMock(ProductRepository::class), Validation::createValidator());
 
         try {
-            $rules->assertValidData('', 'BAD SKU!', '', str_repeat('x', 256), -1, 1000001);
+            $rules->assertValidData($this->core('', 'bad sku!', '', str_repeat('x', 256), -1, 1000001), 'BAD SKU!');
             self::fail('Expected validation exception.');
         } catch (\InvalidArgumentException $exception) {
             self::assertStringContainsString('Le produit doit avoir un nom.', $exception->getMessage());
@@ -69,5 +71,30 @@ final class ProductCatalogRulesTest extends TestCase
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Ce slug est déjà utilisé. Veuillez en choisir un autre.', $exception->getMessage());
         }
+    }
+
+    private function core(
+        string $name,
+        string $sku,
+        string $description,
+        ?string $shortDescription,
+        int $priceCents,
+        int $stock,
+    ): ProductCoreWriteData {
+        return new ProductCoreWriteData(
+            $name,
+            $sku,
+            null,
+            $description,
+            $shortDescription,
+            $priceCents,
+            $stock,
+            true,
+            false,
+            new Category('Phones', 'phones'),
+            null,
+            'sale',
+            null,
+        );
     }
 }

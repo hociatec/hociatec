@@ -14,4 +14,11 @@ interface MarketingAudienceQuery
      * @return list<User>
      */
     public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null, int $offset = 0): array;
+
+    /**
+     * @param array<string, mixed> $criteria
+     *
+     * @return list<User>
+     */
+    public function resolveRecipientsAfterId(string $segmentKey, array $criteria, int $lastUserId, int $limit): array;
 }

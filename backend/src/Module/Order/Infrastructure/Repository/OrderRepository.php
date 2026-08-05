@@ -106,4 +106,22 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * @return list<Order>
+     */
+    public function findWithInvoiceDocumentsAfterId(int $lastId, int $limit): array
+    {
+        /** @var list<Order> $orders */
+        $orders = $this->createQueryBuilder('o')
+            ->andWhere('o.id > :lastId')
+            ->andWhere('o.invoice.pdfPath IS NOT NULL OR o.invoice.xmlPath IS NOT NULL')
+            ->setParameter('lastId', max(0, $lastId))
+            ->orderBy('o.id', 'ASC')
+            ->setMaxResults(max(1, min(1000, $limit)))
+            ->getQuery()
+            ->getResult();
+
+        return $orders;
+    }
 }
