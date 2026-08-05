@@ -8,6 +8,7 @@ use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 
 use App\Module\News\Domain\Entity\NewsArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<NewsArticle> */
@@ -16,6 +17,13 @@ final class NewsArticleRepository extends ServiceEntityRepository implements New
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, NewsArticle::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?NewsArticle
+    {
+        $article = parent::find($id, $lockMode, $lockVersion);
+
+        return $article instanceof NewsArticle ? $article : null;
     }
 
     /** @return list<NewsArticle> */

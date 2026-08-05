@@ -24,6 +24,13 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
         parent::__construct($registry, Order::class);
     }
 
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Order
+    {
+        $order = parent::find($id, $lockMode, $lockVersion);
+
+        return $order instanceof Order ? $order : null;
+    }
+
     public function findForUpdate(int $id): ?Order
     {
         $order = $this->find($id, LockMode::PESSIMISTIC_WRITE);

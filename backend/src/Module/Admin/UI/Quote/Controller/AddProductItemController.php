@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes/{id}/items/product', name: 'api_admin_quotes_add_product_item', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class AddProductItemController extends AbstractController
 {
     public function __construct(

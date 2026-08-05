@@ -6,12 +6,12 @@ namespace App\Module\Admin\Application\BetaTest\Handler;
 
 use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
 use App\Module\BetaTest\Domain\Entity\BugReport;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class DeleteBugReportHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BetaAttachmentStorage $attachments,
     ) {
     }

@@ -7,14 +7,14 @@ namespace App\Module\Catalog\Application\Factory;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class ProductVariantBatchCreator
 {
     public function __construct(
         private ProductVariantService $variants,
         private ProductCatalogRepository $products,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 

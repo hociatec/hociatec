@@ -122,7 +122,7 @@ final class RefundOperationsServiceTest extends TestCase
     private function unusedOrders(): OrderRepositoryPort
     {
         return new class implements OrderRepositoryPort {
-            public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object
+            public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Order
             {
                 return null;
             }
@@ -165,6 +165,16 @@ final class RefundOperationsServiceTest extends TestCase
             public function findFulfillmentQueue(int $limit = 30): array
             {
                 return [];
+            }
+
+            public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array
+            {
+                return [];
+            }
+
+            public function countForAdminList(?string $status, ?string $health): int
+            {
+                return 0;
             }
 
             public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
@@ -212,6 +222,11 @@ final class RefundOperationsServiceTest extends TestCase
     private function unusedPayments(): OrderCheckoutSessionRepositoryPort
     {
         return new class implements OrderCheckoutSessionRepositoryPort {
+            public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?OrderCheckoutSession
+            {
+                return null;
+            }
+
             public function findOneByStripeSessionId(string $stripeSessionId): ?OrderCheckoutSession
             {
                 return null;
@@ -268,6 +283,11 @@ final class RefundOperationsServiceTest extends TestCase
             }
 
             public function findRecentByOrderId(int $orderId, int $limit = 5): array
+            {
+                return [];
+            }
+
+            public function findForAdminList(?string $status, string $query): array
             {
                 return [];
             }

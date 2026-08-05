@@ -9,13 +9,13 @@ use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class NewsArticleWriter
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private UserRepositoryPort $users,
         private MessageBusInterface $bus,
     ) {

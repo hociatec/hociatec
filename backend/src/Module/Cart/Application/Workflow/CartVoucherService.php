@@ -8,14 +8,14 @@ use App\Module\Cart\Application\Provider\CartSessionProvider;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CartVoucherService
 {
     public function __construct(
         private CartSessionProvider $carts,
         private VoucherEngine $voucherEngine,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 

@@ -150,14 +150,13 @@ final class ProductGallery
         };
     }
 
-    /** @param 0|1|2|3 $position */
     public function remove(int $position): bool
     {
         return match ($position) {
             0 => $this->removePrimary(),
-            1 => $this->removeSecondary($this->galleryImage2Name, $this->galleryImage2Size),
-            2 => $this->removeSecondary($this->galleryImage3Name, $this->galleryImage3Size),
-            3 => $this->removeSecondary($this->galleryImage4Name, $this->galleryImage4Size),
+            1 => $this->removeSecondImage(),
+            2 => $this->removeThirdImage(),
+            3 => $this->removeFourthImage(),
             default => throw new \InvalidArgumentException('Indice d\'image de galerie invalide.'),
         };
     }
@@ -172,11 +171,29 @@ final class ProductGallery
         return $changed;
     }
 
-    private function removeSecondary(?string &$name, ?int &$size): bool
+    private function removeSecondImage(): bool
     {
-        $changed = null !== $name || null !== $size;
-        $name = null;
-        $size = null;
+        $changed = null !== $this->galleryImage2Name || null !== $this->galleryImage2Size;
+        $this->galleryImage2Name = null;
+        $this->galleryImage2Size = null;
+
+        return $changed;
+    }
+
+    private function removeThirdImage(): bool
+    {
+        $changed = null !== $this->galleryImage3Name || null !== $this->galleryImage3Size;
+        $this->galleryImage3Name = null;
+        $this->galleryImage3Size = null;
+
+        return $changed;
+    }
+
+    private function removeFourthImage(): bool
+    {
+        $changed = null !== $this->galleryImage4Name || null !== $this->galleryImage4Size;
+        $this->galleryImage4Name = null;
+        $this->galleryImage4Size = null;
 
         return $changed;
     }

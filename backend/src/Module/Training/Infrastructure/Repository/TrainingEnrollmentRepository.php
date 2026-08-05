@@ -10,6 +10,7 @@ use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TrainingEnrollment> */
@@ -18,6 +19,13 @@ class TrainingEnrollmentRepository extends ServiceEntityRepository implements Tr
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TrainingEnrollment::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingEnrollment
+    {
+        $enrollment = parent::find($id, $lockMode, $lockVersion);
+
+        return $enrollment instanceof TrainingEnrollment ? $enrollment : null;
     }
 
     public function countActiveForSession(TrainingSession $session): int

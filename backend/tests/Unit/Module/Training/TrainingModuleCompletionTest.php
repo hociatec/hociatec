@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Training;
 
 use App\Module\Order\Application\Workflow\StripeApiClient;
+use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
 use App\Module\Training\UI\Controller\Admin\SaveTrainingCategoryController;
 use App\Module\Training\UI\Controller\Admin\SaveTrainingController;
 use App\Module\Training\UI\Controller\Admin\SaveTrainingSessionController;
@@ -267,6 +268,7 @@ final class TrainingModuleCompletionTest extends TestCase
             new StripeApiClient(''),
             new DoctrineUnitOfWork($em),
             new DoctrineTransactionManager($em),
+            new CheckoutRedirectUrlValidator('https://front.example.test/'),
             'https://front.example.test/',
         );
     }

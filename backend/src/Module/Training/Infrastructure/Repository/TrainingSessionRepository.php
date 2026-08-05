@@ -20,6 +20,13 @@ class TrainingSessionRepository extends ServiceEntityRepository implements Train
         parent::__construct($registry, TrainingSession::class);
     }
 
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingSession
+    {
+        $session = parent::find($id, $lockMode, $lockVersion);
+
+        return $session instanceof TrainingSession ? $session : null;
+    }
+
     /** @return list<TrainingSession> */
     public function findUpcomingForTraining(Training $training): array
     {

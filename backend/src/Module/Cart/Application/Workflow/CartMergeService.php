@@ -7,13 +7,13 @@ namespace App\Module\Cart\Application\Workflow;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final class CartMergeService
 {
     public function __construct(
         private readonly CartSessionRepositoryPort $carts,
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 

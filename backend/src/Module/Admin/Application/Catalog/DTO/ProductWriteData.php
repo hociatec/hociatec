@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Catalog\DTO;
 
+use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -47,34 +48,47 @@ final readonly class ProductWriteData
     ) {
     }
 
-    /**
-     * @return list<mixed>
-     */
-    public function createArguments(): array
+    public function toCreateCommand(): ProductWriteCommand
     {
-        return [
-            $this->name, $this->sku, $this->slug, $this->description, $this->shortDescription,
-            $this->priceCents, $this->stock, $this->isPublished, $this->isFeaturedHome,
-            $this->category, $this->galleryFiles, $this->imageAlt, $this->sellingType,
-            $this->brand, $this->variantGroup, $this->releaseYear, $this->storageCapacity,
-            $this->memoryRam, $this->color, $this->variantDefinitions, $this->discountEnabled,
-            $this->discountType, $this->discountValue, $this->discountStartsAt, $this->discountEndsAt,
-        ];
+        return $this->toCommand(null);
     }
 
-    /**
-     * @return list<mixed>
-     */
-    public function updateArguments(Product $product): array
+    public function toUpdateCommand(Product $product): ProductWriteCommand
     {
-        return [
-            $product, $this->name, $this->sku, $this->slug, $this->description,
-            $this->shortDescription, $this->priceCents, $this->stock, $this->isPublished,
-            $this->isFeaturedHome, $this->category, $this->galleryFiles, $this->imageAlt,
-            $this->galleryToRemove, $this->removeImage, $this->sellingType, $this->brand,
-            $this->variantGroup, $this->releaseYear, $this->storageCapacity, $this->memoryRam,
-            $this->color, $this->variantDefinitions, $this->discountEnabled, $this->discountType,
-            $this->discountValue, $this->discountStartsAt, $this->discountEndsAt,
-        ];
+        return $this->toCommand($product);
+    }
+
+    private function toCommand(?Product $product): ProductWriteCommand
+    {
+        return new ProductWriteCommand(
+            $product,
+            $this->name,
+            $this->sku,
+            $this->slug,
+            $this->description,
+            $this->shortDescription,
+            $this->priceCents,
+            $this->stock,
+            $this->isPublished,
+            $this->isFeaturedHome,
+            $this->category,
+            $this->galleryFiles,
+            $this->imageAlt,
+            $product instanceof Product ? $this->galleryToRemove : [],
+            $product instanceof Product && $this->removeImage,
+            $this->sellingType,
+            $this->brand,
+            $this->variantGroup,
+            $this->releaseYear,
+            $this->storageCapacity,
+            $this->memoryRam,
+            $this->color,
+            $this->variantDefinitions,
+            $this->discountEnabled,
+            $this->discountType,
+            $this->discountValue,
+            $this->discountStartsAt,
+            $this->discountEndsAt,
+        );
     }
 }

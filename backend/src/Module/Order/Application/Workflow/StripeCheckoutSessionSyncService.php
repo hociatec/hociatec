@@ -6,7 +6,7 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Http\ExternalServiceException;
 
 final class StripeCheckoutSessionSyncService
@@ -14,7 +14,7 @@ final class StripeCheckoutSessionSyncService
     public function __construct(
         private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private readonly StripeApiClient $stripe,
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 

@@ -24,7 +24,7 @@ final class OrderRepositoryTest extends TestCase
 
         $repository->expects(self::exactly(2))
             ->method('find')
-            ->willReturnOnConsecutiveCalls($order, new \stdClass());
+            ->willReturnOnConsecutiveCalls($order, null);
 
         self::assertSame($order, $repository->findForUpdate(1));
         self::assertNull($repository->findForUpdate(2));

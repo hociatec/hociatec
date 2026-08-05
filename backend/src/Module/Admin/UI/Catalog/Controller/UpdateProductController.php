@@ -38,7 +38,7 @@ final readonly class UpdateProductController
 
         try {
             $data = $this->forms->update($request, $product);
-            $product = $this->products->update(...$data->updateArguments($product));
+            $product = $this->products->update($data->toUpdateCommand($product));
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
         } catch (\InvalidArgumentException|CatalogOperationException $exception) {

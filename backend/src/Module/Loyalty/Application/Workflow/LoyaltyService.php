@@ -11,7 +11,7 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final class LoyaltyService
 {
@@ -19,7 +19,7 @@ final class LoyaltyService
     public const POINTS_PER_EURO = 100;
 
     public function __construct(
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly TransactionManager $transactions,
         private readonly CreateVoucherHandler $createVoucher,
         private readonly UserRepositoryPort $users,

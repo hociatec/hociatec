@@ -7,12 +7,12 @@ namespace App\Module\Admin\Application\BetaTest\Handler;
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Mapper\BetaCampaignPayloadMapper;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CreateBetaCampaignHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BetaCampaignPayloadMapper $payloadMapper,
     ) {
     }

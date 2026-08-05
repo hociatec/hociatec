@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/training-sessions/{id}', name: 'api_admin_training_sessions_update', requirements: ['id' => '\d+'], methods: ['POST'])]
 #[Route('/api/admin/training-sessions', name: 'api_admin_training_sessions_create', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRAINING_MANAGER')]
 class SaveTrainingSessionController extends AbstractController
 {
     public function __construct(

@@ -30,7 +30,7 @@ final readonly class CreateProductController
     {
         try {
             $data = $this->forms->create($request);
-            $product = $this->products->create(...$data->createArguments());
+            $product = $this->products->create($data->toCreateCommand());
         } catch (ProductFormRequestException $exception) {
             return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
         } catch (\InvalidArgumentException|CatalogOperationException $exception) {

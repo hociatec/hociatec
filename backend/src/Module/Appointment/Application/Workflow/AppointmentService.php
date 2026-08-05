@@ -13,7 +13,7 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final class AppointmentService
 {
@@ -22,7 +22,7 @@ final class AppointmentService
         private readonly WorkingDayConfigurationRepositoryPort $workingDayRepository,
         private readonly AvailabilityService $availabilityService,
         private readonly ChangeAppointmentStatusHandler $changeAppointmentStatus,
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly TransactionManager $transactions,
     ) {
     }

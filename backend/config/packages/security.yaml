@@ -1,6 +1,24 @@
 security:
     role_hierarchy:
-        ROLE_ADMIN: ['ROLE_USER']
+        ROLE_ADMIN:
+            - ROLE_USER
+            - ROLE_APPOINTMENTS_MANAGER
+            - ROLE_AUDITS_MANAGER
+            - ROLE_BETA_MANAGER
+            - ROLE_BACKUP_MANAGER
+            - ROLE_CATALOG_MANAGER
+            - ROLE_CUSTOMERS_MANAGER
+            - ROLE_LOYALTY_MANAGER
+            - ROLE_MARKETING_MANAGER
+            - ROLE_NEWS_MANAGER
+            - ROLE_OPERATIONS
+            - ROLE_ORDERS_MANAGER
+            - ROLE_PAYMENTS_MANAGER
+            - ROLE_PROMOTIONS_MANAGER
+            - ROLE_QUOTES_MANAGER
+            - ROLE_TRADE_INS_MANAGER
+            - ROLE_TRAINING_MANAGER
+            - ROLE_VOUCHERS_MANAGER
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
@@ -60,6 +78,20 @@ security:
         - { path: ^/api/admin/operations(?:/|$), roles: ROLE_OPERATIONS }
         - { path: ^/api/admin/marketing(?:/|$), roles: ROLE_MARKETING_MANAGER }
         - { path: ^/api/admin/catalog(?:/|$), roles: ROLE_CATALOG_MANAGER }
+        - { path: ^/api/admin/appointments(?:/|$), roles: ROLE_APPOINTMENTS_MANAGER }
+        - { path: ^/api/admin/audits(?:/|$), roles: ROLE_AUDITS_MANAGER }
+        - { path: ^/api/admin/beta-(?:testers|reports|campaigns)(?:/|$), roles: ROLE_BETA_MANAGER }
+        - { path: ^/api/admin/customers(?:/|$), roles: ROLE_CUSTOMERS_MANAGER }
+        - { path: ^/api/admin/loyalty(?:/|$), roles: ROLE_LOYALTY_MANAGER }
+        - { path: ^/api/admin/news(?:/|$), roles: ROLE_NEWS_MANAGER }
+        - { path: ^/api/admin/orders(?:/|$), roles: ROLE_ORDERS_MANAGER }
+        - { path: ^/api/admin/payments(?:/|$), roles: ROLE_PAYMENTS_MANAGER }
+        - { path: ^/api/admin/promotions(?:/|$), roles: ROLE_PROMOTIONS_MANAGER }
+        - { path: ^/api/admin/quotes(?:/|$), roles: ROLE_QUOTES_MANAGER }
+        - { path: ^/api/admin/services(?:/|$), roles: ROLE_QUOTES_MANAGER }
+        - { path: ^/api/admin/trade-ins(?:/|$), roles: ROLE_TRADE_INS_MANAGER }
+        - { path: ^/api/admin/training(?:s|-categories|-sessions|-enrollments)(?:/|$), roles: ROLE_TRAINING_MANAGER }
+        - { path: ^/api/admin/vouchers(?:/|$), roles: ROLE_VOUCHERS_MANAGER }
         - { path: ^/api/admin(?:/|$), roles: ROLE_ADMIN }
         - { path: ^/api(?:/|$), roles: ROLE_USER }
 

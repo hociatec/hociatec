@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes/{id}/pdf', name: 'api_admin_quotes_generate_pdf', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class GeneratePdfController extends AbstractController
 {
     public function __construct(

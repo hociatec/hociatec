@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/training-enrollments/{id}/status', name: 'api_admin_training_enrollments_status', methods: ['PATCH'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRAINING_MANAGER')]
 class UpdateTrainingEnrollmentStatusController extends AbstractController
 {
     private const ALLOWED = [

@@ -10,13 +10,19 @@ use Doctrine\DBAL\LockMode;
 
 interface QuoteRepositoryPort
 {
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object;
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Quote;
 
     /**
      * @param array<string, mixed>       $criteria
      * @param array<string, string>|null $orderBy
      */
-    public function findOneBy(array $criteria, ?array $orderBy = null): ?object;
+    public function findOneBy(array $criteria, ?array $orderBy = null): ?Quote;
+
+    /** @return list<Quote> */
+    public function findBySearch(?string $search, ?string $statusCode): array;
+
+    /** @return list<Quote> */
+    public function findByCustomerEmail(string $email): array;
 
     public function findConvertedQuoteForOrder(Order $order): ?Quote;
 

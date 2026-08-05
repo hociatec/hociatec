@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Application\Workflow;
 
 use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class AccountVerificationService
 {
@@ -16,7 +16,7 @@ final readonly class AccountVerificationService
 
     public function __construct(
         private UserRepositoryPort $users,
-        private DoctrineUnitOfWork $unitOfWork,
+        private UnitOfWork $unitOfWork,
     ) {
     }
 

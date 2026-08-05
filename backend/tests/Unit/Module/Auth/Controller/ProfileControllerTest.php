@@ -90,6 +90,9 @@ final class ProfileControllerTest extends TestCase
         self::assertSame('1815-12-10', $payload['data']['birthDate']);
         self::assertSame('0102030405', $payload['data']['phoneNumber']);
         self::assertSame('f', $payload['data']['gender']);
+        self::assertContains('admin.access', $payload['data']['permissions']);
+        self::assertContains('orders.manage', $payload['data']['permissions']);
+        self::assertContains('news.comments.moderate', $payload['data']['permissions']);
         self::assertSame(['email', 'phone'], $payload['data']['communicationPreferences']);
     }
 

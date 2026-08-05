@@ -14,12 +14,12 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CheckoutSessionOrderCreator
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,

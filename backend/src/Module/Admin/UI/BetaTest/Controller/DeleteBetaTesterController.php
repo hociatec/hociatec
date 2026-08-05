@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/admin/beta-testers/{id}', methods: ['DELETE'])] #[IsGranted('ROLE_ADMIN')]
+#[Route('/api/admin/beta-testers/{id}', methods: ['DELETE'])] #[IsGranted('ROLE_BETA_MANAGER')]
 final class DeleteBetaTesterController extends AbstractController
 {
     public function __construct(

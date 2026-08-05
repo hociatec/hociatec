@@ -18,6 +18,7 @@ use App\Module\Admin\Application\Marketing\Writer\EmailTemplateWriter;
 use App\Module\Admin\Application\Marketing\Handler\UpdateEmailTemplateHandler;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
+use App\Module\Marketing\Application\Security\EmailTemplatePreviewSanitizer;
 use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
 use App\Module\Marketing\UI\Http\EmailTemplateResponseFormatter;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
@@ -55,7 +56,7 @@ final class AdminMarketingControllersTest extends TestCase
         $writer = new EmailTemplateWriter($createTemplateHandler, $updateTemplateHandler, $templates, $scenarioProvider);
         $validator = $this->validator();
         $requestMapper = new MarketingRequestMapper();
-        $templateFormatter = new EmailTemplateResponseFormatter();
+        $templateFormatter = new EmailTemplateResponseFormatter(new EmailTemplatePreviewSanitizer());
 
         $listPayload = $this->payload((new ListTemplatesController($templates, $templateFormatter))(Request::create('/?page=1&perPage=5')));
         self::assertSame('welcome', $listPayload['data']['items'][0]['slug']);
@@ -108,6 +109,30 @@ final class AdminMarketingControllersTest extends TestCase
         $deleted = (new DeleteTemplateController($deleteTemplateHandler, $templates))(10);
         self::assertSame(200, $deleted->getStatusCode());
         self::assertTrue($this->payload($deleted)['data']['deleted']);
+    }
+
+    public function testTemplateFormatterIncludesSanitizedPreviewHtml(): void
+    {
+        $template = new EmailTemplate(
+            'Security',
+            'security',
+            'newsletter',
+            'Subject',
+            '<p onclick="alert(1)">Hello</p><a href="https://example.test">Pay</a><img src="https://tracker.test/pixel.png" alt="Pixel"><form><input name="email"></form><script>alert(1)</script>',
+            null,
+        );
+
+        $payload = (new EmailTemplateResponseFormatter(new EmailTemplatePreviewSanitizer()))->format($template);
+
+        self::assertSame($template->getHtmlBody(), $payload['htmlBody']);
+        self::assertStringContainsString('<p>Hello</p>', $payload['previewHtmlBody']);
+        self::assertStringContainsString('<a>Pay</a>', $payload['previewHtmlBody']);
+        self::assertStringContainsString('<img alt="Pixel">', $payload['previewHtmlBody']);
+        self::assertStringNotContainsString('onclick', $payload['previewHtmlBody']);
+        self::assertStringNotContainsString('href=', $payload['previewHtmlBody']);
+        self::assertStringNotContainsString('src=', $payload['previewHtmlBody']);
+        self::assertStringNotContainsString('<form', $payload['previewHtmlBody']);
+        self::assertStringNotContainsString('<script', $payload['previewHtmlBody']);
     }
 
     public function testSegmentsAndCampaignListControllersFormatPayloads(): void

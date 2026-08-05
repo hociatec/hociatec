@@ -9,7 +9,7 @@ use Doctrine\DBAL\LockMode;
 
 interface UserRepositoryPort
 {
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object;
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?User;
 
     public function save(User $user): void;
 
@@ -51,4 +51,6 @@ interface UserRepositoryPort
 
     /** @return list<array<string, mixed>> */
     public function findAdminCustomerRows(?string $search = null, string $sort = 'recent_order', int $limit = 100, int $offset = 0): array;
+
+    public function countAdminCustomerRows(?string $search = null): int;
 }

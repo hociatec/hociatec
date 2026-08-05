@@ -37,6 +37,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -52,11 +53,7 @@ final class MarketingModuleCompletionTest extends TestCase
         $em->flush();
 
         $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email): bool {
-            return 'Bonjour Ada' === $email->getSubject()
-                && str_contains($email->getHtmlBody() ?? '', 'news@example.com')
-                && str_contains($email->getTextBody() ?? '', 'https://front.example.test');
-        }));
+        $mailer->expects(self::never())->method('send');
 
         $service = $this->campaignService($em, $mailer);
 
@@ -79,7 +76,7 @@ final class MarketingModuleCompletionTest extends TestCase
         );
 
         self::assertInstanceOf(EmailCampaign::class, $campaign);
-        self::assertSame(2, $campaign->getRecipientsCount());
+        self::assertSame(1, $campaign->getRecipientsCount());
         self::assertSame('admin@example.com', $campaign->getCreatedByEmail());
     }
 
@@ -151,12 +148,14 @@ final class MarketingModuleCompletionTest extends TestCase
             $audiences,
             new MarketingCampaignSender(
                 $audiences,
-                new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'),
-                new MarketingTemplateRenderer(),
-                $mailer,
                 $this->notifier($em),
                 $persistence,
-                'noreply@example.com',
+                new class implements MessageBusInterface {
+                    public function dispatch(object $message, array $stamps = []): Envelope
+                    {
+                        return new Envelope($message, $stamps);
+                    }
+                },
             ),
         );
     }

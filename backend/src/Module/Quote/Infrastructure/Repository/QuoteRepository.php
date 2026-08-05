@@ -8,6 +8,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,6 +19,20 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Quote::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Quote
+    {
+        $quote = parent::find($id, $lockMode, $lockVersion);
+
+        return $quote instanceof Quote ? $quote : null;
+    }
+
+    public function findOneBy(array $criteria, ?array $orderBy = null): ?Quote
+    {
+        $quote = parent::findOneBy($criteria, $orderBy);
+
+        return $quote instanceof Quote ? $quote : null;
     }
 
     public function countForYear(int $year): int
@@ -61,6 +76,20 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    /** @return list<Quote> */
+    public function findByCustomerEmail(string $email): array
+    {
+        /** @var list<Quote> $quotes */
+        $quotes = $this->createQueryBuilder('q')
+            ->andWhere('LOWER(q.customerEmail) = LOWER(:email)')
+            ->setParameter('email', $email)
+            ->orderBy('q.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $quotes;
     }
 
     /**

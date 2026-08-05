@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes/{id}/status', name: 'api_admin_quotes_status', methods: ['PATCH'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 final class UpdateQuoteStatusController extends AbstractController
 {
     public function __construct(

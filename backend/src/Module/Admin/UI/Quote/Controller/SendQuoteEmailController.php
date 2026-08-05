@@ -27,7 +27,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
     methods: ['POST'],
     requirements: ['id' => '\d+']
 )]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class SendQuoteEmailController extends AbstractController
 {
     public function __construct(

@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/services/{id}', name: 'api_admin_services_update', methods: ['POST', 'PUT', 'PATCH'], requirements: ['id' => '\d+'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 final readonly class UpdateServiceController
 {
     public function __construct(

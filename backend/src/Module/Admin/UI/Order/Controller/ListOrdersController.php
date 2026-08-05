@@ -6,9 +6,9 @@ namespace App\Module\Admin\UI\Order\Controller;
 
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Provider\OrderIssueInspector;
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\Pagination;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders', name: 'api_admin_orders_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ORDERS_MANAGER')]
 final class ListOrdersController extends AbstractController
 {
     public function __construct(
@@ -33,46 +33,10 @@ final class ListOrdersController extends AbstractController
         $health = $request->query->get('health');
         $pagination = Pagination::fromRequest($request, 25, 100);
 
-        $qb = $this->orders->createQueryBuilder('o')
-            ->orderBy('o.createdAt', 'DESC');
-
-        if (is_string($status) && '' !== $status && 'all' !== $status) {
-            $qb->andWhere('o.state.status = :status')->setParameter('status', $status);
-        }
-
-        if ('issues' === $health) {
-            $qb
-                ->leftJoin('App\Module\Order\Domain\Entity\OrderEvent', 'e', 'WITH', 'e.order = o')
-                ->andWhere(
-                    $qb->expr()->orX(
-                        'o.invoice.pdfPath IS NULL',
-                        'o.invoice.xmlPath IS NULL',
-                        'o.orderCreatedEmailSentAt IS NULL',
-                        $qb->expr()->in('e.type', ':issueTypes'),
-                    )
-                )
-                ->setParameter('issueTypes', [
-                    'email_failed',
-                    'invoice_generation_failed',
-                    'post_processing_failed',
-                ])
-                ->groupBy('o.id');
-        }
-
-        $countQb = clone $qb;
-        $countQb->resetDQLPart('select')
-            ->resetDQLPart('orderBy')
-            ->resetDQLPart('groupBy')
-            ->select('COUNT(DISTINCT o.id)')
-            ->setFirstResult(null)
-            ->setMaxResults(null);
-        $total = (int) $countQb->getQuery()->getSingleScalarResult();
-
-        $qb
-            ->setFirstResult($pagination->offset())
-            ->setMaxResults($pagination->perPage);
-        /** @var list<Order> $orders */
-        $orders = $qb->getQuery()->getResult();
+        $statusFilter = is_string($status) ? $status : null;
+        $healthFilter = is_string($health) ? $health : null;
+        $total = $this->orders->countForAdminList($statusFilter, $healthFilter);
+        $orders = $this->orders->findForAdminList($statusFilter, $healthFilter, $pagination->perPage, $pagination->offset());
         $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);
 
         $items = array_map(

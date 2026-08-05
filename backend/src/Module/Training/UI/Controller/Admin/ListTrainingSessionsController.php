@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/training-sessions', name: 'api_admin_training_sessions_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRAINING_MANAGER')]
 class ListTrainingSessionsController extends AbstractController
 {
     public function __construct(private readonly TrainingSessionRepositoryPort $sessions, private readonly TrainingFormatter $formatter)

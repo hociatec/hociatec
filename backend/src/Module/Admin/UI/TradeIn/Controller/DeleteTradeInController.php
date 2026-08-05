@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/trade-ins/{id}', name: 'api_admin_trade_ins_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRADE_INS_MANAGER')]
 final class DeleteTradeInController extends AbstractController
 {
     public function __construct(

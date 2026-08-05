@@ -7,11 +7,11 @@ namespace App\Module\BetaTest\Application\Workflow;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportActivity;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class BugReportActivityLogger
 {
-    public function __construct(private DoctrineUnitOfWork $persistence)
+    public function __construct(private UnitOfWork $persistence)
     {
     }
 

@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders/{orderId}/retry-invoice', name: 'api_admin_orders_retry_invoice', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ORDERS_MANAGER')]
 final class RetryOrderInvoiceController extends AbstractController
 {
     public function __construct(

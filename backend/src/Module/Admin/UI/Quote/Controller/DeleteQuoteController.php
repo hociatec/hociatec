@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes/{id}', name: 'api_admin_quotes_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class DeleteQuoteController extends AbstractController
 {
     public function __construct(

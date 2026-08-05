@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/training-categories', name: 'api_admin_training_categories_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRAINING_MANAGER')]
 class ListTrainingCategoriesController extends AbstractController
 {
     public function __construct(private readonly TrainingCategoryRepositoryPort $categories, private readonly TrainingCategoryFormatter $formatter)

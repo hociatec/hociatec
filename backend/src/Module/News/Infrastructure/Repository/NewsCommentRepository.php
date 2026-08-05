@@ -9,6 +9,7 @@ use App\Module\News\Application\Port\NewsCommentRepositoryPort;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<NewsComment> */
@@ -17,6 +18,13 @@ final class NewsCommentRepository extends ServiceEntityRepository implements New
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, NewsComment::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?NewsComment
+    {
+        $comment = parent::find($id, $lockMode, $lockVersion);
+
+        return $comment instanceof NewsComment ? $comment : null;
     }
 
     /** @return list<NewsComment> */

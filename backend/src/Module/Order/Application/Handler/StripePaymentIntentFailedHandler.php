@@ -7,7 +7,7 @@ namespace App\Module\Order\Application\Handler;
 use App\Module\Order\Application\Resolver\StripeCheckoutSessionResolver;
 use App\Module\Order\Application\Resolver\StripePaymentFailureResolver;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class StripePaymentIntentFailedHandler
 {
@@ -15,7 +15,7 @@ final readonly class StripePaymentIntentFailedHandler
         private StripeCheckoutSessionResolver $checkoutResolver,
         private StripePaymentFailureResolver $failureResolver,
         private StripeCheckoutSessionExpirer $sessionExpirer,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 

@@ -9,7 +9,7 @@ use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -20,7 +20,7 @@ final readonly class UserCommunicationNotifier
 {
     public function __construct(
         private AccountNotificationEventRepositoryPort $notifications,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private MailerInterface $mailer,
         private MessageBusInterface $bus,
         private LoggerInterface $logger,

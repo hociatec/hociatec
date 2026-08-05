@@ -6,13 +6,13 @@ namespace App\Module\Appointment\Application\Handler;
 
 use App\Module\Appointment\Application\Workflow\AppointmentStatusWorkflow;
 use App\Module\Appointment\Domain\Entity\Appointment;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class ChangeAppointmentStatusHandler
 {
     public function __construct(
         private AppointmentStatusWorkflow $statusWorkflow,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 

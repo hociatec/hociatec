@@ -6,9 +6,12 @@ namespace App\Module\Order\Application\Port;
 
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\User;
+use Doctrine\DBAL\LockMode;
 
 interface OrderCheckoutSessionRepositoryPort
 {
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?OrderCheckoutSession;
+
     public function findOneByStripeSessionId(string $stripeSessionId): ?OrderCheckoutSession;
 
     public function findOneByStripePaymentIntentId(string $stripePaymentIntentId): ?OrderCheckoutSession;
@@ -37,6 +40,9 @@ interface OrderCheckoutSessionRepositoryPort
 
     /** @return list<OrderCheckoutSession> */
     public function findRecentByOrderId(int $orderId, int $limit = 5): array;
+
+    /** @return list<OrderCheckoutSession> */
+    public function findForAdminList(?string $status, string $query): array;
 
     /**
      * @param array<string, mixed>       $criteria

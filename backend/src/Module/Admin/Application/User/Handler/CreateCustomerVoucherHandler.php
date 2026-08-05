@@ -10,7 +10,7 @@ use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CreateCustomerVoucherHandler
 {
@@ -18,7 +18,7 @@ final readonly class CreateCustomerVoucherHandler
         private CreateVoucherHandler $createVoucher,
         private VoucherNotificationEmailService $notifications,
         private VoucherRepositoryPort $vouchers,
-        private DoctrineUnitOfWork $unitOfWork,
+        private UnitOfWork $unitOfWork,
     ) {
     }
 

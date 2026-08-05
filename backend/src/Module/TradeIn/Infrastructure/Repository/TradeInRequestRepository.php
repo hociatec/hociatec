@@ -9,6 +9,7 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TradeInRequest> */
@@ -17,6 +18,13 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TradeInRequest::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TradeInRequest
+    {
+        $request = parent::find($id, $lockMode, $lockVersion);
+
+        return $request instanceof TradeInRequest ? $request : null;
     }
 
     /** @return list<TradeInRequest> */

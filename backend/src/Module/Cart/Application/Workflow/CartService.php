@@ -10,7 +10,7 @@ use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class CartService
@@ -18,7 +18,7 @@ final class CartService
     public function __construct(
         private readonly CartSessionProvider $cartSessions,
         private readonly CartItemResolver $cartItems,
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly ProductCatalogRepository $products,
     ) {
     }

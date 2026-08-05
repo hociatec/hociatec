@@ -117,7 +117,7 @@ final class TradeInModuleCompletionTest extends TestCase
         $download->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $download((int) $request->getId())->getStatusCode());
 
-        $respond = new RespondToTradeInOfferController($repository, $this->tradeInService($this->mockEntityManager(self::any())));
+        $respond = new RespondToTradeInOfferController($repository, $this->tradeInService($this->mockEntityManager(self::any())), new TradeInAccessPolicy());
         $respond->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_NOT_FOUND, $respond((int) $foreign->getId(), 'accept')->getStatusCode());
         self::assertSame(Response::HTTP_CONFLICT, $respond((int) $submitted->getId(), 'accept')->getStatusCode());

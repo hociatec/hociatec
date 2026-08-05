@@ -9,11 +9,14 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
+use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Application\Writer\ProductDiscountApplicator;
 use App\Module\Catalog\Application\Writer\ProductGalleryUpdater;
 use App\Module\Catalog\Application\Workflow\ProductService;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
+use App\Module\Catalog\Application\Handler\ProductWriteHandler;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
+use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -63,7 +66,8 @@ final class ProductServiceTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $cache->expects(self::once())->method('clear')->willReturn(true);
 
-        $product = $service->create(
+        $product = $service->create(new ProductWriteCommand(
+            null,
             'New Phone',
             'sku-new',
             null,
@@ -76,6 +80,8 @@ final class ProductServiceTest extends TestCase
             $category,
             [$file, null, null, null],
             'Front shot',
+            [],
+            false,
             'sale',
             $brand,
             null,
@@ -89,7 +95,7 @@ final class ProductServiceTest extends TestCase
             1500,
             new \DateTimeImmutable('2026-07-01'),
             new \DateTimeImmutable('2026-07-31'),
-        );
+        ));
 
         self::assertCount(2, $persisted);
         self::assertSame($product, $persisted[0]);
@@ -169,7 +175,7 @@ final class ProductServiceTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $cache->expects(self::once())->method('clear')->willReturn(true);
 
-        $updated = $service->update(
+        $updated = $service->update(new ProductWriteCommand(
             $product,
             'Updated Phone',
             'sku-upd',
@@ -198,7 +204,7 @@ final class ProductServiceTest extends TestCase
             20,
             null,
             new \DateTimeImmutable('2026-08-31'),
-        );
+        ));
 
         self::assertSame($product, $updated);
         self::assertSame('Updated Phone', $updated->getName());
@@ -262,15 +268,30 @@ final class ProductServiceTest extends TestCase
         $persistence = new DoctrineUnitOfWork($entityManager);
         $variantBatch = new ProductVariantBatchCreator($variants, $productRepository, $persistence);
 
-        return new ProductService(
+        $transactions = new class($entityManager) implements TransactionManager {
+            public function __construct(private EntityManagerInterface $entityManager)
+            {
+            }
+
+            public function transactional(\Closure $operation): mixed
+            {
+                $result = $operation();
+                $this->entityManager->flush();
+
+                return $result;
+            }
+        };
+
+        return new ProductService(new ProductWriteHandler(
             $persistence,
+            $transactions,
             $rules,
             $variants,
             $variantBatch,
             new ProductGalleryUpdater(),
             new ProductDiscountApplicator(),
             $cache,
-        );
+        ));
     }
 
     private function setId(object $entity, int $id): void

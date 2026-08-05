@@ -8,6 +8,7 @@ use App\Module\Training\Application\Port\TrainingRepositoryPort;
 
 use App\Module\Training\Domain\Entity\Training;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<Training> */
@@ -16,6 +17,20 @@ class TrainingRepository extends ServiceEntityRepository implements TrainingRepo
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Training::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Training
+    {
+        $training = parent::find($id, $lockMode, $lockVersion);
+
+        return $training instanceof Training ? $training : null;
+    }
+
+    public function findOneBy(array $criteria, ?array $orderBy = null): ?Training
+    {
+        $training = parent::findOneBy($criteria, $orderBy);
+
+        return $training instanceof Training ? $training : null;
     }
 
     /** @return list<Training> */

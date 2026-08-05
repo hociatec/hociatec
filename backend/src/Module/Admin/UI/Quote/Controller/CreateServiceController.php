@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/services', name: 'api_admin_services_create', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 final readonly class CreateServiceController
 {
     public function __construct(

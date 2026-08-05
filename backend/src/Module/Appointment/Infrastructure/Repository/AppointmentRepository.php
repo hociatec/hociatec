@@ -9,6 +9,7 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +20,13 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Appointment::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Appointment
+    {
+        $appointment = parent::find($id, $lockMode, $lockVersion);
+
+        return $appointment instanceof Appointment ? $appointment : null;
     }
 
     /**

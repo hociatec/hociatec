@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-// not used, rely on AbstractController
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
@@ -29,16 +28,9 @@ class ListMyQuotesController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $email = $user->getEmail();
-
-        $qb = $this->quotes->createQueryBuilder('q')
-            ->andWhere('LOWER(q.customerEmail) = LOWER(:email)')
-            ->setParameter('email', $email)
-            ->orderBy('q.createdAt', 'DESC');
-
         $items = array_map(
             fn ($q) => QuoteFormatter::formatQuote($q, $this->calculator),
-            $qb->getQuery()->getResult(),
+            $this->quotes->findByCustomerEmail($user->getEmail()),
         );
 
         return ApiResponse::successItem('items', $items);

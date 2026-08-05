@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/admin/beta-reports', methods: ['GET'])] #[IsGranted('ROLE_ADMIN')]
+#[Route('/api/admin/beta-reports', methods: ['GET'])] #[IsGranted('ROLE_BETA_MANAGER')]
 final class ListBugReportsController extends AbstractController
 {
     public function __construct(private readonly BugReportRepositoryPort $reports, private readonly BugReportResponseFormatter $formatter)

@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/trade-ins/{id}/{document}', name: 'api_admin_trade_ins_document', requirements: ['document' => 'rib|receipt'], methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRADE_INS_MANAGER')]
 final class DownloadTradeInDocumentController extends AbstractController
 {
     public function __construct(

@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/appointments/prestations', name: 'api_admin_appointments_prestations_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_APPOINTMENTS_MANAGER')]
 class ListPrestationController extends AbstractController
 {
     public function __construct(private readonly PrestationService $prestationService)

@@ -15,12 +15,12 @@ use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CartOrderCreator
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
         private OrderNumberGenerator $numberGenerator,
         private InvoiceNumberGenerator $invoiceNumberGenerator,

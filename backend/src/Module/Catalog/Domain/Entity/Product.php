@@ -214,7 +214,6 @@ class Product
     public function getImageAlt(): ?string { return $this->gallery()->imageAlt(); }
     public function setImageAlt(?string $imageAlt): self { $this->gallery()->changeImageAlt($imageAlt); return $this; }
 
-    /** @param 0|1|2|3 $position */
     public function setGalleryImageFile(int $position, ?object $file): self
     {
         match ($position) {
@@ -228,7 +227,6 @@ class Product
         return $this;
     }
 
-    /** @param 0|1|2|3 $position */
     public function removeGalleryImage(int $position): self
     {
         match ($position) {

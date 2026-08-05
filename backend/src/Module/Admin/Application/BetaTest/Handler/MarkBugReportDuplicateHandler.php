@@ -8,12 +8,12 @@ use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class MarkBugReportDuplicateHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BugReportActivityLogger $activityLogger,
         private UserCommunicationNotifier $notifier,
     ) {

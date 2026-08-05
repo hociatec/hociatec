@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/beta-testers', name: 'api_admin_beta_testers', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_BETA_MANAGER')]
 final class ListBetaTestersController extends AbstractController
 {
     public function __construct(private readonly BetaTesterProfileRepositoryPort $profiles)

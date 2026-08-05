@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes', name: 'api_admin_quotes_create', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class CreateQuoteController extends AbstractController
 {
     public function __construct(

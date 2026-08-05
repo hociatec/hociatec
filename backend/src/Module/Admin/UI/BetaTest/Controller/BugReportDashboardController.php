@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/beta-reports/dashboard', name: 'api_admin_beta_reports_dashboard', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_BETA_MANAGER')]
 final class BugReportDashboardController extends AbstractController
 {
     public function __construct(

@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders/{orderId}/delivery', name: 'api_admin_orders_update_delivery', methods: ['PATCH'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ORDERS_MANAGER')]
 final class UpdateOrderDeliveryController extends AbstractController
 {
     public function __construct(

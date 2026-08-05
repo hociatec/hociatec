@@ -12,13 +12,13 @@ use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class BugReportWriter
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BetaAttachmentStorage $attachments,
         private BugReportActivityLogger $activityLogger,
         private UserRepositoryPort $users,

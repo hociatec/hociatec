@@ -8,6 +8,7 @@ use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<TrainingCategory> */
@@ -16,6 +17,20 @@ class TrainingCategoryRepository extends ServiceEntityRepository implements Trai
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TrainingCategory::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingCategory
+    {
+        $category = parent::find($id, $lockMode, $lockVersion);
+
+        return $category instanceof TrainingCategory ? $category : null;
+    }
+
+    public function findOneBy(array $criteria, ?array $orderBy = null): ?TrainingCategory
+    {
+        $category = parent::findOneBy($criteria, $orderBy);
+
+        return $category instanceof TrainingCategory ? $category : null;
     }
 
     /** @return list<TrainingCategory> */

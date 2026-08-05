@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/services', name: 'api_admin_services_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class ListServicesController extends AbstractController
 {
     public function __construct(private readonly ServiceOfferingRepositoryPort $serviceRepository)

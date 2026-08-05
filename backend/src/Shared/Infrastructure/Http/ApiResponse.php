@@ -47,7 +47,7 @@ final class ApiResponse
     }
 
     /**
-     * @param list<mixed>                                          $items
+     * @param array<int|string, mixed>                             $items
      * @param array{page:int,perPage:int,total:int,totalPages:int} $meta
      */
     public static function paginated(array $items, array $meta): JsonResponse

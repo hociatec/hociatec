@@ -10,7 +10,7 @@ use Doctrine\DBAL\LockMode;
 
 interface OrderRepositoryPort
 {
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object;
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Order;
 
     public function findForUpdate(int $id): ?Order;
 
@@ -31,6 +31,11 @@ interface OrderRepositoryPort
 
     /** @return list<Order> */
     public function findFulfillmentQueue(int $limit = 30): array;
+
+    /** @return list<Order> */
+    public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array;
+
+    public function countForAdminList(?string $status, ?string $health): int;
 
     /** @return array{count:int,totalCents:int} */
     public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array;

@@ -12,7 +12,7 @@ use App\Module\Order\Application\Workflow\OrderService;
 use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final class OrderStripeWebhookHandler
 {
@@ -29,7 +29,7 @@ final class OrderStripeWebhookHandler
         private readonly OrderRepositoryPort $orders,
         private readonly OrderService $orderCreator,
         private readonly StripeApiClient $stripe,
-        private readonly DoctrineUnitOfWork $persistence,
+        private readonly UnitOfWork $persistence,
         ?StripePaymentFailureResolver $failureResolver = null,
         ?StripeCheckoutSessionExpirer $sessionExpirer = null,
         ?StripeCheckoutSessionResolver $checkoutResolver = null,

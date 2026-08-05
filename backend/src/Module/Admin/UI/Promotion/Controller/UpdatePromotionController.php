@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/promotions/{promotionId}', name: 'api_admin_promotions_update', methods: ['PUT'], requirements: ['promotionId' => '\d+'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_PROMOTIONS_MANAGER')]
 final class UpdatePromotionController extends AbstractController
 {
     public function __construct(

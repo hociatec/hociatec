@@ -18,7 +18,7 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
     {
     }
 
-    public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null): array
+    public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null, int $offset = 0): array
     {
         $qb = $this->entityManager->createQueryBuilder()
             ->select('DISTINCT u')
@@ -90,6 +90,9 @@ final readonly class DoctrineMarketingAudienceQuery implements MarketingAudience
 
         if (null !== $limit) {
             $qb->setMaxResults($limit);
+        }
+        if ($offset > 0) {
+            $qb->setFirstResult($offset);
         }
 
         /** @var list<User> $users */

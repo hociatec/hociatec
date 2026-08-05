@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
     methods: ['GET'],
     requirements: ['id' => '\d+']
 )]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 class GetServiceController extends AbstractController
 {
     public function __construct(

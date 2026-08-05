@@ -8,14 +8,14 @@ use App\Module\Outbox\Application\Outbox;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PasswordResetService
 {
     public function __construct(
         private readonly UserRepositoryPort $users,
-        private readonly DoctrineUnitOfWork $unitOfWork,
+        private readonly UnitOfWork $unitOfWork,
         private readonly TransactionManager $transactions,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,

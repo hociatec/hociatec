@@ -6,13 +6,13 @@ namespace App\Module\Voucher\Application\Handler;
 
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final readonly class UpdateVoucherHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private VoucherPayload $payload,
     ) {
     }

@@ -7,12 +7,12 @@ namespace App\Module\Admin\Application\BetaTest\Handler;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class AssignBugReportHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BugReportActivityLogger $activityLogger,
     ) {
     }

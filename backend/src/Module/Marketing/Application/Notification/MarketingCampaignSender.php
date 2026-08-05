@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace App\Module\Marketing\Application\Notification;
 
+use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
-use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
-use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
+use App\Shared\Application\UnitOfWork;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class MarketingCampaignSender
 {
+    private const BATCH_SIZE = 200;
+
     public function __construct(
         private MarketingAudienceProvider $audiences,
-        private MarketingRecipientContextProvider $contexts,
-        private MarketingTemplateRenderer $renderer,
-        private MailerInterface $mailer,
         private UserCommunicationNotifier $userNotifications,
-        private DoctrineUnitOfWork $persistence,
-        private string $mailerFrom,
+        private UnitOfWork $persistence,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -39,27 +35,6 @@ final readonly class MarketingCampaignSender
         ?EmailTemplate $template,
         ?string $createdByEmail,
     ): EmailCampaign {
-        $users = $this->audiences->resolveRecipients($segmentKey, $criteria);
-
-        foreach ($users as $user) {
-            if (!$this->userNotifications->shouldSendNewsEmail($user)) {
-                continue;
-            }
-
-            $context = $this->contexts->provide($user);
-            $renderedSubject = $this->renderer->render($subject, $context, false);
-            $renderedHtml = $this->renderer->render($htmlBody, $context, true);
-            $renderedText = $this->renderer->render($textBody ?: strip_tags($htmlBody), $context, false);
-            $email = (new Email())
-                ->from(new Address($this->mailerFrom, 'Hociatec'))
-                ->to(new Address($user->getEmail(), $user->getFullName()))
-                ->subject($renderedSubject)
-                ->html($renderedHtml)
-                ->text($renderedText);
-
-            $this->mailer->send($email);
-        }
-
         $campaign = new EmailCampaign(
             $name,
             $segmentKey,
@@ -67,11 +42,37 @@ final readonly class MarketingCampaignSender
             $subject,
             $htmlBody,
             $textBody,
-            count($users),
+            0,
             $createdByEmail,
             $template,
         );
         $this->persistence->persist($campaign);
+        $this->persistence->commit();
+
+        $queuedRecipients = 0;
+        $offset = 0;
+
+        do {
+            $users = $this->audiences->resolveRecipients($segmentKey, $criteria, self::BATCH_SIZE, $offset);
+            foreach ($users as $user) {
+                if (!$this->userNotifications->shouldSendNewsEmail($user)) {
+                    continue;
+                }
+
+                $this->messageBus->dispatch(new MarketingCampaignRecipientEmailMessage(
+                    (int) $campaign->getId(),
+                    (int) $user->getId(),
+                    $subject,
+                    $htmlBody,
+                    $textBody,
+                ));
+                ++$queuedRecipients;
+            }
+
+            $offset += self::BATCH_SIZE;
+        } while (count($users) === self::BATCH_SIZE);
+
+        $campaign->updateRecipientsCount($queuedRecipients);
         $this->persistence->commit();
 
         return $campaign;

@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/appointments/prestations', name: 'api_admin_appointments_prestations_create', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_APPOINTMENTS_MANAGER')]
 class CreatePrestationController extends AbstractController
 {
     public function __construct(private readonly PrestationService $prestationService, private readonly DtoValidator $validator)

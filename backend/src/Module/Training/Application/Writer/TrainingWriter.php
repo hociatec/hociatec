@@ -7,14 +7,14 @@ namespace App\Module\Training\Application\Writer;
 use App\Module\Training\Application\DTO\TrainingInput;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Text\Slugifier;
 
 final class TrainingWriter
 {
     use Slugifier;
 
-    public function __construct(private readonly DoctrineUnitOfWork $persistence)
+    public function __construct(private readonly UnitOfWork $persistence)
     {
     }
 

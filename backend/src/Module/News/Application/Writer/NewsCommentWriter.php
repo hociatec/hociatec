@@ -8,11 +8,11 @@ use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class NewsCommentWriter
 {
-    public function __construct(private DoctrineUnitOfWork $persistence)
+    public function __construct(private UnitOfWork $persistence)
     {
     }
 

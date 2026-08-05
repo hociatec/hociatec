@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/quotes/metadata', name: 'api_admin_quotes_metadata', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_QUOTES_MANAGER')]
 final class ListQuoteMetadataController extends AbstractController
 {
     public function __invoke(): JsonResponse

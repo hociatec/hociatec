@@ -9,6 +9,90 @@ use Symfony\Component\Yaml\Yaml;
 
 final class SecurityConfigurationTest extends TestCase
 {
+    public function testPrivateApiControllersDeclareBackendAccessControl(): void
+    {
+        $violations = [];
+
+        foreach ($this->controllerSources() as $path => $source) {
+            if (!str_contains($source, "#[Route('/api/")) {
+                continue;
+            }
+
+            if (
+                str_contains($path, '/PublicApi/')
+                || str_contains($source, "#[Route('/api/public/")
+                || str_contains($path, '/ContactController.php')
+                || str_contains($path, '/HealthController.php')
+                || str_contains($path, '/ProfileController.php')
+                || str_contains($path, '/LogoutController.php')
+                || str_contains($path, '/RegisterController.php')
+                || str_contains($path, '/VerifyAccountController.php')
+                || str_contains($path, '/RequestPasswordResetController.php')
+                || str_contains($path, '/ResetPasswordController.php')
+                || str_contains($path, '/RefreshTokenController.php')
+                || str_contains($path, '/StripeWebhookController.php')
+            ) {
+                continue;
+            }
+
+            if (!str_contains($source, '#[IsGranted(')) {
+                $violations[] = $path;
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testClientResourceControllersScopeAccessToTheAuthenticatedUser(): void
+    {
+        $expectations = [
+            'src/Module/Appointment/UI/Controller/Client/UpdateAppointmentStatusController.php' => ['AppointmentAccessPolicy'],
+            'src/Module/Audit/UI/Controller/Client/GeneratePdfController.php' => ['AuditAccessPolicy'],
+            'src/Module/Audit/UI/Controller/Client/ListMyAuditsController.php' => ['findByUser($user)'],
+            'src/Module/Audit/UI/Controller/Client/ShowMyAuditController.php' => ['AuditAccessPolicy'],
+            'src/Module/BetaTest/UI/Controller/CreateBugReportCommentController.php' => ['BugReportAccessPolicy'],
+            'src/Module/BetaTest/UI/Controller/DownloadBugReportAttachmentController.php' => ['BugReportAccessPolicy'],
+            'src/Module/BetaTest/UI/Controller/ListBugReportCommentsController.php' => ['BugReportAccessPolicy'],
+            'src/Module/BetaTest/UI/Controller/ListMyBugReportsController.php' => ['findForUserPaginated($user'],
+            'src/Module/BetaTest/UI/Controller/ShowBugReportController.php' => ['BugReportAccessPolicy'],
+            'src/Module/Order/UI/Controller/CancelMyOrderController.php' => ['OrderAccessPolicy'],
+            'src/Module/Order/UI/Controller/CheckoutExistingOrderController.php' => ['OrderAccessPolicy', 'findOneForUser($addressId, $user)'],
+            'src/Module/Order/UI/Controller/CheckoutSessionStatusController.php' => ['OrderAccessPolicy'],
+            'src/Module/Order/UI/Controller/DownloadMyOrderInvoicePdfController.php' => ['OrderAccessPolicy'],
+            'src/Module/Order/UI/Controller/DownloadMyOrderInvoiceXmlController.php' => ['OrderAccessPolicy'],
+            'src/Module/Order/UI/Controller/ListMyOrdersController.php' => ['findByUser($user)'],
+            'src/Module/Order/UI/Controller/ShowOrderController.php' => ['OrderAccessPolicy'],
+            'src/Module/Quote/UI/Controller/Client/AcceptMyQuoteController.php' => ['QuoteAccessPolicy'],
+            'src/Module/Quote/UI/Controller/Client/DeleteMyQuoteController.php' => ['QuoteAccessPolicy'],
+            'src/Module/Quote/UI/Controller/Client/GenerateMyQuotePdfController.php' => ['QuoteAccessPolicy'],
+            'src/Module/Quote/UI/Controller/Client/GetMyQuoteController.php' => ['QuoteAccessPolicy'],
+            'src/Module/Quote/UI/Controller/Client/ListMyQuotesController.php' => ['findByCustomerEmail($user->getEmail())'],
+            'src/Module/Quote/UI/Controller/Client/RefuseMyQuoteController.php' => ['QuoteAccessPolicy'],
+            'src/Module/Rating/UI/Controller/CreateProductReviewController.php' => ['OrderAccessPolicy'],
+            'src/Module/TradeIn/UI/Controller/DownloadMyTradeInReceiptController.php' => ['TradeInAccessPolicy'],
+            'src/Module/TradeIn/UI/Controller/ListMyTradeInsController.php' => ['findByUser($user)'],
+            'src/Module/TradeIn/UI/Controller/RespondToTradeInOfferController.php' => ['TradeInAccessPolicy'],
+            'src/Module/Training/UI/Controller/Client/ListMyTrainingEnrollmentsController.php' => ['findForUser($user)'],
+            'src/Module/User/UI/Controller/Address/DeleteAddressController.php' => ['findOneForUser($id, $user)'],
+            'src/Module/User/UI/Controller/Address/ListMyAddressesController.php' => ['findAllForUser($user)'],
+            'src/Module/User/UI/Controller/Address/SetDefaultAddressController.php' => ['findOneForUser($id, $user)'],
+            'src/Module/User/UI/Controller/Address/UpdateAddressController.php' => ['findOneForUser($id, $user)'],
+        ];
+
+        $missing = [];
+        foreach ($expectations as $relativePath => $needles) {
+            $source = file_get_contents(__DIR__.'/../../../'.$relativePath);
+            self::assertIsString($source);
+            foreach ($needles as $needle) {
+                if (!str_contains($source, $needle)) {
+                    $missing[] = $relativePath.' missing '.$needle;
+                }
+            }
+        }
+
+        self::assertSame([], $missing);
+    }
+
     public function testRuntimeSecurityConfigurationIsExplicitlyHardened(): void
     {
         $framework = Yaml::parseFile(__DIR__.'/../../../config/packages/framework.yaml');
@@ -17,6 +101,10 @@ final class SecurityConfigurationTest extends TestCase
         $rateLimiter = Yaml::parseFile(__DIR__.'/../../../config/packages/rate_limiter.yaml');
         $jwt = Yaml::parseFile(__DIR__.'/../../../config/packages/lexik_jwt_authentication.yaml');
         $doctrine = Yaml::parseFile(__DIR__.'/../../../config/packages/doctrine.yaml');
+
+        self::assertContains('ROLE_USER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_ORDERS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_MARKETING_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
 
         self::assertSame('%env(APP_SECRET)%', $framework['framework']['secret']);
         self::assertSame('%env(TRUSTED_PROXIES)%', $framework['framework']['trusted_proxies']);
@@ -104,5 +192,26 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('var/private/invoices', $invoiceStorageCommand);
         self::assertStringContainsString('private/invoices/', $invoiceStorageCommand);
         self::assertStringContainsString('private const MAX_BYTES = 1_048_576', $jsonPayload);
+    }
+
+    /** @return array<string, string> */
+    private function controllerSources(): array
+    {
+        $root = realpath(__DIR__.'/../../../src/Module');
+        self::assertIsString($root);
+
+        $sources = [];
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root));
+        foreach ($files as $file) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile() || !str_ends_with($file->getFilename(), 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($file->getPathname());
+            self::assertIsString($source);
+            $sources[$file->getPathname()] = $source;
+        }
+
+        return $sources;
     }
 }

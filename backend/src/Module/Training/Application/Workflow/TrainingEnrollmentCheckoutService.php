@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\Application\Workflow;
 
 use App\Module\Order\Application\Workflow\StripeApiClient;
+use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
 use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Application\Mapper\TrainingSlotValidator;
@@ -14,7 +15,7 @@ use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class TrainingEnrollmentCheckoutService
 {
@@ -23,8 +24,9 @@ final readonly class TrainingEnrollmentCheckoutService
         private TrainingEnrollmentRepositoryPort $enrollments,
         private TrainingSlotValidator $slots,
         private StripeApiClient $stripe,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
+        private CheckoutRedirectUrlValidator $redirectUrls,
         private string $frontendUrl,
     ) {
     }
@@ -77,10 +79,12 @@ final readonly class TrainingEnrollmentCheckoutService
         }
 
         $stripeSession = $this->stripe->createCheckoutSession($this->checkoutPayload($enrollment, $user, $session));
+        $checkoutUrl = (string) ($stripeSession['url'] ?? '');
+        $this->redirectUrls->assertTrusted($checkoutUrl);
         $enrollment->setStripeSessionId((string) $stripeSession['id']);
         $this->persistence->commit();
 
-        return new TrainingEnrollmentCheckoutResult($enrollment, $created, (string) $stripeSession['url']);
+        return new TrainingEnrollmentCheckoutResult($enrollment, $created, $checkoutUrl);
     }
 
     private function findSession(int $sessionId): TrainingSession

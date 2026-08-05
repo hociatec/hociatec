@@ -30,6 +30,13 @@ class ProductRepository extends ServiceEntityRepository implements ProductCatalo
         parent::__construct($registry, Product::class);
     }
 
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Product
+    {
+        $product = parent::find($id, $lockMode, $lockVersion);
+
+        return $product instanceof Product ? $product : null;
+    }
+
     public function findForUpdate(int $id): ?Product
     {
         $product = $this->find($id, LockMode::PESSIMISTIC_WRITE);

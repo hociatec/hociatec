@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class ProductAdminHelpersTest extends TestCase
 {
-    public function testProductWriteDataBuildsCreateAndUpdateArguments(): void
+    public function testProductWriteDataBuildsCreateAndUpdateCommands(): void
     {
         $category = new Category('Phones', 'phones');
         $brand = new Brand('Apple');
@@ -57,9 +57,16 @@ final class ProductAdminHelpersTest extends TestCase
             $endsAt,
         );
 
-        self::assertCount(25, $data->createArguments());
-        self::assertSame($product, $data->updateArguments($product)[0]);
-        self::assertCount(28, $data->updateArguments($product));
+        $create = $data->toCreateCommand();
+        self::assertNull($create->product);
+        self::assertSame('Phone', $create->name);
+        self::assertSame([], $create->galleryToRemove);
+        self::assertFalse($create->removeImage);
+
+        $update = $data->toUpdateCommand($product);
+        self::assertSame($product, $update->product);
+        self::assertSame([0, 2], $update->galleryToRemove);
+        self::assertTrue($update->removeImage);
     }
 
     public function testFormValueNormalizerCoversBooleanOptionalPriceAndDateCases(): void

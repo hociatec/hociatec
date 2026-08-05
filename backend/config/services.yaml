@@ -49,6 +49,9 @@ services:
         arguments:
             $outbox: '@App\Module\Outbox\Application\Outbox'
 
+    App\Shared\Application\UnitOfWork:
+        alias: App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork
+
     App\Module\Auth\Application\Workflow\PasswordResetEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
@@ -61,6 +64,10 @@ services:
     App\Shared\Infrastructure\Http\ApiErrorSanitizerSubscriber:
         arguments:
             $environment: '%kernel.environment%'
+
+    App\Module\Order\Application\Security\CheckoutRedirectUrlValidator:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
     App\Module\Outbox\Application\OutboxEventStore:
         alias: App\Module\Outbox\Infrastructure\Repository\OutboxEventRepository
@@ -357,6 +364,10 @@ services:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
+    App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
     App\Module\Notification\Application\Provider\AccountNotificationProvider:
         arguments:
             $computedProviders:
@@ -403,10 +414,6 @@ services:
     App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
-
-    App\Module\Marketing\Application\Notification\MarketingCampaignSender:
-        arguments:
-            $mailerFrom: '%env(MAILER_FROM)%'
 
     App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer:
         arguments:

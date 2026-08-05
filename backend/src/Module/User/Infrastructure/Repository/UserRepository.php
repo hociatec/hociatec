@@ -22,6 +22,13 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
         parent::__construct($registry, User::class);
     }
 
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?User
+    {
+        $user = parent::find($id, $lockMode, $lockVersion);
+
+        return $user instanceof User ? $user : null;
+    }
+
     public function save(User $user): void
     {
         $entityManager = $this->getEntityManager();

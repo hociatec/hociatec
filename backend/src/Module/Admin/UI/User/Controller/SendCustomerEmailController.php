@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/customers/{userId}/send-email', name: 'api_admin_customers_send_email', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CUSTOMERS_MANAGER')]
 final class SendCustomerEmailController extends AbstractController
 {
     public function __construct(

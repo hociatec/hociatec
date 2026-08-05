@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/orders/{orderId}/resend-email', name: 'api_admin_orders_resend_email', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ORDERS_MANAGER')]
 final class ResendOrderEmailController extends AbstractController
 {
     public function __construct(

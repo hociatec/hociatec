@@ -8,6 +8,7 @@ use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -15,11 +16,19 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 final class OrderCheckoutSessionRepository extends ServiceEntityRepository implements OrderCheckoutSessionRepositoryPort
 {
+    use OrderCheckoutSessionAdminQueries;
     use OrderCheckoutSessionDashboardQueries;
 
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, OrderCheckoutSession::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?OrderCheckoutSession
+    {
+        $session = parent::find($id, $lockMode, $lockVersion);
+
+        return $session instanceof OrderCheckoutSession ? $session : null;
     }
 
     public function findOneByStripeSessionId(string $stripeSessionId): ?OrderCheckoutSession

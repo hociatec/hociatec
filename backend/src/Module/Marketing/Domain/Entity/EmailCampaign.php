@@ -131,6 +131,12 @@ class EmailCampaign
         return $this->recipientsCount;
     }
 
+    public function updateRecipientsCount(int $recipientsCount): void
+    {
+        $this->recipientsCount = max(0, $recipientsCount);
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     public function getCreatedByEmail(): ?string
     {
         return $this->createdByEmail;

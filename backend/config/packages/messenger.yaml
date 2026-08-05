@@ -20,6 +20,7 @@ framework:
             App\Module\Order\Application\Message\OrderStatusChangedMessage: async
             App\Module\Notification\Application\Message\UserCommunicationEmailMessage: async
             App\Module\News\Application\Message\NewsArticlePublishedEmailMessage: async
+            App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage: async
         buses:
             messenger.bus.default:
                 middleware:

@@ -8,6 +8,7 @@ use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
@@ -35,8 +36,9 @@ use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class RemainingMailSendersTest extends TestCase
@@ -129,7 +131,7 @@ final class RemainingMailSendersTest extends TestCase
         (new ContactNotificationSender($renderer, $mailer, 'noreply@example.com', 'contact@example.com'))->send($input);
     }
 
-    public function testMarketingCampaignSenderUsesMailerAndPersistsCampaign(): void
+    public function testMarketingCampaignSenderQueuesEligibleRecipientsAndPersistsCampaign(): void
     {
         $optIn = $this->user('news@example.com');
         $optIn->setIsVerified(true);
@@ -139,49 +141,38 @@ final class RemainingMailSendersTest extends TestCase
         $noOptIn->setCommunicationPreferences([CommunicationPreferences::EMAIL]);
 
         $audienceQuery = $this->queryMock(['getResult' => [$optIn, $noOptIn]]);
-        $statsQuery = $this->queryMock(['getSingleResult' => [
-            'ordersCount' => 0,
-            'lastOrderAt' => null,
-            'totalSpentCents' => 0,
-        ]]);
-        $lastOrderQuery = $this->queryMock(['getOneOrNullResult' => null]);
-        $pendingReviewsQuery = $this->queryMock(['getSingleScalarResult' => '0']);
-
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::exactly(4))
+        $entityManager->expects(self::once())
             ->method('createQueryBuilder')
-            ->willReturnOnConsecutiveCalls(
-                $this->queryBuilderMock($audienceQuery),
-                $this->queryBuilderMock($statsQuery),
-                $this->queryBuilderMock($lastOrderQuery),
-                $this->queryBuilderMock($pendingReviewsQuery),
-            );
+            ->willReturn($this->queryBuilderMock($audienceQuery));
         $entityManager->expects(self::once())
             ->method('persist')
             ->with(self::callback(static function (object $campaign): bool {
                 return $campaign instanceof \App\Module\Marketing\Domain\Entity\EmailCampaign
                     && 'Campagne' === $campaign->getName()
-                    && 2 === $campaign->getRecipientsCount();
+                    && 0 === $campaign->getRecipientsCount();
             }));
-        $entityManager->expects(self::once())->method('flush');
+        $entityManager->expects(self::exactly(2))->method('flush');
 
         $mailer = $this->createMock(MailerInterface::class);
-        $mailer->expects(self::once())
-            ->method('send')
-            ->with(self::callback(static function (Email $email): bool {
-                return 'Sujet Ada' === $email->getSubject()
-                    && str_contains($email->getHtmlBody() ?? '', 'Ada')
-                    && str_contains($email->getTextBody() ?? '', 'Ada');
-            }));
+        $mailer->expects(self::never())->method('send');
+
+        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus->expects(self::once())
+            ->method('dispatch')
+            ->with(self::callback(static function (object $message): bool {
+                return $message instanceof MarketingCampaignRecipientEmailMessage
+                    && 'Sujet {{first_name}}' === $message->subject
+                    && '<p>{{first_name}}</p>' === $message->htmlBody
+                    && 'Texte {{first_name}}' === $message->textBody;
+            }))
+            ->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
 
         $sender = new MarketingCampaignSender(
             new MarketingAudienceProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery($entityManager), new EmailTemplateScenarioProvider()),
-            new MarketingRecipientContextProvider(new \App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientContextQuery($entityManager), 'https://front.example.test'),
-            new MarketingTemplateRenderer(),
-            $mailer,
             $this->notifier(),
             new DoctrineUnitOfWork($entityManager),
-            'noreply@example.com',
+            $messageBus,
         );
 
         $campaign = $sender->send(
@@ -196,7 +187,7 @@ final class RemainingMailSendersTest extends TestCase
         );
 
         self::assertSame('Campagne', $campaign->getName());
-        self::assertSame(2, $campaign->getRecipientsCount());
+        self::assertSame(1, $campaign->getRecipientsCount());
     }
 
     /** @param array<string, mixed> $results */

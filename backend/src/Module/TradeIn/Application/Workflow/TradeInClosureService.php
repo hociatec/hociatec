@@ -14,7 +14,7 @@ use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Psr\Log\LoggerInterface;
 
 final readonly class TradeInClosureService
@@ -22,7 +22,7 @@ final readonly class TradeInClosureService
     public function __construct(
         private TradeInPersistencePort $persistence,
         private TradeInService $tradeIns,
-        private DoctrineUnitOfWork $unitOfWork,
+        private UnitOfWork $unitOfWork,
         private TransactionManager $transactions,
         private TradeInPrivateFileStorage $files,
         private TradeInReceiptRenderer $receiptRenderer,

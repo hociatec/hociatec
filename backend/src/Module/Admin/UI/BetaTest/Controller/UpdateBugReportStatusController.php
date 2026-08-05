@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/beta-reports/{id}/status', name: 'api_admin_beta_reports_status', methods: ['PATCH'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_BETA_MANAGER')]
 final class UpdateBugReportStatusController extends AbstractController
 {
     public function __construct(

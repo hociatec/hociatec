@@ -6,7 +6,7 @@ namespace App\Module\Outbox\Application;
 
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
@@ -17,7 +17,7 @@ final readonly class OutboxDispatcher
     /** @param iterable<OutboxEventHandler> $handlers */
     public function __construct(
         private OutboxEventStore $events,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
         #[AutowireIterator('app.outbox_handler')]
         private iterable $handlers,

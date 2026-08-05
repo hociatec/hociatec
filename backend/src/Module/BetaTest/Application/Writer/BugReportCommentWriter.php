@@ -11,12 +11,12 @@ use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class BugReportCommentWriter
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private BugReportActivityLogger $activityLogger,
         private UserCommunicationNotifier $notifier,
         private UserRepositoryPort $users,

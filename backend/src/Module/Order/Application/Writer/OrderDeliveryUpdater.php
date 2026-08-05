@@ -9,12 +9,12 @@ use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\DeliveryStatus;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class OrderDeliveryUpdater
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private OrderEventLogger $events,
     ) {
     }

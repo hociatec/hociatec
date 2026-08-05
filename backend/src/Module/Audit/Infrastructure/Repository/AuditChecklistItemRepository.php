@@ -8,6 +8,7 @@ use App\Module\Audit\Application\Port\AuditChecklistItemRepositoryPort;
 
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,5 +19,12 @@ class AuditChecklistItemRepository extends ServiceEntityRepository implements Au
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, AuditChecklistItem::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?AuditChecklistItem
+    {
+        $item = parent::find($id, $lockMode, $lockVersion);
+
+        return $item instanceof AuditChecklistItem ? $item : null;
     }
 }

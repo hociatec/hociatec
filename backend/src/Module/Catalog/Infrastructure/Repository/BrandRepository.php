@@ -8,6 +8,7 @@ use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 
 use App\Module\Catalog\Domain\Entity\Brand;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -18,6 +19,13 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Brand::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Brand
+    {
+        $brand = parent::find($id, $lockMode, $lockVersion);
+
+        return $brand instanceof Brand ? $brand : null;
     }
 
     /**

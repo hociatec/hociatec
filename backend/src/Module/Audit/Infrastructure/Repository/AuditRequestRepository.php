@@ -9,6 +9,7 @@ use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +20,13 @@ class AuditRequestRepository extends ServiceEntityRepository implements AuditReq
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, AuditRequest::class);
+    }
+
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?AuditRequest
+    {
+        $audit = parent::find($id, $lockMode, $lockVersion);
+
+        return $audit instanceof AuditRequest ? $audit : null;
     }
 
     /**

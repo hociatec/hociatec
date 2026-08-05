@@ -7,12 +7,12 @@ namespace App\Module\Promotion\Application\Handler;
 use App\Module\Promotion\Application\DTO\PromotionInput;
 use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CreatePromotionHandler
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private PromotionDataApplier $dataApplier,
     ) {
     }

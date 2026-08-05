@@ -413,6 +413,7 @@ final class ModuleBoundaryTest extends TestCase
             __DIR__.'/../../../src/Module/User/Infrastructure/Repository/UserAdminCustomerQueries.php',
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderAdminQueries.php',
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderOperationsMetricsQueries.php',
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderCheckoutSessionAdminQueries.php',
             __DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderCheckoutSessionDashboardQueries.php',
         ];
         $violations = [];

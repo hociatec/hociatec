@@ -6,6 +6,7 @@ namespace App\Module\TradeIn\UI\Controller;
 
 use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -19,7 +20,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class RespondToTradeInOfferController extends AbstractController
 {
-    public function __construct(private readonly TradeInRequestRepositoryPort $requests, private readonly TradeInService $service)
+    public function __construct(
+        private readonly TradeInRequestRepositoryPort $requests,
+        private readonly TradeInService $service,
+        private readonly TradeInAccessPolicy $accessPolicy,
+    )
     {
     }
 
@@ -28,7 +33,7 @@ final class RespondToTradeInOfferController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         $request = $this->requests->find($id);
-        if (null === $request || $request->getUser()?->getId() !== $user->getId()) {
+        if (null === $request || !$this->accessPolicy->canRespondToOffer($user, $request)) {
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);
         }
         if (TradeInStatus::OFFER_SENT !== $request->getStatus() || null === $request->getOfferCents()) {

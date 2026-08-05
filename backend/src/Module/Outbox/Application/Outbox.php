@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Module\Outbox\Application;
 
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class Outbox
 {
     public function __construct(
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
         private ?RequestStack $requestStack = null,
     ) {
     }

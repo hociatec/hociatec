@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/trade-ins/{id}/offer', name: 'api_admin_trade_ins_offer', methods: ['PUT'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRADE_INS_MANAGER')]
 final class SetTradeInOfferController extends AbstractController
 {
     public function __construct(private readonly TradeInRequestRepositoryPort $requests, private readonly TradeInService $service, private readonly DtoValidator $validator)

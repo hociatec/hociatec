@@ -7,9 +7,12 @@ namespace App\Module\TradeIn\Application\Port;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
+use Doctrine\DBAL\LockMode;
 
 interface TradeInRequestRepositoryPort
 {
+    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TradeInRequest;
+
     /** @return list<TradeInRequest> */
     public function findByUser(User $user): array;
 

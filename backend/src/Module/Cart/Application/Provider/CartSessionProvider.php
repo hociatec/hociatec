@@ -7,13 +7,13 @@ namespace App\Module\Cart\Application\Provider;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CartSessionProvider
 {
     public function __construct(
         private CartSessionRepositoryPort $cartSessions,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 

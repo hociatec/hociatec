@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Doctrine;
 
+use App\Shared\Application\UnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 
 /** Infrastructure boundary for Doctrine unit-of-work operations. */
-final readonly class DoctrineUnitOfWork
+final readonly class DoctrineUnitOfWork implements UnitOfWork
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

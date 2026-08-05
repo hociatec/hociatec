@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/customers/{userId}/vouchers', name: 'api_admin_customers_create_voucher', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_CUSTOMERS_MANAGER')]
 final class CreateCustomerVoucherController extends AbstractController
 {
     public function __construct(

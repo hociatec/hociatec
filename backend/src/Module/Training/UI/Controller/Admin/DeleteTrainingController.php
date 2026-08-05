@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/trainings/{id}', name: 'api_admin_trainings_delete', methods: ['DELETE'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_TRAINING_MANAGER')]
 class DeleteTrainingController extends AbstractController
 {
     public function __construct(private readonly TrainingRepositoryPort $trainings, private readonly TrainingWriter $writer)

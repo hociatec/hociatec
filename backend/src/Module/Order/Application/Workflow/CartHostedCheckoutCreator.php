@@ -7,10 +7,11 @@ namespace App\Module\Order\Application\Workflow;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Provider\StripeCheckoutPayloadProvider;
+use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CartHostedCheckoutCreator
 {
@@ -18,7 +19,8 @@ final readonly class CartHostedCheckoutCreator
         private StripeApiClient $stripe,
         private OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private StripeCheckoutPayloadProvider $payloads,
-        private DoctrineUnitOfWork $persistence,
+        private UnitOfWork $persistence,
+        private CheckoutRedirectUrlValidator $redirectUrls,
         private string $frontendUrl,
     ) {
     }
@@ -27,6 +29,8 @@ final readonly class CartHostedCheckoutCreator
     {
         $existing = $this->checkoutSessions->findReusableOpenSessionForCart($user, $cart->getToken());
         if (null !== $existing && (null === $existing->getExpiresAt() || $existing->getExpiresAt() > new \DateTimeImmutable())) {
+            $this->redirectUrls->assertTrusted($existing->getCheckoutUrl());
+
             return $existing;
         }
 
@@ -70,6 +74,8 @@ final readonly class CartHostedCheckoutCreator
                 (string) $summary['totalPriceCents'],
             ])),
         );
+        $checkoutUrl = (string) ($session['url'] ?? '');
+        $this->redirectUrls->assertTrusted($checkoutUrl);
 
         $checkout = new OrderCheckoutSession(
             $localToken,
@@ -77,7 +83,7 @@ final readonly class CartHostedCheckoutCreator
             $cart->getToken(),
             (int) $address->getId(),
             (string) $session['id'],
-            (string) $session['url'],
+            $checkoutUrl,
         );
         $checkout
             ->setCartId($cart->getId())

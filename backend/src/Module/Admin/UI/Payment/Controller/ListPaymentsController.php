@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/payments', name: 'api_admin_payments_list', methods: ['GET'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_PAYMENTS_MANAGER')]
 final class ListPaymentsController extends AbstractController
 {
     public function __construct(
@@ -35,22 +35,7 @@ final class ListPaymentsController extends AbstractController
             $this->stripeSync->syncRecentOpenPayments();
         }
 
-        $qb = $this->payments->createQueryBuilder('p')
-            ->leftJoin('p.user', 'u')
-            ->addSelect('u')
-            ->orderBy('p.createdAt', 'DESC');
-
-        if (is_string($status) && '' !== $status && 'all' !== $status) {
-            $qb->andWhere('p.lifecycle.status = :status')->setParameter('status', $status);
-        }
-
-        if ('' !== $query) {
-            $qb->andWhere('p.customerEmail LIKE :q OR p.customerFullName LIKE :q OR p.payment.stripeSessionId LIKE :q OR p.payment.stripePaymentIntentId LIKE :q')
-                ->setParameter('q', '%'.$query.'%');
-        }
-
-        /** @var list<OrderCheckoutSession> $items */
-        $items = $qb->getQuery()->getResult();
+        $items = $this->payments->findForAdminList(is_string($status) ? $status : null, $query);
 
         return ApiResponse::success([
             'items' => array_map($this->formatter->summary(...), $items),

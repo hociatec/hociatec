@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/news/{id}/send-email', methods: ['POST'], requirements: ['id' => '\d+'])]
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_NEWS_MANAGER')]
 final readonly class SendAdminNewsArticleEmailController
 {
     public function __construct(private NewsArticleRepositoryPort $articles, private NewsArticleWriter $writer)

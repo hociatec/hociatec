@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/admin/beta-testers/export', methods: ['GET'])] #[IsGranted('ROLE_ADMIN')]
+#[Route('/api/admin/beta-testers/export', methods: ['GET'])] #[IsGranted('ROLE_BETA_MANAGER')]
 final class ExportBetaTestersController
 {
     public function __construct(
