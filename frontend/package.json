@@ -15,9 +15,11 @@
         "typecheck": "tsc --noEmit",
         "lint": "eslint src scripts --quiet",
         "test": "vitest run",
+        "generate:api-types": "openapi-typescript ../backend/docs/openapi.yaml -o src/shared/api/generated/openapi.ts",
+        "check:api-contract": "npm run generate:api-types && git diff --exit-code src/shared/api/generated/openapi.ts",
         "validate:env": "npx esbuild --bundle scripts/validate-public-env.ts --format=cjs --platform=node --target=node20 --outfile=.ssg/validate-public-env.cjs && node .ssg/validate-public-env.cjs",
         "check:cycles": "madge --extensions ts,tsx --ts-config tsconfig.json --circular src",
-        "quality": "npm run typecheck && npm run lint && npm run test && npm run validate:env && npm run check:cycles && npm audit --omit=dev",
+        "quality": "npm run typecheck && npm run lint && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm audit --omit=dev",
         "lint:debt": "eslint src scripts"
     },
     "devDependencies": {
@@ -32,6 +34,7 @@
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-refresh": "^0.5.3",
         "madge": "^8.0.0",
+        "openapi-typescript": "^7.13.0",
         "postcss": "^8.5.6",
         "rollup-plugin-visualizer": "^7.0.1",
         "tailwindcss": "^4.1.16",

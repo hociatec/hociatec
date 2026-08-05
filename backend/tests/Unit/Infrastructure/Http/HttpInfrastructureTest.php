@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Infrastructure\Http;
 
 use App\Shared\Infrastructure\Http\ApiExceptionSubscriber;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\RateLimitSubscriber;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -92,6 +93,13 @@ final class HttpInfrastructureTest extends TestCase
         $response = new Response();
         $subscriber->onKernelResponse(new ResponseEvent($kernel, $generatedRequest, HttpKernelInterface::MAIN_REQUEST, $response));
         self::assertNotSame('', $response->headers->get(RequestIdSubscriber::HEADER, ''));
+
+        $errorRequest = Request::create('/api/orders');
+        $errorRequest->attributes->set(RequestIdSubscriber::ATTRIBUTE, 'req-error');
+        $errorResponse = ApiResponse::error('Broken');
+        $subscriber->onKernelResponse(new ResponseEvent($kernel, $errorRequest, HttpKernelInterface::MAIN_REQUEST, $errorResponse));
+        $errorPayload = json_decode((string) $errorResponse->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('req-error', $errorPayload['error']['requestId']);
 
         $responseWithoutId = new Response();
         $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('/api/orders'), HttpKernelInterface::MAIN_REQUEST, $responseWithoutId));

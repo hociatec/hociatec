@@ -22,15 +22,23 @@ export interface AppError {
 
 export class ApiResponseError extends Error {
   readonly details: string[];
+  readonly fields?: Record<string, string[]>;
   readonly requestId?: string;
   readonly code?: string;
 
-  constructor(message: string, details: string[] = [], requestId?: string, code?: string) {
+  constructor(
+    message: string,
+    details: string[] = [],
+    requestId?: string,
+    code?: string,
+    fields?: Record<string, string[]>,
+  ) {
     super(message);
     this.name = 'ApiResponseError';
     this.details = details;
     this.requestId = requestId;
     this.code = code;
+    this.fields = fields;
   }
 }
 
@@ -75,6 +83,10 @@ export const createApiResponseError = (payload: unknown): ApiResponseError | nul
       : null;
   const message = response.message ?? nestedError?.message;
   const details = response.details ?? nestedError?.details;
+  const fields =
+    nestedError && 'fields' in nestedError
+      ? (nestedError as { fields?: unknown }).fields
+      : undefined;
   if (response.status !== 'error' && !nestedError) return null;
   if (typeof message !== 'string') return null;
 
@@ -87,8 +99,19 @@ export const createApiResponseError = (payload: unknown): ApiResponseError | nul
     typeof (response.code ?? nestedError?.code) === 'string'
       ? String(response.code ?? nestedError?.code)
       : undefined,
+    normalizeFields(fields),
   );
 };
+
+const normalizeFields = (fields: unknown) =>
+  fields && typeof fields === 'object' && !Array.isArray(fields)
+    ? Object.fromEntries(
+        Object.entries(fields as Record<string, unknown>).map(([key, value]) => [
+          key,
+          Array.isArray(value) ? value.map(String) : [String(value)],
+        ]),
+      )
+    : undefined;
 
 export const normalizeHttpError = (
   error: unknown,
@@ -99,6 +122,7 @@ export const normalizeHttpError = (
       kind: 'unknown',
       code: error.code,
       message: safeMessage(error.message, fallback),
+      fields: error.fields,
       requestId: error.requestId,
     };
   }
@@ -165,15 +189,7 @@ export const normalizeHttpError = (
     kind,
     code: typeof code === 'string' ? code : undefined,
     message: safeMessage(typeof message === 'string' ? message : undefined, defaultMessage),
-    fields:
-      fields && typeof fields === 'object' && !Array.isArray(fields)
-        ? Object.fromEntries(
-            Object.entries(fields as Record<string, unknown>).map(([key, value]) => [
-              key,
-              Array.isArray(value) ? value.map(String) : [String(value)],
-            ]),
-          )
-        : undefined,
+    fields: normalizeFields(fields),
     requestId: typeof requestId === 'string' ? requestId : undefined,
     retryAfterSeconds: retryAfterSeconds(error.response.headers?.['retry-after']),
     status,

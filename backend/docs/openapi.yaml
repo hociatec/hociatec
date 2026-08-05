@@ -94,16 +94,24 @@ components:
   schemas:
     SuccessResponse:
       type: object
-      required: [status, data]
+      required: [status, data, meta, message]
       properties:
         status: {type: string, enum: [success]}
         data: {type: object}
+        meta:
+          type: object
+          additionalProperties: true
+        message:
+          type: string
+          nullable: true
     PaginatedResponse:
       type: object
+      required: [status, data, meta, message]
       properties:
         status: {type: string, enum: [success]}
         data:
           type: object
+          required: [items, meta]
           properties:
             items: {type: array, items: {type: object}}
             meta:
@@ -114,12 +122,38 @@ components:
                 perPage: {type: integer}
                 total: {type: integer}
                 totalPages: {type: integer}
+        meta:
+          type: object
+          required: [page, perPage, total, totalPages]
+          properties:
+            page: {type: integer}
+            perPage: {type: integer}
+            total: {type: integer}
+            totalPages: {type: integer}
+        message:
+          type: string
+          nullable: true
     ErrorResponse:
       type: object
-      required: [status, message, details]
+      required: [status, error, code, message, details]
       properties:
         status: {type: string, enum: [error]}
+        error:
+          type: object
+          required: [code, message, fields, details, requestId]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            fields:
+              type: object
+              additionalProperties:
+                type: array
+                items: {type: string}
+            details: {}
+            requestId:
+              type: string
+              nullable: true
+          additionalProperties: false
+        code: {type: string}
         message: {type: string}
-        details:
-          type: array
-          items: {type: string}
+        details: {}

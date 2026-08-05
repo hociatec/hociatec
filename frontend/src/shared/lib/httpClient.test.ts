@@ -94,6 +94,23 @@ describe('createApiResponseError', () => {
     expect(error?.details).toEqual(['Le prix est obligatoire.']);
   });
 
+  it('reads the canonical nested API error envelope', () => {
+    const error = createApiResponseError({
+      error: {
+        code: 'ORDER_NOT_PAYABLE',
+        message: 'Cette commande ne peut plus être payée.',
+        fields: { status: ['Statut invalide.'] },
+        requestId: 'req_123',
+      },
+    });
+
+    expect(error).toBeInstanceOf(ApiResponseError);
+    expect(error?.code).toBe('ORDER_NOT_PAYABLE');
+    expect(error?.message).toBe('Cette commande ne peut plus être payée.');
+    expect(error?.fields).toEqual({ status: ['Statut invalide.'] });
+    expect(error?.requestId).toBe('req_123');
+  });
+
   it('ignores successful API envelopes', () => {
     expect(createApiResponseError({ status: 'success', data: {} })).toBeNull();
   });

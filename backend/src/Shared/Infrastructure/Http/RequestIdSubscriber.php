@@ -39,6 +39,18 @@ final class RequestIdSubscriber implements EventSubscriberInterface
         if ('' !== $requestId) {
             $response->headers->set(self::HEADER, $requestId);
         }
+
+        if (
+            '' !== $requestId
+            && str_starts_with($request->getPathInfo(), '/api/')
+            && str_contains((string) $response->headers->get('Content-Type'), 'application/json')
+        ) {
+            $payload = json_decode((string) $response->getContent(), true);
+            if (is_array($payload) && isset($payload['error']) && is_array($payload['error'])) {
+                $payload['error']['requestId'] ??= $requestId;
+                $response->setContent(json_encode($payload, JSON_THROW_ON_ERROR));
+            }
+        }
     }
 
     private function generateId(): string

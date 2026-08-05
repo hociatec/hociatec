@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           // ignore cart errors during login
         }
 
-        return response.message;
+        return response.message ?? undefined;
       } catch (error) {
         clearLocalSessionState();
 

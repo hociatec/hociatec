@@ -18,17 +18,20 @@ final class ApiResponseTest extends TestCase
         self::assertSame([
             'status' => 'success',
             'data' => ['foo' => 'bar'],
+            'meta' => [],
             'message' => 'Done',
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
-    public function testSuccessOmitsBlankMessage(): void
+    public function testSuccessNormalizesBlankMessage(): void
     {
         $response = ApiResponse::success(['foo' => 'bar'], message: '   ');
 
         self::assertSame([
             'status' => 'success',
             'data' => ['foo' => 'bar'],
+            'meta' => [],
+            'message' => null,
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -40,6 +43,7 @@ final class ApiResponseTest extends TestCase
         self::assertSame([
             'status' => 'success',
             'data' => ['id' => 42],
+            'meta' => [],
             'message' => 'Created',
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
@@ -67,6 +71,8 @@ final class ApiResponseTest extends TestCase
                 'items' => [['id' => 1], ['id' => 2]],
                 'meta' => ['page' => 2, 'perPage' => 10, 'total' => 25, 'totalPages' => 3],
             ],
+            'meta' => ['page' => 2, 'perPage' => 10, 'total' => 25, 'totalPages' => 3],
+            'message' => null,
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
 
@@ -77,6 +83,13 @@ final class ApiResponseTest extends TestCase
         self::assertSame(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $response->getStatusCode());
         self::assertSame([
             'status' => 'error',
+            'error' => [
+                'code' => 'UNPROCESSABLE_ENTITY',
+                'message' => 'Broken',
+                'fields' => ['field' => ['name']],
+                'details' => ['field' => 'name'],
+                'requestId' => null,
+            ],
             'code' => 'UNPROCESSABLE_ENTITY',
             'message' => 'Broken',
             'details' => ['field' => 'name'],
@@ -93,6 +106,13 @@ final class ApiResponseTest extends TestCase
         self::assertSame(JsonResponse::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
         self::assertSame([
             'status' => 'error',
+            'error' => [
+                'code' => 'INTERNAL_ERROR',
+                'message' => 'Une erreur interne est survenue.',
+                'fields' => [],
+                'details' => [],
+                'requestId' => null,
+            ],
             'code' => 'INTERNAL_ERROR',
             'message' => 'Une erreur interne est survenue.',
             'details' => [],

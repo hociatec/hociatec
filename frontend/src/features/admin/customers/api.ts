@@ -262,7 +262,7 @@ export const sendCustomerEmail = async (
     );
 
     if (isApiOk(data)) {
-      return { message: data.message };
+      return { message: data.message ?? undefined };
     }
 
     const message = data.status === 'error' ? data.message : 'Impossible d’envoyer l’email';

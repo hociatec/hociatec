@@ -58,13 +58,15 @@ export interface PasswordResetPayload {
 
 export interface AuthOperationResult<T> {
   data: T;
-  message?: string;
+  message?: string | null;
 }
 
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') {
     const error = new Error(response.message);
-    (error as Error & { details?: string[] }).details = response.details;
+    (error as Error & { details?: string[] }).details = Array.isArray(response.details)
+      ? response.details.map(String)
+      : [];
     throw error;
   }
 
@@ -76,7 +78,7 @@ const rethrowApiError = (error: unknown): never => {
     const data = error.response?.data as ApiResponse<unknown> | undefined;
     if (data && data.status === 'error') {
       const err = new Error(data.message) as Error & { details?: string[] };
-      err.details = (data as { details?: string[] }).details ?? [];
+      err.details = Array.isArray(data.details) ? data.details.map(String) : [];
       throw err;
     }
   }

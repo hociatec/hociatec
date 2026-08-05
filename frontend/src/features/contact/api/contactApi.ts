@@ -11,7 +11,9 @@ export interface ContactPayload {
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') {
     const error = new Error(response.message);
-    (error as Error & { details?: string[] }).details = response.details;
+    (error as Error & { details?: string[] }).details = Array.isArray(response.details)
+      ? response.details.map(String)
+      : [];
     throw error;
   }
   return response.data;

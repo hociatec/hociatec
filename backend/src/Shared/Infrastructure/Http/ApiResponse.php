@@ -14,16 +14,16 @@ final class ApiResponse
 
     /**
      * @param array<string, mixed> $data
+     * @param array<string, mixed> $meta
      */
-    public static function success(array $data = [], int $status = JsonResponse::HTTP_OK, ?string $message = null): JsonResponse
+    public static function success(array $data = [], int $status = JsonResponse::HTTP_OK, ?string $message = null, array $meta = []): JsonResponse
     {
         $payload = [
             'status' => 'success',
             'data' => $data,
+            'meta' => $meta,
+            'message' => self::normalizeMessage($message),
         ];
-        if (null !== $message && '' !== trim($message)) {
-            $payload['message'] = $message;
-        }
 
         return new JsonResponse($payload, $status);
     }
@@ -55,7 +55,7 @@ final class ApiResponse
         return self::success([
             'items' => $items,
             'meta' => $meta,
-        ]);
+        ], meta: $meta);
     }
 
     /**
@@ -63,9 +63,18 @@ final class ApiResponse
      */
     public static function error(string $message, int $status = JsonResponse::HTTP_BAD_REQUEST, array $details = [], ?string $code = null): JsonResponse
     {
+        $error = [
+            'code' => $code ?? self::defaultErrorCode($status),
+            'message' => $message,
+            'fields' => self::normalizeFields($details),
+            'details' => $details,
+            'requestId' => null,
+        ];
+
         return new JsonResponse([
             'status' => 'error',
-            'code' => $code ?? self::defaultErrorCode($status),
+            'error' => $error,
+            'code' => $error['code'],
             'message' => $message,
             'details' => $details,
         ], $status);
@@ -90,5 +99,35 @@ final class ApiResponse
             JsonResponse::HTTP_TOO_MANY_REQUESTS => 'TOO_MANY_REQUESTS',
             default => $status >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
         };
+    }
+
+    private static function normalizeMessage(?string $message): ?string
+    {
+        if (null === $message) {
+            return null;
+        }
+
+        $normalized = trim($message);
+
+        return '' === $normalized ? null : $normalized;
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     *
+     * @return array<string, list<string>>
+     */
+    private static function normalizeFields(array $details): array
+    {
+        $fields = [];
+        foreach ($details as $field => $messages) {
+            if (!is_string($field)) {
+                continue;
+            }
+
+            $fields[$field] = array_values(array_map('strval', is_array($messages) ? $messages : [$messages]));
+        }
+
+        return $fields;
     }
 }
