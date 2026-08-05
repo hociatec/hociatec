@@ -24,9 +24,7 @@ security:
 
     providers:
         app_user_provider:
-            entity:
-                class: App\Module\User\Domain\Entity\User
-                property: email
+            id: App\Module\Auth\Infrastructure\Security\EmailUserProvider
 
     firewalls:
         dev:
