@@ -695,14 +695,6 @@ Les tests automatisés ne remplacent pas un audit clavier manuel, mais détecten
 11. PERFORMANCE
 ===============
 
-11.3 Éviter les fichiers index qui annulent le tree-shaking
------------------------------------------------------------
-
-Un index.ts exportant toutes les pages peut pousser le bundler à analyser ou inclure davantage de modules.
-
-Vérifier les imports réels avec le rapport de bundle.
-
-
 11.4 Virtualiser les grandes listes
 -----------------------------------
 

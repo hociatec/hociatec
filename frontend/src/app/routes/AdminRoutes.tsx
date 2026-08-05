@@ -4,56 +4,70 @@ import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { PrivateRouteMeta } from '@/shared/components/seo/PrivateRouteMeta';
 import {
-  AdminAuditDetailPage,
-  AdminAuditsListPage,
-  AdminBackupsPage,
-  AdminBetaCampaignsPage,
-  AdminBetaTestersPage,
-  AdminBugReportsPage,
-  AdminCustomerDetailPage,
-  AdminCustomerVoucherPage,
-  AdminCustomersListPage,
-  AdminDashboardPage,
-  AdminLayout,
-  AdminLoyaltyPage,
-  AdminNewsFormPage,
-  AdminNewsListPage,
-  AdminOperationsPage,
-  AdminOrderDetailPage,
-  AdminQuoteDetailPage,
-  AdminTradeInsPage,
-  AdminTrainingsPage,
   BrandFormPage,
   BrandsListPage,
   CategoriesListPage,
   CategoryFormPage,
+  ProductFormPage,
+  ProductsListPage,
+} from './adminPageGroups/AdminCatalogPages';
+import {
+  AdminBackupsPage,
+  AdminDashboardPage,
+  AdminLayout,
+  AdminOperationsPage,
+} from './adminPageGroups/AdminCorePages';
+import {
+  AdminCustomerDetailPage,
+  AdminCustomerVoucherPage,
+  AdminCustomersListPage,
+  AdminLoyaltyPage,
+} from './adminPageGroups/AdminCustomerPages';
+import {
+  AdminNewsFormPage,
+  AdminNewsListPage,
   MarketingCampaignFormPage,
   MarketingCampaignsPage,
   MarketingTemplateDetailPage,
   MarketingTemplateFormPage,
   MarketingTemplatesListPage,
+} from './adminPageGroups/AdminMarketingPages';
+import {
+  PromotionFormPage,
+  PromotionsListPage,
+  VoucherFormPage,
+  VouchersPage,
+} from './adminPageGroups/AdminPromotionPages';
+import {
+  AdminOrderDetailPage,
+  AdminQuoteDetailPage,
   OrdersListPage,
   PaymentDetailPage,
   PaymentsListPage,
-  PrestationFormPage,
-  PrestationsListPage,
-  ProductFormPage,
-  ProductsListPage,
-  PromotionFormPage,
-  PromotionsListPage,
   QuoteFormPage,
   QuotesListPage,
-  SchedulePage,
   ServiceFormPage,
   ServicesListPage,
+} from './adminPageGroups/AdminSalesPages';
+import {
+  AdminAuditDetailPage,
+  AdminAuditsListPage,
+  AdminBetaCampaignsPage,
+  AdminBetaTestersPage,
+  AdminBugReportsPage,
+  AdminTradeInsPage,
+  PrestationFormPage,
+  PrestationsListPage,
+  SchedulePage,
+} from './adminPageGroups/AdminSupportPages';
+import {
+  AdminTrainingsPage,
   TrainingCategoriesPage,
   TrainingEnrollmentsPage,
   TrainingFormPage,
   TrainingSessionFormPage,
   TrainingSessionsPage,
-  VoucherFormPage,
-  VouchersPage,
-} from './AdminRoutePages';
+} from './adminPageGroups/AdminTrainingPages';
 import type { AppRouteDefinition } from './RouteDefinition';
 
 const adminElement = (
