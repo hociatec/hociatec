@@ -11,7 +11,7 @@ use App\Module\Quote\Application\Factory\QuoteItemFactory;
 use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
 use App\Module\Quote\Application\Mapper\QuoteHydrator;
 use App\Module\Quote\Application\Mapper\QuoteValueNormalizer;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
@@ -26,7 +26,7 @@ Pour les clients professionnels uniquement, tout retard de paiement pourra entra
 Pour les clients consommateurs, les garanties légales applicables demeurent celles prévues par la loi.";
 
     public function __construct(
-        private readonly QuotePersistence $persistence,
+        private readonly QuotePersistencePort $persistence,
         ProductCatalogRepository $productRepository,
         private readonly QuoteNumberGenerator $numberGenerator,
         private readonly QuoteCalculator $calculator,

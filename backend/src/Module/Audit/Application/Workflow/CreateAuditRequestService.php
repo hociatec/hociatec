@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Application\Workflow;
 
-use App\Module\Audit\Infrastructure\Persistence\AuditPersistence;
+use App\Module\Audit\Application\Port\AuditPersistencePort;
 use App\Module\Audit\Application\Provider\AuditTemplateProvider;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditRequest;
@@ -14,7 +14,7 @@ use App\Module\User\Domain\Entity\User;
 class CreateAuditRequestService
 {
     public function __construct(
-        private readonly AuditPersistence $persistence,
+        private readonly AuditPersistencePort $persistence,
         private readonly AuditTemplateProvider $templates,
     ) {
     }

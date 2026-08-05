@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
+use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
@@ -17,7 +17,7 @@ final class BrandService
     public function __construct(
         private readonly BrandRepositoryPort $brandRepository,
         private readonly ProductCatalogRepository $productRepository,
-        private readonly CatalogPersistence $persistence,
+        private readonly CatalogPersistencePort $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Infrastructure\Persistence;
 
+use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class TradeInPersistence
+final readonly class TradeInPersistence implements TradeInPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

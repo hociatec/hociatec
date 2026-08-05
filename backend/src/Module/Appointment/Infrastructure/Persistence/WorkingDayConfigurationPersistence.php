@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Infrastructure\Persistence;
 
+use App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class WorkingDayConfigurationPersistence
+final readonly class WorkingDayConfigurationPersistence implements WorkingDayConfigurationPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

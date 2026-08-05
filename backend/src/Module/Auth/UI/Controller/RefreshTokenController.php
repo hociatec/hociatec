@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\UI\Controller;
 
+use App\Module\Auth\Application\Port\AuthCookiePort;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
-use App\Module\Auth\Infrastructure\Http\AuthCookieService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
@@ -25,7 +25,7 @@ class RefreshTokenController extends AbstractController
     public function __construct(
         private readonly RefreshTokenService $refreshTokenService,
         private readonly JWTTokenManagerInterface $jwtManager,
-        private readonly AuthCookieService $authCookieService,
+        private readonly AuthCookiePort $authCookieService,
         private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.auth_refresh')]
         private readonly RateLimiterFactory $refreshLimiter,
@@ -35,7 +35,7 @@ class RefreshTokenController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
-        $refreshToken = $request->cookies->get(AuthCookieService::REFRESH_COOKIE);
+        $refreshToken = $request->cookies->get(AuthCookiePort::REFRESH_COOKIE);
         if (!is_string($refreshToken) || '' === $refreshToken) {
             $refreshToken = (string) ($payload['refreshToken'] ?? '');
         }

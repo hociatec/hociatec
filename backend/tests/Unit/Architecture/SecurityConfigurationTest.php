@@ -56,7 +56,7 @@ final class SecurityConfigurationTest extends TestCase
         self::assertIsString($source);
 
         self::assertStringContainsString('Cookie::SAMESITE_LAX', $source);
-        self::assertStringContainsString('clearCookie(self::ACCESS_COOKIE, \'/api\', null, $secure, true', $source);
+        self::assertStringContainsString('clearCookie(AuthCookiePort::ACCESS_COOKIE, \'/api\', null, $secure, true', $source);
         self::assertStringContainsString('$secure,', $source);
         self::assertStringContainsString('true,', $source);
     }

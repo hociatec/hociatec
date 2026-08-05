@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Persistence;
 
+use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class CatalogPersistence
+final readonly class CatalogPersistence implements CatalogPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

@@ -6,7 +6,7 @@ namespace App\Module\Quote\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Outbox\Application\Outbox;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
@@ -14,7 +14,7 @@ use App\Module\User\Domain\Entity\User;
 final readonly class QuoteEmailService
 {
     public function __construct(
-        private QuotePersistence $persistence,
+        private QuotePersistencePort $persistence,
         private Outbox $outbox,
         private UserRepositoryPort $users,
         private UserCommunicationNotifier $userNotifications,

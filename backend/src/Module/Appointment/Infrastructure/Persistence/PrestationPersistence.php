@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Infrastructure\Persistence;
 
+use App\Module\Appointment\Application\Port\PrestationPersistencePort;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class PrestationPersistence
+final readonly class PrestationPersistence implements PrestationPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

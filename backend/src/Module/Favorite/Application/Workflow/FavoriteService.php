@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Favorite\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Favorite\Infrastructure\Persistence\FavoritePersistence;
+use App\Module\Favorite\Application\Port\FavoritePersistencePort;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\Application\Port\FavoriteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
@@ -14,7 +14,7 @@ class FavoriteService
 {
     public function __construct(
         private readonly FavoriteRepositoryPort $favorites,
-        private readonly FavoritePersistence $persistence,
+        private readonly FavoritePersistencePort $persistence,
     ) {
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
+use App\Module\Appointment\Application\Port\PrestationPersistencePort;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -15,7 +15,7 @@ final class PrestationService
 {
     public function __construct(
         private readonly PrestationRepositoryPort $prestationRepository,
-        private readonly PrestationPersistence $persistence,
+        private readonly PrestationPersistencePort $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }

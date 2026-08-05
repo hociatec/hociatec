@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Infrastructure\Persistence;
 
+use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class QuotePersistence
+final readonly class QuotePersistence implements QuotePersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

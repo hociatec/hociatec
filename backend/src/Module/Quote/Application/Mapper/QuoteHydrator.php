@@ -6,14 +6,14 @@ namespace App\Module\Quote\Application\Mapper;
 
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Factory\QuoteItemFactory;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 
 final readonly class QuoteHydrator
 {
     public function __construct(
-        private QuotePersistence $persistence,
+        private QuotePersistencePort $persistence,
         private QuoteItemFactory $items,
         private ?\DateTimeImmutable $today = null,
     ) {

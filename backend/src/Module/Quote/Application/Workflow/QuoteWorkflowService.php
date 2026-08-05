@@ -6,14 +6,14 @@ namespace App\Module\Quote\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 
 final readonly class QuoteWorkflowService
 {
     public function __construct(
-        private QuotePersistence $persistence,
+        private QuotePersistencePort $persistence,
     ) {
     }
 

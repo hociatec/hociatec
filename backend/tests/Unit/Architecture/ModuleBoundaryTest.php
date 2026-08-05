@@ -342,6 +342,66 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationLayerDoesNotImportModuleInfrastructure(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/Application/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\[^;]+;/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $relativePath.': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testUiLayerDoesNotImportModuleInfrastructure(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/UI/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\[^;]+;/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $relativePath.': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testReadWriteApplicationNamingConventionIsDocumented(): void
+    {
+        $doc = file_get_contents(__DIR__.'/../../../docs/architecture-naming.md');
+        self::assertIsString($doc);
+
+        foreach ([
+            'Provider` executes a read',
+            'Projection` is the read model',
+            'Handler` executes a write',
+            'Query` directory is optional',
+            'pragmatic Symfony approach',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $doc);
+        }
+    }
+
     public function testLargeAggregateRepositoriesKeepQueryConcernsSplit(): void
     {
         $limits = [

@@ -6,7 +6,7 @@ namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\DTO\WorkingDayData;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
+use App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 
@@ -27,7 +27,7 @@ final class WorkingDayConfigurationService
 
     public function __construct(
         private readonly WorkingDayConfigurationRepositoryPort $repository,
-        private readonly WorkingDayConfigurationPersistence $persistence,
+        private readonly WorkingDayConfigurationPersistencePort $persistence,
     ) {
     }
 

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Infrastructure\Persistence;
 
+use App\Module\Auth\Application\Port\RefreshTokenPersistencePort;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class RefreshTokenPersistence
+final readonly class RefreshTokenPersistence implements RefreshTokenPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

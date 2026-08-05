@@ -6,12 +6,12 @@ namespace App\Module\Notification\Application\Workflow;
 
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
+use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class AccountNotificationReadStateService
 {
-    public function __construct(private UserPersistence $persistence)
+    public function __construct(private UserPersistencePort $persistence)
     {
     }
 

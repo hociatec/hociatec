@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Application\Workflow;
 
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
 use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 final readonly class TradeInClosureService
 {
     public function __construct(
-        private TradeInPersistence $persistence,
+        private TradeInPersistencePort $persistence,
         private TradeInService $tradeIns,
         private DoctrineUnitOfWork $unitOfWork,
         private TransactionManager $transactions,

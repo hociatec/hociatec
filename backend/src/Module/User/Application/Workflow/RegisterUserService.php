@@ -10,7 +10,7 @@ use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\UserUniqueConstraintViolationDetector;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
+use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
@@ -23,7 +23,7 @@ class RegisterUserService
         private readonly UserRepositoryPort $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly Outbox $outbox,
-        private readonly UserPersistence $persistence,
+        private readonly UserPersistencePort $persistence,
         private readonly TransactionManager $transactions,
         private readonly BetaTesterProfileService $betaProfiles,
     ) {

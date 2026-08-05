@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Persistence;
 
+use App\Module\Order\Application\Port\StripeWebhookEventPersistencePort;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class StripeWebhookEventPersistence
+final readonly class StripeWebhookEventPersistence implements StripeWebhookEventPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

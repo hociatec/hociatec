@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Persistence;
 
+use App\Module\Order\Application\Port\OrderEventPersistencePort;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class OrderEventPersistence
+final readonly class OrderEventPersistence implements OrderEventPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

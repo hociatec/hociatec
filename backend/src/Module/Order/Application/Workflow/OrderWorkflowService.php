@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
+use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Domain\Entity\Order;
 
 final readonly class OrderWorkflowService
 {
-    public function __construct(private OrderPersistence $persistence)
+    public function __construct(private OrderPersistencePort $persistence)
     {
     }
 

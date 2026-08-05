@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Workflow;
 
-use App\Module\Auth\Infrastructure\Persistence\RefreshTokenPersistence;
+use App\Module\Auth\Application\Port\RefreshTokenPersistencePort;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
 use App\Module\User\Domain\Entity\User;
@@ -17,7 +17,7 @@ final class RefreshTokenService
 
     public function __construct(
         private readonly RefreshTokenRepositoryPort $refreshTokenRepository,
-        private readonly RefreshTokenPersistence $persistence,
+        private readonly RefreshTokenPersistencePort $persistence,
         private readonly TransactionManager $transactions,
     ) {
     }

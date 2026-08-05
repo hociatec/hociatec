@@ -8,7 +8,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class TradeInService
 {
-    public function __construct(private TradeInPersistence $persistence, private TradeInEstimator $estimator, private TradeInNumberGenerator $numbers, private TradeInNotificationEmailService $notifications, private TradeInPrivateFileStorage $files)
+    public function __construct(private TradeInPersistencePort $persistence, private TradeInEstimator $estimator, private TradeInNumberGenerator $numbers, private TradeInNotificationEmailService $notifications, private TradeInPrivateFileStorage $files)
     {
     }
 

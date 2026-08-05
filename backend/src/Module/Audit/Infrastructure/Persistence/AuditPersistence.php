@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Infrastructure\Persistence;
 
+use App\Module\Audit\Application\Port\AuditPersistencePort;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use Doctrine\ORM\EntityManagerInterface;
 
-final readonly class AuditPersistence
+final readonly class AuditPersistence implements AuditPersistencePort
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {

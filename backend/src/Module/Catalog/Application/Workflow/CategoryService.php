@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
+use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
@@ -18,7 +18,7 @@ final class CategoryService
 
     public function __construct(
         private readonly CategoryRepositoryPort $categoryRepository,
-        private readonly CatalogPersistence $persistence,
+        private readonly CatalogPersistencePort $persistence,
         private readonly ValidatorInterface $validator,
     ) {
     }
