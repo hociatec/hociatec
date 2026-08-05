@@ -1,4 +1,4 @@
-import type { QuoteDto } from '@/features/quotes/types/quoteTypes';
+import type { QuoteDto } from '@/features/quotes/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const AdminQuoteDetailItemsTable = ({

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/api/quotesApi';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/publicApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';

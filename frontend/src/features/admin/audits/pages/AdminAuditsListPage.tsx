@@ -8,7 +8,7 @@ import {
   isAuditStatusFilter,
   isAuditTypeFilter,
 } from '../hooks/useAdminAuditsList';
-import { useAuditMetadata } from '@/features/audits/hooks/useAuditMetadata';
+import { useAuditMetadata } from '@/features/audits/publicApi';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';

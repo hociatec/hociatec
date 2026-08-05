@@ -1,4 +1,4 @@
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import { DashboardWorkspace } from '@/features/account/components/dashboard/DashboardWorkspace';
 import { DashboardStatusNotice } from '@/features/account/components/dashboard/DashboardPanel';
 import { useClientDashboard } from '@/features/account/hooks/useClientDashboard';
@@ -6,6 +6,7 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 import '@/features/account/ClientDashboardPage.css';
+import '@/app/styles/features/account.css';
 
 export const ClientDashboardPage = () => {
   useDocumentTitle('Mon espace');

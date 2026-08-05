@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
+import { ProductCartActions } from '@/features/cart/publicApi';
 import { RatingStars } from '@/features/catalog/components/RatingStars';
 import { ProductVariantPicker } from '@/features/catalog/components/ProductVariantPicker';
 import type { CatalogProduct } from '../api';

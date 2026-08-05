@@ -1,5 +1,5 @@
-import type { QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { QuoteItem } from '@/features/quotes/publicApi';
+import type { CatalogProduct } from '@/features/catalog/adminApi';
 import { AdminQuoteItemRow } from './AdminQuoteItemRow';
 
 type AdminQuoteItemsTableProps = {

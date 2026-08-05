@@ -7,7 +7,7 @@ import {
   formatBetaLabel,
   formatDate,
   severityLabels,
-} from '@/features/betaTest/lib/betaLabels';
+} from '@/features/betaTest/publicApi';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
 
 interface AdminCampaignDetailDialogProps {

@@ -2,9 +2,9 @@ import { type Dispatch, type SetStateAction } from 'react';
 
 import { AdminQuoteItemsTable } from '@/features/admin/quotes/components/AdminQuoteItemsTable';
 import { AdminQuoteCatalogSearchResults } from './AdminQuoteCatalogSearchResults';
-import { type CatalogProduct } from '@/features/catalog/api';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
-import { type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
+import { type CatalogProduct } from '@/features/catalog/adminApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
+import { type QuoteItem } from '@/features/quotes/publicApi';
 import { AdminQuoteCustomerFields, AdminQuoteSettingsSummary } from './AdminQuoteCustomerAndSettings';
 import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 

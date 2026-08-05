@@ -1,5 +1,5 @@
 import type { AdminBugReportDashboardDto } from '../../api';
-import { bugReportStatusLabels, severityLabels } from '@/features/betaTest/lib/betaLabels';
+import { bugReportStatusLabels, severityLabels } from '@/features/betaTest/publicApi';
 
 interface AdminBugReportFiltersProps {
   assignedFilter: string;

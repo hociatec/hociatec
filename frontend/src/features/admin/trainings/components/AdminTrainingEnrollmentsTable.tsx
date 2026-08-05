@@ -1,4 +1,4 @@
-import type { TrainingEnrollmentDto } from '@/features/trainings/api/trainingsApi';
+import type { TrainingEnrollmentDto } from '@/features/trainings/publicApi';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 

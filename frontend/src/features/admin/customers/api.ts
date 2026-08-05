@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
-import type { AdminPaymentDto, OrderDto } from '@/features/orders/api';
+import type { AdminPaymentDto, OrderDto } from '@/features/orders/publicApi';
 
 export interface AdminCustomerSummaryDto {
   id: number;

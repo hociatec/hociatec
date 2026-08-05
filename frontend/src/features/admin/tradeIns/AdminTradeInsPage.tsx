@@ -2,8 +2,8 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDate } from '@/shared/lib/formatters';
-import type { TradeInStatus } from '@/features/tradeIns/types';
-import { useTradeInMetadata } from '@/features/tradeIns/useTradeInMetadata';
+import type { TradeInStatus } from '@/features/tradeIns/publicApi';
+import { useTradeInMetadata } from '@/features/tradeIns/publicApi';
 import { AdminTradeInDetailsModal } from './AdminTradeInDetailsModal';
 import { useAdminTradeInsPage } from './useAdminTradeInsPage';
 

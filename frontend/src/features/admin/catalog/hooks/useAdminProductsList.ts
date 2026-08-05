@@ -6,8 +6,8 @@ import {
   deleteProduct,
   fetchAdminCategories,
   fetchAdminProductsPage,
-} from '@/features/catalog/api';
-import { groupCatalogProducts } from '@/features/catalog/utils/groupProducts';
+} from '@/features/catalog/adminApi';
+import { groupCatalogProducts } from '@/features/catalog/adminApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';

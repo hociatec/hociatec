@@ -1,4 +1,4 @@
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { CatalogProduct } from '@/features/catalog/adminApi';
 
 export const VariantSwitcherSection = ({ currentProductId, deletingVariantId, groupVariants, formatVariantDetails, onDeleteVariant, onNavigateVariant }: {
   currentProductId: number | null;

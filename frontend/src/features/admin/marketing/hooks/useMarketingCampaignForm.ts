@@ -129,7 +129,7 @@ export const useMarketingCampaignForm = () => {
     }));
   }, [form.segmentKey, segments]);
 
-  const criteria = useMemo(() => buildCampaignCriteria(form), [form]);
+  const criteria = buildCampaignCriteria(form);
   const activeTemplates = useMemo(() => templates.filter((item) => item.isActive), [templates]);
   const templatesForSegment = useMemo(
     () => activeTemplates.filter((item) => item.scenarioKey === form.segmentKey),

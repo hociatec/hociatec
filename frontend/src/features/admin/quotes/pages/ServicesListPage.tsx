@@ -8,7 +8,7 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
+import { formatServiceBillingMode } from '@/features/quotes/publicApi';
 
 export const ServicesListPage = () => {
   useDocumentTitle('Admin - Services');

@@ -9,7 +9,7 @@ import {
   updatePrestation,
   type UpsertPrestationPayload,
 } from '@/features/admin/appointments/api';
-import type { Prestation } from '@/features/appointments/types/appointments';
+import type { Prestation } from '@/features/appointments/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

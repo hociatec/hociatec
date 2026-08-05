@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
-import { selectFeaturedServices } from '@/features/quotes/lib/servicePresentation';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import { fetchPublicQuoteServices } from '@/features/quotes/publicApi';
+import { selectFeaturedServices } from '@/features/quotes/publicApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { homeQueryKeys } from '@/shared/lib/queryKeys';
 

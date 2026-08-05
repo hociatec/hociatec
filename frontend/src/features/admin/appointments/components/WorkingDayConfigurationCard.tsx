@@ -1,4 +1,4 @@
-import type { WorkingDay } from '@/features/appointments/types/appointments';
+import type { WorkingDay } from '@/features/appointments/publicApi';
 
 type WorkingDayConfigurationCardProps = {
   day: WorkingDay;

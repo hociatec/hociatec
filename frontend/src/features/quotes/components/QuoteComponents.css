@@ -158,6 +158,44 @@
   background: #fef2f2;
 }
 
+.quote-selection-empty {
+  border-color: var(--hocia-line) !important;
+  background: var(--hocia-surface-soft) !important;
+  color: var(--hocia-muted) !important;
+}
+
+.quote-selection-card {
+  border-color: var(--hocia-line) !important;
+  border-radius: var(--hocia-radius) !important;
+  box-shadow: var(--hocia-shadow-sm) !important;
+}
+
+.quote-selection-card__title,
+.quote-selection-card__subtotal-value,
+.quote-selection-stepper__label,
+.quote-selection-stepper__button,
+.quote-selection-stepper__input {
+  color: var(--hocia-ink) !important;
+}
+
+.quote-selection-card__badge,
+.quote-selection-card__meta,
+.quote-selection-card__subtotal-label,
+.quote-selection-stepper__unit {
+  color: var(--hocia-muted) !important;
+}
+
+.quote-selection-card__badge,
+.quote-selection-stepper__button:hover {
+  background: var(--hocia-surface-blue) !important;
+}
+
+.quote-selection-card__controls,
+.quote-selection-stepper__button,
+.quote-selection-stepper__input {
+  border-color: var(--hocia-line) !important;
+}
+
 @media (min-width: 640px) {
   .quote-selection-card__controls {
     flex-direction: row;

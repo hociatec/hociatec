@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
-import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
-import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/api/newsApi';
+import { searchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
+import { fetchPublicQuoteServices } from '@/features/quotes/publicApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
+import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/publicApi';
 import {
   fetchPublicTrainings,
   type TrainingDto,
-} from '@/features/trainings/api/trainingsApi';
+} from '@/features/trainings/publicApi';
 import { searchQueryKeys } from '@/shared/lib/queryKeys';
 
 const normalize = (value: string | null | undefined) =>

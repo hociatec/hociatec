@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/api/auditsApi';
+import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publicApi';
 import { auditQueryKeys } from '@/shared/lib/queryKeys';
 
 export const AUDIT_TYPES = [

@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import type { CatalogProduct } from '@/features/catalog/api';
 import {
   addFavorite,
   fetchFavorites,
   removeFavorite,
   type FavoriteDto,
-} from '@/features/favorites/api/favoritesApi';
+} from '@/features/favorites/publicApi';
 import { favoriteQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useProductFavorite = (product?: CatalogProduct | null) => {

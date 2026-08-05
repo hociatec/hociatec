@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchAdminPaymentMetadata, fetchAdminPayments, type AdminPaymentDto } from '@/features/orders/api';
-import type { OrderStatusOptionDto } from '@/features/orders/orderTypes';
+import { fetchAdminPaymentMetadata, fetchAdminPayments, type AdminPaymentDto } from '@/features/orders/publicApi';
+import type { OrderStatusOptionDto } from '@/features/orders/publicApi';
 import { adminPaymentQueryKeys } from '@/shared/lib/queryKeys';
 
 export type AdminPaymentStatus = 'all' | 'open' | 'paid' | 'expired' | 'failed';

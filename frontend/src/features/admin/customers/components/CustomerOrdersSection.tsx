@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { type OrderFilter } from './customerDetailShared';
 

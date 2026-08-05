@@ -18,6 +18,7 @@ import {
   HomeProductsHeading,
   HomeServicesHeading,
 } from '@/features/home/homeContent';
+import '@/app/styles/home.css';
 
 export const HomePage = () => {
   useDocumentTitle('Informatique, réparation et services numériques');

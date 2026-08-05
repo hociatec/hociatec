@@ -2,10 +2,10 @@ import { Link } from 'react-router';
 import { ArrowRight, Clock3 } from 'lucide-react';
 
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
-import type { NewsArticleDto } from '@/features/news/api/newsApi';
-import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
-import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import type { NewsArticleDto } from '@/features/news/publicApi';
+import { formatServiceBillingMode } from '@/features/quotes/publicApi';
+import { resolveServiceIllustration } from '@/features/quotes/publicApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 
 const formatNewsDate = (value: string | null) =>
   value ? formatOptionalFrenchDate(value) : 'Date non définie';

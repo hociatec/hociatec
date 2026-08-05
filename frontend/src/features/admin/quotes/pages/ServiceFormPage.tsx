@@ -9,7 +9,7 @@ import {
   fetchAdminQuoteService,
   updateAdminQuoteService,
   type QuoteMetadataOption,
-} from '@/features/quotes/api/quotesApi';
+} from '@/features/quotes/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

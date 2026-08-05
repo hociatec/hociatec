@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/api';
+import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/adminApi';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';

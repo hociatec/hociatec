@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type DeliveryForm = {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Facebook, Mail } from 'lucide-react';
 
-import { ProductCartActions } from '@/features/cart/components/ProductCartActions';
+import { ProductCartActions } from '@/features/cart/publicApi';
 import type { CatalogProduct } from '@/features/catalog/api';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { ProductShareDialog } from './ProductShareDialog';

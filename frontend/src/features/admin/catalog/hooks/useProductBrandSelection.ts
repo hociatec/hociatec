@@ -1,6 +1,6 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 
-import type { CatalogBrand } from '@/features/catalog/api';
+import type { CatalogBrand } from '@/features/catalog/adminApi';
 import type { ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 
 export const useProductBrandSelection = (

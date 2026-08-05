@@ -6,6 +6,7 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { isAnyPathActive } from '@/shared/lib/routes';
 import { AdminNavGroupSection } from './AdminNavGroupSection';
 import { adminNavGroups, type AdminNavLink } from './adminNavConfig';
+import '@/app/styles/admin.css';
 
 export const AdminLayout = () => {
   const location = useLocation();

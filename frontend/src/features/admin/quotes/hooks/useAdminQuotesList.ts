@@ -5,13 +5,13 @@ import {
   deleteAdminQuote,
   duplicateAdminQuote,
   sendAdminQuoteEmail,
-} from '@/features/quotes/api/quotesApi';
-import type { QuoteDto } from '@/features/quotes/types/quoteTypes';
+} from '@/features/quotes/publicApi';
+import type { QuoteDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
-import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/api/adminQuotesApi';
+import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/publicApi';
 import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminQuotesList = () => {

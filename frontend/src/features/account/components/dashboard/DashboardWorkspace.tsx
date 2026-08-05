@@ -1,5 +1,5 @@
 import type { DashboardAction, DashboardConversionState } from '@/features/account/types/dashboard';
-import type { LoyaltyBalanceDto } from '@/features/loyalty/api/loyaltyApi';
+import type { LoyaltyBalanceDto } from '@/features/loyalty/publicApi';
 import { DashboardAccessLinks } from './DashboardAccessLinks';
 import { DashboardAppointmentCard } from './DashboardAppointmentCard';
 import { DashboardEmptyState } from './DashboardEmptyState';

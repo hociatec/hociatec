@@ -4,7 +4,7 @@ import {
   type TrainingDto,
   type TrainingEnrollmentDto,
   type TrainingSessionDto,
-} from '@/features/trainings/api/trainingsApi';
+} from '@/features/trainings/publicApi';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { AdminTrainingEnrollmentsTable } from './AdminTrainingEnrollmentsTable';

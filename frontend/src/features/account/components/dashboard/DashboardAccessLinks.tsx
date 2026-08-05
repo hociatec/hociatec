@@ -13,8 +13,8 @@ import {
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { fetchMyBetaProfile } from '@/features/betaTest/api/betaApi';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { fetchMyBetaProfile } from '@/features/betaTest/publicApi';
+import { useAuth } from '@/features/auth/publicApi';
 import { DashboardAuditCard } from './DashboardAuditCard';
 import { betaQueryKeys } from '@/shared/lib/queryKeys';
 import { isFeatureEnabled } from '@/shared/config/featureFlags';

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
+import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { catalogQueryKeys } from '@/shared/lib/queryKeys';
 

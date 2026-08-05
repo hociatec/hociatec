@@ -1,4 +1,4 @@
-import type { OrderEventDto } from '@/features/orders/api';
+import type { OrderEventDto } from '@/features/orders/publicApi';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type AdminOrderHistorySectionProps = {

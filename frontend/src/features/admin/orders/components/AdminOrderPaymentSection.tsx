@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 export const AdminOrderPaymentSection = ({

@@ -21,7 +21,7 @@ import {
   deleteAccount as deleteAccountRequest,
   type UpdateProfilePayload,
 } from '../api/authApi';
-import { fetchCart } from '@/features/cart/api/cartApi';
+import { fetchCart } from '@/features/cart/publicApi';
 import { publishAuthSessionEvent, subscribeAuthSessionEvents } from '@/shared/lib/authSessionEvents';
 import { logger } from '@/shared/lib/logger';
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/api/newsApi';
+import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { homeQueryKeys } from '@/shared/lib/queryKeys';
 

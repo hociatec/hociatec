@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
-import type { CatalogProduct } from '@/features/catalog/api';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import type { CatalogProduct } from '@/features/catalog/adminApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 

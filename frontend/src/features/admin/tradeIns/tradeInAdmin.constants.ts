@@ -1,4 +1,4 @@
-import type { TradeInStatus } from '@/features/tradeIns/types';
+import type { TradeInStatus } from '@/features/tradeIns/publicApi';
 
 export const tradeInStatuses: TradeInStatus[] = [
   'submitted',

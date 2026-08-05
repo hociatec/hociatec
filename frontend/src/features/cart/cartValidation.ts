@@ -7,7 +7,7 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/apiValidation';
-import { parseCatalogProduct } from '@/features/catalog/catalogValidation';
+import { parseCatalogProduct } from '@/features/catalog/publicApi';
 import type { Cart, CartPromotion } from './types/cart';
 
 const DISCOUNT_TYPES = new Set(['percent', 'fixed_cents']);

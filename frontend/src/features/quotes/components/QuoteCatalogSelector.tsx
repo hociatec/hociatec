@@ -1,4 +1,4 @@
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
 import type { QuoteDraft } from '@/features/quotes/hooks/useCreateQuote';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { QuoteProductResults } from './QuoteProductResults';

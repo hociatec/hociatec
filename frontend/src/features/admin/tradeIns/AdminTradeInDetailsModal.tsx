@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 
-import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/types';
+import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/publicApi';
 import {
   AdminTradeInClosureSection,
   AdminTradeInHeader,

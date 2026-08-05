@@ -7,7 +7,7 @@ import {
   deleteAdminTrainingSession,
   fetchAdminTrainingSessions,
   type TrainingSessionDto,
-} from '@/features/trainings/api/trainingsApi';
+} from '@/features/trainings/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useConfirm } from '@/shared/components/ui/confirm';

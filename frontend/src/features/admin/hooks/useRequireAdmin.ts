@@ -1,5 +1,5 @@
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { hasPermission } from '@/features/auth/lib/permissions';
+import { useAuth } from '@/features/auth/publicApi';
+import { hasPermission } from '@/features/auth/publicApi';
 
 export const useRequireAdmin = () => {
   const { user, status } = useAuth();

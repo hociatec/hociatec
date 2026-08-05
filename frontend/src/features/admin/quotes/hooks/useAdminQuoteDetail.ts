@@ -7,8 +7,8 @@ import {
   generateAdminQuotePdf,
   sendAdminQuoteEmail,
   updateAdminQuoteStatus,
-} from '@/features/quotes/api/quotesApi';
-import type { QuoteDto, QuoteStatus } from '@/features/quotes/types/quoteTypes';
+} from '@/features/quotes/publicApi';
+import type { QuoteDto, QuoteStatus } from '@/features/quotes/publicApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { usePrompt } from '@/shared/components/ui/prompt';

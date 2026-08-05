@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 
-import { fetchAdminPaymentById } from '@/features/orders/api';
+import { fetchAdminPaymentById } from '@/features/orders/publicApi';
 import { PaymentDetailContent } from '@/features/admin/payments/components/PaymentDetailContent';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';

@@ -3,8 +3,8 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
-import type { AuditListItemDto } from '@/features/audits/api/auditsApi';
-import { useAuditMetadata } from '@/features/audits/hooks/useAuditMetadata';
+import type { AuditListItemDto } from '@/features/audits/publicApi';
+import { useAuditMetadata } from '@/features/audits/publicApi';
 import { useAdminAuditDetail } from '../hooks/useAdminAuditDetail';
 import { logger } from '@/shared/lib/logger';
 

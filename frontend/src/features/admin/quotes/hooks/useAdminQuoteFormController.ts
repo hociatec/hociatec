@@ -3,19 +3,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchAdminProducts, type CatalogProduct } from '@/features/catalog/api';
+import { fetchAdminProducts, type CatalogProduct } from '@/features/catalog/adminApi';
 import {
   createAdminQuote,
   fetchAdminQuote,
   fetchAdminQuoteServices,
   generateAdminQuotePdf,
   updateAdminQuote,
-} from '@/features/quotes/api/quotesApi';
-import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+} from '@/features/quotes/publicApi';
+import type { QuoteDto, QuoteInput, QuoteServiceDto } from '@/features/quotes/publicApi';
 import {
   adaptQuoteForSave,
   createDefaultQuoteValidity,
-} from '@/features/quotes/utils/quoteFormUtils';
+} from '@/features/quotes/publicApi';
 import { type AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 import { useAdminQuoteItems } from './useAdminQuoteItems';
 import { useToast } from '@/shared/components/ui/toast';

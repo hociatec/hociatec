@@ -1,7 +1,7 @@
 import { MessageSquare, Trash2 } from 'lucide-react';
 
 import type { AdminBugReportDashboardDto, AdminBugReportDto } from '../../api';
-import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/lib/betaLabels';
+import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/publicApi';
 import { bugReportBadgeClassName } from './adminBugReportUi';
 
 interface AdminBugReportsTableProps {

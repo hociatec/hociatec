@@ -5,7 +5,7 @@ import {
   fetchAdminLoyaltyCustomers,
   updateAdminLoyaltyCustomer,
   type AdminLoyaltyCustomerDto,
-} from '@/features/loyalty/api/loyaltyApi';
+} from '@/features/loyalty/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import {
   AdminListState,

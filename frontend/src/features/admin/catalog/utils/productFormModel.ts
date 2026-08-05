@@ -1,4 +1,4 @@
-import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/features/catalog/api';
+import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/features/catalog/adminApi';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import type { ProductFormState, VariantRowState } from './productFormConfig';
 import {

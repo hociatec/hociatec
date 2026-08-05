@@ -8,7 +8,7 @@ import {
   updateAdminCustomerAdminProfile,
   type AdminCustomerAddressDto,
 } from '@/features/admin/customers/api';
-import { type OrderDto } from '@/features/orders/api';
+import { type OrderDto } from '@/features/orders/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
 import {
   type CustomerEmailFormState,
@@ -116,10 +116,7 @@ export const useAdminCustomerDetail = (customerId: number) => {
     }
   }, [orderFilter, orders]);
 
-  const parsedTags = useMemo(
-    () => adminTagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
-    [adminTagsInput],
-  );
+  const parsedTags = adminTagsInput.split(',').map((tag) => tag.trim()).filter(Boolean);
 
   const closeEmailComposer = () => {
     setEmailOpen(false);

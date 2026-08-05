@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { type ApiResponse } from '@/shared/types/api';
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 import { rethrowApiError, unwrap, type EmailLogDto } from './operationsApiShared';
 
 export const fetchEmailLogs = async (): Promise<EmailLogDto[]> => {

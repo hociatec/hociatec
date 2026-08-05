@@ -1,8 +1,8 @@
-import { fetchMyAppointments } from '@/features/appointments/api/appointmentsApi';
-import { fetchPendingReviews } from '@/features/orders/api';
-import { convertMyLoyalty, fetchMyLoyalty } from '@/features/loyalty/api/loyaltyApi';
-import { fetchMyQuotes } from '@/features/quotes/api/quotesApi';
-import { fetchMyTrainingEnrollments } from '@/features/trainings/api/trainingsApi';
+import { fetchMyAppointments } from '@/features/appointments/publicApi';
+import { fetchPendingReviews } from '@/features/orders/publicApi';
+import { convertMyLoyalty, fetchMyLoyalty } from '@/features/loyalty/publicApi';
+import { fetchMyQuotes } from '@/features/quotes/publicApi';
+import { fetchMyTrainingEnrollments } from '@/features/trainings/publicApi';
 import type { DashboardData } from '@/features/account/types/dashboard';
 
 export const emptyLoyalty = {

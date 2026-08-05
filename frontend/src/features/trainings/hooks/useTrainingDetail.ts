@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 import { enrollTrainingSession, fetchPublicTraining, type TrainingSessionDto } from '../api/trainingsApi';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import { isWeekendDate } from '../lib/trainingDetail';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { trainingQueryKeys } from '@/shared/lib/queryKeys';

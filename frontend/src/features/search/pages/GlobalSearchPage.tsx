@@ -16,6 +16,7 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import '@/app/styles/features/directories.css';
 
 const RESULTS_LIMIT = 6;
 

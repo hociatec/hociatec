@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/api';
+import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
 import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { useDebounce } from '@/shared/hooks/useDebounce';

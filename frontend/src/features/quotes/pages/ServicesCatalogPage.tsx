@@ -12,6 +12,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/pag
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
+import '@/app/styles/features/directories.css';
 
 const SERVICES_PER_PAGE = 7;
 const SERVICE_ILLUSTRATION_FALLBACK = '/service-illustrations/service-generique.svg';

@@ -1,4 +1,4 @@
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 type AdminOrderItemsSectionProps = {

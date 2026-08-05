@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 import { useCart } from '../hooks/useCart';
 import { useToast } from '@/shared/components/ui/toast';

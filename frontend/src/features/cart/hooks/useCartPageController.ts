@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import { useCart } from '@/features/cart/hooks/useCart';
 import type { CartItem as CartLine } from '@/features/cart/types/cart';
 import { useCartCheckout } from '@/features/cart/hooks/useCartCheckout';

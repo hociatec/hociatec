@@ -1,8 +1,11 @@
 import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { AuthProvider } from '@/features/auth/context/AuthContext';
-import { CartProvider } from '@/features/cart/context/CartContext';
+import { AuthProvider } from '@/features/auth/publicApi';
+import { CartProvider } from '@/features/cart/publicApi';
+import { useAuth } from '@/features/auth/publicApi';
+import { hasPermission } from '@/features/auth/publicApi';
+import { useCart } from '@/features/cart/publicApi';
 import { AppRoutes } from './routes/AppRoutes';
 import { ConfirmProvider } from '@/shared/components/ui/confirm';
 import { PromptProvider } from '@/shared/components/ui/prompt';
@@ -10,6 +13,25 @@ import { ToastProvider } from '@/shared/components/ui/toast';
 import { AccessibilityAnnouncer } from '@/shared/components/accessibility/AccessibilityAnnouncer';
 import { MaintenanceGate } from '@/shared/components/system/MaintenanceGate';
 import { normalizeHttpError } from '@/shared/lib/httpClient';
+import { SiteHeaderActionsProvider } from '@/shared/components/layout/siteHeader/SiteHeaderActionsContext';
+
+const AppHeaderActionsProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user, status, logout } = useAuth();
+  const { cart } = useCart();
+
+  return (
+    <SiteHeaderActionsProvider
+      value={{
+        cartQuantity: cart?.totalQuantity ?? 0,
+        isAdmin: hasPermission(user, 'admin.access'),
+        isAuthenticated: status === 'authenticated' && Boolean(user),
+        onLogout: logout,
+      }}
+    >
+      {children}
+    </SiteHeaderActionsProvider>
+  );
+};
 
 export const AppProviders = () => (
   <AuthProvider>
@@ -17,10 +39,12 @@ export const AppProviders = () => (
       <ConfirmProvider>
         <PromptProvider>
           <CartProvider>
-            <MaintenanceGate>
-              <AppRoutes />
-            </MaintenanceGate>
-            <AccessibilityAnnouncer />
+            <AppHeaderActionsProvider>
+              <MaintenanceGate>
+                <AppRoutes />
+              </MaintenanceGate>
+              <AccessibilityAnnouncer />
+            </AppHeaderActionsProvider>
           </CartProvider>
         </PromptProvider>
       </ConfirmProvider>

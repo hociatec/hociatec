@@ -1,7 +1,7 @@
 import { Edit, Eye, Trash2 } from 'lucide-react';
 
 import type { AdminCampaignDto } from '../../api';
-import { campaignStateLabels, formatBetaLabel, formatDate } from '@/features/betaTest/lib/betaLabels';
+import { campaignStateLabels, formatBetaLabel, formatDate } from '@/features/betaTest/publicApi';
 
 interface AdminCampaignsTableProps {
   campaigns: AdminCampaignDto[];

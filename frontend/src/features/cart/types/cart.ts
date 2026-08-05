@@ -1,4 +1,4 @@
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 export interface CartPromotion {
   id: number;

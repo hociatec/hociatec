@@ -1,8 +1,8 @@
-import type { AppointmentItem } from '@/features/appointments/types/appointments';
-import type { PendingReviewDto } from '@/features/orders/api';
-import type { LoyaltyBalanceDto } from '@/features/loyalty/api/loyaltyApi';
-import type { QuoteDto } from '@/features/quotes/types/quoteTypes';
-import type { TrainingEnrollmentDto } from '@/features/trainings/api/trainingsApi';
+import type { AppointmentItem } from '@/features/appointments/publicApi';
+import type { PendingReviewDto } from '@/features/orders/publicApi';
+import type { LoyaltyBalanceDto } from '@/features/loyalty/publicApi';
+import type { QuoteDto } from '@/features/quotes/publicApi';
+import type { TrainingEnrollmentDto } from '@/features/trainings/publicApi';
 
 export type DashboardLoadState = 'loading' | 'success' | 'error';
 export type DashboardConversionState = 'idle' | 'saving';

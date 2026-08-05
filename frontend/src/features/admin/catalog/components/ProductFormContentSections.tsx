@@ -3,7 +3,7 @@ import { type ChangeEvent } from 'react';
 import {
   type CatalogBrand,
   type CatalogCategory,
-} from '@/features/catalog/api';
+} from '@/features/catalog/adminApi';
 import type { ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useCart } from '@/features/cart/hooks/useCart';
+import { useCart } from '@/features/cart/publicApi';
 import { fetchCheckoutSessionStatus } from '../api';
 import { orderQueryKeys } from '@/shared/lib/queryKeys';
 

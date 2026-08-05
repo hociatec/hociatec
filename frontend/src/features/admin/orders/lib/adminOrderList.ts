@@ -1,4 +1,4 @@
-import type { OrderDto } from '@/features/orders/api';
+import type { OrderDto } from '@/features/orders/publicApi';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
 export type OrderSortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'customer_asc';

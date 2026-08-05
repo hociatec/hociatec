@@ -6,7 +6,7 @@ import { TradeInSuccessPanel } from '../components/TradeInSuccessPanel';
 import { emptyTradeInForm } from '../lib/tradeInForm';
 import type { TradeInDto, TradeInInput } from '../types';
 import { useTradeInMetadata } from '../useTradeInMetadata';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import { PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';

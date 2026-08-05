@@ -1,4 +1,4 @@
-import type { LoyaltyBalanceDto } from '@/features/loyalty/api/loyaltyApi';
+import type { LoyaltyBalanceDto } from '@/features/loyalty/publicApi';
 import {
   formatEuroCents,
   formatFrenchNumber,

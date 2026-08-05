@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router';
 
-import { AdminRoute } from '@/features/admin/components/AdminRoute';
-import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { AdminRoute } from '@/features/admin/publicApi';
+import { ProtectedRoute } from '@/features/auth/publicApi';
 import { PrivateRouteMeta } from '@/shared/components/seo/PrivateRouteMeta';
 import {
   BrandFormPage,

@@ -13,7 +13,7 @@ import {
   type TrainingDto,
   type TrainingEnrollmentDto,
   type TrainingSessionDto,
-} from '@/features/trainings/api/trainingsApi';
+} from '@/features/trainings/publicApi';
 import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useAdminTrainingsOverview = () => {

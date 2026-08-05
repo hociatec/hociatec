@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { Image as ImageIcon } from 'lucide-react';
 
-import type { CatalogProduct } from '@/features/catalog/api';
-import { ProductMetaBadges } from '@/features/catalog/components/ProductMetaBadges';
-import { ProductActionToolbar } from '@/features/catalog/components/ProductActionToolbar';
-import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
+import { getCatalogProductDisplayName } from '@/features/catalog/publicApi';
+import { ProductActionToolbar, ProductMetaBadges } from '@/features/catalog/uiApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const HomeFeaturedProductCard = ({ product }: { product: CatalogProduct }) => {

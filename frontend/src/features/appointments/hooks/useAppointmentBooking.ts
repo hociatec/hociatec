@@ -6,7 +6,7 @@ import type FullCalendar from '@fullcalendar/react';
 import { format, startOfDay } from 'date-fns';
 import { bookAppointment, fetchAvailability, fetchPrestations } from '../api/appointmentsApi';
 import type { AvailabilitySlot, Prestation } from '../types/appointments';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
 import { appointmentQueryKeys } from '@/shared/lib/queryKeys';
 

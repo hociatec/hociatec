@@ -5,7 +5,7 @@ import { PublicQuoteSelectionList } from '@/features/quotes/components/PublicQuo
 import { QuoteCustomerFields } from '@/features/quotes/components/QuoteCustomerFields';
 import { QuoteCatalogSelector } from '@/features/quotes/components/QuoteCatalogSelector';
 import { formatQuoteDate, formatQuotePrice, type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
-import type { CatalogProduct } from '@/features/catalog/api';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
 import type { QuoteDraft } from '@/features/quotes/hooks/useCreateQuote';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 

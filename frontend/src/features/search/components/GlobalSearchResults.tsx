@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
-import type { CatalogProduct } from '@/features/catalog/apiTypes';
-import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
-import type { NewsArticleDto } from '@/features/news/api/newsApi';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
+import { getCatalogProductDisplayName } from '@/features/catalog/publicApi';
+import type { NewsArticleDto } from '@/features/news/publicApi';
+import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import {
   type TrainingDto,
-} from '@/features/trainings/api/trainingsApi';
+} from '@/features/trainings/publicApi';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 interface ResultSectionProps {

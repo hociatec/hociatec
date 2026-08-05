@@ -2,7 +2,7 @@ import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createProduct, deleteProduct, updateProduct, type CatalogBrand, type CatalogProduct, type UpsertProductPayload } from '@/features/catalog/api';
+import { createProduct, deleteProduct, updateProduct, type CatalogBrand, type CatalogProduct, type UpsertProductPayload } from '@/features/catalog/adminApi';
 import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
 import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
 import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';

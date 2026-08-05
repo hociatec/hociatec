@@ -8,8 +8,8 @@ import {
   fetchNewsComments,
   type NewsCommentDto,
 } from '@/features/news/api/newsApi';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { hasPermission } from '@/features/auth/lib/permissions';
+import { useAuth } from '@/features/auth/publicApi';
+import { hasPermission } from '@/features/auth/publicApi';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import { newsQueryKeys } from '@/shared/lib/queryKeys';

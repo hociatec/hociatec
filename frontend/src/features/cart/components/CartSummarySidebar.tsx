@@ -1,4 +1,4 @@
-import type { AddressDto } from '@/features/addresses/api/addressesApi';
+import type { AddressDto } from '@/features/addresses/publicApi';
 import type { Cart } from '@/features/cart/types/cart';
 import { formatCartPrice, formatPromotionValue } from '@/features/cart/utils/cartDisplay';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/features/orders/api';
-import { fetchMyAddresses, type AddressDto } from '@/features/addresses/api/addressesApi';
+import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/features/orders/publicApi';
+import { fetchMyAddresses, type AddressDto } from '@/features/addresses/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { cartQueryKeys } from '@/shared/lib/queryKeys';
 

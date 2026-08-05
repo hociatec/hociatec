@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 import { type AdminCustomerDetailDto } from '@/features/admin/customers/api';
-import { type OrderDto } from '@/features/orders/api';
+import { type OrderDto } from '@/features/orders/publicApi';
 import { normalizePhoneLink } from './customerDetailShared';
 
 export const CustomerQuickActions = ({

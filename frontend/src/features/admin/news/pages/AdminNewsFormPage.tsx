@@ -7,7 +7,7 @@ import {
   fetchAdminNewsArticle,
   updateAdminNewsArticle,
   type NewsArticlePayload,
-} from '@/features/news/api/newsApi';
+} from '@/features/news/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';

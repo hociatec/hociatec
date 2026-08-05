@@ -5,8 +5,8 @@ import {
   generateMyQuotePdf,
 } from '@/features/quotes/api/quotesApi';
 import type { QuoteDto, QuoteInput } from '@/features/quotes/types/quoteTypes';
-import type { CatalogProduct } from '@/features/catalog/api';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import type { CatalogProduct } from '@/features/catalog/publicApi';
+import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import {

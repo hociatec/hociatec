@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
-import type { MyVoucherDto } from '@/features/vouchers/api/vouchersApi';
+import type { MyVoucherDto } from '@/features/vouchers/publicApi';
 
 export interface LoyaltyBalanceDto {
   points: number;

@@ -1,5 +1,5 @@
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
-import type { QuoteMetadataOption } from '@/features/quotes/api/quotesApi';
+import type { QuoteMetadataOption } from '@/features/quotes/publicApi';
 
 export type ServiceFormState = {
   title: string;

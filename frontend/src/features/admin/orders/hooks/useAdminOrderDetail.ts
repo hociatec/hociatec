@@ -13,7 +13,7 @@ import {
   type OrderDto,
   type OrderEventDto,
   type OrderProcessingDto,
-} from '@/features/orders/api';
+} from '@/features/orders/publicApi';
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
 

@@ -9,6 +9,7 @@ import {
   QuoteRentalConfirmDialog,
   QuoteSummarySidebar,
 } from '@/features/quotes/components/CreateQuotePageSections';
+import '@/app/styles/features/directories.css';
 
 export const CreateQuotePage = () => {
   useDocumentTitle('Créer un devis');

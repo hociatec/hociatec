@@ -3,27 +3,21 @@ import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { hasPermission } from '@/features/auth/lib/permissions';
-import { useCart } from '@/features/cart/hooks/useCart';
 import { AccountNotifications } from '../../notifications/AccountNotifications';
 import { UserAccountMenu } from '../../ui/user-account-menu';
 import { isAnyPathActive, isPathActive } from '@/shared/lib/routes';
+import { useSiteHeaderActionsState } from './SiteHeaderActionsContext';
 
 interface SiteHeaderActionsProps {
   showCatalogSearch: boolean;
 }
 
 export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps) => {
-  const { user, status, logout } = useAuth();
-  const { cart } = useCart();
+  const { cartQuantity, isAdmin, isAuthenticated, onLogout } = useSiteHeaderActionsState();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [search, setSearch] = useState('');
   const searchId = useId();
-
-  const isAuthenticated = status === 'authenticated' && Boolean(user);
-  const isAdmin = hasPermission(user, 'admin.access');
 
   const profileActive = isAnyPathActive(pathname, [
     '/mon-espace',
@@ -54,7 +48,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
   const canSubmitSearch = search.trim().length > 0;
 
   const handleLogout = () => {
-    void logout();
+    void onLogout();
     navigate('/');
   };
 
@@ -92,11 +86,11 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
       <Link
         to="/panier"
         className={linkClass('/panier', 'site-header__cart-button')}
-        aria-label={`Mon panier (${cart?.totalQuantity ?? 0})`}
+        aria-label={`Mon panier (${cartQuantity})`}
       >
         <ShoppingCart aria-hidden="true" />
         <span>Panier</span>
-        <span className="site-header__badge">{cart?.totalQuantity ?? 0}</span>
+        <span className="site-header__badge">{cartQuantity}</span>
       </Link>
       {isAuthenticated ? (
         <>

@@ -9,7 +9,7 @@ import {
   type CatalogBrand,
   type CatalogCategory,
   type CatalogProduct,
-} from '@/features/catalog/api';
+} from '@/features/catalog/adminApi';
 import { emptyProductForm, type ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 import { buildProductFormState } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';

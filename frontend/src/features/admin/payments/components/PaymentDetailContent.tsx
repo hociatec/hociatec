@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentLiveStripeDto,
-} from '@/features/orders/api';
+} from '@/features/orders/publicApi';
 import { formatCurrencyCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type PaymentDetailContentProps = {

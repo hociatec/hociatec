@@ -2,7 +2,7 @@ import { type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import type { RegisterPayload } from '@/features/auth/api/authApi';
-import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/api/betaApi';
+import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/publicApi';
 import { betaQueryKeys } from '@/shared/lib/queryKeys';
 
 type FormState = RegisterPayload;

@@ -1,4 +1,4 @@
-import type { OrderDto, OrderProcessingDto } from '@/features/orders/api';
+import type { OrderDto, OrderProcessingDto } from '@/features/orders/publicApi';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type AdminOrderSummarySectionProps = {

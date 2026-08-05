@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
+import type { MaintenanceStatusDto } from '@/shared/api/systemStatus';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
 export interface BackupSettingsDto {
@@ -28,12 +29,6 @@ export interface BackupRunDto {
   message: string;
 }
 
-export interface MaintenanceStatusDto {
-  enabled: boolean;
-  message: string;
-  updatedAt?: string | null;
-}
-
 export interface BackupStatusDto {
   settings: BackupSettingsDto;
   backups: BackupFileDto[];
@@ -47,10 +42,6 @@ export interface BackupStatusDto {
     command: string;
     cronExample: string;
   };
-}
-
-export interface SystemStatusDto {
-  maintenance: MaintenanceStatusDto;
 }
 
 const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
@@ -113,9 +104,4 @@ export const updateMaintenanceMode = async (payload: {
   } catch (error) {
     return rethrowApiError(error, 'Impossible de modifier le mode maintenance.');
   }
-};
-
-export const fetchSystemStatus = async (): Promise<SystemStatusDto> => {
-  const { data } = await httpClient.get<ApiResponse<SystemStatusDto>>('/api/public/system/status');
-  return unwrap(data, 'Impossible de charger le statut du site.');
 };

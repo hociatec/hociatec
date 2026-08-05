@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 
-import type { TrainingDto, TrainingFormat } from '@/features/trainings/api/trainingsApi';
+import type { TrainingDto, TrainingFormat } from '@/features/trainings/publicApi';
 
 export type TrainingSessionFormState = {
   trainingId: number;

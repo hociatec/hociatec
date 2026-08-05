@@ -1,5 +1,5 @@
-import type { QuoteDto, QuoteInput, QuoteStatus } from '@/features/quotes/types/quoteTypes';
-import type { QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
+import type { QuoteDto, QuoteInput, QuoteStatus } from '@/features/quotes/publicApi';
+import type { QuoteItem } from '@/features/quotes/publicApi';
 
 export type AdminQuoteFormState = {
   id?: number;

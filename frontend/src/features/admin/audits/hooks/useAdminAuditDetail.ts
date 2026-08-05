@@ -9,7 +9,7 @@ import {
   adminUpdateAuditStatus,
   type AuditItemDto,
   type AuditListItemDto,
-} from '@/features/audits/api/auditsApi';
+} from '@/features/audits/publicApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { auditQueryKeys } from '@/shared/lib/queryKeys';
 
