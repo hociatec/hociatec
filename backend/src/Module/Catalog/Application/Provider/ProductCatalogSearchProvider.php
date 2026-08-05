@@ -33,14 +33,14 @@ final readonly class ProductCatalogSearchProvider
 
         $result = $this->cache->get($cacheKey, function () use ($criteria): array {
             $filters = $criteria->filterArguments();
-            $items = $this->products->listPublished(
+            $items = $this->products->listPublishedProjection(
                 ...[...$filters, $criteria->sort, $criteria->perPage, $criteria->offset()],
             );
             $total = $this->products->countPublished(...$filters);
 
             return [
                 'items' => array_map(
-                    static fn ($product): array => CatalogFormatter::formatProduct($product),
+                    static fn (array $product): array => CatalogFormatter::formatProductProjection($product),
                     $items,
                 ),
                 'meta' => [

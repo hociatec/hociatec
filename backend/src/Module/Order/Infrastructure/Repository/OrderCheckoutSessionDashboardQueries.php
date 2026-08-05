@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Repository;
 
+use App\Module\Order\Domain\Entity\CheckoutStatus;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 
 trait OrderCheckoutSessionDashboardQueries
@@ -25,7 +26,10 @@ trait OrderCheckoutSessionDashboardQueries
         ];
 
         foreach ($rows as $row) {
-            $status = (string) ($row['status'] ?? '');
+            $status = $row['status'] ?? '';
+            if ($status instanceof CheckoutStatus) {
+                $status = $status->value;
+            }
             if (array_key_exists($status, $counts)) {
                 $counts[$status] = (int) ($row['total'] ?? 0);
             }

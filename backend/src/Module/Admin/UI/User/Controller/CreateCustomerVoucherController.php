@@ -10,6 +10,7 @@ use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,13 +48,13 @@ final class CreateCustomerVoucherController extends AbstractController
             $this->validator->validate($input);
             $created = $this->createVoucher->create($user, $input, [
                 'name' => $input->name,
-                'code' => $this->normalizeCode($input->code ?? $this->generateCode($user->getLastName())),
+                'code' => RequestPayloadMapper::normalizedCode($input->code ?? RequestPayloadMapper::generatedCode($user->getLastName())),
                 'description' => $input->description,
                 'discountType' => $input->discountType,
                 'discountValue' => $input->discountValue,
                 'isActive' => $input->isActive,
-                'startsAt' => $this->parseDate($input->startsAt),
-                'endsAt' => $this->parseDate($input->endsAt),
+                'startsAt' => RequestPayloadMapper::dateOrNull($input->startsAt),
+                'endsAt' => RequestPayloadMapper::dateOrNull($input->endsAt),
             ]);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
@@ -63,32 +64,5 @@ final class CreateCustomerVoucherController extends AbstractController
             'voucher' => VoucherFormatter::formatVoucher($created->voucher),
             'emailSent' => $created->emailSent,
         ]);
-    }
-
-    private function normalizeCode(mixed $value): string
-    {
-        return \is_string($value) ? mb_strtoupper(trim($value)) : '';
-    }
-
-    private function generateCode(string $seed): string
-    {
-        $base = ('' !== trim($seed) ? $seed : 'CLIENT');
-        $base = preg_replace('/[^A-Za-z0-9]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $base) ?: $base) ?: 'CLIENT';
-        $base = trim(strtoupper($base), '-');
-
-        return substr($base, 0, 12).'-'.strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
-    }
-
-    private function parseDate(mixed $value): ?\DateTimeImmutable
-    {
-        if (!\is_string($value) || '' === trim($value)) {
-            return null;
-        }
-
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException) {
-            return null;
-        }
     }
 }

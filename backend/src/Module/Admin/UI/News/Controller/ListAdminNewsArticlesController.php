@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\News\Controller;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,8 +23,8 @@ final readonly class ListAdminNewsArticlesController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request, 20, 50);
-        $search = trim((string) $request->query->get('q', ''));
+        $pagination = RequestQueryMapper::pagination($request, 20, 50);
+        $search = RequestQueryMapper::string($request, 'q');
 
         return ApiResponse::paginated(
             array_map(fn ($article): array => $this->formatter->article($article), $this->articles->findForAdmin($search, $pagination->perPage, $pagination->offset())),

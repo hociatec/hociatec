@@ -7,8 +7,8 @@ namespace App\Module\News\UI\Controller\PublicApi;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -25,8 +25,8 @@ final readonly class ListNewsArticlesController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $search = trim((string) $request->query->get('q', ''));
-        $pagination = Pagination::fromRequest($request, 9, 30);
+        $search = RequestQueryMapper::string($request, 'q');
+        $pagination = RequestQueryMapper::pagination($request, 9, 30);
         $total = $this->articles->countPublished($search);
 
         return ApiResponse::paginated(

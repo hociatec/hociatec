@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Appointment\Controller;
 use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ class ListPrestationController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 25, 100);
         $prestations = $this->prestationService->list($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

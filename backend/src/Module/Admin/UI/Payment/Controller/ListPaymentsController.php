@@ -9,7 +9,7 @@ use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,15 +29,14 @@ final class ListPaymentsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
-        $status = $request->query->get('status');
-        $query = trim((string) $request->query->get('q', ''));
+        $pagination = RequestQueryMapper::pagination($request);
+        $statusFilter = RequestQueryMapper::nullableString($request, 'status');
+        $query = RequestQueryMapper::string($request, 'q');
 
-        if ('' === $query && (!is_string($status) || '' === $status || in_array($status, ['all', OrderCheckoutSession::STATUS_FAILED, OrderCheckoutSession::STATUS_OPEN], true))) {
+        if ('' === $query && (null === $statusFilter || in_array($statusFilter, ['all', OrderCheckoutSession::STATUS_FAILED, OrderCheckoutSession::STATUS_OPEN], true))) {
             $this->stripeSync->syncRecentOpenPayments();
         }
 
-        $statusFilter = is_string($status) ? $status : null;
         $items = $this->payments->findForAdminList($statusFilter, $query, $pagination->perPage, $pagination->offset());
         $total = $this->payments->countForAdminList($statusFilter, $query);
 

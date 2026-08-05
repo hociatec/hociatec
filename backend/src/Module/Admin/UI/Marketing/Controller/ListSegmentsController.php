@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +23,7 @@ final class ListSegmentsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $type = (string) $request->query->get('type', 'templates');
+        $type = RequestQueryMapper::string($request, 'type', 'templates');
 
         $items = match ($type) {
             'campaigns' => $this->scenarioProvider->getCampaignScenarioDefinitions(),

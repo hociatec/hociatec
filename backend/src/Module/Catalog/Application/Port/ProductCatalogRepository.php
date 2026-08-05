@@ -79,6 +79,26 @@ interface ProductCatalogRepository
         ?int $offset = null,
     ): array;
 
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function findPublishedListProjection(
+        ?string $categorySlug = null,
+        ?string $search = null,
+        ?bool $onlyFeatured = null,
+        ?string $sellingType = null,
+        ?string $brand = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        ?bool $inStockOnly = null,
+        ?string $sort = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): array;
+
     public function countPublished(
         ?string $categorySlug = null,
         ?string $search = null,

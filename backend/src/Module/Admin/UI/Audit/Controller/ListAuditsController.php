@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Audit\Controller;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ class ListAuditsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
+        $pagination = RequestQueryMapper::pagination($request);
         $items = $this->repository->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

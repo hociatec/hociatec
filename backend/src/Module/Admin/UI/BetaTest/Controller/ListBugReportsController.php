@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,14 +23,8 @@ final class ListBugReportsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request, 12, 100);
-        $filters = [
-            'status' => trim((string) $request->query->get('status', '')),
-            'severity' => trim((string) $request->query->get('severity', '')),
-            'search' => trim((string) $request->query->get('search', '')),
-            'campaignId' => $request->query->has('campaignId') && '' !== (string) $request->query->get('campaignId') ? $request->query->getInt('campaignId') : null,
-            'assignedTo' => $request->query->has('assignedTo') && '' !== (string) $request->query->get('assignedTo') ? $request->query->getInt('assignedTo') : null,
-        ];
+        $pagination = RequestQueryMapper::pagination($request, 12, 100);
+        $filters = RequestQueryMapper::betaReportFilters($request);
         $total = $this->reports->countForAdmin($filters);
 
         return ApiResponse::paginated(

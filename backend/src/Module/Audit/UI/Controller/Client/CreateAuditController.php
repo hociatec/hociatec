@@ -10,6 +10,7 @@ use App\Module\Audit\Application\Workflow\CreateAuditRequestService;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,9 +35,9 @@ class CreateAuditController extends AbstractController
         $user = $this->getUser();
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $dto = new CreateAuditRequestDto();
-        $dto->type = (string) ($payload['type'] ?? '');
-        $dto->url = trim((string) ($payload['url'] ?? ''));
-        $dto->objectives = array_key_exists('objectives', $payload) ? (string) $payload['objectives'] : null;
+        $dto->type = RequestPayloadMapper::string($payload, 'type');
+        $dto->url = RequestPayloadMapper::string($payload, 'url');
+        $dto->objectives = RequestPayloadMapper::nullableString($payload, 'objectives');
 
         $this->dtoValidator->validate($dto, message: 'Requête invalide.', statusCode: JsonResponse::HTTP_BAD_REQUEST);
 

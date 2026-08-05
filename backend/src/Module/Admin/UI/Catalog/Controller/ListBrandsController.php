@@ -9,7 +9,7 @@ use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ class ListBrandsController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 25, 100);
         $brands = $this->brandService->listForAdmin($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

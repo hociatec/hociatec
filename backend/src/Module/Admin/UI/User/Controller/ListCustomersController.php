@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,15 +23,15 @@ final class ListCustomersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $search = $request->query->get('search');
-        $sort = (string) $request->query->get('sort', 'recent_order');
-        $pagination = Pagination::fromRequest($request, 25, 100);
+        $search = RequestQueryMapper::nullableString($request, 'search');
+        $sort = RequestQueryMapper::string($request, 'sort', 'recent_order');
+        $pagination = RequestQueryMapper::pagination($request, 25, 100);
 
-        $total = $this->users->countAdminCustomerRows(is_string($search) ? $search : null);
+        $total = $this->users->countAdminCustomerRows($search);
 
         return ApiResponse::paginated(
             $this->users->findAdminCustomerRows(
-                is_string($search) ? $search : null,
+                $search,
                 $sort,
                 $pagination->perPage,
                 $pagination->offset(),

@@ -7,7 +7,7 @@ namespace App\Module\Training\UI\Controller\Admin;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +24,7 @@ class ListTrainingsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
+        $pagination = RequestQueryMapper::pagination($request);
         $items = $this->trainings->findBy([], ['title' => 'ASC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

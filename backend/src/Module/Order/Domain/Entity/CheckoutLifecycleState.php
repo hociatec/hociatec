@@ -9,8 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Embeddable]
 final class CheckoutLifecycleState
 {
-    #[ORM\Column(length: 20)]
-    private string $status = OrderCheckoutSession::STATUS_OPEN;
+    #[ORM\Column(length: 20, enumType: CheckoutStatus::class)]
+    private CheckoutStatus $status = CheckoutStatus::Open;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $orderId = null;
@@ -23,12 +23,12 @@ final class CheckoutLifecycleState
 
     public function status(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function changeStatus(string $status): void
     {
-        $this->status = $status;
+        $this->status = CheckoutStatus::from($status);
     }
 
     public function orderId(): ?int
@@ -58,17 +58,17 @@ final class CheckoutLifecycleState
 
     public function markPaid(\DateTimeImmutable $completedAt): void
     {
-        $this->status = OrderCheckoutSession::STATUS_PAID;
+        $this->status = CheckoutStatus::Paid;
         $this->completedAt = $completedAt;
     }
 
     public function markExpired(): void
     {
-        $this->status = OrderCheckoutSession::STATUS_EXPIRED;
+        $this->status = CheckoutStatus::Expired;
     }
 
     public function markFailed(): void
     {
-        $this->status = OrderCheckoutSession::STATUS_FAILED;
+        $this->status = CheckoutStatus::Failed;
     }
 }

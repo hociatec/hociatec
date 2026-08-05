@@ -10,7 +10,7 @@ use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +30,7 @@ final class ListBetaCampaignsController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 10, 50);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $user = $this->getUser();
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);

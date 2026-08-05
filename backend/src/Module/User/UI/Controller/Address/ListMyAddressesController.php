@@ -8,7 +8,7 @@ use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ class ListMyAddressesController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 10, 50);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
         $items = array_map(

@@ -22,14 +22,13 @@ final readonly class OperationsExportController
 
     public function __invoke(string $resource): StreamedResponse
     {
-        $rows = $this->exporter->rowsFor($resource);
-        $response = new StreamedResponse(static function () use ($rows): void {
+        $response = new StreamedResponse(function () use ($resource): void {
             $output = fopen('php://output', 'wb');
             if (false === $output) {
                 throw new \RuntimeException('Impossible d’ouvrir le flux d’export.');
             }
 
-            foreach ($rows as $row) {
+            foreach ($this->exporter->rowsFor($resource) as $row) {
                 fputcsv($output, $row, ';');
             }
             fclose($output);

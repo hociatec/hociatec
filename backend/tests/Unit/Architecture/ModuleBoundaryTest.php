@@ -414,6 +414,60 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testUiLayerOnlyUsesApprovedSharedInfrastructureAdapters(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/UI/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Shared\\\\Infrastructure\\\\(?!Http\\\\|Validation\\\\)[^;]+;/', $source, $matches)) {
+                foreach ($matches[0] as $import) {
+                    $violations[] = $relativePath.': '.$import;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testControllersDelegateRequestNormalizationToMappers(): void
+    {
+        $forbiddenPatterns = [
+            '/->query->/',
+            '/\bgetInt\s*\(/',
+            '/\btrim\s*\(\s*\(string\)\s*\$/',
+            '/\b\(int\)\s*\(\s*\$/',
+            '/\b\(string\)\s*\(\s*\$/',
+            '/\bis_numeric\s*\(/',
+            '/\bfilter_var\s*\(/',
+            '/Pagination::fromRequest\s*\(/',
+        ];
+        $violations = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            foreach ($forbiddenPatterns as $pattern) {
+                if (preg_match($pattern, $source, $match)) {
+                    $violations[] = $this->relativePath($path).': '.$match[0];
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testReadWriteApplicationNamingConventionIsDocumented(): void
     {
         $doc = file_get_contents(__DIR__.'/../../../docs/architecture-naming.md');
@@ -555,6 +609,17 @@ final class ModuleBoundaryTest extends TestCase
         }
 
         self::assertSame([], $violations);
+    }
+
+    public function testCheckoutLifecycleStatusIsBackedByEnum(): void
+    {
+        $state = file_get_contents(__DIR__.'/../../../src/Module/Order/Domain/Entity/CheckoutLifecycleState.php');
+        self::assertIsString($state);
+
+        self::assertFileExists(__DIR__.'/../../../src/Module/Order/Domain/Entity/CheckoutStatus.php');
+        self::assertStringContainsString('enumType: CheckoutStatus::class', $state);
+        self::assertStringContainsString('private CheckoutStatus $status', $state);
+        self::assertStringNotContainsString('private string $status', $state);
     }
 
     public function testArchitectureNamingConventionDocumentsSuffixes(): void

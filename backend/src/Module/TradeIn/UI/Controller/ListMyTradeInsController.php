@@ -8,7 +8,7 @@ use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ final class ListMyTradeInsController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 10, 50);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
         $items = $this->requests->findByUser($user, $pagination->perPage, $pagination->offset());

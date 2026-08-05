@@ -10,7 +10,7 @@ use App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +45,7 @@ final class ListBugReportCommentsController extends AbstractController
             return ApiResponse::error('Accès refusé.', 403);
         }
 
-        $pagination = Pagination::fromRequest($request, 6, 50);
+        $pagination = RequestQueryMapper::pagination($request, 6, 50);
         $commentsList = $this->comments->findForReportPaginated($report, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

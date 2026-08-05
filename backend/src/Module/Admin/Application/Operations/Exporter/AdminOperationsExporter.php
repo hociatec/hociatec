@@ -13,6 +13,8 @@ use App\Module\User\Application\Port\UserRepositoryPort;
 
 final readonly class AdminOperationsExporter
 {
+    private const BATCH_SIZE = 200;
+
     public function __construct(
         private OrderRepositoryPort $orders,
         private UserRepositoryPort $users,
@@ -23,83 +25,108 @@ final readonly class AdminOperationsExporter
     ) {
     }
 
-    /** @return list<list<int|string|null>> */
-    public function rowsFor(string $resource): array
+    /** @return \Generator<list<int|string|null>> */
+    public function rowsFor(string $resource): \Generator
     {
-        return match ($resource) {
+        yield from match ($resource) {
             'orders' => $this->orders(),
             'customers' => $this->customers(),
             'products' => $this->products(),
             'quotes' => $this->quotes(),
             'refunds' => $this->refunds(),
             'support' => $this->support(),
-            default => [['Erreur'], ['Export inconnu']],
+            default => $this->unknown(),
         };
     }
 
-    /** @return list<list<int|string|null>> */
-    private function orders(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function orders(): \Generator
     {
-        $rows = [['id', 'numero', 'client', 'email', 'statut', 'total_centimes', 'date']];
-        foreach ($this->orders->findBy([], ['createdAt' => 'DESC']) as $order) {
-            $rows[] = [$order->getId(), $order->getNumber(), $order->getUser()->getFullName(), $order->getUser()->getEmail(), $order->getStatus(), $order->getTotalPriceCents(), $order->getCreatedAt()->format(DATE_ATOM)];
-        }
-
-        return $rows;
+        yield ['id', 'numero', 'client', 'email', 'statut', 'total_centimes', 'date'];
+        $offset = 0;
+        do {
+            $page = $this->orders->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $order) {
+                yield [$order->getId(), $order->getNumber(), $order->getUser()->getFullName(), $order->getUser()->getEmail(), $order->getStatus(), $order->getTotalPriceCents(), $order->getCreatedAt()->format(DATE_ATOM)];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
     }
 
-    /** @return list<list<int|string|null>> */
-    private function customers(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function customers(): \Generator
     {
-        $rows = [['id', 'nom', 'email', 'telephone', 'verifie', 'date_creation']];
-        foreach ($this->users->findBy([], ['createdAt' => 'DESC']) as $user) {
-            $rows[] = [$user->getId(), $user->getFullName(), $user->getEmail(), $user->getPhoneNumber(), $user->isVerified() ? 'oui' : 'non', $user->getCreatedAt()->format(DATE_ATOM)];
-        }
-
-        return $rows;
+        yield ['id', 'nom', 'email', 'telephone', 'verifie', 'date_creation'];
+        $offset = 0;
+        do {
+            $page = $this->users->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $user) {
+                yield [$user->getId(), $user->getFullName(), $user->getEmail(), $user->getPhoneNumber(), $user->isVerified() ? 'oui' : 'non', $user->getCreatedAt()->format(DATE_ATOM)];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
     }
 
-    /** @return list<list<int|string|null>> */
-    private function products(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function products(): \Generator
     {
-        $rows = [['id', 'sku', 'nom', 'stock', 'prix_centimes', 'publie']];
-        foreach ($this->products->findBy([], ['updatedAt' => 'DESC']) as $product) {
-            $rows[] = [$product->getId(), $product->getSku(), $product->getName(), $product->getStock(), $product->getPriceCents(), $product->isPublished() ? 'oui' : 'non'];
-        }
-
-        return $rows;
+        yield ['id', 'sku', 'nom', 'stock', 'prix_centimes', 'publie'];
+        $offset = 0;
+        do {
+            $page = $this->products->findBy([], ['updatedAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $product) {
+                yield [$product->getId(), $product->getSku(), $product->getName(), $product->getStock(), $product->getPriceCents(), $product->isPublished() ? 'oui' : 'non'];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
     }
 
-    /** @return list<list<int|string|null>> */
-    private function quotes(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function quotes(): \Generator
     {
-        $rows = [['id', 'numero', 'client', 'email', 'statut', 'date']];
-        foreach ($this->quotes->findBy([], ['createdAt' => 'DESC']) as $quote) {
-            $rows[] = [$quote->getId(), $quote->getNumber(), $quote->getCustomerName(), $quote->getCustomerEmail(), $quote->getStatus(), $quote->getCreatedAt()->format(DATE_ATOM)];
-        }
-
-        return $rows;
+        yield ['id', 'numero', 'client', 'email', 'statut', 'date'];
+        $offset = 0;
+        do {
+            $page = $this->quotes->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $quote) {
+                yield [$quote->getId(), $quote->getNumber(), $quote->getCustomerName(), $quote->getCustomerEmail(), $quote->getStatus(), $quote->getCreatedAt()->format(DATE_ATOM)];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
     }
 
-    /** @return list<list<int|string|null>> */
-    private function refunds(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function refunds(): \Generator
     {
-        $rows = [['id', 'commande', 'montant_centimes', 'statut', 'motif', 'stripe_refund_id', 'date']];
-        foreach ($this->refunds->findBy([], ['createdAt' => 'DESC']) as $refund) {
-            $rows[] = [$refund->getId(), $refund->getOrder()->getNumber(), $refund->getAmountCents(), $refund->getStatus(), $refund->getReason(), $refund->getStripeRefundId(), $refund->getCreatedAt()->format(DATE_ATOM)];
-        }
-
-        return $rows;
+        yield ['id', 'commande', 'montant_centimes', 'statut', 'motif', 'stripe_refund_id', 'date'];
+        $offset = 0;
+        do {
+            $page = $this->refunds->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $refund) {
+                yield [$refund->getId(), $refund->getOrder()->getNumber(), $refund->getAmountCents(), $refund->getStatus(), $refund->getReason(), $refund->getStripeRefundId(), $refund->getCreatedAt()->format(DATE_ATOM)];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
     }
 
-    /** @return list<list<int|string|null>> */
-    private function support(): array
+    /** @return \Generator<list<int|string|null>> */
+    private function support(): \Generator
     {
-        $rows = [['id', 'client', 'email', 'commande', 'statut', 'motif', 'sujet', 'date']];
-        foreach ($this->supportRequests->findBy([], ['createdAt' => 'DESC']) as $support) {
-            $rows[] = [$support->getId(), $support->getCustomer()->getFullName(), $support->getCustomer()->getEmail(), $support->getOrder()?->getNumber(), $support->getStatus(), $support->getReason(), $support->getSubject(), $support->getCreatedAt()->format(DATE_ATOM)];
-        }
+        yield ['id', 'client', 'email', 'commande', 'statut', 'motif', 'sujet', 'date'];
+        $offset = 0;
+        do {
+            $page = $this->supportRequests->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+            foreach ($page as $support) {
+                yield [$support->getId(), $support->getCustomer()->getFullName(), $support->getCustomer()->getEmail(), $support->getOrder()?->getNumber(), $support->getStatus(), $support->getReason(), $support->getSubject(), $support->getCreatedAt()->format(DATE_ATOM)];
+            }
+            $offset += self::BATCH_SIZE;
+        } while (count($page) === self::BATCH_SIZE);
+    }
 
-        return $rows;
+    /** @return \Generator<list<int|string|null>> */
+    private function unknown(): \Generator
+    {
+        yield ['Erreur'];
+        yield ['Export inconnu'];
     }
 }

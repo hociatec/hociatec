@@ -7,7 +7,7 @@ namespace App\Module\Notification\UI\Controller;
 use App\Module\Notification\Application\Provider\AccountNotificationProvider;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ final class ListAccountNotificationsController extends AbstractController
             return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $pagination = Pagination::fromRequest($request, 30, 100);
+        $pagination = RequestQueryMapper::pagination($request, 30, 100);
 
         return ApiResponse::paginated(
             $this->notifications->provideForUser($user, $pagination->perPage, $pagination->offset()),

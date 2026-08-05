@@ -8,6 +8,7 @@ use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,11 +33,9 @@ class ListProductReviewsController extends AbstractController
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $page = max(1, (int) $request->query->get('page', 1));
-        $perPage = max(1, min(50, (int) $request->query->get('perPage', 10)));
-        $offset = ($page - 1) * $perPage;
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
-        $items = $this->ratings->findPublishedByProduct($product, $perPage, $offset);
+        $items = $this->ratings->findPublishedByProduct($product, $pagination->perPage, $pagination->offset());
         $formatted = array_map(
             static fn ($rating) => ProductReviewFormatter::formatRating($rating),
             $items,
@@ -45,8 +44,8 @@ class ListProductReviewsController extends AbstractController
         return ApiResponse::success([
             'items' => $formatted,
             'meta' => [
-                'page' => $page,
-                'perPage' => $perPage,
+                'page' => $pagination->page,
+                'perPage' => $pagination->perPage,
                 'total' => $product->getReviewsCount(),
                 'average' => $product->getReviewsAverage(),
             ],

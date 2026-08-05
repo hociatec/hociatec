@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Promotion\Controller;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +24,7 @@ final class ListPromotionsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
+        $pagination = RequestQueryMapper::pagination($request);
 
         return ApiResponse::paginated(
             array_map(

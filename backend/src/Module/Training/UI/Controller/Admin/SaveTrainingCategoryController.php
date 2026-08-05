@@ -9,6 +9,7 @@ use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,7 @@ class SaveTrainingCategoryController extends AbstractController
     public function __invoke(Request $request, ?int $id = null): JsonResponse
     {
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
-        $name = trim((string) ($payload['name'] ?? ''));
+        $name = RequestPayloadMapper::string($payload, 'name');
         if ('' === $name) {
             return ApiResponse::error('Le nom est requis.', Response::HTTP_BAD_REQUEST);
         }
@@ -41,7 +42,7 @@ class SaveTrainingCategoryController extends AbstractController
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $slug = $this->writer->slugify((string) ($payload['slug'] ?? $name));
+        $slug = $this->writer->slugify(RequestPayloadMapper::string($payload, 'slug', $name));
         $existing = $this->categories->findOneBy(['slug' => $slug]);
         if (null !== $existing && $existing->getId() !== $category?->getId()) {
             return ApiResponse::error('Ce slug de catégorie existe déjà.', Response::HTTP_BAD_REQUEST);
@@ -54,8 +55,8 @@ class SaveTrainingCategoryController extends AbstractController
         $category
             ->setName($name)
             ->setSlug($slug)
-            ->setPosition((int) ($payload['position'] ?? $category->getPosition()))
-            ->setIsActive((bool) ($payload['isActive'] ?? $category->isActive()));
+            ->setPosition(RequestPayloadMapper::int($payload, 'position', $category->getPosition()))
+            ->setIsActive(RequestPayloadMapper::bool($payload, 'isActive', $category->isActive()));
 
         $this->writer->save($category);
 

@@ -8,7 +8,7 @@ use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,10 +25,10 @@ final class ListBetaTestersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $search = mb_strtolower(trim((string) $request->query->get('search', '')));
-        $status = (string) $request->query->get('status', '');
-        $accessibility = (string) $request->query->get('accessibility', '');
-        $pagination = Pagination::fromRequest($request);
+        $search = RequestQueryMapper::lowerString($request, 'search');
+        $status = RequestQueryMapper::string($request, 'status');
+        $accessibility = RequestQueryMapper::string($request, 'accessibility');
+        $pagination = RequestQueryMapper::pagination($request);
         $pageItems = $this->profiles->findForAdminList($search, $status, $accessibility, $pagination->perPage, $pagination->offset());
         $total = $this->profiles->countForAdminList($search, $status, $accessibility);
 

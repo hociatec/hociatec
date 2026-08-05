@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Appointment\Controller;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +24,7 @@ class ListAppointmentsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
+        $pagination = RequestQueryMapper::pagination($request);
         $appointments = $this->appointmentRepository->findBy([], ['startAt' => 'DESC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

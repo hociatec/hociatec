@@ -9,6 +9,7 @@ use App\Module\Admin\Application\BetaTest\Handler\MarkBugReportDuplicateHandler;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,8 +35,8 @@ final class MarkBugReportDuplicateController extends AbstractController
         }
 
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
-        $duplicateOfId = (int) ($payload['duplicateOfId'] ?? 0);
-        $reason = trim((string) ($payload['reason'] ?? ''));
+        $duplicateOfId = RequestPayloadMapper::int($payload, 'duplicateOfId');
+        $reason = RequestPayloadMapper::string($payload, 'reason');
         $actor = $this->getUser();
 
         try {

@@ -99,6 +99,43 @@ final readonly class ProductQueryService
         );
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listPublishedProjection(
+        ?string $categorySlug,
+        ?string $search,
+        ?bool $onlyFeatured = null,
+        ?string $sellingType = null,
+        ?string $brand = null,
+        ?string $storageCapacity = null,
+        ?string $memoryRam = null,
+        ?string $color = null,
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        ?bool $inStockOnly = null,
+        ?string $sort = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): array {
+        return $this->products->findPublishedListProjection(
+            $categorySlug,
+            $search,
+            $onlyFeatured,
+            $sellingType,
+            $brand,
+            $storageCapacity,
+            $memoryRam,
+            $color,
+            $minPriceCents,
+            $maxPriceCents,
+            $inStockOnly,
+            $sort,
+            $limit,
+            $offset,
+        );
+    }
+
     public function countPublished(
         ?string $categorySlug,
         ?string $search,

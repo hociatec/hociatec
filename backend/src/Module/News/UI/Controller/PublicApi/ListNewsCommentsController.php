@@ -8,7 +8,7 @@ use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Port\NewsCommentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +32,7 @@ final readonly class ListNewsCommentsController
             return ApiResponse::error('Actualité introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $pagination = Pagination::fromRequest($request, 10, 30);
+        $pagination = RequestQueryMapper::pagination($request, 10, 30);
         $total = $this->comments->countForArticle($article);
 
         return ApiResponse::paginated(

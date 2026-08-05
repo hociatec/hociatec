@@ -10,7 +10,7 @@ use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,12 +29,9 @@ final class ListOrdersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $status = $request->query->get('status');
-        $health = $request->query->get('health');
-        $pagination = Pagination::fromRequest($request, 25, 100);
-
-        $statusFilter = is_string($status) ? $status : null;
-        $healthFilter = is_string($health) ? $health : null;
+        $pagination = RequestQueryMapper::pagination($request, 25, 100);
+        $statusFilter = RequestQueryMapper::nullableString($request, 'status');
+        $healthFilter = RequestQueryMapper::nullableString($request, 'health');
         $total = $this->orders->countForAdminList($statusFilter, $healthFilter);
         $orders = $this->orders->findForAdminList($statusFilter, $healthFilter, $pagination->perPage, $pagination->offset());
         $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);

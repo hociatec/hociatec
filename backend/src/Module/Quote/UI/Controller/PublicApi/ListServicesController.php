@@ -7,7 +7,7 @@ namespace App\Module\Quote\UI\Controller\PublicApi;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +24,7 @@ class ListServicesController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request, 20, 50);
+        $pagination = RequestQueryMapper::pagination($request, 20, 50);
         $services = $this->serviceRepository->findPaginated($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

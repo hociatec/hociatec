@@ -10,6 +10,7 @@ use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,11 +40,11 @@ class RemoveCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $queryRentalMonths = $this->extractRentalMonths($request);
-        if ($queryRentalMonths instanceof JsonResponse) {
-            return $queryRentalMonths;
+        try {
+            $rentalMonths = RequestQueryMapper::positiveIntFromAny($request, ['currentRentalMonths', 'rentalMonths']);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
-        $rentalMonths = $queryRentalMonths;
 
         try {
             $cart = $this->cartService->removeProduct($token, $product, $rentalMonths);
@@ -63,27 +64,6 @@ class RemoveCartItemController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractRentalMonths(Request $request): JsonResponse|int|null
-    {
-        $monthsParam = $request->query->get('currentRentalMonths', $request->query->get('rentalMonths'));
-
-        if (null === $monthsParam || '' === $monthsParam) {
-            return null;
-        }
-
-        if (!is_numeric($monthsParam)) {
-            return ApiResponse::error('Le nombre de mois doit etre un entier positif.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $months = (int) $monthsParam;
-
-        if ($months < 1) {
-            return ApiResponse::error('La duree de location doit etre superieure ou egale a 1 mois.', JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        return $months;
     }
 
     private function extractToken(Request $request): ?string

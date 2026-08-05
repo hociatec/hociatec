@@ -9,7 +9,7 @@ use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,11 +28,10 @@ class ListQuotesController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request);
-        $search = $request->query->get('q');
-        $status = $request->query->get('status');
-        $searchFilter = null !== $search ? (string) $search : null;
-        $statusFilter = null !== $status ? QuoteStatusTranslator::toCode((string) $status) : null;
+        $pagination = RequestQueryMapper::pagination($request);
+        $searchFilter = RequestQueryMapper::nullableString($request, 'q');
+        $status = RequestQueryMapper::nullableString($request, 'status');
+        $statusFilter = null !== $status ? QuoteStatusTranslator::toCode($status) : null;
 
         $quotes = $this->quoteRepository->findBySearch(
             $searchFilter,

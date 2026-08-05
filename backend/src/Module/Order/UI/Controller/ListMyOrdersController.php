@@ -9,7 +9,7 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +28,7 @@ class ListMyOrdersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = Pagination::fromRequest($request, 10, 50);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
         $orders = $this->orders->findByUser($user, $pagination->perPage, $pagination->offset());

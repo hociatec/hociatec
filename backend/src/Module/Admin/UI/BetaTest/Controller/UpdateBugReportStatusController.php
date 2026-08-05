@@ -8,6 +8,7 @@ use App\Module\Admin\Application\BetaTest\Handler\ChangeBugReportStatusHandler;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +33,7 @@ final class UpdateBugReportStatusController extends AbstractController
         }
 
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
-        $status = trim((string) ($payload['status'] ?? ''));
+        $status = RequestPayloadMapper::string($payload, 'status');
 
         $admin = $this->getUser();
         $actor = $admin instanceof User ? $admin : null;

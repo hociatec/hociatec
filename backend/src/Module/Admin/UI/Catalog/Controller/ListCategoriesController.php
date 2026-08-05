@@ -7,7 +7,7 @@ namespace App\Module\Admin\UI\Catalog\Controller;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ class ListCategoriesController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = Pagination::fromRequest($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 25, 100);
         $categories = $this->categoryService->listForAdmin($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

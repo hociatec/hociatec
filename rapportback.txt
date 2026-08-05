@@ -1,0 +1,31 @@
+Performance
+Les risques principaux :
+Hydratation d’entités pour de la lecture
+Plusieurs endpoints semblent formatter des entités Doctrine :
+PHP
+Copier
+CatalogFormatter::formatProduct($product, true)
+Pour des listes, il est souvent plus performant de retourner des projections SQL/DQL en tableaux ou DTO en lecture seule, plutôt que d’hydrater tout le graphe d’entités.
+Calcul des facettes
+collectPublishedFacets() exécute plusieurs requêtes à partir d’un query builder cloné :
+PHP
+Copier
+'brands' => ...
+'categories' => ...
+'storageCapacities' => ...
+'memoryRams' => ...
+'colors' => ...
+'price' => ...
+Cela signifie potentiellement six requêtes pour chaque chargement de catalogue, en plus de la liste et du total.
+Ce choix peut rester acceptable avec :
+• 
+les bons index ;
+• 
+un cache efficace ;
+• 
+une faible fréquence d’invalidation ;
+• 
+un volume raisonnable.
+Mais il faut le mesurer. Le catalogCache->clear() global après chaque écriture risque également d’invalider beaucoup plus de données que nécessaire.
+Appels externes dans les requêtes HTTP
+Les e-mails, PDF, sauvegardes, chiffrement et appels Stripe doivent être vérifiés pour s’assurer que les traitements longs sont asynchrones lorsqu’ils n’ont pas besoin d’être synchrones.

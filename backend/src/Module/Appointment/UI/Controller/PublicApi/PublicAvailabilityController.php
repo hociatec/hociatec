@@ -8,6 +8,7 @@ use App\Module\Appointment\Application\Workflow\AvailabilityService;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,16 +27,13 @@ class PublicAvailabilityController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $start = $request->query->get('start');
-        $end = $request->query->get('end');
-        $prestationId = $request->query->getInt('prestationId');
+        $startAt = RequestQueryMapper::dateTime($request, 'start');
+        $endAt = RequestQueryMapper::dateTime($request, 'end');
+        $prestationId = RequestQueryMapper::requiredInt($request, 'prestationId');
 
-        if (null === $start || null === $end || 0 === $prestationId) {
+        if (null === $startAt || null === $endAt || null === $prestationId) {
             return ApiResponse::error('Parametres requis: start, end, prestationId.', Response::HTTP_BAD_REQUEST);
         }
-
-        $startAt = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $start) ?: new \DateTimeImmutable($start);
-        $endAt = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $end) ?: new \DateTimeImmutable($end);
 
         if ($endAt <= $startAt) {
             return ApiResponse::error('La periode fournie est invalide.', Response::HTTP_BAD_REQUEST);

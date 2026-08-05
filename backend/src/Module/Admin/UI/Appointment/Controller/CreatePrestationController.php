@@ -9,6 +9,7 @@ use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,7 +40,7 @@ class CreatePrestationController extends AbstractController
         $durationMinutes = $input->durationMinutes;
         $price = $input->price;
 
-        $priceCents = $this->normalizePriceToCents($price);
+        $priceCents = RequestPayloadMapper::priceCents($price);
 
         if ($priceCents < 0) {
             return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -59,26 +60,5 @@ class CreatePrestationController extends AbstractController
             'durationMinutes' => $prestation->getDurationMinutes(),
             'priceCents' => $prestation->getPriceCents(),
         ], 'La prestation a bien été créée.');
-    }
-
-    private function normalizePriceToCents(mixed $price): int
-    {
-        if (is_int($price)) {
-            return $price * 100;
-        }
-
-        if (is_float($price)) {
-            return (int) round($price * 100);
-        }
-
-        if (is_string($price)) {
-            $normalized = str_replace(',', '.', $price);
-
-            if (is_numeric($normalized)) {
-                return (int) round((float) $normalized * 100);
-            }
-        }
-
-        return -1;
     }
 }

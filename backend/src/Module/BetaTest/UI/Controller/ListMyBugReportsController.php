@@ -8,7 +8,7 @@ use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ final class ListMyBugReportsController extends AbstractController
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        $pagination = Pagination::fromRequest($request, 12, 100);
+        $pagination = RequestQueryMapper::pagination($request, 12, 100);
 
         return ApiResponse::paginated(
             array_map(fn ($report) => $this->formatter->format($report), $this->reports->findForUserPaginated($user, $pagination->perPage, $pagination->offset())),

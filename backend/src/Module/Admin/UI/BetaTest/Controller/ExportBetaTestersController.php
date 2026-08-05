@@ -6,33 +6,44 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/admin/beta-testers/export', methods: ['GET'])] #[IsGranted('ROLE_BETA_MANAGER')]
 final class ExportBetaTestersController
 {
+    private const BATCH_SIZE = 200;
+
     public function __construct(
         private readonly BetaTesterProfileRepositoryPort $profiles,
         private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
-    public function __invoke(): Response
+    public function __invoke(): StreamedResponse
     {
-        $stream = fopen('php://temp', 'w+');
-        if (false === $stream) {
-            throw new \RuntimeException('Impossible d\'ouvrir le flux de données temporaire.');
-        }
-        fputcsv($stream, ['Prénom', 'Nom', 'E-mail', 'État', 'Accessibilité', 'Disponibilités', 'Appareils', 'Navigateurs', 'Types de tests', 'Créé le'], ';');
-        foreach ($this->profiles->findBy([], ['createdAt' => 'DESC']) as $p) {
-            $u = $p->getUser();
-            fputcsv($stream, [$u->getFirstName(), $u->getLastName(), $u->getEmail(), $p->getStatus(), $p->getAccessibilityNeed(), implode(', ', $p->getAvailability()), implode(', ', $p->getDevices()), implode(', ', $p->getBrowsers()), implode(', ', $p->getTestingTypes()), $p->getCreatedAt()->format(DATE_ATOM)], ';');
-        } rewind($stream);
-        $content = stream_get_contents($stream);
-        fclose($stream);
+        $response = new StreamedResponse(function (): void {
+            $output = fopen('php://output', 'wb');
+            if (false === $output) {
+                throw new \RuntimeException('Impossible d\'ouvrir le flux d\'export.');
+            }
 
-        return $this->attachments->create(is_string($content) ? $content : '', 'beta-testeurs.csv', 'text/csv; charset=UTF-8');
+            fputcsv($output, ['Prénom', 'Nom', 'E-mail', 'État', 'Accessibilité', 'Disponibilités', 'Appareils', 'Navigateurs', 'Types de tests', 'Créé le'], ';');
+            $offset = 0;
+            do {
+                $profiles = $this->profiles->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
+                foreach ($profiles as $p) {
+                    $u = $p->getUser();
+                    fputcsv($output, [$u->getFirstName(), $u->getLastName(), $u->getEmail(), $p->getStatus(), $p->getAccessibilityNeed(), implode(', ', $p->getAvailability()), implode(', ', $p->getDevices()), implode(', ', $p->getBrowsers()), implode(', ', $p->getTestingTypes()), $p->getCreatedAt()->format(DATE_ATOM)], ';');
+                }
+                $offset += self::BATCH_SIZE;
+            } while (count($profiles) === self::BATCH_SIZE);
+
+            fclose($output);
+        });
+        $this->attachments->applyHeaders($response, 'beta-testeurs.csv', 'text/csv; charset=UTF-8');
+
+        return $response;
     }
 }

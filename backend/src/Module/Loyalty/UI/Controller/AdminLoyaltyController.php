@@ -10,7 +10,7 @@ use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
-use App\Shared\Infrastructure\Http\Pagination;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,8 +31,8 @@ final class AdminLoyaltyController extends AbstractController
     #[Route('', name: 'api_admin_loyalty_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
-        $search = trim((string) $request->query->get('search', ''));
-        $pagination = Pagination::fromRequest($request);
+        $search = RequestQueryMapper::string($request, 'search');
+        $pagination = RequestQueryMapper::pagination($request);
 
         return ApiResponse::paginated(
             array_map(fn (User $user): array => $this->formatCustomer($user), $this->loyalty->findCustomers($search, $pagination->perPage, $pagination->offset())),
