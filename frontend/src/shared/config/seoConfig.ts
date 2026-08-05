@@ -12,6 +12,94 @@ export const DEFAULT_SEO = {
   ogImagePath: '/og-default.png',
 };
 
+export const PRIVATE_ROBOTS_CONTENT = 'noindex,nofollow,noarchive';
+
+export interface StaticRouteSeo {
+  path: string;
+  title: string;
+  description: string;
+  robots?: string;
+}
+
+export const toAbsoluteSiteUrl = (pathOrUrl: string) => {
+  if (/^https?:\/\//u.test(pathOrUrl)) return pathOrUrl;
+
+  return `${SITE_URL}${pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`}`;
+};
+
+export const PUBLIC_STATIC_ROUTE_SEO: StaticRouteSeo[] = [
+  {
+    path: '/',
+    title: DEFAULT_SEO.title,
+    description: DEFAULT_SEO.description,
+  },
+  {
+    path: '/contact',
+    title: 'Contact — Hociatec',
+    description:
+      'Contactez Hociatec pour une réparation, une assistance informatique, un devis ou une question sur le catalogue.',
+  },
+  {
+    path: '/services',
+    title: 'Services — Hociatec',
+    description:
+      'Découvrez le catalogue de services Hociatec avec les détails, la durée estimée et la base tarifaire de chaque offre.',
+  },
+  {
+    path: '/formations',
+    title: 'Formations — Hociatec',
+    description:
+      'Découvrez les formations Hociatec pour progresser sur les usages numériques, la bureautique et les outils informatiques.',
+  },
+  {
+    path: '/catalogue/vente',
+    title: 'Vente — Catalogue Hociatec',
+    description:
+      'Parcourez les produits informatiques Hociatec disponibles à la vente avec filtres, recherche et disponibilité.',
+  },
+  {
+    path: '/catalogue/location',
+    title: 'Location — Catalogue Hociatec',
+    description:
+      'Parcourez les produits informatiques Hociatec disponibles à la location avec filtres, recherche et disponibilité.',
+  },
+  {
+    path: '/catalogue/recherche',
+    title: 'Recherche catalogue — Hociatec',
+    description: 'Recherchez rapidement un produit informatique dans le catalogue Hociatec.',
+    robots: PRIVATE_ROBOTS_CONTENT,
+  },
+  {
+    path: '/recherche',
+    title: 'Recherche — Hociatec',
+    description: 'Recherchez rapidement un produit, un service ou une formation Hociatec.',
+    robots: PRIVATE_ROBOTS_CONTENT,
+  },
+  {
+    path: '/legal/cgu',
+    title: 'Conditions générales d’utilisation — Hociatec',
+    description: 'Consultez les conditions générales d’utilisation du site Hociatec.',
+  },
+  {
+    path: '/legal/cgv',
+    title: 'Conditions générales de vente — Hociatec',
+    description: 'Consultez les conditions générales de vente applicables aux offres Hociatec.',
+  },
+  {
+    path: '/legal/confidentialite',
+    title: 'Politique de confidentialité — Hociatec',
+    description: 'Consultez la politique de confidentialité et de protection des données Hociatec.',
+  },
+  {
+    path: '/legal/mentions-legales',
+    title: 'Mentions légales — Hociatec',
+    description: 'Consultez les mentions légales du site Hociatec.',
+  },
+];
+
+export const resolveStaticRouteSeo = (path: string) =>
+  PUBLIC_STATIC_ROUTE_SEO.find((entry) => entry.path === path);
+
 const COMPANY_ADDRESS = {
   streetAddress: '2 allée Anatoli Vaisser',
   postalCode: '92600',

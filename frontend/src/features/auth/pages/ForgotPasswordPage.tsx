@@ -4,8 +4,10 @@ import { useState } from 'react';
 
 import { requestPasswordReset } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { logger } from '@/shared/lib/logger';
@@ -14,6 +16,12 @@ import './LoginPage.css';
 
 export const ForgotPasswordPage = () => {
   useDocumentTitle('Mot de passe oublié');
+  useMetaTags({
+    title: 'Mot de passe oublié — Hociatec',
+    description: 'Demandez un lien de réinitialisation pour votre compte Hociatec.',
+    canonicalUrl: `${SITE_URL}/forgot-password`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
 
   const toast = useToast();
   const [email, setEmail] = useState('');

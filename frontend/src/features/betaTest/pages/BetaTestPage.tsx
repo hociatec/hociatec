@@ -1,11 +1,19 @@
 import { Link } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useAuth } from '@/features/auth/publicApi';
 import { isFeatureEnabled } from '@/shared/config/featureFlags';
 
 export const BetaTestPage = () => {
   useDocumentTitle('Programme bêta');
+  useMetaTags({
+    title: 'Programme bêta — Hociatec',
+    description: 'Rejoignez le programme bêta Hociatec.',
+    canonicalUrl: `${SITE_URL}/beta-test`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
   const { status } = useAuth();
   const isBetaProgramEnabled = isFeatureEnabled('betaProgram');
   const isAuthenticated = status === 'authenticated';

@@ -4,8 +4,10 @@ import { useState } from 'react';
 
 import { resetPassword } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { logger } from '@/shared/lib/logger';
@@ -21,6 +23,12 @@ interface FormState {
 
 export const ResetPasswordPage = () => {
   useDocumentTitle('Réinitialiser le mot de passe');
+  useMetaTags({
+    title: 'Réinitialiser le mot de passe — Hociatec',
+    description: 'Définissez un nouveau mot de passe pour votre compte Hociatec.',
+    canonicalUrl: `${SITE_URL}/reset-password`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
 
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();

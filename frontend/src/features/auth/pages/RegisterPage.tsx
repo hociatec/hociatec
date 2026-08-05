@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router';
 
 import { registerUser, type RegisterPayload } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { RegisterIntro } from '@/features/auth/components/RegisterIntro';
 import { RegisterFormFields } from '@/features/auth/components/RegisterFormFields';
@@ -81,6 +83,12 @@ const validateRegisterForm = (form: FormState, isBetaTester: boolean) => {
 
 export const RegisterPage = () => {
   useDocumentTitle('Inscription');
+  useMetaTags({
+    title: 'Inscription — Hociatec',
+    description: 'Créez votre compte client Hociatec.',
+    canonicalUrl: `${SITE_URL}/register`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
 
   const navigate = useNavigate();
   const toast = useToast();

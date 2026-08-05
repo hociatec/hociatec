@@ -54,6 +54,7 @@ export const GlobalSearchPage = () => {
     title: query ? `Recherche : ${query} — Hociatec` : 'Recherche — Hociatec',
     description: 'Recherchez rapidement un produit, un service ou une formation Hociatec.',
     canonicalUrl: `${SITE_URL}/recherche`,
+    robots: 'noindex,follow',
   });
 
   useEffect(() => setDraftQuery(query), [query]);

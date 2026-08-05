@@ -1,5 +1,25 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /activation
+Disallow: /panier
+Disallow: /checkout
+Disallow: /payment
+Disallow: /devis/nouveau
+Disallow: /appointments/book
+Disallow: /mon-espace
+Disallow: /profile
+Disallow: /orders
+Disallow: /quotes
+Disallow: /favorites
+Disallow: /beta
+Disallow: /beta-test
+Disallow: /recherche
+Disallow: /catalogue/recherche
 
 # Indiquez ici votre domaine de production si différent
 Sitemap: https://hociatec.fr/sitemap.xml

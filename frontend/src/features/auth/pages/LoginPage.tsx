@@ -5,8 +5,10 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 
 import { useAuth } from '../hooks/useAuth';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
 import { logger } from '@/shared/lib/logger';
@@ -95,6 +97,12 @@ const clearRememberedEmail = () => {
 
 export const LoginPage = () => {
   useDocumentTitle('Connexion');
+  useMetaTags({
+    title: 'Connexion — Hociatec',
+    description: 'Connectez-vous à votre espace client Hociatec.',
+    canonicalUrl: `${SITE_URL}/login`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
 
   const navigate = useNavigate();
   const location = useLocation();

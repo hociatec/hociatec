@@ -2,7 +2,9 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useCreateQuote } from '@/features/quotes/hooks/useCreateQuote';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import {
   CreateQuoteMainColumn,
   QuotePageActions,
@@ -13,6 +15,12 @@ import '@/app/styles/features/directories.css';
 
 export const CreateQuotePage = () => {
   useDocumentTitle('Créer un devis');
+  useMetaTags({
+    title: 'Créer un devis — Hociatec',
+    description: 'Préparez une demande de devis Hociatec.',
+    canonicalUrl: `${SITE_URL}/devis/nouveau`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
   const {
     addProductLineFromProduct,
     addServiceLine,

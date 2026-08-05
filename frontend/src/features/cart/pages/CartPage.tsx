@@ -1,5 +1,7 @@
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useCartPageController } from '@/features/cart/hooks/useCartPageController';
 import {
@@ -12,6 +14,12 @@ import './CartPage.css';
 
 export const CartPage = () => {
   useDocumentTitle('Mon panier');
+  useMetaTags({
+    title: 'Mon panier — Hociatec',
+    description: 'Consultez votre panier Hociatec avant validation.',
+    canonicalUrl: `${SITE_URL}/panier`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
 
   const {
     addresses,

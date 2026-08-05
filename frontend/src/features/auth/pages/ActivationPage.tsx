@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoadingState } from '@/shared/components/ui/page-state';
 import { verifyAccount } from '../api/authApi';
@@ -10,6 +12,12 @@ import { logger } from '@/shared/lib/logger';
 
 export const ActivationPage = () => {
   useDocumentTitle('Activation du compte');
+  useMetaTags({
+    title: 'Activation du compte — Hociatec',
+    description: 'Activez votre compte client Hociatec.',
+    canonicalUrl: `${SITE_URL}/activation`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
   const { token } = useParams<{ token: string }>();
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [message, setMessage] = useState('');

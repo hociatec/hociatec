@@ -13,7 +13,7 @@ import {
   AppointmentStepThree,
   AppointmentStepTwo,
 } from '@/features/appointments/components/AppointmentBookingSections';
-import { SITE_URL } from '@/shared/config/seoConfig';
+import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 
 const stepLabels = {
   1: 'Choix de la prestation',
@@ -28,6 +28,7 @@ export const AppointmentBookingPage = () => {
     description:
       'Choisissez une prestation Hociatec, sélectionnez un jour disponible puis confirmez votre créneau.',
     canonicalUrl: `${SITE_URL}/appointments/book`,
+    robots: PRIVATE_ROBOTS_CONTENT,
   });
   const {
     step,

@@ -4,17 +4,20 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 
 import { AppProviders } from '../src/app/App';
-import { SITE_URL } from '../src/shared/config/seoConfig';
+import {
+  DEFAULT_SEO,
+  resolveStaticRouteSeo,
+  SITE_URL,
+  toAbsoluteSiteUrl,
+} from '../src/shared/config/seoConfig';
 
 const routesToPrerender = [
   '/',
   '/contact',
   '/services',
-  '/appointments/book',
-  '/devis/nouveau',
+  '/formations',
   '/catalogue/vente',
   '/catalogue/location',
-  '/catalogue/recherche',
   '/legal/cgu',
   '/legal/cgv',
   '/legal/confidentialite',
@@ -35,10 +38,39 @@ const ensureTemplate = async () => {
   }
 };
 
-const replaceHeadMeta = (html: string, routeUrl: string) => {
-  return html
-    .replace(/<link rel="canonical" href="[^"]*"/, `<link rel="canonical" href="${routeUrl}"`)
-    .replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${routeUrl}"`);
+const replaceOrInsertHead = (html: string, pattern: RegExp, replacement: string) => {
+  if (pattern.test(html)) {
+    return html.replace(pattern, replacement);
+  }
+
+  return html.replace('</head>', `    ${replacement}\n  </head>`);
+};
+
+const replaceHeadMeta = (html: string, route: string, routeUrl: string) => {
+  const seo = resolveStaticRouteSeo(route);
+  const title = seo?.title ?? DEFAULT_SEO.title;
+  const description = seo?.description ?? DEFAULT_SEO.description;
+  const robots = seo?.robots ?? DEFAULT_SEO.robots;
+  const imageUrl = toAbsoluteSiteUrl(DEFAULT_SEO.ogImagePath);
+
+  const htmlWithMeta = html
+    .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
+    .replace(/<meta name="description" content="[^"]*"/, `<meta name="description" content="${description}"`)
+    .replace(/<meta name="robots" content="[^"]*"/, `<meta name="robots" content="${robots}"`)
+    .replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${title}"`)
+    .replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${description}"`)
+    .replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${routeUrl}"`)
+    .replace(/<meta property="og:image" content="[^"]*"/, `<meta property="og:image" content="${imageUrl}"`)
+    .replace(/<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${title}"`)
+    .replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${description}"`)
+    .replace(/<meta name="twitter:image" content="[^"]*"/, `<meta name="twitter:image" content="${imageUrl}"`)
+    .replace(/<meta name="twitter:card" content="[^"]*"/, `<meta name="twitter:card" content="${DEFAULT_SEO.twitterCard}"`);
+
+  return replaceOrInsertHead(
+    htmlWithMeta,
+    /<link rel="canonical" href="[^"]*"/,
+    `<link rel="canonical" href="${routeUrl}"`,
+  );
 };
 
 const renderRoute = async (template: string, route: string) => {
@@ -49,7 +81,7 @@ const renderRoute = async (template: string, route: string) => {
   );
 
   const routeUrl = route === '/' ? SITE_URL : `${SITE_URL}${route}`;
-  const htmlWithMeta = replaceHeadMeta(template, routeUrl);
+  const htmlWithMeta = replaceHeadMeta(template, route, routeUrl);
   const finalHtml = htmlWithMeta.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
 
   const outputPath =

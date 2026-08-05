@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const PRIVATE_ROBOTS_CONTENT = 'noindex,nofollow,noarchive';
+import { PRIVATE_ROBOTS_CONTENT } from '@/shared/config/seoConfig';
 
 export const PrivateRouteMeta = () => {
   useEffect(() => {

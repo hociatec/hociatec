@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { DEFAULT_SEO, SITE_URL } from '../config/seoConfig';
+import { DEFAULT_SEO, SITE_URL, toAbsoluteSiteUrl } from '../config/seoConfig';
 import { formatDocumentTitle } from './useDocumentTitle';
 
 export interface MetaTagsOptions {
@@ -29,14 +29,20 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : SITE_URL;
     const canonicalUrl =
-      opts.canonicalUrl ?? (typeof window !== 'undefined' ? window.location.href : SITE_URL);
+      opts.canonicalUrl
+        ? toAbsoluteSiteUrl(opts.canonicalUrl)
+        : typeof window !== 'undefined'
+          ? `${window.location.origin}${window.location.pathname}`
+          : SITE_URL;
+    const imageUrl = opts.imageUrl
+      ? toAbsoluteSiteUrl(opts.imageUrl)
+      : toAbsoluteSiteUrl(DEFAULT_SEO.ogImagePath);
 
     const resolved = {
       title: opts.title ?? DEFAULT_SEO.title,
       description: opts.description ?? DEFAULT_SEO.description,
-      imageUrl: opts.imageUrl ?? `${origin ?? SITE_URL}${DEFAULT_SEO.ogImagePath}`,
+      imageUrl,
       imageAlt: opts.imageAlt ?? `${DEFAULT_SEO.siteName} — visuel`,
       type: opts.type ?? 'website',
       robots: opts.robots ?? DEFAULT_SEO.robots,
