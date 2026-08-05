@@ -1099,19 +1099,6 @@ Puis corréler les régressions avec les versions de déploiement.
 14. CONFIGURATION ET ENVIRONNEMENTS
 ==================================
 
-14.4 Ne pas exposer de secrets dans les variables Vite
-------------------------------------------------------
-
-Toutes les variables VITE_* sont intégrées au bundle et lisibles par l’utilisateur.
-
-Ne jamais y placer :
-- secret Stripe ;
-- clé privée ;
-- mot de passe SMTP ;
-- secret JWT ;
-- token d’administration.
-
-
 15. SEO ET MÉTADONNÉES
 ======================
 

@@ -14,7 +14,8 @@
         "typecheck": "tsc --noEmit",
         "lint": "eslint src scripts --quiet",
         "test": "vitest run",
-        "quality": "npm run typecheck && npm run lint && npm run test && npm audit --omit=dev",
+        "validate:env": "npx esbuild --bundle scripts/validate-public-env.ts --format=cjs --platform=node --target=node20 --outfile=.ssg/validate-public-env.cjs && node .ssg/validate-public-env.cjs",
+        "quality": "npm run typecheck && npm run lint && npm run test && npm run validate:env && npm audit --omit=dev",
         "lint:debt": "eslint src scripts"
     },
     "devDependencies": {
