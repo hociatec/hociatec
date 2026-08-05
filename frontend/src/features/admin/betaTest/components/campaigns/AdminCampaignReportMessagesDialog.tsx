@@ -1,5 +1,6 @@
 import type { AdminBugReportDto, BugReportCommentDto, PaginationMeta } from '../../api';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 interface AdminCampaignReportMessagesDialogProps {
   comments: BugReportCommentDto[];
@@ -71,7 +72,7 @@ export const AdminCampaignReportMessagesDialog = ({
                     className={`max-w-[85%] ${isAdminMessage ? 'ml-auto text-right' : 'mr-auto text-left'}`}
                   >
                     <p className="mb-1 text-xs text-stone-500">
-                      {comment.author.firstName} {comment.author.lastName} ({new Date(comment.createdAt).toLocaleString('fr-FR')}) :
+                      {comment.author.firstName} {comment.author.lastName} ({formatOptionalFrenchDateTime(comment.createdAt)}) :
                     </p>
                     <div
                       className={`rounded-lg p-3 text-sm ${

@@ -7,6 +7,7 @@ import type {
 import { resolveBetaAttachmentUrl } from '../../api';
 import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/lib/betaLabels';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { activityLabel, bugReportBadgeClassName, terminalStates } from './adminBugReportUi';
 
 interface AdminBugReportDetailDialogProps {
@@ -107,7 +108,7 @@ export const AdminBugReportDetailDialog = ({
               <div className="flex-1 space-y-3 overflow-y-auto bg-stone-50 p-4">
                 {loadingComments ? <p className="sr-only">Chargement des messages...</p> : comments.length === 0 ? <p className="text-sm text-stone-500">Aucun message.</p> : comments.map((comment) => {
                   const authorLabel = comment.author.role === 'admin' ? 'Support Hociatec' : comment.author.email;
-                  return <p key={comment.id} className="rounded-lg border border-stone-200 bg-white p-3 text-sm"><span className="font-semibold">{authorLabel}</span> <span className="text-stone-500">({new Date(comment.createdAt).toLocaleString()})</span> : {comment.content}</p>;
+                  return <p key={comment.id} className="rounded-lg border border-stone-200 bg-white p-3 text-sm"><span className="font-semibold">{authorLabel}</span> <span className="text-stone-500">({formatOptionalFrenchDateTime(comment.createdAt)})</span> : {comment.content}</p>;
                 })}
               </div>
               {commentsMeta && commentsMeta.totalPages > 1 && (
@@ -124,7 +125,7 @@ export const AdminBugReportDetailDialog = ({
               <div className="max-h-48 overflow-y-auto border-t border-stone-200 p-4">
                 <h2 className="font-semibold text-brand-900">Journal technique</h2>
                 <div className="mt-2 space-y-2 text-xs text-stone-600">
-                  {activities.length === 0 ? <p>Aucune action journalisée.</p> : activities.map((activity) => <p key={activity.id} className="rounded bg-stone-50 p-2">{activityLabel(activity.action)} · {activity.actor?.email ?? 'Système'} · {new Date(activity.createdAt).toLocaleString()} {activity.fromValue || activity.toValue ? `· ${activity.fromValue ?? 'vide'} → ${activity.toValue ?? 'vide'}` : ''}</p>)}
+                  {activities.length === 0 ? <p>Aucune action journalisée.</p> : activities.map((activity) => <p key={activity.id} className="rounded bg-stone-50 p-2">{activityLabel(activity.action)} · {activity.actor?.email ?? 'Système'} · {formatOptionalFrenchDateTime(activity.createdAt)} {activity.fromValue || activity.toValue ? `· ${activity.fromValue ?? 'vide'} → ${activity.toValue ?? 'vide'}` : ''}</p>)}
                 </div>
               </div>
             </section>

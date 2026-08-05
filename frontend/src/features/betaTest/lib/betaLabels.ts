@@ -44,4 +44,5 @@ export const formatBetaList = (values?: string[]) =>
   values && values.length > 0 ? values.join(', ') : 'Non renseigné';
 
 export const formatDate = (value?: string | null) =>
-  value ? new Date(value).toLocaleDateString('fr-FR') : 'Non définie';
+  value ? formatOptionalFrenchDate(value) : 'Non définie';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';

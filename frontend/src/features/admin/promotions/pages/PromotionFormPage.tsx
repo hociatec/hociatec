@@ -8,7 +8,11 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
+import {
+  formatApiDateForDateTimeInput,
+  formatEuroInputFromCents,
+  parseEuroInputToCents,
+} from '@/shared/lib/formatters';
 
 export type FormState = { name: string; slug: string; description: string; discountType: 'percent' | 'fixed_cents'; discountValue: string; audienceKey: string; minimumCartTotalEuros: string; registeredDays: string; minimumOrders: string; inactiveDays: string; isActive: boolean; startsAt: string; endsAt: string };
 const emptyForm: FormState = { name: '', slug: '', description: '', discountType: 'percent', discountValue: '', audienceKey: 'all_users', minimumCartTotalEuros: '0', registeredDays: '30', minimumOrders: '3', inactiveDays: '90', isActive: true, startsAt: '', endsAt: '' };
@@ -29,7 +33,7 @@ export const PromotionFormPage = () => {
   useEffect(() => {
     if (!isEdit || !promotionId) return;
     setInitialLoading(true);
-    void fetchPromotion(Number(promotionId)).then((promotion) => setForm({ name: promotion.name, slug: promotion.slug, description: promotion.description ?? '', discountType: promotion.discountType, discountValue: promotion.discountType === 'fixed_cents' ? formatEuroInputFromCents(promotion.discountValue) : String(promotion.discountValue), audienceKey: promotion.audienceKey, minimumCartTotalEuros: formatEuroInputFromCents(Number(promotion.criteria.minimumCartTotalCents ?? 0)), registeredDays: String(promotion.criteria.registeredDays ?? 30), minimumOrders: String(promotion.criteria.minimumOrders ?? 3), inactiveDays: String(promotion.criteria.inactiveDays ?? 90), isActive: promotion.isActive, startsAt: promotion.startsAt ? promotion.startsAt.slice(0, 16) : '', endsAt: promotion.endsAt ? promotion.endsAt.slice(0, 16) : '' })).catch((err) => { const message = getHttpErrorMessage(err, 'Impossible de charger la promotion.'); setError(message); toast.show(message, { variant: 'error' }); }).finally(() => setInitialLoading(false));
+    void fetchPromotion(Number(promotionId)).then((promotion) => setForm({ name: promotion.name, slug: promotion.slug, description: promotion.description ?? '', discountType: promotion.discountType, discountValue: promotion.discountType === 'fixed_cents' ? formatEuroInputFromCents(promotion.discountValue) : String(promotion.discountValue), audienceKey: promotion.audienceKey, minimumCartTotalEuros: formatEuroInputFromCents(Number(promotion.criteria.minimumCartTotalCents ?? 0)), registeredDays: String(promotion.criteria.registeredDays ?? 30), minimumOrders: String(promotion.criteria.minimumOrders ?? 3), inactiveDays: String(promotion.criteria.inactiveDays ?? 90), isActive: promotion.isActive, startsAt: formatApiDateForDateTimeInput(promotion.startsAt), endsAt: formatApiDateForDateTimeInput(promotion.endsAt) })).catch((err) => { const message = getHttpErrorMessage(err, 'Impossible de charger la promotion.'); setError(message); toast.show(message, { variant: 'error' }); }).finally(() => setInitialLoading(false));
   }, [isEdit, promotionId, toast]);
 
   const payload = useMemo<PromotionPayload>(() => {

@@ -8,11 +8,9 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
-const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(value))
-    : 'Date non définie';
+const formatDate = (value: string | null) => (value ? formatOptionalFrenchDate(value) : 'Date non définie');
 
 const normalizeSlugFromUrl = (value: string) =>
   decodeURIComponent(value)

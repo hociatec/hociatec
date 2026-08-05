@@ -1,5 +1,6 @@
 import { MessageSquare } from 'lucide-react';
 
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import type { BugReportComment, PaginationMeta } from '../../../api/betaApi';
 
 interface BetaReportConversationProps {
@@ -39,7 +40,7 @@ export const BetaReportConversation = ({
         comments.map((comment) => {
           const isAdminMessage = comment.author.role === 'admin';
           const authorLabel = isAdminMessage ? 'Support Hociatec' : 'Vous';
-          const messageDate = new Date(comment.createdAt).toLocaleString();
+          const messageDate = formatOptionalFrenchDateTime(comment.createdAt);
 
           return (
             <div

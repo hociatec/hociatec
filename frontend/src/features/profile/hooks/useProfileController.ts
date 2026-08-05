@@ -2,6 +2,7 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { useAuth } from '../../auth/hooks/useAuth';
 import {
   extractErrorDetails,
@@ -72,12 +73,7 @@ export const useProfileController = () => {
   );
   const formattedBirthDate = useMemo(() => {
     if (!user?.birthDate) return 'Non renseignée';
-    const date = new Date(user.birthDate);
-    return Number.isNaN(date.getTime())
-      ? user.birthDate
-      : new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long', day: '2-digit' }).format(
-          date,
-        );
+    return formatOptionalFrenchDate(user.birthDate);
   }, [user]);
 
   const resetForm = () => setForm(buildForm());

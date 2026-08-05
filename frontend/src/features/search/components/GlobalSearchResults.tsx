@@ -8,7 +8,7 @@ import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import {
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
-import { formatEuroCents } from '@/shared/lib/formatters';
+import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 interface ResultSectionProps {
   title: string;
@@ -109,7 +109,7 @@ export const NewsSearchResults = ({ news }: { news: NewsArticleDto[] }) => (
         to={`/actualites/${article.slug}`}
         title={article.title}
         description={article.excerpt}
-        price={article.publishedAt ? `Publié le ${new Intl.DateTimeFormat('fr-FR').format(new Date(article.publishedAt))}` : 'Actualité'}
+        price={article.publishedAt ? `Publié le ${formatOptionalFrenchDate(article.publishedAt)}` : 'Actualité'}
       />
     ))}
   </div>

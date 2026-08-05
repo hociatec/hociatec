@@ -39,10 +39,20 @@ export const formatSchemaPriceCents = (valueInCents: number) => (valueInCents / 
 
 export const formatFrenchNumber = (value: number) => new Intl.NumberFormat('fr-FR').format(value);
 
-export const formatFrenchDate = (value: string) => {
-  const date = new Date(value);
+export const parseApiDate = (value?: string | null) => {
+  if (!value) return null;
+  if (!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2}))?$/u.test(value)) {
+    return null;
+  }
 
-  if (Number.isNaN(date.getTime())) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+export const formatFrenchDate = (value: string) => {
+  const date = parseApiDate(value);
+
+  if (!date) {
     return null;
   }
 
@@ -56,8 +66,8 @@ export const formatFrenchDate = (value: string) => {
 export const formatOptionalFrenchDate = (value?: string | null) => {
   if (!value) return '-';
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
+  const date = parseApiDate(value);
+  if (!date) return '-';
 
   return date.toLocaleDateString('fr-FR');
 };
@@ -65,16 +75,16 @@ export const formatOptionalFrenchDate = (value?: string | null) => {
 export const formatOptionalFrenchDateTime = (value?: string | null) => {
   if (!value) return '-';
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
+  const date = parseApiDate(value);
+  if (!date) return '-';
 
   return date.toLocaleString('fr-FR');
 };
 
 export const formatFrenchDateTime = (value: string) => {
-  const date = new Date(value);
+  const date = parseApiDate(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return '-';
   }
 
@@ -85,9 +95,9 @@ export const formatFrenchDateTime = (value: string) => {
 };
 
 export const formatFrenchDateTimeFull = (value: string) => {
-  const date = new Date(value);
+  const date = parseApiDate(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return '-';
   }
 
@@ -98,9 +108,9 @@ export const formatFrenchDateTimeFull = (value: string) => {
 };
 
 export const formatFrenchTime = (value: string) => {
-  const date = new Date(value);
+  const date = parseApiDate(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return '-';
   }
 
@@ -117,4 +127,18 @@ export const formatDateInputForDisplay = (value?: string | null) => {
   if (Number.isNaN(date.getTime())) return '-';
 
   return date.toLocaleDateString('fr-FR');
+};
+
+export const formatApiDateForDateInput = (value?: string | Date | null) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/u.test(value)) return value.slice(0, 10);
+
+  const date = value instanceof Date ? value : parseApiDate(value);
+  return date ? date.toISOString().slice(0, 10) : '';
+};
+
+export const formatApiDateForDateTimeInput = (value?: string | null) => {
+  if (!value) return '';
+  const date = parseApiDate(value);
+  return date ? date.toISOString().slice(0, 16) : '';
 };

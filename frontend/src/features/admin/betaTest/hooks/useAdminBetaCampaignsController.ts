@@ -13,6 +13,7 @@ import {
 import { emptyCampaignForm, type CampaignFormState } from '../lib/campaignForms';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
 
 const REPORTS_PER_PAGE = 6;
@@ -140,8 +141,8 @@ export const useAdminBetaCampaignsController = () => {
       name: campaign.name,
       description: campaign.description,
       status: campaign.status,
-      startsAt: campaign.startsAt?.slice(0, 10) ?? '',
-      endsAt: campaign.endsAt?.slice(0, 10) ?? '',
+      startsAt: formatApiDateForDateInput(campaign.startsAt),
+      endsAt: formatApiDateForDateInput(campaign.endsAt),
     });
     setIsEditOpen(true);
   };

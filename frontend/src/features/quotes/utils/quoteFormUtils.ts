@@ -1,4 +1,8 @@
-import { formatDateInputForDisplay, formatEuroCents } from '@/shared/lib/formatters';
+import {
+  formatApiDateForDateInput,
+  formatDateInputForDisplay,
+  formatEuroCents,
+} from '@/shared/lib/formatters';
 
 export type QuoteItem = {
   id?: number;
@@ -55,16 +59,14 @@ type QuoteDraftForSave = {
 export const formatQuotePrice = formatEuroCents;
 export const formatQuoteDate = formatDateInputForDisplay;
 
-const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
-
 export const createDefaultQuoteValidity = () => {
   const validFrom = new Date();
   const validUntil = new Date(validFrom);
   validUntil.setDate(validUntil.getDate() + 30);
 
   return {
-    validFrom: toDateInputValue(validFrom),
-    validUntil: toDateInputValue(validUntil),
+    validFrom: formatApiDateForDateInput(validFrom),
+    validUntil: formatApiDateForDateInput(validUntil),
   };
 };
 

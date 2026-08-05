@@ -4,7 +4,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { downloadBlob } from '@/shared/lib/downloadFile';
-import { formatEuroInputFromCents } from '@/shared/lib/formatters';
+import { formatApiDateForDateInput, formatEuroInputFromCents } from '@/shared/lib/formatters';
 import {
   adminCloseTradeIn,
   adminDeleteTradeIn,
@@ -41,7 +41,7 @@ const initialModalState: TradeInModalState = {
 };
 
 const generateTransactionReference = (): string => {
-  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  const date = formatApiDateForDateInput(new Date()).replaceAll('-', '');
   const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
 
   return `TRX-${date}-${suffix}`;

@@ -144,28 +144,6 @@ Cela évite les différences de :
 - statuts d’erreur.
 
 
-3.9 Uniformiser les dates
--------------------------
-
-Il faut définir une convention API unique :
-- dates absolues en ISO 8601 UTC ;
-- dates sans heure au format YYYY-MM-DD ;
-- pas de dates localisées dans les données brutes ;
-- conversion locale uniquement dans l’UI.
-
-Exemple :
-
-    {
-      "createdAt": "2026-08-05T01:30:00Z"
-    }
-
-Éviter les chaînes PHP comme :
-
-    05/08/2026 03:30
-
-qui sont ambiguës et difficiles à parser correctement.
-
-
 4. REACT QUERY ET GESTION DES DONNÉES
 =====================================
 

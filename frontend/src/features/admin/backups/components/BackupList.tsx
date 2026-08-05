@@ -1,17 +1,11 @@
 import type { BackupStatusDto } from '../api';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type BackupListProps = {
   backups: BackupStatusDto['backups'];
 };
 
-const formatDate = (value?: string | null) => {
-  if (!value) return 'Jamais';
-
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-};
+const formatDate = (value?: string | null) => value ? formatOptionalFrenchDateTime(value) : 'Jamais';
 
 const formatBytes = (bytes?: number | null) => {
   if (!bytes) return '0 o';

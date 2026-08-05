@@ -13,7 +13,11 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
+import {
+  formatApiDateForDateTimeInput,
+  formatEuroInputFromCents,
+  parseEuroInputToCents,
+} from '@/shared/lib/formatters';
 import {
   VoucherFormFields,
   type VoucherFormState,
@@ -70,8 +74,8 @@ export const VoucherFormPage = () => {
               ? formatEuroInputFromCents(voucher.discountValue)
               : String(voucher.discountValue),
           isActive: voucher.isActive,
-          startsAt: voucher.startsAt ? voucher.startsAt.slice(0, 16) : '',
-          endsAt: voucher.endsAt ? voucher.endsAt.slice(0, 16) : '',
+          startsAt: formatApiDateForDateTimeInput(voucher.startsAt),
+          endsAt: formatApiDateForDateTimeInput(voucher.endsAt),
         });
       })
       .catch((err) => {

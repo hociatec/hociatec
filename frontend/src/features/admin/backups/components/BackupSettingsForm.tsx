@@ -1,4 +1,5 @@
 import type { BackupStatusDto } from '../api';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 
 type BackupSettingsFormProps = {
   status: BackupStatusDto | null;
@@ -13,14 +14,7 @@ type BackupSettingsFormProps = {
   onLaunchBackup: () => void;
 };
 
-const formatDate = (value?: string | null) => {
-  if (!value) return 'Jamais';
-
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value));
-};
+const formatDate = (value?: string | null) => value ? formatOptionalFrenchDateTime(value) : 'Jamais';
 
 export const BackupSettingsForm = ({
   status,

@@ -1,10 +1,11 @@
 import type { useAdminBackups } from '@/features/admin/backups/hooks/useAdminBackups';
+import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { AlertTriangle, DatabaseBackup, HardDrive, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 type BackupStatus = NonNullable<ReturnType<typeof useAdminBackups>['status']>;
 
-const formatDate = (value?: string | null) => value ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : 'Jamais';
+const formatDate = (value?: string | null) => value ? formatOptionalFrenchDateTime(value) : 'Jamais';
 
 export const AdminBackupsOverview = ({ status }: { status: BackupStatus }) => <>
   <div className="grid gap-4 md:grid-cols-4"><StatusCard icon={<DatabaseBackup className="h-5 w-5" />} label="Dernière sauvegarde" value={formatDate(status.settings.lastSuccessfulRunAt)} /><StatusCard icon={<ShieldCheck className="h-5 w-5" />} label="Planification" value={status.settings.enabled ? `Toutes les ${status.settings.intervalHours} h` : 'Désactivée'} /><StatusCard icon={<HardDrive className="h-5 w-5" />} label="Sauvegardes conservées" value={`${status.backups.length} / ${status.settings.retentionCount}`} /><StatusCard icon={<AlertTriangle className="h-5 w-5" />} label="Maintenance" value={status.maintenance.enabled ? 'Active' : 'Inactive'} danger={status.maintenance.enabled} /></div>

@@ -13,12 +13,9 @@ import {
   type OrderEventDto,
   type OrderProcessingDto,
 } from '@/features/orders/api';
+import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 
-const toDateInputValue = (value?: string | null) => {
-  if (!value) return '';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
-};
+const toDateInputValue = formatApiDateForDateInput;
 
 export const useAdminOrderDetail = () => {
   const params = useParams();

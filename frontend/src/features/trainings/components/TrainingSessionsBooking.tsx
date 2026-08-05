@@ -4,7 +4,7 @@ import {
   calculateLatestStartTime,
   formatTrainingDuration,
 } from '@/features/trainings/lib/trainingDetail';
-import { formatFrenchDate } from '@/shared/lib/formatters';
+import { formatApiDateForDateInput, formatFrenchDate } from '@/shared/lib/formatters';
 
 type SlotForms = Record<number, { date: string; time: string }>;
 type UpdateSlot = (
@@ -92,8 +92,8 @@ export const TrainingSessionsBooking = ({
                       <span>Date souhaitée</span>
                       <input
                         type="date"
-                        min={session.startsAt.slice(0, 10)}
-                        max={session.endsAt.slice(0, 10)}
+                        min={formatApiDateForDateInput(session.startsAt)}
+                        max={formatApiDateForDateInput(session.endsAt)}
                         value={slot?.date ?? ''}
                         onChange={(event) =>
                           updateSlot(session.id, 'date', event.target.value, {
@@ -112,7 +112,7 @@ export const TrainingSessionsBooking = ({
                         value={slot?.time ?? ''}
                         onChange={(event) =>
                           updateSlot(session.id, 'time', event.target.value, {
-                            date: session.startsAt.slice(0, 10),
+                            date: formatApiDateForDateInput(session.startsAt),
                           })
                         }
                         className="rounded-xl border border-brand-200 px-3 py-2"

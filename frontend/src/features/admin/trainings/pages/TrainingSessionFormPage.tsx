@@ -12,6 +12,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 import {
   TrainingSessionFormFields,
   type TrainingSessionFormState,
@@ -30,8 +31,6 @@ const emptyForm: TrainingSessionFormState = {
   capacity: 1,
   status: 'scheduled',
 };
-
-const toDateLocal = (value: string) => value.slice(0, 10);
 
 export const TrainingSessionFormPage = () => {
   const { sessionId } = useParams();
@@ -71,8 +70,8 @@ export const TrainingSessionFormPage = () => {
           setForm({
             trainingId: session.training.id,
             format: session.format,
-            startsAt: toDateLocal(session.startsAt),
-            endsAt: toDateLocal(session.endsAt),
+            startsAt: formatApiDateForDateInput(session.startsAt),
+            endsAt: formatApiDateForDateInput(session.endsAt),
             dailyStartTime: session.dailyStartTime,
             dailyEndTime: session.dailyEndTime,
             includeWeekends: session.includeWeekends,

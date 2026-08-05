@@ -1,13 +1,10 @@
 import { Link } from 'react-router';
 
 import type { NewsArticleDto } from '@/features/news/api/newsApi';
+import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(
-        new Date(value),
-      )
-    : 'Date non définie';
+  value ? formatOptionalFrenchDate(value) : 'Date non définie';
 
 export const NewsCard = ({ article }: { article: NewsArticleDto }) => (
   <article className="flex h-full flex-col rounded-2xl border border-brand-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md">

@@ -11,15 +11,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { hasPermission } from '@/features/auth/lib/permissions';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
-
-const formatMessageDate = (value: string) =>
-  new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
+import { formatFrenchDateTime } from '@/shared/lib/formatters';
 
 export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();
@@ -96,7 +88,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
           {comments.map((comment) => (
             <article key={comment.id} className="rounded-2xl border border-brand-100 bg-brand-50 p-4">
               <p className="text-sm font-semibold text-brand-900">
-                {comment.author.name} ({formatMessageDate(comment.createdAt)}) :
+                {comment.author.name} ({formatFrenchDateTime(comment.createdAt)}) :
               </p>
               <p className="mt-2 whitespace-pre-line text-sm leading-6 text-stone-700">{comment.content}</p>
               {isAdmin ? (
