@@ -225,30 +225,6 @@ Chaque domaine devrait exposer uniquement ce qui est public :
 Interdire les imports profonds inter-domaines.
 
 
-5.3 Fusionner les deux systèmes de composants UI
-------------------------------------------------
-
-Il existe :
-
-    src/components/ui
-    src/shared/components/ui
-
-Cette duplication rend la source officielle ambiguë.
-
-Choisir une seule destination :
-
-    src/shared/ui
-
-Puis organiser :
-
-    shared/ui/actions
-    shared/ui/forms
-    shared/ui/feedback
-    shared/ui/overlays
-    shared/ui/navigation
-    shared/ui/data-display
-
-
 5.4 Réduire les fichiers fourre-tout
 ------------------------------------
 
