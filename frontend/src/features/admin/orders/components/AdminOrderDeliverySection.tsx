@@ -64,7 +64,7 @@ export const AdminOrderDeliverySection = ({
           <div><span className="font-medium text-brand-900">Date estimée</span> : {formatOptionalFrenchDateTime(order.delivery?.estimatedAt)}</div>
           <div><span className="font-medium text-brand-900">Expédiée le</span> : {formatOptionalFrenchDateTime(order.delivery?.shippedAt)}</div>
           <div><span className="font-medium text-brand-900">Livrée le</span> : {formatOptionalFrenchDateTime(order.delivery?.deliveredAt)}</div>
-          {order.delivery?.trackingUrl ? <div className="mt-3"><a className="text-brand-700 underline" href={order.delivery.trackingUrl} target="_blank" rel="noreferrer">Ouvrir le lien de suivi</a></div> : null}
+          {order.delivery?.trackingUrl ? <div className="mt-3"><a className="text-brand-700 underline" href={order.delivery.trackingUrl} target="_blank" rel="noopener noreferrer">Ouvrir le lien de suivi</a></div> : null}
         </div>
         {isEditing ? (
           <div className="space-y-3 rounded-2xl border border-brand-100 p-4">

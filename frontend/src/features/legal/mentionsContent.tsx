@@ -55,7 +55,7 @@ const mentionsSections: LegalSectionContent[] = [
         </p>
         <p>
           Site web de l’hébergeur:{' '}
-          <a href="https://www.ovhcloud.com/fr/" rel="noreferrer" target="_blank">
+          <a href="https://www.ovhcloud.com/fr/" rel="noopener noreferrer" target="_blank">
             ovhcloud.com
           </a>
           .

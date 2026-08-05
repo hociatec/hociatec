@@ -12,6 +12,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
 import { logger } from '@/shared/lib/logger';
+import { isSafeInternalRedirectPath } from '@/shared/lib/redirects';
 
 import './LoginPage.css';
 
@@ -28,7 +29,6 @@ interface LocationState {
 }
 
 const DEFAULT_AUTHENTICATED_PATH = '/mon-espace';
-const AUTH_PAGE_PATHS = new Set(['/login', '/register', '/forgot-password']);
 const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
 const REMEMBERED_EMAIL_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
@@ -37,16 +37,13 @@ interface RememberedEmailPayload {
   expiresAt: number;
 }
 
-const isSafeRedirectPath = (path?: string | null) =>
-  Boolean(path?.startsWith('/') && !path.startsWith('//') && !AUTH_PAGE_PATHS.has(path));
-
 const getAuthenticatedRedirect = (state: LocationState | null) => {
-  if (isSafeRedirectPath(state?.redirectTo)) {
+  if (isSafeInternalRedirectPath(state?.redirectTo)) {
     return state?.redirectTo ?? DEFAULT_AUTHENTICATED_PATH;
   }
 
   const fromPath = state?.from?.pathname;
-  if (isSafeRedirectPath(fromPath)) {
+  if (isSafeInternalRedirectPath(fromPath)) {
     return `${fromPath}${state?.from?.search ?? ''}${state?.from?.hash ?? ''}`;
   }
 

@@ -40,7 +40,7 @@ export const AdminBugReportMainDetails = ({
       <section>
         <h2 className="font-semibold text-stone-900">Captures</h2>
         <ul className="mt-2 space-y-1 text-sm">
-          {report.attachmentUrls.map((url, index) => <li key={url}><a className="text-brand-700 underline" href={resolveBetaAttachmentUrl(url)} target="_blank" rel="noreferrer">Ouvrir la capture {index + 1}</a></li>)}
+          {report.attachmentUrls.map((url, index) => <li key={url}><a className="text-brand-700 underline" href={resolveBetaAttachmentUrl(url)} target="_blank" rel="noopener noreferrer">Ouvrir la capture {index + 1}</a></li>)}
         </ul>
       </section>
     )}

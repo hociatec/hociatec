@@ -16,41 +16,6 @@ Limite de l’analyse :
 L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
 
 
-19. PRIORITÉS CONCRÈTES
-======================
-
-À corriger immédiatement
-------------------------
-1. Validation stricte des URLs de redirection.
-2. Suppression du Content-Type JSON global pour les uploads.
-3. Vérification exhaustive des permissions côté PHP.
-4. Audit de la prévisualisation HTML et des liens externes.
-
-À faire ensuite
----------------
-1. Généraliser React Query.
-2. Générer les types depuis OpenAPI.
-3. Unifier les composants UI.
-4. Découper les gros contrôleurs et composants.
-5. Ajouter l’annulation des requêtes.
-6. Tester auth, paiement, commande et permissions.
-7. Ajouter Playwright et MSW.
-8. Ajouter l’observabilité applicative.
-
-Travaux structurels
--------------------
-1. Règles d’import entre features.
-2. publicApi.ts homogènes.
-3. Détection des cycles.
-4. Design system centralisé.
-5. Réduction des CSS d’override.
-6. Documentation d’architecture.
-7. Audit de performance du bundle.
-8. Tests d’accessibilité.
-9. Optimisation des listes et images.
-10. CI complète : typecheck, lint, tests, build, analyse des dépendances.
-
-
 20. ÉVALUATION FINALE
 =====================
 

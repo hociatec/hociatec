@@ -155,7 +155,7 @@ const privacySections: LegalSectionContent[] = [
       <p>
         Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une
         réclamation auprès de la CNIL:{' '}
-        <a href="https://www.cnil.fr" rel="noreferrer" target="_blank">
+        <a href="https://www.cnil.fr" rel="noopener noreferrer" target="_blank">
           www.cnil.fr
         </a>
         .

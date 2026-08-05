@@ -30,7 +30,7 @@ export const BetaReportSummary = ({ report }: BetaReportSummaryProps) => (
         <ul className="mt-1 space-y-1">
           {(report.attachmentUrls ?? []).map((url, index) => (
             <li key={url}>
-              <a className="text-brand-700 underline" href={resolveBetaAttachmentUrl(url)} target="_blank" rel="noreferrer">
+              <a className="text-brand-700 underline" href={resolveBetaAttachmentUrl(url)} target="_blank" rel="noopener noreferrer">
                 Ouvrir la capture {index + 1}
               </a>
             </li>

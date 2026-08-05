@@ -65,7 +65,7 @@ export const AdminProductsTable = ({
                     to={`/catalogue/produits/${product.slug}`}
                     className="catalog-admin-actions__edit"
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     aria-label={`Voir le produit ${product.name}`}
                   >
                     Voir

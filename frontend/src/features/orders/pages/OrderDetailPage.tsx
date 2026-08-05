@@ -94,7 +94,7 @@ export const OrderDetailPage = () => {
                       <a
                         href={order.delivery.trackingUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
                       >
                         Suivre le colis

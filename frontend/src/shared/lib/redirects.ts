@@ -1,4 +1,13 @@
 const TRUSTED_REDIRECT_HOSTS = new Set(['checkout.stripe.com']);
+const UNSAFE_INTERNAL_REDIRECT_PATHS = new Set(['/login', '/register', '/forgot-password']);
+
+export const isSafeInternalRedirectPath = (path?: string | null): path is string =>
+  Boolean(
+    path &&
+      path.startsWith('/') &&
+      !path.startsWith('//') &&
+      !UNSAFE_INTERNAL_REDIRECT_PATHS.has(path),
+  );
 
 export const isTrustedRedirectUrl = (rawUrl: string): boolean => {
   try {
