@@ -46,7 +46,7 @@ export const NewsDetailPage = () => {
         {articleQuery.isLoading ? (
           <LoadingState>Chargement de l’actualité...</LoadingState>
         ) : error ? (
-          <ErrorState>{error}</ErrorState>
+          <ErrorState onAction={() => void articleQuery.refetch()}>{error}</ErrorState>
         ) : article ? (
           <>
             <article className="rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">

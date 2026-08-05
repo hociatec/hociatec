@@ -14,5 +14,6 @@ export const useMyAudits = () => {
     items: query.data ?? [],
     loading: query.isLoading,
     error: query.error?.message ?? null,
+    retry: query.refetch,
   };
 };

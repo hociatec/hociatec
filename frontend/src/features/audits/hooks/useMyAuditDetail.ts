@@ -44,6 +44,7 @@ export const useMyAuditDetail = () => {
     data,
     loading: detailQuery.isLoading,
     error: detailQuery.error instanceof Error ? detailQuery.error.message : null,
+    retry: detailQuery.refetch,
     grouped,
     downloadReport,
     downloadSummary,

@@ -28,7 +28,7 @@ export const TrainingsCatalogPage = () => {
         {controller.loading ? (
           <LoadingState>Chargement des formations...</LoadingState>
         ) : controller.error ? (
-          <ErrorState>{controller.error}</ErrorState>
+          <ErrorState onAction={() => void controller.retry()}>{controller.error}</ErrorState>
         ) : controller.trainings.length === 0 ? (
           <EmptyState>Aucune formation publiée pour le moment.</EmptyState>
         ) : (

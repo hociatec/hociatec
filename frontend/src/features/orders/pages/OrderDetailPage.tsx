@@ -22,6 +22,7 @@ export const OrderDetailPage = () => {
     justConfirmed,
     order,
     paying,
+    retry,
     updateReviewForm,
   } = useOrderDetail();
   return (
@@ -29,7 +30,7 @@ export const OrderDetailPage = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-4 text-2xl font-semibold">Détail de la commande</h1>
         {isLoading && <LoadingState>Chargement de la commande...</LoadingState>}
-        {error && <ErrorState>{error}</ErrorState>}
+        {error && <ErrorState onAction={() => void retry()}>{error}</ErrorState>}
         {justConfirmed && (
           <FeedbackMessage variant="success" className="mb-4">
             Merci, votre commande a bien été validée et confirmée.

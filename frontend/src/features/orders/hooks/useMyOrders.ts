@@ -74,5 +74,6 @@ export const useMyOrders = () => {
     handlePayOrder,
     handleCancelOrder,
     handleDownloadInvoice,
+    retry: ordersQuery.refetch,
   };
 };

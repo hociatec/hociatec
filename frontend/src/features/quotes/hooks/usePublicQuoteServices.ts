@@ -13,5 +13,6 @@ export const usePublicQuoteServices = () => {
     services: query.data ?? [],
     loading: query.isLoading,
     error: query.error?.message ?? null,
+    retry: query.refetch,
   };
 };

@@ -11,7 +11,7 @@ import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMo
 import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
 
 export const ServiceDetailPage = () => {
-  const { serviceId, service, loading, error } = usePublicServiceDetail();
+  const { serviceId, service, loading, error, retry } = usePublicServiceDetail();
   const illustration = service ? resolveServiceIllustration(service) : null;
 
   useDocumentTitle(service ? service.title : 'Service');
@@ -39,7 +39,9 @@ export const ServiceDetailPage = () => {
         {loading ? (
           <LoadingState>Chargement du service...</LoadingState>
         ) : error || !service ? (
-          <ErrorState>{error || 'Service introuvable.'}</ErrorState>
+          <ErrorState onAction={error ? () => void retry() : undefined}>
+            {error || 'Service introuvable.'}
+          </ErrorState>
         ) : (
           <article className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">
             {illustration ? (

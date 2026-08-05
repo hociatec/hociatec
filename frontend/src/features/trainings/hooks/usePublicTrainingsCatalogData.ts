@@ -27,5 +27,6 @@ export const usePublicTrainingsCatalogData = () => {
     categories: query.data?.categories ?? [],
     loading: query.isLoading,
     error: query.error ? getHttpErrorMessage(query.error, 'Impossible de charger les formations.') : null,
+    retry: query.refetch,
   };
 };

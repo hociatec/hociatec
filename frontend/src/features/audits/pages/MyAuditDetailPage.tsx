@@ -6,13 +6,13 @@ import { useMyAuditDetail } from '../hooks/useMyAuditDetail';
 
 export const MyAuditDetailPage = () => {
   useDocumentTitle('Détail de mon audit');
-  const { data, loading, error, grouped, downloadReport, downloadSummary } = useMyAuditDetail();
+  const { data, loading, error, retry, grouped, downloadReport, downloadSummary } = useMyAuditDetail();
 
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
         {loading && <LoadingState>Chargement de l'audit...</LoadingState>}
-        {error && <ErrorState>{error}</ErrorState>}
+        {error && <ErrorState onAction={() => void retry()}>{error}</ErrorState>}
         {data && (
           <div className="space-y-4">
             <h1 className="text-2xl font-semibold">Audit {data.number}</h1>

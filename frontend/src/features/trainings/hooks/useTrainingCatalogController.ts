@@ -16,7 +16,7 @@ import {
 
 export const useTrainingCatalogController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { trainings, categories, loading, error } = usePublicTrainingsCatalogData();
+  const { trainings, categories, loading, error, retry } = usePublicTrainingsCatalogData();
   const category = normalizeTrainingParam(searchParams.get('category'));
   const query = searchParams.get('q')?.trim() ?? '';
   const format = normalizeTrainingParam(searchParams.get('format'));
@@ -71,5 +71,5 @@ export const useTrainingCatalogController = () => {
   const priceHint = priceValues.length > 0 ? formatEuroCentsRange(Math.min(...priceValues), Math.max(...priceValues)) : null;
   const durationHint = durationValues.length > 0 ? `${Math.min(...durationValues)} à ${Math.max(...durationValues)} min` : null;
 
-  return { trainings, loading, error, category, format, sort, minPrice, maxPrice, minDuration, maxDuration, categoryOptions, formatOptions, priceHint, durationHint, resultSummary, paginatedTrainings, categoryName, currentPage, totalPages, updateParam, updateRange, resetFilters };
+  return { trainings, loading, error, retry, category, format, sort, minPrice, maxPrice, minDuration, maxDuration, categoryOptions, formatOptions, priceHint, durationHint, resultSummary, paginatedTrainings, categoryName, currentPage, totalPages, updateParam, updateRange, resetFilters };
 };

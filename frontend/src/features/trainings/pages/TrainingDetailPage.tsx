@@ -13,6 +13,7 @@ export const TrainingDetailPage = () => {
     sessions,
     loading,
     error,
+    retry,
     message,
     submittingId,
     slotForms,
@@ -27,7 +28,9 @@ export const TrainingDetailPage = () => {
         {loading ? (
           <LoadingState>Chargement de la formation...</LoadingState>
         ) : error || !training ? (
-          <ErrorState>{error ?? 'Formation introuvable.'}</ErrorState>
+          <ErrorState onAction={error ? () => void retry() : undefined}>
+            {error ?? 'Formation introuvable.'}
+          </ErrorState>
         ) : (
           <>
             <header className="rounded-xl border border-brand-100 bg-white p-8 shadow-sm">

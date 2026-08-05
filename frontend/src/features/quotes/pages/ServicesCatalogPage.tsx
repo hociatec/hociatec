@@ -31,7 +31,7 @@ const getFirstSentence = (value?: string | null) => {
 export const ServicesCatalogPage = () => {
   useDocumentTitle('Services');
 
-  const { services, loading, error } = usePublicQuoteServices();
+  const { services, loading, error, retry } = usePublicQuoteServices();
   const [page, setPage] = useState(1);
 
   useMetaTags({
@@ -64,7 +64,7 @@ export const ServicesCatalogPage = () => {
           {loading ? (
             <LoadingState>Chargement des services...</LoadingState>
           ) : error ? (
-            <ErrorState>{error}</ErrorState>
+            <ErrorState onAction={() => void retry()}>{error}</ErrorState>
           ) : services.length === 0 ? (
             <EmptyState>Aucun service n’est publié pour le moment.</EmptyState>
           ) : (

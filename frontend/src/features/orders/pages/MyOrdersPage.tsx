@@ -28,6 +28,7 @@ export const MyOrdersPage = () => {
     handlePayOrder,
     handleCancelOrder,
     handleDownloadInvoice,
+    retry,
   } = useMyOrders();
 
   return (
@@ -42,7 +43,9 @@ export const MyOrdersPage = () => {
         </header>
 
         {ordersState.status === 'loading' && <LoadingState>Chargement des commandes...</LoadingState>}
-        {ordersState.status === 'error' && <ErrorState>{ordersState.error}</ErrorState>}
+        {ordersState.status === 'error' && (
+          <ErrorState onAction={() => void retry()}>{ordersState.error}</ErrorState>
+        )}
         {ordersState.status !== 'error' && error && <ErrorState>{error}</ErrorState>}
 
         {ordersState.status === 'success' && orders.length === 0 && (

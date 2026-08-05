@@ -78,6 +78,7 @@ export const useTrainingDetail = () => {
     sessions,
     loading: trainingQuery.isLoading,
     error,
+    retry: trainingQuery.refetch,
     message,
     submittingId: pendingSessionId,
     slotForms,

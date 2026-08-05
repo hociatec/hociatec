@@ -11,13 +11,20 @@ import {
 import { useAuth } from '@/features/auth/publicApi';
 import { hasPermission } from '@/features/auth/publicApi';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
+import { useToast } from '@/shared/components/ui/toast';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
+import {
+  notifyMutationError,
+  notifyMutationSuccess,
+  notifyValidationError,
+} from '@/shared/lib/notificationConventions';
 import { newsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();
   const isAdmin = hasPermission(user, 'news.comments.moderate');
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [content, setContent] = useState('');
   const commentsQuery = useQuery({
@@ -34,20 +41,27 @@ export const NewsComments = ({ slug }: { slug: string }) => {
       setContent('');
       setPage(1);
       void queryClient.invalidateQueries({ queryKey: newsQueryKeys.comments(slug) });
+      notifyMutationSuccess(toast, 'Commentaire publié.');
     },
+    onError: (error) => notifyMutationError(toast, error, 'Impossible de publier le commentaire.'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (comment: NewsCommentDto) => deleteAdminNewsComment(comment.id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: newsQueryKeys.comments(slug) });
+      notifyMutationSuccess(toast, 'Commentaire supprimé.', { deletion: true });
     },
+    onError: (error) => notifyMutationError(toast, error, 'Impossible de supprimer le commentaire.'),
   });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextContent = content.trim();
-    if (nextContent.length < 3) return;
+    if (nextContent.length < 3) {
+      notifyValidationError(toast, 'Le commentaire doit contenir au moins 3 caractères.');
+      return;
+    }
     await createMutation.mutateAsync(nextContent);
   };
 
@@ -65,7 +79,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
       {commentsQuery.isLoading ? (
         <LoadingState>Chargement des commentaires...</LoadingState>
       ) : error ? (
-        <ErrorState>{error}</ErrorState>
+        <ErrorState onAction={() => void commentsQuery.refetch()}>{error}</ErrorState>
       ) : comments.length === 0 ? (
         <p className="mt-6 text-sm text-stone-500">Aucun commentaire pour le moment.</p>
       ) : (

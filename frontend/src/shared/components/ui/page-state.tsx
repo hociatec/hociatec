@@ -13,6 +13,12 @@ interface LoadingStateProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
 }
 
+interface ErrorStateProps extends HTMLAttributes<HTMLDivElement> {
+  actionLabel?: string;
+  children?: ReactNode;
+  onAction?: (() => void) | undefined;
+}
+
 interface StableContentProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
   hasContent: boolean;
@@ -72,9 +78,23 @@ export const StableContent = ({
 
 export const EmptyState = ({ children }: PropsWithChildren) => <PageState>{children}</PageState>;
 
-export const ErrorState = ({ children }: PropsWithChildren) => (
-  <PageState variant="error" role="alert">
-    {children}
+export const ErrorState = ({
+  actionLabel = 'Réessayer',
+  children,
+  onAction,
+  ...props
+}: ErrorStateProps) => (
+  <PageState variant="error" role="alert" {...props}>
+    <div>{children}</div>
+    {onAction ? (
+      <button
+        type="button"
+        className="mt-4 inline-flex items-center rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-500 hover:bg-red-50"
+        onClick={onAction}
+      >
+        {actionLabel}
+      </button>
+    ) : null}
   </PageState>
 );
 

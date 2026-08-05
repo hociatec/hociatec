@@ -51,7 +51,7 @@ export const NewsListPage = () => {
         {articlesQuery.isLoading ? (
           <LoadingState>Chargement des actualités...</LoadingState>
         ) : error ? (
-          <ErrorState>{error}</ErrorState>
+          <ErrorState onAction={() => void articlesQuery.refetch()}>{error}</ErrorState>
         ) : items.length === 0 ? (
           <p className="rounded-2xl border border-brand-100 bg-white p-6 text-sm text-stone-600">
             Aucune actualité disponible pour le moment.

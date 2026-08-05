@@ -21,5 +21,6 @@ export const usePublicServiceDetail = () => {
       : query.error instanceof Error
         ? query.error.message || 'Impossible de charger ce service.'
         : null,
+    retry: query.refetch,
   };
 };

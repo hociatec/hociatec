@@ -16,35 +16,6 @@ Limite de l’analyse :
 L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
 
 
-7. GESTION DES ERREURS
-======================
-
-7.3 Centraliser les notifications
----------------------------------
-
-De nombreux composants semblent décider eux-mêmes quand afficher un toast.
-
-Créer des conventions :
-- succès de mutation : toast bref ;
-- validation : erreur près du champ ;
-- erreur globale : bannière ;
-- erreur de chargement : état de page ;
-- suppression : confirmation et toast ;
-- erreur silencieuse : uniquement si réellement non importante.
-
-
-7.5 Fournir une action Réessayer
---------------------------------
-
-Les états d’erreur réseau doivent afficher une action explicite :
-
-    <Button onClick={() => refetch()}>
-      Réessayer
-    </Button>
-
-Pas seulement un message statique.
-
-
 8. FORMULAIRES ET VALIDATION
 ============================
 

@@ -7,7 +7,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 export const MyAuditsPage = () => {
   useDocumentTitle('Mes audits');
-  const { items, loading, error } = useMyAudits();
+  const { items, loading, error, retry } = useMyAudits();
 
   return (
     <SiteLayout headerVariant="light">
@@ -17,7 +17,7 @@ export const MyAuditsPage = () => {
         description="Suivez les demandes d’audit envoyées à Hociatec et consultez leur avancement."
       >
         {loading ? <LoadingState>Chargement des audits...</LoadingState> : null}
-        {error ? <ErrorState>{error}</ErrorState> : null}
+        {error ? <ErrorState onAction={() => void retry()}>{error}</ErrorState> : null}
         {!loading && !error && items.length === 0 ? <EmptyState>Aucun audit trouvé.</EmptyState> : null}
         {items.length > 0 ? (
         <PublicPageSection>
