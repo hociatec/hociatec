@@ -2,6 +2,7 @@ import { Navigate } from 'react-router';
 
 import { AdminRoute } from '@/features/admin/components/AdminRoute';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { PrivateRouteMeta } from '@/shared/components/seo/PrivateRouteMeta';
 import {
   AdminAuditDetailPage,
   AdminAuditsListPage,
@@ -56,11 +57,14 @@ import {
 import type { AppRouteDefinition } from './RouteDefinition';
 
 const adminElement = (
-  <ProtectedRoute>
-    <AdminRoute>
-      <AdminLayout />
-    </AdminRoute>
-  </ProtectedRoute>
+  <>
+    <PrivateRouteMeta />
+    <ProtectedRoute>
+      <AdminRoute>
+        <AdminLayout />
+      </AdminRoute>
+    </ProtectedRoute>
+  </>
 );
 
 export const adminRoutes: AppRouteDefinition = {

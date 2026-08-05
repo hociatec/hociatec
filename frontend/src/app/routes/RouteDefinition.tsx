@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { PrivateRouteMeta } from '@/shared/components/seo/PrivateRouteMeta';
 
 export interface AppRouteDefinition {
   path?: string;
@@ -9,4 +10,9 @@ export interface AppRouteDefinition {
   children?: AppRouteDefinition[];
 }
 
-export const protectedElement = (element: ReactNode) => <ProtectedRoute>{element}</ProtectedRoute>;
+export const protectedElement = (element: ReactNode) => (
+  <>
+    <PrivateRouteMeta />
+    <ProtectedRoute>{element}</ProtectedRoute>
+  </>
+);
