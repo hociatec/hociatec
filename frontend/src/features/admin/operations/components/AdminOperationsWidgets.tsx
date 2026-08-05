@@ -170,7 +170,9 @@ export const OperationsExports = ({ exportLabels }: { exportLabels: Record<strin
         <a
           key={resource}
           className={operationsSecondaryActionClass + ' text-center'}
+          download={`${resource}.csv`}
           href={`/api/admin/operations/exports/${resource}.csv`}
+          rel="nofollow"
         >
           Export {exportLabels[resource]}
         </a>

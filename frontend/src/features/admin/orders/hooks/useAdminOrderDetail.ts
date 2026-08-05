@@ -15,6 +15,7 @@ import {
   type OrderProcessingDto,
 } from '@/features/orders/publicApi';
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
+import { normalizeHttpError } from '@/shared/lib/httpClient';
 import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
 
 const toDateInputValue = formatApiDateForDateInput;
@@ -141,7 +142,12 @@ export const useAdminOrderDetail = () => {
       setActionMessage('Suivi livraison mis à jour.');
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de mettre à jour la livraison.');
+      const normalized = normalizeHttpError(e, 'Impossible de mettre à jour la livraison.');
+      setError(
+        normalized.kind === 'conflict'
+          ? `${normalized.message} Rechargez la commande avant de réappliquer vos changements.`
+          : normalized.message,
+      );
     }
   };
   const downloadInvoicePdf = () =>

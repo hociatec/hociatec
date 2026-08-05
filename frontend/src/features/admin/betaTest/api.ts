@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
+import { downloadCsvBlob } from '@/shared/lib/downloadFile';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 export interface AdminBetaTesterDto { id:number; userId:number; firstName:string; lastName:string; email:string; status:string; accessibilityNeed:string; availability:string[]; devices:string[]; browsers:string[]; testingTypes:string[]; assistiveTools:string[]; motivation:string; testingExperience:string[]; bugDescriptionAbility:string[]; technicalKnowledge:string[]; createdAt:string; }
@@ -16,8 +17,19 @@ export const fetchAdminCampaigns = async () => unwrap((await httpClient.get<ApiR
 export const fetchAdminBugReports = async (params:{page?:number;perPage?:number;status?:string;severity?:string;search?:string;assignedTo?:number|string;campaignId?:number|string}={}) => unwrap((await httpClient.get<ApiResponse<{items:AdminBugReportDto[];meta:PaginationMeta}>>('/api/admin/beta-reports',{params})).data);
 export const fetchAdminBugReport = async (id:number) => unwrap((await httpClient.get<ApiResponse<{report:AdminBugReportDto}>>(`/api/beta/reports/${id}`)).data).report;
 export const fetchAdminBugReportDashboard = async () => unwrap((await httpClient.get<ApiResponse<AdminBugReportDashboardDto>>('/api/admin/beta-reports/dashboard')).data);
-export const exportAdminBetaTesters = async () => { const response=await httpClient.get('/api/admin/beta-testers/export',{responseType:'blob'}); const url=URL.createObjectURL(response.data); const link=document.createElement('a'); link.href=url; link.download='beta-testeurs.csv'; link.click(); URL.revokeObjectURL(url); };
-export const exportAdminBugReports = async (params:{status?:string;severity?:string;search?:string;assignedTo?:number|string;campaignId?:number|string}={}) => { const response=await httpClient.get('/api/admin/beta-reports/export',{params,responseType:'blob'}); const url=URL.createObjectURL(response.data); const link=document.createElement('a'); link.href=url; link.download='signalements-beta.csv'; link.click(); URL.revokeObjectURL(url); };
+export const exportAdminBetaTesters = async () => {
+  const response = await httpClient.get<Blob>('/api/admin/beta-testers/export', {
+    responseType: 'blob',
+  });
+  await downloadCsvBlob(response.data, 'beta-testeurs.csv');
+};
+export const exportAdminBugReports = async (params:{status?:string;severity?:string;search?:string;assignedTo?:number|string;campaignId?:number|string}={}) => {
+  const response = await httpClient.get<Blob>('/api/admin/beta-reports/export', {
+    params,
+    responseType: 'blob',
+  });
+  await downloadCsvBlob(response.data, 'signalements-beta.csv');
+};
 export const updateAdminBetaTester = async (id:number, status:string) => { await httpClient.patch(`/api/admin/beta-testers/${id}`, { status }); };
 export const deleteAdminBetaTester = async (id:number) => { await httpClient.delete(`/api/admin/beta-testers/${id}`); };
 export const createAdminCampaign = async (payload:{name:string;description:string;status:BetaCampaignStatus;startsAt?:string;endsAt?:string}) => { await httpClient.post('/api/admin/beta-campaigns', payload); };

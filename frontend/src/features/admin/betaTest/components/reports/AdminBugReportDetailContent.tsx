@@ -1,8 +1,11 @@
+import { useMemo, useState } from 'react';
+
 import type { AdminBugReportActivityDto, AdminBugReportDto } from '../../api';
 import { resolveBetaAttachmentUrl } from '../../api';
 import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/publicApi';
 import { DialogTitle } from '@/shared/components/ui/dialog';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { activityLabel, bugReportBadgeClassName, terminalStates } from './adminBugReportUi';
 
 export const AdminBugReportMainDetails = ({
@@ -63,14 +66,45 @@ export const AdminBugReportActivityLog = ({
   activities,
 }: {
   activities: AdminBugReportActivityDto[];
-}) => (
-  <div className="max-h-48 overflow-y-auto border-t border-stone-200 p-4">
-    <h2 className="font-semibold text-brand-900">Journal technique</h2>
-    <div className="mt-2 space-y-2 text-xs text-stone-600">
-      {activities.length === 0 ? <p>Aucune action journalisée.</p> : activities.map((activity) => <p key={activity.id} className="rounded bg-stone-50 p-2">{activityLabel(activity.action)} · {activity.actor?.email ?? 'Système'} · {formatOptionalFrenchDateTime(activity.createdAt)} {activity.fromValue || activity.toValue ? `· ${activity.fromValue ?? 'vide'} → ${activity.toValue ?? 'vide'}` : ''}</p>)}
+}) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(activities.length / 8));
+  const currentPage = Math.min(page, totalPages);
+  const visibleActivities = useMemo(() => {
+    const start = (currentPage - 1) * 8;
+
+    return activities.slice(start, start + 8);
+  }, [activities, currentPage]);
+
+  return (
+    <div className="border-t border-stone-200 p-4">
+      <h2 className="font-semibold text-brand-900">Journal technique</h2>
+      <div className="mt-2 space-y-2 text-xs text-stone-600">
+        {activities.length === 0 ? (
+          <p>Aucune action journalisée.</p>
+        ) : (
+          visibleActivities.map((activity) => (
+            <p key={activity.id} className="rounded bg-stone-50 p-2">
+              {activityLabel(activity.action)} · {activity.actor?.email ?? 'Système'} ·{' '}
+              {formatOptionalFrenchDateTime(activity.createdAt)}
+              {activity.fromValue || activity.toValue
+                ? ` · ${activity.fromValue ?? 'vide'} → ${activity.toValue ?? 'vide'}`
+                : ''}
+            </p>
+          ))
+        )}
+      </div>
+      <PaginationControls
+        className="mt-3"
+        page={currentPage}
+        total={activities.length}
+        totalLabel="action"
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
-  </div>
-);
+  );
+};
 
 export const AdminBugReportDialogHeader = ({
   report,
