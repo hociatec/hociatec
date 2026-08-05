@@ -6,7 +6,7 @@ namespace App\Module\Catalog\Application\Port;
 
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Product;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface ProductRepositoryPort
 {

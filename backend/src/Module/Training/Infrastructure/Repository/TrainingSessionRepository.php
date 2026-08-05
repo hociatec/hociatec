@@ -9,6 +9,8 @@ use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -20,9 +22,9 @@ class TrainingSessionRepository extends ServiceEntityRepository implements Train
         parent::__construct($registry, TrainingSession::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingSession
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingSession
     {
-        $session = parent::find($id, $lockMode, $lockVersion);
+        $session = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $session instanceof TrainingSession ? $session : null;
     }

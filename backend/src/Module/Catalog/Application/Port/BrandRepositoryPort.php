@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Port;
 
 use App\Module\Catalog\Domain\Entity\Brand;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface BrandRepositoryPort
 {

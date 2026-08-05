@@ -7,7 +7,7 @@ namespace App\Module\TradeIn\Application\Port;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface TradeInRequestRepositoryPort
 {

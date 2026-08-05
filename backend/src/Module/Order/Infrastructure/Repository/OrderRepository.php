@@ -8,6 +8,8 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -24,9 +26,9 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
         parent::__construct($registry, Order::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Order
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Order
     {
-        $order = parent::find($id, $lockMode, $lockVersion);
+        $order = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $order instanceof Order ? $order : null;
     }

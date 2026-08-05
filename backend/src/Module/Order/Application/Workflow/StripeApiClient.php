@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Order\Application\Port\StripeRefundClient;
-use App\Shared\Infrastructure\Http\ExternalServiceException;
+use App\Shared\Application\Exception\ExternalServiceException;
 
 final class StripeApiClient implements StripeRefundClient
 {

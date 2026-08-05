@@ -9,7 +9,7 @@ use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Catalog\Application\Workflow\ProductShareEmailService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
-use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

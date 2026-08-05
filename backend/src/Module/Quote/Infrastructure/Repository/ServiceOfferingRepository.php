@@ -8,6 +8,8 @@ use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class ServiceOfferingRepository extends ServiceEntityRepository implements Servi
         parent::__construct($registry, ServiceOffering::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?ServiceOffering
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?ServiceOffering
     {
-        $service = parent::find($id, $lockMode, $lockVersion);
+        $service = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $service instanceof ServiceOffering ? $service : null;
     }

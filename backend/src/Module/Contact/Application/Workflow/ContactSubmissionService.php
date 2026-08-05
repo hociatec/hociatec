@@ -7,7 +7,7 @@ namespace App\Module\Contact\Application\Workflow;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
-use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Application\Exception\MailDeliveryException;
 use Psr\Log\LoggerInterface;
 
 final readonly class ContactSubmissionService

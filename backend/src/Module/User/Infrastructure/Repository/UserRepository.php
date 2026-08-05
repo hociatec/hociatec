@@ -7,6 +7,8 @@ namespace App\Module\User\Infrastructure\Repository;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,9 +24,9 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
         parent::__construct($registry, User::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?User
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?User
     {
-        $user = parent::find($id, $lockMode, $lockVersion);
+        $user = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $user instanceof User ? $user : null;
     }

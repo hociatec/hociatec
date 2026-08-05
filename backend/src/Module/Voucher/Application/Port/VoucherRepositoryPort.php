@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Voucher\Application\Port;
 
 use App\Module\Voucher\Domain\Entity\Voucher;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface VoucherRepositoryPort
 {

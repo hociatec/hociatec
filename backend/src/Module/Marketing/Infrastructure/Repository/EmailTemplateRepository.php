@@ -8,6 +8,8 @@ use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class EmailTemplateRepository extends ServiceEntityRepository implements EmailTe
         parent::__construct($registry, EmailTemplate::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?EmailTemplate
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?EmailTemplate
     {
-        $template = parent::find($id, $lockMode, $lockVersion);
+        $template = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $template instanceof EmailTemplate ? $template : null;
     }

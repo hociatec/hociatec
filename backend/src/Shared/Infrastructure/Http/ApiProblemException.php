@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
-interface ApiProblemException
+interface ApiProblemException extends \App\Shared\Application\Exception\ApiProblemException
 {
-    public function getStatusCode(): int;
 }

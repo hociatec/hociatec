@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Application\Port;
 
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface UserRepositoryPort
 {

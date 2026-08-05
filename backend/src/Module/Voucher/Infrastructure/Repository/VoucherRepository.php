@@ -9,6 +9,8 @@ use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,9 +24,9 @@ final class VoucherRepository extends ServiceEntityRepository implements Voucher
         parent::__construct($registry, Voucher::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
     {
-        $voucher = parent::find($id, $lockMode, $lockVersion);
+        $voucher = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $voucher instanceof Voucher ? $voucher : null;
     }

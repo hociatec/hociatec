@@ -10,6 +10,8 @@ use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,9 +25,9 @@ final class BugReportRepository extends ServiceEntityRepository implements BugRe
         parent::__construct($registry, BugReport::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BugReport
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BugReport
     {
-        $report = parent::find($id, $lockMode, $lockVersion);
+        $report = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $report instanceof BugReport ? $report : null;
     }

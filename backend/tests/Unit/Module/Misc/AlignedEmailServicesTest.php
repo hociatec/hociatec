@@ -23,7 +23,7 @@ use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;

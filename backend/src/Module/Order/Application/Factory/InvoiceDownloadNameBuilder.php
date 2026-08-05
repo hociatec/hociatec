@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Factory;
 
 use App\Module\Order\Domain\Entity\Order;
-use App\Shared\Infrastructure\Text\Slugifier;
+use App\Shared\Application\Text\Slugifier;
 
 final class InvoiceDownloadNameBuilder
 {

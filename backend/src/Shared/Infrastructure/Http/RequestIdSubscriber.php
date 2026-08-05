@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use App\Shared\Application\Http\RequestContext;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 final class RequestIdSubscriber implements EventSubscriberInterface
 {
     public const HEADER = 'X-Request-Id';
-    public const ATTRIBUTE = 'request_id';
+    public const ATTRIBUTE = RequestContext::REQUEST_ID_ATTRIBUTE;
 
     public static function getSubscribedEvents(): array
     {

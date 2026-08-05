@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Shared\Infrastructure\Text;
+namespace App\Shared\Application\Text;
 
 trait Slugifier
 {

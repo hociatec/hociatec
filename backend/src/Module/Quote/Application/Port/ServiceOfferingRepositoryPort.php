@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Quote\Application\Port;
 
 use App\Module\Quote\Domain\Entity\ServiceOffering;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface ServiceOfferingRepositoryPort
 {

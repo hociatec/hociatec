@@ -9,6 +9,8 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,9 +24,9 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
         parent::__construct($registry, Appointment::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Appointment
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Appointment
     {
-        $appointment = parent::find($id, $lockMode, $lockVersion);
+        $appointment = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $appointment instanceof Appointment ? $appointment : null;
     }

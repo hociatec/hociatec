@@ -8,6 +8,8 @@ use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 
 use App\Module\Appointment\Domain\Entity\Prestation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class PrestationRepository extends ServiceEntityRepository implements Prestation
         parent::__construct($registry, Prestation::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Prestation
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Prestation
     {
-        $prestation = parent::find($id, $lockMode, $lockVersion);
+        $prestation = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $prestation instanceof Prestation ? $prestation : null;
     }

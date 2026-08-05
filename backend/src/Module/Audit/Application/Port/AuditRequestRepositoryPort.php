@@ -6,7 +6,7 @@ namespace App\Module\Audit\Application\Port;
 
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface AuditRequestRepositoryPort
 {

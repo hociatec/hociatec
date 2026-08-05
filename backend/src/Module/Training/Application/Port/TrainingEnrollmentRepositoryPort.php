@@ -7,7 +7,7 @@ namespace App\Module\Training\Application\Port;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface TrainingEnrollmentRepositoryPort
 {

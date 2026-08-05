@@ -6,7 +6,7 @@ namespace App\Module\News\Application\Port;
 
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface NewsCommentRepositoryPort
 {

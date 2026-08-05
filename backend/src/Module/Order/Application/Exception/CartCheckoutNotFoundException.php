@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Exception;
 
-use App\Shared\Infrastructure\Http\ApiProblemException;
+use App\Shared\Application\Exception\ApiProblemException;
 
 final class CartCheckoutNotFoundException extends \RuntimeException implements ApiProblemException
 {

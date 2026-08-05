@@ -9,6 +9,8 @@ use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,9 +24,9 @@ final class BetaTesterProfileRepository extends ServiceEntityRepository implemen
         parent::__construct($registry, BetaTesterProfile::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BetaTesterProfile
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BetaTesterProfile
     {
-        $profile = parent::find($id, $lockMode, $lockVersion);
+        $profile = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $profile instanceof BetaTesterProfile ? $profile : null;
     }

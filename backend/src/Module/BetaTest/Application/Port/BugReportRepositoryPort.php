@@ -7,7 +7,7 @@ namespace App\Module\BetaTest\Application\Port;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface BugReportRepositoryPort
 {

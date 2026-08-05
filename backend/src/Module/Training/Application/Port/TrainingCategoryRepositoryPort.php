@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\Application\Port;
 
 use App\Module\Training\Domain\Entity\TrainingCategory;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface TrainingCategoryRepositoryPort
 {

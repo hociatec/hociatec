@@ -11,7 +11,7 @@ use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Contact\Application\Workflow\ContactSubmissionService;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
-use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;

@@ -6,7 +6,7 @@ namespace App\Module\Order\Application\Handler;
 
 use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Shared\Infrastructure\Http\ExternalServiceException;
+use App\Shared\Application\Exception\ExternalServiceException;
 
 final readonly class StripeCheckoutSessionExpirer
 {

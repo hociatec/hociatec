@@ -20,7 +20,7 @@ use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\Http\ExternalServiceException;
+use App\Shared\Application\Exception\ExternalServiceException;
 
 final readonly class RefundOperationsService
 {

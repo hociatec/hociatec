@@ -30,7 +30,7 @@ use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Http\ExternalServiceException;
+use App\Shared\Application\Exception\ExternalServiceException;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;

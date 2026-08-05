@@ -8,7 +8,7 @@ use App\Module\Training\Application\DTO\TrainingInput;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
 use App\Shared\Application\UnitOfWork;
-use App\Shared\Infrastructure\Text\Slugifier;
+use App\Shared\Application\Text\Slugifier;
 
 final class TrainingWriter
 {

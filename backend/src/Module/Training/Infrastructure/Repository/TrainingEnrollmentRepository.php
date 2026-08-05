@@ -10,6 +10,8 @@ use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class TrainingEnrollmentRepository extends ServiceEntityRepository implements Tr
         parent::__construct($registry, TrainingEnrollment::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingEnrollment
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingEnrollment
     {
-        $enrollment = parent::find($id, $lockMode, $lockVersion);
+        $enrollment = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $enrollment instanceof TrainingEnrollment ? $enrollment : null;
     }

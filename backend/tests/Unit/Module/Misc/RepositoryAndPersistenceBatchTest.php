@@ -60,7 +60,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -225,8 +225,8 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
         (new PrestationPersistence($entityManager))->delete(new Prestation('Diag', 30, 1000));
         (new StripeWebhookEventPersistence($entityManager))->save(new StripeWebhookEvent('evt_1', 'checkout.session.completed', '{}'));
         (new StripeWebhookEventPersistence($entityManager))->commit();
-        (new OperationsPersistence($entityManager))->persist(new \stdClass());
-        (new OperationsPersistence($entityManager))->commit();
+        (new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager))->persist(new \stdClass());
+        (new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager))->commit();
     }
 
     private function repository(string $repositoryClass, string $entityClass): object

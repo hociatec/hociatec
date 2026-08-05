@@ -52,6 +52,9 @@ services:
     App\Shared\Application\UnitOfWork:
         alias: App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork
 
+    App\Module\Admin\Application\Operations\Persistence\OperationsPersistence:
+        alias: App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence
+
     App\Module\Auth\Application\Workflow\PasswordResetEmailService:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'

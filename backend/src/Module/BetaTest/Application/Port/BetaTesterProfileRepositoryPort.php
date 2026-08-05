@@ -6,7 +6,7 @@ namespace App\Module\BetaTest\Application\Port;
 
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface BetaTesterProfileRepositoryPort
 {

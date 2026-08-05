@@ -21,7 +21,7 @@ use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -87,7 +87,7 @@ final class RefundOperationsServiceTest extends TestCase
             $this->unusedPayments(),
             $stripe,
             new OrderEventLogger(new OrderEventPersistence($entityManager)),
-            new OperationsPersistence($entityManager),
+            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
             new class implements TransactionManager {
                 public function transactional(\Closure $operation): mixed
                 {

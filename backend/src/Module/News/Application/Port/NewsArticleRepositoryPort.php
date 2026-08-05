@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\News\Application\Port;
 
 use App\Module\News\Domain\Entity\NewsArticle;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface NewsArticleRepositoryPort
 {

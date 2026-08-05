@@ -8,6 +8,8 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
         parent::__construct($registry, Quote::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Quote
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Quote
     {
-        $quote = parent::find($id, $lockMode, $lockVersion);
+        $quote = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $quote instanceof Quote ? $quote : null;
     }

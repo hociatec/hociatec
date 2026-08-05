@@ -6,7 +6,7 @@ namespace App\Module\Outbox\Application;
 
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Shared\Application\UnitOfWork;
-use App\Shared\Infrastructure\Http\RequestIdSubscriber;
+use App\Shared\Application\Http\RequestContext;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class Outbox
@@ -34,7 +34,7 @@ final readonly class Outbox
     private function withRequestId(array $payload): array
     {
         $request = $this->requestStack?->getCurrentRequest();
-        $requestId = $request?->attributes->get(RequestIdSubscriber::ATTRIBUTE);
+        $requestId = $request?->attributes->get(RequestContext::REQUEST_ID_ATTRIBUTE);
         if (!\is_string($requestId) || '' === $requestId) {
             return $payload;
         }

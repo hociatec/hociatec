@@ -6,7 +6,7 @@ namespace App\Module\Appointment\Application\Port;
 
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface AppointmentRepositoryPort
 {

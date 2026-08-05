@@ -8,6 +8,8 @@ use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ final class BetaCampaignRepository extends ServiceEntityRepository implements Be
         parent::__construct($registry, BetaCampaign::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BetaCampaign
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?BetaCampaign
     {
-        $campaign = parent::find($id, $lockMode, $lockVersion);
+        $campaign = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $campaign instanceof BetaCampaign ? $campaign : null;
     }

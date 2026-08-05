@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Support\Application\Port;
 
 use App\Module\Support\Domain\Entity\SupportRequest;
-use Doctrine\DBAL\LockMode;
+use App\Shared\Application\LockMode;
 
 interface SupportRequestRepositoryPort
 {

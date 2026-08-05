@@ -8,6 +8,8 @@ use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPor
 
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 

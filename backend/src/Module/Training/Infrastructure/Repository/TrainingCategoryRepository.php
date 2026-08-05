@@ -8,6 +8,8 @@ use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -19,9 +21,9 @@ class TrainingCategoryRepository extends ServiceEntityRepository implements Trai
         parent::__construct($registry, TrainingCategory::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingCategory
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?TrainingCategory
     {
-        $category = parent::find($id, $lockMode, $lockVersion);
+        $category = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $category instanceof TrainingCategory ? $category : null;
     }

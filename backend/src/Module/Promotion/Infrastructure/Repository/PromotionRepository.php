@@ -10,6 +10,8 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,9 +25,9 @@ class PromotionRepository extends ServiceEntityRepository implements PromotionRe
         parent::__construct($registry, Promotion::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Promotion
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Promotion
     {
-        $promotion = parent::find($id, $lockMode, $lockVersion);
+        $promotion = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $promotion instanceof Promotion ? $promotion : null;
     }

@@ -8,6 +8,8 @@ use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 
 use App\Module\Catalog\Domain\Entity\Category;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use App\Shared\Application\LockMode as ApplicationLockMode;
+use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,9 +23,9 @@ class CategoryRepository extends ServiceEntityRepository implements CategoryRepo
         parent::__construct($registry, Category::class);
     }
 
-    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Category
+    public function find(mixed $id, ApplicationLockMode|LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Category
     {
-        $category = parent::find($id, $lockMode, $lockVersion);
+        $category = parent::find($id, DoctrineLockModeMapper::toDoctrine($lockMode), $lockVersion);
 
         return $category instanceof Category ? $category : null;
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Workflow;
 
-use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use App\Shared\Application\Http\RateLimitKeyFactory;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\RateLimiter\RateLimiterFactory;

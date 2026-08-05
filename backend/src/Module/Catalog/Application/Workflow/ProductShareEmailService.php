@@ -6,7 +6,7 @@ namespace App\Module\Catalog\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
-use App\Shared\Infrastructure\Mail\MailDeliveryException;
+use App\Shared\Application\Exception\MailDeliveryException;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;

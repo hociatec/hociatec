@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Exception;
 
-use App\Shared\Infrastructure\Http\ApiProblemException;
+use App\Shared\Application\Exception\ApiProblemException;
 
 class UserAlreadyExistsException extends \RuntimeException implements ApiProblemException
 {

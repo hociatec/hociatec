@@ -7,7 +7,7 @@ namespace App\Module\Order\Application\Workflow;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Shared\Application\UnitOfWork;
-use App\Shared\Infrastructure\Http\ExternalServiceException;
+use App\Shared\Application\Exception\ExternalServiceException;
 
 final class StripeCheckoutSessionSyncService
 {

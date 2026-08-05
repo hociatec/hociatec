@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Calculator;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
-use App\Shared\Infrastructure\Text\Slugifier;
+use App\Shared\Application\Text\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
