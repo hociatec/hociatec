@@ -15,7 +15,7 @@ import {
   adaptQuoteForSave,
   createDefaultQuoteValidity,
 } from '@/features/quotes/utils/quoteFormUtils';
-import { type AdminQuoteFormState } from '@/features/admin/quotes/components/AdminQuoteFormSections';
+import { type AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 import { useAdminQuoteItems } from './useAdminQuoteItems';
 import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';

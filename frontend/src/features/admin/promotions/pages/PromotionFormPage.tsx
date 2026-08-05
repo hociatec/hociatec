@@ -13,9 +13,9 @@ import {
   formatEuroInputFromCents,
   parseEuroInputToCents,
 } from '@/shared/lib/formatters';
+import type { PromotionFormState } from '@/features/admin/promotions/types/promotionFormTypes';
 
-export type FormState = { name: string; slug: string; description: string; discountType: 'percent' | 'fixed_cents'; discountValue: string; audienceKey: string; minimumCartTotalEuros: string; registeredDays: string; minimumOrders: string; inactiveDays: string; isActive: boolean; startsAt: string; endsAt: string };
-const emptyForm: FormState = { name: '', slug: '', description: '', discountType: 'percent', discountValue: '', audienceKey: 'all_users', minimumCartTotalEuros: '0', registeredDays: '30', minimumOrders: '3', inactiveDays: '90', isActive: true, startsAt: '', endsAt: '' };
+const emptyForm: PromotionFormState = { name: '', slug: '', description: '', discountType: 'percent', discountValue: '', audienceKey: 'all_users', minimumCartTotalEuros: '0', registeredDays: '30', minimumOrders: '3', inactiveDays: '90', isActive: true, startsAt: '', endsAt: '' };
 
 export const PromotionFormPage = () => {
   const { promotionId } = useParams();
@@ -23,7 +23,7 @@ export const PromotionFormPage = () => {
   useDocumentTitle(isEdit ? 'Admin - Modifier une promotion' : 'Admin - Nouvelle promotion');
   const navigate = useNavigate();
   const toast = useToast();
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<PromotionFormState>(emptyForm);
   const [audiences, setAudiences] = useState<Record<string, PromotionAudienceDefinition>>({});
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);

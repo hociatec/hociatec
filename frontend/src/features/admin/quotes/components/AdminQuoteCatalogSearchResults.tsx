@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { CatalogProduct } from '@/features/catalog/api';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import type { AdminQuoteFormState } from './AdminQuoteFormSections';
+import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 
 type AdminQuoteCatalogSearchResultsProps = {
   filteredProducts: CatalogProduct[];

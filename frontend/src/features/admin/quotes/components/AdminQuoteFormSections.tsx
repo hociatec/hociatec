@@ -3,36 +3,10 @@ import { type Dispatch, type SetStateAction } from 'react';
 import { AdminQuoteItemsTable } from '@/features/admin/quotes/components/AdminQuoteItemsTable';
 import { AdminQuoteCatalogSearchResults } from './AdminQuoteCatalogSearchResults';
 import { type CatalogProduct } from '@/features/catalog/api';
-import type {
-  QuoteDto,
-  QuoteInput,
-  QuoteServiceDto,
-  QuoteStatus,
-} from '@/features/quotes/types/quoteTypes';
+import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
 import { AdminQuoteCustomerFields, AdminQuoteSettingsSummary } from './AdminQuoteCustomerAndSettings';
-
-export type AdminQuoteFormState = {
-  id?: number;
-  number?: string;
-  status: QuoteStatus;
-  statusCode?: QuoteStatus;
-  statusLabel?: string;
-  customer: NonNullable<QuoteInput['customer']>;
-  items: QuoteItem[];
-  discountCents: number;
-  shippingCents: number;
-  conditions: string | null;
-  validFrom: string | null;
-  validUntil: string | null;
-  totals?: QuoteDto['totals'];
-  createdAt?: string;
-  updatedAt?: string;
-  sentAt?: string | null;
-  convertedOrder?: QuoteDto['convertedOrder'];
-  emailNotificationSent?: boolean;
-  emailNotificationError?: string | null;
-};
+import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 
 type QuoteEditorGridProps = {
   filteredProducts: CatalogProduct[];

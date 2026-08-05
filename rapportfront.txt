@@ -299,19 +299,6 @@ Créer plusieurs points d’entrée si nécessaire :
     features/catalog/types
 
 
-5.7 Détecter les dépendances circulaires
-----------------------------------------
-
-Avec 585 fichiers, des cycles sont probables.
-
-Ajouter en CI :
-- madge ;
-- dependency-cruiser ;
-- ou une règle ESLint dédiée.
-
-Les cycles entre contextes, APIs et utilitaires peuvent produire des valeurs undefined selon l’ordre d’import.
-
-
 5.8 Réduire les imports globaux de CSS
 --------------------------------------
 

@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 
 import { formatQuotePrice } from '@/features/quotes/utils/quoteFormUtils';
 import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
-import type { AdminQuoteFormState } from './AdminQuoteFormSections';
+import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 
 type Props = {
   quote: AdminQuoteFormState;

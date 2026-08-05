@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { CatalogProduct } from '@/features/catalog/api';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import type { QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
-import type { AdminQuoteFormState } from '@/features/admin/quotes/components/AdminQuoteFormSections';
+import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
 
 type UseAdminQuoteItemsParams = {
   products: CatalogProduct[];

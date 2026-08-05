@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { PromotionAudienceDefinition } from '@/features/admin/promotions/api';
-import type { FormState } from '@/features/admin/promotions/pages/PromotionFormPage';
+import type { PromotionFormState } from '@/features/admin/promotions/types/promotionFormTypes';
 
-export const PromotionFormFields = ({ form, setForm, audiences }: { form: FormState; setForm: Dispatch<SetStateAction<FormState>>; audiences: Record<string, PromotionAudienceDefinition> }) => (
+export const PromotionFormFields = ({ form, setForm, audiences }: { form: PromotionFormState; setForm: Dispatch<SetStateAction<PromotionFormState>>; audiences: Record<string, PromotionAudienceDefinition> }) => (
   <>
     <label className="register-form__field"><span className="register-form__label">Nom</span><input className="register-form__input" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} /></label>
     <label className="register-form__field"><span className="register-form__label">Slug</span><input className="register-form__input" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} /></label>

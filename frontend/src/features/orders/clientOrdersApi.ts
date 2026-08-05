@@ -1,14 +1,8 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
-import type { OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
+import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
 import { parseCheckoutRedirect, parseOrder, parsePendingReview } from './orderValidation';
-
-export interface CheckoutRedirectDto {
-  mode: 'redirect';
-  checkoutUrl: string;
-  checkoutSessionId: string;
-}
 
 type CheckoutResponseDto = CheckoutRedirectDto | { order: OrderDto } | OrderDto;
 

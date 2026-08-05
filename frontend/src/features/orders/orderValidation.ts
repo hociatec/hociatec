@@ -9,7 +9,6 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/apiValidation';
-import type { CheckoutRedirectDto } from './clientOrdersApi';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
@@ -23,6 +22,7 @@ import type {
   OrderStatusOptionDto,
   PendingReviewDto,
   ProductReviewDto,
+  CheckoutRedirectDto,
 } from './orderTypes';
 
 const ORDER_STATUSES = new Set(['pending', 'confirmed', 'delivered', 'cancelled']);

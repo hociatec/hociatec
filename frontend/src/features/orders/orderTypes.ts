@@ -191,3 +191,9 @@ export interface PendingReviewDto {
     sku: string;
   } | null;
 }
+
+export interface CheckoutRedirectDto {
+  mode: 'redirect';
+  checkoutUrl: string;
+  checkoutSessionId: string;
+}
