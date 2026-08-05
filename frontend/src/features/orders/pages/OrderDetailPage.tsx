@@ -11,6 +11,9 @@ export const OrderDetailPage = () => {
   useDocumentTitle('Détail de la commande');
   const {
     canDownloadInvoice,
+    canCancel,
+    canPay,
+    cancelling,
     error,
     getReviewForm,
     handlePayOrder,
@@ -42,6 +45,9 @@ export const OrderDetailPage = () => {
               order={order}
               onPay={() => void handlePayOrder()}
               onCancel={() => void handleCancelOrder()}
+              canCancel={canCancel}
+              canPay={canPay}
+              cancelling={cancelling}
               paying={paying}
             />
 

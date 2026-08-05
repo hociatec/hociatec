@@ -103,7 +103,7 @@ export const MyOrdersPage = () => {
                             onClick={() => void handlePayOrder(o.id)}
                             disabled={payingOrderId === o.id}
                           >
-                            {payingOrderId === o.id ? 'Redirection...' : 'Régler'}
+                            {payingOrderId === o.id ? 'Préparation du paiement...' : 'Régler'}
                           </button>
                         )}
 

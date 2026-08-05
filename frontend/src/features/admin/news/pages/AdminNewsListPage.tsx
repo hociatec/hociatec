@@ -7,12 +7,14 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
+import { useConfirm } from '@/shared/components/ui/confirm';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
 
 export const AdminNewsListPage = () => {
   useDocumentTitle('Admin - Actualités');
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const newsQuery = useQuery({
@@ -33,12 +35,32 @@ export const AdminNewsListPage = () => {
   });
 
   const handleDelete = async (article: NewsArticleDto) => {
-    if (!window.confirm(`Supprimer l’actualité « ${article.title} » ?`)) return;
+    if (
+      !(await confirm({
+        title: 'Supprimer l’actualité',
+        description: `Supprimer définitivement l’actualité « ${article.title} » ?`,
+        confirmLabel: 'Supprimer',
+        cancelLabel: 'Annuler',
+      }))
+    ) {
+      return;
+    }
+
     deleteMutation.mutate(article.id);
   };
 
   const handleSendEmail = async (article: NewsArticleDto) => {
-    if (!window.confirm(`Envoyer l’actualité « ${article.title} » par e-mail aux abonnés ?`)) return;
+    if (
+      !(await confirm({
+        title: 'Envoyer l’actualité',
+        description: `Planifier l’envoi de l’actualité « ${article.title} » aux abonnés ?`,
+        confirmLabel: 'Envoyer',
+        cancelLabel: 'Annuler',
+      }))
+    ) {
+      return;
+    }
+
     sendEmailMutation.mutate(article.id);
   };
 
@@ -59,7 +81,7 @@ export const AdminNewsListPage = () => {
       <div className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
         <SearchFilter value={query} onChange={setQuery} placeholder="Rechercher une actualité..." />
       </div>
-      <AdminListState loading={newsQuery.isLoading} isEmpty={items.length === 0} loadingLabel="Chargement des actualités..." emptyLabel="Aucune actualité.">
+      <AdminListState loading={newsQuery.isLoading} isEmpty={!newsQuery.error && items.length === 0} loadingLabel="Chargement des actualités..." emptyLabel="Aucune actualité.">
         <AdminTableShell>
           <table className="catalog-admin-table">
             <thead>

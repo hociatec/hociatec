@@ -14,6 +14,11 @@ import {
 } from '@/features/orders/api';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { orderQueryKeys } from '@/shared/lib/queryKeys';
+import {
+  canCancelOrderStatus,
+  canDownloadInvoiceForOrderStatus,
+  canPayOrderStatus,
+} from '@/features/orders/models/orderModel';
 
 export type ReviewFormState = {
   score: number;
@@ -86,7 +91,9 @@ export const useOrderDetail = () => {
   const error =
     orderQuery.error?.message ??
     (payMutation.error instanceof Error ? payMutation.error.message : null);
-  const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
+  const canPay = order ? canPayOrderStatus(order.status) : false;
+  const canCancel = order ? canCancelOrderStatus(order.status) : false;
+  const canDownloadInvoice = order ? canDownloadInvoiceForOrderStatus(order.status) : false;
 
   const getReviewForm = (orderItemId: number): ReviewFormState =>
     reviewForms[orderItemId] ?? emptyReviewForm;
@@ -142,13 +149,13 @@ export const useOrderDetail = () => {
   };
 
   const handlePayOrder = async () => {
-    if (!order) return;
+    if (!order || !canPay || payMutation.isPending) return;
 
     payMutation.mutate(order.id);
   };
 
   const handleCancelOrder = async () => {
-    if (!order) return;
+    if (!order || !canCancel || cancelMutation.isPending) return;
     cancelMutation.mutate(order.id);
   };
   const handleDownloadInvoicePdf = () =>
@@ -158,6 +165,8 @@ export const useOrderDetail = () => {
 
   return {
     canDownloadInvoice,
+    canPay,
+    canCancel,
     error,
     getReviewForm,
     handlePayOrder,
@@ -169,6 +178,7 @@ export const useOrderDetail = () => {
     justConfirmed,
     order,
     paying: payMutation.isPending,
+    cancelling: cancelMutation.isPending,
     retry: orderQuery.refetch,
     updateReviewForm,
   };

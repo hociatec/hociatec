@@ -25,6 +25,13 @@ export type OrderViewModel = Order & {
   canDownloadInvoice: boolean;
 };
 
+export const canPayOrderStatus = (status: OrderStatus) => status === 'pending';
+
+export const canCancelOrderStatus = (status: OrderStatus) => status === 'pending';
+
+export const canDownloadInvoiceForOrderStatus = (status: OrderStatus) =>
+  status !== 'pending' && status !== 'cancelled';
+
 export const mapOrderDtoToOrder = (order: OrderDto): Order => ({
   id: toOrderId(order.id),
   number: order.number,
@@ -45,9 +52,9 @@ export const mapOrderToViewModel = (order: Order): OrderViewModel => ({
     order.pendingReviewsCount > 0
       ? `${order.pendingReviewsCount} produit${order.pendingReviewsCount > 1 ? 's' : ''}`
       : 'Aucun',
-  canPay: order.status === 'pending',
-  canCancel: order.status === 'pending',
-  canDownloadInvoice: order.status !== 'pending' && order.status !== 'cancelled',
+  canPay: canPayOrderStatus(order.status),
+  canCancel: canCancelOrderStatus(order.status),
+  canDownloadInvoice: canDownloadInvoiceForOrderStatus(order.status),
 });
 
 export const mapOrderDtoToViewModel = (order: OrderDto): OrderViewModel =>

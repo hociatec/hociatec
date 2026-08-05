@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/features/auth/publicApi';
 import { hasPermission } from '@/features/auth/publicApi';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
+import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import {
@@ -24,6 +25,7 @@ export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();
   const isAdmin = hasPermission(user, 'news.comments.moderate');
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const toast = useToast();
   const [page, setPage] = useState(1);
   const [content, setContent] = useState('');
@@ -66,7 +68,17 @@ export const NewsComments = ({ slug }: { slug: string }) => {
   };
 
   const handleDelete = async (comment: NewsCommentDto) => {
-    if (!window.confirm('Supprimer ce commentaire ?')) return;
+    if (
+      !(await confirm({
+        title: 'Supprimer le commentaire',
+        description: 'Supprimer définitivement ce commentaire ?',
+        confirmLabel: 'Supprimer',
+        cancelLabel: 'Annuler',
+      }))
+    ) {
+      return;
+    }
+
     await deleteMutation.mutateAsync(comment);
   };
 

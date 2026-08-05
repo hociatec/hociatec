@@ -8,6 +8,7 @@ import { formatVariantDetails } from '@/features/admin/catalog/utils/productForm
 import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { useConfirm } from '@/shared/components/ui/confirm';
 
 type UseProductFormActionsParams = {
   isEdit: boolean;
@@ -42,6 +43,7 @@ export const useProductFormActions = ({
 }: UseProductFormActionsParams) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const deleteVariantMutation = useMutation({
     mutationFn: deleteProduct,
     onSuccess: (response, variantId) => {
@@ -75,9 +77,18 @@ export const useProductFormActions = ({
     onError: (error) => onError(getHttpErrorMessage(error, "Impossible d'enregistrer le produit.")),
   });
 
-  const handleDeleteVariant = (variant: CatalogProduct) => {
+  const handleDeleteVariant = async (variant: CatalogProduct) => {
     if (groupVariants.length <= 1 || deleteVariantMutation.isPending) return;
-    if (!window.confirm(`Supprimer la variante ${formatVariantDetails(variant)} ?`)) return;
+    if (
+      !(await confirm({
+        title: 'Supprimer la variante',
+        description: `Supprimer définitivement la variante ${formatVariantDetails(variant)} ?`,
+        confirmLabel: 'Supprimer',
+        cancelLabel: 'Annuler',
+      }))
+    ) {
+      return;
+    }
 
     onError(null);
     onMessage(null);

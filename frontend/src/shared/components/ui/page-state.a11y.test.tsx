@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import axe from 'axe-core';
 
-import { ErrorState, FeedbackMessage } from './page-state';
+import { ErrorState, FeedbackMessage, ForbiddenState, NotFoundState } from './page-state';
 
 const runAxe = async (element: Element) => {
   const result = await axe.run(element);
@@ -31,6 +31,18 @@ describe('page state accessibility', () => {
 
     expect(getByText('Erreur de validation.').getAttribute('role')).toBe('alert');
     expect(getByText('Enregistré.').getAttribute('role')).toBe('status');
+    expect(await runAxe(container)).toEqual([]);
+  });
+
+  it('exposes forbidden and not-found states with stable semantics', async () => {
+    const { container, getByText } = render(
+      <>
+        <ForbiddenState>Accès refusé.</ForbiddenState>
+        <NotFoundState>Ressource introuvable.</NotFoundState>
+      </>,
+    );
+
+    expect(getByText('Accès refusé.').getAttribute('role')).toBe('alert');
     expect(await runAxe(container)).toEqual([]);
   });
 });

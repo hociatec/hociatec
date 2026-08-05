@@ -1,4 +1,5 @@
 const currencyFormatters = new Map<string, Intl.NumberFormat>();
+const FRANCE_TIME_ZONE = 'Europe/Paris';
 
 const getCurrencyFormatter = (currency: string) => {
   const key = `fr-FR:${currency}`;
@@ -78,7 +79,11 @@ export const formatOptionalFrenchDateTime = (value?: string | null) => {
   const date = parseApiDate(value);
   if (!date) return '-';
 
-  return date.toLocaleString('fr-FR');
+  return date.toLocaleString('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: FRANCE_TIME_ZONE,
+  }) + ', heure de Paris';
 };
 
 export const formatFrenchDateTime = (value: string) => {
@@ -91,7 +96,8 @@ export const formatFrenchDateTime = (value: string) => {
   return date.toLocaleString('fr-FR', {
     dateStyle: 'medium',
     timeStyle: 'short',
-  });
+    timeZone: FRANCE_TIME_ZONE,
+  }) + ', heure de Paris';
 };
 
 export const formatFrenchDateTimeFull = (value: string) => {
@@ -104,8 +110,11 @@ export const formatFrenchDateTimeFull = (value: string) => {
   return date.toLocaleString('fr-FR', {
     dateStyle: 'full',
     timeStyle: 'short',
-  });
+    timeZone: FRANCE_TIME_ZONE,
+  }) + ', heure de Paris';
 };
+
+export const formatFrenchDateTimeWithZone = (value: string) => formatFrenchDateTimeFull(value);
 
 export const formatFrenchTime = (value: string) => {
   const date = parseApiDate(value);

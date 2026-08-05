@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatApiDateForDateInput,
   formatApiDateForDateTimeInput,
+  formatFrenchDateTimeWithZone,
   formatOptionalFrenchDateTime,
   parseApiDate,
 } from './formatters';
@@ -20,5 +21,9 @@ describe('date formatters', () => {
   it('rejects invalid API dates', () => {
     expect(parseApiDate('05/08/2026 03:30')).toBeNull();
     expect(formatOptionalFrenchDateTime('not-a-date')).toBe('-');
+  });
+
+  it('formats user-facing datetimes with the Paris time zone', () => {
+    expect(formatFrenchDateTimeWithZone('2026-08-05T12:30:00Z')).toContain('heure');
   });
 });

@@ -78,6 +78,20 @@ export const StableContent = ({
 
 export const EmptyState = ({ children }: PropsWithChildren) => <PageState>{children}</PageState>;
 
+export const PageLoading = LoadingState;
+
+export const ForbiddenState = ({
+  children = 'Vous n’avez pas accès à cette page.',
+}: PropsWithChildren) => (
+  <PageState variant="error" role="alert">
+    {children}
+  </PageState>
+);
+
+export const NotFoundState = ({
+  children = 'La ressource demandée est introuvable.',
+}: PropsWithChildren) => <PageState>{children}</PageState>;
+
 export const ErrorState = ({
   actionLabel = 'Réessayer',
   children,
@@ -97,6 +111,8 @@ export const ErrorState = ({
     ) : null}
   </PageState>
 );
+
+export const PageError = ErrorState;
 
 export const FeedbackMessage = ({
   children,

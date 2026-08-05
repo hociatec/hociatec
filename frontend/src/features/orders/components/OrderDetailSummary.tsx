@@ -16,10 +16,21 @@ type OrderDetailSummaryProps = {
   order: OrderDto;
   onPay: () => void;
   onCancel: () => void;
+  canCancel: boolean;
+  canPay: boolean;
+  cancelling: boolean;
   paying: boolean;
 };
 
-export const OrderDetailSummary = ({ order, onPay, onCancel, paying }: OrderDetailSummaryProps) => (
+export const OrderDetailSummary = ({
+  canCancel,
+  canPay,
+  cancelling,
+  order,
+  onPay,
+  onCancel,
+  paying,
+}: OrderDetailSummaryProps) => (
   <div className="flex items-center justify-between">
     <div>
       <div className="font-medium">Commande {order.number}</div>
@@ -37,33 +48,47 @@ export const OrderDetailSummary = ({ order, onPay, onCancel, paying }: OrderDeta
       ) : null}
       <div className="font-semibold">{formatEuroCents(order.totalPriceCents)}</div>
       <div className="text-sm capitalize">Statut: {order.statusLabel}</div>
-      {order.status === 'pending' ? (
+      {canPay || canCancel ? (
         <>
-          <button
-            type="button"
-            className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={onPay}
-            disabled={paying}
-          >
-            {paying ? 'Redirection...' : 'Régler cette commande'}
-          </button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button type="button" className="text-red-600 underline">Annuler la commande</button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Voulez-vous annuler cette commande en attente ? Cette action est irréversible.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Non</AlertDialogCancel>
-                <AlertDialogAction onClick={onCancel}>Oui, annuler</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {canPay ? (
+            <button
+              type="button"
+              className="inline-flex items-center rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={onPay}
+              disabled={paying}
+              aria-busy={paying || undefined}
+            >
+              {paying ? 'Préparation du paiement...' : 'Régler cette commande'}
+            </button>
+          ) : null}
+          {canCancel ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  className="text-red-600 underline disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={cancelling}
+                  aria-busy={cancelling || undefined}
+                >
+                  {cancelling ? 'Annulation...' : 'Annuler la commande'}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Voulez-vous annuler cette commande en attente ? Cette action est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Non</AlertDialogCancel>
+                  <AlertDialogAction onClick={onCancel} disabled={cancelling}>
+                    Oui, annuler
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
         </>
       ) : null}
     </div>
