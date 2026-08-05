@@ -661,16 +661,6 @@ Il faut éviter :
 - annonces lors de simples mouvements visuels.
 
 
-10.5 Respecter prefers-reduced-motion
--------------------------------------
-
-Désactiver ou réduire :
-- animations de modales ;
-- transitions importantes ;
-- loaders animés ;
-- défilements automatiques.
-
-
 10.6 Vérifier le contraste
 --------------------------
 

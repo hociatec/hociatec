@@ -84,6 +84,26 @@ textarea {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-property: none !important;
+  }
+
+  :where(
+    .hover\:-translate-y-0\.5:hover,
+    .hover\:-translate-y-1:hover,
+    .hover\:scale-105:hover,
+    .hover\:scale-110:hover,
+    .card-surface:hover,
+    .catalog-card:hover,
+    .home-card:hover,
+    .home-product-card:hover,
+    .product-card:hover,
+    .product-card__media:hover img,
+    .site-header__link:hover,
+    .site-header__cta:hover,
+    .btn-primary:hover,
+    .btn-secondary:hover
+  ) {
+    transform: none !important;
   }
 }
 
