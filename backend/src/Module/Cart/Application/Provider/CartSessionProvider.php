@@ -67,7 +67,7 @@ final readonly class CartSessionProvider
     private function create(): CartSession
     {
         do {
-            $token = bin2hex(random_bytes(16));
+            $token = bin2hex(random_bytes(32));
         } while (null !== $this->cartSessions->findOneByToken($token));
 
         $cart = new CartSession($token);

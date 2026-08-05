@@ -42,7 +42,28 @@ describe('parseOrder', () => {
 });
 
 describe('parseCheckoutRedirect', () => {
+  it('accepts trusted Stripe checkout redirect payloads', () => {
+    expect(
+      parseCheckoutRedirect({
+        mode: 'redirect',
+        checkoutUrl: 'https://checkout.stripe.com/c/pay/cs_test_123',
+        checkoutSessionId: 'cs_test_123',
+      }),
+    ).toMatchObject({
+      mode: 'redirect',
+      checkoutSessionId: 'cs_test_123',
+    });
+  });
+
   it('rejects invalid checkout redirect payloads', () => {
     expect(() => parseCheckoutRedirect({ mode: 'inline', checkoutUrl: '/x' })).toThrow(ApiContractError);
+  });
+
+  it('rejects untrusted checkout redirect URLs', () => {
+    expect(() => parseCheckoutRedirect({
+      mode: 'redirect',
+      checkoutUrl: 'https://example.com/pay',
+      checkoutSessionId: 'cs_test_123',
+    })).toThrow(ApiContractError);
   });
 });

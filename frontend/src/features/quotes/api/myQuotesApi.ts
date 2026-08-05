@@ -2,13 +2,16 @@ import { httpClient } from '@/shared/lib/httpClient';
 import type { ApiResponse } from '@/shared/types/api';
 import type { DeleteDto, QuoteDto } from '../types/quoteTypes';
 import { extractQuoteApiError, unwrapQuoteApiData, unwrapQuoteApiResult } from './quoteApiShared';
+import { parseQuote } from '../quoteValidation';
 
 export const fetchMyQuotes = async (): Promise<QuoteDto[]> =>
   unwrapQuoteApiData(
     (await httpClient.get<ApiResponse<{ items: QuoteDto[] }>>('/api/quotes/me')).data,
-  ).items;
+  ).items.map(parseQuote);
 export const fetchMyQuote = async (id: number) =>
-  unwrapQuoteApiData((await httpClient.get<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}`)).data);
+  parseQuote(
+    unwrapQuoteApiData((await httpClient.get<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}`)).data),
+  );
 export const generateMyQuotePdf = async (id: number) =>
   (
     await httpClient.post(`/api/quotes/me/${id}/pdf`, null, {
@@ -22,18 +25,22 @@ export const deleteMyQuote = async (id: number) =>
 
 export const acceptMyQuote = async (id: number) => {
   try {
-    return unwrapQuoteApiResult(
+    const result = unwrapQuoteApiResult(
       (await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/accept`)).data,
     );
+
+    return { ...result, data: parseQuote(result.data) };
   } catch (error) {
     throw new Error(extractQuoteApiError(error, 'Impossible d’accepter le devis.'));
   }
 };
 export const refuseMyQuote = async (id: number) => {
   try {
-    return unwrapQuoteApiResult(
+    const result = unwrapQuoteApiResult(
       (await httpClient.post<ApiResponse<QuoteDto>>(`/api/quotes/me/${id}/refuse`)).data,
     );
+
+    return { ...result, data: parseQuote(result.data) };
   } catch (error) {
     throw new Error(extractQuoteApiError(error, 'Impossible de refuser le devis.'));
   }

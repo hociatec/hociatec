@@ -9,6 +9,7 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/apiValidation';
+import { isTrustedRedirectUrl } from '@/shared/lib/redirects';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
@@ -173,10 +174,14 @@ export const parseOrder = (value: unknown): OrderDto => {
 export const parseCheckoutRedirect = (value: unknown): CheckoutRedirectDto => {
   const redirect = requireRecord(value);
   if (redirect.mode !== 'redirect') throw new ApiContractError('Réponse paiement invalide.');
+  const checkoutUrl = requireString(redirect.checkoutUrl);
+  if (!isTrustedRedirectUrl(checkoutUrl)) {
+    throw new ApiContractError('URL de paiement non autorisée.');
+  }
 
   return {
     mode: 'redirect',
-    checkoutUrl: requireString(redirect.checkoutUrl),
+    checkoutUrl,
     checkoutSessionId: requireString(redirect.checkoutSessionId),
   };
 };

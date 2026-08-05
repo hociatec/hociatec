@@ -16,55 +16,6 @@ Limite de l’analyse :
 L’archive contient surtout le dossier src. Sans package.json, tsconfig, configuration Vite, ESLint, CI et lockfile, il n’est pas possible de confirmer que le projet compile ni d’auditer précisément les dépendances.
 
 
-1. SÉCURITÉ CRITIQUE
-=====================
-
-1.7 Ne pas faire confiance aux types TypeScript pour les données API
---------------------------------------------------------------------
-
-TypeScript vérifie le code à la compilation, pas les données reçues du PHP.
-
-Cette écriture :
-
-    const response = await httpClient.get<Order>('/orders/123');
-
-ne garantit pas que le serveur renvoie réellement un Order.
-
-Correction recommandée :
-
-    const OrderSchema = z.object({
-      id: z.string(),
-      status: z.enum(['pending', 'paid', 'cancelled']),
-      total: z.number().nonnegative(),
-    });
-
-    const order = OrderSchema.parse(response.data);
-
-À appliquer au minimum sur :
-- utilisateur connecté ;
-- commandes ;
-- paiements ;
-- devis ;
-- droits ;
-- produits administrables ;
-- URLs de paiement ;
-- imports et exports.
-
-
-1.8 Vérifier le stockage du token panier
-----------------------------------------
-
-Le frontend utilise un X-Cart-Token persistant.
-
-Ce token ne doit jamais :
-- donner accès aux données personnelles du client ;
-- permettre de lire un panier uniquement par connaissance de l’identifiant ;
-- être prédictible ;
-- rester valable indéfiniment ;
-- devenir un substitut à une session authentifiée.
-
-Le backend doit générer un token aléatoire suffisamment long, le faire expirer et éventuellement le hacher en base.
-
 3. CLIENT HTTP ET CONTRAT API
 =============================
 

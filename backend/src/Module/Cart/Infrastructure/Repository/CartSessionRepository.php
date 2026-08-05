@@ -26,7 +26,14 @@ final class CartSessionRepository extends ServiceEntityRepository implements Car
 
     public function findOneByToken(string $token): ?CartSession
     {
-        return $this->findOneBy(['token' => $token]);
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.token = :token')
+            ->andWhere('c.expiresAt > :now')
+            ->setParameter('token', $token)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findForUpdate(int $id): ?CartSession
@@ -38,14 +45,23 @@ final class CartSessionRepository extends ServiceEntityRepository implements Car
 
     public function findOneByUser(User $user): ?CartSession
     {
-        return $this->findOneBy(['user' => $user]);
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.user = :user')
+            ->andWhere('c.expiresAt > :now')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findOneByUserId(int $userId): ?CartSession
     {
         return $this->createQueryBuilder('c')
             ->andWhere('IDENTITY(c.user) = :uid')
+            ->andWhere('c.expiresAt > :now')
             ->setParameter('uid', $userId)
+            ->setParameter('now', new \DateTimeImmutable())
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

@@ -15,6 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class CartSession
 {
+    private const EXPIRATION_INTERVAL = 'P30D';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -34,6 +36,9 @@ class CartSession
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $expiresAt;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -56,6 +61,7 @@ class CartSession
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->expiresAt = $now->add(new \DateInterval(self::EXPIRATION_INTERVAL));
     }
 
     public function getId(): ?int
@@ -153,9 +159,21 @@ class CartSession
         return $this->updatedAt;
     }
 
+    public function getExpiresAt(): \DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function isExpired(?\DateTimeImmutable $now = null): bool
+    {
+        return $this->expiresAt <= ($now ?? new \DateTimeImmutable());
+    }
+
     public function touch(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
+        $this->updatedAt = $now;
+        $this->expiresAt = $now->add(new \DateInterval(self::EXPIRATION_INTERVAL));
     }
 
     public function getUser(): ?User
@@ -221,11 +239,12 @@ class CartSession
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->expiresAt = $now->add(new \DateInterval(self::EXPIRATION_INTERVAL));
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->touch();
     }
 }

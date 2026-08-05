@@ -11,6 +11,12 @@ import type {
   AdminQuoteEmailDto,
 } from '../types/quoteTypes';
 import { extractQuoteApiError, unwrapQuoteApiData, unwrapQuoteApiResult } from './quoteApiShared';
+import {
+  parseAdminQuoteEmail,
+  parseQuote,
+  parseQuoteService,
+  parseQuoteToOrder,
+} from '../quoteValidation';
 
 export interface QuoteMetadataOption { value: string; label: string }
 export interface AdminQuoteMetadataDto {
@@ -30,47 +36,62 @@ export const fetchAdminQuotes = async (params?: {
   const response = await httpClient.get<ApiResponse<{ items: QuoteDto[] }>>('/api/admin/quotes', {
     params,
   });
-  return unwrapQuoteApiData(response.data).items;
+  return unwrapQuoteApiData(response.data).items.map(parseQuote);
 };
 
 export const fetchAdminQuote = async (id: number) =>
-  unwrapQuoteApiData((await httpClient.get<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`)).data);
+  parseQuote(
+    unwrapQuoteApiData(
+      (await httpClient.get<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`)).data,
+    ),
+  );
 export const createAdminQuote = async (payload: QuoteInput) =>
-  unwrapQuoteApiData(
-    (await httpClient.post<ApiResponse<QuoteDto>>('/api/admin/quotes', payload)).data,
+  parseQuote(
+    unwrapQuoteApiData(
+      (await httpClient.post<ApiResponse<QuoteDto>>('/api/admin/quotes', payload)).data,
+    ),
   );
 export const updateAdminQuote = async (id: number, payload: QuoteInput) =>
-  unwrapQuoteApiData(
-    (await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`, payload)).data,
+  parseQuote(
+    unwrapQuoteApiData(
+      (await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}`, payload)).data,
+    ),
   );
 export const deleteAdminQuote = async (id: number) =>
   unwrapQuoteApiResult(
     (await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/quotes/${id}`)).data,
   );
-export const duplicateAdminQuote = async (id: number) =>
-  unwrapQuoteApiResult(
+export const duplicateAdminQuote = async (id: number) => {
+  const result = unwrapQuoteApiResult(
     (await httpClient.post<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/duplicate`)).data,
   );
+
+  return { ...result, data: parseQuote(result.data) };
+};
 
 export const generateAdminQuotePdf = async (id: number) =>
   (await httpClient.post(`/api/admin/quotes/${id}/pdf`, null, { responseType: 'blob' }))
     .data as Blob;
 export const sendAdminQuoteEmail = async (id: number, to?: string) =>
-  unwrapQuoteApiData(
-    (
-      await httpClient.post<ApiResponse<AdminQuoteEmailDto>>(
-        `/api/admin/quotes/${id}/send-email`,
-        to ? { to } : {},
-      )
-    ).data,
+  parseAdminQuoteEmail(
+    unwrapQuoteApiData(
+      (
+        await httpClient.post<ApiResponse<AdminQuoteEmailDto>>(
+          `/api/admin/quotes/${id}/send-email`,
+          to ? { to } : {},
+        )
+      ).data,
+    ),
   );
 
 export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) => {
   try {
-    return unwrapQuoteApiResult(
+    const result = unwrapQuoteApiResult(
       (await httpClient.patch<ApiResponse<QuoteDto>>(`/api/admin/quotes/${id}/status`, { status }))
         .data,
     );
+
+    return { ...result, data: parseQuote(result.data) };
   } catch (error) {
     throw new Error(extractQuoteApiError(error, 'Mise à jour impossible.'));
   }
@@ -79,12 +100,14 @@ export const updateAdminQuoteStatus = async (id: number, status: QuoteStatus) =>
 export const convertAdminQuoteToOrder = async (reference: string | number) => {
   const encodedReference = encodeURIComponent(String(reference).trim());
   try {
-    return unwrapQuoteApiData(
-      (
-        await httpClient.post<ApiResponse<QuoteToOrderDto>>(
-          `/api/admin/operations/quotes/${encodedReference}/convert-to-order`,
-        )
-      ).data,
+    return parseQuoteToOrder(
+      unwrapQuoteApiData(
+        (
+          await httpClient.post<ApiResponse<QuoteToOrderDto>>(
+            `/api/admin/operations/quotes/${encodedReference}/convert-to-order`,
+          )
+        ).data,
+      ),
     );
   } catch (error) {
     throw new Error(extractQuoteApiError(error, 'Conversion impossible.'));
@@ -94,10 +117,12 @@ export const convertAdminQuoteToOrder = async (reference: string | number) => {
 export const fetchAdminQuoteServices = async (): Promise<QuoteServiceDto[]> =>
   unwrapQuoteApiData(
     (await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/admin/services')).data,
-  ).items;
+  ).items.map(parseQuoteService);
 export const fetchAdminQuoteService = async (id: number) =>
-  unwrapQuoteApiData(
-    (await httpClient.get<ApiResponse<QuoteServiceDto>>(`/api/admin/services/${id}`)).data,
+  parseQuoteService(
+    unwrapQuoteApiData(
+      (await httpClient.get<ApiResponse<QuoteServiceDto>>(`/api/admin/services/${id}`)).data,
+    ),
   );
 
 const toServiceFormData = (payload: Partial<QuoteServiceInput>) => {
@@ -116,8 +141,8 @@ const toServiceFormData = (payload: Partial<QuoteServiceInput>) => {
   return form;
 };
 
-export const createAdminQuoteService = async (payload: QuoteServiceInput) =>
-  unwrapQuoteApiResult(
+export const createAdminQuoteService = async (payload: QuoteServiceInput) => {
+  const result = unwrapQuoteApiResult(
     (
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         '/api/admin/services',
@@ -125,8 +150,11 @@ export const createAdminQuoteService = async (payload: QuoteServiceInput) =>
       )
     ).data,
   );
-export const updateAdminQuoteService = async (id: number, payload: Partial<QuoteServiceInput>) =>
-  unwrapQuoteApiResult(
+
+  return { ...result, data: parseQuoteService(result.data) };
+};
+export const updateAdminQuoteService = async (id: number, payload: Partial<QuoteServiceInput>) => {
+  const result = unwrapQuoteApiResult(
     (
       await httpClient.post<ApiResponse<QuoteServiceDto>>(
         `/api/admin/services/${id}`,
@@ -134,6 +162,9 @@ export const updateAdminQuoteService = async (id: number, payload: Partial<Quote
       )
     ).data,
   );
+
+  return { ...result, data: parseQuoteService(result.data) };
+};
 export const deleteAdminQuoteService = async (id: number) =>
   unwrapQuoteApiResult(
     (await httpClient.delete<ApiResponse<DeleteDto>>(`/api/admin/services/${id}`)).data,

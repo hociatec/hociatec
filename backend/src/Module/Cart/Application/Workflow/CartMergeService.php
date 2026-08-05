@@ -67,7 +67,7 @@ final class CartMergeService
     private function createCartForUser(User $user): CartSession
     {
         do {
-            $token = bin2hex(random_bytes(16));
+            $token = bin2hex(random_bytes(32));
         } while (null !== $this->carts->findOneByToken($token));
 
         $cart = new CartSession($token);
