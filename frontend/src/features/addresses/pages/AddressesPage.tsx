@@ -3,7 +3,6 @@ import { StableContent } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { AddressCard } from '@/features/addresses/components/AddressCard';
 import { AddressEditDialog } from '@/features/addresses/components/AddressEditDialog';
-import { AddressForm } from '@/features/addresses/components/AddressForm';
 import { useAddressesPage } from '@/features/addresses/hooks/useAddressesPage';
 
 import '@/features/addresses/AddressesPage.css';
@@ -15,20 +14,24 @@ export const AddressesPage = () => {
   return (
     <SiteLayout>
       <main className="mx-auto max-w-6xl px-4 py-10">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold text-brand-900">Mes adresses</h1>
-          <p className="mt-2 max-w-2xl text-stone-600">
-            Gérez vos adresses de livraison et les informations de facturation utilisées sur vos
-            commandes.
-          </p>
+        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-brand-900">Mes adresses</h1>
+            <p className="mt-2 max-w-2xl text-stone-600">
+              Gérez vos adresses de livraison et les informations de facturation utilisées sur vos
+              commandes.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="address-submit shrink-0"
+            onClick={page.openCreate}
+            aria-haspopup="dialog"
+          >
+            Ajouter une adresse
+          </button>
         </header>
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_1.4fr]">
-          <AddressForm
-            form={page.form}
-            saving={page.savingId === 'new'}
-            setForm={page.setForm}
-            onSubmit={page.handleCreate}
-          />
+        <div className="grid gap-6">
           <section className="rounded-xl border border-brand-100 bg-white p-6 shadow-sm">
             <div className="mb-5">
               <h2 className="text-xl font-semibold text-brand-900">Adresses enregistrées</h2>
@@ -62,12 +65,22 @@ export const AddressesPage = () => {
             </StableContent>
           </section>
         </div>
+        {page.creating && (
+          <AddressEditDialog
+            mode="create"
+            form={page.form}
+            saving={page.savingId === 'new'}
+            setForm={page.setForm}
+            onClose={page.closeCreate}
+            onSubmit={page.handleCreate}
+          />
+        )}
         {page.editing && (
           <AddressEditDialog
             form={page.editForm}
             saving={page.savingId === page.editing.id}
             setForm={page.setEditForm}
-            onClose={() => page.setEditing(null)}
+            onClose={page.closeEdit}
             onSubmit={page.handleUpdate}
           />
         )}

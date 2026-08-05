@@ -78,6 +78,10 @@ trait ProductPublicQueries
                 'c.slug AS categorySlug',
             ]);
 
+        if ('relevance' === $criteria->sort && null !== $criteria->search && '' !== trim($criteria->search)) {
+            $this->addRelevanceScoreSelect($qb, mb_strtolower(trim($criteria->search)));
+        }
+
         if (null !== $criteria->offset) {
             $qb->setFirstResult(max(0, $criteria->offset));
         }

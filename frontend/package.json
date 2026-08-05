@@ -17,6 +17,8 @@
         "lint:css": "stylelint \"src/**/*.css\"",
         "test": "vitest run",
         "test:e2e": "playwright test",
+        "test:e2e:smoke": "playwright test e2e/public-smoke.playwright.ts --grep-invert @visual",
+        "test:e2e:smoke:prod": "PLAYWRIGHT_BASE_URL=https://hociatec.fr playwright test e2e/public-smoke.playwright.ts --grep-invert @visual --project=chromium",
         "test:visual": "playwright test --grep @visual",
         "generate:api-types": "openapi-typescript ../backend/docs/openapi.yaml -o src/shared/api/generated/openapi.ts",
         "check:api-contract": "npm run generate:api-types && git diff --exit-code src/shared/api/generated/openapi.ts",

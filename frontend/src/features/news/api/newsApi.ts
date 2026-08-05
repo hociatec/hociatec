@@ -1,5 +1,17 @@
-import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
+import { isAxiosError } from 'axios';
+
+import { getHttpErrorMessage, httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
+
+export class NewsApiError extends Error {
+  readonly statusCode: number | undefined;
+
+  constructor(message: string, statusCode?: number) {
+    super(message);
+    this.name = 'NewsApiError';
+    this.statusCode = statusCode;
+  }
+}
 
 export interface NewsArticleDto {
   id: number;
@@ -68,6 +80,32 @@ export const fetchNewsArticle = async (
 
   if (isApiOk(data)) return data.data.article;
   throw new Error(data.status === 'error' ? data.message : 'Impossible de charger l’actualité.');
+};
+
+export const shareNewsArticleByEmail = async (
+  slug: string,
+  payload: { email: string },
+): Promise<{ sent: boolean; to: string; message: string }> => {
+  try {
+    const { data } = await httpClient.post<
+      ApiResponse<{ sent: boolean; to: string; message: string }>
+    >(`/api/public/news/${encodeURIComponent(slug)}/share`, payload);
+
+    if (isApiOk(data)) return data.data;
+    throw new NewsApiError(
+      data.status === 'error' ? data.message : "Impossible d'envoyer l’actualité par e-mail.",
+    );
+  } catch (error) {
+    if (error instanceof NewsApiError) throw error;
+    if (isAxiosError(error)) {
+      throw new NewsApiError(
+        getHttpErrorMessage(error, "Impossible d'envoyer l’actualité par e-mail."),
+        error.response?.status,
+      );
+    }
+
+    throw error;
+  }
 };
 
 export const fetchNewsComments = async (

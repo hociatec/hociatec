@@ -22,6 +22,7 @@ export const useAddressesPage = () => {
   const { show } = useToast();
   const queryClient = useQueryClient();
   const [savingId, setSavingId] = useState<number | 'new' | null>(null);
+  const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<AddressFormState>(emptyAddressForm);
   const [editing, setEditing] = useState<AddressDto | null>(null);
   const [editForm, setEditForm] = useState<AddressFormState>(emptyAddressForm);
@@ -35,6 +36,7 @@ export const useAddressesPage = () => {
     onSuccess: () => {
       void invalidateAddresses();
       setForm(emptyAddressForm());
+      setCreating(false);
       show('Adresse ajoutée', { variant: 'success' });
     },
     onError: (error) =>
@@ -88,9 +90,23 @@ export const useAddressesPage = () => {
     createMutation.mutate(addressFormToPayload(form));
   }, [createMutation, form]);
 
+  const openCreate = () => {
+    setForm(emptyAddressForm());
+    setCreating(true);
+  };
+  const closeCreate = () => {
+    if (savingId === 'new') return;
+    setCreating(false);
+    setForm(emptyAddressForm());
+  };
   const openEdit = (address: AddressDto) => {
     setEditing(address);
     setEditForm(addressToForm(address));
+  };
+  const closeEdit = () => {
+    if (savingId === editing?.id) return;
+    setEditing(null);
+    setEditForm(emptyAddressForm());
   };
   const handleUpdate = useCallback(() => {
     if (!editing) return;
@@ -111,16 +127,19 @@ export const useAddressesPage = () => {
     editForm,
     editing,
     form,
+    creating,
+    closeCreate,
+    closeEdit,
     handleCreate,
     handleDelete,
     handleSetDefault,
     handleUpdate,
     items: addressesQuery.data ?? [],
     loading: addressesQuery.isLoading,
+    openCreate,
     openEdit,
     savingId,
     setEditForm,
-    setEditing,
     setForm,
   };
 };

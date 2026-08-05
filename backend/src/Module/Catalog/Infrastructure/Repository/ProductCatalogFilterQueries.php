@@ -9,6 +9,13 @@ use Doctrine\ORM\QueryBuilder;
 
 trait ProductCatalogFilterQueries
 {
+    private const RELEVANCE_SCORE_SELECT = '(CASE WHEN LOWER(p.name) LIKE LOWER(:searchPrefix) THEN 120 ELSE 0 END
+                    + CASE WHEN LOWER(p.sku) LIKE LOWER(:searchPrefix) THEN 100 ELSE 0 END
+                    + CASE WHEN LOWER(b.name) LIKE LOWER(:searchPrefix) THEN 80 ELSE 0 END
+                    + CASE WHEN LOWER(c.name) LIKE LOWER(:searchPrefix) THEN 60 ELSE 0 END
+                    + CASE WHEN p.shortDescription IS NOT NULL AND LOWER(p.shortDescription) LIKE LOWER(:search) THEN 20 ELSE 0 END
+                    + CASE WHEN LOWER(p.description) LIKE LOWER(:search) THEN 10 ELSE 0 END) AS HIDDEN relevanceScore';
+
     private function applyPublishedFilters(QueryBuilder $qb, ProductCatalogCriteria $criteria): void
     {
         if (null !== $criteria->categorySlug && '' !== $criteria->categorySlug) {
@@ -66,16 +73,7 @@ trait ProductCatalogFilterQueries
             ->setParameter('search', sprintf('%%%s%%', $normalizedSearch));
 
         if ($withSort && 'relevance' === $sort) {
-            $qb
-                ->addSelect(
-                    '(CASE WHEN LOWER(p.name) LIKE LOWER(:searchPrefix) THEN 120 ELSE 0 END
-                    + CASE WHEN LOWER(p.sku) LIKE LOWER(:searchPrefix) THEN 100 ELSE 0 END
-                    + CASE WHEN LOWER(b.name) LIKE LOWER(:searchPrefix) THEN 80 ELSE 0 END
-                    + CASE WHEN LOWER(c.name) LIKE LOWER(:searchPrefix) THEN 60 ELSE 0 END
-                    + CASE WHEN p.shortDescription IS NOT NULL AND LOWER(p.shortDescription) LIKE LOWER(:search) THEN 20 ELSE 0 END
-                    + CASE WHEN LOWER(p.description) LIKE LOWER(:search) THEN 10 ELSE 0 END) AS HIDDEN relevanceScore'
-                )
-                ->setParameter('searchPrefix', sprintf('%s%%', $normalizedSearch));
+            $this->addRelevanceScoreSelect($qb, $normalizedSearch);
         }
     }
 
@@ -106,5 +104,12 @@ trait ProductCatalogFilterQueries
         $qb
             ->andWhere(sprintf('LOWER(%s) = LOWER(:%s)', $field, $parameter))
             ->setParameter($parameter, trim($value));
+    }
+
+    private function addRelevanceScoreSelect(QueryBuilder $qb, string $normalizedSearch): void
+    {
+        $qb
+            ->addSelect(self::RELEVANCE_SCORE_SELECT)
+            ->setParameter('searchPrefix', sprintf('%s%%', $normalizedSearch));
     }
 }

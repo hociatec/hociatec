@@ -37,6 +37,10 @@ framework:
             policy: 'sliding_window'
             limit: 10
             interval: '1 minute'
+        content_share_public:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 minute'
         beta_signup:
             policy: 'sliding_window'
             limit: 5

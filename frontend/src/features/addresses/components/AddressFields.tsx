@@ -21,6 +21,7 @@ export const AddressFields = ({
         placeholder="Prénom Nom ou Libellé du lieu"
         value={form.name}
         onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+        required
       />
     </label>
     <label className={labelClass}>
@@ -30,6 +31,7 @@ export const AddressFields = ({
         placeholder="Numéro et rue"
         value={form.address}
         onChange={(event) => setForm((current) => ({ ...current, address: event.target.value }))}
+        required
       />
     </label>
     <div className="grid gap-4 md:grid-cols-2">
@@ -42,6 +44,7 @@ export const AddressFields = ({
           onChange={(event) =>
             setForm((current) => ({ ...current, postalCode: event.target.value }))
           }
+          required
         />
       </label>
       <label className={labelClass}>
@@ -51,6 +54,7 @@ export const AddressFields = ({
           placeholder="Nanterre"
           value={form.city}
           onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))}
+          required
         />
       </label>
     </div>

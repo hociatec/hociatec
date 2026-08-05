@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 
 import type { NewsArticleDto } from '@/features/news/api/newsApi';
+import { NewsShareActions } from '@/features/news/components/NewsShareActions';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 const formatDate = (value: string | null) =>
@@ -17,11 +18,14 @@ export const NewsCard = ({ article }: { article: NewsArticleDto }) => (
       </Link>
     </h2>
     <p className="mt-3 line-clamp-4 text-sm leading-6 text-stone-600">{article.excerpt}</p>
-    <Link
-      to={`/actualites/${article.slug}`}
-      className="mt-auto pt-5 text-sm font-semibold text-brand-700 hover:text-brand-900"
-    >
-      Lire l’actualité
-    </Link>
+    <div className="mt-auto flex flex-col gap-4 pt-5">
+      <Link
+        to={`/actualites/${article.slug}`}
+        className="text-sm font-semibold text-brand-700 hover:text-brand-900"
+      >
+        Lire l’actualité
+      </Link>
+      <NewsShareActions article={article} compact />
+    </div>
   </article>
 );

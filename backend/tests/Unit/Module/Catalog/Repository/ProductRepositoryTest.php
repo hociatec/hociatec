@@ -53,6 +53,13 @@ final class ProductRepositoryTest extends TestCase
         $published = $repository->findPublished($publishedCriteria);
         self::assertCount(1, $published);
         self::assertSame($iphone->getId(), $published[0]->getId());
+        self::assertSame(
+            [(int) $iphone->getId()],
+            array_map(
+                static fn (array $product): int => (int) $product['id'],
+                $repository->findPublishedListProjection($publishedCriteria),
+            ),
+        );
         self::assertSame(1, $repository->countPublished($publishedCriteria->withoutSortAndPagination()));
 
         $facets = $repository->collectPublishedFacets(new ProductCatalogCriteria(categorySlug: 'phones'));

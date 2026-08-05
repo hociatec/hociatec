@@ -1,6 +1,7 @@
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { ProfileDangerZone } from '../components/ProfileDangerZone';
+import { ProfileEditDialog } from '../components/ProfileEditDialog';
 import { ProfileInformationCard } from '../components/ProfileInformationCard';
 import { ProfileSummaryCard } from '../components/ProfileSummaryCard';
 import { useProfileController } from '../hooks/useProfileController';
@@ -40,7 +41,7 @@ export const ProfilePage = () => {
           </div>
         </header>
 
-        {feedback ? (
+        {feedback && (!isEditing || feedback.type === 'success') ? (
           <div className={`profile-feedback profile-feedback--${feedback.type}`} role="status">
             <p>{feedback.message}</p>
             {feedback.details?.map((detail) => (
@@ -60,20 +61,24 @@ export const ProfilePage = () => {
 
           <ProfileInformationCard
             user={user}
-            isEditing={isEditing}
-            isSaving={isSaving}
-            form={form}
             formattedRoles={formattedRoles}
             formattedBirthDate={formattedBirthDate}
-            hasCurrentPasswordRequirement={hasCurrentPasswordRequirement}
-            onFieldChange={handleFieldChange}
             onStartEditing={handleStartEditing}
-            onCancelEditing={handleCancelEditing}
-            onSubmit={handleSubmitProfile}
           />
         </div>
 
         <ProfileDangerZone isDeleting={isDeleting} onConfirmDelete={handleConfirmDelete} />
+        {isEditing ? (
+          <ProfileEditDialog
+            feedback={feedback}
+            form={form}
+            hasCurrentPasswordRequirement={hasCurrentPasswordRequirement}
+            isSaving={isSaving}
+            onCancel={handleCancelEditing}
+            onFieldChange={handleFieldChange}
+            onSubmit={handleSubmitProfile}
+          />
+        ) : null}
       </div>
     </SiteLayout>
   );

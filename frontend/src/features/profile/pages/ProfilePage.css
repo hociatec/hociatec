@@ -191,6 +191,39 @@
   margin-top: 0.35rem;
 }
 
+.profile-dialog__panel {
+  background: #ffffff;
+  border: 1px solid var(--hocia-line);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  display: grid;
+  gap: 1.25rem;
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.profile-dialog__header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.profile-dialog__header h2 {
+  color: var(--hocia-ink);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.profile-dialog__header p {
+  color: var(--hocia-muted);
+  line-height: 1.5;
+  margin: 0.4rem 0 0;
+}
+
 .profile-detail-groups {
   display: grid;
   gap: 1rem;

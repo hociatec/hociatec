@@ -21,14 +21,16 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  webServer: process.env.PLAYWRIGHT_BASE_URL
-    ? undefined
+  ...(process.env.PLAYWRIGHT_BASE_URL
+    ? {}
     : {
+      webServer: {
         command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },
+    }),
   projects: [
     {
       name: 'chromium',

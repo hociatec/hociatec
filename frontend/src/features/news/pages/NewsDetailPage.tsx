@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 
 import { fetchNewsArticle } from '@/features/news/api/newsApi';
 import { NewsComments } from '@/features/news/components/NewsComments';
+import { NewsShareActions } from '@/features/news/components/NewsShareActions';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
@@ -13,10 +14,17 @@ import { newsQueryKeys } from '@/shared/lib/queryKeys';
 
 const formatDate = (value: string | null) => (value ? formatOptionalFrenchDate(value) : 'Date non définie');
 
-const normalizeSlugFromUrl = (value: string) =>
-  decodeURIComponent(value)
-    .trim()
-    .replace(/^["'«»“”]+|["'«»“”.:,;!?]+$/g, '');
+export const normalizeSlugFromUrl = (value: string) => {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  })();
+
+  return decoded.trim().replace(/^["'«»“”]+|["'«»“”.:,;!?]+$/g, '');
+};
 
 export const NewsDetailPage = () => {
   const { slug: rawSlug = '' } = useParams();
@@ -56,6 +64,9 @@ export const NewsDetailPage = () => {
               <h1 className="mt-5 text-4xl font-semibold tracking-tight text-brand-900">
                 {article.title}
               </h1>
+              <div className="mt-5">
+                <NewsShareActions article={article} />
+              </div>
               <p className="mt-5 text-lg leading-8 text-stone-600">{article.excerpt}</p>
               <div className="mt-8 space-y-5 whitespace-pre-line text-base leading-8 text-stone-700">
                 {article.content}

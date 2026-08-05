@@ -53,7 +53,17 @@ Production hardening checklist (Hociatec)
 - Vérifier dans le navigateur que les cookies `hociatec_access` et `hociatec_refresh` sont `HttpOnly`, `Secure` en production, `SameSite=Lax`, et limités aux chemins `/api` et `/api/auth`.
 
 7) Emails
-- Configurer MAILER_DSN avec un SMTP professionnel (SPF/DKIM/DMARC configurés dans DNS).
+- Configurer `MAILER_DSN` avec un transport professionnel et un expéditeur autorisé par le fournisseur (SPF/DKIM/DMARC configurés dans DNS).
+- Brevo API:
+  `MAILER_DSN=brevo+api://CLE_API_ACTIVE@default`
+- Brevo SMTP:
+  `MAILER_DSN=brevo+smtp://LOGIN_SMTP:MOT_DE_PASSE_SMTP@default`
+- Après modification de `.env.prod.local`, régénérer l'environnement compilé et vider le cache:
+  `composer dump-env prod`
+  `APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear`
+- Tester le transport hors Messenger:
+  `APP_ENV=prod php bin/console mailer:test contact@votre-domaine.tld --from=contact@votre-domaine.tld`
+- Si Brevo répond `API Key is not enabled (code 401)`, la clé configurée n'est pas active pour l'envoi transactionnel: créer ou réactiver une clé API transactionnelle Brevo, puis refaire `composer dump-env prod`.
 
 8) Messenger
 - Installer le worker systemd depuis deploy/systemd/hociatec-messenger.service:
