@@ -12,6 +12,7 @@ import { PromptProvider } from '@/shared/components/ui/prompt';
 import { ToastProvider } from '@/shared/components/ui/toast';
 import { AccessibilityAnnouncer } from '@/shared/components/accessibility/AccessibilityAnnouncer';
 import { MaintenanceGate } from '@/shared/components/system/MaintenanceGate';
+import { NetworkStatusBanner } from '@/shared/components/system/NetworkStatusBanner';
 import { normalizeHttpError } from '@/shared/lib/httpClient';
 import { SiteHeaderActionsProvider } from '@/shared/components/layout/siteHeader/SiteHeaderActionsContext';
 
@@ -40,6 +41,7 @@ export const AppProviders = () => (
         <PromptProvider>
           <CartProvider>
             <AppHeaderActionsProvider>
+              <NetworkStatusBanner />
               <MaintenanceGate>
                 <AppRoutes />
               </MaintenanceGate>
@@ -56,7 +58,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       staleTime: 30_000,
+      gcTime: 5 * 60_000,
       retry: (failureCount, error) => {
         const normalized = normalizeHttpError(error);
         if (

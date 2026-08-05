@@ -16,6 +16,9 @@ Ce document relie les priorites d'audit aux garanties actuellement en place.
 - Les composants UI partages couvrent les etats de page, formulaires, dialogues et pagination.
 - Les gros composants sont surveilles par `npm run check:maintainability`.
 - Les requetes navigables peuvent recevoir un `AbortSignal` via `requestSignalConfig`.
+- Le statut hors connexion est annonce globalement par `NetworkStatusBanner`; React Query relance les donnees au retour reseau.
+- La politique de cache globale React Query fixe `staleTime` a 30 secondes et `gcTime` a 5 minutes, avec retries limites aux erreurs recuperables.
+- Les budgets bundle sont verifies par `npm run check:bundle-budget`.
 - Les tests couvrent auth, commandes, paiement, contrats de donnees, formulaires et accessibilite de composants partages.
 - MSW et Playwright sont disponibles pour les tests de parcours plus larges.
 - L'observabilite applicative est centralisee et nettoie les contextes avant emission.

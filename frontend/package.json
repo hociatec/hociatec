@@ -25,7 +25,8 @@
         "check:architecture": "node scripts/check-feature-boundaries.mjs",
         "check:maintainability": "node scripts/check-maintainability.mjs",
         "check:production-safeguards": "node scripts/check-production-safeguards.mjs",
-        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm run check:maintainability && npm run check:production-safeguards && npm audit --omit=dev",
+        "check:bundle-budget": "npm run build && node scripts/check-bundle-budget.mjs",
+        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm run check:maintainability && npm run check:production-safeguards && npm run check:bundle-budget && npm audit --omit=dev",
         "lint:debt": "eslint src scripts"
     },
     "devDependencies": {
