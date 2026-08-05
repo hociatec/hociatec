@@ -1,13 +1,37 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import { execSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
+const readGitCommitSha = () => {
+  try {
+    return execSync('git rev-parse --short=12 HEAD', {
+      cwd: rootDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return 'unknown';
+  }
+};
+
 export default defineConfig(() => ({
   base: '/',
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(
+      process.env.VITE_APP_VERSION ?? process.env.npm_package_version ?? '0.0.0',
+    ),
+    'import.meta.env.VITE_BUILD_DATE': JSON.stringify(
+      process.env.VITE_BUILD_DATE ?? new Date().toISOString(),
+    ),
+    'import.meta.env.VITE_COMMIT_SHA': JSON.stringify(
+      process.env.VITE_COMMIT_SHA ?? process.env.GITHUB_SHA ?? readGitCommitSha(),
+    ),
+  },
   build: {
     chunkSizeWarningLimit: 900,
     rollupOptions: {

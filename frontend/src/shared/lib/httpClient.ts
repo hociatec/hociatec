@@ -1,6 +1,6 @@
 import axios, { AxiosHeaders, isAxiosError } from 'axios';
 
-import { API_BASE_URL } from '../config/appConfig';
+import { API_BASE_URL, BUILD_INFO } from '../config/appConfig';
 import { createApiResponseError } from './httpErrors';
 import { createAuthSessionRefresher, isAuthRefreshRequest, type RetriableRequestConfig } from './http/authRefresh';
 import {
@@ -36,6 +36,9 @@ export const httpClient = axios.create({
 
 const refreshAuthSession = createAuthSessionRefresher(httpClient);
 export const IDEMPOTENCY_HEADER_NAME = 'Idempotency-Key';
+const FRONTEND_VERSION_HEADER_NAME = 'X-Frontend-Version';
+const FRONTEND_COMMIT_HEADER_NAME = 'X-Frontend-Commit';
+const FRONTEND_ENV_HEADER_NAME = 'X-Frontend-Env';
 
 export const shouldAttachIdempotencyKey = (method?: string) => {
   const normalizedMethod = method?.toLowerCase() ?? 'get';
@@ -54,6 +57,18 @@ const createIdempotencyKey = () => {
 httpClient.interceptors.request.use(async (config) => {
   const headers =
     config.headers instanceof AxiosHeaders ? config.headers : new AxiosHeaders(config.headers);
+
+  if (!headers.has(FRONTEND_VERSION_HEADER_NAME)) {
+    headers.set(FRONTEND_VERSION_HEADER_NAME, BUILD_INFO.frontendVersion);
+  }
+
+  if (!headers.has(FRONTEND_COMMIT_HEADER_NAME)) {
+    headers.set(FRONTEND_COMMIT_HEADER_NAME, BUILD_INFO.commitSha);
+  }
+
+  if (!headers.has(FRONTEND_ENV_HEADER_NAME)) {
+    headers.set(FRONTEND_ENV_HEADER_NAME, BUILD_INFO.environment);
+  }
 
   const cartToken = getPersistedCartToken();
   if (cartToken && !headers.has('X-Cart-Token')) {

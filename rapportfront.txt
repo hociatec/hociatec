@@ -1096,18 +1096,6 @@ Mesurer :
 Puis corréler les régressions avec les versions de déploiement.
 
 
-13.4 Ajouter un identifiant de version
---------------------------------------
-
-Afficher ou transmettre :
-- frontendVersion ;
-- commitSha ;
-- buildDate ;
-- environment.
-
-Cela permet de savoir quel code a produit une erreur.
-
-
 13.5 Ajouter un système de feature flags
 ----------------------------------------
 

@@ -2,6 +2,13 @@ export const PROJECT_TITLE = 'hociatec';
 
 export type AppEnv = 'development' | 'staging' | 'production' | 'test';
 
+export interface BuildInfo {
+  frontendVersion: string;
+  commitSha: string;
+  buildDate: string;
+  environment: AppEnv;
+}
+
 const APP_ENVS = new Set<AppEnv>(['development', 'staging', 'production', 'test']);
 
 const normalizeApiBaseUrl = (value: string | undefined) => {
@@ -25,3 +32,9 @@ const resolveAppEnv = (value: string | undefined): AppEnv => {
 
 export const APP_ENV = resolveAppEnv(import.meta.env.VITE_APP_ENV);
 export const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
+export const BUILD_INFO: BuildInfo = {
+  frontendVersion: import.meta.env.VITE_APP_VERSION || '0.0.0',
+  commitSha: import.meta.env.VITE_COMMIT_SHA || 'unknown',
+  buildDate: import.meta.env.VITE_BUILD_DATE || 'unknown',
+  environment: APP_ENV,
+};

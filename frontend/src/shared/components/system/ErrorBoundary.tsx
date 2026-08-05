@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type PropsWithChildren, type ReactNode } fro
 import { Link, useLocation } from 'react-router';
 
 import { ErrorState } from '@/shared/components/ui/page-state';
+import { BUILD_INFO } from '@/shared/config/appConfig';
 import { logger } from '@/shared/lib/logger';
 
 interface ErrorBoundaryProps extends PropsWithChildren {
@@ -42,6 +43,9 @@ const ErrorFallback = ({
               stable.
             </p>
             <p className="text-sm">Référence : {errorId}</p>
+            <p className="text-xs text-red-700/80">
+              Version : {BUILD_INFO.frontendVersion} ({BUILD_INFO.commitSha})
+            </p>
             <div className="flex flex-wrap justify-center gap-3">
               <button className="button" type="button" onClick={onRetry}>
                 Réessayer
