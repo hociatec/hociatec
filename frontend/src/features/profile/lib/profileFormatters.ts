@@ -33,15 +33,3 @@ export const formatGender = (gender: string) => {
       return 'Non renseigné';
   }
 };
-
-export const extractErrorDetails = (error: unknown): string[] => {
-  if (error && typeof error === 'object' && 'details' in error) {
-    const details = (error as { details?: unknown }).details;
-    if (Array.isArray(details)) return details.map((detail) => String(detail));
-  }
-
-  return [];
-};
-
-export const extractErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof Error ? error.message : fallback;

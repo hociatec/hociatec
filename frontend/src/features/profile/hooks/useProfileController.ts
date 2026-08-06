@@ -3,11 +3,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { ApiResponseError, getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { useAuth } from '../../auth/hooks/useAuth';
 import {
-  extractErrorDetails,
-  extractErrorMessage,
   formatRole,
   normalizeEmail,
   PASSWORD_RULE,
@@ -124,13 +123,14 @@ export const useProfileController = () => {
       setIsEditing(false);
       setForm((previous) => ({ ...previous, password: '', currentPassword: '' }));
     } catch (error) {
+      const details =
+        error instanceof ApiResponseError && Array.isArray(error.details)
+          ? error.details
+          : [];
       setFeedback({
         type: 'error',
-        message: extractErrorMessage(
-          error,
-          'Impossible de mettre à jour votre profil pour le moment.',
-        ),
-        details: extractErrorDetails(error),
+        message: getHttpErrorMessage(error, 'Impossible de mettre à jour votre profil pour le moment.'),
+        details,
       });
     } finally {
       setIsSaving(false);
@@ -144,10 +144,14 @@ export const useProfileController = () => {
       await deleteAccount();
       navigate('/', { replace: true });
     } catch (error) {
+      const details =
+        error instanceof ApiResponseError && Array.isArray(error.details)
+          ? error.details
+          : [];
       setFeedback({
         type: 'error',
-        message: extractErrorMessage(error, 'Impossible de supprimer votre compte actuellement.'),
-        details: extractErrorDetails(error),
+        message: getHttpErrorMessage(error, 'Impossible de supprimer votre compte actuellement.'),
+        details,
       });
       setIsDeleting(false);
     }
