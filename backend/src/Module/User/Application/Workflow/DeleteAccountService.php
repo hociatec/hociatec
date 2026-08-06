@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Workflow;
 
-use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Application\Port\UserPersistencePort;
@@ -15,7 +15,7 @@ final readonly class DeleteAccountService
 {
     public function __construct(
         private OrderRepositoryPort $orders,
-        private RefreshTokenRepositoryPort $refreshTokens,
+        private RefreshTokenRevocationService $refreshTokenRevocations,
         private UserPersistencePort $persistence,
         private TransactionManager $transactions,
     ) {
@@ -28,7 +28,7 @@ final readonly class DeleteAccountService
         }
 
         $this->transactions->transactional(function () use ($user): void {
-            $this->refreshTokens->revokeAllForUser($user);
+            $this->refreshTokenRevocations->revokeAllForUser($user);
             $this->persistence->remove($user);
             $this->persistence->commit();
         });

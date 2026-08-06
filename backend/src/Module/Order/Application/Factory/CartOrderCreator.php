@@ -22,9 +22,7 @@ final readonly class CartOrderCreator
     public function __construct(
         private UnitOfWork $persistence,
         private TransactionManager $transactions,
-        private OrderNumberGenerator $numberGenerator,
-        private InvoiceNumberGenerator $invoiceNumberGenerator,
-        private OrderInvoiceCalculator $invoiceCalculator,
+        private OrderCreationServices $orderCreation,
         private PromotionEngine $promotionEngine,
         private VoucherEngine $voucherEngine,
         private CartSessionRepositoryPort $carts,
@@ -83,7 +81,7 @@ final readonly class CartOrderCreator
                     $this->persistence->persist($item);
                 }
 
-                $this->invoiceCalculator->snapshot($order);
+                $this->orderCreation->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
                 $this->persistence->commit();
 
@@ -104,7 +102,7 @@ final readonly class CartOrderCreator
     {
         $customerName = trim($user->getFirstName().' '.$user->getLastName());
 
-        return (new Order($this->numberGenerator->generate(), $user))
+        return (new Order($this->orderCreation->orderNumbers->generate(), $user))
             ->setStatus(Order::STATUS_CONFIRMED)
             ->setShippingName('' !== $customerName ? $customerName : $address->getName())
             ->setShippingAddress($address->getAddress())
@@ -119,7 +117,7 @@ final readonly class CartOrderCreator
             ->setBillingPostalCode($address->getPostalCode())
             ->setBillingCity($address->getCity())
             ->setBillingEmail($user->getEmail())
-            ->setInvoiceNumber($this->invoiceNumberGenerator->generate())
+            ->setInvoiceNumber($this->orderCreation->invoiceNumbers->generate())
             ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
             ->setInvoicedAt(new \DateTimeImmutable())
             ->setCurrencyCode('EUR')

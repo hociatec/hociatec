@@ -6,6 +6,12 @@ namespace App\Tests\Unit\Module\TradeIn\Entity;
 
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
+use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
+use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -14,31 +20,7 @@ final class TradeInRequestDetailedTest extends TestCase
     public function testTradeInRequestLifecycleAndMutators(): void
     {
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
-        $request = new TradeInRequest(
-            'TR-1',
-            $user,
-            'Ada',
-            'Lovelace',
-            'ada@example.com',
-            '0102030405',
-            'smartphones',
-            'iPhone',
-            100,
-            2023,
-            'Apple',
-            '13',
-            'SN-1',
-            'A',
-            true,
-            true,
-            false,
-            'Bon etat',
-            10,
-            'iPhone 13',
-            50,
-            80,
-            new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
-        );
+        $request = $this->request($user, 'TR-1');
         $updatedAt = $request->getUpdatedAt();
 
         self::assertNull($request->getId());
@@ -148,55 +130,29 @@ final class TradeInRequestDetailedTest extends TestCase
         new TradeInRequest(
             'TR-INVALID',
             null,
-            'Ada',
-            'Lovelace',
-            'ada@example.com',
-            '0102030405',
-            'smartphones',
-            'iPhone',
-            -1,
-            2023,
-            null,
-            null,
-            null,
-            'A',
-            true,
-            true,
-            false,
-            'Bon etat',
-            null,
-            null,
-            50,
-            80,
+            new TradeInApplicant('Ada', 'Lovelace', 'ada@example.com', '0102030405'),
+            new TradeInProductSnapshot(
+                new TradeInProductIdentity('smartphones', 'iPhone', null, null, null, null, null),
+                new TradeInPurchase(-1, 2023),
+                new TradeInProductCondition('A', true, true, false, 'Bon etat'),
+            ),
+            new TradeInEstimate(50, 80, null, null),
             new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
         );
     }
 
-    private function request(): TradeInRequest
+    private function request(?User $user = null, string $reference = 'TR-VALID'): TradeInRequest
     {
         return new TradeInRequest(
-            'TR-VALID',
-            null,
-            'Ada',
-            'Lovelace',
-            'ada@example.com',
-            '0102030405',
-            'smartphones',
-            'iPhone',
-            100,
-            2023,
-            'Apple',
-            '13',
-            'SN-1',
-            'A',
-            true,
-            true,
-            false,
-            'Bon etat',
-            10,
-            'iPhone 13',
-            50,
-            80,
+            $reference,
+            $user,
+            new TradeInApplicant('Ada', 'Lovelace', 'ada@example.com', '0102030405'),
+            new TradeInProductSnapshot(
+                new TradeInProductIdentity('smartphones', 'iPhone', 'Apple', '13', 'SN-1', 10, 'iPhone 13'),
+                new TradeInPurchase(100, 2023),
+                new TradeInProductCondition('A', true, true, false, 'Bon etat'),
+            ),
+            new TradeInEstimate(50, 80, null, null),
             new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
         );
     }

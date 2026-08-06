@@ -34,7 +34,11 @@ final class OrderPayment
 
     public function setTotalPriceCents(int $cents): self
     {
-        $this->totalPriceCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('Le total de paiement ne peut pas être négatif.');
+        }
+
+        $this->totalPriceCents = $cents;
 
         return $this;
     }
@@ -46,7 +50,11 @@ final class OrderPayment
 
     public function setSubtotalPriceCents(int $cents): self
     {
-        $this->subtotalPriceCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('Le sous-total de paiement ne peut pas être négatif.');
+        }
+
+        $this->subtotalPriceCents = $cents;
 
         return $this;
     }
@@ -58,7 +66,11 @@ final class OrderPayment
 
     public function setDiscountAmountCents(int $cents): self
     {
-        $this->discountAmountCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('La remise de paiement ne peut pas être négative.');
+        }
+
+        $this->discountAmountCents = $cents;
 
         return $this;
     }
@@ -70,7 +82,11 @@ final class OrderPayment
 
     public function setLoyaltyPointsAwarded(int $points): self
     {
-        $this->loyaltyPointsAwarded = max(0, $points);
+        if ($points < 0) {
+            throw new \InvalidArgumentException('Les points de fidélité ne peuvent pas être négatifs.');
+        }
+
+        $this->loyaltyPointsAwarded = $points;
 
         return $this;
     }

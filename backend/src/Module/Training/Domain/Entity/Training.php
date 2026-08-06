@@ -65,8 +65,8 @@ class Training
     {
         $this->title = $title;
         $this->slug = $slug;
-        $this->durationMinutes = $durationMinutes;
-        $this->priceCents = $priceCents;
+        $this->setDurationMinutes($durationMinutes);
+        $this->setPriceCents($priceCents);
         $this->roadmapItems = new ArrayCollection();
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -157,6 +157,10 @@ class Training
 
     public function setDurationMinutes(int $durationMinutes): self
     {
+        if ($durationMinutes <= 0) {
+            throw new \InvalidArgumentException('La durée doit être supérieure à 0.');
+        }
+
         $this->durationMinutes = $durationMinutes;
 
         return $this;
@@ -169,6 +173,10 @@ class Training
 
     public function setPriceCents(int $priceCents): self
     {
+        if ($priceCents < 0) {
+            throw new \InvalidArgumentException('Le prix doit être positif.');
+        }
+
         $this->priceCents = $priceCents;
 
         return $this;

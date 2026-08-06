@@ -10,25 +10,18 @@ use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
-use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Application\UnitOfWork;
-use Psr\Log\LoggerInterface;
 
 final readonly class TradeInClosureService
 {
     public function __construct(
         private TradeInPersistencePort $persistence,
         private TradeInService $tradeIns,
-        private UnitOfWork $unitOfWork,
         private TransactionManager $transactions,
         private TradeInPrivateFileStoragePort $files,
         private TradeInReceiptRenderer $receiptRenderer,
-        private CreateVoucherHandler $createVoucher,
-        private VoucherNotificationEmailService $voucherNotifications,
-        private LoggerInterface $logger,
+        private TradeInStoreCreditVoucherIssuer $storeCreditVouchers,
     ) {
     }
 
@@ -47,18 +40,7 @@ final readonly class TradeInClosureService
                 throw new \InvalidArgumentException('Un avoir client nécessite un compte Hociatec associé à la demande.');
             }
             if ('store_credit' === $input->paymentMethod && null === $request->getVoucherCode()) {
-                $voucher = $this->createVoucher->create([
-                    'name' => 'Avoir de reprise '.$request->getReference(),
-                    'code' => 'RPR-'.date('Ymd').'-'.strtoupper(bin2hex(random_bytes(4))),
-                    'description' => 'Avoir généré après la reprise '.$request->getReference().'.',
-                    'discountType' => Voucher::TYPE_FIXED_CENTS,
-                    'discountValue' => $input->finalOfferCents,
-                    'isActive' => true,
-                    'endsAt' => new \DateTimeImmutable('+1 year'),
-                ]);
-                $voucher->setRecipientUserId($request->getUser()?->getId())->setRecipientEmail($request->getEmail());
-                $this->unitOfWork->persist($voucher);
-                $this->unitOfWork->commit();
+                $voucher = $this->storeCreditVouchers->issue($request, $input->finalOfferCents);
                 $request->setVoucherCode($voucher->getCode());
             }
             $paymentStatus = 'store_credit' === $input->paymentMethod ? 'paid' : $input->paymentStatus;
@@ -72,14 +54,7 @@ final readonly class TradeInClosureService
         });
 
         if ($voucher instanceof Voucher && null !== $request->getUser()) {
-            try {
-                $this->voucherNotifications->sendCustomerVoucher($request->getUser(), $voucher);
-                $voucher->setSentAt(new \DateTimeImmutable());
-                $this->unitOfWork->persist($voucher);
-                $this->unitOfWork->commit();
-            } catch (\RuntimeException $exception) {
-                $this->logger->error('Impossible d’envoyer l’avoir de reprise.', ['reference' => $request->getReference(), 'exception' => $exception]);
-            }
+            $this->storeCreditVouchers->notifyIssued($request, $voucher);
         }
 
         if (TradeInStatus::COMPLETED !== $request->getStatus()) {

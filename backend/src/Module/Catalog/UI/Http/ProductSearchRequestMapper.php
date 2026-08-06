@@ -17,10 +17,20 @@ final class ProductSearchRequestMapper
     public function map(Request $request): ProductSearchCriteria
     {
         $query = $request->query;
+        $page = $query->getInt('page', 1);
+        if (1 > $page) {
+            $page = 1;
+        }
+        $perPage = $query->getInt('perPage', 12);
+        if (1 > $perPage) {
+            $perPage = 1;
+        } elseif ($perPage > 48) {
+            $perPage = 48;
+        }
 
         return new ProductSearchCriteria(
-            max(1, $query->getInt('page', 1)),
-            max(1, min(48, $query->getInt('perPage', 12))),
+            $page,
+            $perPage,
             $this->string($query->get('category')),
             $this->string($query->get('q')),
             $query->has('homepage') && $this->boolean($query->get('homepage')) ? true : null,
@@ -74,6 +84,7 @@ final class ProductSearchRequestMapper
             return null;
         }
 
-        return max(0, (int) round((float) $normalized * 100));
+        $cents = (int) round((float) $normalized * 100);
+        return 0 > $cents ? 0 : $cents;
     }
 }

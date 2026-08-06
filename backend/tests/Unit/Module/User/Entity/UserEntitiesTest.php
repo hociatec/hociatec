@@ -38,7 +38,7 @@ final class UserEntitiesTest extends TestCase
             ->setIsVerified(true)
             ->setAdminNotes('  note interne  ')
             ->setAdminTags([' vip ', '', 'b2b', 'vip'])
-            ->setLoyaltyPointsBalance(-10)
+            ->setLoyaltyPointsBalance(10)
             ->addLoyaltyPoints(5)
             ->addLoyaltyPoints(-10)
             ->setAccountNotificationsSeenSignature('  sig-1  ')
@@ -59,7 +59,7 @@ final class UserEntitiesTest extends TestCase
         self::assertTrue($user->isVerified());
         self::assertSame('note interne', $user->getAdminNotes());
         self::assertSame(['vip', 'b2b'], $user->getAdminTags());
-        self::assertSame(0, $user->getLoyaltyPointsBalance());
+        self::assertSame(5, $user->getLoyaltyPointsBalance());
         self::assertSame('sig-1', $user->getAccountNotificationsSeenSignature());
         self::assertSame(['email', 'phone'], $user->getCommunicationPreferences());
         self::assertSame('verify-token', $user->getVerificationToken());

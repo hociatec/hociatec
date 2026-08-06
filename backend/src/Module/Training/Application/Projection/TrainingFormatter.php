@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Training\Application\Projection;
 
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
+use App\Module\Training\Application\Calculator\TrainingAvailabilityCalculator;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
@@ -15,6 +16,7 @@ final class TrainingFormatter
     public function __construct(
         private readonly TrainingEnrollmentRepositoryPort $enrollments,
         private readonly TrainingMetadataFormatter $metadata,
+        private readonly ?TrainingAvailabilityCalculator $availabilityCalculator = null,
     ) {
     }
 
@@ -70,7 +72,7 @@ final class TrainingFormatter
             'meetingUrl' => $session->getMeetingUrl(),
             'capacity' => $session->getCapacity(),
             'enrolledCount' => $enrolledCount,
-            'remainingSeats' => max(0, $session->getCapacity() - $enrolledCount),
+            'remainingSeats' => ($this->availabilityCalculator ?? new TrainingAvailabilityCalculator())->remainingSeats($session, $enrolledCount),
             'status' => $session->getStatus(),
             'statusLabel' => match ($session->getStatus()) {
                 'scheduled' => 'Planifiée',

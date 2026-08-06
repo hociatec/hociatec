@@ -47,7 +47,7 @@ final class QuoteServiceTest extends TestCase
             null,
             [
                 new QuoteItemPayload('', 11, null, null, ' Ligne produit ', null, 2, 2000, 100, null),
-                new QuoteItemPayload('', null, 5, null, null, null, 0, 0, 0, null),
+                new QuoteItemPayload('', null, 5, null, null, null, 1, 0, 0, null),
             ],
         );
 

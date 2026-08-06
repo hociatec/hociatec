@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Contact\UI\Controller;
 
 use App\Module\Contact\Application\DTO\ContactInput;
-use App\Module\Contact\Application\Workflow\ContactSubmissionService;
+use App\Module\Contact\Application\Workflow\ContactFormSubmissionService;
 use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ContactController extends AbstractController
 {
     public function __construct(
-        private readonly ContactSubmissionService $submissions,
+        private readonly ContactFormSubmissionService $submissions,
         private readonly DtoValidator $dtoValidator,
     ) {
     }

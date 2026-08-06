@@ -24,6 +24,7 @@ use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientCon
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository;
 use App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler;
+use App\Module\Marketing\Infrastructure\MessageHandler\MarketingCampaignEmailSender;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
@@ -172,13 +173,15 @@ final class MarketingModuleCompletionTest extends TestCase
         $handler = new SendMarketingCampaignRecipientEmailHandler(
             new EmailCampaignRecipientRepository($this->registry($em)),
             new UserRepository($this->registry($em)),
-            new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'),
-            new MarketingTemplateRenderer(),
+            new MarketingCampaignEmailSender(
+                new MarketingRecipientContextProvider(new DoctrineMarketingRecipientContextQuery($em), 'https://front.example.test'),
+                new MarketingTemplateRenderer(),
+                $mailer,
+                'noreply@example.com',
+            ),
             $this->notifier($em),
             new DoctrineUnitOfWork($em),
-            $mailer,
             $this->createMock(LoggerInterface::class),
-            'noreply@example.com',
         );
 
         $message = new MarketingCampaignRecipientEmailMessage((int) $campaign->getId(), (int) $user->getId());

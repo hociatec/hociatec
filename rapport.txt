@@ -1,42 +1,9 @@
-RAPPORT D'ACTIONS - OBJECTIF > 9/10
+RAPPORT D'ACTIONS - OBJECTIF > 8/10
 
-1. Supprimer toute dépendance à HttpFoundation dans Application.
-2. Déplacer tous les RequestMapper dans UI.
-3. Refactorer TradeInRequest (constructeur trop lourd).
-4. Réduire les constructeurs à moins de 8 paramètres.
 5. Remplacer les groupes de primitives par des Value Objects utiles.
-6. Remplacer les statuts en string par des enums.
-7. Supprimer les corrections silencieuses (max(), min(), etc.).
-8. Lever des exceptions métier sur les données invalides.
-9. Centraliser les transitions d'état.
-10. Rendre les dates métier explicites.
-11. Découper les services ayant plus de 8 dépendances.
-12. Découper les workflows trop volumineux.
-13. Extraire les Calculator.
-14. Extraire les Policy.
-15. Extraire les Factory.
-16. Réduire les méthodes > 70 lignes.
 17. Réduire les classes > 500 lignes.
-18. Découper les gros Formatter.
-19. Sortir les calculs métier des Formatter.
-20. Créer des DTO de sortie importants.
-21. Séparer assemblage et rendu des PDF/XML.
-22. Créer un modèle InvoiceDocument intermédiaire.
-23. Retirer les informations légales codées en dur.
-24. Clarifier le rôle du module Admin.
 25. Déplacer les règles métier Admin dans les modules concernés.
 26. Limiter les relations Doctrine entre modules.
 27. Préférer IDs ou snapshots entre modules.
 28. Éliminer les cycles de dépendances.
-29. Garder les repositories limités à la persistance.
-30. Sortir la logique métier des repositories.
-31. Uniformiser les suffixes des classes.
-32. Renommer les Services trop génériques.
-33. Éviter Helper / Utils / Manager génériques.
-34. Documenter les invariants métier.
-35. Garantir les invariants dans les entités.
-36. Garder les contrôleurs minces.
-37. Ne jamais exposer directement les entités Doctrine.
 38. Centraliser les notifications.
-39. Supprimer les duplications métier.
-40. Documenter les règles d'architecture.

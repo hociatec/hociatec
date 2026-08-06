@@ -66,29 +66,33 @@ class EmailCampaign
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    /**
-     * @param array<string, mixed> $criteria
-     */
-    public function __construct(
-        string $name,
-        string $segmentKey,
-        array $criteria,
-        string $subjectSnapshot,
-        string $htmlSnapshot,
-        ?string $textSnapshot,
-        int $recipientsCount,
-        ?string $createdByEmail,
-        ?EmailTemplate $template = null,
-    ) {
-        $this->name = $name;
-        $this->segmentKey = $segmentKey;
-        $this->criteria = $criteria;
-        $this->subjectSnapshot = $subjectSnapshot;
-        $this->htmlSnapshot = $htmlSnapshot;
-        $this->textSnapshot = $textSnapshot;
-        $this->recipientsCount = max(0, $recipientsCount);
-        $this->createdByEmail = $createdByEmail;
-        $this->template = $template;
+    public function __construct(mixed ...$values)
+    {
+        $keys = ['name', 'segmentKey', 'criteria', 'subjectSnapshot', 'htmlSnapshot', 'textSnapshot', 'recipientsCount', 'createdByEmail', 'template'];
+        $data = array_fill_keys($keys, null);
+        $data['criteria'] = [];
+        $data['recipientsCount'] = 0;
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $data[$keys[$index]] = $value;
+            }
+        }
+        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $this->name = (string) $data['name'];
+        $this->segmentKey = (string) $data['segmentKey'];
+        $this->criteria = is_array($data['criteria']) ? $data['criteria'] : [];
+        $this->subjectSnapshot = (string) $data['subjectSnapshot'];
+        $this->htmlSnapshot = (string) $data['htmlSnapshot'];
+        $this->textSnapshot = $data['textSnapshot'];
+        $this->recipientsCount = (int) $data['recipientsCount'];
+        if ($this->recipientsCount < 0) {
+            throw new \InvalidArgumentException('Le nombre de destinataires ne peut pas être négatif.');
+        }
+        $this->createdByEmail = $data['createdByEmail'];
+        $this->template = $data['template'] instanceof EmailTemplate ? $data['template'] : null;
         $now = new \DateTimeImmutable();
         $this->sentAt = $now;
         $this->createdAt = $now;
@@ -145,7 +149,11 @@ class EmailCampaign
 
     public function updateRecipientsCount(int $recipientsCount): void
     {
-        $this->recipientsCount = max(0, $recipientsCount);
+        if ($recipientsCount < 0) {
+            throw new \InvalidArgumentException('Le nombre de destinataires ne peut pas être négatif.');
+        }
+
+        $this->recipientsCount = $recipientsCount;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -191,7 +199,11 @@ class EmailCampaign
             ++$this->recipientsCount;
         }
         if (EmailCampaignRecipient::STATUS_SKIPPED !== $from && EmailCampaignRecipient::STATUS_SKIPPED === $to) {
-            $this->recipientsCount = max(0, $this->recipientsCount - 1);
+            if (0 === $this->recipientsCount) {
+                throw new \LogicException('Le nombre de destinataires ne peut pas devenir négatif.');
+            }
+
+            --$this->recipientsCount;
         }
 
         $this->updatedAt = new \DateTimeImmutable();
@@ -237,11 +249,20 @@ class EmailCampaign
     private function decrementStatus(string $status): void
     {
         match ($status) {
-            EmailCampaignRecipient::STATUS_PENDING => $this->pendingCount = max(0, $this->pendingCount - 1),
-            EmailCampaignRecipient::STATUS_SENT => $this->sentCount = max(0, $this->sentCount - 1),
-            EmailCampaignRecipient::STATUS_FAILED => $this->failedCount = max(0, $this->failedCount - 1),
-            EmailCampaignRecipient::STATUS_SKIPPED => $this->skippedCount = max(0, $this->skippedCount - 1),
+            EmailCampaignRecipient::STATUS_PENDING => $this->decrementCount($this->pendingCount),
+            EmailCampaignRecipient::STATUS_SENT => $this->decrementCount($this->sentCount),
+            EmailCampaignRecipient::STATUS_FAILED => $this->decrementCount($this->failedCount),
+            EmailCampaignRecipient::STATUS_SKIPPED => $this->decrementCount($this->skippedCount),
             default => throw new \InvalidArgumentException('Statut de destinataire marketing inconnu.'),
         };
+    }
+
+    private function decrementCount(int &$count): void
+    {
+        if (0 === $count) {
+            throw new \LogicException('Un compteur de destinataires ne peut pas devenir négatif.');
+        }
+
+        --$count;
     }
 }

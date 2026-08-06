@@ -19,6 +19,7 @@ final class RefreshTokenService
         private readonly RefreshTokenRepositoryPort $refreshTokenRepository,
         private readonly RefreshTokenPersistencePort $persistence,
         private readonly TransactionManager $transactions,
+        private readonly RefreshTokenRevocationService $revocations,
     ) {
     }
 
@@ -32,7 +33,7 @@ final class RefreshTokenService
 
             $this->persistence->save($refreshToken);
             $this->persistence->commit();
-            $this->refreshTokenRepository->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
+            $this->revocations->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
             $this->persistence->commit();
 
             return [
@@ -69,7 +70,7 @@ final class RefreshTokenService
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
             $this->persistence->save($refreshToken);
             $this->persistence->commit();
-            $this->refreshTokenRepository->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
+            $this->revocations->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
 
             return [
                 'user' => $storedToken->getUser(),

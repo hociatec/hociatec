@@ -8,12 +8,31 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class QuotePayloadInput
 {
-    /**
-     * @param array<string,mixed>       $customer
-     * @param list<array<string,mixed>> $items
-     */
-    public function __construct(public array $customer, #[Assert\Length(max: 20)] public string $status, #[Assert\PositiveOrZero] public int $discountCents, #[Assert\PositiveOrZero] public int $shippingCents, public ?string $conditions, public ?string $validFrom, public ?string $validUntil, public array $items)
+    /** @var array<string,mixed> */
+    public array $customer;
+    #[Assert\Length(max: 20)]
+    public string $status;
+    #[Assert\PositiveOrZero]
+    public int $discountCents;
+    #[Assert\PositiveOrZero]
+    public int $shippingCents;
+    public ?string $conditions;
+    public ?string $validFrom;
+    public ?string $validUntil;
+    /** @var list<array<string,mixed>> */
+    public array $items;
+
+    public function __construct(mixed ...$values)
     {
+        $data = $this->mapValues($values);
+        $this->customer = $data['customer'];
+        $this->status = (string) $data['status'];
+        $this->discountCents = (int) $data['discountCents'];
+        $this->shippingCents = (int) $data['shippingCents'];
+        $this->conditions = $data['conditions'];
+        $this->validFrom = $data['validFrom'];
+        $this->validUntil = $data['validUntil'];
+        $this->items = $data['items'];
     }
 
     /** @param array<string,mixed> $p */
@@ -26,5 +45,30 @@ final readonly class QuotePayloadInput
     public function toPayload(): array
     {
         return ['customer' => $this->customer, 'status' => $this->status, 'discountCents' => $this->discountCents, 'shippingCents' => $this->shippingCents, 'conditions' => $this->conditions, 'validFrom' => $this->validFrom, 'validUntil' => $this->validUntil, 'items' => $this->items];
+    }
+
+    /**
+     * @param array<int|string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mapValues(array $values): array
+    {
+        $keys = ['customer', 'status', 'discountCents', 'shippingCents', 'conditions', 'validFrom', 'validUntil', 'items'];
+        $defaults = array_fill_keys($keys, null);
+        $defaults['customer'] = [];
+        $defaults['status'] = 'draft';
+        $defaults['discountCents'] = 0;
+        $defaults['shippingCents'] = 0;
+        $defaults['items'] = [];
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $defaults[$keys[$index]] = $value;
+            }
+        }
+
+        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

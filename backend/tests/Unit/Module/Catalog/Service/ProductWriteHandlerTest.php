@@ -358,14 +358,16 @@ final class ProductWriteHandlerTest extends TestCase
         };
 
         return new ProductWriteHandler(
-            $persistence,
-            $transactions,
+            new \App\Module\Catalog\Application\Handler\ProductWriteExecution(
+                $persistence,
+                $transactions,
+                new CatalogCacheInvalidator(new CatalogCacheVersion($cache, new NullLogger())),
+            ),
             $rules,
             $variants,
             $variantBatch,
             new ProductGalleryUpdater(),
             new ProductDiscountApplicator(),
-            new CatalogCacheInvalidator(new CatalogCacheVersion($cache, new NullLogger())),
             new \App\Module\Catalog\Application\Writer\ProductAttributeWriter(),
         );
     }

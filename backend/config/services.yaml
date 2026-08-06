@@ -388,7 +388,7 @@ services:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler:
+    App\Module\Marketing\Infrastructure\MessageHandler\MarketingCampaignEmailSender:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 

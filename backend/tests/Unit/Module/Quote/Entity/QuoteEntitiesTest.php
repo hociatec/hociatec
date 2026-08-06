@@ -28,8 +28,8 @@ final class QuoteEntitiesTest extends TestCase
             ->setCustomerEmail('ada@example.com')
             ->setCustomerCompany('OpenAI')
             ->setCustomerAddress('1 rue')
-            ->setGlobalDiscountCents(-100)
-            ->setShippingCents(-200)
+            ->setGlobalDiscountCents(100)
+            ->setShippingCents(200)
             ->setConditions('Net 30')
             ->setValidFrom(new \DateTimeImmutable('2026-07-01'))
             ->setValidUntil(new \DateTimeImmutable('2026-08-01'))
@@ -44,8 +44,8 @@ final class QuoteEntitiesTest extends TestCase
         self::assertSame('ada@example.com', $quote->getCustomerEmail());
         self::assertSame('OpenAI', $quote->getCustomerCompany());
         self::assertSame('1 rue', $quote->getCustomerAddress());
-        self::assertSame(0, $quote->getGlobalDiscountCents());
-        self::assertSame(0, $quote->getShippingCents());
+        self::assertSame(100, $quote->getGlobalDiscountCents());
+        self::assertSame(200, $quote->getShippingCents());
         self::assertSame('Net 30', $quote->getConditions());
         self::assertSame('2026-07-01', $quote->getValidFrom()?->format('Y-m-d'));
         self::assertSame('2026-08-01', $quote->getValidUntil()?->format('Y-m-d'));
@@ -62,10 +62,10 @@ final class QuoteEntitiesTest extends TestCase
             ->setName('Produit')
             ->setDescription('Desc')
             ->setUnit('pcs')
-            ->setQuantity(-5)
-            ->setUnitPriceCents(-10)
-            ->setVatRateBps(-20)
-            ->setDiscountCents(-30);
+            ->setQuantity(5)
+            ->setUnitPriceCents(10)
+            ->setVatRateBps(20)
+            ->setDiscountCents(30);
 
         self::assertNull($item->getId());
         self::assertSame(QuoteItem::TYPE_PRODUCT, $item->getItemType());
@@ -74,10 +74,10 @@ final class QuoteEntitiesTest extends TestCase
         self::assertSame('Produit', $item->getName());
         self::assertSame('Desc', $item->getDescription());
         self::assertSame('pcs', $item->getUnit());
-        self::assertSame(1, $item->getQuantity());
-        self::assertSame(0, $item->getUnitPriceCents());
-        self::assertSame(0, $item->getVatRateBps());
-        self::assertSame(0, $item->getDiscountCents());
+        self::assertSame(5, $item->getQuantity());
+        self::assertSame(10, $item->getUnitPriceCents());
+        self::assertSame(20, $item->getVatRateBps());
+        self::assertSame(30, $item->getDiscountCents());
 
         $quote->removeItem($item);
         self::assertCount(0, $quote->getItems());

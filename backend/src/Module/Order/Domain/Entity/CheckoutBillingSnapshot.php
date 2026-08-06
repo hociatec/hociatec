@@ -16,26 +16,28 @@ final class CheckoutBillingSnapshot
     private ?string $billingPostalCode;
     private ?string $billingCity;
 
-    public function __construct(
-        ?string $billingName,
-        ?string $billingCompany,
-        ?string $billingCompanySiren,
-        ?string $billingCompanyVatNumber,
-        ?string $purchaseOrderNumber,
-        ?string $billingEmail,
-        ?string $billingAddress,
-        ?string $billingPostalCode,
-        ?string $billingCity,
-    ) {
-        $this->billingName = $billingName;
-        $this->billingCompany = $billingCompany;
-        $this->billingCompanySiren = $billingCompanySiren;
-        $this->billingCompanyVatNumber = $billingCompanyVatNumber;
-        $this->purchaseOrderNumber = $purchaseOrderNumber;
-        $this->billingEmail = $billingEmail;
-        $this->billingAddress = $billingAddress;
-        $this->billingPostalCode = $billingPostalCode;
-        $this->billingCity = $billingCity;
+    public function __construct(?string ...$values)
+    {
+        $keys = ['billingName', 'billingCompany', 'billingCompanySiren', 'billingCompanyVatNumber', 'purchaseOrderNumber', 'billingEmail', 'billingAddress', 'billingPostalCode', 'billingCity'];
+        $data = array_fill_keys($keys, null);
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $data[$keys[$index]] = $value;
+            }
+        }
+        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $this->billingName = $data['billingName'];
+        $this->billingCompany = $data['billingCompany'];
+        $this->billingCompanySiren = $data['billingCompanySiren'];
+        $this->billingCompanyVatNumber = $data['billingCompanyVatNumber'];
+        $this->purchaseOrderNumber = $data['purchaseOrderNumber'];
+        $this->billingEmail = $data['billingEmail'];
+        $this->billingAddress = $data['billingAddress'];
+        $this->billingPostalCode = $data['billingPostalCode'];
+        $this->billingCity = $data['billingCity'];
     }
 
     public function name(): ?string

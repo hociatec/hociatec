@@ -113,7 +113,7 @@ final class BetaAndTradeInSmallBatchTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return new TradeInRequest(
+        return TradeInRequest::fromLegacySubmittedScalars(
             'TR-1',
             $user,
             'Ada',

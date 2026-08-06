@@ -27,6 +27,7 @@ use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
 use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
+use App\Module\TradeIn\Application\Workflow\TradeInStoreCreditVoucherIssuer;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
 use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
@@ -248,6 +249,7 @@ final class TradeInModuleCompletionTest extends TestCase
             new TradeInNumberGenerator(),
             $this->notificationService($this->createMock(MailerInterface::class)),
             new TradeInPrivateFileStorage($this->projectDir()),
+            new \App\Module\TradeIn\Application\Workflow\TradeInStatusWorkflow(),
         );
     }
 
@@ -269,20 +271,22 @@ final class TradeInModuleCompletionTest extends TestCase
         return new TradeInClosureService(
             new TradeInPersistence($em),
             $this->tradeInService($em),
-            new DoctrineUnitOfWork($em),
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
             new TradeInReceiptPdfRenderer(new AccessiblePdfRenderer($this->projectDir(), $this->fakePython(), '')),
-            new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($this->voucherRepository($em))),
-            new VoucherNotificationEmailService(
-                new EmailTemplateRepository($this->registry($em)),
-                $this->createMock(MailerInterface::class),
-                $this->notifier(),
+            new TradeInStoreCreditVoucherIssuer(
+                new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($this->voucherRepository($em))),
+                new VoucherNotificationEmailService(
+                    new EmailTemplateRepository($this->registry($em)),
+                    $this->createMock(MailerInterface::class),
+                    $this->notifier(),
+                    $this->createMock(LoggerInterface::class),
+                    'https://front.example.test',
+                    'noreply@example.com',
+                ),
+                new DoctrineUnitOfWork($em),
                 $this->createMock(LoggerInterface::class),
-                'https://front.example.test',
-                'noreply@example.com',
             ),
-            $this->createMock(LoggerInterface::class),
         );
     }
 
@@ -394,7 +398,7 @@ final class TradeInModuleCompletionTest extends TestCase
 
     private function tradeInRequest(?User $user, string $reference = 'TR-1'): TradeInRequest
     {
-        return new TradeInRequest($reference, $user, 'Ada', 'Lovelace', 'ada@example.com', '0102030405', 'smartphone', 'iPhone', 100000, 2025, 'Apple', '15', 'SN', 'bon', true, true, true, 'Bon etat', null, null, 10000, 12000, new \DateTimeImmutable('2026-07-01T10:00:00+00:00'));
+        return TradeInRequest::fromLegacySubmittedScalars($reference, $user, 'Ada', 'Lovelace', 'ada@example.com', '0102030405', 'smartphone', 'iPhone', 100000, 2025, 'Apple', '15', 'SN', 'bon', true, true, true, 'Bon etat', null, null, 10000, 12000, new \DateTimeImmutable('2026-07-01T10:00:00+00:00'));
     }
 
     private function controllerContainer(?User $user): Container

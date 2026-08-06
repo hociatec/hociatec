@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Domain\Entity;
 
+use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -13,10 +14,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_beta_profile_status', columns: ['status'])]
 class BetaTesterProfile
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_PAUSED = 'paused';
-    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_PENDING = BetaTesterStatus::PENDING->value;
+    public const STATUS_ACCEPTED = BetaTesterStatus::ACCEPTED->value;
+    public const STATUS_PAUSED = BetaTesterStatus::PAUSED->value;
+    public const STATUS_REJECTED = BetaTesterStatus::REJECTED->value;
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
     private ?int $id = null;
@@ -25,8 +26,8 @@ class BetaTesterProfile
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private User $user;
 
-    #[ORM\Column(length: 30)]
-    private string $status = self::STATUS_PENDING;
+    #[ORM\Column(length: 30, enumType: BetaTesterStatus::class)]
+    private BetaTesterStatus $status = BetaTesterStatus::PENDING;
 
     /** @var list<string> */
     #[ORM\Column(type: 'json')]
@@ -62,30 +63,45 @@ class BetaTesterProfile
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    /**
-     * @param list<string> $availability
-     * @param list<string> $assistiveTools
-     * @param list<string> $devices
-     * @param list<string> $browsers
-     * @param list<string> $testingTypes
-     */
-    public function __construct(User $user, array $availability, string $motivation, string $testingExperience, string $bugDescriptionAbility, ?string $technicalKnowledge, string $accessibilityNeed, array $assistiveTools, array $devices, array $browsers, array $testingTypes, \DateTimeImmutable $consentAt, string $privacyNoticeVersion)
+    public function __construct(mixed ...$values)
     {
-        $this->user = $user;
-        $this->availability = $availability;
-        $this->motivation = $motivation;
-        $this->testingExperience = $testingExperience;
-        $this->bugDescriptionAbility = $bugDescriptionAbility;
-        $this->technicalKnowledge = $technicalKnowledge;
-        $this->accessibilityNeed = $accessibilityNeed;
-        $this->assistiveTools = $assistiveTools;
-        $this->devices = $devices;
-        $this->browsers = $browsers;
-        $this->testingTypes = $testingTypes;
-        $this->consentAt = $consentAt;
-        $this->privacyNoticeVersion = $privacyNoticeVersion;
-        $this->createdAt = $consentAt;
-        $this->updatedAt = $consentAt;
+        $keys = ['user', 'availability', 'motivation', 'testingExperience', 'bugDescriptionAbility', 'technicalKnowledge', 'accessibilityNeed', 'assistiveTools', 'devices', 'browsers', 'testingTypes', 'consentAt', 'privacyNoticeVersion'];
+        $data = array_fill_keys($keys, null);
+        $data['availability'] = [];
+        $data['accessibilityNeed'] = 'none';
+        $data['assistiveTools'] = [];
+        $data['devices'] = [];
+        $data['browsers'] = [];
+        $data['testingTypes'] = [];
+        $data['consentAt'] = new \DateTimeImmutable();
+        $data['privacyNoticeVersion'] = 'unknown';
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $data[$keys[$index]] = $value;
+            }
+        }
+        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        if (!$data['user'] instanceof User) {
+            throw new \InvalidArgumentException('Le profil bêta doit être associé à un utilisateur.');
+        }
+        $this->user = $data['user'];
+        $this->availability = is_array($data['availability']) ? array_values(array_filter($data['availability'], 'is_string')) : [];
+        $this->motivation = (string) $data['motivation'];
+        $this->testingExperience = (string) $data['testingExperience'];
+        $this->bugDescriptionAbility = (string) $data['bugDescriptionAbility'];
+        $this->technicalKnowledge = null !== $data['technicalKnowledge'] ? (string) $data['technicalKnowledge'] : null;
+        $this->accessibilityNeed = (string) $data['accessibilityNeed'];
+        $this->assistiveTools = is_array($data['assistiveTools']) ? array_values(array_filter($data['assistiveTools'], 'is_string')) : [];
+        $this->devices = is_array($data['devices']) ? array_values(array_filter($data['devices'], 'is_string')) : [];
+        $this->browsers = is_array($data['browsers']) ? array_values(array_filter($data['browsers'], 'is_string')) : [];
+        $this->testingTypes = is_array($data['testingTypes']) ? array_values(array_filter($data['testingTypes'], 'is_string')) : [];
+        $this->consentAt = $data['consentAt'] instanceof \DateTimeImmutable ? $data['consentAt'] : new \DateTimeImmutable();
+        $this->privacyNoticeVersion = (string) $data['privacyNoticeVersion'];
+        $this->createdAt = $this->consentAt;
+        $this->updatedAt = $this->consentAt;
     }
 
     public function getId(): ?int
@@ -100,11 +116,18 @@ class BetaTesterProfile
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(BetaTesterStatus|string $status): self
     {
+        if (!$status instanceof BetaTesterStatus) {
+            $status = BetaTesterStatus::tryFrom($status);
+            if (null === $status) {
+                throw new \InvalidArgumentException('État de profil invalide.');
+            }
+        }
+
         $this->status = $status;
 
         return $this;

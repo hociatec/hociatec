@@ -63,7 +63,7 @@ class TrainingEnrollment
     {
         $this->session = $session;
         $this->user = $user;
-        $this->priceCents = $priceCents;
+        $this->setPriceCents($priceCents);
         $this->scheduledStartsAt = $session->getStartsAt();
         $this->scheduledEndsAt = $session->getEndsAt();
         $this->createdAt = new \DateTimeImmutable();
@@ -103,6 +103,10 @@ class TrainingEnrollment
 
     public function setPriceCents(int $priceCents): self
     {
+        if ($priceCents < 0) {
+            throw new \InvalidArgumentException('Le prix doit être positif.');
+        }
+
         $this->priceCents = $priceCents;
 
         return $this;

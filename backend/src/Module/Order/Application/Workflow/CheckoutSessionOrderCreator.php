@@ -6,9 +6,7 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
-use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
-use App\Module\Order\Application\Factory\InvoiceNumberGenerator;
-use App\Module\Order\Application\Factory\OrderNumberGenerator;
+use App\Module\Order\Application\Factory\OrderCreationServices;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
@@ -21,9 +19,7 @@ final readonly class CheckoutSessionOrderCreator
     public function __construct(
         private UnitOfWork $persistence,
         private TransactionManager $transactions,
-        private OrderNumberGenerator $numberGenerator,
-        private InvoiceNumberGenerator $invoiceNumberGenerator,
-        private OrderInvoiceCalculator $invoiceCalculator,
+        private OrderCreationServices $orderCreation,
         private OrderRepositoryPort $orders,
         private ProductCatalogRepository $products,
         private CartSessionRepositoryPort $carts,
@@ -46,7 +42,7 @@ final readonly class CheckoutSessionOrderCreator
                     $this->addItem($order, $rawItem);
                 }
 
-                $this->invoiceCalculator->snapshot($order);
+                $this->orderCreation->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
                 $this->persistence->commit();
                 if (null === $order->getId()) {
@@ -65,7 +61,7 @@ final readonly class CheckoutSessionOrderCreator
 
     private function createOrder(OrderCheckoutSession $checkout): Order
     {
-        return (new Order($this->numberGenerator->generate(), $checkout->getUser()))
+        return (new Order($this->orderCreation->orderNumbers->generate(), $checkout->getUser()))
             ->setStatus(Order::STATUS_CONFIRMED)
             ->setShippingName($checkout->getShippingName())
             ->setShippingAddress($checkout->getShippingAddress())
@@ -80,7 +76,7 @@ final readonly class CheckoutSessionOrderCreator
             ->setBillingPostalCode($checkout->getBillingPostalCode())
             ->setBillingCity($checkout->getBillingCity())
             ->setBillingEmail($checkout->getBillingEmail())
-            ->setInvoiceNumber($this->invoiceNumberGenerator->generate())
+            ->setInvoiceNumber($this->orderCreation->invoiceNumbers->generate())
             ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
             ->setInvoicedAt(new \DateTimeImmutable())
             ->setCurrencyCode($checkout->getCurrencyCode())

@@ -111,7 +111,7 @@ final class EntityCoverageBatchTest extends TestCase
             'Sujet snapshot',
             '<p>Snapshot</p>',
             'Text snapshot',
-            -5,
+            0,
             'admin@example.com',
             $template,
         );
@@ -184,11 +184,11 @@ final class EntityCoverageBatchTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $notification->getCreatedAt());
 
         $order = new Order('ORD-1', $user);
-        $refund = new RefundRequest($order, -2000, $user);
+        $refund = new RefundRequest($order, 2000, $user);
         $refundUpdatedAt = $refund->getUpdatedAt();
         $refund
             ->setPaymentId(12)
-            ->setAmountCents(-100)
+            ->setAmountCents(100)
             ->setCurrencyCode('usd-extra')
             ->setStatus(RefundRequest::STATUS_APPROVED)
             ->setReason(' reason ')
@@ -197,7 +197,7 @@ final class EntityCoverageBatchTest extends TestCase
         self::assertNull($refund->getId());
         self::assertSame($order, $refund->getOrder());
         self::assertSame(12, $refund->getPaymentId());
-        self::assertSame(0, $refund->getAmountCents());
+        self::assertSame(100, $refund->getAmountCents());
         self::assertSame('USD', $refund->getCurrencyCode());
         self::assertSame(RefundRequest::STATUS_APPROVED, $refund->getStatus());
         self::assertSame('reason', $refund->getReason());

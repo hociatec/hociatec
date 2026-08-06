@@ -117,7 +117,7 @@ final class AlignedEmailServicesTest extends TestCase
     public function testTradeInNotificationEmailServiceUsesMailerAndLogsFailures(): void
     {
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
-        $request = new TradeInRequest(
+        $request = TradeInRequest::fromLegacySubmittedScalars(
             'TR-1',
             $user,
             'Ada',

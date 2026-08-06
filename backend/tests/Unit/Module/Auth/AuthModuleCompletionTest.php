@@ -15,6 +15,7 @@ use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Auth\Infrastructure\Security\AuthenticationFailureHandler;
 use App\Module\Auth\Infrastructure\Security\AuthenticationSuccessHandler;
 use App\Module\Auth\Application\Workflow\PasswordResetService;
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Auth\Infrastructure\Persistence\RefreshTokenPersistence;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
@@ -222,7 +223,14 @@ final class AuthModuleCompletionTest extends TestCase
 
     private function refreshService(EntityManager $em): RefreshTokenService
     {
-        return new RefreshTokenService($this->refreshRepository($em), new RefreshTokenPersistence($em), new \App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager($em));
+        $repository = $this->refreshRepository($em);
+
+        return new RefreshTokenService(
+            $repository,
+            new RefreshTokenPersistence($em),
+            new \App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager($em),
+            new RefreshTokenRevocationService($repository),
+        );
     }
 
     private function limiter(int $limit): RateLimiterFactory

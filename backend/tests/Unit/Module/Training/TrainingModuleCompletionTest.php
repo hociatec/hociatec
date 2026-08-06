@@ -262,9 +262,11 @@ final class TrainingModuleCompletionTest extends TestCase
     private function checkoutService(EntityManager $em): TrainingEnrollmentCheckoutService
     {
         return new TrainingEnrollmentCheckoutService(
-            $this->sessionRepository($em),
-            $this->enrollmentRepository($em),
-            new TrainingSlotValidator(),
+            new \App\Module\Training\Application\Workflow\TrainingEnrollmentPorts(
+                $this->sessionRepository($em),
+                $this->enrollmentRepository($em),
+                new TrainingSlotValidator(),
+            ),
             new StripeApiClient(''),
             new DoctrineUnitOfWork($em),
             new DoctrineTransactionManager($em),

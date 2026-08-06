@@ -141,7 +141,7 @@ final class ResourceAccessPolicyTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return new TradeInRequest(
+        return TradeInRequest::fromLegacySubmittedScalars(
             'TR-IDOR',
             $user,
             'Ada',

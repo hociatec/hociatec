@@ -8,6 +8,7 @@ use App\Module\Admin\Application\BetaTest\Handler\CloseElapsedBetaCampaignsHandl
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -39,7 +40,7 @@ final class ListCampaignsController extends AbstractController
         $this->closeElapsedCampaigns->closeElapsed($campaigns, $now);
         $total = $this->campaigns->count([]);
 
-        $acceptedProfilesCount = $this->profiles->count(['status' => BetaTesterProfile::STATUS_ACCEPTED]);
+        $acceptedProfilesCount = $this->profiles->count(['status' => BetaTesterStatus::ACCEPTED->value]);
 
         return ApiResponse::paginated(array_map(function ($c) use ($now, $acceptedProfilesCount) {
             $reports = $this->reports->findBy(['campaign' => $c], ['createdAt' => 'DESC'], 20);

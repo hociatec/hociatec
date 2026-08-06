@@ -9,18 +9,10 @@ use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
+use App\Shared\Application\InvoiceIssuerProfile;
 
 final class QuotePdfTemplateRenderer
 {
-    private const ISSUER_EMAIL = 'contact@hociatec.fr';
-    private const ISSUER_ADDRESS_LINES = [
-        '2 allée Anatoli Vaisser',
-        '92600 Asnières-sur-Seine',
-        'France',
-    ];
-    private const ISSUER_SIREN = '934 814 559';
-    private const ISSUER_SIRET = '934 814 559 00019';
-
     public function __construct(private readonly PdfHtmlFormatter $formatter)
     {
     }
@@ -38,7 +30,7 @@ final class QuotePdfTemplateRenderer
 
         $issuerLines = implode('', array_map(
             fn (string $line): string => '<p>'.$this->formatter->escape($line).'</p>',
-            self::ISSUER_ADDRESS_LINES,
+            InvoiceIssuerProfile::ADDRESS_LINES,
         ));
         $customerName = $quote->getCustomerName() ? $this->formatter->escape($quote->getCustomerName()) : '-';
         $customerCompany = $quote->getCustomerCompany() ? '<p>'.$this->formatter->escape($quote->getCustomerCompany()).'</p>' : '';
@@ -103,9 +95,9 @@ final class QuotePdfTemplateRenderer
       <address>
         <p><strong>Hociatec</strong></p>
         {$issuerLines}
-        <p>Email : {$this->formatter->escape(self::ISSUER_EMAIL)}</p>
-        <p>SIREN : {$this->formatter->escape(self::ISSUER_SIREN)}</p>
-        <p>SIRET : {$this->formatter->escape(self::ISSUER_SIRET)}</p>
+                <p>Email : {$this->formatter->escape(InvoiceIssuerProfile::EMAIL)}</p>
+                <p>SIREN : {$this->formatter->escape(InvoiceIssuerProfile::SIREN)}</p>
+                <p>SIRET : {$this->formatter->escape(InvoiceIssuerProfile::SIRET)}</p>
       </address>
     </section>
 

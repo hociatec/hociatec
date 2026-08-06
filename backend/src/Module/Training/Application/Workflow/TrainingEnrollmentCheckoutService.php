@@ -8,9 +8,6 @@ use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
 use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
-use App\Module\Training\Application\Mapper\TrainingSlotValidator;
-use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
-use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
@@ -20,9 +17,7 @@ use App\Shared\Application\UnitOfWork;
 final readonly class TrainingEnrollmentCheckoutService
 {
     public function __construct(
-        private TrainingSessionRepositoryPort $sessions,
-        private TrainingEnrollmentRepositoryPort $enrollments,
-        private TrainingSlotValidator $slots,
+        private TrainingEnrollmentPorts $ports,
         private StripeApiClient $stripe,
         private UnitOfWork $persistence,
         private TransactionManager $transactions,
@@ -41,9 +36,9 @@ final readonly class TrainingEnrollmentCheckoutService
         $session = $this->findSession($sessionId);
         $scheduledStartsAt = $this->parseStart($startsAt);
         $scheduledEndsAt = $scheduledStartsAt->modify('+'.max(1, $session->getTraining()->getDurationMinutes()).' minutes');
-        $this->slots->validate($session, $scheduledStartsAt, $scheduledEndsAt);
+        $this->ports->slots->validate($session, $scheduledStartsAt, $scheduledEndsAt);
 
-        $existing = $this->enrollments->findOneForUserAndSession($user, $session);
+        $existing = $this->ports->enrollments->findOneForUserAndSession($user, $session);
         if (null !== $existing && !in_array($existing->getStatus(), [
             TrainingEnrollment::STATUS_PENDING_PAYMENT,
             TrainingEnrollment::STATUS_CANCELLED,
@@ -89,7 +84,7 @@ final readonly class TrainingEnrollmentCheckoutService
 
     private function findSession(int $sessionId): TrainingSession
     {
-        $session = $sessionId > 0 ? $this->sessions->findForUpdate($sessionId) : null;
+        $session = $sessionId > 0 ? $this->ports->sessions->findForUpdate($sessionId) : null;
         if (!$session instanceof TrainingSession || !$session->getTraining()->isActive() || 'scheduled' !== $session->getStatus()) {
             throw new TrainingSessionUnavailableException('Session introuvable.');
         }
@@ -112,7 +107,7 @@ final readonly class TrainingEnrollmentCheckoutService
 
     private function assertCapacity(TrainingSession $session, \DateTimeImmutable $startsAt, \DateTimeImmutable $endsAt): void
     {
-        if ($this->enrollments->countActiveForSessionSlot($session, $startsAt, $endsAt) >= $session->getCapacity()) {
+        if ($this->ports->enrollments->countActiveForSessionSlot($session, $startsAt, $endsAt) >= $session->getCapacity()) {
             throw new \InvalidArgumentException('Cette session est complète.');
         }
     }

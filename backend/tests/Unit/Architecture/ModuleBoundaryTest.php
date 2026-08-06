@@ -606,11 +606,14 @@ final class ModuleBoundaryTest extends TestCase
     public function testProductWriteHandlerSeparatesCacheInvalidationFromDatabaseTransaction(): void
     {
         $handler = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Handler/ProductWriteHandler.php');
+        $execution = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Handler/ProductWriteExecution.php');
         self::assertIsString($handler);
+        self::assertIsString($execution);
 
         self::assertStringNotContainsString('CacheItemPoolInterface', $handler);
         self::assertStringNotContainsString('->clear()', $handler);
-        self::assertStringContainsString('CatalogCacheInvalidator', $handler);
+        self::assertStringContainsString('ProductWriteExecution', $handler);
+        self::assertStringContainsString('CatalogCacheInvalidator', $execution);
         self::assertStringContainsString('invalidateAfterWrite', $handler);
     }
 
@@ -811,6 +814,18 @@ final class ModuleBoundaryTest extends TestCase
         foreach (['DTO', 'Input', 'Command', 'Query', 'Result', 'ViewModel', 'ResponseMapper', 'Handler', 'Provider', 'Projection', 'Calculator', 'Policy', 'Workflow', 'Mapper', 'Gateway', 'Repository', 'Service', 'Manager'] as $suffix) {
             self::assertStringContainsString($suffix, $doc);
         }
+    }
+
+    public function testArchitectureDocumentsDescribeAdminRoleAndDomainInvariants(): void
+    {
+        $architecture = file_get_contents(__DIR__.'/../../../docs/architecture-naming.md');
+        $invariants = file_get_contents(__DIR__.'/../../../docs/domain-invariants.md');
+        self::assertIsString($architecture);
+        self::assertIsString($invariants);
+        self::assertStringContainsString('## Admin Module Role', $architecture);
+        self::assertStringContainsString('Business invariants remain owned by the domain module', $architecture);
+        self::assertStringContainsString('## Monetary and Numeric Values', $invariants);
+        self::assertStringContainsString('InvoiceDocument', $invariants);
     }
 
     public function testCleanedMarketingControllersDoNotDecodeJsonInline(): void

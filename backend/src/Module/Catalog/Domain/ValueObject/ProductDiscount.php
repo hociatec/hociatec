@@ -23,26 +23,33 @@ final readonly class ProductDiscount
         if (null !== $value && $value < 0) {
             throw new \InvalidArgumentException('Valeur de remise invalide.');
         }
+
+        if (self::TYPE_PERCENT === $type && null !== $value && $value > 100) {
+            throw new \InvalidArgumentException('Une remise en pourcentage ne peut pas dépasser 100.');
+        }
     }
 
     public function effectivePriceCents(int $basePriceCents, ?\DateTimeImmutable $now = null): int
     {
         $now ??= new \DateTimeImmutable();
-        $basePriceCents = max(0, $basePriceCents);
+        if ($basePriceCents < 0) {
+            throw new \InvalidArgumentException('Le prix de base ne peut pas être négatif.');
+        }
 
         if (!$this->enabled || !$this->isActiveAt($now)) {
             return $basePriceCents;
         }
 
         if (self::TYPE_PERCENT === $this->type && null !== $this->value) {
-            $percent = max(0, min(100, $this->value));
-            $discount = (int) round($basePriceCents * ($percent / 100));
+            $discount = (int) round($basePriceCents * ($this->value / 100));
 
-            return max(0, $basePriceCents - $discount);
+            return $basePriceCents - $discount;
         }
 
         if (self::TYPE_FIXED_CENTS === $this->type && null !== $this->value) {
-            return max(0, $basePriceCents - $this->value);
+            $remaining = $basePriceCents - $this->value;
+
+            return $remaining > 0 ? $remaining : 0;
         }
 
         return $basePriceCents;

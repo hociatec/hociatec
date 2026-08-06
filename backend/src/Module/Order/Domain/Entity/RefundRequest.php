@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,8 +37,8 @@ class RefundRequest
     #[ORM\Column(length: 3)]
     private string $currencyCode = 'EUR';
 
-    #[ORM\Column(length: 40)]
-    private string $status = self::STATUS_REQUESTED;
+    #[ORM\Column(length: 40, enumType: RefundStatus::class)]
+    private RefundStatus $status = RefundStatus::REQUESTED;
 
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $reason = null;
@@ -60,8 +61,12 @@ class RefundRequest
 
     public function __construct(Order $order, int $amountCents, ?User $actor = null)
     {
+        if ($amountCents < 0) {
+            throw new \InvalidArgumentException('Le montant du remboursement ne peut pas être négatif.');
+        }
+
         $this->order = $order;
-        $this->amountCents = max(0, $amountCents);
+        $this->amountCents = $amountCents;
         $this->actor = $actor;
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -97,7 +102,11 @@ class RefundRequest
 
     public function setAmountCents(int $amountCents): self
     {
-        $this->amountCents = max(0, $amountCents);
+        if ($amountCents < 0) {
+            throw new \InvalidArgumentException('Le montant du remboursement ne peut pas être négatif.');
+        }
+
+        $this->amountCents = $amountCents;
 
         return $this;
     }
@@ -116,12 +125,12 @@ class RefundRequest
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function setStatus(string $status): self
     {
-        $this->status = $status;
+        $this->status = RefundStatus::from($status);
 
         return $this;
     }

@@ -7,6 +7,7 @@ namespace App\Module\BetaTest\UI\Controller;
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Writer\BugReportWriter;
+use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\User\Domain\Entity\User;
@@ -38,7 +39,7 @@ final class CreateBugReportController extends AbstractController
         }
 
         $profile = $this->profiles->findOneByUser($user);
-        if (null === $profile || BetaTesterProfile::STATUS_ACCEPTED !== $profile->getStatus()) {
+        if (null === $profile || BetaTesterStatus::ACCEPTED->value !== $profile->getStatus()) {
             return ApiResponse::error('Votre profil bêta doit être accepté avant d’envoyer un signalement.', 403);
         }
 

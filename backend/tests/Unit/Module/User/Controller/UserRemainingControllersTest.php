@@ -11,6 +11,7 @@ use App\Module\User\UI\Controller\RegisterController;
 use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Module\User\UI\Controller\UpdateProfileController;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\DTO\UpdateProfileInput;
@@ -199,7 +200,12 @@ final class UserRemainingControllersTest extends TestCase
         $delete = new class($orders, $refreshTokens, new UserPersistence($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
             public function __construct(OrderRepository $orders, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
             {
-                parent::__construct(new DeleteAccountService($orders, $refreshTokens, $persistence, $transactions), $logger);
+                parent::__construct(new DeleteAccountService(
+                    $orders,
+                    new RefreshTokenRevocationService($refreshTokens),
+                    $persistence,
+                    $transactions,
+                ), $logger);
             }
             protected function getUser(): ?User { return $this->user; }
         };

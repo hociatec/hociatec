@@ -6,6 +6,7 @@ namespace App\Module\Admin\Application\Operations\Projection;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
+use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
@@ -20,26 +21,27 @@ final readonly class AdminOperationsFormatter
     ) {
     }
 
-    /** @return array<string, mixed> */
-    public function supportRequest(SupportRequest $support): array
+    public function supportRequest(SupportRequest $support): SupportRequestOutput
     {
         $customer = $support->getCustomer();
         $order = $support->getOrder();
 
-        return [
-            'id' => $support->getId(),
-            'status' => $support->getStatus(),
-            'statusLabel' => $this->supportStatusLabel($support->getStatus()),
-            'reason' => $support->getReason(),
-            'subject' => $support->getSubject(),
-            'message' => $support->getMessage(),
-            'internalNotes' => $support->getInternalNotes(),
-            'customer' => ['id' => $customer->getId(), 'name' => $customer->getFullName(), 'email' => $customer->getEmail()],
-            'order' => $order instanceof Order ? ['id' => $order->getId(), 'number' => $order->getNumber()] : null,
-            'createdAt' => $support->getCreatedAt()->format(DATE_ATOM),
-            'updatedAt' => $support->getUpdatedAt()->format(DATE_ATOM),
-            'resolvedAt' => $support->getResolvedAt()?->format(DATE_ATOM),
-        ];
+        return new SupportRequestOutput(
+            [
+                'id' => $support->getId(),
+                'status' => $support->getStatus(),
+                'statusLabel' => $this->supportStatusLabel($support->getStatus()),
+                'reason' => $support->getReason(),
+                'subject' => $support->getSubject(),
+                'message' => $support->getMessage(),
+                'internalNotes' => $support->getInternalNotes(),
+                'customer' => ['id' => $customer->getId(), 'name' => $customer->getFullName(), 'email' => $customer->getEmail()],
+                'order' => $order instanceof Order ? ['id' => $order->getId(), 'number' => $order->getNumber()] : null,
+                'createdAt' => $support->getCreatedAt()->format(DATE_ATOM),
+                'updatedAt' => $support->getUpdatedAt()->format(DATE_ATOM),
+                'resolvedAt' => $support->getResolvedAt()?->format(DATE_ATOM),
+            ],
+        );
     }
 
     /** @return array<string, mixed> */

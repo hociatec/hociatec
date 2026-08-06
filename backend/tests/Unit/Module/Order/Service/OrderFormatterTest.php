@@ -47,6 +47,10 @@ final class OrderFormatterTest extends TestCase
         $workflow = new OrderStatusWorkflow();
         self::assertSame([Order::STATUS_CONFIRMED, Order::STATUS_CANCELLED], $workflow->nextStatuses(Order::STATUS_PENDING));
         self::assertTrue($workflow->canTransitionTo(Order::STATUS_PENDING, Order::STATUS_CONFIRMED));
+        self::assertSame('confirm', $workflow->transitionFor(Order::STATUS_PENDING, Order::STATUS_CONFIRMED));
+        self::assertSame('cancel', $workflow->transitionFor(Order::STATUS_PENDING, Order::STATUS_CANCELLED));
+        self::assertSame('deliver', $workflow->transitionFor(Order::STATUS_CONFIRMED, Order::STATUS_DELIVERED));
+        self::assertNull($workflow->transitionFor(Order::STATUS_DELIVERED, Order::STATUS_CONFIRMED));
         self::assertFalse($workflow->canTransitionTo(Order::STATUS_DELIVERED, Order::STATUS_CANCELLED));
     }
 }

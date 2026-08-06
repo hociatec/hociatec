@@ -40,7 +40,11 @@ class CreatePrestationController extends AbstractController
         $durationMinutes = $input->durationMinutes;
         $price = $input->price;
 
-        $priceCents = RequestPayloadMapper::priceCents($price);
+        try {
+            $priceCents = RequestPayloadMapper::priceCents($price);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         if ($priceCents < 0) {
             return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);

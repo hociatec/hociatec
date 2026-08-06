@@ -8,20 +8,28 @@ use App\Shared\Domain\ValueObject\Money;
 
 final readonly class QuotePayload
 {
-    /**
-     * @param array<string,mixed>    $customer
-     * @param list<QuoteItemPayload> $items
-     */
-    public function __construct(
-        public array $customer,
-        public string $status,
-        public Money $discount,
-        public Money $shipping,
-        public ?string $conditions,
-        public ?string $validFrom,
-        public ?string $validUntil,
-        public array $items,
-    ) {
+    /** @var array<string,mixed> */
+    public array $customer;
+    public string $status;
+    public Money $discount;
+    public Money $shipping;
+    public ?string $conditions;
+    public ?string $validFrom;
+    public ?string $validUntil;
+    /** @var list<QuoteItemPayload> */
+    public array $items;
+
+    public function __construct(mixed ...$values)
+    {
+        $data = $this->mapValues($values);
+        $this->customer = $data['customer'];
+        $this->status = (string) $data['status'];
+        $this->discount = $data['discount'];
+        $this->shipping = $data['shipping'];
+        $this->conditions = $data['conditions'];
+        $this->validFrom = $data['validFrom'];
+        $this->validUntil = $data['validUntil'];
+        $this->items = $data['items'];
     }
 
     /** @param array<string,mixed> $payload */
@@ -42,5 +50,30 @@ final readonly class QuotePayload
                 ))
                 : [],
         );
+    }
+
+    /**
+     * @param array<int|string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mapValues(array $values): array
+    {
+        $keys = ['customer', 'status', 'discount', 'shipping', 'conditions', 'validFrom', 'validUntil', 'items'];
+        $defaults = array_fill_keys($keys, null);
+        $defaults['customer'] = [];
+        $defaults['status'] = 'draft';
+        $defaults['discount'] = Money::fromCents(0);
+        $defaults['shipping'] = Money::fromCents(0);
+        $defaults['items'] = [];
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $defaults[$keys[$index]] = $value;
+            }
+        }
+
+        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

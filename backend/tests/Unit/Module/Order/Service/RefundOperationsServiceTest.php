@@ -82,10 +82,12 @@ final class RefundOperationsServiceTest extends TestCase
         $entityManager->expects(self::exactly(3))->method('flush');
 
         $service = new RefundOperationsService(
-            $refunds,
-            $this->unusedOrders(),
-            $this->unusedPayments(),
-            $stripe,
+            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
+                $refunds,
+                $this->unusedOrders(),
+                $this->unusedPayments(),
+                $stripe,
+            ),
             new OrderEventLogger(new OrderEventPersistence($entityManager)),
             new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
             new class implements TransactionManager {

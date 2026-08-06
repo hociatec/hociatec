@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Pdf;
 
+use App\Shared\Application\InvoiceIssuerProfile;
+
 final class OrderInvoiceIssuerProfile
 {
-    public const NAME = 'Hociatec';
-    public const LEGAL_FORM = 'SASU';
-    public const EMAIL = 'contact@hociatec.fr';
-    public const ADDRESS_LINES = [
-        '2 allée Anatoli Vaisser',
-        '92600 Asnières-sur-Seine',
-        'France',
-    ];
-    public const SIREN = '934 814 559';
-    public const SIRET = '934 814 559 00019';
-    public const VAT = 'FR93934814559';
-    public const RCS = 'RCS Nanterre 934 814 559';
-    public const PAYMENT_TERMS = 'Paiement à 30 jours fin de mois.';
-    public const EARLY_PAYMENT_DISCOUNT = 'Aucun escompte accordé pour paiement anticipé.';
-    public const LATE_PENALTY = 'Pénalités de retard exigibles au taux BCE + 10 points.';
-    public const RECOVERY_FEE = 'Indemnité forfaitaire pour frais de recouvrement : 40 EUR.';
-    public const OPERATION_NATURE = 'Livraison de biens';
+    public const NAME = InvoiceIssuerProfile::NAME;
+    public const LEGAL_FORM = InvoiceIssuerProfile::LEGAL_FORM;
+    public const EMAIL = InvoiceIssuerProfile::EMAIL;
+    public const ADDRESS_LINES = InvoiceIssuerProfile::ADDRESS_LINES;
+    public const SIREN = InvoiceIssuerProfile::SIREN;
+    public const SIRET = InvoiceIssuerProfile::SIRET;
+    public const VAT = InvoiceIssuerProfile::VAT;
+    public const RCS = InvoiceIssuerProfile::RCS;
+    public const PAYMENT_TERMS = InvoiceIssuerProfile::PAYMENT_TERMS;
+    public const EARLY_PAYMENT_DISCOUNT = InvoiceIssuerProfile::EARLY_PAYMENT_DISCOUNT;
+    public const LATE_PENALTY = InvoiceIssuerProfile::LATE_PENALTY;
+    public const RECOVERY_FEE = InvoiceIssuerProfile::RECOVERY_FEE;
+    public const OPERATION_NATURE = InvoiceIssuerProfile::OPERATION_NATURE;
 
     private function __construct()
     {

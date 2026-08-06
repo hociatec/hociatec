@@ -145,7 +145,7 @@ final class SmallServicesCoverageTest extends TestCase
 
     public function testTradeInMetadataAndFormatterExposeOptionsAndPayload(): void
     {
-        $request = new TradeInRequest(
+        $request = TradeInRequest::fromLegacySubmittedScalars(
             'TR-1',
             $this->user(),
             'Ada',

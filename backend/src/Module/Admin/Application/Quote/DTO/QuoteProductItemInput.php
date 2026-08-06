@@ -8,8 +8,34 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class QuoteProductItemInput
 {
-    public function __construct(#[Assert\Positive] public int $productId, #[Assert\Positive] public int $quantity = 1, public ?string $name = null, public ?string $description = null, public ?string $unit = null, #[Assert\PositiveOrZero] public ?int $unitPriceCents = null, #[Assert\PositiveOrZero] public ?int $discountCents = null, #[Assert\PositiveOrZero] public ?float $vatRate = null, #[Assert\PositiveOrZero] public ?int $vatRateBps = null)
+    #[Assert\Positive]
+    public int $productId;
+    #[Assert\Positive]
+    public int $quantity;
+    public ?string $name;
+    public ?string $description;
+    public ?string $unit;
+    #[Assert\PositiveOrZero]
+    public ?int $unitPriceCents;
+    #[Assert\PositiveOrZero]
+    public ?int $discountCents;
+    #[Assert\PositiveOrZero]
+    public ?float $vatRate;
+    #[Assert\PositiveOrZero]
+    public ?int $vatRateBps;
+
+    public function __construct(mixed ...$values)
     {
+        $data = $this->mapValues($values);
+        $this->productId = (int) $data['productId'];
+        $this->quantity = (int) $data['quantity'];
+        $this->name = $data['name'];
+        $this->description = $data['description'];
+        $this->unit = $data['unit'];
+        $this->unitPriceCents = $data['unitPriceCents'];
+        $this->discountCents = $data['discountCents'];
+        $this->vatRate = null !== $data['vatRate'] ? (float) $data['vatRate'] : null;
+        $this->vatRateBps = $data['vatRateBps'];
     }
 
     /** @param array<string,mixed> $payload */
@@ -22,5 +48,27 @@ final readonly class QuoteProductItemInput
     public function toPayload(): array
     {
         return array_filter(['name' => $this->name, 'description' => $this->description, 'unit' => $this->unit, 'quantity' => $this->quantity, 'unitPriceCents' => $this->unitPriceCents, 'discountCents' => $this->discountCents, 'vatRate' => $this->vatRate, 'vatRateBps' => $this->vatRateBps], static fn (mixed $value): bool => null !== $value);
+    }
+
+    /**
+     * @param array<int|string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mapValues(array $values): array
+    {
+        $keys = ['productId', 'quantity', 'name', 'description', 'unit', 'unitPriceCents', 'discountCents', 'vatRate', 'vatRateBps'];
+        $defaults = array_fill_keys($keys, null);
+        $defaults['productId'] = 0;
+        $defaults['quantity'] = 1;
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $defaults[$keys[$index]] = $value;
+            }
+        }
+
+        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

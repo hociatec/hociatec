@@ -52,7 +52,6 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
     public function revokeAllForUser(User $user): void
     {
         $tokens = $this->findBy(['user' => $user, 'revokedAt' => null]);
-
         foreach ($tokens as $token) {
             $token->revoke();
         }
@@ -72,10 +71,6 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
 
     public function revokeActiveTokensOverLimit(User $user, int $limit): int
     {
-        if (1 > $limit) {
-            throw new \InvalidArgumentException('La limite de sessions doit être positive.');
-        }
-
         $tokensToRevoke = $this->createQueryBuilder('refreshToken')
             ->andWhere('refreshToken.user = :user')
             ->andWhere('refreshToken.revokedAt IS NULL')
@@ -87,6 +82,10 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
             ->setFirstResult($limit)
             ->getQuery()
             ->getResult();
+
+        if ([] === $tokensToRevoke) {
+            return 0;
+        }
 
         foreach ($tokensToRevoke as $token) {
             $token->revoke();

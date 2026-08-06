@@ -34,12 +34,7 @@ final readonly class OrderStatusUpdater
             throw new \InvalidArgumentException('Statut invalide.');
         }
 
-        $transition = match ($status) {
-            Order::STATUS_CONFIRMED => 'confirm',
-            Order::STATUS_DELIVERED => 'deliver',
-            Order::STATUS_CANCELLED => 'cancel',
-            default => null,
-        };
+        $transition = $this->workflow->transitionFor($order->getStatus(), $status);
         if (null === $transition || !$this->stateMachine->can($order, $transition)) {
             throw new \DomainException('Transition de statut invalide.');
         }

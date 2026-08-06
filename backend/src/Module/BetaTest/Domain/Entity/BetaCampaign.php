@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Domain\Entity;
 
+use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'beta_campaigns')]
 class BetaCampaign
 {
-    public const STATUS_DRAFT = 'draft';
-    public const STATUS_ACTIVE = 'active';
-    public const STATUS_CLOSED = 'closed';
+    public const STATUS_DRAFT = BetaCampaignStatus::DRAFT->value;
+    public const STATUS_ACTIVE = BetaCampaignStatus::ACTIVE->value;
+    public const STATUS_CLOSED = BetaCampaignStatus::CLOSED->value;
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column] private ?int $id = null;
     #[ORM\Column(length: 120)] private string $name;
     #[ORM\Column(type: 'text')] private string $description;
-    #[ORM\Column(length: 30)] private string $status = 'draft';
+    #[ORM\Column(length: 30, enumType: BetaCampaignStatus::class)] private BetaCampaignStatus $status = BetaCampaignStatus::DRAFT;
     #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $startsAt;
     #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $endsAt;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $createdAt;
@@ -47,31 +48,38 @@ class BetaCampaign
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function getEffectiveStatus(?\DateTimeImmutable $now = null): string
     {
         $now ??= new \DateTimeImmutable();
 
-        if (self::STATUS_ACTIVE === $this->status && null !== $this->endsAt && $this->endsAt < $now) {
+        if (BetaCampaignStatus::ACTIVE === $this->status && null !== $this->endsAt && $this->endsAt < $now) {
             return self::STATUS_CLOSED;
         }
 
-        return $this->status;
+        return $this->status->value;
     }
 
     public function isOpenForReports(?\DateTimeImmutable $now = null): bool
     {
         $now ??= new \DateTimeImmutable();
 
-        return self::STATUS_ACTIVE === $this->status
+        return BetaCampaignStatus::ACTIVE === $this->status
             && (null === $this->startsAt || $this->startsAt <= $now)
             && (null === $this->endsAt || $this->endsAt >= $now);
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(BetaCampaignStatus|string $status): self
     {
+        if (!$status instanceof BetaCampaignStatus) {
+            $status = BetaCampaignStatus::tryFrom($status);
+            if (null === $status) {
+                throw new \InvalidArgumentException('État de campagne invalide.');
+            }
+        }
+
         $this->status = $status;
 
         return $this;

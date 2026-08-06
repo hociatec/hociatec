@@ -60,7 +60,11 @@ final class RequestPayloadMapper
             }
         }
 
-        return -1;
+        if ('' === trim((string) $price)) {
+            return 0;
+        }
+
+        throw new \InvalidArgumentException('Le prix doit etre positif.');
     }
 
     public static function dateOrNull(mixed $value): ?\DateTimeImmutable

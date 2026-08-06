@@ -8,8 +8,11 @@ use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
 use App\Module\TradeIn\Domain\ValueObject\TradeInClosure;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPrivateDocument;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
+use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -150,6 +153,54 @@ class TradeInRequest
     public function __construct(
         string $reference,
         ?User $user,
+        TradeInApplicant $applicant,
+        TradeInProductSnapshot $product,
+        TradeInEstimate $estimate,
+        \DateTimeImmutable $consentAt,
+    ) {
+        $this->reference = $reference;
+        $this->user = $user;
+        $this->firstName = $applicant->firstName;
+        $this->lastName = $applicant->lastName;
+        $this->email = $applicant->email;
+        $this->phone = $applicant->phone;
+        $this->category = $product->category;
+        $this->productName = $product->productName;
+        $this->purchasePriceCents = $product->purchasePriceCents;
+        $this->purchaseYear = $product->purchaseYear;
+        $this->brand = $product->brand;
+        $this->model = $product->model;
+        $this->serialNumber = $product->serialNumber;
+        $this->conditionGrade = $product->conditionGrade;
+        $this->functional = $product->functional;
+        $this->hasAccessories = $product->hasAccessories;
+        $this->hasProofOfPurchase = $product->hasProofOfPurchase;
+        $this->description = $product->description;
+        $this->catalogProductId = $product->catalogProductId;
+        $this->catalogProductName = $product->catalogProductName;
+        $this->estimatedMinCents = $estimate->minCents;
+        $this->estimatedMaxCents = $estimate->maxCents;
+        $this->offerCents = $estimate->offerCents;
+        $this->offerExpiresAt = $estimate->offerExpiresAt;
+        $this->consentAt = $consentAt;
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
+    }
+
+    public static function fromSubmittedData(
+        string $reference,
+        ?User $user,
+        TradeInApplicant $applicant,
+        TradeInProductSnapshot $product,
+        TradeInEstimate $estimate,
+        \DateTimeImmutable $consentAt,
+    ): self {
+        return new self($reference, $user, $applicant, $product, $estimate, $consentAt);
+    }
+
+    public static function fromLegacySubmittedScalars(
+        string $reference,
+        ?User $user,
         string $firstName,
         string $lastName,
         string $email,
@@ -171,42 +222,19 @@ class TradeInRequest
         int $estimatedMinCents,
         int $estimatedMaxCents,
         \DateTimeImmutable $consentAt,
-    ) {
-        $this->reference = $reference;
-        $this->user = $user;
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
-        $this->phone = $phone;
-        $this->category = $category;
-        $this->productName = $productName;
-        if ($purchasePriceCents < 0) {
-            throw new \InvalidArgumentException('Le prix d’achat ne peut pas être négatif.');
-        }
-        if ($estimatedMinCents < 0 || $estimatedMaxCents < 0) {
-            throw new \InvalidArgumentException('Les estimations de reprise ne peuvent pas être négatives.');
-        }
-        if ($estimatedMaxCents < $estimatedMinCents) {
-            throw new \InvalidArgumentException('L’estimation maximale doit être supérieure ou égale à l’estimation minimale.');
-        }
-
-        $this->purchasePriceCents = $purchasePriceCents;
-        $this->purchaseYear = $purchaseYear;
-        $this->brand = $brand;
-        $this->model = $model;
-        $this->serialNumber = $serialNumber;
-        $this->conditionGrade = $conditionGrade;
-        $this->functional = $functional;
-        $this->hasAccessories = $hasAccessories;
-        $this->hasProofOfPurchase = $hasProofOfPurchase;
-        $this->description = $description;
-        $this->catalogProductId = $catalogProductId;
-        $this->catalogProductName = $catalogProductName;
-        $this->estimatedMinCents = $estimatedMinCents;
-        $this->estimatedMaxCents = $estimatedMaxCents;
-        $this->consentAt = $consentAt;
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = $this->createdAt;
+    ): self {
+        return new self(
+            $reference,
+            $user,
+            new TradeInApplicant($firstName, $lastName, $email, $phone),
+            new TradeInProductSnapshot(
+                new TradeInProductIdentity($category, $productName, $brand, $model, $serialNumber, $catalogProductId, $catalogProductName),
+                new TradeInPurchase($purchasePriceCents, $purchaseYear),
+                new TradeInProductCondition($conditionGrade, $functional, $hasAccessories, $hasProofOfPurchase, $description),
+            ),
+            new TradeInEstimate($estimatedMinCents, $estimatedMaxCents, null, null),
+            $consentAt,
+        );
     }
 
     public function getId(): ?int
@@ -322,20 +350,23 @@ class TradeInRequest
     public function productSnapshot(): TradeInProductSnapshot
     {
         return new TradeInProductSnapshot(
-            $this->category,
-            $this->productName,
-            $this->purchasePriceCents,
-            $this->purchaseYear,
-            $this->brand,
-            $this->model,
-            $this->serialNumber,
-            $this->conditionGrade,
-            $this->functional,
-            $this->hasAccessories,
-            $this->hasProofOfPurchase,
-            $this->description,
-            $this->catalogProductId,
-            $this->catalogProductName,
+            new TradeInProductIdentity(
+                $this->category,
+                $this->productName,
+                $this->brand,
+                $this->model,
+                $this->serialNumber,
+                $this->catalogProductId,
+                $this->catalogProductName,
+            ),
+            new TradeInPurchase($this->purchasePriceCents, $this->purchaseYear),
+            new TradeInProductCondition(
+                $this->conditionGrade,
+                $this->functional,
+                $this->hasAccessories,
+                $this->hasProofOfPurchase,
+                $this->description,
+            ),
         );
     }
 

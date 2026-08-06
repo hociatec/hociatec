@@ -27,7 +27,7 @@ final class PromotionTest extends TestCase
             ->setSlug('winter')
             ->setDescription('Promo')
             ->setDiscountType(Promotion::TYPE_FIXED_CENTS)
-            ->setDiscountValue(-100)
+            ->setDiscountValue(100)
             ->setAudienceKey('loyal_customers')
             ->setCriteria(['minimumOrders' => 3])
             ->setIsActive(false)
@@ -38,7 +38,7 @@ final class PromotionTest extends TestCase
         self::assertSame('winter', $promotion->getSlug());
         self::assertSame('Promo', $promotion->getDescription());
         self::assertSame(Promotion::TYPE_FIXED_CENTS, $promotion->getDiscountType());
-        self::assertSame(0, $promotion->getDiscountValue());
+        self::assertSame(100, $promotion->getDiscountValue());
         self::assertSame('loyal_customers', $promotion->getAudienceKey());
         self::assertSame(['minimumOrders' => 3], $promotion->getCriteria());
         self::assertFalse($promotion->isActive());

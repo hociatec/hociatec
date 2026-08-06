@@ -22,10 +22,10 @@ final class OrderEntitiesTest extends TestCase
 
         $item = new OrderItem('Phone', 'PH-1', 10000, 2);
         $item
-            ->setVatRateBps(-20)
-            ->setLineSubtotalCents(-1)
-            ->setLineVatCents(-1)
-            ->setLineTotalCents(-1);
+            ->setVatRateBps(2000)
+            ->setLineSubtotalCents(10000)
+            ->setLineVatCents(2000)
+            ->setLineTotalCents(12000);
 
         $category = new Category('Phones', 'phones');
         $product = new Product('Phone', 'phone', 'PH-1', 'Desc', 10000, 5, $category);
@@ -35,10 +35,10 @@ final class OrderEntitiesTest extends TestCase
             ->setNumber('ORD-2')
             ->setUser($user)
             ->setStatus(Order::STATUS_CONFIRMED)
-            ->setTotalPriceCents(-100)
-            ->setSubtotalPriceCents(-200)
-            ->setDiscountAmountCents(-300)
-            ->setLoyaltyPointsAwarded(-5)
+            ->setTotalPriceCents(100)
+            ->setSubtotalPriceCents(200)
+            ->setDiscountAmountCents(300)
+            ->setLoyaltyPointsAwarded(5)
             ->setAppliedPromotionName('Promo')
             ->setAppliedPromotionSlug('promo')
             ->setShippingName('Ada')
@@ -78,10 +78,10 @@ final class OrderEntitiesTest extends TestCase
         self::assertSame('ORD-2', $order->getNumber());
         self::assertSame($user, $order->getUser());
         self::assertSame(Order::STATUS_CONFIRMED, $order->getStatus());
-        self::assertSame(0, $order->getTotalPriceCents());
-        self::assertSame(0, $order->getSubtotalPriceCents());
-        self::assertSame(0, $order->getDiscountAmountCents());
-        self::assertSame(0, $order->getLoyaltyPointsAwarded());
+        self::assertSame(100, $order->getTotalPriceCents());
+        self::assertSame(200, $order->getSubtotalPriceCents());
+        self::assertSame(300, $order->getDiscountAmountCents());
+        self::assertSame(5, $order->getLoyaltyPointsAwarded());
         self::assertSame('Promo', $order->getAppliedPromotionName());
         self::assertSame('promo', $order->getAppliedPromotionSlug());
         self::assertSame('Ada', $order->getShippingName());
@@ -111,11 +111,11 @@ final class OrderEntitiesTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $order->getStatusCancelledEmailSentAt());
         self::assertSame($order, $item->getOrder());
         self::assertSame($product, $item->getProduct());
-        self::assertSame(0, $item->getVatRateBps());
-        self::assertSame(0, $item->getLineSubtotalCents());
-        self::assertSame(0, $item->getLineVatCents());
-        self::assertSame(0, $item->getLineTotalCents());
-        self::assertSame(20000, $item->getLinePriceCents());
+        self::assertSame(2000, $item->getVatRateBps());
+        self::assertSame(10000, $item->getLineSubtotalCents());
+        self::assertSame(2000, $item->getLineVatCents());
+        self::assertSame(12000, $item->getLineTotalCents());
+        self::assertSame(12000, $item->getLinePriceCents());
 
         $item->setLineTotalCents(22000);
         self::assertSame(22000, $item->getLinePriceCents());

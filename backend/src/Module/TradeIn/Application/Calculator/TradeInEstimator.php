@@ -16,8 +16,17 @@ final class TradeInEstimator
     /** @return array{minCents:int,maxCents:int,baseCents:int,coefficient:float} */
     public function estimate(TradeInInput $input, ?int $catalogPriceCents = null): array
     {
+        if ($input->purchasePriceCents < 0 || (null !== $catalogPriceCents && $catalogPriceCents < 0)) {
+            throw new \InvalidArgumentException('Le prix de référence de reprise ne peut pas être négatif.');
+        }
+
         $base = $input->purchasePriceCents > 0 ? $input->purchasePriceCents : (null !== $catalogPriceCents && $catalogPriceCents > 0 ? $catalogPriceCents : (self::CATEGORY_BASE_CENTS[$input->category] ?? self::CATEGORY_BASE_CENTS['autre']));
-        $age = max(0, (int) date('Y') - $input->purchaseYear);
+        $currentYear = (int) date('Y');
+        if ($input->purchaseYear > $currentYear) {
+            throw new \InvalidArgumentException('L’année d’achat ne peut pas être future.');
+        }
+
+        $age = $currentYear - $input->purchaseYear;
         $ageCoefficient = match (true) {
             0 === $age => 0.70,
             1 === $age => 0.60,
@@ -39,8 +48,12 @@ final class TradeInEstimator
         if ($input->hasProofOfPurchase) {
             $coefficient += 0.02;
         }
-        $mid = max(0, (int) round($base * min(0.8, $coefficient)));
+        if ($coefficient > 0.8) {
+            $coefficient = 0.8;
+        }
 
-        return ['minCents' => max(0, (int) round($mid * 0.85)), 'maxCents' => (int) round($mid * 1.15), 'baseCents' => $base, 'coefficient' => $coefficient];
+        $mid = (int) round($base * $coefficient);
+
+        return ['minCents' => (int) round($mid * 0.85), 'maxCents' => (int) round($mid * 1.15), 'baseCents' => $base, 'coefficient' => $coefficient];
     }
 }

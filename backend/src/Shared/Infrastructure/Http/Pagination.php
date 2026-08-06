@@ -16,8 +16,17 @@ final readonly class Pagination
 
     public static function fromRequest(Request $request, int $defaultPerPage = 20, int $maxPerPage = 100): self
     {
-        $page = max(1, $request->query->getInt('page', 1));
-        $perPage = max(1, min($maxPerPage, $request->query->getInt('perPage', $defaultPerPage)));
+        $page = $request->query->getInt('page', 1);
+        if (1 > $page) {
+            $page = 1;
+        }
+
+        $perPage = $request->query->getInt('perPage', $defaultPerPage);
+        if (1 > $perPage) {
+            $perPage = 1;
+        } elseif ($perPage > $maxPerPage) {
+            $perPage = $maxPerPage;
+        }
 
         return new self($page, $perPage);
     }
@@ -34,7 +43,7 @@ final readonly class Pagination
             'page' => $this->page,
             'perPage' => $this->perPage,
             'total' => $total,
-            'totalPages' => max(1, (int) ceil($total / $this->perPage)),
+            'totalPages' => 1 > (int) ceil($total / $this->perPage) ? 1 : (int) ceil($total / $this->perPage),
         ];
     }
 }

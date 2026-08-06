@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\Enum\DeliveryStatus;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -21,8 +22,8 @@ final class OrderDelivery
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $shippingCity = null;
 
-    #[ORM\Column(name: 'delivery_status', length: 30, options: ['default' => Order::DELIVERY_STATUS_PREPARING])]
-    private string $status = Order::DELIVERY_STATUS_PREPARING;
+    #[ORM\Column(name: 'delivery_status', length: 30, enumType: DeliveryStatus::class, options: ['default' => DeliveryStatus::PREPARING->value])]
+    private DeliveryStatus $status = DeliveryStatus::PREPARING;
 
     #[ORM\Column(name: 'delivery_carrier', length: 120, nullable: true)]
     private ?string $carrier = null;
@@ -92,12 +93,12 @@ final class OrderDelivery
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function setStatus(string $status): self
     {
-        $this->status = $status;
+        $this->status = DeliveryStatus::from($status);
 
         return $this;
     }

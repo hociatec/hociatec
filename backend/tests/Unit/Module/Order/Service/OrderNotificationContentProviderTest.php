@@ -89,20 +89,10 @@ final class OrderNotificationContentProviderTest extends TestCase
         self::assertStringContainsString('a été mise à jour', $default['text']);
     }
 
-    public function testBuildUsesUnknownOrderStatusVerbatimInContextFallback(): void
+    public function testUnknownOrderStatusIsRejectedByTheDomainEnum(): void
     {
-        $templates = $this->createMock(EmailTemplateRepository::class);
-        $quotes = $this->createMock(QuoteRepositoryPort::class);
-        $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
-        $order = $this->order('archived');
-
-        $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_status_delivered')->willReturn(null);
-        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn(null);
-
-        $content = $provider->build($order, 'order_status_delivered');
-
-        self::assertStringContainsString('archived', $content['html']);
-        self::assertStringContainsString('archived', $content['text']);
+        $this->expectException(\ValueError::class);
+        $this->order('archived');
     }
 
     private function order(string $status, string $firstName = 'Ada'): Order

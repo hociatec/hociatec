@@ -66,7 +66,7 @@ class TrainingSession
         $this->endsAt = $endsAt;
         $this->dailyStartTime = new \DateTimeImmutable('08:00');
         $this->dailyEndTime = new \DateTimeImmutable('20:00');
-        $this->capacity = $capacity;
+        $this->setCapacity($capacity);
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -192,6 +192,10 @@ class TrainingSession
 
     public function setCapacity(int $capacity): self
     {
+        if ($capacity <= 0) {
+            throw new \InvalidArgumentException('La capacité doit être supérieure à 0.');
+        }
+
         $this->capacity = $capacity;
 
         return $this;

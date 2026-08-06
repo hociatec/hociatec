@@ -125,17 +125,6 @@ final readonly class TradeInNotificationEmailService
 
     private function statusLabel(TradeInStatus $status): string
     {
-        return match ($status) {
-            TradeInStatus::SUBMITTED => 'Demande reçue',
-            TradeInStatus::UNDER_REVIEW => 'En cours d’étude',
-            TradeInStatus::OFFER_SENT => 'Offre envoyée',
-            TradeInStatus::ACCEPTED => 'Offre acceptée',
-            TradeInStatus::DECLINED => 'Offre refusée',
-            TradeInStatus::RECEIVED => 'Matériel reçu',
-            TradeInStatus::INSPECTED => 'Matériel inspecté',
-            TradeInStatus::COMPLETED => 'Reprise finalisée',
-            TradeInStatus::CANCELLED => 'Demande annulée',
-            TradeInStatus::EXPIRED => 'Offre expirée',
-        };
+        return $status->label();
     }
 }

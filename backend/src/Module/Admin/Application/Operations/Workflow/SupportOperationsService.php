@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Workflow;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
@@ -31,7 +32,7 @@ final readonly class SupportOperationsService
     ) {
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<SupportRequestOutput> */
     public function list(int $limit = 20, int $offset = 0): array
     {
         return array_map($this->formatter->supportRequest(...), $this->supportRequests->findBy([], ['updatedAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset)));
@@ -42,8 +43,7 @@ final readonly class SupportOperationsService
         return $this->supportRequests->count([]);
     }
 
-    /** @return array<string, mixed> */
-    public function create(SupportCreateData $data): array
+    public function create(SupportCreateData $data): SupportRequestOutput
     {
         $customer = $this->users->find($data->customerId);
         if (!$customer instanceof User) {
@@ -67,8 +67,7 @@ final readonly class SupportOperationsService
         return $this->formatter->supportRequest($support);
     }
 
-    /** @return array<string, mixed> */
-    public function update(int $supportId, SupportUpdateData $data): array
+    public function update(int $supportId, SupportUpdateData $data): SupportRequestOutput
     {
         $support = $this->findSupport($supportId);
         if (null !== $data->status && null === SupportStatus::tryFrom($data->status)) {
@@ -88,8 +87,7 @@ final readonly class SupportOperationsService
         return $this->formatter->supportRequest($support);
     }
 
-    /** @return array<string, mixed> */
-    public function reply(int $supportId, SupportReplyData $data): array
+    public function reply(int $supportId, SupportReplyData $data): SupportRequestOutput
     {
         $support = $this->findSupport($supportId);
         $subject = trim($data->subject ?? ('Réponse à votre demande SAV #'.$support->getId()));

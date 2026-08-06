@@ -61,11 +61,19 @@ final class UserAdministrationState
 
     public function changeLoyaltyPointsBalance(int $points): void
     {
-        $this->loyaltyPointsBalance = max(0, $points);
+        if ($points < 0) {
+            throw new \InvalidArgumentException('Le solde de points ne peut pas être négatif.');
+        }
+
+        $this->loyaltyPointsBalance = $points;
     }
 
     public function addLoyaltyPoints(int $points): void
     {
-        $this->loyaltyPointsBalance = max(0, $this->loyaltyPointsBalance + $points);
+        if ($this->loyaltyPointsBalance + $points < 0) {
+            throw new \InvalidArgumentException('Le solde de points ne peut pas devenir négatif.');
+        }
+
+        $this->loyaltyPointsBalance += $points;
     }
 }

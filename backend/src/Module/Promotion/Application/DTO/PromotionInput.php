@@ -9,29 +9,41 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class PromotionInput
 {
-    /** @param array<string,mixed> $criteria */
-    public function __construct(
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 140)]
-        public string $name,
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 140)]
-        #[Assert\Regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')]
-        public string $slug,
-        #[Assert\Choice(choices: [Promotion::TYPE_PERCENT, Promotion::TYPE_FIXED_CENTS])]
-        public string $discountType,
-        #[Assert\Positive]
-        public int $discountValue,
-        #[Assert\NotBlank]
-        #[Assert\Length(max: 60)]
-        public string $audienceKey,
-        public array $criteria = [],
-        #[Assert\Length(max: 100)]
-        public ?string $description = null,
-        public bool $isActive = true,
-        public ?\DateTimeImmutable $startsAt = null,
-        public ?\DateTimeImmutable $endsAt = null,
-    ) {
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 140)]
+    public string $name;
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 140)]
+    #[Assert\Regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')]
+    public string $slug;
+    #[Assert\Choice(choices: [Promotion::TYPE_PERCENT, Promotion::TYPE_FIXED_CENTS])]
+    public string $discountType;
+    #[Assert\Positive]
+    public int $discountValue;
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 60)]
+    public string $audienceKey;
+    /** @var array<string,mixed> */
+    public array $criteria;
+    #[Assert\Length(max: 100)]
+    public ?string $description;
+    public bool $isActive;
+    public ?\DateTimeImmutable $startsAt;
+    public ?\DateTimeImmutable $endsAt;
+
+    public function __construct(mixed ...$values)
+    {
+        $data = $this->mapValues($values);
+        $this->name = (string) $data['name'];
+        $this->slug = (string) $data['slug'];
+        $this->discountType = (string) $data['discountType'];
+        $this->discountValue = (int) $data['discountValue'];
+        $this->audienceKey = (string) $data['audienceKey'];
+        $this->criteria = $data['criteria'];
+        $this->description = $data['description'];
+        $this->isActive = (bool) $data['isActive'];
+        $this->startsAt = $data['startsAt'];
+        $this->endsAt = $data['endsAt'];
     }
 
     /** @param array<string,mixed> $payload */
@@ -64,5 +76,32 @@ final readonly class PromotionInput
         } catch (\DateMalformedStringException) {
             return null;
         }
+    }
+
+    /**
+     * @param array<int|string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mapValues(array $values): array
+    {
+        $keys = ['name', 'slug', 'discountType', 'discountValue', 'audienceKey', 'criteria', 'description', 'isActive', 'startsAt', 'endsAt'];
+        $defaults = array_fill_keys($keys, null);
+        $defaults['name'] = '';
+        $defaults['slug'] = '';
+        $defaults['discountType'] = '';
+        $defaults['discountValue'] = 0;
+        $defaults['audienceKey'] = '';
+        $defaults['criteria'] = [];
+        $defaults['isActive'] = true;
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $defaults[$keys[$index]] = $value;
+            }
+        }
+
+        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

@@ -42,7 +42,22 @@ final class TradeInEstimatorTest extends TestCase
         self::assertSame(35913, $catalogEstimate['minCents']);
         self::assertSame(48588, $catalogEstimate['maxCents']);
 
-        $fromCategory = new TradeInInput('Ada', 'Lovelace', 'ada@example.com', '0102030405', 'mystere', 'Objet', 0, (int) date('Y') - 20, null, null, null, 'inconnu', true, false, false, 'Description', null, true);
+        $fromCategory = TradeInInput::fromArray([
+            'firstName' => 'Ada',
+            'lastName' => 'Lovelace',
+            'email' => 'ada@example.com',
+            'phone' => '0102030405',
+            'category' => 'mystere',
+            'productName' => 'Objet',
+            'purchasePriceCents' => 0,
+            'purchaseYear' => (int) date('Y') - 20,
+            'conditionGrade' => 'inconnu',
+            'functional' => true,
+            'hasAccessories' => false,
+            'hasProofOfPurchase' => false,
+            'description' => 'Description',
+            'consent' => true,
+        ]);
         $categoryEstimate = (new TradeInEstimator())->estimate($fromCategory);
 
         self::assertSame(20000, $categoryEstimate['baseCents']);
@@ -51,8 +66,31 @@ final class TradeInEstimatorTest extends TestCase
         self::assertSame(0.12 * 0.65, $categoryEstimate['coefficient']);
     }
 
+    public function testItRejectsInvalidBusinessDatesAndAmounts(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('L’année d’achat ne peut pas être future.');
+
+        (new TradeInEstimator())->estimate($this->input(10000, (int) date('Y') + 1, 'bon'));
+    }
+
     private function input(int $purchasePriceCents, int $purchaseYear, string $conditionGrade, bool $functional = true, bool $hasAccessories = true, bool $hasProofOfPurchase = true): TradeInInput
     {
-        return new TradeInInput('Ada', 'Lovelace', 'ada@example.com', '0102030405', 'ordinateur', 'Ordinateur de test', $purchasePriceCents, $purchaseYear, null, null, null, $conditionGrade, $functional, $hasAccessories, $hasProofOfPurchase, 'Description de test', null, true);
+        return TradeInInput::fromArray([
+            'firstName' => 'Ada',
+            'lastName' => 'Lovelace',
+            'email' => 'ada@example.com',
+            'phone' => '0102030405',
+            'category' => 'ordinateur',
+            'productName' => 'Ordinateur de test',
+            'purchasePriceCents' => $purchasePriceCents,
+            'purchaseYear' => $purchaseYear,
+            'conditionGrade' => $conditionGrade,
+            'functional' => $functional,
+            'hasAccessories' => $hasAccessories,
+            'hasProofOfPurchase' => $hasProofOfPurchase,
+            'description' => 'Description de test',
+            'consent' => true,
+        ]);
     }
 }

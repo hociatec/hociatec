@@ -600,17 +600,22 @@ class Product
 
     private function gallery(): ProductGallery
     {
-        return $this->gallery ??= new ProductGallery(
-            $this->imageName,
-            $this->imageSize,
-            $this->imageAlt,
-            $this->galleryImage2Name,
-            $this->galleryImage2Size,
-            $this->galleryImage3Name,
-            $this->galleryImage3Size,
-            $this->galleryImage4Name,
-            $this->galleryImage4Size,
-        );
+        if (!$this->gallery instanceof ProductGallery) {
+            $fields = [
+                'imageName' => &$this->imageName,
+                'imageSize' => &$this->imageSize,
+                'imageAlt' => &$this->imageAlt,
+                'galleryImage2Name' => &$this->galleryImage2Name,
+                'galleryImage2Size' => &$this->galleryImage2Size,
+                'galleryImage3Name' => &$this->galleryImage3Name,
+                'galleryImage3Size' => &$this->galleryImage3Size,
+                'galleryImage4Name' => &$this->galleryImage4Name,
+                'galleryImage4Size' => &$this->galleryImage4Size,
+            ];
+            $this->gallery = new ProductGallery($fields);
+        }
+
+        return $this->gallery;
     }
 
     private function touchWhenGalleryImageChanges(?object $file, ?string $existingName): void
@@ -627,7 +632,11 @@ class Product
 
     public function setReviewsCount(int $count): self
     {
-        $this->reviewsCount = max(0, $count);
+        if ($count < 0) {
+            throw new \InvalidArgumentException('Le nombre d’avis ne peut pas être négatif.');
+        }
+
+        $this->reviewsCount = $count;
 
         return $this;
     }
@@ -639,7 +648,11 @@ class Product
 
     public function setReviewsAverage(float $average): self
     {
-        $this->reviewsAverage = max(0, $average);
+        if ($average < 0) {
+            throw new \InvalidArgumentException('La moyenne des avis ne peut pas être négative.');
+        }
+
+        $this->reviewsAverage = $average;
 
         return $this;
     }

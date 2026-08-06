@@ -8,12 +8,7 @@ use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFound
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
-use App\Module\Order\Application\Factory\InvoiceNumberGenerator;
-use App\Module\Order\Application\Factory\OrderNumberGenerator;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
@@ -29,11 +24,7 @@ final readonly class QuoteToOrderConverter
         private UserRepositoryPort $users,
         private ProductCatalogRepository $products,
         private QuoteCalculator $quoteCalculator,
-        private OrderNumberGenerator $orderNumbers,
-        private InvoiceNumberGenerator $invoiceNumbers,
-        private OrderInvoiceCalculator $invoiceCalculator,
-        private OrderNotificationEmailService $notifications,
-        private OrderEventLogger $events,
+        private QuoteToOrderServices $orderServices,
         private OperationsPersistence $persistence,
         private OrderFormatter $orderFormatter,
     ) {
@@ -107,10 +98,10 @@ final readonly class QuoteToOrderConverter
     private function createOrder(Quote $quote, User $customer): Order
     {
         $totals = $this->quoteCalculator->computeTotals($quote);
-        $order = new Order($this->orderNumbers->generate(), $customer);
+        $order = new Order($this->orderServices->orderNumbers->generate(), $customer);
         $order
             ->setStatus(Order::STATUS_PENDING)
-            ->setInvoiceNumber($this->invoiceNumbers->generate())
+            ->setInvoiceNumber($this->orderServices->invoiceNumbers->generate())
             ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
             ->setInvoicedAt(new \DateTimeImmutable())
             ->setBillingName($quote->getCustomerName())
@@ -136,7 +127,7 @@ final readonly class QuoteToOrderConverter
             $this->persistence->persist($item);
         }
 
-        $this->invoiceCalculator->snapshot($order);
+        $this->orderServices->invoiceCalculator->snapshot($order);
 
         return $order;
     }
@@ -147,9 +138,9 @@ final readonly class QuoteToOrderConverter
     private function sendNotification(Order $order): array
     {
         try {
-            return [$this->notifications->sendOrderCreatedIfNeeded($order), null];
+            return [$this->orderServices->notifications->sendOrderCreatedIfNeeded($order), null];
         } catch (\RuntimeException $exception) {
-            $this->events->log($order, null, 'email_failed', 'Échec email commande à régler: '.$exception->getMessage());
+            $this->orderServices->events->log($order, null, 'email_failed', 'Échec email commande à régler: '.$exception->getMessage());
 
             return [false, 'La notification email n’a pas pu être envoyée.'];
         }

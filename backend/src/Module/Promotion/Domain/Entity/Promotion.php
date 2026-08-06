@@ -67,10 +67,14 @@ class Promotion
         string $audienceKey,
         array $criteria = [],
     ) {
+        if ($discountValue < 0) {
+            throw new \InvalidArgumentException('La valeur de promotion ne peut pas être négative.');
+        }
+
         $this->name = $name;
         $this->slug = $slug;
         $this->discountType = $discountType;
-        $this->discountValue = max(0, $discountValue);
+        $this->discountValue = $discountValue;
         $this->audienceKey = $audienceKey;
         $this->criteria = $criteria;
         $now = new \DateTimeImmutable();
@@ -138,7 +142,11 @@ class Promotion
 
     public function setDiscountValue(int $discountValue): self
     {
-        $this->discountValue = max(0, $discountValue);
+        if ($discountValue < 0) {
+            throw new \InvalidArgumentException('La valeur de promotion ne peut pas être négative.');
+        }
+
+        $this->discountValue = $discountValue;
 
         return $this;
     }

@@ -28,7 +28,7 @@ final class TradeInControllerListTest extends TestCase
         $otherUser = new User('grace@example.com', 'Grace', 'Hopper', new \DateTimeImmutable('1985-01-01'), '0607080910', 'female');
         $otherUser->setPassword('hashed');
         $this->setId($otherUser, 13);
-        $otherRequest = new TradeInRequest(
+        $otherRequest = TradeInRequest::fromLegacySubmittedScalars(
             'TR-2',
             $otherUser,
             'Grace',
@@ -111,7 +111,7 @@ final class TradeInControllerListTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return new TradeInRequest(
+        return TradeInRequest::fromLegacySubmittedScalars(
             'TR-1',
             $user,
             'Ada',

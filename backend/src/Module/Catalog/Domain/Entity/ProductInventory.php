@@ -37,6 +37,10 @@ final class ProductInventory
 
     public function changeLowStockThreshold(int $threshold): void
     {
-        $this->lowStockThreshold = max(0, $threshold);
+        if ($threshold < 0) {
+            throw new \InvalidArgumentException('Le seuil de stock ne peut pas être négatif.');
+        }
+
+        $this->lowStockThreshold = $threshold;
     }
 }

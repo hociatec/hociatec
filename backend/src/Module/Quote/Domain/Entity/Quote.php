@@ -168,7 +168,11 @@ class Quote
 
     public function setGlobalDiscountCents(int $cents): self
     {
-        $this->globalDiscountCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('La remise globale ne peut pas être négative.');
+        }
+
+        $this->globalDiscountCents = $cents;
 
         return $this;
     }
@@ -180,7 +184,11 @@ class Quote
 
     public function setShippingCents(int $cents): self
     {
-        $this->shippingCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('Les frais de livraison ne peuvent pas être négatifs.');
+        }
+
+        $this->shippingCents = $cents;
 
         return $this;
     }

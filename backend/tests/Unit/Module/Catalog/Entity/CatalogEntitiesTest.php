@@ -111,7 +111,7 @@ final class CatalogEntitiesTest extends TestCase
             ->setDescription('Long desc')
             ->setPriceCents(120000)
             ->setStock(8)
-            ->setLowStockThreshold(-2)
+            ->setLowStockThreshold(2)
             ->setIsPublished(false)
             ->setIsFeaturedHome(true)
             ->setSellingType('SALE')
@@ -125,8 +125,8 @@ final class CatalogEntitiesTest extends TestCase
             ->setImageName('main.jpg')
             ->setImageSize(111)
             ->setImageAlt('Alt')
-            ->setReviewsCount(-5)
-            ->setReviewsAverage(-1.2)
+            ->setReviewsCount(5)
+            ->setReviewsAverage(1.2)
             ->setDiscountEnabled(true)
             ->setDiscountType('percent')
             ->setDiscountValue(20)
@@ -146,7 +146,7 @@ final class CatalogEntitiesTest extends TestCase
         self::assertSame('Long desc', $product->getDescription());
         self::assertSame(120000, $product->getPriceCents());
         self::assertSame(8, $product->getStock());
-        self::assertSame(0, $product->getLowStockThreshold());
+        self::assertSame(2, $product->getLowStockThreshold());
         self::assertFalse($product->isPublished());
         self::assertTrue($product->isFeaturedHome());
         self::assertSame('sale', $product->getSellingType());
@@ -162,8 +162,8 @@ final class CatalogEntitiesTest extends TestCase
         self::assertSame('main.jpg', $product->getImageName());
         self::assertSame(111, $product->getImageSize());
         self::assertSame('Alt', $product->getImageAlt());
-        self::assertSame(0, $product->getReviewsCount());
-        self::assertSame(0.0, $product->getReviewsAverage());
+        self::assertSame(5, $product->getReviewsCount());
+        self::assertSame(1.2, $product->getReviewsAverage());
         self::assertTrue($product->isDiscountEnabled());
         self::assertSame('percent', $product->getDiscountType());
         self::assertSame(20, $product->getDiscountValue());

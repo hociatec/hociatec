@@ -10,10 +10,6 @@ use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
-use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
-use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
-use App\Module\Order\Application\Port\StripeRefundClient;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
@@ -25,10 +21,7 @@ use App\Shared\Application\TransactionManager;
 final readonly class RefundOperationsService
 {
     public function __construct(
-        private RefundRequestRepositoryPort $refunds,
-        private OrderRepositoryPort $orders,
-        private OrderCheckoutSessionRepositoryPort $payments,
-        private StripeRefundClient $stripe,
+        private RefundOperationPorts $ports,
         private OrderEventLogger $events,
         private OperationsPersistence $persistence,
         private TransactionManager $transactions,
@@ -39,18 +32,18 @@ final readonly class RefundOperationsService
     /** @return list<array<string, mixed>> */
     public function list(int $limit = 20, int $offset = 0): array
     {
-        return array_map($this->formatter->refund(...), $this->refunds->findBy([], ['updatedAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset)));
+        return array_map($this->formatter->refund(...), $this->ports->refunds->findBy([], ['updatedAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset)));
     }
 
     public function count(): int
     {
-        return $this->refunds->count([]);
+        return $this->ports->refunds->count([]);
     }
 
     /** @return array<string, mixed> */
     public function create(RefundCreateData $data, ?User $actor): array
     {
-        $order = $this->orders->find($data->orderId);
+        $order = $this->ports->orders->find($data->orderId);
         if (!$order instanceof Order) {
             throw new OperationsResourceNotFoundException('Commande introuvable.');
         }
@@ -112,7 +105,7 @@ final readonly class RefundOperationsService
 
         $previousStatus = $refund->getStatus();
         $refund = $this->transactions->transactional(function () use ($refundId): RefundRequest {
-            $locked = $this->refunds->findForUpdate($refundId);
+            $locked = $this->ports->refunds->findForUpdate($refundId);
             if (!$locked instanceof RefundRequest) {
                 throw new OperationsResourceNotFoundException('Remboursement introuvable.');
             }
@@ -126,7 +119,7 @@ final readonly class RefundOperationsService
         });
 
         try {
-            $stripeRefund = $this->stripe->createRefund(
+            $stripeRefund = $this->ports->stripe->createRefund(
                 [
                     'payment_intent' => $paymentIntentId,
                     'amount' => $refund->getAmountCents(),
@@ -157,7 +150,7 @@ final readonly class RefundOperationsService
 
     private function findRefund(int $refundId): RefundRequest
     {
-        $refund = $this->refunds->find($refundId);
+        $refund = $this->ports->refunds->find($refundId);
         if (!$refund instanceof RefundRequest) {
             throw new OperationsResourceNotFoundException('Remboursement introuvable.');
         }
@@ -167,7 +160,7 @@ final readonly class RefundOperationsService
 
     private function findPaymentIntent(Order $order): ?string
     {
-        foreach ($this->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
+        foreach ($this->ports->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
             $paymentIntentId = $payment->getStripePaymentIntentId();
             if (null !== $paymentIntentId && '' !== $paymentIntentId) {
                 return $paymentIntentId;

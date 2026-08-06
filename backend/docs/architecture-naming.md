@@ -54,6 +54,11 @@ Module code follows these dependency rules:
 
 Persistence wrappers in `Infrastructure/Persistence` must be injected through `Application/Port/*PersistencePort` interfaces.
 
+## Admin Module Role
+
+The `Admin` module owns operator-facing HTTP routes, input mapping, dashboards, exports, and orchestration of administrative use cases.
+Business invariants remain owned by the domain module they govern. Admin workflows call those module ports and policies instead of redefining domain rules.
+
 ## Domain Framework Coupling
 
 This project intentionally uses the pragmatic Symfony approach for Doctrine entities and validation:

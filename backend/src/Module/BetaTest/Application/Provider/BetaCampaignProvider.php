@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Application\Provider;
 
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
+use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Shared\Application\UnitOfWork;
 
@@ -41,10 +42,10 @@ final readonly class BetaCampaignProvider
         $offset = 0;
 
         do {
-            $campaigns = $this->campaigns->findBy(['status' => BetaCampaign::STATUS_ACTIVE], ['startsAt' => 'ASC'], 100, $offset);
+            $campaigns = $this->campaigns->findBy(['status' => BetaCampaignStatus::ACTIVE->value], ['startsAt' => 'ASC'], 100, $offset);
             foreach ($campaigns as $campaign) {
-                if ('closed' === $campaign->getEffectiveStatus($now)) {
-                    $campaign->setStatus('closed');
+                if (BetaCampaignStatus::CLOSED->value === $campaign->getEffectiveStatus($now)) {
+                    $campaign->setStatus(BetaCampaignStatus::CLOSED);
                     $hasClosedCampaign = true;
                 }
             }

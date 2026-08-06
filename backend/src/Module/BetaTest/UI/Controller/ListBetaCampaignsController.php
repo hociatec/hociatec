@@ -6,6 +6,7 @@ namespace App\Module\BetaTest\UI\Controller;
 
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Provider\BetaCampaignProvider;
+use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
 use App\Module\User\Domain\Entity\User;
@@ -37,7 +38,7 @@ final class ListBetaCampaignsController extends AbstractController
         }
 
         $profile = $this->profiles->findOneByUser($user);
-        if (null === $profile || BetaTesterProfile::STATUS_ACCEPTED !== $profile->getStatus()) {
+        if (null === $profile || BetaTesterStatus::ACCEPTED->value !== $profile->getStatus()) {
             return ApiResponse::paginated([], $pagination->metadata(0));
         }
 

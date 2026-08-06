@@ -10,7 +10,7 @@ use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Shared\Application\Exception\MailDeliveryException;
 use Psr\Log\LoggerInterface;
 
-final readonly class ContactSubmissionService
+final readonly class ContactFormSubmissionService
 {
     public function __construct(
         private ContactNotificationSender $notification,

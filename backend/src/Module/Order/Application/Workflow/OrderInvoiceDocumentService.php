@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
+use App\Module\Order\Application\DTO\InvoiceDocument;
 use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
 use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Domain\Entity\Order;
@@ -38,14 +39,16 @@ final class OrderInvoiceDocumentService
             throw new \RuntimeException('Impossible de créer le répertoire des factures.');
         }
 
-        $pdf = $this->pdfService->render($order, $totals);
-        $xml = $this->xmlService->render($order, $totals);
+        $document = new InvoiceDocument(
+            $this->pdfService->render($order, $totals),
+            $this->xmlService->render($order, $totals),
+        );
         $pdfRelativePath = 'private/invoices/'.$baseName.'.pdf';
         $xmlRelativePath = 'private/invoices/'.$baseName.'.xml';
 
         $pdfAbsolutePath = $this->projectDir.'/var/'.$pdfRelativePath;
         $xmlAbsolutePath = $this->projectDir.'/var/'.$xmlRelativePath;
-        if (false === file_put_contents($pdfAbsolutePath, $pdf) || false === file_put_contents($xmlAbsolutePath, $xml)) {
+        if (false === file_put_contents($pdfAbsolutePath, $document->pdf) || false === file_put_contents($xmlAbsolutePath, $document->xml)) {
             throw new \RuntimeException('Impossible d’enregistrer les documents de facture.');
         }
         chmod($pdfAbsolutePath, 0640);

@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -30,7 +31,7 @@ final class BugReportDashboardController extends AbstractController
         $stats = $this->reports->dashboardStats();
         $activeCampaigns = array_filter(
             $this->campaigns->findBy([], ['createdAt' => 'DESC']),
-            static fn (BetaCampaign $campaign): bool => BetaCampaign::STATUS_ACTIVE === $campaign->getEffectiveStatus(),
+            static fn (BetaCampaign $campaign): bool => BetaCampaignStatus::ACTIVE->value === $campaign->getEffectiveStatus(),
         );
 
         return ApiResponse::success([

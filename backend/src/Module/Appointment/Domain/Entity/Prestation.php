@@ -34,8 +34,8 @@ class Prestation
     public function __construct(string $name, int $durationMinutes, int $priceCents)
     {
         $this->name = $name;
-        $this->durationMinutes = $durationMinutes;
-        $this->priceCents = $priceCents;
+        $this->setDurationMinutes($durationMinutes);
+        $this->setPriceCents($priceCents);
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -65,6 +65,10 @@ class Prestation
 
     public function setDurationMinutes(int $durationMinutes): self
     {
+        if ($durationMinutes <= 0) {
+            throw new \InvalidArgumentException('La durée doit être supérieure à 0.');
+        }
+
         $this->durationMinutes = $durationMinutes;
 
         return $this;
@@ -82,6 +86,10 @@ class Prestation
 
     public function setPriceCents(int $priceCents): self
     {
+        if ($priceCents < 0) {
+            throw new \InvalidArgumentException('Le prix doit être positif.');
+        }
+
         $this->priceCents = $priceCents;
 
         return $this;

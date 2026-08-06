@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\Enum\InvoiceStatus;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -12,8 +13,8 @@ final class OrderInvoice
     #[ORM\Column(name: 'invoice_number', length: 30, nullable: true, unique: true)]
     private ?string $number = null;
 
-    #[ORM\Column(name: 'invoice_status', length: 20, options: ['default' => Order::INVOICE_STATUS_ISSUED])]
-    private string $status = Order::INVOICE_STATUS_ISSUED;
+    #[ORM\Column(name: 'invoice_status', length: 20, enumType: InvoiceStatus::class, options: ['default' => InvoiceStatus::ISSUED->value])]
+    private InvoiceStatus $status = InvoiceStatus::ISSUED;
 
     #[ORM\Column(name: 'invoiced_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $invoicedAt = null;
@@ -44,12 +45,12 @@ final class OrderInvoice
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
     public function setStatus(string $status): self
     {
-        $this->status = $status;
+        $this->status = InvoiceStatus::from($status);
 
         return $this;
     }

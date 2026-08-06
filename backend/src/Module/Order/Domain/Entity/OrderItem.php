@@ -112,7 +112,11 @@ class OrderItem
 
     public function setVatRateBps(int $vatRateBps): self
     {
-        $this->vatRateBps = max(0, $vatRateBps);
+        if ($vatRateBps < 0) {
+            throw new \InvalidArgumentException('Le taux de TVA ne peut pas être négatif.');
+        }
+
+        $this->vatRateBps = $vatRateBps;
 
         return $this;
     }
@@ -124,7 +128,11 @@ class OrderItem
 
     public function setLineSubtotalCents(int $lineSubtotalCents): self
     {
-        $this->lineSubtotalCents = max(0, $lineSubtotalCents);
+        if ($lineSubtotalCents < 0) {
+            throw new \InvalidArgumentException('Le sous-total de ligne ne peut pas être négatif.');
+        }
+
+        $this->lineSubtotalCents = $lineSubtotalCents;
 
         return $this;
     }
@@ -136,7 +144,11 @@ class OrderItem
 
     public function setLineVatCents(int $lineVatCents): self
     {
-        $this->lineVatCents = max(0, $lineVatCents);
+        if ($lineVatCents < 0) {
+            throw new \InvalidArgumentException('La TVA de ligne ne peut pas être négative.');
+        }
+
+        $this->lineVatCents = $lineVatCents;
 
         return $this;
     }
@@ -148,7 +160,11 @@ class OrderItem
 
     public function setLineTotalCents(int $lineTotalCents): self
     {
-        $this->lineTotalCents = max(0, $lineTotalCents);
+        if ($lineTotalCents < 0) {
+            throw new \InvalidArgumentException('Le total de ligne ne peut pas être négatif.');
+        }
+
+        $this->lineTotalCents = $lineTotalCents;
 
         return $this;
     }

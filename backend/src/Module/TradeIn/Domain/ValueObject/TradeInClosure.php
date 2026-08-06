@@ -17,8 +17,12 @@ final readonly class TradeInClosure
 
     public static function fromInput(int $finalOfferCents, string $paymentMethod, string $paymentStatus, ?string $transactionReference, ?\DateTimeImmutable $paidAt): self
     {
+        if ($finalOfferCents < 0) {
+            throw new \InvalidArgumentException('Le montant final de reprise ne peut pas être négatif.');
+        }
+
         return new self(
-            max(0, $finalOfferCents),
+            $finalOfferCents,
             trim($paymentMethod),
             trim($paymentStatus),
             null !== $transactionReference && '' !== trim($transactionReference) ? trim($transactionReference) : null,

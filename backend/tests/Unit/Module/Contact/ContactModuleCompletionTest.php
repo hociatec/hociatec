@@ -8,7 +8,7 @@ use App\Module\Contact\UI\Controller\ContactController;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
-use App\Module\Contact\Application\Workflow\ContactSubmissionService;
+use App\Module\Contact\Application\Workflow\ContactFormSubmissionService;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Shared\Application\Exception\MailDeliveryException;
@@ -77,11 +77,11 @@ final class ContactModuleCompletionTest extends TestCase
         $this->submission($mailer, $logger)->submit(new ContactInput('Ada', 'ada@example.com', 'Sujet', 'Bonjour'));
     }
 
-    private function submission(MailerInterface $mailer, ?LoggerInterface $logger = null): ContactSubmissionService
+    private function submission(MailerInterface $mailer, ?LoggerInterface $logger = null): ContactFormSubmissionService
     {
         $renderer = new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class));
 
-        return new ContactSubmissionService(
+        return new ContactFormSubmissionService(
             new ContactNotificationSender($renderer, $mailer, 'noreply@example.com', 'contact@example.com'),
             new ContactAcknowledgementSender($renderer, $mailer, 'noreply@example.com'),
             $logger ?? $this->createMock(LoggerInterface::class),

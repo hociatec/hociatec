@@ -16,26 +16,18 @@ final class ProductGallery
     private ?string $galleryImage4Name = null;
     private ?int $galleryImage4Size = null;
 
-    public function __construct(
-        ?string &$imageName,
-        ?int &$imageSize,
-        ?string &$imageAlt,
-        ?string &$galleryImage2Name,
-        ?int &$galleryImage2Size,
-        ?string &$galleryImage3Name,
-        ?int &$galleryImage3Size,
-        ?string &$galleryImage4Name,
-        ?int &$galleryImage4Size,
-    ) {
-        $this->imageName = &$imageName;
-        $this->imageSize = &$imageSize;
-        $this->imageAlt = &$imageAlt;
-        $this->galleryImage2Name = &$galleryImage2Name;
-        $this->galleryImage2Size = &$galleryImage2Size;
-        $this->galleryImage3Name = &$galleryImage3Name;
-        $this->galleryImage3Size = &$galleryImage3Size;
-        $this->galleryImage4Name = &$galleryImage4Name;
-        $this->galleryImage4Size = &$galleryImage4Size;
+    /** @param array<string, mixed> $fields */
+    public function __construct(array &$fields)
+    {
+        $this->imageName = &$fields['imageName'];
+        $this->imageSize = &$fields['imageSize'];
+        $this->imageAlt = &$fields['imageAlt'];
+        $this->galleryImage2Name = &$fields['galleryImage2Name'];
+        $this->galleryImage2Size = &$fields['galleryImage2Size'];
+        $this->galleryImage3Name = &$fields['galleryImage3Name'];
+        $this->galleryImage3Size = &$fields['galleryImage3Size'];
+        $this->galleryImage4Name = &$fields['galleryImage4Name'];
+        $this->galleryImage4Size = &$fields['galleryImage4Size'];
     }
 
     public function imageName(): ?string

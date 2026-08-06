@@ -159,7 +159,11 @@ class QuoteItem
 
     public function setQuantity(int $qty): self
     {
-        $this->quantity = max(1, $qty);
+        if ($qty < 1) {
+            throw new \InvalidArgumentException('La quantité doit être supérieure ou égale à 1.');
+        }
+
+        $this->quantity = $qty;
 
         return $this;
     }
@@ -171,7 +175,11 @@ class QuoteItem
 
     public function setUnitPriceCents(int $cents): self
     {
-        $this->unitPriceCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('Le prix unitaire ne peut pas être négatif.');
+        }
+
+        $this->unitPriceCents = $cents;
 
         return $this;
     }
@@ -183,7 +191,11 @@ class QuoteItem
 
     public function setVatRateBps(int $bps): self
     {
-        $this->vatRateBps = max(0, $bps);
+        if ($bps < 0) {
+            throw new \InvalidArgumentException('Le taux de TVA ne peut pas être négatif.');
+        }
+
+        $this->vatRateBps = $bps;
 
         return $this;
     }
@@ -195,7 +207,11 @@ class QuoteItem
 
     public function setDiscountCents(int $cents): self
     {
-        $this->discountCents = max(0, $cents);
+        if ($cents < 0) {
+            throw new \InvalidArgumentException('La remise ne peut pas être négative.');
+        }
+
+        $this->discountCents = $cents;
 
         return $this;
     }

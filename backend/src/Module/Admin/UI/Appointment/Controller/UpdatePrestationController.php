@@ -46,7 +46,11 @@ class UpdatePrestationController extends AbstractController
 
         $input = PrestationInput::fromArray($payload);
         $this->validator->validate($input);
-        $priceCents = RequestPayloadMapper::priceCents($input->price);
+        try {
+            $priceCents = RequestPayloadMapper::priceCents($input->price);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         if ($priceCents < 0) {
             return ApiResponse::error('Le prix doit etre positif.', Response::HTTP_UNPROCESSABLE_ENTITY);

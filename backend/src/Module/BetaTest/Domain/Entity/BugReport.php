@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Domain\Entity;
 
+use App\Module\BetaTest\Domain\Enum\BugReportStatus;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -12,14 +13,15 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_beta_bug_status', columns: ['status'])]
 class BugReport
 {
-    public const STATUS_SUBMITTED = 'submitted';
-    public const STATUS_UNDER_REVIEW = 'under_review';
-    public const STATUS_NEED_INFO = 'need_info';
-    public const STATUS_PLANNED = 'planned';
-    public const STATUS_RESOLVED = 'resolved';
-    public const STATUS_DUPLICATE = 'duplicate';
-    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_SUBMITTED = BugReportStatus::SUBMITTED->value;
+    public const STATUS_UNDER_REVIEW = BugReportStatus::UNDER_REVIEW->value;
+    public const STATUS_NEED_INFO = BugReportStatus::NEED_INFO->value;
+    public const STATUS_PLANNED = BugReportStatus::PLANNED->value;
+    public const STATUS_RESOLVED = BugReportStatus::RESOLVED->value;
+    public const STATUS_DUPLICATE = BugReportStatus::DUPLICATE->value;
+    public const STATUS_REJECTED = BugReportStatus::REJECTED->value;
 
+    /** @var list<string> */
     /** @var list<string> */
     public const ALLOWED_STATUSES = [
         self::STATUS_SUBMITTED,
@@ -51,7 +53,7 @@ class BugReport
     #[ORM\Column(type: 'text', nullable: true)] private ?string $expectedBehavior;
     #[ORM\Column(type: 'text', nullable: true)] private ?string $actualBehavior;
     #[ORM\Column(length: 20)] private string $severity;
-    #[ORM\Column(length: 30)] private string $status = 'submitted';
+    #[ORM\Column(length: 30, enumType: BugReportStatus::class)] private BugReportStatus $status = BugReportStatus::SUBMITTED;
     #[ORM\Column(length: 500, nullable: true)] private ?string $pageUrl;
     /** @var list<string> */
     #[ORM\Column(type: 'json')] private array $attachments = [];
@@ -59,20 +61,32 @@ class BugReport
     #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $lastReporterReplyAt = null;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $createdAt;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $updatedAt;
-    /**
-     * @param list<string> $attachments
-     */
-    public function __construct(User $reporter, ?BetaCampaign $campaign, string $title, string $description, ?string $expectedBehavior, ?string $actualBehavior, string $severity, ?string $pageUrl, array $attachments = [])
+    public function __construct(mixed ...$values)
     {
-        $this->reporter = $reporter;
-        $this->campaign = $campaign;
-        $this->title = $title;
-        $this->description = $description;
-        $this->expectedBehavior = $expectedBehavior;
-        $this->actualBehavior = $actualBehavior;
-        $this->severity = $severity;
-        $this->pageUrl = $pageUrl;
-        $this->attachments = $attachments;
+        $keys = ['reporter', 'campaign', 'title', 'description', 'expectedBehavior', 'actualBehavior', 'severity', 'pageUrl', 'attachments'];
+        $data = array_fill_keys($keys, null);
+        $data['attachments'] = [];
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $data[$keys[$index]] = $value;
+            }
+        }
+        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        if (!$data['reporter'] instanceof User) {
+            throw new \InvalidArgumentException('Le rapport de bug doit être associé à un utilisateur.');
+        }
+        $this->reporter = $data['reporter'];
+        $this->campaign = $data['campaign'] instanceof BetaCampaign ? $data['campaign'] : null;
+        $this->title = (string) $data['title'];
+        $this->description = (string) $data['description'];
+        $this->expectedBehavior = $data['expectedBehavior'];
+        $this->actualBehavior = $data['actualBehavior'];
+        $this->severity = (string) $data['severity'];
+        $this->pageUrl = $data['pageUrl'];
+        $this->attachments = is_array($data['attachments']) ? array_values(array_filter($data['attachments'], 'is_string')) : [];
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
     }
@@ -119,11 +133,18 @@ class BugReport
 
     public function getStatus(): string
     {
-        return $this->status;
+        return $this->status->value;
     }
 
-    public function setStatus(string $status): self
+    public function setStatus(BugReportStatus|string $status): self
     {
+        if (!$status instanceof BugReportStatus) {
+            $status = BugReportStatus::tryFrom($status);
+            if (null === $status) {
+                throw new \InvalidArgumentException('État de signalement invalide.');
+            }
+        }
+
         $this->status = $status;
         $this->updatedAt = new \DateTimeImmutable();
 
@@ -165,7 +186,7 @@ class BugReport
         $this->duplicateReason = null !== $reason && '' !== trim($reason) ? trim($reason) : null;
         $this->duplicatedAt = null !== $report ? new \DateTimeImmutable() : null;
         if (null !== $report) {
-            $this->status = self::STATUS_DUPLICATE;
+            $this->status = BugReportStatus::DUPLICATE;
         }
         $this->updatedAt = new \DateTimeImmutable();
 

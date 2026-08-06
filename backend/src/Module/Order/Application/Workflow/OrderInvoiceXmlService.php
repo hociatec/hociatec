@@ -4,17 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
+use App\Shared\Application\InvoiceIssuerProfile;
 use App\Module\Order\Domain\Entity\Order;
 
 final class OrderInvoiceXmlService
 {
-    private const ISSUER_NAME = 'Hociatec';
-    private const ISSUER_EMAIL = 'contact@hociatec.fr';
-    private const ISSUER_SIRET = '93481455900019';
-    private const ISSUER_VAT = 'FR93934814559';
-    private const OPERATION_NATURE = 'Livraison de biens';
-    private const PAYMENT_NOTE = 'Paiement a 30 jours fin de mois. Aucun escompte pour paiement anticipe. Penalites de retard : taux BCE + 10 points. Indemnite forfaitaire de recouvrement : 40 EUR.';
-
     /**
      * @param array{
      *   subtotalTtcBeforeDiscount:int,
@@ -38,10 +32,17 @@ final class OrderInvoiceXmlService
         $customerEmail = $this->xml((string) ($order->getBillingEmail() ?? ''));
         $customerVat = $this->xml((string) ($order->getBillingCompanyVatNumber() ?? ''));
         $purchaseOrderNumber = $this->xml((string) ($order->getPurchaseOrderNumber() ?? $order->getNumber()));
-        $issuerVat = $this->xml(self::ISSUER_VAT);
-        $issuerEmail = $this->xml(self::ISSUER_EMAIL);
-        $issuerName = $this->xml(self::ISSUER_NAME);
-        $issuerSiret = $this->xml(self::ISSUER_SIRET);
+        $issuerVat = $this->xml(InvoiceIssuerProfile::VAT);
+        $issuerEmail = $this->xml(InvoiceIssuerProfile::EMAIL);
+        $issuerName = $this->xml(InvoiceIssuerProfile::NAME);
+        $issuerSiret = $this->xml(str_replace(' ', '', InvoiceIssuerProfile::SIRET));
+        $issuerAddress = array_map($this->xml(...), InvoiceIssuerProfile::ADDRESS_LINES);
+        $paymentNote = $this->xml(implode(' ', [
+            InvoiceIssuerProfile::PAYMENT_TERMS,
+            InvoiceIssuerProfile::EARLY_PAYMENT_DISCOUNT,
+            InvoiceIssuerProfile::LATE_PENALTY,
+            InvoiceIssuerProfile::RECOVERY_FEE,
+        ]));
         $deliveryAddressXml = '';
         $customerTaxSchemeXml = '';
 
@@ -85,7 +86,7 @@ final class OrderInvoiceXmlService
                 (int) $item['quantity'],
                 $currency,
                 $this->amount((int) $item['lineSubtotalHtCents']),
-                $this->xml(self::OPERATION_NATURE),
+                $this->xml(InvoiceIssuerProfile::OPERATION_NATURE),
                 $this->xml((string) $item['name']),
                 $this->xml((string) $item['sku']),
                 $this->percent((int) $item['vatRateBps']),
@@ -103,7 +104,7 @@ final class OrderInvoiceXmlService
   <cbc:IssueDate>{$issueDate}</cbc:IssueDate>
   <cbc:DueDate>{$dueDate}</cbc:DueDate>
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
-  <cbc:Note>{$this->xml(self::PAYMENT_NOTE)}</cbc:Note>
+  <cbc:Note>{$paymentNote}</cbc:Note>
   <cbc:DocumentCurrencyCode>{$currency}</cbc:DocumentCurrencyCode>
   <cac:OrderReference>
     <cbc:ID>{$purchaseOrderNumber}</cbc:ID>
@@ -116,9 +117,9 @@ final class OrderInvoiceXmlService
     <cac:Party>
       <cac:PartyName><cbc:Name>{$issuerName}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
-        <cbc:StreetName>2 allée Anatoli Vaisser</cbc:StreetName>
-        <cbc:CityName>Asnières-sur-Seine</cbc:CityName>
-        <cbc:PostalZone>92600</cbc:PostalZone>
+        <cbc:StreetName>{$issuerAddress[0]}</cbc:StreetName>
+        <cbc:CityName>{$issuerAddress[1]}</cbc:CityName>
+        <cbc:PostalZone>{$issuerAddress[2]}</cbc:PostalZone>
         <cac:Country><cbc:IdentificationCode>FR</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme><cbc:CompanyID>{$issuerVat}</cbc:CompanyID><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>

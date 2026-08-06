@@ -8,23 +8,37 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class TrainingInput
 {
-    /**
-     * @param list<string> $availableFormats
-     * @param list<string> $roadmap
-     */
-    public function __construct(
-        #[Assert\NotBlank] public string $title,
-        public ?string $slug,
-        public ?string $shortDescription,
-        public ?string $objective,
-        public ?string $audience,
-        public ?string $category,
-        #[Assert\Positive] public int $durationMinutes,
-        #[Assert\PositiveOrZero] public int $priceCents,
-        public array $availableFormats,
-        public array $roadmap,
-        public bool $isActive,
-    ) {
+    #[Assert\NotBlank]
+    public string $title;
+    public ?string $slug;
+    public ?string $shortDescription;
+    public ?string $objective;
+    public ?string $audience;
+    public ?string $category;
+    #[Assert\Positive]
+    public int $durationMinutes;
+    #[Assert\PositiveOrZero]
+    public int $priceCents;
+    /** @var list<string> */
+    public array $availableFormats;
+    /** @var list<string> */
+    public array $roadmap;
+    public bool $isActive;
+
+    public function __construct(mixed ...$values)
+    {
+        $data = $this->mapValues($values);
+        $this->title = (string) $data['title'];
+        $this->slug = $data['slug'];
+        $this->shortDescription = $data['shortDescription'];
+        $this->objective = $data['objective'];
+        $this->audience = $data['audience'];
+        $this->category = $data['category'];
+        $this->durationMinutes = (int) $data['durationMinutes'];
+        $this->priceCents = (int) $data['priceCents'];
+        $this->availableFormats = $data['availableFormats'];
+        $this->roadmap = $data['roadmap'];
+        $this->isActive = (bool) $data['isActive'];
     }
 
     /** @param array<string,mixed> $p */
@@ -47,5 +61,31 @@ final readonly class TrainingInput
             $strings($p['roadmap'] ?? []),
             is_bool($p['isActive'] ?? null) ? $p['isActive'] : true,
         );
+    }
+
+    /**
+     * @param array<int|string, mixed> $values
+     * @return array<string, mixed>
+     */
+    private function mapValues(array $values): array
+    {
+        $keys = ['title', 'slug', 'shortDescription', 'objective', 'audience', 'category', 'durationMinutes', 'priceCents', 'availableFormats', 'roadmap', 'isActive'];
+        $defaults = array_fill_keys($keys, null);
+        $defaults['title'] = '';
+        $defaults['durationMinutes'] = 60;
+        $defaults['priceCents'] = 0;
+        $defaults['availableFormats'] = [];
+        $defaults['roadmap'] = [];
+        $defaults['isActive'] = true;
+        foreach ($values as $index => $value) {
+            if (!is_int($index)) {
+                continue;
+            }
+            if (isset($keys[$index])) {
+                $defaults[$keys[$index]] = $value;
+            }
+        }
+
+        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }
