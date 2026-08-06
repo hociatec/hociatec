@@ -23,6 +23,7 @@ export interface AppError {
 
 export class ApiResponseError extends Error {
   readonly details: string[];
+  readonly status?: number | undefined;
   readonly fields?: Record<string, string[]> | undefined;
   readonly requestId?: string | undefined;
   readonly code?: string | undefined;
@@ -33,6 +34,7 @@ export class ApiResponseError extends Error {
     requestId?: string,
     code?: string,
     fields?: Record<string, string[]>,
+    status?: number,
   ) {
     super(message);
     this.name = 'ApiResponseError';
@@ -40,10 +42,11 @@ export class ApiResponseError extends Error {
     this.requestId = requestId;
     this.code = code;
     this.fields = fields;
+    this.status = status;
   }
 }
 
-export const createApiResponseError = (payload: unknown): ApiResponseError | null => {
+export const createApiResponseError = (payload: unknown, status?: number): ApiResponseError | null => {
   if (!payload || typeof payload !== 'object') return null;
   const response = payload as {
     status?: unknown;
@@ -76,6 +79,7 @@ export const createApiResponseError = (payload: unknown): ApiResponseError | nul
       ? String(response.code ?? nestedError?.code)
       : undefined,
     normalizeFields(fields),
+    status,
   );
 };
 
@@ -84,10 +88,17 @@ export const normalizeHttpError = (
   fallback = 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
 ): AppError => {
   if (error instanceof ApiResponseError) {
+    const status = error.status;
+    const kind = typeof status === 'number' ? resolveErrorKind(status) : 'unknown';
+    const defaultMessage = typeof status === 'number'
+      ? resolveDefaultMessage(kind, status, fallback)
+      : fallback;
+
     return {
-      kind: 'unknown',
+      kind,
+      status,
+      message: safeMessage(error.message, defaultMessage),
       code: error.code,
-      message: safeMessage(error.message, fallback),
       fields: error.fields,
       requestId: error.requestId,
     };

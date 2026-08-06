@@ -100,7 +100,7 @@ httpClient.interceptors.request.use(async (config) => {
 
 httpClient.interceptors.response.use(
   (response) => {
-    const apiError = createApiResponseError(response.data);
+    const apiError = createApiResponseError(response.data, response.status);
     if (apiError) throw apiError;
 
     return response;

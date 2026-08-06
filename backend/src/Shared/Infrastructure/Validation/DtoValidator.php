@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Validation;
 
-use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Application\Exception\ApiValidationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

@@ -10,7 +10,7 @@ use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\ExistingOrderCheckoutService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\ApiValidationException;
+use App\Shared\Application\Exception\ApiValidationException;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\JsonRequestInput;
 use App\Shared\Infrastructure\Http\RateLimited;

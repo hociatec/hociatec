@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\Http;
 
 use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Application\Exception\ApiValidationException;
 use App\Shared\Application\Exception\PublicApiException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Psr\Log\LoggerInterface;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 #[AsEventListener(event: 'kernel.exception', priority: 20)]
 final readonly class ApiExceptionSubscriber
@@ -72,6 +74,7 @@ final readonly class ApiExceptionSubscriber
 
         return match (true) {
             $exception instanceof AccessDeniedException => ['Accès refusé.', JsonResponse::HTTP_FORBIDDEN, []],
+            $exception instanceof AuthenticationException => ['Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED, []],
             $exception instanceof UniqueConstraintViolationException => ['Une ressource avec ces informations existe déjà.', JsonResponse::HTTP_CONFLICT, []],
             $exception instanceof PublicApiException => [$exception->publicMessage(), $exception->getStatusCode(), []],
             $exception instanceof ApiProblemException => [$exception->getMessage(), $exception->getStatusCode(), []],
