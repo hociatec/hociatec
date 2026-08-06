@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Symfony\Component\HttpFoundation\Request;
 
 final class RequestQueryMapper

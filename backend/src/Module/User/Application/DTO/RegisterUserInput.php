@@ -6,7 +6,7 @@ namespace App\Module\User\Application\DTO;
 
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Shared\Domain\Normalization\EmailNormalizer;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 

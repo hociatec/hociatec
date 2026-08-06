@@ -10,7 +10,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\DeliveryStatus;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 
 final readonly class OrderDeliveryUpdater
 {

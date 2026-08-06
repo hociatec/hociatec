@@ -8,7 +8,7 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 
 final class AvailabilityService
 {

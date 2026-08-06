@@ -7,7 +7,7 @@ namespace App\Module\User\Application\Workflow;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 
 final class UpdatePersonalInformationService
 {

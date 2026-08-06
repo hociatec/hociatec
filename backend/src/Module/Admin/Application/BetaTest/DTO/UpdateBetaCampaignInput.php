@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\DTO;
 
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class UpdateBetaCampaignInput

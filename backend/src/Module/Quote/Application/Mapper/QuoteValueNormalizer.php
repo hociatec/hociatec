@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Mapper;
 
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 
 final class QuoteValueNormalizer
 {

@@ -2,177 +2,129 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Cart\Infrastructure\Repository {
-    use App\Module\Cart\Domain\Entity\CartSession;
+require dirname(__DIR__).'/vendor/autoload.php';
 
-    final class CartSessionRepository
+use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
+use App\Module\Cart\Application\Provider\CartSessionProvider;
+use App\Module\Cart\Application\Workflow\CartVoucherService;
+use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Application\Calculator\VoucherEngine;
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\UnitOfWork;
+
+/**
+ * @var CartSessionRepositoryPort $cartSessionRepository
+ */
+$cartSessionRepository = new class () implements CartSessionRepositoryPort {
+    /**
+     * @var array<string, CartSession>
+     */
+    private array $cartsByToken = [];
+
+    public function seed(CartSession $cart): void
     {
-        /**
-         * @var array<string, CartSession>
-         */
-        private array $cartsByToken = [];
+        $this->cartsByToken[$cart->getToken()] = $cart;
+    }
 
-        public function seed(CartSession $cart): void
-        {
-            $this->cartsByToken[$cart->getToken()] = $cart;
+    public function findOneByToken(string $token): ?CartSession
+    {
+        return $this->cartsByToken[$token] ?? null;
+    }
+
+    public function findForUpdate(int $id): ?CartSession
+    {
+        foreach ($this->cartsByToken as $cart) {
+            if (null !== $cart->getId() && $cart->getId() === $id) {
+                return $cart;
+            }
         }
 
-        public function findOneByToken(string $token): ?CartSession
-        {
-            return $this->cartsByToken[$token] ?? null;
+        return null;
+    }
+
+    public function findOneByUser(User $user): ?CartSession
+    {
+        foreach ($this->cartsByToken as $cart) {
+            if (null !== $cart->getUser() && null !== $cart->getUser()->getId() && $cart->getUser()->getId() === $user->getId()) {
+                return $cart;
+            }
         }
 
-        public function findOneByUser(mixed $user): ?CartSession
+        return null;
+    }
+
+    public function findOneByUserId(int $userId): ?CartSession
+    {
+        foreach ($this->cartsByToken as $cart) {
+            if (null !== $cart->getUser() && null !== $cart->getUser()->getId() && $userId === $cart->getUser()->getId()) {
+                return $cart;
+            }
+        }
+
+        return null;
+    }
+
+    public function clearUnitOfWork(): void
+    {
+    }
+};
+
+$unitOfWork = new class () implements UnitOfWork {
+    public bool $committed = false;
+
+    public function persist(object $entity): void
+    {
+    }
+
+    public function remove(object $entity): void
+    {
+    }
+
+    public function commit(): void
+    {
+        $this->committed = true;
+    }
+};
+
+$voucherEngine = new VoucherEngine(
+    new class () implements VoucherLookupPort {
+        public function findOneByCode(?string $code): ?Voucher
         {
             return null;
         }
-    }
+    },
+    new VoucherFormatter(),
+);
+
+$cart = new CartSession('test-cart-token');
+$cart->setVoucherCode('BON-TEST');
+$cartSessionRepository->seed($cart);
+
+$provider = new CartSessionProvider($cartSessionRepository, $unitOfWork);
+$service = new CartVoucherService($provider, $voucherEngine, $unitOfWork);
+$result = $service->clear('test-cart-token');
+
+if ($result !== $cart) {
+    fwrite(STDERR, "Smoke test failed: service returned a different cart instance\n");
+    exit(1);
 }
 
-namespace App\Module\Voucher\Infrastructure\Repository {
-    final class VoucherRepository
-    {
-    }
+if (null !== $result->getVoucherCode()) {
+    fwrite(STDERR, "Smoke test failed: voucher code was not cleared\n");
+    exit(1);
 }
 
-namespace {
-    require dirname(__DIR__).'/vendor/autoload.php';
-
-    use App\Module\Cart\Application\Service\CartService;
-    use App\Module\Cart\Domain\Entity\CartSession;
-    use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
-    use App\Module\Voucher\Application\Service\VoucherEngine;
-    use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
-    use Doctrine\ORM\EntityManagerInterface;
-
-    $fakeEntityManagerClass = <<<'PHP'
-namespace App\Tests\Support;
-
-final class FakeEntityManager implements \Doctrine\ORM\EntityManagerInterface
-{
-    public array $persisted = [];
-    public array $removed = [];
-    public bool $flushed = false;
-    public bool $cleared = false;
-
-PHP;
-
-    $renderType = static function (ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType|null $type): string {
-        if (null === $type) {
-            return '';
-        }
-
-        if ($type instanceof ReflectionNamedType) {
-            $name = $type->getName();
-            if ($type->allowsNull() && 'mixed' !== $name && 'null' !== $name) {
-                return '?'.($type->isBuiltin() ? $name : '\\'.ltrim($name, '\\'));
-            }
-
-            return $type->isBuiltin() ? $name : '\\'.ltrim($name, '\\');
-        }
-
-        $parts = [];
-        foreach ($type->getTypes() as $innerType) {
-            $parts[] = $innerType->isBuiltin()
-                ? $innerType->getName()
-                : '\\'.ltrim($innerType->getName(), '\\');
-        }
-
-        return implode('|', $parts);
-    };
-
-    $renderParam = static function (ReflectionParameter $parameter) use ($renderType): string {
-        $code = '';
-
-        if ($parameter->hasType()) {
-            $code .= $renderType($parameter->getType()).' ';
-        }
-
-        if ($parameter->isPassedByReference()) {
-            $code .= '&';
-        }
-
-        if ($parameter->isVariadic()) {
-            $code .= '...';
-        }
-
-        $code .= '$'.$parameter->getName();
-
-        if ($parameter->isOptional() && !$parameter->isVariadic()) {
-            if ($parameter->isDefaultValueAvailable()) {
-                if ($parameter->isDefaultValueConstant()) {
-                    $code .= ' = '.$parameter->getDefaultValueConstantName();
-                } else {
-                    $code .= ' = '.var_export($parameter->getDefaultValue(), true);
-                }
-            } else {
-                $code .= ' = null';
-            }
-        }
-
-        return $code;
-    };
-
-    $interface = new ReflectionClass(EntityManagerInterface::class);
-    foreach ($interface->getMethods() as $method) {
-        $signature = [];
-        foreach ($method->getParameters() as $parameter) {
-            $signature[] = $renderParam($parameter);
-        }
-
-        $returnType = $method->hasReturnType() ? ': '.$renderType($method->getReturnType()) : '';
-        $methodName = $method->getName();
-        $body = match ($methodName) {
-            'persist' => '$this->persisted[] = $object;',
-            'remove' => '$this->removed[] = $object;',
-            'clear' => '$this->cleared = true;',
-            'flush' => '$this->flushed = true;',
-            'contains' => 'return in_array($object, $this->persisted, true);',
-            default => 'throw new \\BadMethodCallException('.var_export($methodName.' not implemented in smoke test', true).');',
-        };
-
-        $fakeEntityManagerClass .= sprintf(
-            "\n    public function %s(%s)%s\n    {\n        %s\n    }\n",
-            $methodName,
-            implode(', ', $signature),
-            $returnType,
-            $body
-        );
-    }
-
-    $fakeEntityManagerClass .= "\n}\n";
-    eval($fakeEntityManagerClass);
-
-    $repo = new CartSessionRepository();
-    $cart = new CartSession('test-cart-token');
-    $cart->setVoucherCode('BON-TEST');
-    $repo->seed($cart);
-
-    $entityManager = new App\Tests\Support\FakeEntityManager();
-    $voucherEngine = new VoucherEngine(new VoucherRepository());
-    $service = new CartService($repo, $entityManager, $voucherEngine);
-
-    $result = $service->clearVoucherCode('test-cart-token');
-
-    if ($result !== $cart) {
-        fwrite(STDERR, "Smoke test failed: service returned a different cart instance\n");
-        exit(1);
-    }
-
-    if (null !== $result->getVoucherCode()) {
-        fwrite(STDERR, "Smoke test failed: voucher code was not cleared\n");
-        exit(1);
-    }
-
-    if (!$entityManager->flushed) {
-        fwrite(STDERR, "Smoke test failed: entity manager was not flushed\n");
-        exit(1);
-    }
-
-    if (null !== $repo->findOneByToken('test-cart-token')?->getVoucherCode()) {
-        fwrite(STDERR, "Smoke test failed: repository still exposes a voucher code\n");
-        exit(1);
-    }
-
-    echo "Smoke test OK: cart voucher removal works.\n";
+if (!$unitOfWork->committed) {
+    fwrite(STDERR, "Smoke test failed: unit of work was not committed\n");
+    exit(1);
 }
+
+if (null !== $cartSessionRepository->findOneByToken('test-cart-token')?->getVoucherCode()) {
+    fwrite(STDERR, "Smoke test failed: repository still exposes a voucher code\n");
+    exit(1);
+}
+
+echo "Smoke test OK: cart voucher removal works.\n";

@@ -15,7 +15,7 @@ use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class RegisterUserService
