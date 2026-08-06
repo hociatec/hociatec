@@ -13,16 +13,12 @@ export interface CommunicationPreferencesPayload {
   choices: CommunicationPreferenceChoice[];
 }
 
-const unwrap = (response: ApiResponse<CommunicationPreferencesPayload>) => {
-  return unwrapApiData(response, 'Impossible de charger les préférences de communication.');
-};
-
 export const fetchCommunicationPreferences = async () => {
   const { data } = await httpClient.get<ApiResponse<CommunicationPreferencesPayload>>(
     '/api/auth/communication-preferences',
   );
 
-  return unwrap(data);
+  return unwrapApiData(data, 'Impossible de charger les préférences de communication.');
 };
 
 export const updateCommunicationPreferences = async (preferences: string[]) => {
@@ -31,5 +27,5 @@ export const updateCommunicationPreferences = async (preferences: string[]) => {
     { preferences },
   );
 
-  return unwrap(data);
+  return unwrapApiData(data, 'Impossible de charger les préférences de communication.');
 };

@@ -1,7 +1,7 @@
 import axios, { type AxiosResponseHeaders } from 'axios';
 
-import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage, unwrapApiData } from '@/shared/lib/apiResponses';
+import { clearCartToken, getHttpErrorMessage, httpClient, persistCartToken } from '@/shared/lib/httpClient';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
 import { type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { normalizeSearchText } from '@/shared/lib/searchText';
 
@@ -59,8 +59,7 @@ const clearTokenForErrorCode = (code: CartErrorCode) => {
 const toCartError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const response = error.response;
-    const data = response?.data as ApiResponse<unknown> | undefined;
-    const message = data ? extractApiErrorMessage(data, fallback) : fallback;
+    const message = getHttpErrorMessage(error, fallback);
 
     if (!response) {
       throw new CartApiError(message, 'unknown');

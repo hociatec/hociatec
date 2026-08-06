@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios';
 
 import { getHttpErrorMessage, httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage, unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
 import { type ApiResponse } from '@/shared/types/api';
 import type {
   CatalogCategory,
@@ -116,9 +116,8 @@ export const shareProductByEmail = async (slug: string, payload: ShareProductEma
     return unwrapApiData(data, "Impossible d'envoyer le produit par e-mail.");
   } catch (error) {
     if (isAxiosError(error)) {
-      const response = error.response?.data as ApiResponse<unknown> | undefined;
       throw new CatalogApiError(
-        response ? extractApiErrorMessage(response, "Impossible d'envoyer le produit par e-mail.") : "Impossible d'envoyer le produit par e-mail.",
+        getHttpErrorMessage(error, "Impossible d'envoyer le produit par e-mail."),
         error.response?.status,
       );
     }
