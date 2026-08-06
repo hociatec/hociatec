@@ -1,4 +1,5 @@
 import { writeLocalStorage } from './http/storage';
+import { isRecord } from './contractValidation';
 
 export type AuthSessionEvent = 'login' | 'logout' | 'profile_updated' | 'account_deleted';
 
@@ -40,13 +41,8 @@ export const subscribeAuthSessionEvents = (listener: (event: AuthSessionEvent) =
     }
 
     try {
-      const payload = JSON.parse(event.newValue) as { event?: unknown };
-      if (
-        payload.event === 'login' ||
-        payload.event === 'logout' ||
-        payload.event === 'profile_updated' ||
-        payload.event === 'account_deleted'
-      ) {
+      const payload = JSON.parse(event.newValue);
+      if (isAuthSessionEventPayload(payload)) {
         listener(payload.event);
       }
     } catch {
@@ -63,3 +59,13 @@ export const subscribeAuthSessionEvents = (listener: (event: AuthSessionEvent) =
     window.removeEventListener('storage', onStorage);
   };
 };
+
+type AuthSessionEventPayload = {
+  event: AuthSessionEvent;
+};
+
+const isAuthSessionEvent = (value: unknown): value is AuthSessionEvent =>
+  value === 'login' || value === 'logout' || value === 'profile_updated' || value === 'account_deleted';
+
+const isAuthSessionEventPayload = (value: unknown): value is AuthSessionEventPayload =>
+  isRecord(value) && isAuthSessionEvent(value.event);

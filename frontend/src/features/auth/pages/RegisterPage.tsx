@@ -13,6 +13,7 @@ import { RegisterFormFields } from '@/features/auth/components/RegisterFormField
 import { useToast } from '@/shared/components/ui/toast';
 import { logger } from '@/shared/lib/logger';
 import { isFeatureEnabled } from '@/shared/config/featureFlags';
+import { isRecord } from '@/shared/lib/contractValidation';
 
 import './RegisterPage.css';
 
@@ -43,11 +44,16 @@ const createInitialForm = (isBetaTester: boolean): FormState => ({
   testingTypes: [],
 });
 
-const hasErrorDetails = (value: unknown): value is Error & { details: string[] } =>
-  typeof value === 'object' &&
-  value !== null &&
-  'details' in value &&
-  Array.isArray((value as { details?: unknown }).details);
+type ErrorWithDetails = {
+  details: string[];
+};
+
+const hasErrorDetails = (value: unknown): value is Error & ErrorWithDetails => {
+  if (!(value instanceof Error)) return false;
+  if (!isRecord(value)) return false;
+
+  return Array.isArray(value.details) && value.details.every((item): item is string => typeof item === 'string');
+};
 
 const validateRegisterForm = (form: FormState, isBetaTester: boolean) => {
   if (form.password !== form.confirmPassword) {

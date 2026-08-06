@@ -10,6 +10,7 @@ import {
   retryAfterSeconds,
   safeMessage,
 } from './httpErrorHelpers';
+import { isRecord } from './contractValidation';
 
 export interface AppError {
   kind: AppErrorKind;
@@ -20,6 +21,31 @@ export interface AppError {
   retryAfterSeconds?: number | undefined;
   status?: number | undefined;
 }
+
+type ResponsePayload = {
+  status?: unknown;
+  message?: unknown;
+  details?: unknown;
+  error?: unknown;
+  requestId?: unknown;
+  code?: unknown;
+  data?: {
+    message?: unknown;
+  };
+};
+
+type ErrorEnvelopePayload = {
+  message?: unknown;
+  details?: unknown;
+  requestId?: unknown;
+  code?: unknown;
+  fields?: unknown;
+};
+
+const isResponsePayload = (value: unknown): value is ResponsePayload => isRecord(value);
+
+const isErrorEnvelopePayload = (value: unknown): value is ErrorEnvelopePayload =>
+  isRecord(value);
 
 export class ApiResponseError extends Error {
   readonly details: string[];
@@ -47,25 +73,14 @@ export class ApiResponseError extends Error {
 }
 
 export const createApiResponseError = (payload: unknown, status?: number): ApiResponseError | null => {
-  if (!payload || typeof payload !== 'object') return null;
-  const response = payload as {
-    status?: unknown;
-    message?: unknown;
-    details?: unknown;
-    error?: unknown;
-    requestId?: unknown;
-    code?: unknown;
-  };
-  const nestedError =
-    response.error && typeof response.error === 'object'
-      ? (response.error as { message?: unknown; details?: unknown; requestId?: unknown; code?: unknown })
-      : null;
+  if (!isResponsePayload(payload)) return null;
+
+  const response = payload;
+  const nestedError = isErrorEnvelopePayload(response.error) ? response.error : null;
   const message = response.message ?? nestedError?.message;
   const details = response.details ?? nestedError?.details;
   const fields =
-    nestedError && 'fields' in nestedError
-      ? (nestedError as { fields?: unknown }).fields
-      : undefined;
+    nestedError?.fields;
   if (response.status !== 'error' && !nestedError) return null;
   if (typeof message !== 'string') return null;
 
@@ -133,19 +148,12 @@ export const normalizeHttpError = (
   }
 
   const status = error.response.status;
-  const responseData = error.response.data as
-    | {
-        message?: unknown;
-        error?: { message?: unknown; code?: unknown; fields?: unknown; requestId?: unknown };
-        requestId?: unknown;
-        code?: unknown;
-        fields?: unknown;
-      }
-    | undefined;
-  const message = responseData?.error?.message ?? responseData?.message;
-  const requestId = responseData?.error?.requestId ?? responseData?.requestId;
-  const code = responseData?.error?.code ?? responseData?.code;
-  const fields = responseData?.error?.fields ?? responseData?.fields;
+  const responseData = isResponsePayload(error.response.data) ? error.response.data : undefined;
+  const nestedError = isErrorEnvelopePayload(responseData?.error) ? responseData.error : undefined;
+  const message = nestedError?.message ?? responseData?.message;
+  const requestId = nestedError?.requestId ?? responseData?.requestId;
+  const code = nestedError?.code ?? responseData?.code;
+  const fields = nestedError?.fields ?? responseData?.fields;
 
   const kind = resolveErrorKind(status);
   const defaultMessage = resolveDefaultMessage(kind, status, fallback);
@@ -180,12 +188,12 @@ export const getHttpErrorMessageAsync = async (
   }
 
   try {
-    const payload = JSON.parse(await error.response.data.text()) as {
-      message?: unknown;
-      error?: unknown;
-      data?: { message?: unknown };
-    };
-    const apiMessage = payload.message ?? payload.error ?? payload.data?.message;
+    const parsed = JSON.parse(await error.response.data.text());
+    const payload = isResponsePayload(parsed) ? parsed : undefined;
+    const nestedError = isErrorEnvelopePayload(payload?.error) ? payload.error : undefined;
+    const nestedMessage = nestedError?.message ?? payload?.message;
+    const apiMessage = nestedMessage ?? payload?.data?.message;
+
     if (typeof apiMessage === 'string' && apiMessage.trim() !== '') return apiMessage.trim();
   } catch {
   }

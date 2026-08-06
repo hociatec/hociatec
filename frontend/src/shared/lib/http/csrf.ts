@@ -3,6 +3,7 @@ import axios, { AxiosHeaders } from 'axios';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { getRequestPath } from './requestPaths';
 import { normalizeSearchText } from '@/shared/lib/searchText';
+import { isRecord } from '../contractValidation';
 
 export const CSRF_HEADER_NAME = 'X-CSRF-Token';
 const CSRF_TOKEN_PATH = '/api/csrf-token';
@@ -76,12 +77,10 @@ export const shouldAttachCsrfToken = (
 
 export const isCsrfFailureResponse = (status?: number, data?: unknown) => {
   if (status === 419) return true;
-  if (status !== 403 || typeof data !== 'object' || data === null) return false;
+  if (status !== 403 || !isRecord(data)) return false;
 
-  const payload = data as { code?: unknown; message?: unknown };
-  const code = typeof payload.code === 'string' ? normalizeSearchText(payload.code).trim() : '';
-  const message =
-    typeof payload.message === 'string' ? normalizeSearchText(payload.message).trim() : '';
+  const code = typeof data.code === 'string' ? normalizeSearchText(data.code).trim() : '';
+  const message = typeof data.message === 'string' ? normalizeSearchText(data.message).trim() : '';
 
   return code.includes('csrf') || message.includes('csrf');
 };

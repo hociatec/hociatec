@@ -3,6 +3,7 @@ import { AxiosHeaders } from 'axios';
 import { FRONTEND_REQUEST_ID_HEADER_NAME } from './http/headers';
 import { parseNonNegativeInteger } from './parsers';
 import { clampAtLeast } from './number';
+import { isRecord } from './contractValidation';
 
 export type AppErrorKind =
   | 'network'
@@ -43,9 +44,9 @@ export const retryAfterSeconds = (value: unknown) => {
 };
 
 export const normalizeFields = (fields: unknown) =>
-  fields && typeof fields === 'object' && !Array.isArray(fields)
+  isRecord(fields)
     ? Object.fromEntries(
-        Object.entries(fields as Record<string, unknown>).map(([key, value]) => [
+        Object.entries(fields).map(([key, value]) => [
           key,
           Array.isArray(value) ? value.map(String) : [String(value)],
         ]),

@@ -1,4 +1,4 @@
-import axios, { type AxiosResponseHeaders } from 'axios';
+import axios, { AxiosHeaders, type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, getHttpErrorMessage, httpClient, persistCartToken } from '@/shared/lib/httpClient';
 import { unwrapApiData } from '@/shared/lib/apiResponses';
@@ -7,6 +7,7 @@ import { normalizeSearchText } from '@/shared/lib/searchText';
 
 import type { Cart } from '../types/cart';
 import { parseCart } from '../cartValidation';
+import { isRecord } from '@/shared/lib/contractValidation';
 
 export type CartErrorCode =
   'cart_not_found' | 'token_missing' | 'product_not_found' | 'voucher_code_missing' | 'unknown';
@@ -100,31 +101,25 @@ const handleCartResponse = (response: ApiResponse<CartPayload>, fallback: string
 };
 
 const extractCartTokenFromHeaders = (headers?: AxiosResponseHeaders | Record<string, unknown>) => {
-  if (!headers) {
-    return null;
-  }
-
-  if (typeof (headers as AxiosResponseHeaders).get === 'function') {
-    const value = (headers as AxiosResponseHeaders).get('x-cart-token');
-    if (typeof value === 'string') {
-      return value;
+  const readHeaderValue = (key: string) => {
+    if (!headers) return undefined;
+    if (headers instanceof AxiosHeaders) {
+      return headers.get(key);
     }
-    if (Array.isArray(value)) {
-      return value.find((item): item is string => typeof item === 'string') ?? null;
+
+    if (isRecord(headers)) {
+      return headers[key];
     }
-  }
 
-  const lowerValue = (headers as Record<string, unknown>)['x-cart-token'];
-  const upperValue = (headers as Record<string, unknown>)['X-Cart-Token'];
+    return undefined;
+  };
 
-  const pick = [lowerValue, upperValue].find((value): value is unknown => value !== undefined);
+  const candidates = [readHeaderValue('x-cart-token'), readHeaderValue('X-Cart-Token')];
+  const tokenCandidate = candidates.find((value) => value !== undefined);
 
-  if (typeof pick === 'string') {
-    return pick;
-  }
-
-  if (Array.isArray(pick)) {
-    return pick.find((item): item is string => typeof item === 'string') ?? null;
+  if (typeof tokenCandidate === 'string') return tokenCandidate;
+  if (Array.isArray(tokenCandidate)) {
+    return tokenCandidate.find((value): value is string => typeof value === 'string') ?? null;
   }
 
   return null;
