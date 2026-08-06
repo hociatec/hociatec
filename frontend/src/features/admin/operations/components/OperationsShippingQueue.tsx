@@ -5,11 +5,15 @@ import { ActionCard, operationsUi } from '@/features/admin/operations/components
 import { formatEuroCents } from '@/shared/lib/formatters';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ShippingForms } from './operationsTypes';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginationMeta } from '@/shared/types/api';
 
 const { inputClass, primaryActionClass, secondaryActionClass } = operationsUi;
 
-export const OperationsShippingQueue = ({ fulfillmentOrders, shippingForms, setShippingForms, submitShipOrder }: {
+export const OperationsShippingQueue = ({ fulfillmentMeta, fulfillmentOrders, setFulfillmentPage, shippingForms, setShippingForms, submitShipOrder }: {
+  fulfillmentMeta: PaginationMeta;
   fulfillmentOrders: FulfillmentOrderDto[];
+  setFulfillmentPage: Dispatch<SetStateAction<number>>;
   shippingForms: ShippingForms;
   setShippingForms: Dispatch<SetStateAction<ShippingForms>>;
   submitShipOrder: (orderId: number) => void;
@@ -38,6 +42,13 @@ export const OperationsShippingQueue = ({ fulfillmentOrders, shippingForms, setS
           );
         })}
       </div>
+      <PaginationControls
+        page={fulfillmentMeta.page}
+        total={fulfillmentMeta.total}
+        totalLabel="commande"
+        totalPages={fulfillmentMeta.totalPages}
+        onPageChange={setFulfillmentPage}
+      />
     </ActionCard>
   );
 };

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Training\UI\Controller\Admin;
 
 use App\Module\Training\Application\DTO\TrainingSessionInput;
+use App\Module\Training\Application\Port\TrainingRepositoryPort;
+use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingSession;
-use App\Module\Training\Application\Port\TrainingRepositoryPort;
-use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,7 +25,7 @@ class ListTrainingCategoriesController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = RequestQueryMapper::pagination($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         return ApiResponse::paginated(
             array_map(fn ($category) => $this->formatter->format($category), $this->categories->findOrdered(false, $pagination->perPage, $pagination->offset())),

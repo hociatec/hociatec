@@ -9,6 +9,7 @@ import {
 import { List } from '@/features/admin/operations/components/AdminOperationsWidgets';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { type SupportReplies } from './operationsTypes';
+import type { PaginationMeta } from '@/shared/types/api';
 import {
   RefundRequestAction,
   StockThresholdAction,
@@ -17,34 +18,50 @@ import {
 
 export const OperationsRecentSection = ({
   emails,
+  emailsMeta,
   refundConfirmations,
   refunds,
+  refundsMeta,
+  setEmailsPage,
+  setRefundsPage,
+  setStockPage,
   setRefundConfirmations,
   setStockThresholds,
   setSupportReplies,
   stock,
+  stockMeta,
   stockThresholds,
   submitStockThreshold,
   submitStripeRefund,
   submitSupportReply,
   support,
+  supportMeta,
   supportReplies,
+  setSupportPage,
   updateRefundStatus,
   updateSupportStatus,
 }: {
   emails: EmailLogDto[];
+  emailsMeta: PaginationMeta;
   refundConfirmations: Record<number, string>;
   refunds: RefundRequestDto[];
+  refundsMeta: PaginationMeta;
+  setEmailsPage: Dispatch<SetStateAction<number>>;
   setRefundConfirmations: Dispatch<SetStateAction<Record<number, string>>>;
+  setRefundsPage: Dispatch<SetStateAction<number>>;
+  setStockPage: Dispatch<SetStateAction<number>>;
   setStockThresholds: Dispatch<SetStateAction<Record<number, string>>>;
   setSupportReplies: Dispatch<SetStateAction<SupportReplies>>;
   stock: StockMovementDto[];
+  stockMeta: PaginationMeta;
   stockThresholds: Record<number, string>;
   submitStockThreshold: (productId: number) => void;
   submitStripeRefund: (refundId: number) => void;
   submitSupportReply: (supportId: number) => void;
   support: SupportRequestDto[];
+  supportMeta: PaginationMeta;
   supportReplies: SupportReplies;
+  setSupportPage: Dispatch<SetStateAction<number>>;
   updateRefundStatus: (refundId: number, status: string) => void;
   updateSupportStatus: (supportId: number, status: string) => void;
 }) => (
@@ -56,6 +73,8 @@ export const OperationsRecentSection = ({
     <div className="grid gap-6 xl:grid-cols-2">
       <List
         title="Demandes SAV"
+        meta={supportMeta}
+        onPageChange={setSupportPage}
         items={support.map((item) => ({
           key: item.id,
           title: `#${item.id} · ${item.subject}`,
@@ -73,6 +92,8 @@ export const OperationsRecentSection = ({
       />
       <List
         title="Remboursements"
+        meta={refundsMeta}
+        onPageChange={setRefundsPage}
         items={refunds.map((item) => ({
           key: item.id,
           title: `#${item.id} · ${item.order.number} · ${formatEuroCents(item.amountCents)}`,
@@ -90,6 +111,8 @@ export const OperationsRecentSection = ({
       />
       <List
         title="Mouvements de stock"
+        meta={stockMeta}
+        onPageChange={setStockPage}
         items={stock.map((item) => ({
           key: item.id,
           title: `${item.product.sku} · ${item.product.name}`,
@@ -106,6 +129,8 @@ export const OperationsRecentSection = ({
       />
       <List
         title="Emails transactionnels"
+        meta={emailsMeta}
+        onPageChange={setEmailsPage}
         items={emails.map((item, index) => ({
           key: `${item.createdAt}-${index}`,
           title: `${item.statusLabel ?? (item.status === 'failed' ? 'Échec' : 'Envoyé')} · ${item.scenarioLabel ?? item.scenario}`,

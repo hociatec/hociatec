@@ -9,5 +9,6 @@ use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 interface StripeWebhookEventPersistencePort
 {
     public function save(StripeWebhookEvent $event): void;
+
     public function commit(): void;
 }

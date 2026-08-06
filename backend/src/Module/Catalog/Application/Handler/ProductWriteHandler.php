@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Handler;
 
-use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
 use App\Module\Catalog\Application\Cache\CatalogCacheInvalidator;
+use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
 use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;

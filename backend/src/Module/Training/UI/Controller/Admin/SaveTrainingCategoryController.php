@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
+use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingCategory;
-use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

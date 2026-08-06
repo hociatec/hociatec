@@ -17,7 +17,7 @@ export const BetaTestPage = () => {
   const { status } = useAuth();
   const isBetaProgramEnabled = isFeatureEnabled('betaProgram');
   const isAuthenticated = status === 'authenticated';
-  const targetLink = isAuthenticated ? '/beta/profile' : '/register?beta=1';
+  const targetLink = isAuthenticated ? '/beta' : '/register?beta=1';
 
   if (!isBetaProgramEnabled) {
     return (

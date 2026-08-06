@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,8 +22,7 @@ class ListMyAddressesController extends AbstractController
     public function __construct(
         private readonly ShippingAddressRepositoryPort $addresses,
         private readonly ShippingAddressFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(?Request $request = null): JsonResponse

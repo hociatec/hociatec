@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { isApiOk } from '@/shared/types/api';
-import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 
 export type AuditType = 'performance' | 'security' | 'ux' | 'seo' | 'technical' | 'accessibility';
 export type AuditStatus = 'new' | 'in_progress' | 'review' | 'done';
@@ -65,9 +65,12 @@ export async function fetchAuditMetadata(): Promise<AuditMetadataDto> {
   return res.data.data;
 }
 
-export async function fetchMyAudits(): Promise<AuditListItemDto[]> {
-  const res = await httpClient.get('/api/audits');
-  return res.data.data.items;
+export async function fetchMyAudits(page = 1, perPage = 10): Promise<PaginatedResult<AuditListItemDto>> {
+  const res = await httpClient.get<ApiResponse<{ items: AuditListItemDto[]; meta: PaginationMeta }>>('/api/audits', {
+    params: { page, perPage },
+  });
+  if (!isApiOk(res.data)) throw new Error(res.data.message || 'Impossible de charger vos audits.');
+  return res.data.data;
 }
 
 export async function fetchMyAudit(
@@ -78,9 +81,32 @@ export async function fetchMyAudit(
 }
 
 // Admin
-export async function adminFetchAudits(): Promise<AuditListItemDto[]> {
-  const res = await httpClient.get('/api/admin/audits');
-  return res.data.data.items;
+export async function adminFetchAudits(
+  page = 1,
+  perPage = 10,
+  filters: {
+    from?: string | null;
+    q?: string;
+    sort?: string;
+    status?: string;
+    to?: string | null;
+    type?: string;
+  } = {},
+): Promise<PaginatedResult<AuditListItemDto>> {
+  const res = await httpClient.get<ApiResponse<{ items: AuditListItemDto[]; meta: PaginationMeta }>>('/api/admin/audits', {
+    params: {
+      page,
+      perPage,
+      from: filters.from || undefined,
+      q: filters.q?.trim() || undefined,
+      sort: filters.sort || undefined,
+      status: filters.status && filters.status !== 'all' ? filters.status : undefined,
+      to: filters.to || undefined,
+      type: filters.type && filters.type !== 'all' ? filters.type : undefined,
+    },
+  });
+  if (!isApiOk(res.data)) throw new Error(res.data.message || 'Impossible de charger les audits.');
+  return res.data.data;
 }
 
 export async function adminFetchAudit(

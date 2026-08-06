@@ -60,6 +60,8 @@
   .site-header__container {
     gap: 0.65rem;
     grid-template-columns: 1fr;
+    max-width: 100%;
+    overflow: hidden;
     padding: 0.75rem 1rem;
   }
 
@@ -69,6 +71,9 @@
 
   .site-header__nav,
   .site-header__actions {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
     width: 100%;
   }
 
@@ -82,10 +87,17 @@
   .site-header__account-trigger,
   .site-header__logout-button,
   .site-header__admin-button,
+  .site-header__beta-cta,
   .site-header__cta {
     font-size: 0.84rem;
     min-height: 38px;
     padding: 0.45rem 0.62rem;
+  }
+
+  .site-header__nav .site-header__link,
+  .site-header__menu,
+  .site-header__menu-trigger {
+    width: 100%;
   }
 
   .site-header__actions {
@@ -94,6 +106,7 @@
 
   .site-header__search {
     flex-basis: 100%;
+    min-width: 0;
     order: 10;
     width: 100%;
   }

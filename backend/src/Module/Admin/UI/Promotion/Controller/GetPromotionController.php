@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Promotion\Controller;
 
-use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,8 +20,7 @@ final class GetPromotionController extends AbstractController
     public function __construct(
         private readonly PromotionRepositoryPort $promotions,
         private readonly PromotionFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $promotionId): JsonResponse

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Application\Provider;
 
-use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Application\Port\OrderItemRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 

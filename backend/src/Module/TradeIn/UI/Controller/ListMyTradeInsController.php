@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -22,8 +22,7 @@ final class ListMyTradeInsController extends AbstractController
     public function __construct(
         private readonly TradeInRequestRepositoryPort $requests,
         private readonly TradeInFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(?Request $request = null): JsonResponse

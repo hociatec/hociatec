@@ -13,7 +13,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 10;
 const parseNumber = (value: string | null) => {
   if (null === value || '' === value) return null;
   const parsed = Number(value);

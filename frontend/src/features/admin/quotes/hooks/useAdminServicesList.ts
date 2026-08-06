@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deleteAdminQuoteService, fetchAdminQuoteServices } from '@/features/quotes/publicApi';
+import { deleteAdminQuoteService, fetchAdminQuoteServicesPage } from '@/features/quotes/publicApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 export const formatServiceDuration = (service: QuoteServiceDto) =>
   !service.durationValue || !service.durationUnit
     ? '—'
@@ -15,11 +16,13 @@ export const useAdminServicesList = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const servicesQuery = useQuery<QuoteServiceDto[], Error>({
-    queryKey: adminQuoteQueryKeys.services(),
-    queryFn: fetchAdminQuoteServices,
+  const [page, setPage] = useState(1);
+  const servicesQuery = useQuery<PaginatedResult<QuoteServiceDto>, Error>({
+    queryKey: [...adminQuoteQueryKeys.services(), { page }],
+    queryFn: () => fetchAdminQuoteServicesPage(page, 10),
   });
-  const services = servicesQuery.data ?? [];
+  const services = servicesQuery.data?.items ?? [];
+  const pagination = servicesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const deleteMutation = useMutation({
     mutationFn: deleteAdminQuoteService,
     onSuccess: (response) => {
@@ -32,6 +35,9 @@ export const useAdminServicesList = () => {
     const term = search.trim().toLowerCase();
     return services.filter((service) => !term || service.title.toLowerCase().includes(term));
   }, [services, search]);
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
   const handleDelete = async (id: number) => {
     const service = services.find((item) => item.id === id);
     if (
@@ -54,6 +60,8 @@ export const useAdminServicesList = () => {
     search,
     setSearch,
     filtered,
+    pagination,
+    setPage,
     handleDelete,
   };
 };

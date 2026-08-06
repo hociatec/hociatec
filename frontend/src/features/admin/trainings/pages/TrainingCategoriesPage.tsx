@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 
 import {
   deleteAdminTrainingCategory,
-  fetchAdminTrainingCategories,
+  fetchAdminTrainingCategoriesPage,
   saveAdminTrainingCategory,
   type TrainingCategoryDto,
 } from '@/features/trainings/publicApi';
@@ -16,6 +16,8 @@ import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 const emptyForm = {
   id: null as number | null,
@@ -31,11 +33,12 @@ export const TrainingCategoriesPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const categoriesQuery = useQuery<TrainingCategoryDto[], Error>({
-    queryKey: adminTrainingQueryKeys.categories(),
-    queryFn: fetchAdminTrainingCategories,
+  const categoriesQuery = useQuery<PaginatedResult<TrainingCategoryDto>, Error>({
+    queryKey: [...adminTrainingQueryKeys.categories(), { page }],
+    queryFn: () => fetchAdminTrainingCategoriesPage(page, 10),
   });
   const invalidateCategories = () => {
     void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.categories() });
@@ -60,7 +63,8 @@ export const TrainingCategoriesPage = () => {
       if (form.id === categoryId) reset();
     },
   });
-  const categories = categoriesQuery.data ?? [];
+  const categories = categoriesQuery.data?.items ?? [];
+  const pagination = categoriesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = categoriesQuery.error
     ? getHttpErrorMessage(categoriesQuery.error, 'Impossible de charger les catégories.')
     : saveMutation.error
@@ -233,6 +237,13 @@ export const TrainingCategoriesPage = () => {
               </tbody>
             </table>
           </AdminTableShell>
+          <PaginationControls
+            page={pagination.page}
+            total={pagination.total}
+            totalLabel="catégorie"
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+          />
         </AdminListState>
       </div>
     </PageContainer>

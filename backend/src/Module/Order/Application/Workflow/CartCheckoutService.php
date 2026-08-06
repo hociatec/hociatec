@@ -11,9 +11,9 @@ use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 
 final readonly class CartCheckoutService
 {

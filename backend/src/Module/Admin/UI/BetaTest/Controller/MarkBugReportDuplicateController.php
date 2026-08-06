@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\Admin\Application\BetaTest\Provider\BugReportReferenceProvider;
 use App\Module\Admin\Application\BetaTest\Handler\MarkBugReportDuplicateHandler;
+use App\Module\Admin\Application\BetaTest\Provider\BugReportReferenceProvider;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;

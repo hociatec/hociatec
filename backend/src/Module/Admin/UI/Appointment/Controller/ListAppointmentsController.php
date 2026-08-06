@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Appointment\Controller;
 
-use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
+use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

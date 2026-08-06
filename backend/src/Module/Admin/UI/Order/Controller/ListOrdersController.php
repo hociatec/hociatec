@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Order\Controller;
 
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Projection\OrderFormatter;
+use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -30,7 +30,7 @@ final class ListOrdersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $statusFilter = RequestQueryMapper::nullableString($request, 'status');
         $healthFilter = RequestQueryMapper::nullableString($request, 'health');
         $total = $this->orders->countForAdminList($statusFilter, $healthFilter);

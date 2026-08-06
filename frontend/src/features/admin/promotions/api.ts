@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export type PromotionAudienceDefinition = {
   label: string;
@@ -47,11 +47,13 @@ export const fetchPromotionAudiences = async (): Promise<
   return data.data.items;
 };
 
-export const fetchPromotions = async (): Promise<PromotionDto[]> => {
-  const { data } = await httpClient.get<{ data: { items: PromotionDto[] } }>(
+export const fetchPromotions = async (page = 1, perPage = 10): Promise<PaginatedResult<PromotionDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: PromotionDto[]; meta: PaginationMeta }>>(
     '/api/admin/promotions',
+    { params: { page, perPage } },
   );
-  return data.data.items;
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return data.data;
 };
 
 export const fetchPromotion = async (promotionId: number): Promise<PromotionDto> => {

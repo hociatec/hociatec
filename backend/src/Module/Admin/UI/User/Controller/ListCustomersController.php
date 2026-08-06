@@ -25,7 +25,7 @@ final class ListCustomersController extends AbstractController
     {
         $search = RequestQueryMapper::nullableString($request, 'search');
         $sort = RequestQueryMapper::string($request, 'sort', 'recent_order');
-        $pagination = RequestQueryMapper::pagination($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         $total = $this->users->countAdminCustomerRows($search);
 

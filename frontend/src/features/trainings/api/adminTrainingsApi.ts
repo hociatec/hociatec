@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type {
   TrainingCategoryDto,
   TrainingCategoryInput,
@@ -13,15 +13,29 @@ import type {
 import { TRAINING_API_ROUTES, unwrapTrainingData, unwrapTrainingResult } from './trainingApiShared';
 
 export const fetchAdminTrainings = async (): Promise<TrainingDto[]> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingDto[] }>>(TRAINING_API_ROUTES.adminTrainings);
+  const res = await httpClient.get<ApiResponse<{ items: TrainingDto[] }>>(TRAINING_API_ROUTES.adminTrainings, { params: { page: 1, perPage: 100 } });
   return unwrapTrainingData(res.data).items;
+};
+
+export const fetchAdminTrainingsPage = async (page = 1, perPage = 10): Promise<PaginatedResult<TrainingDto>> => {
+  const res = await httpClient.get<ApiResponse<{ items: TrainingDto[]; meta: PaginationMeta }>>(TRAINING_API_ROUTES.adminTrainings, { params: { page, perPage } });
+  return unwrapTrainingData(res.data);
 };
 
 export const fetchAdminTrainingCategories = async (): Promise<TrainingCategoryDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
     TRAINING_API_ROUTES.adminCategories,
+    { params: { page: 1, perPage: 100 } },
   );
   return unwrapTrainingData(res.data).items;
+};
+
+export const fetchAdminTrainingCategoriesPage = async (page = 1, perPage = 10): Promise<PaginatedResult<TrainingCategoryDto>> => {
+  const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[]; meta: PaginationMeta }>>(
+    TRAINING_API_ROUTES.adminCategories,
+    { params: { page, perPage } },
+  );
+  return unwrapTrainingData(res.data);
 };
 
 export const createAdminTrainingCategory = async (
@@ -96,8 +110,17 @@ export const deleteAdminTraining = async (id: number) => {
 export const fetchAdminTrainingSessions = async (): Promise<TrainingSessionDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingSessionDto[] }>>(
     TRAINING_API_ROUTES.adminSessions,
+    { params: { page: 1, perPage: 100 } },
   );
   return unwrapTrainingData(res.data).items;
+};
+
+export const fetchAdminTrainingSessionsPage = async (page = 1, perPage = 10): Promise<PaginatedResult<TrainingSessionDto>> => {
+  const res = await httpClient.get<ApiResponse<{ items: TrainingSessionDto[]; meta: PaginationMeta }>>(
+    TRAINING_API_ROUTES.adminSessions,
+    { params: { page, perPage } },
+  );
+  return unwrapTrainingData(res.data);
 };
 
 export const createAdminTrainingSession = async (
@@ -137,8 +160,17 @@ export const deleteAdminTrainingSession = async (id: number) => {
 export const fetchAdminTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>(
     TRAINING_API_ROUTES.adminEnrollments,
+    { params: { page: 1, perPage: 100 } },
   );
   return unwrapTrainingData(res.data).items;
+};
+
+export const fetchAdminTrainingEnrollmentsPage = async (page = 1, perPage = 10): Promise<PaginatedResult<TrainingEnrollmentDto>> => {
+  const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[]; meta: PaginationMeta }>>(
+    TRAINING_API_ROUTES.adminEnrollments,
+    { params: { page, perPage } },
+  );
+  return unwrapTrainingData(res.data);
 };
 
 export const updateAdminTrainingEnrollmentStatus = async (

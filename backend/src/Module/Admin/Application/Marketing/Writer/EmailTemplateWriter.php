@@ -7,9 +7,9 @@ namespace App\Module\Admin\Application\Marketing\Writer;
 use App\Module\Admin\Application\Marketing\DTO\MarketingTemplateInput;
 use App\Module\Admin\Application\Marketing\Handler\CreateEmailTemplateHandler;
 use App\Module\Admin\Application\Marketing\Handler\UpdateEmailTemplateHandler;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
-use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 
 final readonly class EmailTemplateWriter
 {

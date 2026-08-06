@@ -2,6 +2,8 @@ import { createContext, useContext, type PropsWithChildren } from 'react';
 
 interface SiteHeaderActionsState {
   cartQuantity: number;
+  betaLinkTarget: string;
+  shouldShowBetaLink: boolean;
   isAdmin: boolean;
   isAuthenticated: boolean;
   onLogout: () => void | Promise<void>;
@@ -9,6 +11,8 @@ interface SiteHeaderActionsState {
 
 const defaultState: SiteHeaderActionsState = {
   cartQuantity: 0,
+  betaLinkTarget: '/beta-test',
+  shouldShowBetaLink: false,
   isAdmin: false,
   isAuthenticated: false,
   onLogout: () => undefined,

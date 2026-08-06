@@ -6,7 +6,9 @@ namespace App\Module\Admin\UI\Operations\Controller;
 
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -18,8 +20,14 @@ final readonly class EmailLogsController
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        return ApiResponse::successItem('items', $this->formatter->emailLogs());
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $items = $this->formatter->emailLogs();
+
+        return ApiResponse::paginated(
+            array_slice($items, $pagination->offset(), $pagination->perPage),
+            $pagination->metadata(count($items)),
+        );
     }
 }

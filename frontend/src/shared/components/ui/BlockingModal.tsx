@@ -14,30 +14,58 @@ export const BlockingModal = ({
   labelledBy,
   panelClassName = 'mx-auto w-full max-w-2xl rounded-xl border border-brand-100 bg-white p-6 shadow-2xl',
 }: BlockingModalProps) => {
+  const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     const previouslyFocusedElement =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    document.body.style.overflow = 'hidden';
-
-    const focusableElement = panelRef.current?.querySelector<HTMLElement>(
-      [
-        '[autofocus]',
-        'button:not([disabled])',
-        '[href]',
-        'input:not([disabled])',
-        'select:not([disabled])',
-        'textarea:not([disabled])',
-        '[tabindex]:not([tabindex="-1"])',
-      ].join(','),
+    const modalElement = overlayRef.current;
+    const bodyChildren = Array.from(document.body.children).filter(
+      (element): element is HTMLElement =>
+        element instanceof HTMLElement && element !== modalElement,
     );
-    (focusableElement ?? panelRef.current)?.focus();
+    const previousInertStates = bodyChildren.map((element) => ({
+      element,
+      ariaHidden: element.getAttribute('aria-hidden'),
+      inert: element.inert,
+    }));
+
+    document.body.style.overflow = 'hidden';
+    previousInertStates.forEach(({ element }) => {
+      element.inert = true;
+      element.setAttribute('aria-hidden', 'true');
+    });
+
+    const focusModal = () => {
+      const focusableElement = panelRef.current?.querySelector<HTMLElement>(focusableSelector);
+      (focusableElement ?? panelRef.current)?.focus({ preventScroll: true });
+    };
+    const animationFrame = window.requestAnimationFrame(focusModal);
+    const timeout = window.setTimeout(focusModal, 0);
+
+    const keepFocusInside = (event: FocusEvent) => {
+      if (!modalElement || !event.target || modalElement.contains(event.target as Node)) return;
+      focusModal();
+    };
+
+    document.addEventListener('focusin', keepFocusInside);
 
     return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(timeout);
+      document.removeEventListener('focusin', keepFocusInside);
       document.body.style.overflow = previousOverflow;
-      previouslyFocusedElement?.focus();
+      previousInertStates.forEach(({ element, ariaHidden, inert }) => {
+        element.inert = inert;
+        if (ariaHidden === null) {
+          element.removeAttribute('aria-hidden');
+        } else {
+          element.setAttribute('aria-hidden', ariaHidden);
+        }
+      });
+      previouslyFocusedElement?.focus({ preventScroll: true });
     };
   }, []);
 
@@ -49,16 +77,7 @@ export const BlockingModal = ({
     if (event.key !== 'Tab') return;
 
     const focusableElements = Array.from(
-      panelRef.current?.querySelectorAll<HTMLElement>(
-        [
-          'button:not([disabled])',
-          '[href]',
-          'input:not([disabled])',
-          'select:not([disabled])',
-          'textarea:not([disabled])',
-          '[tabindex]:not([tabindex="-1"])',
-        ].join(','),
-      ) ?? [],
+      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
     );
 
     if (focusableElements.length === 0) {
@@ -84,6 +103,7 @@ export const BlockingModal = ({
 
   return createPortal(
     <div
+      ref={overlayRef}
       className="fixed inset-0 z-[1000] overflow-y-auto bg-brand-900/70 px-4 py-4 sm:py-6"
       role="dialog"
       aria-modal="true"
@@ -98,3 +118,14 @@ export const BlockingModal = ({
     document.body,
   );
 };
+
+const focusableSelector = [
+  '[data-autofocus]',
+  '[autofocus]',
+  'button:not([disabled])',
+  '[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');

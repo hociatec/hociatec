@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdminQuotes,
@@ -14,6 +14,7 @@ import { usePrompt } from '@/shared/components/ui/prompt';
 import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/publicApi';
 import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminQuotesList = () => {
   const toast = useToast();
@@ -26,19 +27,25 @@ export const useAdminQuotesList = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const metadataQuery = useQuery({
     queryKey: adminQuoteQueryKeys.metadata(),
     queryFn: fetchAdminQuoteMetadata,
   });
-  const quotesQuery = useQuery<QuoteDto[], Error>({
-    queryKey: adminQuoteQueryKeys.list(search, filterStatus),
+  const quotesQuery = useQuery<PaginatedResult<QuoteDto>, Error>({
+    queryKey: [...adminQuoteQueryKeys.list(search, filterStatus), { fromDate, page, toDate }],
     queryFn: () =>
       fetchAdminQuotes(omitUndefinedProperties({
+        from: fromDate || undefined,
+        page,
+        perPage: 10,
         q: search.trim() || undefined,
         status: filterStatus,
+        to: toDate || undefined,
       })),
   });
-  const quotes = quotesQuery.data ?? [];
+  const quotes = quotesQuery.data?.items ?? [];
+  const pagination = quotesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const deleteMutation = useMutation({
     mutationFn: deleteAdminQuote,
     onSuccess: (response) => {
@@ -67,20 +74,25 @@ export const useAdminQuotesList = () => {
   const sendEmailMutation = useMutation({
     mutationFn: ({ id, to }: { id: number; to: string }) => sendAdminQuoteEmail(id, to),
     onSuccess: (response, { id }) => {
-      queryClient.setQueryData<QuoteDto[]>(
-        adminQuoteQueryKeys.list(search, filterStatus),
-        (items = []) =>
-          items.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  statusCode: response.statusCode ?? 'sent',
-                  statusLabel: response.statusLabel ?? item.statusLabel,
-                  status: response.statusCode ?? 'sent',
-                  sentAt: new Date().toISOString(),
-                }
-              : item,
-          ),
+      queryClient.setQueryData<PaginatedResult<QuoteDto>>(
+        [...adminQuoteQueryKeys.list(search, filterStatus), { fromDate, page, toDate }],
+        (current) =>
+          current
+            ? {
+                ...current,
+                items: current.items.map((item) =>
+                  item.id === id
+                    ? {
+                        ...item,
+                        statusCode: response.statusCode ?? 'sent',
+                        statusLabel: response.statusLabel ?? item.statusLabel,
+                        status: response.statusCode ?? 'sent',
+                        sentAt: new Date().toISOString(),
+                      }
+                    : item,
+                ),
+              }
+            : current,
       );
       const msg = getHttpErrorMessage(response, 'E-mail envoyé.');
       setMessage(msg);
@@ -92,17 +104,9 @@ export const useAdminQuotesList = () => {
       toast.show(msg, { variant: 'error' });
     },
   });
-  const filtered = useMemo(() => {
-    const from = fromDate ? new Date(fromDate).getTime() : null;
-    const to = toDate ? new Date(toDate).getTime() : null;
-    return quotes.filter((quote) => {
-      const created = quote.createdAt ? new Date(quote.createdAt).getTime() : null;
-      return (
-        (from === null || (created !== null && created >= from)) &&
-        (to === null || (created !== null && created <= to))
-      );
-    });
-  }, [quotes, fromDate, toDate]);
+  useEffect(() => {
+    setPage(1);
+  }, [filterStatus, fromDate, search, toDate]);
   const handleDelete = async (id: number) => {
     const quote = quotes.find((item) => item.id === id);
     if (
@@ -153,7 +157,9 @@ export const useAdminQuotesList = () => {
     setFromDate,
     toDate,
     setToDate,
-    filtered,
+    filtered: quotes,
+    pagination,
+    setPage,
     handleDelete,
     handleDuplicate,
     handleSendEmail,

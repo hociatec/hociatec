@@ -24,8 +24,7 @@ final class MyLoyaltyController extends AbstractController
     public function __construct(
         private readonly LoyaltyService $loyalty,
         private readonly VoucherFormatter $voucherFormatter,
-    )
-    {
+    ) {
     }
 
     #[Route('', name: 'api_loyalty_me', methods: ['GET'])]

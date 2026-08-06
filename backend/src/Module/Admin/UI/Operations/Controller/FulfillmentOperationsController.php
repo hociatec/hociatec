@@ -10,6 +10,7 @@ use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,9 +28,15 @@ final class FulfillmentOperationsController extends AbstractController
     }
 
     #[Route('/orders', name: 'api_admin_operations_fulfillment_orders', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        return ApiResponse::successItem('items', $this->fulfillment->queue());
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $items = $this->fulfillment->queue();
+
+        return ApiResponse::paginated(
+            array_slice($items, $pagination->offset(), $pagination->perPage),
+            $pagination->metadata(count($items)),
+        );
     }
 
     #[Route('/orders/{id}/ship', name: 'api_admin_operations_fulfillment_ship', methods: ['PATCH'])]

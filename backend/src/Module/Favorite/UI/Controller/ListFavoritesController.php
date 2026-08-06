@@ -23,14 +23,13 @@ class ListFavoritesController extends AbstractController
     public function __construct(
         private readonly FavoriteService $favorites,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = RequestQueryMapper::pagination($request, 12, 50);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
         $user = $this->getUser();
 

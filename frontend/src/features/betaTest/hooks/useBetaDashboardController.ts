@@ -3,13 +3,17 @@ import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  deleteMyBetaProfile,
   createBugReportComment,
+  fetchBetaProfileChoices,
   fetchBetaCampaigns,
   fetchBugReportComments,
   fetchMyBetaProfile,
   fetchMyBugReport,
   fetchMyBugReports,
+  updateMyBetaProfile,
   type BetaCampaign,
+  type BetaProfileChoices,
   type BetaProfileDto,
 } from '../api/betaApi';
 import { isCampaignOpenForReports } from '../components/dashboard/betaDashboardUtils';
@@ -32,10 +36,14 @@ export const useBetaDashboardController = () => {
     data: profile,
     isLoading: isLoadingProfile,
     isError: isProfileError,
-  } = useQuery<BetaProfileDto>({
+  } = useQuery<BetaProfileDto | null>({
     queryKey: betaQueryKeys.profile(),
     queryFn: fetchMyBetaProfile,
     retry: false,
+  });
+  const { data: choices = null } = useQuery<BetaProfileChoices>({
+    queryKey: betaQueryKeys.profileChoices(),
+    queryFn: fetchBetaProfileChoices,
   });
 
   const { data: campaigns = [], error: campaignsError } = useQuery({
@@ -46,7 +54,7 @@ export const useBetaDashboardController = () => {
 
   const { data: reportsResult, error: reportsError } = useQuery({
     queryKey: betaQueryKeys.reportsPage(reportPage),
-    queryFn: () => fetchMyBugReports({ page: reportPage, perPage: 12 }),
+    queryFn: () => fetchMyBugReports({ page: reportPage, perPage: 10 }),
     enabled: Boolean(profile),
   });
 
@@ -80,6 +88,27 @@ export const useBetaDashboardController = () => {
     },
     onError: (err) => {
       toast.show(err instanceof Error ? err.message : 'Erreur lors de l\'envoi.', { variant: 'error' });
+    },
+  });
+  const updateProfileMutation = useMutation({
+    mutationFn: updateMyBetaProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: betaQueryKeys.profile() });
+      toast.show('Profil bêta enregistré.', { variant: 'success' });
+    },
+    onError: (err) => {
+      toast.show(err instanceof Error ? err.message : 'Impossible d’enregistrer le profil bêta.', { variant: 'error' });
+    },
+  });
+  const deleteProfileMutation = useMutation({
+    mutationFn: deleteMyBetaProfile,
+    onSuccess: () => {
+      queryClient.setQueryData(betaQueryKeys.profile(), null);
+      queryClient.invalidateQueries({ queryKey: betaQueryKeys.profile() });
+      toast.show('Votre profil bêta a été supprimé.', { variant: 'success' });
+    },
+    onError: (err) => {
+      toast.show(err instanceof Error ? err.message : 'Impossible de supprimer le profil bêta.', { variant: 'error' });
     },
   });
 
@@ -120,6 +149,7 @@ export const useBetaDashboardController = () => {
     activeReport,
     canReport,
     campaigns,
+    choices,
     commentPage,
     comments: commentsResult?.items ?? [],
     commentsMeta: commentsResult?.meta ?? null,
@@ -128,11 +158,18 @@ export const useBetaDashboardController = () => {
     isCreateReportOpen,
     isLoadingProfile,
     isProfileError,
+    isDeletingProfile: deleteProfileMutation.isPending,
     loadingComments,
     newCommentText,
     openReports: reports.filter((report) => !['resolved', 'duplicate', 'rejected'].includes(report.status)).length,
     postCommentPending: postCommentMutation.isPending,
     profile,
+    profileErrorMessage:
+      updateProfileMutation.error instanceof Error
+        ? updateProfileMutation.error.message
+        : deleteProfileMutation.error instanceof Error
+          ? deleteProfileMutation.error.message
+          : null,
     profileStatus,
     reportPage,
     reportsMeta,
@@ -142,6 +179,7 @@ export const useBetaDashboardController = () => {
     viewedCampaignCanReport,
     viewedCampaignReports,
     closeReportFollowUp,
+    deleteProfile: deleteProfileMutation.mutateAsync,
     handlePostComment,
     openCampaignReport,
     openReportFollowUp,
@@ -151,5 +189,7 @@ export const useBetaDashboardController = () => {
     setReportPage,
     setSelectedCampaign,
     setViewedCampaign,
+    updateProfile: updateProfileMutation.mutateAsync,
+    updatingProfile: updateProfileMutation.isPending,
   };
 };

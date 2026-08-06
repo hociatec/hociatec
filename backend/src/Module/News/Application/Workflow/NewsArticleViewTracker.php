@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\News\Application\Workflow;
 
+use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsArticleView;
-use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class NewsArticleViewTracker

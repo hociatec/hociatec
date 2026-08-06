@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Promotion\Controller;
 
-use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,13 +21,12 @@ final class ListPromotionsController extends AbstractController
     public function __construct(
         private readonly PromotionRepositoryPort $promotions,
         private readonly PromotionFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         return ApiResponse::paginated(
             array_map(

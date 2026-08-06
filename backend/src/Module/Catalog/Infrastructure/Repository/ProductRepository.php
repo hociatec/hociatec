@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Infrastructure\Repository;
 
-use App\Module\Catalog\Application\Port\ProductRepositoryPort;
-
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Product;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 

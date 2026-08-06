@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\UI\Controller\Client;
 
-use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

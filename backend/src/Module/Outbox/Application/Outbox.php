@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Outbox\Application;
 
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Shared\Application\UnitOfWork;
 use App\Shared\Application\Http\RequestContext;
+use App\Shared\Application\UnitOfWork;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class Outbox

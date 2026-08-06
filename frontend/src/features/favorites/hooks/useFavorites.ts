@@ -1,29 +1,37 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { favoriteQueryKeys } from '@/shared/lib/queryKeys';
-import { fetchFavorites, removeFavorite, type FavoriteDto } from '../api/favoritesApi';
+import { fetchFavoritesPage, removeFavorite, type FavoriteDto } from '../api/favoritesApi';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const useFavorites = () => {
   const queryClient = useQueryClient();
-  const favoritesQuery = useQuery({
-    queryKey: favoriteQueryKeys.all(),
-    queryFn: fetchFavorites,
+  const [page, setPage] = useState(1);
+  const favoritesQuery = useQuery<PaginatedResult<FavoriteDto>, Error>({
+    queryKey: [...favoriteQueryKeys.all(), { page }],
+    queryFn: () => fetchFavoritesPage(page, 10),
   });
   const removeMutation = useMutation({
     mutationFn: removeFavorite,
     onMutate: async (productId) => {
       await queryClient.cancelQueries({ queryKey: favoriteQueryKeys.all() });
-      const previousFavorites = queryClient.getQueryData<FavoriteDto[]>(favoriteQueryKeys.all());
-      queryClient.setQueryData<FavoriteDto[]>(favoriteQueryKeys.all(), (current = []) =>
-        current.filter((favorite) => favorite.product.id !== productId),
+      const previousFavorites = queryClient.getQueryData<PaginatedResult<FavoriteDto>>([...favoriteQueryKeys.all(), { page }]);
+      queryClient.setQueryData<PaginatedResult<FavoriteDto>>([...favoriteQueryKeys.all(), { page }], (current) =>
+        current
+          ? {
+              ...current,
+              items: current.items.filter((favorite) => favorite.product.id !== productId),
+              meta: { ...current.meta, total: Math.max(0, current.meta.total - 1) },
+            }
+          : current,
       );
 
       return { previousFavorites };
     },
     onError: (_error, _productId, context) => {
       if (context?.previousFavorites) {
-        queryClient.setQueryData(favoriteQueryKeys.all(), context.previousFavorites);
+        queryClient.setQueryData([...favoriteQueryKeys.all(), { page }], context.previousFavorites);
       }
     },
     onSettled: () => {
@@ -44,7 +52,9 @@ export const useFavorites = () => {
         : null;
 
   return {
-    favorites: favoritesQuery.data ?? [],
+    favorites: favoritesQuery.data?.items ?? [],
+    pagination: favoritesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 },
+    setPage,
     status,
     error,
     removingId: removeMutation.variables ?? null,

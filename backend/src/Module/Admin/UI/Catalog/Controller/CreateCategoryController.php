@@ -26,8 +26,7 @@ class CreateCategoryController extends AbstractController
         private readonly CategoryService $categoryService,
         private readonly DtoValidator $validator,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse

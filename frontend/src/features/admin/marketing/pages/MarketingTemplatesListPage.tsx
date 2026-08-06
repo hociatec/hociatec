@@ -8,6 +8,7 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 export const MarketingTemplatesListPage = () => {
@@ -17,7 +18,6 @@ export const MarketingTemplatesListPage = () => {
     isTransactionalView ? 'Admin - E-mails transactionnels' : 'Admin - Modèles d’e-mail',
   );
   const {
-    templates,
     segments,
     loading,
     query,
@@ -31,6 +31,8 @@ export const MarketingTemplatesListPage = () => {
     error,
     message,
     filteredTemplates,
+    templatesMeta,
+    setPage,
     scenarioOptions,
     handleDelete,
   } = useMarketingTemplatesList(isTransactionalView);
@@ -70,8 +72,8 @@ export const MarketingTemplatesListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {templates.length} modèle{templates.length > 1 ? 's' : ''} enregistré
-          {templates.length > 1 ? 's' : ''}.
+          {templatesMeta.total} modèle{templatesMeta.total > 1 ? 's' : ''} enregistré
+          {templatesMeta.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">
           {isTransactionalView
@@ -195,6 +197,13 @@ export const MarketingTemplatesListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={templatesMeta.page}
+          total={templatesMeta.total}
+          totalLabel="modèle"
+          totalPages={templatesMeta.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

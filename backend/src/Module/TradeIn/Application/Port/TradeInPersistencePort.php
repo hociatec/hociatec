@@ -9,6 +9,8 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 interface TradeInPersistencePort
 {
     public function save(TradeInRequest $request): void;
+
     public function remove(TradeInRequest $request): void;
+
     public function commit(): void;
 }

@@ -4,17 +4,18 @@ import { checkoutOrder, type CheckoutRedirectDto, type OrderDto } from '@/featur
 import { fetchMyAddresses, type AddressDto } from '@/features/addresses/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { cartQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 
 const emptyAddresses: AddressDto[] = [];
 
 export const useCartCheckout = (authenticated: boolean) => {
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-  const addressesQuery = useQuery<AddressDto[], Error>({
+  const addressesQuery = useQuery<PaginatedResult<AddressDto>, Error>({
     queryKey: cartQueryKeys.checkoutAddresses(),
-    queryFn: fetchMyAddresses,
+    queryFn: () => fetchMyAddresses(1, 10),
     enabled: authenticated,
   });
-  const addresses = authenticated ? (addressesQuery.data ?? emptyAddresses) : emptyAddresses;
+  const addresses = authenticated ? (addressesQuery.data?.items ?? emptyAddresses) : emptyAddresses;
   const checkoutMutation = useMutation({
     mutationFn: ({ addressId }: { addressId: number }) => checkoutOrder(addressId),
   });

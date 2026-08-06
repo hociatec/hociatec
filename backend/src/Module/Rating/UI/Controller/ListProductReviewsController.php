@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Rating\UI\Controller;
 
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
-use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
+use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

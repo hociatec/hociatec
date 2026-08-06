@@ -48,7 +48,7 @@ export const SiteFooter = () => {
                   href={href}
                   className="site-footer__link site-footer__social-link"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   <Icon aria-hidden="true" />
                   <span>{label}</span>

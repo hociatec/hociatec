@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
@@ -17,8 +17,12 @@ export const fetchAdminPaymentMetadata = async (): Promise<{ statuses: OrderStat
 export const fetchAdminPayments = async (
   status: 'all' | 'open' | 'paid' | 'expired' | 'failed' = 'all',
   q = '',
-): Promise<AdminPaymentDto[]> => {
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<AdminPaymentDto>> => {
   const query = new URLSearchParams();
+  query.set('page', String(page));
+  query.set('perPage', String(perPage));
   if (status && status !== 'all') {
     query.set('status', status);
   }
@@ -26,11 +30,11 @@ export const fetchAdminPayments = async (
     query.set('q', q.trim());
   }
 
-  const { data } = await httpClient.get<ApiResponse<{ items: AdminPaymentDto[] }>>(
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminPaymentDto[]; meta: PaginationMeta }>>(
     `/api/admin/payments${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return data.data.items.map(parseAdminPayment);
+    return { items: data.data.items.map(parseAdminPayment), meta: data.data.meta };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les paiements';
   throw new Error(message);

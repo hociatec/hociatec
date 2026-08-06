@@ -6,6 +6,8 @@ import {
   type TrainingSessionDto,
 } from '@/features/trainings/publicApi';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { AdminTrainingEnrollmentsTable } from './AdminTrainingEnrollmentsTable';
 
@@ -26,6 +28,8 @@ export const AdminTrainingsCatalogSections = ({
 }: AdminTrainingsCatalogSectionsProps) => {
   const categoryName = (slug: string) =>
     trainings.find((training) => training.category === slug)?.categoryDetails?.name ?? '';
+  const trainingsPagination = useAdminPagination(trainings);
+  const sessionsPagination = useAdminPagination(sessions);
 
   return (
     <div className="space-y-8">
@@ -63,7 +67,7 @@ export const AdminTrainingsCatalogSections = ({
                 </tr>
               </thead>
               <tbody>
-                {trainings.map((training) => (
+                {trainingsPagination.paginatedItems.map((training) => (
                   <tr key={training.id}>
                     <td>
                       <strong>{training.title}</strong>
@@ -97,6 +101,13 @@ export const AdminTrainingsCatalogSections = ({
               </tbody>
             </table>
           </AdminTableShell>
+          <PaginationControls
+            page={trainingsPagination.page}
+            total={trainingsPagination.total}
+            totalLabel="formation"
+            totalPages={trainingsPagination.totalPages}
+            onPageChange={trainingsPagination.setPage}
+          />
         </AdminListState>
       </section>
 
@@ -130,7 +141,7 @@ export const AdminTrainingsCatalogSections = ({
                 </tr>
               </thead>
               <tbody>
-                {sessions.map((session) => (
+                {sessionsPagination.paginatedItems.map((session) => (
                   <tr key={session.id}>
                     <td>{session.training.title}</td>
                     <td>
@@ -167,6 +178,13 @@ export const AdminTrainingsCatalogSections = ({
               </tbody>
             </table>
           </AdminTableShell>
+          <PaginationControls
+            page={sessionsPagination.page}
+            total={sessionsPagination.total}
+            totalLabel="session"
+            totalPages={sessionsPagination.totalPages}
+            onPageChange={sessionsPagination.setPage}
+          />
         </AdminListState>
       </section>
 

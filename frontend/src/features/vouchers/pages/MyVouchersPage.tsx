@@ -8,6 +8,7 @@ import { StableContent } from '@/shared/components/ui/page-state';
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 const isVoucherPast = (voucher: MyVoucherDto) => {
   if (!voucher.isActive) {
@@ -26,7 +27,7 @@ export const MyVouchersPage = () => {
 
   const navigate = useNavigate();
   const toast = useToast();
-  const { vouchers, loading, error } = useVouchers();
+  const { vouchers, loading, error, pagination, setPage } = useVouchers();
   useEffect(() => {
     if (error) toast.show(error, { variant: 'error' });
   }, [error, toast]);
@@ -161,6 +162,13 @@ export const MyVouchersPage = () => {
             )}
           </StableContent>
         </section>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="bon"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </SiteLayout>
   );

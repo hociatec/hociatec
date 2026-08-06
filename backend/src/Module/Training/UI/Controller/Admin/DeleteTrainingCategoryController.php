@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
 use App\Module\Training\Application\Port\TrainingRepositoryPort;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

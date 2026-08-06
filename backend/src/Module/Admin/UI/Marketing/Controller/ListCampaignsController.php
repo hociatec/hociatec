@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Marketing\Controller;
 
-use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
 use App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort;
+use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +26,7 @@ final class ListCampaignsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         return ApiResponse::paginated(
             array_map(

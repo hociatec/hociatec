@@ -11,6 +11,7 @@ import {
   type OrderStatusFilter,
 } from '../lib/adminOrderList';
 import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminOrdersList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +26,7 @@ export const useAdminOrdersList = () => {
   const [sort, setSort] = useState<OrderSortKey>(
     (searchParams.get('sort') as OrderSortKey | null) ?? 'newest',
   );
+  const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<{
     id: number;
     current: OrderStatus;
@@ -37,16 +39,19 @@ export const useAdminOrdersList = () => {
     queryKey: adminOrderQueryKeys.metadata(),
     queryFn: fetchAdminOrderMetadata,
   });
-  const ordersQuery = useQuery<OrderDto[], Error>({
-    queryKey: adminOrderQueryKeys.list(filter, health),
-    queryFn: () => fetchAdminOrders(filter, health),
+  const ordersQuery = useQuery<PaginatedResult<OrderDto>, Error>({
+    queryKey: [...adminOrderQueryKeys.list(filter, health), { page }],
+    queryFn: () => fetchAdminOrders(filter, health, page, 10),
   });
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, next }: { id: number; next: OrderStatus }) => updateAdminOrderStatus(id, next),
     onSuccess: (updated) => {
-      queryClient.setQueryData<OrderDto[]>(
-        adminOrderQueryKeys.list(filter, health),
-        (previous = []) => previous.map((order) => (order.id === updated.id ? updated : order)),
+      queryClient.setQueryData<PaginatedResult<OrderDto>>(
+        [...adminOrderQueryKeys.list(filter, health), { page }],
+        (previous) =>
+          previous
+            ? { ...previous, items: previous.items.map((order) => (order.id === updated.id ? updated : order)) }
+            : previous,
       );
       void queryClient.invalidateQueries({ queryKey: adminOrderQueryKeys.detail(updated.id) });
       setEditing(null);
@@ -55,7 +60,8 @@ export const useAdminOrdersList = () => {
     onError: (e) =>
       setUpdateError(getHttpErrorMessage(e, 'Impossible de mettre à jour le statut.')),
   });
-  const orders = ordersQuery.data ?? [];
+  const orders = ordersQuery.data?.items ?? [];
+  const pagination = ordersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const status = ordersQuery.isLoading ? 'loading' : ordersQuery.isError ? 'error' : 'success';
   const error = ordersQuery.error ? getHttpErrorMessage(ordersQuery.error, 'Erreur') : null;
   const statusOptions =
@@ -68,6 +74,9 @@ export const useAdminOrdersList = () => {
     if (sort !== 'newest') next.set('sort', sort);
     setSearchParams(next, { replace: true });
   }, [filter, health, search, sort, setSearchParams]);
+  useEffect(() => {
+    setPage(1);
+  }, [filter, health, search, sort]);
   const filteredOrders = useMemo(
     () => filterAndSortAdminOrders(orders, search, sort),
     [orders, search, sort],
@@ -82,6 +91,8 @@ export const useAdminOrdersList = () => {
   };
   return {
     orders,
+    pagination,
+    setPage,
     status,
     error,
     filter,

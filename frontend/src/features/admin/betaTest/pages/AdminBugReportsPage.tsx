@@ -83,6 +83,8 @@ export const AdminBugReportsPage = () => {
 
       <AdminBugReportDetailDialog
         activities={reports.activities}
+        activitiesMeta={reports.activitiesMeta}
+        activityPage={reports.activityPage}
         commentPage={reports.commentPage}
         comments={reports.comments}
         commentsMeta={reports.commentsMeta}
@@ -94,6 +96,7 @@ export const AdminBugReportsPage = () => {
         postCommentPending={reports.postCommentPending}
         report={reports.activeReport}
         onClose={reports.closeModal}
+        onActivityPageChange={reports.setActivityPage}
         onCommentPageChange={reports.setCommentPage}
         onDuplicateIdChange={reports.setDuplicateOfId}
         onDuplicateReasonChange={reports.setDuplicateReason}

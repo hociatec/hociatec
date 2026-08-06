@@ -1,9 +1,9 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { deleteCategory, fetchAdminCategories, type CatalogCategory } from '@/features/catalog/adminApi';
+import { deleteCategory, fetchAdminCategoriesPage, type CatalogCategory } from '@/features/catalog/adminApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -11,17 +11,20 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
 
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const categoriesQuery = useQuery<CatalogCategory[], Error>({
-    queryKey: adminCatalogQueryKeys.categories(),
-    queryFn: fetchAdminCategories,
+  const categoriesQuery = useQuery<PaginatedResult<CatalogCategory>, Error>({
+    queryKey: [...adminCatalogQueryKeys.categories(), { page, search }],
+    queryFn: () => fetchAdminCategoriesPage(page, 10, search),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
@@ -30,7 +33,8 @@ export const CategoriesListPage = () => {
       setMessage(response.message ?? 'La catégorie a bien été supprimée.');
     },
   });
-  const categories = categoriesQuery.data ?? [];
+  const categories = categoriesQuery.data?.items ?? [];
+  const categoriesMeta = categoriesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = categoriesQuery.error
     ? getHttpErrorMessage(categoriesQuery.error, 'Impossible de charger les catégories.')
     : deleteMutation.error
@@ -56,15 +60,9 @@ export const CategoriesListPage = () => {
     deleteMutation.mutate(categoryId);
   };
 
-  const filteredCategories = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return categories;
-
-    return categories.filter(
-      (category) =>
-        category.name.toLowerCase().includes(term) || category.slug.toLowerCase().includes(term),
-    );
-  }, [categories, search]);
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   return (
     <PageContainer
@@ -76,8 +74,8 @@ export const CategoriesListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filteredCategories.length} catégorie{filteredCategories.length > 1 ? 's' : ''} affichée
-          {filteredCategories.length > 1 ? 's' : ''}
+          {categoriesMeta.total} catégorie{categoriesMeta.total > 1 ? 's' : ''} affichée
+          {categoriesMeta.total > 1 ? 's' : ''}
         </p>
         <p className="text-sm text-stone-500">Filtrez par nom ou slug.</p>
       </div>
@@ -95,7 +93,7 @@ export const CategoriesListPage = () => {
 
       <AdminListState
         loading={categoriesQuery.isLoading}
-        isEmpty={filteredCategories.length === 0}
+        isEmpty={categories.length === 0}
         loadingLabel="Chargement des catégories..."
         emptyLabel="Aucune catégorie ne correspond à votre recherche."
       >
@@ -110,7 +108,7 @@ export const CategoriesListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredCategories.map((category) => (
+              {categories.map((category) => (
                 <tr key={category.id}>
                   <th scope="row">
                     <strong>{category.name}</strong>
@@ -142,6 +140,13 @@ export const CategoriesListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={categoriesMeta.page}
+          total={categoriesMeta.total}
+          totalLabel="catégorie"
+          totalPages={categoriesMeta.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

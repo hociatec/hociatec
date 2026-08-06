@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\News\Infrastructure\Repository;
 
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
-
 use App\Module\News\Domain\Entity\NewsArticle;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 

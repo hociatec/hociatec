@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { AdminPaymentDto, OrderDto } from '@/features/orders/publicApi';
 
 export interface AdminCustomerSummaryDto {
@@ -155,18 +155,22 @@ export const fetchAdminCustomers = async (
     | 'most_orders'
     | 'newest_account'
     | 'name_asc' = 'recent_order',
-): Promise<AdminCustomerSummaryDto[]> => {
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<AdminCustomerSummaryDto>> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
     query.set('search', search.trim());
   }
   query.set('sort', sort);
+  query.set('page', String(page));
+  query.set('perPage', String(perPage));
 
-  const { data } = await httpClient.get<ApiResponse<{ items: AdminCustomerSummaryDto[] }>>(
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminCustomerSummaryDto[]; meta: PaginationMeta }>>(
     `/api/admin/customers?${query.toString()}`,
   );
   if (isApiOk(data)) {
-    return data.data.items;
+    return { items: data.data.items, meta: data.data.meta };
   }
 
   const message = data.status === 'error' ? data.message : 'Impossible de charger les clients';

@@ -7,8 +7,8 @@ namespace App\Module\Appointment\Application\Workflow;
 use App\Module\Appointment\Application\DTO\WorkingDayData;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort;
-use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
+use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 
 final class WorkingDayConfigurationService
 {

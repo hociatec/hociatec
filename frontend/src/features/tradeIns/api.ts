@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { TradeInDto, TradeInInput, TradeInMetadataDto, TradeInStatus } from './types';
 
 export async function fetchTradeInMetadata(): Promise<TradeInMetadataDto> {
@@ -20,18 +20,28 @@ export async function createTradeIn(input: TradeInInput, authenticated: boolean)
   return { item: response.data.data, message: response.data.message };
 }
 
-export async function fetchMyTradeIns(): Promise<TradeInDto[]> {
-  const response = await httpClient.get('/api/trade-ins/me');
-  return response.data.data.items;
+export async function fetchMyTradeIns(page = 1, perPage = 10): Promise<PaginatedResult<TradeInDto>> {
+  const response = await httpClient.get<ApiResponse<{ items: TradeInDto[]; meta: PaginationMeta }>>('/api/trade-ins/me', {
+    params: { page, perPage },
+  });
+  if (!isApiOk(response.data)) throw new Error(response.data.message || 'Impossible de charger vos reprises.');
+  return response.data.data;
 }
 
 export async function respondToTradeIn(id: number, action: 'accept' | 'decline'): Promise<void> {
   await httpClient.post(`/api/trade-ins/${id}/respond/${action}`);
 }
 
-export async function adminFetchTradeIns(status?: TradeInStatus): Promise<TradeInDto[]> {
-  const response = await httpClient.get('/api/admin/trade-ins', { params: status ? { status } : undefined });
-  return response.data.data.items;
+export async function adminFetchTradeIns(
+  status?: TradeInStatus,
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<TradeInDto>> {
+  const response = await httpClient.get<ApiResponse<{ items: TradeInDto[]; meta: PaginationMeta }>>('/api/admin/trade-ins', {
+    params: { page, perPage, ...(status ? { status } : {}) },
+  });
+  if (!isApiOk(response.data)) throw new Error(response.data.message || 'Impossible de charger les reprises.');
+  return response.data.data;
 }
 
 export async function adminFetchTradeIn(id: number): Promise<TradeInDto> {

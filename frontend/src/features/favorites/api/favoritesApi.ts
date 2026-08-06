@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 export interface FavoriteDto {
@@ -16,10 +16,28 @@ const buildErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
   response.status === 'error' ? response.message : fallback;
 
 export const fetchFavorites = async (): Promise<FavoriteDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: FavoriteDto[] }>>('/api/favorites');
+  const { data } = await httpClient.get<ApiResponse<{ items: FavoriteDto[] }>>('/api/favorites', {
+    params: { page: 1, perPage: 50 },
+  });
 
   if (isApiOk(data)) {
     return data.data.items;
+  }
+
+  throw new Error(buildErrorMessage(data, 'Impossible de charger vos favoris.'));
+};
+
+export const fetchFavoritesPage = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<FavoriteDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: FavoriteDto[]; meta: PaginationMeta }>>(
+    '/api/favorites',
+    { params: { page, perPage } },
+  );
+
+  if (isApiOk(data)) {
+    return { items: data.data.items, meta: data.data.meta };
   }
 
   throw new Error(buildErrorMessage(data, 'Impossible de charger vos favoris.'));

@@ -38,13 +38,48 @@ final class CheckoutBillingSnapshot
         $this->billingCity = $billingCity;
     }
 
-    public function name(): ?string { return $this->billingName; }
-    public function company(): ?string { return $this->billingCompany; }
-    public function companySiren(): ?string { return $this->billingCompanySiren; }
-    public function companyVatNumber(): ?string { return $this->billingCompanyVatNumber; }
-    public function purchaseOrderNumber(): ?string { return $this->purchaseOrderNumber; }
-    public function email(): ?string { return $this->billingEmail; }
-    public function address(): ?string { return $this->billingAddress; }
-    public function postalCode(): ?string { return $this->billingPostalCode; }
-    public function city(): ?string { return $this->billingCity; }
+    public function name(): ?string
+    {
+        return $this->billingName;
+    }
+
+    public function company(): ?string
+    {
+        return $this->billingCompany;
+    }
+
+    public function companySiren(): ?string
+    {
+        return $this->billingCompanySiren;
+    }
+
+    public function companyVatNumber(): ?string
+    {
+        return $this->billingCompanyVatNumber;
+    }
+
+    public function purchaseOrderNumber(): ?string
+    {
+        return $this->purchaseOrderNumber;
+    }
+
+    public function email(): ?string
+    {
+        return $this->billingEmail;
+    }
+
+    public function address(): ?string
+    {
+        return $this->billingAddress;
+    }
+
+    public function postalCode(): ?string
+    {
+        return $this->billingPostalCode;
+    }
+
+    public function city(): ?string
+    {
+        return $this->billingCity;
+    }
 }

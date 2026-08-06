@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\Handler\AssignBugReportHandler;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Port\UserRepositoryPort;
+use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

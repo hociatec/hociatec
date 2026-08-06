@@ -6,8 +6,8 @@ namespace App\Module\Loyalty\UI\Controller;
 
 use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Port\UserRepositoryPort;
+use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -32,7 +32,7 @@ final class AdminLoyaltyController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $search = RequestQueryMapper::string($request, 'search');
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         return ApiResponse::paginated(
             array_map(fn (User $user): array => $this->formatCustomer($user), $this->loyalty->findCustomers($search, $pagination->perPage, $pagination->offset())),

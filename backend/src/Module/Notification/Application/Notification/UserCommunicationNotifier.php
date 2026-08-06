@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Notification\Application\Notification;
 
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
+use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
-use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
 use Psr\Log\LoggerInterface;

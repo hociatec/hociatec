@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\UI\Http\BetaProfileResponseFormatter;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
+use App\Module\BetaTest\UI\Http\BetaProfileResponseFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +31,7 @@ final class GetMyBetaProfileController extends AbstractController
 
         $profile = $this->profiles->findOneByUser($user);
         if (null === $profile) {
-            return ApiResponse::error('Profil bêta introuvable.', 404);
+            return ApiResponse::successItem('profile', null);
         }
 
         return ApiResponse::successItem('profile', $this->formatter->format($profile));

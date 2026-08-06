@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Order\Controller;
 
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Provider\OrderIssueInspector;
-use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Port\OrderEventRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Order\Application\Projection\OrderFormatter;
+use App\Module\Order\Application\Provider\OrderIssueInspector;
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

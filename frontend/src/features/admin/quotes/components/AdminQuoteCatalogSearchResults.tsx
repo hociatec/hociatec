@@ -4,6 +4,8 @@ import type { CatalogProduct } from '@/features/catalog/adminApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import type { AdminQuoteFormState } from '@/features/admin/quotes/types/adminQuoteFormTypes';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
 
 type AdminQuoteCatalogSearchResultsProps = {
   filteredProducts: CatalogProduct[];
@@ -25,13 +27,17 @@ export const AdminQuoteCatalogSearchResults = ({
   setQuote,
   setRentalCandidate,
   setRentalDialogOpen,
-}: AdminQuoteCatalogSearchResultsProps) => (
-  <div className="space-y-6">
-    {filteredServices.length > 0 && (
-      <div>
-        <h2 className="mb-2 text-lg font-semibold">Services ({filteredServices.length})</h2>
-        <div className="max-h-64 space-y-2 overflow-auto">
-          {filteredServices.map((service) => {
+}: AdminQuoteCatalogSearchResultsProps) => {
+  const servicesPagination = useAdminPagination(filteredServices, `services-${filteredServices.map((service) => service.id).join('-')}`);
+  const productsPagination = useAdminPagination(filteredProducts, `products-${filteredProducts.map((product) => product.id).join('-')}`);
+
+  return (
+    <div className="space-y-6">
+      {filteredServices.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-lg font-semibold">Services ({filteredServices.length})</h2>
+          <div className="max-h-64 space-y-2 overflow-auto">
+            {servicesPagination.paginatedItems.map((service) => {
             const isAdded = quote.items.some(
               (item) => item.type === 'service' && item.serviceId === service.id,
             );
@@ -78,15 +84,23 @@ export const AdminQuoteCatalogSearchResults = ({
               </div>
             );
           })}
+          </div>
+          <PaginationControls
+            className="mt-3"
+            page={servicesPagination.page}
+            total={servicesPagination.total}
+            totalLabel="service"
+            totalPages={servicesPagination.totalPages}
+            onPageChange={servicesPagination.setPage}
+          />
         </div>
-      </div>
-    )}
+      )}
 
-    {filteredProducts.length > 0 && (
-      <div>
-        <h2 className="mb-2 text-lg font-semibold">Produits ({filteredProducts.length})</h2>
-        <div className="max-h-64 space-y-2 overflow-auto">
-          {filteredProducts.map((product) => {
+      {filteredProducts.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-lg font-semibold">Produits ({filteredProducts.length})</h2>
+          <div className="max-h-64 space-y-2 overflow-auto">
+            {productsPagination.paginatedItems.map((product) => {
             const isAdded = quote.items.some(
               (item) => item.type === 'product' && item.productId === product.id,
             );
@@ -150,8 +164,17 @@ export const AdminQuoteCatalogSearchResults = ({
               </div>
             );
           })}
+          </div>
+          <PaginationControls
+            className="mt-3"
+            page={productsPagination.page}
+            total={productsPagination.total}
+            totalLabel="produit"
+            totalPages={productsPagination.totalPages}
+            onPageChange={productsPagination.setPage}
+          />
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
+};

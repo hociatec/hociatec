@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\Provider;
 
-use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Domain\Entity\BugReport;
 
 final readonly class BugReportReferenceProvider
 {

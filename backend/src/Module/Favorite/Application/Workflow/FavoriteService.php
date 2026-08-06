@@ -6,8 +6,8 @@ namespace App\Module\Favorite\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Favorite\Application\Port\FavoritePersistencePort;
-use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\Application\Port\FavoriteRepositoryPort;
+use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;
 
 class FavoriteService

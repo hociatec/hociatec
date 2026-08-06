@@ -1,4 +1,3 @@
-import { Link } from 'react-router';
 import { Pencil, ShieldCheck } from 'lucide-react';
 
 import { betaProfileStatusLabels, formatBetaLabel } from '../../lib/betaLabels';
@@ -6,10 +5,11 @@ import { badgeClassName } from './betaDashboardUtils';
 
 interface BetaProfileSummaryProps {
   canReport: boolean;
+  onEdit: () => void;
   profileStatus: string;
 }
 
-export const BetaProfileSummary = ({ canReport, profileStatus }: BetaProfileSummaryProps) => (
+export const BetaProfileSummary = ({ canReport, onEdit, profileStatus }: BetaProfileSummaryProps) => (
   <section className="mb-8">
     <article className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
       <div className="flex items-start gap-4">
@@ -43,10 +43,15 @@ export const BetaProfileSummary = ({ canReport, profileStatus }: BetaProfileSumm
           </p>
         )}
       </div>
-      <Link className="mt-5 inline-flex items-center gap-2 rounded-xl border border-brand-100 px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50" to="/beta/profile">
+      <button
+        type="button"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl border border-brand-100 px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+        onClick={onEdit}
+        aria-haspopup="dialog"
+      >
         <Pencil size={16} aria-hidden="true" />
         Modifier mon profil
-      </Link>
+      </button>
     </article>
   </section>
 );

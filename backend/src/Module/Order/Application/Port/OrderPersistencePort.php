@@ -9,5 +9,6 @@ use App\Module\Order\Domain\Entity\Order;
 interface OrderPersistencePort
 {
     public function commit(): void;
+
     public function save(Order $order): void;
 }

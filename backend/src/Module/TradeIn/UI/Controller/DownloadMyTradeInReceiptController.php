@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
-use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

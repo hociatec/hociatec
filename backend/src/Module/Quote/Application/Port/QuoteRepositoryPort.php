@@ -19,9 +19,9 @@ interface QuoteRepositoryPort
     public function findOneBy(array $criteria, ?array $orderBy = null): ?Quote;
 
     /** @return list<Quote> */
-    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0): array;
+    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $to = null): array;
 
-    public function countBySearch(?string $search, ?string $statusCode): int;
+    public function countBySearch(?string $search, ?string $statusCode, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $to = null): int;
 
     /** @return list<Quote> */
     public function findByCustomerEmail(string $email, int $limit = 20, int $offset = 0): array;

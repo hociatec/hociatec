@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

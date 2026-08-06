@@ -1,9 +1,9 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { deleteBrand, fetchAdminBrands, type CatalogBrand } from '@/features/catalog/adminApi';
+import { deleteBrand, fetchAdminBrandsPage, type CatalogBrand } from '@/features/catalog/adminApi';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -11,17 +11,20 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const BrandsListPage = () => {
   useDocumentTitle('Admin - Marques');
 
   const [message, setMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const brandsQuery = useQuery<CatalogBrand[], Error>({
-    queryKey: adminCatalogQueryKeys.brands(),
-    queryFn: fetchAdminBrands,
+  const brandsQuery = useQuery<PaginatedResult<CatalogBrand>, Error>({
+    queryKey: [...adminCatalogQueryKeys.brands(), { page, search }],
+    queryFn: () => fetchAdminBrandsPage(page, 10, search),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteBrand,
@@ -30,7 +33,8 @@ export const BrandsListPage = () => {
       setMessage(response.message ?? 'La marque a bien été supprimée.');
     },
   });
-  const brands = brandsQuery.data ?? [];
+  const brands = brandsQuery.data?.items ?? [];
+  const brandsMeta = brandsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = brandsQuery.error
     ? getHttpErrorMessage(brandsQuery.error, 'Impossible de charger les marques.')
     : deleteMutation.error
@@ -53,15 +57,9 @@ export const BrandsListPage = () => {
     deleteMutation.mutate(brand.id);
   };
 
-  const filteredBrands = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    if (!term) {
-      return brands;
-    }
-
-    return brands.filter((brand) => brand.name.toLowerCase().includes(term));
-  }, [brands, search]);
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   return (
     <PageContainer
@@ -71,8 +69,8 @@ export const BrandsListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filteredBrands.length} marque{filteredBrands.length > 1 ? 's' : ''} affichée
-          {filteredBrands.length > 1 ? 's' : ''}
+          {brandsMeta.total} marque{brandsMeta.total > 1 ? 's' : ''} affichée
+          {brandsMeta.total > 1 ? 's' : ''}
         </p>
         <p className="text-sm text-stone-500">
           Recherchez une marque existante et gérez son libellé.
@@ -88,7 +86,7 @@ export const BrandsListPage = () => {
 
       <AdminListState
         loading={brandsQuery.isLoading}
-        isEmpty={filteredBrands.length === 0}
+        isEmpty={brands.length === 0}
         loadingLabel="Chargement des marques..."
         emptyLabel="Aucune marque ne correspond à votre recherche."
       >
@@ -102,7 +100,7 @@ export const BrandsListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredBrands.map((brand) => (
+              {brands.map((brand) => (
                 <tr key={brand.id}>
                   <th scope="row">
                     <strong>{brand.name}</strong>
@@ -132,6 +130,13 @@ export const BrandsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={brandsMeta.page}
+          total={brandsMeta.total}
+          totalLabel="marque"
+          totalPages={brandsMeta.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

@@ -9,10 +9,12 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const OrdersListPage = () => {
   const {
-    orders,
+    pagination,
+    setPage,
     status,
     error,
     filter,
@@ -36,8 +38,8 @@ export const OrdersListPage = () => {
     <PageContainer size="admin" title="Commandes">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filteredOrders.length} commande{filteredOrders.length > 1 ? 's' : ''} affichée
-          {filteredOrders.length > 1 ? 's' : ''} sur {orders.length}.
+          {pagination.total} commande{pagination.total > 1 ? 's' : ''} trouvée
+          {pagination.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">
           Recherchez une commande par numéro, client, email, société ou facture, puis triez la liste
@@ -106,6 +108,14 @@ export const OrdersListPage = () => {
           }}
         />
       </AdminListState>
+
+      <PaginationControls
+        page={pagination.page}
+        total={pagination.total}
+        totalLabel="commande"
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
       <OrderStatusDialog editing={editing} setEditing={setEditing} updateError={updateError} setUpdateError={setUpdateError} onConfirm={handleConfirmUpdate} />
     </PageContainer>

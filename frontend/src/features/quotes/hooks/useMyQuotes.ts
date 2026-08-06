@@ -8,14 +8,15 @@ import { useToast } from '@/shared/components/ui/toast';
 import { quoteQueryKeys } from '@/shared/lib/queryKeys';
 
 export const useMyQuotes = () => {
+  const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const toast = useToast();
   const queryClient = useQueryClient();
   const quotesQuery = useQuery({
-    queryKey: quoteQueryKeys.mine(),
-    queryFn: fetchMyQuotes,
+    queryKey: [...quoteQueryKeys.mine(), { page }],
+    queryFn: () => fetchMyQuotes(page, 10),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteMyQuote,
@@ -53,7 +54,9 @@ export const useMyQuotes = () => {
     }
   };
   return {
-    items: quotesQuery.data ?? [],
+    items: quotesQuery.data?.items ?? [],
+    pagination: quotesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 },
+    setPage,
     loading: quotesQuery.isLoading,
     error: quotesQuery.error ? getHttpErrorMessage(quotesQuery.error, 'Impossible de charger vos devis.') : null,
     deletingId,

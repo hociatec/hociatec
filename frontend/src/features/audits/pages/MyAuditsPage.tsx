@@ -4,10 +4,11 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const MyAuditsPage = () => {
   useDocumentTitle('Mes audits');
-  const { items, loading, error, retry } = useMyAudits();
+  const { items, loading, error, retry, pagination, setPage } = useMyAudits();
 
   return (
     <SiteLayout headerVariant="light">
@@ -42,6 +43,13 @@ export const MyAuditsPage = () => {
             </li>
           ))}
         </ul>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="audit"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
         </PublicPageSection>
         ) : null}
       </PublicPageShell>

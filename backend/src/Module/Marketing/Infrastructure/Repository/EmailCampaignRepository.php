@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Marketing\Infrastructure\Repository;
 
 use App\Module\Marketing\Application\Port\EmailCampaignRepositoryPort;
-
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

@@ -36,12 +36,14 @@ export const AdminOperationsPage = () => {
       ) : null}
       <OperationsActionsSection
         bulkForm={operations.bulkForm}
+        fulfillmentMeta={operations.fulfillmentMeta}
         fulfillmentOrders={operations.fulfillmentOrders}
         quoteConversionMessage={operations.quoteConversionMessage}
         quoteConversionStatus={operations.quoteConversionStatus}
         quoteReference={operations.quoteReference}
         refundForm={operations.refundForm}
         setBulkForm={operations.setBulkForm}
+        setFulfillmentPage={operations.setFulfillmentPage}
         setQuoteReference={operations.setQuoteReference}
         setRefundForm={operations.setRefundForm}
         setShippingForms={operations.setShippingForms}
@@ -59,18 +61,26 @@ export const AdminOperationsPage = () => {
       />
       <OperationsRecentSection
         emails={operations.emails}
+        emailsMeta={operations.emailsMeta}
         refundConfirmations={operations.refundConfirmations}
         refunds={operations.refunds}
+        refundsMeta={operations.refundsMeta}
+        setEmailsPage={operations.setEmailsPage}
         setRefundConfirmations={operations.setRefundConfirmations}
+        setRefundsPage={operations.setRefundsPage}
+        setStockPage={operations.setStockPage}
         setStockThresholds={operations.setStockThresholds}
         setSupportReplies={operations.setSupportReplies}
         stock={operations.stock}
+        stockMeta={operations.stockMeta}
         stockThresholds={operations.stockThresholds}
         submitStockThreshold={operations.submitStockThreshold}
         submitStripeRefund={operations.submitStripeRefund}
         submitSupportReply={operations.submitSupportReply}
         support={operations.support}
+        supportMeta={operations.supportMeta}
         supportReplies={operations.supportReplies}
+        setSupportPage={operations.setSupportPage}
         updateRefundStatus={operations.updateRefundStatus}
         updateSupportStatus={operations.updateSupportStatus}
       />

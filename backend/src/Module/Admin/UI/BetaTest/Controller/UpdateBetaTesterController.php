@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\Handler\ChangeBetaTesterStatusHandler;
-use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
+use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

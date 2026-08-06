@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type {
   DeleteDto,
   QuoteDto,
@@ -30,13 +30,19 @@ export const fetchAdminQuoteMetadata = async (): Promise<AdminQuoteMetadataDto> 
   );
 
 export const fetchAdminQuotes = async (params?: {
+  from?: string;
+  page?: number;
+  perPage?: number;
   q?: string;
   status?: string;
-}): Promise<QuoteDto[]> => {
-  const response = await httpClient.get<ApiResponse<{ items: QuoteDto[] }>>('/api/admin/quotes', {
-    params,
+  to?: string;
+}): Promise<PaginatedResult<QuoteDto>> => {
+  const response = await httpClient.get<ApiResponse<{ items: QuoteDto[]; meta: PaginationMeta }>>('/api/admin/quotes', {
+    params: { page: 1, perPage: 10, ...params },
   });
-  return unwrapQuoteApiData(response.data).items.map(parseQuote);
+  const data = unwrapQuoteApiData(response.data);
+
+  return { items: data.items.map(parseQuote), meta: data.meta };
 };
 
 export const fetchAdminQuote = async (id: number) =>
@@ -116,8 +122,24 @@ export const convertAdminQuoteToOrder = async (reference: string | number) => {
 
 export const fetchAdminQuoteServices = async (): Promise<QuoteServiceDto[]> =>
   unwrapQuoteApiData(
-    (await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/admin/services')).data,
+    (await httpClient.get<ApiResponse<{ items: QuoteServiceDto[] }>>('/api/admin/services', { params: { page: 1, perPage: 100 } })).data,
   ).items.map(parseQuoteService);
+
+export const fetchAdminQuoteServicesPage = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<QuoteServiceDto>> => {
+  const data = unwrapQuoteApiData(
+    (
+      await httpClient.get<ApiResponse<{ items: QuoteServiceDto[]; meta: PaginationMeta }>>(
+        '/api/admin/services',
+        { params: { page, perPage } },
+      )
+    ).data,
+  );
+
+  return { items: data.items.map(parseQuoteService), meta: data.meta };
+};
 export const fetchAdminQuoteService = async (id: number) =>
   parseQuoteService(
     unwrapQuoteApiData(

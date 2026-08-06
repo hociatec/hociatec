@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
+use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Provider\BetaCampaignProvider;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
-use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

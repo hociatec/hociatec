@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Infrastructure\Repository;
 
 use App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort;
-
 use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -17,6 +17,7 @@ import {
 } from '@/shared/components/ui/alert-dialog';
 import { OrderDetailsDialog } from '@/features/orders/components/OrderDetailsDialog';
 import { useMyOrders } from '../hooks/useMyOrders';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const MyOrdersPage = () => {
   useDocumentTitle('Mes commandes');
@@ -24,6 +25,8 @@ export const MyOrdersPage = () => {
 
   const {
     orders,
+    pagination,
+    setPage,
     ordersState,
     isLoading,
     error,
@@ -59,8 +62,9 @@ export const MyOrdersPage = () => {
         )}
 
         {ordersState.status === 'success' && orders.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-brand-100 bg-white shadow-sm">
-            <table className="w-full border-collapse text-left text-sm text-brand-900">
+          <>
+            <div className="overflow-x-auto rounded-xl border border-brand-100 bg-white shadow-sm">
+              <table className="w-full border-collapse text-left text-sm text-brand-900">
               <thead>
                 <tr className="border-b border-brand-200">
                   <th scope="col" className="px-4 py-3 font-semibold">
@@ -164,8 +168,16 @@ export const MyOrdersPage = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+            <PaginationControls
+              page={pagination.page}
+              total={pagination.total}
+              totalLabel="commande"
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
+          </>
         )}
         <OrderDetailsDialog
           orderId={selectedOrderId}

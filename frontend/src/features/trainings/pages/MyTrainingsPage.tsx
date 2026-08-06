@@ -11,10 +11,11 @@ import {
 } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const MyTrainingsPage = () => {
   useDocumentTitle('Mes formations');
-  const { items, loading, error } = useMyTrainingEnrollments();
+  const { items, loading, error, pagination, setPage } = useMyTrainingEnrollments();
 
   return (
     <SiteLayout headerVariant="light">
@@ -43,7 +44,7 @@ export const MyTrainingsPage = () => {
             <div className="border-b border-brand-100 px-5 py-4">
               <h2 className="text-lg font-semibold text-brand-900">Inscriptions</h2>
               <p className="text-sm text-stone-500">
-                {items.length} formation{items.length > 1 ? 's' : ''} dans votre espace.
+                {pagination.total} formation{pagination.total > 1 ? 's' : ''} dans votre espace.
               </p>
             </div>
             <AdminTableShell className="rounded-none border-0 shadow-none">
@@ -84,6 +85,13 @@ export const MyTrainingsPage = () => {
                 </tbody>
               </table>
             </AdminTableShell>
+            <PaginationControls
+              page={pagination.page}
+              total={pagination.total}
+              totalLabel="formation"
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
           </section>
         )}
       </main>

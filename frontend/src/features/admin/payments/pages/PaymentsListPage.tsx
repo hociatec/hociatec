@@ -8,6 +8,7 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import {
   formatCurrencyCents,
   formatOptionalFrenchDate,
@@ -17,13 +18,13 @@ import {
 export const PaymentsListPage = () => {
   useDocumentTitle('Admin - Paiements');
 
-  const { items, status, setStatus, statusOptions, search, setSearch, loading, error } = useAdminPaymentsList();
+  const { items, pagination, setPage, status, setStatus, statusOptions, search, setSearch, loading, error } = useAdminPaymentsList();
 
   return (
     <PageContainer size="admin" title="Paiements">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {items.length} paiement{items.length > 1 ? 's' : ''} affiché{items.length > 1 ? 's' : ''}.
+          {pagination.total} paiement{pagination.total > 1 ? 's' : ''} trouvé{pagination.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">
           Suivi Stripe, statuts, échecs et lien vers la commande quand elle existe.
@@ -129,6 +130,13 @@ export const PaymentsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="paiement"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Payment\Controller;
 
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +29,7 @@ final class ListPaymentsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $statusFilter = RequestQueryMapper::nullableString($request, 'status');
         $query = RequestQueryMapper::string($request, 'q');
 

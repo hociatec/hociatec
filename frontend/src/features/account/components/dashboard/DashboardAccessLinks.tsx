@@ -52,7 +52,7 @@ export const DashboardAccessLinks = () => {
     destinations.push(
       isBetaTester
         ? { icon: <FlaskConical />, title: 'Espace Bêta', to: '/beta' }
-        : { icon: <FlaskConical />, title: 'Devenir Bêta-testeur', to: '/beta-test' },
+        : { icon: <FlaskConical />, title: 'Programme bêta', to: '/beta' },
     );
   }
 

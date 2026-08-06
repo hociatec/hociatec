@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

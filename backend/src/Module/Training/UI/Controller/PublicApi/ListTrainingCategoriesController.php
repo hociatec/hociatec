@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\PublicApi;
 
-use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Module\Training\Application\Port\TrainingCategoryRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingCategoryFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

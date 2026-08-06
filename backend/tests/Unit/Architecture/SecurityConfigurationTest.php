@@ -105,6 +105,18 @@ final class SecurityConfigurationTest extends TestCase
         self::assertContains('ROLE_USER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
         self::assertContains('ROLE_ORDERS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
         self::assertContains('ROLE_MARKETING_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_APPOINTMENTS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_AUDITS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_BETA_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_CUSTOMERS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_LOYALTY_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_NEWS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_PAYMENTS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_PROMOTIONS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_QUOTES_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_TRADE_INS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_TRAINING_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
+        self::assertContains('ROLE_VOUCHERS_MANAGER', $security['security']['role_hierarchy']['ROLE_ADMIN']);
 
         self::assertSame('%env(APP_SECRET)%', $framework['framework']['secret']);
         self::assertSame('%env(TRUSTED_PROXIES)%', $framework['framework']['trusted_proxies']);
@@ -139,6 +151,19 @@ final class SecurityConfigurationTest extends TestCase
 
         self::assertSame('%env(resolve:DATABASE_URL)%', $doctrine['doctrine']['dbal']['url']);
         self::assertTrue($doctrine['doctrine']['dbal']['use_savepoints']);
+    }
+
+    public function testRoleHierarchyIsDeclaredOnlyOnce(): void
+    {
+        $filesWithHierarchy = [];
+        foreach (glob(__DIR__.'/../../../config/packages/*.yaml') ?: [] as $file) {
+            $config = Yaml::parseFile($file);
+            if (isset($config['security']['role_hierarchy'])) {
+                $filesWithHierarchy[] = basename($file);
+            }
+        }
+
+        self::assertSame(['security.yaml'], $filesWithHierarchy);
     }
 
     public function testAuthenticationCookiesAreHttpOnlySameSiteAndSecureAware(): void

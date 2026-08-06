@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Audit\Controller;
 
-use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,8 +26,16 @@ class ListAuditsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
-        $items = $this->repository->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $filters = [
+            'search' => RequestQueryMapper::string($request, 'q'),
+            'status' => RequestQueryMapper::string($request, 'status'),
+            'type' => RequestQueryMapper::string($request, 'type'),
+            'from' => RequestQueryMapper::string($request, 'from'),
+            'to' => RequestQueryMapper::string($request, 'to'),
+            'sort' => RequestQueryMapper::string($request, 'sort', 'date_desc'),
+        ];
+        $items = $this->repository->findForAdminList($filters, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
             array_map(function ($a) {
@@ -47,7 +55,7 @@ class ListAuditsController extends AbstractController
                     'createdAt' => $a->getCreatedAt()->format(DATE_ATOM),
                 ];
             }, $items),
-            $pagination->metadata($this->repository->count([])),
+            $pagination->metadata($this->repository->countForAdminList($filters)),
         );
     }
 }

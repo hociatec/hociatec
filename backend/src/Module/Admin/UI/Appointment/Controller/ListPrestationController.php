@@ -25,7 +25,7 @@ class ListPrestationController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = RequestQueryMapper::pagination($request, 25, 100);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $prestations = $this->prestationService->list($pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

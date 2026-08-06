@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\News\Controller;
 
-use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;

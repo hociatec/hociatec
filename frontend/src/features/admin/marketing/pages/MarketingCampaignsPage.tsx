@@ -11,6 +11,7 @@ import {
 } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import {
   formatEuroCents,
   formatFrenchDateTime,
@@ -42,7 +43,7 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
 
 export const MarketingCampaignsPage = () => {
   useDocumentTitle('Admin - Campagnes e-mail');
-  const { segments, campaigns, loading, error, activeTemplates, lastCampaign } =
+  const { segments, campaigns, campaignsMeta, setCampaignPage, loading, error, activeTemplates, lastCampaign } =
     useMarketingCampaignsOverview();
 
   return (
@@ -70,7 +71,7 @@ export const MarketingCampaignsPage = () => {
       <AdminMetricGrid columns={4}>
         <AdminMetricCard label="Modèles actifs" value={activeTemplates.length} />
         <AdminMetricCard label="Audiences disponibles" value={Object.keys(segments).length} />
-        <AdminMetricCard label="Campagnes envoyées" value={campaigns.length} />
+        <AdminMetricCard label="Campagnes envoyées" value={campaignsMeta.total} />
         <AdminMetricCard
           label="Dernier envoi"
           value={lastCampaign ? formatOptionalFrenchDate(lastCampaign.sentAt) : 'Aucun'}
@@ -141,6 +142,13 @@ export const MarketingCampaignsPage = () => {
               </tbody>
             </table>
           </AdminTableShell>
+          <PaginationControls
+            page={campaignsMeta.page}
+            total={campaignsMeta.total}
+            totalLabel="campagne"
+            totalPages={campaignsMeta.totalPages}
+            onPageChange={setCampaignPage}
+          />
         </AdminListState>
       </div>
     </PageContainer>

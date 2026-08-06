@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 import type { Prestation, WorkingDay } from '@/features/appointments/publicApi';
 
@@ -9,10 +9,27 @@ const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =
 export const fetchAdminPrestations = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: Prestation[] }>>(
     '/api/admin/appointments/prestations',
+    { params: { page: 1, perPage: 100 } },
   );
 
   if (data.status === 'success') {
     return data.data.items;
+  }
+
+  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
+};
+
+export const fetchAdminPrestationsPage = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<Prestation>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: Prestation[]; meta: PaginationMeta }>>(
+    '/api/admin/appointments/prestations',
+    { params: { page, perPage } },
+  );
+
+  if (data.status === 'success') {
+    return { items: data.data.items, meta: data.data.meta };
   }
 
   throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));

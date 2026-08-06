@@ -172,9 +172,18 @@ final class OrderInvoicePdfTemplateRenderer
 HTML;
     }
 
-    private function formatMoney(int $cents): string { return $this->formatter->money($cents); }
+    private function formatMoney(int $cents): string
+    {
+        return $this->formatter->money($cents);
+    }
 
-    private function formatDate(?string $date): string { return $this->formatter->date($date, true); }
+    private function formatDate(?string $date): string
+    {
+        return $this->formatter->date($date, true);
+    }
 
-    private function escape(string $value): string { return $this->formatter->escape($value); }
+    private function escape(string $value): string
+    {
+        return $this->formatter->escape($value);
+    }
 }

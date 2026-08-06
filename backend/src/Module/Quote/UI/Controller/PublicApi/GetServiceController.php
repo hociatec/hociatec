@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\PublicApi;
 
-use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,8 +20,7 @@ class GetServiceController extends AbstractController
     public function __construct(
         private readonly ServiceOfferingRepositoryPort $serviceRepository,
         private readonly QuoteFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $id): JsonResponse

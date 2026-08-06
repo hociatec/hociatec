@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Voucher\Controller;
 
-use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,8 +20,7 @@ final class GetVoucherController extends AbstractController
     public function __construct(
         private readonly VoucherRepositoryPort $vouchers,
         private readonly VoucherFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $voucherId): JsonResponse

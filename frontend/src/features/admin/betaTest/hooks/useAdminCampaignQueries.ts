@@ -6,13 +6,15 @@ import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
 export const useAdminCampaignQueries = ({
   selectedReportId,
   commentsPage,
+  campaignsPage,
 }: {
   selectedReportId: number | null;
   commentsPage: number;
+  campaignsPage: number;
 }) => {
-  const { data: campaigns = [], isLoading, error } = useQuery({
-    queryKey: adminBetaQueryKeys.campaigns(),
-    queryFn: fetchAdminCampaigns,
+  const { data: campaignsResult, isLoading, error } = useQuery({
+    queryKey: [...adminBetaQueryKeys.campaigns(), { campaignsPage }],
+    queryFn: () => fetchAdminCampaigns(campaignsPage, 10),
   });
 
   const { data: commentsResult, isLoading: loadingComments } = useQuery({
@@ -22,7 +24,8 @@ export const useAdminCampaignQueries = ({
   });
 
   return {
-    campaigns,
+    campaigns: campaignsResult?.items ?? [],
+    campaignsMeta: campaignsResult?.meta ?? { page: campaignsPage, perPage: 10, total: 0, totalPages: 1 },
     comments: commentsResult?.items ?? [],
     commentsMeta: commentsResult?.meta ?? null,
     error,

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
-use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

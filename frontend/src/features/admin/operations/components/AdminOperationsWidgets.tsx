@@ -1,5 +1,7 @@
 import { type OperationsOverviewDto } from '@/features/admin/operations/api';
 import { LoadingState } from '@/shared/components/ui/page-state';
+import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import {
   ActionCard,
   Field,
@@ -68,7 +70,11 @@ export const OperationsPriorities = ({
   failedEmails: number;
   hasPriorities: boolean;
   overview: OperationsOverviewDto;
-}) => (
+}) => {
+  const lowStockItems = overview.stock.lowStockItems ?? [];
+  const lowStockPagination = useAdminPagination(lowStockItems);
+
+  return (
   <section className="mb-8">
     <div className="mb-3 flex items-center justify-between">
       <h2 className="text-lg font-semibold text-brand-900">Priorités</h2>
@@ -121,13 +127,13 @@ export const OperationsPriorities = ({
         </a>
       </div>
 
-      {(overview.stock.lowStockItems ?? []).length === 0 ? (
+      {lowStockItems.length === 0 ? (
         <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Aucun produit publié n’est actuellement sous le seuil.
         </p>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {(overview.stock.lowStockItems ?? []).map((product) => (
+          {lowStockPagination.paginatedItems.map((product) => (
             <a
               key={product.id}
               className="rounded-2xl border border-brand-100 bg-brand-50 p-4 transition hover:border-brand-300 hover:bg-brand-50"
@@ -151,9 +157,17 @@ export const OperationsPriorities = ({
           ))}
         </div>
       )}
+      <PaginationControls
+        page={lowStockPagination.page}
+        total={lowStockPagination.total}
+        totalLabel="produit"
+        totalPages={lowStockPagination.totalPages}
+        onPageChange={lowStockPagination.setPage}
+      />
     </div>
   </section>
-);
+  );
+};
 
 export const OperationsExports = ({ exportLabels }: { exportLabels: Record<string, string> }) => (
   <section className={operationsCardClass}>

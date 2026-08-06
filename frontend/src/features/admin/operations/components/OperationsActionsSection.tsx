@@ -12,10 +12,13 @@ import { OperationsSupportCard } from './OperationsSupportCard';
 import { OperationsRefundCard } from './OperationsRefundCard';
 import { OperationsStockCard } from './OperationsStockCard';
 import { OperationsQuickActionsCard } from './OperationsQuickActionsCard';
+import type { PaginationMeta } from '@/shared/types/api';
 
 export const OperationsActionsSection = ({
   bulkForm,
+  fulfillmentMeta,
   fulfillmentOrders,
+  setFulfillmentPage,
   quoteConversionMessage,
   quoteConversionStatus,
   quoteReference,
@@ -37,7 +40,9 @@ export const OperationsActionsSection = ({
   supportForm,
 }: {
   bulkForm: BulkForm;
+  fulfillmentMeta: PaginationMeta;
   fulfillmentOrders: FulfillmentOrderDto[];
+  setFulfillmentPage: Dispatch<SetStateAction<number>>;
   quoteConversionMessage: string | null;
   quoteConversionStatus: 'idle' | 'loading' | 'error';
   quoteReference: string;
@@ -60,7 +65,7 @@ export const OperationsActionsSection = ({
 }) => {
   return (
     <section className="mb-8 grid gap-6 xl:grid-cols-2">
-      <OperationsShippingQueue fulfillmentOrders={fulfillmentOrders} shippingForms={shippingForms} setShippingForms={setShippingForms} submitShipOrder={submitShipOrder} />
+      <OperationsShippingQueue fulfillmentMeta={fulfillmentMeta} fulfillmentOrders={fulfillmentOrders} setFulfillmentPage={setFulfillmentPage} shippingForms={shippingForms} setShippingForms={setShippingForms} submitShipOrder={submitShipOrder} />
 
       <OperationsSupportCard supportForm={supportForm} setSupportForm={setSupportForm} submitSupport={submitSupport} />
 

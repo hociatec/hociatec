@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Application\Workflow;
 
-use App\Module\Appointment\Domain\Entity\Prestation;
-use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
+use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 
 final class AvailabilityService
 {

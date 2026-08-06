@@ -7,12 +7,15 @@ import { ConfirmDialog } from '@/shared/components/feedback/ConfirmDialog';
 import { EmptyState, FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { useMyQuotes } from '../hooks/useMyQuotes';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const MyQuotesPage = () => {
   useDocumentTitle('Mes devis');
 
   const {
     items,
+    pagination,
+    setPage,
     loading,
     error,
     downloadingId,
@@ -86,6 +89,13 @@ export const MyQuotesPage = () => {
                   })}
                 </tbody>
               </table>
+              <PaginationControls
+                page={pagination.page}
+                total={pagination.total}
+                totalLabel="devis"
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+              />
             </AdminTableShell>
           )}
         </StableContent>

@@ -6,9 +6,9 @@ namespace App\Module\Promotion\Application\Calculator;
 
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy;
+use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Provider\PromotionAudienceProvider;
-use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 
 final class PromotionEngine

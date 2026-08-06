@@ -12,8 +12,8 @@ export interface AdminBugReportActivityDto { id:number; action:string; fromValue
 export interface AdminBugReportDashboardDto { stats:{openReports:number;criticalOrHigh:number;awaitingAdminReply:number;awaitingUserReply:number;recentFixed:number;activeCampaigns:number}; admins:BetaAdminUserDto[]; }
 const unwrap = <T>(response:ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
 export const resolveBetaAttachmentUrl = (url:string) => new URL(url, API_BASE_URL).toString();
-export const fetchAdminBetaTesters = async (query='') => unwrap((await httpClient.get<ApiResponse<{items:AdminBetaTesterDto[]}>>(`/api/admin/beta-testers?perPage=100${query}`)).data).items;
-export const fetchAdminCampaigns = async () => unwrap((await httpClient.get<ApiResponse<{items:AdminCampaignDto[]}>>('/api/admin/beta-campaigns')).data).items;
+export const fetchAdminBetaTesters = async (params:{page?:number;perPage?:number;search?:string;status?:string}={}) => unwrap((await httpClient.get<ApiResponse<{items:AdminBetaTesterDto[];meta:PaginationMeta}>>('/api/admin/beta-testers', { params: { perPage: 10, ...params } })).data);
+export const fetchAdminCampaigns = async (page = 1, perPage = 10) => unwrap((await httpClient.get<ApiResponse<{items:AdminCampaignDto[];meta:PaginationMeta}>>('/api/admin/beta-campaigns', { params: { page, perPage } })).data);
 export const fetchAdminBugReports = async (params:{page?:number;perPage?:number;status?:string;severity?:string;search?:string;assignedTo?:number|string;campaignId?:number|string}={}) => unwrap((await httpClient.get<ApiResponse<{items:AdminBugReportDto[];meta:PaginationMeta}>>('/api/admin/beta-reports',{params})).data);
 export const fetchAdminBugReport = async (id:number) => unwrap((await httpClient.get<ApiResponse<{report:AdminBugReportDto}>>(`/api/beta/reports/${id}`)).data).report;
 export const fetchAdminBugReportDashboard = async () => unwrap((await httpClient.get<ApiResponse<AdminBugReportDashboardDto>>('/api/admin/beta-reports/dashboard')).data);
@@ -64,11 +64,11 @@ export const deleteAdminBugReport = async (id: number) => {
 };
 
 export const fetchBugReportComments = async (id: number, page = 1) => {
-  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportCommentDto[]; meta: PaginationMeta }>>(`/api/beta/reports/${id}/comments`, { params: { page, perPage: 6 } })).data);
+  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportCommentDto[]; meta: PaginationMeta }>>(`/api/beta/reports/${id}/comments`, { params: { page, perPage: 10 } })).data);
 };
 
-export const fetchBugReportActivity = async (id: number) => {
-  return unwrap((await httpClient.get<ApiResponse<{ items: AdminBugReportActivityDto[] }>>(`/api/admin/beta-reports/${id}/activity`)).data).items;
+export const fetchBugReportActivity = async (id: number, page = 1) => {
+  return unwrap((await httpClient.get<ApiResponse<{ items: AdminBugReportActivityDto[]; meta: PaginationMeta }>>(`/api/admin/beta-reports/${id}/activity`, { params: { page, perPage: 10 } })).data);
 };
 
 export const createBugReportComment = async (id: number, content: string) => {

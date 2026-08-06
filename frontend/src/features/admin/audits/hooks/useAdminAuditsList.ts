@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publicApi';
 import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const AUDIT_TYPES = [
   'all',
@@ -31,8 +32,6 @@ export const isAuditStatusFilter = (value: string): value is AuditStatusFilter =
 export const isAuditSort = (value: string): value is AuditSort =>
   AUDIT_SORTS.includes(value as AuditSort);
 
-const ADMIN_AUDITS_PER_PAGE = 50;
-
 export const useAdminAuditsList = () => {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<AuditStatusFilter>('all');
@@ -41,63 +40,42 @@ export const useAdminAuditsList = () => {
   const [toDate, setToDate] = useState<string | null>(null);
   const [sort, setSort] = useState<AuditSort>('date_desc');
   const [page, setPage] = useState(1);
-  const auditsQuery = useQuery<AuditListItemDto[], Error>({
-    queryKey: auditQueryKeys.adminList(),
-    queryFn: adminFetchAudits,
+  const auditsQuery = useQuery<PaginatedResult<AuditListItemDto>, Error>({
+    queryKey: [
+      ...auditQueryKeys.adminList(),
+      { fromDate, filterStatus, filterType, page, search, sort, toDate },
+    ],
+    queryFn: () =>
+      adminFetchAudits(page, 10, {
+        from: fromDate,
+        q: search,
+        sort,
+        status: filterStatus,
+        to: toDate,
+        type: filterType,
+      }),
     refetchInterval: (currentQuery) => {
       if (document.hidden || currentQuery.state.error) {
         return false;
       }
 
-      const items = currentQuery.state.data ?? [];
+      const items = currentQuery.state.data?.items ?? [];
 
       return items.some((item) => item.status !== 'done') ? 15_000 : false;
     },
   });
-  const items = auditsQuery.data ?? [];
-  const view = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const from = fromDate ? new Date(fromDate).getTime() : null;
-    const to = toDate ? new Date(toDate).getTime() : null;
-    const filtered = items.filter((item) => {
-      const created = item.createdAt ? new Date(item.createdAt).getTime() : null;
-      return (
-        (!q || item.number.toLowerCase().includes(q) || item.url.toLowerCase().includes(q)) &&
-        (filterStatus === 'all' || item.status === filterStatus) &&
-        (filterType === 'all' || item.type === filterType) &&
-        (from === null || (created !== null && created >= from)) &&
-        (to === null || (created !== null && created <= to))
-      );
-    });
-    return filtered.sort((left, right) =>
-      sort.startsWith('date')
-        ? (sort === 'date_desc' ? -1 : 1) *
-          (new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime())
-        : sort.startsWith('number')
-          ? (sort === 'number_desc' ? -1 : 1) * left.number.localeCompare(right.number, 'fr')
-          : (sort === 'status_desc' ? -1 : 1) *
-            ({ new: 0, in_progress: 1, review: 2, done: 3 }[left.status] -
-              { new: 0, in_progress: 1, review: 2, done: 3 }[right.status]),
-    );
-  }, [items, search, filterStatus, filterType, fromDate, toDate, sort]);
-
-  const totalPages = Math.max(1, Math.ceil(view.length / ADMIN_AUDITS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedView = useMemo(() => {
-    const start = (currentPage - 1) * ADMIN_AUDITS_PER_PAGE;
-
-    return view.slice(start, start + ADMIN_AUDITS_PER_PAGE);
-  }, [currentPage, view]);
+  const items = auditsQuery.data?.items ?? [];
+  const pagination = auditsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
 
   useEffect(() => {
     setPage(1);
   }, [search, filterStatus, filterType, fromDate, toDate, sort]);
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
     }
-  }, [page, totalPages]);
+  }, [page, pagination.totalPages]);
 
   return {
     loading: auditsQuery.isLoading,
@@ -114,10 +92,11 @@ export const useAdminAuditsList = () => {
     setToDate,
     sort,
     setSort,
-    view,
-    paginatedView,
-    page: currentPage,
+    view: items,
+    paginatedView: items,
+    page: pagination.page,
     setPage,
-    totalPages,
+    total: pagination.total,
+    totalPages: pagination.totalPages,
   };
 };

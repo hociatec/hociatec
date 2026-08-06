@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Workflow;
 
-use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
+use App\Module\Order\Application\Workflow\StripeApiClient;
 use App\Module\Training\Application\DTO\TrainingEnrollmentCheckoutResult;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Application\Mapper\TrainingSlotValidator;
-use App\Module\Training\Domain\Entity\TrainingEnrollment;
-use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
+use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;

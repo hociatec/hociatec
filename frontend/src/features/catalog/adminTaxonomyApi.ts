@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import { extractErrorMessage } from './apiShared';
 import type {
   CatalogBrand,
@@ -12,10 +12,28 @@ import { parseCatalogBrand, parseCatalogCategory } from './catalogValidation';
 export const fetchAdminCategories = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[] }>>(
     '/api/admin/catalog/categories',
+    { params: { page: 1, perPage: 100 } },
   );
 
   if (data.status === 'success') {
     return data.data.items.map(parseCatalogCategory);
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les catégories.'));
+};
+
+export const fetchAdminCategoriesPage = async (
+  page = 1,
+  perPage = 10,
+  q = '',
+): Promise<PaginatedResult<CatalogCategory>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: CatalogCategory[]; meta: PaginationMeta }>>(
+    '/api/admin/catalog/categories',
+    { params: { page, perPage, q: q || undefined } },
+  );
+
+  if (data.status === 'success') {
+    return { items: data.data.items.map(parseCatalogCategory), meta: data.data.meta };
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les catégories.'));
@@ -74,10 +92,28 @@ export const deleteCategory = async (id: number) => {
 export const fetchAdminBrands = async () => {
   const { data } = await httpClient.get<ApiResponse<{ items: CatalogBrand[] }>>(
     '/api/admin/catalog/brands',
+    { params: { page: 1, perPage: 100 } },
   );
 
   if (data.status === 'success') {
     return data.data.items.map(parseCatalogBrand);
+  }
+
+  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les marques.'));
+};
+
+export const fetchAdminBrandsPage = async (
+  page = 1,
+  perPage = 10,
+  q = '',
+): Promise<PaginatedResult<CatalogBrand>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: CatalogBrand[]; meta: PaginationMeta }>>(
+    '/api/admin/catalog/brands',
+    { params: { page, perPage, q: q || undefined } },
+  );
+
+  if (data.status === 'success') {
+    return { items: data.data.items.map(parseCatalogBrand), meta: data.data.meta };
   }
 
   throw new Error(extractErrorMessage(data, 'Impossible de récupérer les marques.'));

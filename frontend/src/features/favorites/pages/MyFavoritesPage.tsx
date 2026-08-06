@@ -4,6 +4,7 @@ import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useToast } from '@/shared/components/ui/toast';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatFrenchDate } from '@/shared/lib/formatters';
 import { useFavorites } from '../hooks/useFavorites';
 
@@ -17,7 +18,7 @@ export const MyFavoritesPage = () => {
   useDocumentTitle('Mes favoris');
   const { show } = useToast();
 
-  const { favorites, status, error, removingId, refresh: loadFavorites, remove } = useFavorites();
+  const { favorites, pagination, setPage, status, error, removingId, refresh: loadFavorites, remove } = useFavorites();
 
   const handleRemove = (productId: number) => {
     void remove(productId)
@@ -158,6 +159,16 @@ export const MyFavoritesPage = () => {
               );
             })}
           </ul>
+        )}
+
+        {status === 'success' && hasFavorites && (
+          <PaginationControls
+            page={pagination.page}
+            total={pagination.total}
+            totalLabel="favori"
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+          />
         )}
       </div>
     </SiteLayout>

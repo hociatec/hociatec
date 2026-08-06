@@ -28,8 +28,7 @@ final class CreatePublicTradeInController extends AbstractController
         private readonly DtoValidator $validator,
         private readonly ProductRepositoryPort $products,
         private readonly TradeInFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse

@@ -20,7 +20,7 @@ import {
   ProfilePage,
   RequestAuditPage,
 } from './ClientRoutePages';
-import { BetaDashboardPage, BetaProfilePage } from './PublicRoutePages';
+import { BetaDashboardPage } from './PublicRoutePages';
 import type { AppRouteDefinition } from './RouteDefinition';
 import { protectedElement } from './RouteDefinition';
 import { isFeatureEnabled } from '@/shared/config/featureFlags';
@@ -29,7 +29,6 @@ export const protectedRoutes: AppRouteDefinition[] = [
   ...(isFeatureEnabled('betaProgram')
     ? [
         { path: '/beta', element: protectedElement(<BetaDashboardPage />) },
-        { path: '/beta/profile', element: protectedElement(<BetaProfilePage />) },
       ]
     : []),
   { path: '/quotes/me', element: protectedElement(<MyQuotesPage />) },

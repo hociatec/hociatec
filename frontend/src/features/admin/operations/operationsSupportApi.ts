@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { type ApiResponse } from '@/shared/types/api';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import {
   rethrowApiError,
   unwrap,
@@ -14,11 +14,12 @@ export const fetchOperationsOverview = async (): Promise<OperationsOverviewDto> 
   return unwrap(data, 'Impossible de charger l’exploitation admin');
 };
 
-export const fetchSupportRequests = async (): Promise<SupportRequestDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: SupportRequestDto[] }>>(
+export const fetchSupportRequests = async (page = 1, perPage = 10): Promise<PaginatedResult<SupportRequestDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: SupportRequestDto[]; meta: PaginationMeta }>>(
     '/api/admin/operations/support-requests',
+    { params: { page, perPage } },
   );
-  return unwrap(data, 'Impossible de charger les demandes SAV').items ?? [];
+  return unwrap(data, 'Impossible de charger les demandes SAV');
 };
 
 export const createSupportRequest = async (payload: {

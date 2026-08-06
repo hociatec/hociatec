@@ -17,8 +17,7 @@ final readonly class AdminOperationsFormatter
     public function __construct(
         private AdminOperationsEmailLogFormatter $emailLogs,
         private OrderFormatter $orderFormatter,
-    )
-    {
+    ) {
     }
 
     /** @return array<string, mixed> */

@@ -9,5 +9,6 @@ use App\Module\Audit\Domain\Entity\AuditRequest;
 interface AuditPersistencePort
 {
     public function save(AuditRequest $audit): void;
+
     public function commit(): void;
 }

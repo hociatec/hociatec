@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Provider;
 
+use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Domain\Entity\AuditRequest;
-use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
 use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\User\Domain\Entity\User;

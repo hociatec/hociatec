@@ -4,6 +4,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { AddressCard } from '@/features/addresses/components/AddressCard';
 import { AddressEditDialog } from '@/features/addresses/components/AddressEditDialog';
 import { useAddressesPage } from '@/features/addresses/hooks/useAddressesPage';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 import '@/features/addresses/AddressesPage.css';
 
@@ -62,6 +63,13 @@ export const AddressesPage = () => {
                   ))}
                 </ul>
               )}
+              <PaginationControls
+                page={page.pagination.page}
+                total={page.pagination.total}
+                totalLabel="adresse"
+                totalPages={page.pagination.totalPages}
+                onPageChange={page.setPage}
+              />
             </StableContent>
           </section>
         </div>

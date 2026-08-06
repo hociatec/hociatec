@@ -7,7 +7,9 @@ namespace App\Module\Admin\UI\Operations\Controller;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Provider\CustomerTimelineProvider;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -20,10 +22,16 @@ final readonly class CustomerTimelineController
     {
     }
 
-    public function __invoke(int $id): JsonResponse
+    public function __invoke(int $id, Request $request): JsonResponse
     {
         try {
-            return ApiResponse::successItem('items', $this->timeline->provide($id));
+            $pagination = RequestQueryMapper::pagination($request, 10, 50);
+            $items = $this->timeline->provide($id);
+
+            return ApiResponse::paginated(
+                array_slice($items, $pagination->offset(), $pagination->perPage),
+                $pagination->metadata(count($items)),
+            );
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         }

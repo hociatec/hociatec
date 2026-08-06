@@ -156,7 +156,7 @@ export const fetchAdminNewsArticles = async ({
 } = {}): Promise<{ items: NewsArticleDto[]; meta: PaginationMeta }> => {
   const { data } = await httpClient.get<
     ApiResponse<{ items: NewsArticleDto[]; meta: PaginationMeta }>
-  >('/api/admin/news', { params: { page, perPage: 20, q: q?.trim() || undefined } });
+  >('/api/admin/news', { params: { page, perPage: 10, q: q?.trim() || undefined } });
 
   if (isApiOk(data)) return data.data;
   throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les actualités.');

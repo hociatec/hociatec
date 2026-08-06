@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import {
-  fetchAdminTrainingEnrollments,
+  fetchAdminTrainingEnrollmentsPage,
   updateAdminTrainingEnrollmentStatus,
   type TrainingEnrollmentDto,
   type TrainingEnrollmentStatus,
@@ -14,14 +14,18 @@ import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { useState } from 'react';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const TrainingEnrollmentsPage = () => {
   useDocumentTitle('Admin - Inscriptions formation');
 
   const queryClient = useQueryClient();
-  const enrollmentsQuery = useQuery<TrainingEnrollmentDto[], Error>({
-    queryKey: adminTrainingQueryKeys.enrollments(),
-    queryFn: fetchAdminTrainingEnrollments,
+  const [page, setPage] = useState(1);
+  const enrollmentsQuery = useQuery<PaginatedResult<TrainingEnrollmentDto>, Error>({
+    queryKey: [...adminTrainingQueryKeys.enrollments(), { page }],
+    queryFn: () => fetchAdminTrainingEnrollmentsPage(page, 10),
   });
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: TrainingEnrollmentStatus }) =>
@@ -31,7 +35,8 @@ export const TrainingEnrollmentsPage = () => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
     },
   });
-  const enrollments = enrollmentsQuery.data ?? [];
+  const enrollments = enrollmentsQuery.data?.items ?? [];
+  const pagination = enrollmentsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = enrollmentsQuery.error
     ? getHttpErrorMessage(enrollmentsQuery.error, 'Impossible de charger les inscriptions.')
     : statusMutation.error
@@ -99,6 +104,13 @@ export const TrainingEnrollmentsPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="inscription"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

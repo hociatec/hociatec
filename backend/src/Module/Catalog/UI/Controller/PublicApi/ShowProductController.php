@@ -6,8 +6,8 @@ namespace App\Module\Catalog\UI\Controller\PublicApi;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
-use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
+use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

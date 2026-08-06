@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\News\UI\Controller\PublicApi;
 
-use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
+use App\Module\News\Application\Projection\NewsFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

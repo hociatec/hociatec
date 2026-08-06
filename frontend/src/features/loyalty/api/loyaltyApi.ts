@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { MyVoucherDto } from '@/features/vouchers/publicApi';
 
 export interface LoyaltyBalanceDto {
@@ -48,17 +48,21 @@ export const convertMyLoyalty = async (
 
 export const fetchAdminLoyaltyCustomers = async (
   search = '',
-): Promise<AdminLoyaltyCustomerDto[]> => {
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<AdminLoyaltyCustomerDto>> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
     query.set('search', search.trim());
   }
+  query.set('page', String(page));
+  query.set('perPage', String(perPage));
 
-  const { data } = await httpClient.get<ApiResponse<{ items: AdminLoyaltyCustomerDto[] }>>(
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminLoyaltyCustomerDto[]; meta: PaginationMeta }>>(
     `/api/admin/loyalty${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return data.data.items;
+    return { items: data.data.items, meta: data.data.meta };
   }
 
   throw new Error(

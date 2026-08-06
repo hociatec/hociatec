@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export interface AddressDto {
   id: number;
@@ -14,10 +14,16 @@ export interface AddressDto {
   isDefault: boolean;
 }
 
-export const fetchMyAddresses = async (): Promise<AddressDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: AddressDto[] }>>('/api/addresses/me');
+export const fetchMyAddresses = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<AddressDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: AddressDto[]; meta: PaginationMeta }>>(
+    '/api/addresses/me',
+    { params: { page, perPage } },
+  );
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data;
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les adresses';
   throw new Error(message);

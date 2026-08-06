@@ -21,22 +21,22 @@ class ListCategoriesController extends AbstractController
     public function __construct(
         private readonly CategoryService $categoryService,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = RequestQueryMapper::pagination($request, 25, 100);
-        $categories = $this->categoryService->listForAdmin($pagination->perPage, $pagination->offset());
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $search = RequestQueryMapper::string($request, 'q');
+        $categories = $this->categoryService->listForAdmin($pagination->perPage, $pagination->offset(), $search);
 
         return ApiResponse::paginated(
             array_map(
                 fn ($category) => $this->catalogFormatter->formatCategory($category, true),
                 $categories
             ),
-            $pagination->metadata($this->categoryService->countForAdmin()),
+            $pagination->metadata($this->categoryService->countForAdmin($search)),
         );
     }
 }

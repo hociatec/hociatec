@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 
-import { AuthContext } from '@/features/auth/context/AuthContext';
+import { AuthContext } from '@/features/auth/publicApi';
 import { ProfilePage } from '@/features/profile/pages/ProfilePage';
 import type { AuthUser } from '@/shared/types/auth';
 import { ProfileEditDialog } from './ProfileEditDialog';

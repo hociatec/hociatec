@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Notification\Application\Provider;
 
 use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
+use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
-use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class AccountNotificationProvider

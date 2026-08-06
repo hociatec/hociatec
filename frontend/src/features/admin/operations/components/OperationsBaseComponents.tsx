@@ -1,4 +1,6 @@
 import { type ReactNode } from 'react';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginationMeta } from '@/shared/types/api';
 
 export const operationsCardClass = 'rounded-2xl border border-brand-100 bg-white p-5 shadow-sm';
 
@@ -77,24 +79,35 @@ export const Field = ({
 export const List = ({
   title,
   items,
+  meta,
+  onPageChange,
 }: {
   title: string;
   items: Array<{ key: string | number; title: string; meta: string; action?: ReactNode }>;
+  meta: PaginationMeta;
+  onPageChange: (updater: (page: number) => number) => void;
 }) => (
-  <div className={operationsCardClass}>
-    <h2 className="text-lg font-semibold">{title}</h2>
-    <div className="mt-4 space-y-3">
-      {items.length === 0 ? (
-        <p className="text-sm text-stone-500">Aucun élément.</p>
-      ) : (
-        items.map((item) => (
-          <div key={item.key} className="rounded-xl border border-brand-100 bg-brand-50 p-3">
-            <div className="font-medium text-brand-900">{item.title}</div>
-            <div className="mt-1 text-sm text-stone-500">{item.meta}</div>
-            {item.action && <div className="mt-3">{item.action}</div>}
-          </div>
-        ))
-      )}
+    <div className={operationsCardClass}>
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="mt-4 space-y-3">
+        {items.length === 0 ? (
+          <p className="text-sm text-stone-500">Aucun élément.</p>
+        ) : (
+          items.map((item) => (
+            <div key={item.key} className="rounded-xl border border-brand-100 bg-brand-50 p-3">
+              <div className="font-medium text-brand-900">{item.title}</div>
+              <div className="mt-1 text-sm text-stone-500">{item.meta}</div>
+              {item.action && <div className="mt-3">{item.action}</div>}
+            </div>
+          ))
+        )}
+      </div>
+      <PaginationControls
+        page={meta.page}
+        total={meta.total}
+        totalLabel="élément"
+        totalPages={meta.totalPages}
+        onPageChange={onPageChange}
+      />
     </div>
-  </div>
 );

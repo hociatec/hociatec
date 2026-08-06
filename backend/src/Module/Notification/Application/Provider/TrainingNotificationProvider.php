@@ -6,8 +6,8 @@ namespace App\Module\Notification\Application\Provider;
 
 use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
-use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class TrainingNotificationProvider implements ComputedAccountNotificationProviderInterface

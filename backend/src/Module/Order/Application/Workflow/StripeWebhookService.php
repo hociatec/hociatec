@@ -9,8 +9,8 @@ use App\Module\Order\Application\Handler\RefundStripeWebhookHandler;
 use App\Module\Order\Application\Handler\TrainingStripeWebhookHandler;
 use App\Module\Order\Application\Mapper\StripeWebhookVerifier;
 use App\Module\Order\Application\Port\StripeWebhookEventPersistencePort;
-use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 use App\Module\Order\Application\Port\StripeWebhookEventRepositoryPort;
+use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class StripeWebhookService

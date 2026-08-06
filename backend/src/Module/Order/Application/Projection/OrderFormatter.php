@@ -15,8 +15,7 @@ final class OrderFormatter
     public function __construct(
         private readonly ProductReviewFormatter $productReviewFormatter,
         private readonly OrderStatusWorkflow $statusWorkflow,
-    )
-    {
+    ) {
     }
 
     public function formatStatusLabel(string $status): string

@@ -7,9 +7,9 @@ namespace App\Module\Order\Infrastructure\Repository;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -111,5 +111,4 @@ final class OrderCheckoutSessionRepository extends ServiceEntityRepository imple
             ->getQuery()
             ->getOneOrNullResult();
     }
-
 }

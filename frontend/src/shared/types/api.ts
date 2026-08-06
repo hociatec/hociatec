@@ -33,5 +33,17 @@ export interface ApiMutationResult<T> {
   message?: string | null | undefined;
 }
 
+export interface PaginationMeta {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: PaginationMeta;
+}
+
 export const isApiOk = <T>(response: ApiResponse<T>): response is ApiSuccess<T> | ApiCreated<T> =>
   response.status === 'success' || response.status === 'created';

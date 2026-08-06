@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 
 import {
   deleteAdminTrainingSession,
-  fetchAdminTrainingSessions,
+  fetchAdminTrainingSessionsPage,
   type TrainingSessionDto,
 } from '@/features/trainings/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -15,16 +15,19 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const TrainingSessionsPage = () => {
   useDocumentTitle('Admin - Sessions de formation');
 
   const [message, setMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const sessionsQuery = useQuery<TrainingSessionDto[], Error>({
-    queryKey: adminTrainingQueryKeys.sessions(),
-    queryFn: fetchAdminTrainingSessions,
+  const sessionsQuery = useQuery<PaginatedResult<TrainingSessionDto>, Error>({
+    queryKey: [...adminTrainingQueryKeys.sessions(), { page }],
+    queryFn: () => fetchAdminTrainingSessionsPage(page, 10),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteAdminTrainingSession,
@@ -34,7 +37,8 @@ export const TrainingSessionsPage = () => {
       setMessage(response.message ?? 'La session a bien été supprimée.');
     },
   });
-  const sessions = sessionsQuery.data ?? [];
+  const sessions = sessionsQuery.data?.items ?? [];
+  const pagination = sessionsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = sessionsQuery.error
     ? getHttpErrorMessage(sessionsQuery.error, 'Impossible de charger les sessions.')
     : deleteMutation.error
@@ -127,6 +131,13 @@ export const TrainingSessionsPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="session"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

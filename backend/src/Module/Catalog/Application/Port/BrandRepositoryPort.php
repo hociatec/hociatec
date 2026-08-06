@@ -12,9 +12,9 @@ interface BrandRepositoryPort
     public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Brand;
 
     /** @return list<Brand> */
-    public function findAllForAdmin(int $limit = 50, int $offset = 0): array;
+    public function findAllForAdmin(int $limit = 50, int $offset = 0, ?string $search = null): array;
 
-    public function countForAdmin(): int;
+    public function countForAdmin(?string $search = null): int;
 
     public function existsWithName(string $name, ?int $excludeId = null): bool;
 

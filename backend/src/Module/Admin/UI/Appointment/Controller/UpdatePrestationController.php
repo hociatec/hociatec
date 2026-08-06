@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Appointment\Controller;
 
 use App\Module\Admin\Application\Appointment\DTO\PrestationInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
+use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;

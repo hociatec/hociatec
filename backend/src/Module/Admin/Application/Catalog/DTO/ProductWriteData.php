@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Catalog\DTO;
 
-use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
 use App\Module\Catalog\Application\DTO\ProductGalleryWriteData;
 use App\Module\Catalog\Application\DTO\ProductVariantWriteData;
+use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class ProductWriteData

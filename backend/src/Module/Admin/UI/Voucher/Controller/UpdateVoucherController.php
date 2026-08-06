@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Voucher\Controller;
 
 use App\Module\Admin\Application\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
-use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
+use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;

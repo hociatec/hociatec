@@ -1,4 +1,5 @@
 .site-header__menu {
+  min-width: 0;
   position: relative;
 }
 

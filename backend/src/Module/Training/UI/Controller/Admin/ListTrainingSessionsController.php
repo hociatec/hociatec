@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingSessionRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,7 +24,7 @@ class ListTrainingSessionsController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $items = $this->sessions->findBy([], ['startsAt' => 'DESC'], $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Workflow;
 
 use App\Module\Catalog\Application\Port\CatalogPersistencePort;
+use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Shared\Application\Text\Slugifier;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -44,14 +44,14 @@ final class CategoryService
     /**
      * @return list<Category>
      */
-    public function listForAdmin(int $limit = 50, int $offset = 0): array
+    public function listForAdmin(int $limit = 50, int $offset = 0, ?string $search = null): array
     {
-        return $this->categoryRepository->findAllForAdmin($limit, $offset);
+        return $this->categoryRepository->findAllForAdmin($limit, $offset, $search);
     }
 
-    public function countForAdmin(): int
+    public function countForAdmin(?string $search = null): int
     {
-        return $this->categoryRepository->countForAdmin();
+        return $this->categoryRepository->countForAdmin($search);
     }
 
     public function create(string $name, ?string $slug, ?string $description, bool $isVisible): Category

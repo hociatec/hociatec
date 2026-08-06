@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

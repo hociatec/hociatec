@@ -10,6 +10,7 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { DateRangeFilter } from '@/shared/components/filters/DateRangeFilter';
 import { formatDateInputForDisplay, formatEuroCents } from '@/shared/lib/formatters';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const QuotesListPage = () => {
   useDocumentTitle('Admin - Devis');
@@ -27,6 +28,8 @@ export const QuotesListPage = () => {
     toDate,
     setToDate,
     filtered,
+    pagination,
+    setPage,
     handleDelete,
     handleDuplicate,
     handleSendEmail,
@@ -40,7 +43,7 @@ export const QuotesListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {filtered.length} devis affiché{filtered.length > 1 ? 's' : ''}.
+          {pagination.total} devis trouvé{pagination.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">Filtrez par numéro, client, statut et période.</p>
       </div>
@@ -150,6 +153,13 @@ export const QuotesListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="devis"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

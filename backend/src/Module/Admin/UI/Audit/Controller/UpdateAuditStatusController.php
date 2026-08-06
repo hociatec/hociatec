@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Audit\Controller;
 
 use App\Module\Admin\Application\Audit\DTO\AuditStatusInput;
-use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

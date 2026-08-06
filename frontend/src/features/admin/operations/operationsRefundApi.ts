@@ -1,16 +1,17 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { type ApiResponse } from '@/shared/types/api';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import {
   rethrowApiError,
   unwrap,
   type RefundRequestDto,
 } from './operationsApiShared';
 
-export const fetchRefunds = async (): Promise<RefundRequestDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: RefundRequestDto[] }>>(
+export const fetchRefunds = async (page = 1, perPage = 10): Promise<PaginatedResult<RefundRequestDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: RefundRequestDto[]; meta: PaginationMeta }>>(
     '/api/admin/operations/refunds',
+    { params: { page, perPage } },
   );
-  return unwrap(data, 'Impossible de charger les remboursements').items ?? [];
+  return unwrap(data, 'Impossible de charger les remboursements');
 };
 
 export const createRefund = async (payload: {

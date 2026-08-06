@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

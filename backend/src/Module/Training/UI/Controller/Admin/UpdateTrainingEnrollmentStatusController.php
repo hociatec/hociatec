@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
-use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

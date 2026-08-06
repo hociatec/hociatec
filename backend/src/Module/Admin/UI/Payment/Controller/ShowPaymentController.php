@@ -6,9 +6,9 @@ namespace App\Module\Admin\UI\Payment\Controller;
 
 use App\Module\Admin\Application\Payment\Projection\AdminPaymentFormatter;
 use App\Module\Admin\Application\Payment\Provider\StripePaymentDetailsProvider;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Workflow\StripeCheckoutSessionSyncService;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
-use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

@@ -12,6 +12,8 @@ import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const VouchersPage = () => {
   useDocumentTitle('Admin - Bons de réduction');
@@ -19,11 +21,13 @@ export const VouchersPage = () => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const vouchersQuery = useQuery<Voucher[], Error>({
-    queryKey: adminVoucherQueryKeys.list(),
-    queryFn: fetchVouchers,
+  const [page, setPage] = useState(1);
+  const vouchersQuery = useQuery<PaginatedResult<Voucher>, Error>({
+    queryKey: [...adminVoucherQueryKeys.list(), { page }],
+    queryFn: () => fetchVouchers(page, 10),
   });
-  const vouchers = vouchersQuery.data ?? [];
+  const vouchers = vouchersQuery.data?.items ?? [];
+  const pagination = vouchersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const deleteMutation = useMutation({
     mutationFn: deleteVoucher,
     onSuccess: (response) => {
@@ -128,6 +132,13 @@ export const VouchersPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="bon"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

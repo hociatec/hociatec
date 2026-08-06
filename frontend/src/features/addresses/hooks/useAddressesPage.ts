@@ -17,6 +17,7 @@ import {
 } from '@/features/addresses/types/address';
 import { useToast } from '@/shared/components/ui/toast';
 import { addressQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAddressesPage = () => {
   const { show } = useToast();
@@ -26,9 +27,10 @@ export const useAddressesPage = () => {
   const [form, setForm] = useState<AddressFormState>(emptyAddressForm);
   const [editing, setEditing] = useState<AddressDto | null>(null);
   const [editForm, setEditForm] = useState<AddressFormState>(emptyAddressForm);
-  const addressesQuery = useQuery<AddressDto[], Error>({
-    queryKey: addressQueryKeys.mine(),
-    queryFn: fetchMyAddresses,
+  const [page, setPage] = useState(1);
+  const addressesQuery = useQuery<PaginatedResult<AddressDto>, Error>({
+    queryKey: [...addressQueryKeys.mine(), { page }],
+    queryFn: () => fetchMyAddresses(page, 10),
   });
   const invalidateAddresses = () => queryClient.invalidateQueries({ queryKey: addressQueryKeys.mine() });
   const createMutation = useMutation({
@@ -134,7 +136,9 @@ export const useAddressesPage = () => {
     handleDelete,
     handleSetDefault,
     handleUpdate,
-    items: addressesQuery.data ?? [],
+    items: addressesQuery.data?.items ?? [],
+    pagination: addressesQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 },
+    setPage,
     loading: addressesQuery.isLoading,
     openCreate,
     openEdit,

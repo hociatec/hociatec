@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Auth\Application\Workflow;
 
 use App\Module\Auth\Application\Port\RefreshTokenPersistencePort;
-use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
+use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 

@@ -6,9 +6,9 @@ namespace App\Module\Voucher\Application\Calculator;
 
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use Psr\Clock\ClockInterface;
 
 final class VoucherEngine

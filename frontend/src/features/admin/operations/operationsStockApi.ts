@@ -1,12 +1,13 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { type ApiResponse } from '@/shared/types/api';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import { rethrowApiError, unwrap, type StockMovementDto } from './operationsApiShared';
 
-export const fetchStockMovements = async (): Promise<StockMovementDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: StockMovementDto[] }>>(
+export const fetchStockMovements = async (page = 1, perPage = 10): Promise<PaginatedResult<StockMovementDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: StockMovementDto[]; meta: PaginationMeta }>>(
     '/api/admin/operations/stock-movements',
+    { params: { page, perPage } },
   );
-  return unwrap(data, 'Impossible de charger les mouvements de stock').items ?? [];
+  return unwrap(data, 'Impossible de charger les mouvements de stock');
 };
 
 export const createStockMovement = async (payload: {

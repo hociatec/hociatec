@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { OrderStatus, OrderStatusFilter } from '@/shared/contracts/statuses';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
 import { parseOrder, parseOrderEvent, parseOrderProcessing } from './orderValidation';
@@ -13,8 +13,12 @@ export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> 
 export const fetchAdminOrders = async (
   status: OrderStatusFilter = 'all',
   health: 'all' | 'issues' = 'all',
-): Promise<OrderDto[]> => {
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<OrderDto>> => {
   const query = new URLSearchParams();
+  query.set('page', String(page));
+  query.set('perPage', String(perPage));
   if (status && status !== 'all') {
     query.set('status', status);
   }
@@ -22,11 +26,11 @@ export const fetchAdminOrders = async (
     query.set('health', health);
   }
 
-  const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[] }>>(
+  const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[]; meta: PaginationMeta }>>(
     `/api/admin/orders${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
   if (isApiOk(data)) {
-    return data.data.items.map(parseOrder);
+    return { items: data.data.items.map(parseOrder), meta: data.data.meta };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);

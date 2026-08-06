@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\News\UI\Controller\PublicApi;
 
 use App\Module\News\Application\DTO\CreateNewsCommentInput;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsCommentWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
-use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;

@@ -9,6 +9,7 @@ export const useAdminBugReportsController = () => {
   const { user } = useAuth();
   const filters = useAdminBugReportFilters();
   const queries = useAdminBugReportQueries({
+    activityPage: filters.activityPage,
     commentPage: filters.commentPage,
     filters: filters.filters,
     selectedReportId: filters.selectedReportId,
@@ -37,6 +38,7 @@ export const useAdminBugReportsController = () => {
     ...queries,
     ...mutations,
     assignedFilter: filters.assignedFilter,
+    activityPage: filters.activityPage,
     commentPage: filters.commentPage,
     duplicateOfId,
     duplicateReason,
@@ -50,6 +52,7 @@ export const useAdminBugReportsController = () => {
     openModal: filters.openModal,
     resetFilters: filters.resetFilters,
     setAssignedFilter: filters.setAssignedFilter,
+    setActivityPage: filters.setActivityPage,
     setCommentPage: filters.setCommentPage,
     setDuplicateOfId,
     setDuplicateReason,

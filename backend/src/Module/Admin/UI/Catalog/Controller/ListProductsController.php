@@ -22,8 +22,7 @@ class ListProductsController extends AbstractController
         private readonly ProductQueryService $productService,
         private readonly ProductAdminListQueryMapper $queries,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Appointment\Controller;
 
-use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
+use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

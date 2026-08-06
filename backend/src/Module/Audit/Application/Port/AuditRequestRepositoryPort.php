@@ -27,4 +27,14 @@ interface AuditRequestRepositoryPort
     public function findByUser(User $user, int $limit = 20, int $offset = 0): array;
 
     public function countByUser(User $user): int;
+
+    /**
+     * @param array{search?:string,status?:string,type?:string,from?:string,to?:string,sort?:string} $filters
+     *
+     * @return list<AuditRequest>
+     */
+    public function findForAdminList(array $filters, int $limit = 20, int $offset = 0): array;
+
+    /** @param array{search?:string,status?:string,type?:string,from?:string,to?:string,sort?:string} $filters */
+    public function countForAdminList(array $filters): int;
 }

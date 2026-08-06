@@ -7,8 +7,8 @@ namespace App\Module\Catalog\UI\Controller\PublicApi;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,8 +21,7 @@ class ListCategoriesController extends AbstractController
     public function __construct(
         private readonly CategoryService $categoryService,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(?Request $request = null): JsonResponse

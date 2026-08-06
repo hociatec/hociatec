@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Promotion\Controller;
 
 use App\Module\Promotion\Application\DTO\PromotionInput;
 use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
-use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
+use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;

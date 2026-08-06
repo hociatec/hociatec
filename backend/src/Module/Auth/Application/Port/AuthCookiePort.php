@@ -13,5 +13,6 @@ interface AuthCookiePort
     public const REFRESH_COOKIE = 'hociatec_refresh';
 
     public function attachLoginCookies(Response $response, Request $request, string $jwt, string $refreshToken, string $refreshTokenExpiresAt): void;
+
     public function clearAuthCookies(Response $response, Request $request): void;
 }

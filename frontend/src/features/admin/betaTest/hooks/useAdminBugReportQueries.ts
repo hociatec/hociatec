@@ -22,7 +22,9 @@ export const useAdminBugReportQueries = ({
   filters,
   selectedReportId,
   commentPage,
+  activityPage,
 }: {
+  activityPage: number;
   filters: BugReportFilters;
   selectedReportId: number | null;
   commentPage: number;
@@ -51,15 +53,16 @@ export const useAdminBugReportQueries = ({
     enabled: selectedReportId !== null,
   });
 
-  const { data: activities = [] } = useQuery({
-    queryKey: adminBetaQueryKeys.bugReportActivity(selectedReportId),
-    queryFn: () => fetchBugReportActivity(selectedReportId!),
+  const { data: activitiesResult } = useQuery({
+    queryKey: [...adminBetaQueryKeys.bugReportActivity(selectedReportId), { activityPage }],
+    queryFn: () => fetchBugReportActivity(selectedReportId!, activityPage),
     enabled: selectedReportId !== null,
   });
 
   return {
     activeReport: reports.find((report) => report.id === selectedReportId) ?? selectedReport,
-    activities,
+    activities: activitiesResult?.items ?? [],
+    activitiesMeta: activitiesResult?.meta ?? null,
     comments: commentsResult?.items ?? [],
     commentsMeta: commentsResult?.meta ?? null,
     dashboard,

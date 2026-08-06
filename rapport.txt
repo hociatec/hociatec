@@ -1,0 +1,1353 @@
+
+======================================================================
+1. OBJECTIF DU RAPPORT
+======================================================================
+
+Le backend possède déjà une architecture modulaire sérieuse, une séparation globale
+entre Domain, Application, Infrastructure et UI, ainsi qu’un vocabulaire métier
+riche. La note actuelle peut être estimée autour de 7,5/10 sur le plan purement
+architectural.
+
+Pour dépasser 9/10, il ne faut pas réécrire le projet. Il faut consolider les
+frontières existantes, réduire les classes centrales trop volumineuses et rendre
+les règles métier plus explicites.
+
+Une note supérieure à 9/10 suppose que les critères suivants soient atteints :
+
+- responsabilités des classes clairement identifiables ;
+- dépendances entre couches strictement maîtrisées ;
+- modules métier réellement autonomes ;
+- agrégats de taille raisonnable ;
+- règles métier indépendantes des détails HTTP et techniques ;
+- états impossibles difficilement représentables ;
+- orchestration applicative lisible ;
+- génération documentaire structurée ;
+- conventions homogènes dans l’ensemble du projet ;
+- absence de nouvelles classes monolithiques.
+
+======================================================================
+2. PRIORITÉS ABSOLUES
+======================================================================
+
+Les actions suivantes sont indispensables. Tant qu’elles ne sont pas réalisées,
+une note supérieure à 9/10 ne serait pas crédible.
+
+----------------------------------------------------------------------
+2.1 RETIRER HTTPFOUNDATION DE LA COUCHE APPLICATION
+----------------------------------------------------------------------
+
+Constat :
+Plusieurs classes de la couche Application manipulent directement Request,
+UploadedFile, Cookie ou d’autres objets propres à Symfony HttpFoundation.
+
+Problème :
+La couche Application connaît le canal HTTP et les conventions du framework.
+Elle ne peut donc pas être considérée comme totalement indépendante de l’interface.
+
+Actions :
+
+[ ] Déplacer tous les mappers recevant Symfony\Component\HttpFoundation\Request
+    vers la couche UI.
+
+[ ] Déplacer les traitements liés aux champs multipart, fichiers envoyés,
+    paramètres de requête, query strings et cookies vers UI/Http ou UI/Mapper.
+
+[ ] Faire produire par la couche UI des objets applicatifs explicites :
+    - Command ;
+    - Input ;
+    - Criteria ;
+    - WriteData ;
+    - UploadData ;
+    - DTO d’entrée.
+
+[ ] Interdire les imports suivants dans Application :
+    - Symfony\Component\HttpFoundation\Request ;
+    - Symfony\Component\HttpFoundation\Response ;
+    - Symfony\Component\HttpFoundation\JsonResponse ;
+    - Symfony\Component\HttpFoundation\UploadedFile ;
+    - Symfony\Component\HttpFoundation\Cookie.
+
+[ ] Remplacer les ports exposant directement des concepts HTTP par des ports
+    exprimant une intention métier ou applicative.
+
+Exemple de structure cible :
+
+UI/Http/Mapper/ProductRequestMapper
+    -> ProductWriteData
+Application/Catalog/ProductWriteHandler
+    -> manipule uniquement ProductWriteData
+
+Critère de validation :
+Aucun fichier situé dans */Application/* ne doit importer HttpFoundation, sauf
+exception explicitement documentée et justifiée.
+
+Impact attendu :
+Très élevé. Cette correction renforce immédiatement la cohérence des couches.
+
+----------------------------------------------------------------------
+2.2 RÉDUIRE LES AGRÉGATS SURDIMENSIONNÉS
+----------------------------------------------------------------------
+
+Cibles prioritaires :
+
+- TradeInRequest ;
+- OrderCheckoutSession ;
+- Product ;
+- User ;
+- Voucher.
+
+Constat :
+Certaines entités concentrent les données principales, les informations
+personnelles, les paiements, les documents, les statuts, les dates et plusieurs
+sous-processus métier.
+
+Actions générales :
+
+[ ] Lister les responsabilités de chaque grosse entité.
+
+[ ] Identifier les groupes de données qui évoluent ensemble.
+
+[ ] Extraire les concepts cohérents sous forme de value objects ou d’objets
+    embarqués.
+
+[ ] Réduire les constructeurs à un état initial minimal et valide.
+
+[ ] Déplacer les données apparaissant uniquement dans une phase ultérieure vers
+    des méthodes métier dédiées.
+
+[ ] Supprimer les setters génériques lorsque la modification correspond à une
+    transition métier.
+
+[ ] Exprimer les opérations sous forme de verbes métier.
+
+Exemples :
+
+- submit();
+- acceptOffer();
+- refuseOffer();
+- registerPayment();
+- attachDocument();
+- close();
+- cancel();
+- expire();
+- applyDiscount();
+- changeCondition();
+
+Critère de validation :
+Une entité principale ne doit pas obliger l’appelant à connaître toutes les
+phases futures de son cycle de vie lors de sa création.
+
+----------------------------------------------------------------------
+2.3 REFACTORER TRADEINREQUEST
+----------------------------------------------------------------------
+
+C’est l’une des cibles les plus importantes.
+
+Actions :
+
+[ ] Remplacer le constructeur de 24 paramètres par un constructeur ou une factory
+    utilisant quelques objets cohérents.
+
+Objets possibles :
+
+- TradeInReference ;
+- TradeInApplicant ;
+- TradeInProductSnapshot ;
+- TradeInEstimate ;
+- TradeInConsent ;
+- TradeInOffer ;
+- TradeInPaymentDetails ;
+- TradeInClosure ;
+- TradeInDocuments.
+
+[ ] Conserver dans l’état initial uniquement les informations nécessaires à la
+    création d’une demande.
+
+[ ] Ajouter les informations de paiement uniquement au moment de la validation
+    du paiement.
+
+[ ] Ajouter les documents uniquement au moment de leur réception.
+
+[ ] Ajouter les informations de clôture uniquement lors de la clôture.
+
+[ ] Remplacer les champs de statut représentés par des chaînes par des enums.
+
+[ ] Centraliser toutes les transitions d’état.
+
+[ ] Refuser explicitement les transitions interdites.
+
+[ ] Remplacer les corrections silencieuses des montants par des validations
+    explicites.
+
+À supprimer :
+
+purchasePriceCents = max(0, purchasePriceCents)
+
+À préférer :
+
+- lever une exception métier si le montant est négatif ;
+- refuser une estimation maximale inférieure à l’estimation minimale ;
+- refuser un montant incohérent plutôt que le modifier silencieusement.
+
+Critère de validation :
+Il doit être impossible de créer ou modifier une demande de reprise dans un état
+financièrement ou fonctionnellement incohérent.
+
+----------------------------------------------------------------------
+2.4 DÉCOMPOSER LES SERVICES APPLICATIFS MONOLITHIQUES
+----------------------------------------------------------------------
+
+Cibles prioritaires :
+
+- RefundOperationsService ;
+- CartService ;
+- SupportOperationsService ;
+- TradeInNotificationEmailService ;
+- OrderNotificationEmailService ;
+- TrainingEnrollmentCheckoutService ;
+- QuoteToOrderConverter ;
+- CartOrderCreator ;
+- ProductWriteHandler ;
+- TradeInClosureService.
+
+Méthode :
+
+[ ] Pour chaque service, inventorier :
+    - règles métier ;
+    - accès aux données ;
+    - calculs ;
+    - transformations ;
+    - appels externes ;
+    - notifications ;
+    - changements d’état ;
+    - persistance.
+
+[ ] Extraire les décisions pures dans des Policy.
+
+[ ] Extraire les calculs dans des Calculator.
+
+[ ] Extraire les constructions complexes dans des Factory.
+
+[ ] Extraire les transformations dans des Mapper ou Converter spécialisés.
+
+[ ] Extraire les appels externes derrière des ports explicites.
+
+[ ] Conserver un orchestrateur principal lisible comme un scénario.
+
+Exemple cible pour un remboursement :
+
+RefundHandler
+    -> RefundEligibilityPolicy
+    -> RefundAmountCalculator
+    -> PaymentRefundPort
+    -> RefundStateTransition
+    -> RefundNotificationScheduler
+
+Critère de validation :
+La méthode principale d’un cas d’usage doit permettre de comprendre le scénario
+sans lire les détails techniques de chaque étape.
+
+----------------------------------------------------------------------
+2.5 RÉDUIRE LE NOMBRE DE DÉPENDANCES PAR CLASSE
+----------------------------------------------------------------------
+
+Constat :
+Certaines classes possèdent 9 à 12 dépendances injectées.
+
+Actions :
+
+[ ] Examiner toute classe ayant plus de 7 dépendances.
+
+[ ] Déterminer si elle orchestre plusieurs cas d’usage.
+
+[ ] Découper les phases indépendantes.
+
+[ ] Introduire des services de haut niveau lorsque plusieurs dépendances forment
+    une collaboration cohérente.
+
+[ ] Ne jamais créer un ServiceBag ou un objet contenant artificiellement toutes
+    les dépendances.
+
+[ ] Ne jamais injecter le conteneur de services.
+
+Seuils recommandés :
+
+- 1 à 5 dépendances : normal ;
+- 6 à 7 : à surveiller ;
+- 8 et plus : revue de responsabilité obligatoire.
+
+Critère de validation :
+Les classes ayant plus de 7 dépendances doivent être exceptionnelles et
+documentées.
+
+======================================================================
+3. MODÈLE MÉTIER
+======================================================================
+
+----------------------------------------------------------------------
+3.1 REMPLACER LES ÉTATS FERMÉS PAR DES ENUMS
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Recenser les propriétés string représentant :
+    - statut ;
+    - type ;
+    - méthode ;
+    - niveau ;
+    - grade ;
+    - origine ;
+    - canal ;
+    - état de paiement ;
+    - état de livraison ;
+    - état de document.
+
+[ ] Remplacer par des enums lorsque l’ensemble des valeurs est fini.
+
+Cibles probables :
+
+- PaymentStatus ;
+- PaymentMethod ;
+- ProductConditionGrade ;
+- DeliveryStatus ;
+- DocumentStatus ;
+- QuoteStatus ;
+- VoucherStatus ;
+- RefundStatus.
+
+[ ] Centraliser dans l’enum uniquement les comportements réellement liés à la
+    valeur.
+
+[ ] Ne pas transformer les enums en classes utilitaires surchargées.
+
+Critère de validation :
+Aucune propriété métier fermée ne doit accepter une chaîne arbitraire.
+
+----------------------------------------------------------------------
+3.2 INTRODUIRE DES VALUE OBJECTS UTILES
+----------------------------------------------------------------------
+
+Priorité aux valeurs qui possèdent des règles ou apparaissent à plusieurs endroits.
+
+Candidats :
+
+- Money ;
+- Currency ;
+- EmailAddress ;
+- PhoneNumber ;
+- OrderReference ;
+- QuoteReference ;
+- TradeInReference ;
+- PaymentReference ;
+- Percentage ;
+- DateRange ;
+- Pagination ;
+- PostalAddress ;
+- CustomerIdentity ;
+- BillingDetails ;
+- TaxRate ;
+- Quantity.
+
+Actions :
+
+[ ] Identifier les validations dupliquées.
+
+[ ] Déplacer validation, normalisation et comparaison dans les value objects.
+
+[ ] Rendre les value objects immuables.
+
+[ ] Ne pas créer un value object pour chaque chaîne sans comportement.
+
+[ ] Éviter les objets génériques tels que StringValue ou GenericIdentifier.
+
+Critère de validation :
+Une valeur importante doit être valide dès sa construction et ne pas nécessiter
+de validation répétée dans tous les services.
+
+----------------------------------------------------------------------
+3.3 RENDRE LE TEMPS EXPLICITE
+----------------------------------------------------------------------
+
+Constat :
+Plusieurs classes appellent directement new DateTimeImmutable().
+
+Actions :
+
+[ ] Créer un port Clock dans la couche Application ou Domain selon le besoin.
+
+[ ] Injecter Clock dans les handlers, workflows ou factories.
+
+[ ] Passer les dates aux entités lors des opérations métier.
+
+[ ] Éviter que les entités consultent directement l’heure système.
+
+[ ] Distinguer les dates :
+    - createdAt ;
+    - submittedAt ;
+    - acceptedAt ;
+    - paidAt ;
+    - cancelledAt ;
+    - closedAt ;
+    - updatedAt.
+
+[ ] Mettre à jour updatedAt uniquement lors d’une réelle modification métier.
+
+Critère de validation :
+Toute opération métier dépendante du temps doit recevoir explicitement le moment
+où elle se produit.
+
+----------------------------------------------------------------------
+3.4 SUPPRIMER LES NORMALISATIONS SILENCIEUSES DANGEREUSES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Rechercher les usages de :
+    - max(0, ...) ;
+    - min(...) correctif ;
+    - abs(...) sur des données métier ;
+    - trim suivi d’une acceptation sans validation ;
+    - valeur par défaut masquant une entrée invalide ;
+    - catch d’exception vide ;
+    - conversion silencieuse d’un état inconnu.
+
+[ ] Classer chaque cas :
+    - normalisation légitime ;
+    - correction silencieuse dangereuse.
+
+[ ] Lever des exceptions métier explicites pour les incohérences.
+
+[ ] Faire remonter les erreurs de données à la frontière appropriée.
+
+Critère de validation :
+Une anomalie financière, d’état ou d’identité ne doit jamais être transformée
+silencieusement en donnée valide.
+
+----------------------------------------------------------------------
+3.5 RENFORCER LES INVARIANTS
+----------------------------------------------------------------------
+
+Pour chaque agrégat principal :
+
+[ ] Documenter les invariants.
+
+[ ] Vérifier les invariants à la construction.
+
+[ ] Vérifier les invariants lors de chaque transition.
+
+[ ] Empêcher les modifications directes contournant les règles.
+
+Exemples d’invariants :
+
+- total de commande non négatif ;
+- quantité strictement positive ;
+- montant remboursé inférieur ou égal au montant payé ;
+- estimation maximale supérieure ou égale à l’estimation minimale ;
+- voucher non utilisé après expiration ;
+- commande payée non repassable en attente sans opération explicite ;
+- demande clôturée non modifiable ;
+- devise identique entre lignes et total ;
+- remise inférieure au montant éligible.
+
+Critère de validation :
+Les règles critiques doivent être garanties par le modèle, et non dépendre de la
+discipline des appelants.
+
+======================================================================
+4. FRONTIÈRES ENTRE MODULES
+======================================================================
+
+----------------------------------------------------------------------
+4.1 FORMALISER LES DÉPENDANCES AUTORISÉES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Créer une matrice des dépendances entre modules.
+
+[ ] Définir les modules centraux et les modules consommateurs.
+
+[ ] Interdire les cycles entre modules.
+
+[ ] Documenter les dépendances autorisées.
+
+[ ] Éviter qu’un module importe directement de nombreuses entités internes d’un
+    autre module.
+
+Exemple de matrice :
+
+- Order peut dépendre d’identifiants Catalog, User et Voucher ;
+- Catalog ne doit pas dépendre de Order ;
+- User ne doit pas dépendre de Order ;
+- Admin peut consommer les cas d’usage publics des modules ;
+- Shared ne doit pas devenir un dépôt de logique métier générique.
+
+Critère de validation :
+Chaque dépendance intermodule doit avoir une direction claire et une raison
+métier explicite.
+
+----------------------------------------------------------------------
+4.2 LIMITER LES ASSOCIATIONS ORM INTERMODULES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Recenser les relations Doctrine entre entités de modules différents.
+
+[ ] Pour chaque relation, décider si les cycles de vie sont réellement liés.
+
+[ ] Remplacer les relations faibles par :
+    - identifiant ;
+    - référence ;
+    - snapshot ;
+    - projection ;
+    - événement.
+
+[ ] Conserver une association directe uniquement si elle est indispensable au
+    domaine.
+
+Cas TradeIn/User :
+
+[ ] Vérifier si TradeIn a besoin de l’entité User complète.
+
+[ ] Si les données du demandeur sont déjà copiées dans TradeInApplicant,
+    envisager de conserver uniquement un userId nullable.
+
+[ ] Préserver l’historique même si le compte utilisateur évolue ou disparaît.
+
+Critère de validation :
+La suppression ou modification d’un agrégat d’un module ne doit pas casser
+inutilement l’historique d’un autre module.
+
+----------------------------------------------------------------------
+4.3 CLARIFIER LE RÔLE DU MODULE ADMIN
+----------------------------------------------------------------------
+
+Constat :
+Admin contient des cas d’usage liés au catalogue, aux commandes, aux devis et au
+marketing, ce qui peut créer un second domaine parallèle.
+
+Actions :
+
+[ ] Décider officiellement si Admin est :
+    - un canal UI ;
+    - un module d’exploitation ;
+    - ou un propriétaire de règles métier spécifiques.
+
+[ ] Déplacer les règles métier Catalogue vers Catalog.
+
+[ ] Déplacer les règles métier Commande vers Order.
+
+[ ] Déplacer les règles métier Devis vers Quote.
+
+[ ] Laisser dans Admin :
+    - dashboards ;
+    - projections transversales ;
+    - agrégations ;
+    - outils opérateurs ;
+    - sauvegarde ;
+    - supervision ;
+    - commandes purement administratives sans duplication métier.
+
+[ ] Créer des cas d’usage administratifs dans les modules propriétaires lorsque
+    l’opération modifie leur métier.
+
+Exemple :
+
+Order/Application/Admin/ForceOrderCancellationHandler
+
+plutôt que :
+
+Admin/Application/Operations/OrderCancellationService
+
+Critère de validation :
+Une règle de commande ne doit pas avoir deux implémentations, une côté client et
+une côté administration.
+
+======================================================================
+5. PROJECTIONS, FORMATTERS ET DTO DE SORTIE
+======================================================================
+
+----------------------------------------------------------------------
+5.1 DÉCOMPOSER LES FORMATTERS VOLUMINEUX
+----------------------------------------------------------------------
+
+Cibles :
+
+- OrderFormatter ;
+- CartFormatter ;
+- CatalogFormatter ;
+- ProductCatalogListProjectionFormatter ;
+- AdminOperationsFormatter ;
+- AdminPaymentFormatter.
+
+Actions :
+
+[ ] Découper chaque représentation en sous-projections cohérentes.
+
+Exemple Order :
+
+- OrderSummaryProjection ;
+- OrderCustomerProjection ;
+- OrderAddressProjection ;
+- OrderPaymentProjection ;
+- OrderItemProjection ;
+- OrderDeliveryProjection ;
+- OrderStatusProjection.
+
+[ ] Conserver dans le formatter principal uniquement la composition finale.
+
+[ ] Déplacer les calculs métier dans des services métier.
+
+[ ] Éviter que le formatter décide de l’éligibilité, du prix ou d’une transition.
+
+[ ] Éviter les tableaux anonymes profondément imbriqués lorsque le format est
+    stable.
+
+[ ] Introduire des DTO de sortie nommés pour les réponses importantes.
+
+Critère de validation :
+Un formatter ne doit pas être le seul endroit où une règle métier importante
+est définie.
+
+----------------------------------------------------------------------
+5.2 SÉPARER LECTURE, CALCUL ET PRÉSENTATION
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Les providers récupèrent les données.
+
+[ ] Les calculators produisent les valeurs dérivées.
+
+[ ] Les policies produisent les décisions.
+
+[ ] Les formatters construisent la représentation.
+
+[ ] Les contrôleurs transmettent la réponse.
+
+Critère de validation :
+Chaque étape doit être identifiable sans mélange de responsabilités.
+
+======================================================================
+6. GÉNÉRATION DOCUMENTAIRE
+======================================================================
+
+----------------------------------------------------------------------
+6.1 CRÉER UN MODÈLE DOCUMENTAIRE INTERMÉDIAIRE
+----------------------------------------------------------------------
+
+Cibles :
+
+- facture XML ;
+- facture PDF ;
+- devis PDF ;
+- audit PDF ;
+- reçus ;
+- documents TradeIn.
+
+Actions :
+
+[ ] Créer des modèles immuables :
+
+- InvoiceDocument ;
+- InvoiceIssuer ;
+- InvoiceCustomer ;
+- InvoiceAddress ;
+- InvoiceLine ;
+- InvoiceTaxSummary ;
+- InvoiceTotals ;
+- QuoteDocument ;
+- ReceiptDocument.
+
+[ ] Créer un assembler par source métier :
+
+- OrderInvoiceAssembler ;
+- QuoteDocumentAssembler ;
+- TradeInReceiptAssembler.
+
+[ ] Les assemblers lisent les agrégats et construisent le document.
+
+[ ] Les renderers reçoivent uniquement le document intermédiaire.
+
+[ ] Le renderer XML ne doit pas connaître l’entité Order.
+
+[ ] Le renderer PDF ne doit pas recalculer les totaux.
+
+Critère de validation :
+Les données et calculs d’un même document doivent être identiques quel que soit
+le format de rendu.
+
+----------------------------------------------------------------------
+6.2 EXTRAIRE LES INFORMATIONS LÉGALES ET COMMERCIALES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Retirer des classes de rendu :
+    - raison sociale ;
+    - adresse ;
+    - SIRET ;
+    - numéro de TVA ;
+    - email ;
+    - mentions légales ;
+    - coordonnées bancaires ;
+    - textes de paiement.
+
+[ ] Introduire un objet InvoiceIssuer ou CompanyIdentity.
+
+[ ] Fournir cet objet aux assemblers.
+
+[ ] Centraliser les mentions communes aux documents.
+
+Critère de validation :
+Un changement d’identité légale ne doit pas nécessiter la modification de
+plusieurs renderers.
+
+----------------------------------------------------------------------
+6.3 DÉCOMPOSER LES TEMPLATES MONOLITHIQUES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Extraire les sections :
+    - en-tête ;
+    - identité ;
+    - client ;
+    - lignes ;
+    - taxes ;
+    - totaux ;
+    - paiement ;
+    - mentions ;
+    - pied de page.
+
+[ ] Ne pas construire un document complet dans une seule méthode de 100 lignes.
+
+[ ] Centraliser l’échappement XML et HTML.
+
+[ ] Éviter la concaténation manuelle répétitive.
+
+Critère de validation :
+Chaque renderer doit être lisible par sections et ne doit effectuer aucune
+décision métier.
+
+======================================================================
+7. PERSISTANCE ET REPOSITORIES
+======================================================================
+
+----------------------------------------------------------------------
+7.1 MAINTENIR LES REPOSITORIES COMME ADAPTATEURS
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Vérifier que les repositories ne prennent pas de décisions métier.
+
+[ ] Déplacer les décisions d’éligibilité hors des requêtes Doctrine.
+
+[ ] Utiliser des Criteria explicites pour les recherches complexes.
+
+[ ] Éviter les méthodes génériques :
+    - findByAnything ;
+    - saveMixedData ;
+    - updateStatus ;
+    - executeCustomOperation.
+
+[ ] Nommer les recherches selon l’intention :
+    - findActiveVoucherByCode ;
+    - findPendingTradeInsForClosure ;
+    - findOrdersEligibleForReminder.
+
+[ ] Retourner des types cohérents.
+
+Critère de validation :
+Un repository doit exprimer une intention de lecture ou de persistance, sans
+porter le workflow complet.
+
+----------------------------------------------------------------------
+7.2 ÉVITER LA FUITE DE DOCTRINE
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Ne pas exposer QueryBuilder hors Infrastructure.
+
+[ ] Ne pas exposer PersistentCollection dans les DTO ou ports.
+
+[ ] Ne pas demander aux couches supérieures de gérer flush, persist ou detach.
+
+[ ] Encapsuler les transactions derrière un port lorsque nécessaire.
+
+[ ] Ne pas faire dépendre les cas d’usage du type concret des repositories
+    Doctrine.
+
+Critère de validation :
+Application et UI doivent pouvoir ignorer la manière dont les données sont
+stockées.
+
+======================================================================
+8. CONTRÔLEURS ET UI
+======================================================================
+
+----------------------------------------------------------------------
+8.1 CONSERVER DES CONTRÔLEURS MINCES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Limiter chaque contrôleur à :
+    - lire la requête ;
+    - autoriser l’accès ;
+    - mapper l’entrée ;
+    - appeler un cas d’usage ;
+    - formater la réponse.
+
+[ ] Ne pas calculer de prix dans un contrôleur.
+
+[ ] Ne pas modifier directement une entité.
+
+[ ] Ne pas appeler directement plusieurs repositories pour reconstruire un
+    workflow.
+
+[ ] Ne pas gérer une transaction.
+
+[ ] Ne pas construire de document métier complexe.
+
+Critère de validation :
+Un contrôleur doit rester compréhensible en quelques dizaines de lignes.
+
+----------------------------------------------------------------------
+8.2 STANDARDISER LES ERREURS APPLICATIVES
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Créer une hiérarchie claire d’exceptions :
+    - DomainException ;
+    - ApplicationException ;
+    - NotFound ;
+    - Conflict ;
+    - ForbiddenOperation ;
+    - InvalidInput.
+
+[ ] Traduire les exceptions vers HTTP uniquement dans UI.
+
+[ ] Ne pas lancer d’exception HTTP depuis Domain ou Application.
+
+[ ] Ne pas exposer de message technique interne.
+
+[ ] Donner à chaque erreur métier importante un code stable.
+
+Critère de validation :
+Le domaine exprime le problème métier ; l’UI décide du statut HTTP.
+
+======================================================================
+9. CONVENTIONS DE NOMMAGE
+======================================================================
+
+----------------------------------------------------------------------
+9.1 NORMALISER LES SUFFIXES
+----------------------------------------------------------------------
+
+Convention recommandée :
+
+- Handler : point d’entrée d’un cas d’usage ;
+- Workflow : processus métier en plusieurs étapes ;
+- Policy : décision ou éligibilité ;
+- Calculator : calcul pur ;
+- Factory : construction complexe ;
+- Mapper : transformation structurelle ;
+- Converter : conversion entre modèles métier ;
+- Normalizer : nettoyage ou canonicalisation ;
+- Provider : lecture ou composition de données ;
+- Projection : modèle de lecture ;
+- Formatter : représentation finale ;
+- Port : contrat avec l’extérieur ;
+- Repository : persistance d’un agrégat ;
+- Renderer : production d’un format ;
+- Scheduler : planification d’une action ;
+- Notifier : notification métier.
+
+Actions :
+
+[ ] Recenser les classes nommées Service.
+
+[ ] Renommer celles dont la responsabilité est plus précise.
+
+[ ] Conserver Service uniquement lorsqu’aucun terme métier plus exact ne convient.
+
+[ ] Éliminer les noms vagues :
+    - Manager ;
+    - Helper ;
+    - Utils ;
+    - CommonService ;
+    - DataService ;
+    - OperationsService, lorsque plusieurs opérations sans cohérence y sont
+      regroupées.
+
+Critère de validation :
+Le nom d’une classe doit permettre de prévoir son rôle principal.
+
+----------------------------------------------------------------------
+9.2 UNIFORMISER COMMAND, INPUT ET DATA
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Définir une convention :
+    - Command pour un ordre de mutation ;
+    - Query pour une demande de lecture ;
+    - Input pour des données de cas d’usage ;
+    - WriteData pour des données de modification structurées ;
+    - Criteria pour des filtres ;
+    - Projection pour une sortie de lecture.
+
+[ ] Éviter plusieurs suffixes différents pour des rôles identiques.
+
+Critère de validation :
+Deux classes jouant le même rôle doivent utiliser le même vocabulaire.
+
+======================================================================
+10. DUPLICATIONS ET LOGIQUE TRANSVERSALE
+======================================================================
+
+----------------------------------------------------------------------
+10.1 CENTRALISER SANS CRÉER UN SHARED FOURRE-TOUT
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Rechercher les duplications de :
+    - calcul monétaire ;
+    - formatage d’adresse ;
+    - normalisation email/téléphone ;
+    - construction de référence ;
+    - gestion des dates ;
+    - traduction de statut ;
+    - calcul de taxe ;
+    - pagination ;
+    - journalisation métier.
+
+[ ] Déplacer la logique dans le module propriétaire.
+
+[ ] Mettre dans Shared uniquement les concepts réellement transversaux et
+    indépendants du métier.
+
+[ ] Refuser les classes Shared contenant des règles propres à Order, Catalog ou
+    TradeIn.
+
+Critère de validation :
+Shared doit rester petit, stable et sans dépendance vers les modules métier.
+
+----------------------------------------------------------------------
+10.2 FACTORISER LES NOTIFICATIONS
+----------------------------------------------------------------------
+
+Constat :
+Les services de notification peuvent devenir très volumineux.
+
+Actions :
+
+[ ] Séparer :
+    - décision de notifier ;
+    - choix du destinataire ;
+    - construction du contenu ;
+    - envoi ;
+    - suivi de l’envoi.
+
+[ ] Introduire des modèles de notification.
+
+[ ] Éviter qu’un service email interroge de nombreux repositories.
+
+[ ] Ne pas dupliquer les règles métier dans les contenus de notification.
+
+[ ] Utiliser un notifier par intention importante lorsque nécessaire.
+
+Exemples :
+
+- OrderConfirmationNotifier ;
+- RefundCompletedNotifier ;
+- TradeInOfferNotifier ;
+- TradeInClosureNotifier.
+
+Critère de validation :
+La notification reflète un événement métier déjà décidé ; elle ne décide pas
+elle-même du workflow.
+
+======================================================================
+11. LISIBILITÉ ET TAILLE DES CLASSES
+======================================================================
+
+----------------------------------------------------------------------
+11.1 TRAITER LES CLASSES ET MÉTHODES TROP LONGUES
+----------------------------------------------------------------------
+
+Seuils de revue recommandés :
+
+- méthode supérieure à 40 lignes : examiner ;
+- méthode supérieure à 70 lignes : refactorisation généralement nécessaire ;
+- classe supérieure à 500 lignes : revue obligatoire ;
+- constructeur supérieur à 8 paramètres : revue obligatoire ;
+- classe supérieure à 7 dépendances : revue obligatoire.
+
+Actions :
+
+[ ] Examiner chaque dépassement.
+
+[ ] Extraire uniquement des responsabilités nommables.
+
+[ ] Ne pas découper artificiellement une méthode en petites méthodes sans sens.
+
+[ ] Préférer des méthodes privées exprimant le scénario métier.
+
+[ ] Éviter les niveaux d’imbrication profonds.
+
+[ ] Utiliser les retours anticipés pour les cas d’erreur.
+
+Critère de validation :
+La lecture du code doit suivre le flux métier sans naviguer dans une multitude de
+détails secondaires.
+
+----------------------------------------------------------------------
+11.2 SUPPRIMER LES BOOLÉENS AMBIGUS
+----------------------------------------------------------------------
+
+Actions :
+
+[ ] Rechercher les méthodes avec plusieurs paramètres booléens.
+
+[ ] Remplacer les booléens représentant des modes par :
+    - enum ;
+    - option nommée ;
+    - méthode spécialisée ;
+    - objet de configuration métier.
+
+Mauvais :
+
+process($order, true, false, true)
+
+Meilleur :
+
+process($order, ProcessingMode::ADMINISTRATIVE_OVERRIDE)
+
+Critère de validation :
+Aucun appel ne doit nécessiter de connaître la signification de plusieurs true
+ou false positionnels.
+
+======================================================================
+12. SÉCURITÉ DE CONCEPTION
+======================================================================
+
+Sans traiter l’infrastructure de sécurité ou l’outillage, les règles suivantes
+concernent directement le code.
+
+Actions :
+
+[ ] Ne jamais placer de secret dans les classes.
+
+[ ] Ne jamais enregistrer de données bancaires ou privées dans des logs métier.
+
+[ ] Séparer les documents privés des documents publics.
+
+[ ] Encapsuler les accès aux ressources sensibles derrière des ports.
+
+[ ] Vérifier les autorisations au niveau du cas d’usage, pas uniquement dans le
+    contrôleur, lorsque l’opération peut être invoquée par plusieurs canaux.
+
+[ ] Éviter les identifiants prédictibles pour les ressources publiques.
+
+[ ] Ne pas exposer les entités Doctrine directement dans les réponses.
+
+[ ] Prévoir l’anonymisation et la suppression logique lorsque le domaine conserve
+    des snapshots de données personnelles.
+
+Critère de validation :
+Un autre canal d’entrée ne doit pas pouvoir contourner une règle d’autorisation
+présente uniquement dans l’interface HTTP.
+
+======================================================================
+13. DOCUMENTATION ARCHITECTURALE DANS LE DÉPÔT
+======================================================================
+
+Pour dépasser 9/10, l’architecture doit être compréhensible et reproductible par
+une équipe.
+
+Fichiers recommandés :
+
+[ ] docs/architecture/overview.md
+
+Contenu :
+- couches ;
+- responsabilités ;
+- direction des dépendances ;
+- organisation des modules.
+
+[ ] docs/architecture/modules.md
+
+Contenu :
+- liste des modules ;
+- responsabilité de chacun ;
+- dépendances autorisées ;
+- propriétaires des données.
+
+[ ] docs/architecture/naming-conventions.md
+
+Contenu :
+- Handler ;
+- Workflow ;
+- Policy ;
+- Factory ;
+- Provider ;
+- Projection ;
+- Formatter ;
+- Port.
+
+[ ] docs/architecture/domain-rules.md
+
+Contenu :
+- invariants des agrégats principaux ;
+- transitions d’état ;
+- événements métier importants.
+
+[ ] docs/architecture/decisions/
+
+Créer des décisions courtes pour :
+- Doctrine dans Domain ;
+- rôle de Admin ;
+- relations intermodules ;
+- modèle de génération documentaire ;
+- utilisation de snapshots ;
+- stratégie de transaction.
+
+Critère de validation :
+Un nouveau développeur doit pouvoir comprendre où placer une nouvelle règle sans
+examiner tout le code existant.
+
+======================================================================
+14. ORDRE D’EXÉCUTION CONSEILLÉ
+======================================================================
+
+PHASE 1 — FRONTIÈRES ARCHITECTURALES
+
+1. Retirer HttpFoundation de Application.
+2. Formaliser les dépendances entre couches.
+3. Clarifier le rôle de Admin.
+4. Documenter les conventions de classe.
+5. Bloquer l’introduction de nouvelles violations.
+
+Résultat attendu :
+Architecture cohérente et protégée contre une nouvelle érosion.
+
+PHASE 2 — TRADEIN ET AGRÉGATS CRITIQUES
+
+1. Refactorer TradeInRequest.
+2. Introduire les value objects prioritaires.
+3. Centraliser les transitions d’état.
+4. Remplacer les corrections silencieuses.
+5. Rendre le temps explicite.
+6. Examiner OrderCheckoutSession, Product, User et Voucher.
+
+Résultat attendu :
+Modèle métier plus fiable et plus lisible.
+
+PHASE 3 — SERVICES APPLICATIFS
+
+1. Refactorer RefundOperationsService.
+2. Refactorer QuoteToOrderConverter.
+3. Refactorer CartOrderCreator.
+4. Refactorer TradeInClosureService.
+5. Refactorer ProductWriteHandler.
+6. Décomposer les notifications.
+
+Résultat attendu :
+Cas d’usage lisibles, dépendances réduites et règles réutilisables.
+
+PHASE 4 — PROJECTIONS ET DOCUMENTS
+
+1. Décomposer OrderFormatter.
+2. Décomposer CartFormatter.
+3. Décomposer CatalogFormatter.
+4. Créer le modèle InvoiceDocument.
+5. Séparer assemblage et rendu.
+6. Extraire les informations légales.
+
+Résultat attendu :
+Sorties API et documents maintenables sans duplication métier.
+
+PHASE 5 — HARMONISATION GLOBALE
+
+1. Normaliser les noms.
+2. Remplacer les états string restants.
+3. Réduire les associations intermodules.
+4. Revoir les repositories complexes.
+5. Réduire les classes et méthodes surdimensionnées.
+6. Supprimer les duplications transversales.
+
+Résultat attendu :
+Qualité homogène sur toute la base.
+
+======================================================================
+15. CHECKLIST PAR CLASSE
+======================================================================
+
+Pour chaque classe modifiée, vérifier :
+
+[ ] La classe possède une responsabilité principale identifiable.
+[ ] Son nom exprime cette responsabilité.
+[ ] Elle se trouve dans le bon module.
+[ ] Elle se trouve dans la bonne couche.
+[ ] Ses dépendances pointent dans la bonne direction.
+[ ] Elle ne connaît pas un détail HTTP si elle est dans Application.
+[ ] Elle ne connaît pas un détail technique si elle est dans Domain.
+[ ] Son constructeur reste raisonnable.
+[ ] Elle ne reçoit pas une longue liste de primitives liées.
+[ ] Ses états fermés utilisent des enums.
+[ ] Les valeurs critiques sont validées.
+[ ] Les erreurs ne sont pas corrigées silencieusement.
+[ ] Les dates importantes sont explicites.
+[ ] Les transitions métier sont nommées.
+[ ] Elle ne duplique pas une règle existante.
+[ ] Elle n’expose pas une entité directement à l’UI.
+[ ] Ses méthodes principales restent lisibles.
+[ ] Elle ne mélange pas calcul, persistance, notification et rendu.
+[ ] Elle ne devient pas une classe générique de type Manager ou Helper.
+[ ] Ses relations intermodules sont justifiées.
+
+======================================================================
+16. CHECKLIST PAR MODULE
+======================================================================
+
+Pour chaque module :
+
+[ ] Responsabilité métier clairement définie.
+[ ] Agrégats principaux identifiés.
+[ ] Ports publics identifiés.
+[ ] Dépendances entrantes et sortantes documentées.
+[ ] Absence de cycle avec un autre module.
+[ ] UI dépend de Application.
+[ ] Infrastructure implémente les ports.
+[ ] Domain ne dépend pas des couches externes.
+[ ] Application ne dépend pas d’Infrastructure.
+[ ] Application ne dépend pas de l’HTTP.
+[ ] Règles métier non dupliquées dans Admin.
+[ ] Repositories limités à la persistance.
+[ ] Projections séparées du domaine transactionnel.
+[ ] États métier centralisés.
+[ ] Documents et notifications séparés des décisions métier.
+
+======================================================================
+17. CRITÈRES D’UNE NOTE SUPÉRIEURE À 9/10
+======================================================================
+
+La note pourra raisonnablement dépasser 9/10 lorsque les conditions suivantes
+seront réunies.
+
+ARCHITECTURE
+
+[ ] Aucune dépendance interdite entre couches.
+[ ] Aucun objet HTTP dans Application.
+[ ] Aucun détail technique dans Domain, hors compromis Doctrine documenté.
+[ ] Aucune dépendance cyclique entre modules.
+[ ] Rôle de Admin clairement défini.
+[ ] Matrice des dépendances disponible.
+
+DOMAINE
+
+[ ] Agrégats critiques refactorés.
+[ ] Constructeurs métier raisonnables.
+[ ] Invariants explicites.
+[ ] Transitions d’état centralisées.
+[ ] États fermés représentés par des enums.
+[ ] Montants incohérents rejetés.
+[ ] Horloge explicite pour les opérations temporelles.
+[ ] Relations intermodules limitées.
+
+APPLICATION
+
+[ ] Aucun orchestrateur critique excessivement volumineux.
+[ ] Classes à plus de 7 dépendances devenues rares.
+[ ] Policies et Calculators isolent les règles pures.
+[ ] Handlers lisibles comme des scénarios.
+[ ] Appels externes derrière des ports intentionnels.
+[ ] Notifications séparées des décisions métier.
+
+SORTIES
+
+[ ] Formatters principaux décomposés.
+[ ] Aucun calcul métier important dans les formatters.
+[ ] Modèle documentaire intermédiaire disponible.
+[ ] Assemblage et rendu séparés.
+[ ] Informations légales centralisées.
+[ ] Entités non exposées directement.
+
+COHÉRENCE
+
+[ ] Convention de nommage appliquée.
+[ ] Absence de Service, Manager ou Helper vagues dans les zones critiques.
+[ ] Shared reste minimal.
+[ ] Classes et méthodes volumineuses examinées.
+[ ] Documentation architecturale maintenue.
+[ ] Toute nouvelle fonctionnalité suit les mêmes règles.
+
+======================================================================
+18. ÉLÉMENTS NON NÉCESSAIRES POUR ATTEINDRE 9/10
+======================================================================
+
+Les actions suivantes ne sont pas obligatoires et pourraient même produire une
+complexité inutile.
+
+- Séparer toutes les entités métier des entités Doctrine.
+- Créer un microservice par module.
+- Introduire CQRS partout.
+- Introduire un bus de messages pour chaque opération.
+- Transformer chaque chaîne en value object.
+- Ajouter une interface à chaque classe.
+- Créer une factory pour chaque objet.
+- Supprimer toute utilisation du mot Service sans analyser son rôle.
+- Découper toutes les méthodes uniquement pour réduire leur nombre de lignes.
+- Créer une couche Shared contenant toutes les abstractions.
+- Réécrire l’application depuis zéro.
+- Appliquer un modèle DDD théorique sans bénéfice métier concret.
+
+L’objectif est une architecture claire et pragmatique, pas une accumulation de
+patterns.
+
+======================================================================
+19. RISQUES PENDANT LA REMÉDIATION
+======================================================================
+
+Risque 1 : surarchitecture
+
+Prévention :
+N’extraire une classe que lorsqu’une responsabilité cohérente peut être nommée.
+
+Risque 2 : déplacement sans amélioration
+
+Prévention :
+Déplacer HttpFoundation vers UI, mais ne pas recréer un mapper géant ailleurs.
+
+Risque 3 : services intermédiaires artificiels
+
+Prévention :
+Ne pas créer des façades dont le seul rôle est de cacher dix dépendances.
+
+Risque 4 : value objects excessifs
+
+Prévention :
+Prioriser les valeurs possédant de vraies règles.
+
+Risque 5 : duplication pendant la transition
+
+Prévention :
+Migrer un workflow complet avant de conserver deux chemins parallèles.
+
+Risque 6 : fragmentation excessive
+
+Prévention :
+Une classe de cinq lignes n’est pas automatiquement meilleure qu’une classe de
+cinquante lignes cohérentes.
+
+Risque 7 : incohérence entre anciens et nouveaux modules
+
+Prévention :
+Définir les conventions avant de lancer les refactorisations massives.

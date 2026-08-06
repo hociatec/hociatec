@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\BetaTest\Application\Mapper\BetaProfileChoices;
-use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
+use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,7 +28,7 @@ final class ListBetaTestersController extends AbstractController
         $search = RequestQueryMapper::lowerString($request, 'search');
         $status = RequestQueryMapper::string($request, 'status');
         $accessibility = RequestQueryMapper::string($request, 'accessibility');
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $pageItems = $this->profiles->findForAdminList($search, $status, $accessibility, $pagination->perPage, $pagination->offset());
         $total = $this->profiles->countForAdminList($search, $status, $accessibility);
 

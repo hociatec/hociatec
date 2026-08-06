@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export type VoucherDto = {
   id: number;
@@ -28,9 +28,12 @@ export type VoucherPayload = {
   endsAt?: string | null;
 };
 
-export const fetchVouchers = async (): Promise<VoucherDto[]> => {
-  const { data } = await httpClient.get<{ data: { items: VoucherDto[] } }>('/api/admin/vouchers');
-  return data.data.items;
+export const fetchVouchers = async (page = 1, perPage = 10): Promise<PaginatedResult<VoucherDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: VoucherDto[]; meta: PaginationMeta }>>('/api/admin/vouchers', {
+    params: { page, perPage },
+  });
+  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  return data.data;
 };
 
 export const fetchVoucher = async (voucherId: number): Promise<VoucherDto> => {

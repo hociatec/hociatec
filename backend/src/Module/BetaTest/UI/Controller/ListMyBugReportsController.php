@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

@@ -9,6 +9,7 @@ import {
   useAdminBetaCampaignsController,
 } from '../hooks/useAdminBetaCampaignsController';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminBetaCampaignsPage = () => {
   const campaigns = useAdminBetaCampaignsController();
@@ -43,6 +44,14 @@ export const AdminBetaCampaignsPage = () => {
           onOpenDetail={campaigns.openDetail}
         />
       )}
+
+      <PaginationControls
+        page={campaigns.campaignsMeta.page}
+        total={campaigns.campaignsMeta.total}
+        totalLabel="campagne"
+        totalPages={campaigns.campaignsMeta.totalPages}
+        onPageChange={campaigns.setCampaignsPage}
+      />
 
       <AdminCampaignFormDialog
         description="Renseignez les détails pour créer une nouvelle campagne de tests."

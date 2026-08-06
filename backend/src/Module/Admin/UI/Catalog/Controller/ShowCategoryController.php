@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,8 +20,7 @@ class ShowCategoryController extends AbstractController
     public function __construct(
         private readonly CategoryRepositoryPort $categoryRepository,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $id): JsonResponse

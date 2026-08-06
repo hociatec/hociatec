@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Infrastructure\Repository;
 
 use App\Module\Catalog\Application\Port\BrandRepositoryPort;
-
 use App\Module\Catalog\Domain\Entity\Brand;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -33,9 +32,12 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
     /**
      * @return list<Brand>
      */
-    public function findAllForAdmin(int $limit = 50, int $offset = 0): array
+    public function findAllForAdmin(int $limit = 50, int $offset = 0, ?string $search = null): array
     {
-        return $this->createQueryBuilder('b')
+        $qb = $this->createQueryBuilder('b');
+        $this->applySearch($qb, $search);
+
+        return $qb
             ->orderBy('b.name', 'ASC')
             ->setFirstResult(max(0, $offset))
             ->setMaxResults(max(1, min(100, $limit)))
@@ -43,10 +45,13 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
             ->getResult();
     }
 
-    public function countForAdmin(): int
+    public function countForAdmin(?string $search = null): int
     {
-        return (int) $this->createQueryBuilder('b')
-            ->select('COUNT(b.id)')
+        $qb = $this->createQueryBuilder('b')
+            ->select('COUNT(b.id)');
+        $this->applySearch($qb, $search);
+
+        return (int) $qb
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -76,5 +81,18 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function applySearch(\Doctrine\ORM\QueryBuilder $qb, ?string $search): void
+    {
+        $term = null === $search ? '' : trim(mb_strtolower($search));
+
+        if ('' === $term) {
+            return;
+        }
+
+        $qb
+            ->andWhere('LOWER(b.name) LIKE :search')
+            ->setParameter('search', sprintf('%%%s%%', $term));
     }
 }

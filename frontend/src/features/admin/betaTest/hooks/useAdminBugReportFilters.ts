@@ -8,6 +8,7 @@ export const useAdminBugReportFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [commentPage, setCommentPage] = useState(1);
+  const [activityPage, setActivityPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -18,7 +19,7 @@ export const useAdminBugReportFilters = () => {
 
   const filters = omitUndefinedProperties({
     page,
-    perPage: 12,
+    perPage: 10,
     status: statusFilter || undefined,
     severity: severityFilter || undefined,
     search: search.trim() || undefined,
@@ -28,12 +29,14 @@ export const useAdminBugReportFilters = () => {
   const openModal = (report: AdminBugReportDto) => {
     setSelectedReportId(report.id);
     setCommentPage(1);
+    setActivityPage(1);
     setSearchParams({ reportId: String(report.id) });
   };
 
   const closeModal = () => {
     setSelectedReportId(null);
     setCommentPage(1);
+    setActivityPage(1);
     setSearchParams({});
   };
 
@@ -47,6 +50,7 @@ export const useAdminBugReportFilters = () => {
 
   return {
     assignedFilter,
+    activityPage,
     commentPage,
     filters,
     page,
@@ -58,6 +62,7 @@ export const useAdminBugReportFilters = () => {
     openModal,
     resetFilters,
     setAssignedFilter,
+    setActivityPage,
     setCommentPage,
     setPage,
     setSearch,

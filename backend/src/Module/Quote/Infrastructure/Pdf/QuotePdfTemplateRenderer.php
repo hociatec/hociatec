@@ -170,7 +170,13 @@ final class QuotePdfTemplateRenderer
 HTML;
     }
 
-    private function formatConditions(string $value): string { return $this->formatter->paragraphsFromLines($value, true); }
+    private function formatConditions(string $value): string
+    {
+        return $this->formatter->paragraphsFromLines($value, true);
+    }
 
-    private function formatMultilineAddress(string $value): string { return $this->formatter->paragraphsFromLines($value); }
+    private function formatMultilineAddress(string $value): string
+    {
+        return $this->formatter->paragraphsFromLines($value);
+    }
 }

@@ -6,6 +6,7 @@ import type { TradeInStatus } from '@/features/tradeIns/publicApi';
 import { useTradeInMetadata } from '@/features/tradeIns/publicApi';
 import { AdminTradeInDetailsModal } from './AdminTradeInDetailsModal';
 import { useAdminTradeInsPage } from './useAdminTradeInsPage';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminTradeInsPage = () => {
   useDocumentTitle('Reprises matériel');
@@ -45,6 +46,13 @@ export const AdminTradeInsPage = () => {
               </tbody>
             </table>
             {controller.items.length === 0 && <p className="p-4">Aucune demande.</p>}
+            <PaginationControls
+              page={controller.pagination.page}
+              total={controller.pagination.total}
+              totalLabel="demande"
+              totalPages={controller.pagination.totalPages}
+              onPageChange={controller.setPage}
+            />
           </div>
         )}
       </div>

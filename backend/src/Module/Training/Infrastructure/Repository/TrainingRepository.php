@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Training\Infrastructure\Repository;
 
 use App\Module\Training\Application\Port\TrainingRepositoryPort;
-
 use App\Module\Training\Domain\Entity\Training;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 

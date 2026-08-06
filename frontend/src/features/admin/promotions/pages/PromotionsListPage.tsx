@@ -6,6 +6,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 const formatDiscount = (promotion: Promotion) =>
@@ -24,6 +25,8 @@ export const PromotionsListPage = () => {
     loading,
     error,
     filteredPromotions,
+    pagination,
+    setPage,
     handleDelete,
   } = usePromotionsList();
 
@@ -127,6 +130,13 @@ export const PromotionsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="promotion"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

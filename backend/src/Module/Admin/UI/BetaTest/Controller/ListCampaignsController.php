@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\Handler\CloseElapsedBetaCampaignsHandler;
-use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,7 +33,7 @@ final class ListCampaignsController extends AbstractController
     public function __invoke(?Request $request = null): JsonResponse
     {
         $request ??= new Request();
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $now = new \DateTimeImmutable();
         $campaigns = $this->campaigns->findBy([], ['createdAt' => 'DESC'], $pagination->perPage, $pagination->offset());
         $this->closeElapsedCampaigns->closeElapsed($campaigns, $now);

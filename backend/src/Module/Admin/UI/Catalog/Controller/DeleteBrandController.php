@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
+use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

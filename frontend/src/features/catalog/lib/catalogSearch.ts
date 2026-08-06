@@ -1,7 +1,7 @@
 import type { CatalogSearchFacets, CatalogSearchMeta, CatalogSort } from '../apiTypes';
 
 export const ALL_CATALOG_FILTER = 'all';
-export const CATALOG_PAGE_SIZE = 12;
+export const CATALOG_PAGE_SIZE = 10;
 
 export const catalogSorts: CatalogSort[] = [
   'relevance',

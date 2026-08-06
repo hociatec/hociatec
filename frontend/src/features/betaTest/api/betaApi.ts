@@ -25,11 +25,12 @@ export interface BetaProfileDto {
 const unwrap = <T>(response: ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
 export const resolveBetaAttachmentUrl = (url:string) => new URL(url, API_BASE_URL).toString();
 export const fetchBetaProfileChoices = async () => unwrap((await httpClient.get<ApiResponse<{choices: BetaProfileChoices}>>('/api/public/beta/profile-options')).data).choices;
-export const fetchMyBetaProfile = async () => unwrap((await httpClient.get<ApiResponse<{profile: BetaProfileDto}>>('/api/beta/profile')).data).profile;
+export const fetchMyBetaProfile = async () => unwrap((await httpClient.get<ApiResponse<{profile: BetaProfileDto | null}>>('/api/beta/profile')).data).profile;
 export const fetchBetaCampaigns = async () => unwrap((await httpClient.get<ApiResponse<{items:BetaCampaign[]}>>('/api/beta/campaigns')).data).items;
 export const fetchMyBugReports = async (params:{page?:number;perPage?:number}={}) => unwrap((await httpClient.get<ApiResponse<{items:BugReport[];meta:PaginationMeta}>>('/api/beta/reports',{params})).data);
 export const fetchMyBugReport = async (id:number) => unwrap((await httpClient.get<ApiResponse<{report:BugReport}>>(`/api/beta/reports/${id}`)).data).report;
 export const updateMyBetaProfile = async (payload: BetaProfileDto) => unwrap((await httpClient.put<ApiResponse<BetaProfileDto>>('/api/beta/profile', payload)).data);
+export const deleteMyBetaProfile = async () => unwrap((await httpClient.delete<ApiResponse<Record<string, never>>>('/api/beta/profile')).data);
 export const createBugReport = async (payload: {title:string;description:string;expectedBehavior?:string;actualBehavior?:string;severity:string;campaignId?:number;pageUrl?:string;screenshots?:File[]}) => { const data=new FormData(); Object.entries(payload).forEach(([key,value])=>{if(key!=='screenshots'&&value!==undefined)data.append(key,String(value));}); payload.screenshots?.forEach(file=>data.append('screenshots[]',file)); return unwrap((await httpClient.post<ApiResponse<{id:number}>>('/api/beta/reports', data)).data); };
 
 export interface BugReportComment {
@@ -46,7 +47,7 @@ export interface BugReportComment {
 }
 
 export const fetchBugReportComments = async (id: number, page = 1) => {
-  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportComment[]; meta: PaginationMeta }>>(`/api/beta/reports/${id}/comments`, { params: { page, perPage: 6 } })).data);
+  return unwrap((await httpClient.get<ApiResponse<{ items: BugReportComment[]; meta: PaginationMeta }>>(`/api/beta/reports/${id}/comments`, { params: { page, perPage: 10 } })).data);
 };
 
 export const createBugReportComment = async (id: number, content: string) => {

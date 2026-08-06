@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\News\Application\Projection;
 
+use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsComment;
-use App\Module\News\Application\Port\NewsArticleViewRepositoryPort;
 
 final readonly class NewsFormatter
 {

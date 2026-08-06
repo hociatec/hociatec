@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Notification\Infrastructure\Repository;
 
 use App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort;
-
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

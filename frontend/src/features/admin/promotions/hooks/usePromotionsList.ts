@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deletePromotion, fetchPromotionAudiences, fetchPromotions } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
@@ -13,17 +13,19 @@ export const usePromotionsList = () => {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const overviewQuery = useQuery({
-    queryKey: adminPromotionQueryKeys.overview(),
+    queryKey: [...adminPromotionQueryKeys.overview(), { page }],
     queryFn: async () => {
       const [promotions, audiences] = await Promise.all([
-        fetchPromotions(),
+        fetchPromotions(page, 10),
         fetchPromotionAudiences(),
       ]);
       return { promotions, audiences };
     },
   });
-  const promotions = overviewQuery.data?.promotions ?? [];
+  const promotions = overviewQuery.data?.promotions.items ?? [];
+  const pagination = overviewQuery.data?.promotions.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const audiences = overviewQuery.data?.audiences ?? {};
   const deleteMutation = useMutation({
     mutationFn: deletePromotion,
@@ -49,6 +51,9 @@ export const usePromotionsList = () => {
           (statusFilter === 'inactive' && !promotion.isActive)),
     );
   }, [promotions, query, statusFilter]);
+  useEffect(() => {
+    setPage(1);
+  }, [query, statusFilter]);
   const handleDelete = async (promotionId: number) => {
     const promotion = promotions.find((item) => item.id === promotionId);
     if (
@@ -76,6 +81,8 @@ export const usePromotionsList = () => {
         ? getHttpErrorMessage(overviewQuery.error, 'Impossible de charger les promotions.')
         : null),
     filteredPromotions,
+    pagination,
+    setPage,
     handleDelete,
   };
 };

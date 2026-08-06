@@ -22,21 +22,27 @@ const getFirstSentence = (value?: string | null) => {
 };
 
 export const HomeProductsHeading = () => (
-  <div className="home-section-heading">
+  <div className="home-section-heading home-section-heading--center">
+    <p>Catalogue sélectionné</p>
     <h2>Produits recommandés</h2>
+    <span>Une sélection courte de matériel utile, lisible et directement actionnable.</span>
   </div>
 );
 
 export const HomeServicesHeading = () => (
-  <div className="home-section-heading">
+  <div className="home-section-heading home-section-heading--center">
+    <p>Interventions et accompagnement</p>
     <h2>Services mis en avant</h2>
+    <span>Des prestations concrètes pour réparer, sécuriser, maintenir ou faire évoluer vos outils.</span>
   </div>
 );
 
 export const HomeNewsHeading = () => (
-  <div className="home-section-heading home-section-heading--row">
+  <div className="home-section-heading home-section-heading--center home-section-heading--news">
     <div>
+      <p>Veille et conseils</p>
       <h2>Actualité</h2>
+      <span>Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.</span>
     </div>
     <Link to="/actualites" className="home-button home-button--secondary">
       Toutes les actualités

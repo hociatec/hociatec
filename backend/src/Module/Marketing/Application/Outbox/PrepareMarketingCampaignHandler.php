@@ -84,7 +84,7 @@ final readonly class PrepareMarketingCampaignHandler implements OutboxEventHandl
             ]);
         }
 
-        if (count($users) === self::BATCH_SIZE) {
+        if (self::BATCH_SIZE === count($users)) {
             $this->outbox->record(self::prepareKey($campaignId, $nextLastUserId), self::TYPE, [
                 'campaignId' => $campaignId,
                 'lastUserId' => $nextLastUserId,

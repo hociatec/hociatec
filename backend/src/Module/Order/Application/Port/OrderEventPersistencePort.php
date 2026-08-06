@@ -9,5 +9,6 @@ use App\Module\Order\Domain\Entity\OrderEvent;
 interface OrderEventPersistencePort
 {
     public function save(OrderEvent $event): void;
+
     public function commit(): void;
 }

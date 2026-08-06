@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Handler;
 
-use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Shared\Application\UnitOfWork;
 
 final class TrainingStripeWebhookHandler

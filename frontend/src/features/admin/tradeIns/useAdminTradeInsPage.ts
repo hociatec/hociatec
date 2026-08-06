@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminFetchTradeIns } from '@/features/tradeIns/publicApi';
 import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/publicApi';
+import type { PaginationMeta } from '@/shared/types/api';
 import { initialTradeInModalState, useTradeInAdminModalState } from './tradeInAdminModalState';
 import { useAdminTradeInActions } from './useAdminTradeInActions';
 
 export const useAdminTradeInsPage = () => {
   const [items, setItems] = useState<TradeInDto[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta>({ page: 1, perPage: 10, total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<TradeInStatus | ''>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +31,9 @@ export const useAdminTradeInsPage = () => {
   const load = async () => {
     setLoading(true);
     try {
-      setItems(await adminFetchTradeIns(statusFilter || undefined));
+      const result = await adminFetchTradeIns(statusFilter || undefined, page, 10);
+      setItems(result.items);
+      setPagination(result.meta);
     } catch (loadError) {
       setError(getHttpErrorMessage(loadError));
     } finally {
@@ -38,6 +43,10 @@ export const useAdminTradeInsPage = () => {
 
   useEffect(() => {
     void load();
+  }, [page, statusFilter]);
+
+  useEffect(() => {
+    setPage(1);
   }, [statusFilter]);
 
   useEffect(() => {
@@ -72,6 +81,7 @@ export const useAdminTradeInsPage = () => {
     items,
     loading,
     modalState,
+    pagination,
     ...actions,
     setClosureNote,
     setFinalOffer,
@@ -80,6 +90,7 @@ export const useAdminTradeInsPage = () => {
     setPaymentMethod,
     setPaymentStatus,
     setPendingStatus,
+    setPage,
     setStatusFilter,
     setTransactionReference,
     statusFilter,

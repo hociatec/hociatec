@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

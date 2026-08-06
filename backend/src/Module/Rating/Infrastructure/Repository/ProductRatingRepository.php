@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Rating\Infrastructure\Repository;
 
-use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
-
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

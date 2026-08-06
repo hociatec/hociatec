@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Admin;
 
-use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

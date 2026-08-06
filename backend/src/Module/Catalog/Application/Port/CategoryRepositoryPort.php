@@ -17,9 +17,9 @@ interface CategoryRepositoryPort
     public function countVisible(): int;
 
     /** @return list<Category> */
-    public function findAllForAdmin(int $limit = 50, int $offset = 0): array;
+    public function findAllForAdmin(int $limit = 50, int $offset = 0, ?string $search = null): array;
 
-    public function countForAdmin(): int;
+    public function countForAdmin(?string $search = null): int;
 
     public function findOneVisibleBySlug(string $slug): ?Category;
 

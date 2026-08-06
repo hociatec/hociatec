@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
+use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -25,14 +25,14 @@ final class BrandService
     /**
      * @return list<Brand>
      */
-    public function listForAdmin(int $limit = 50, int $offset = 0): array
+    public function listForAdmin(int $limit = 50, int $offset = 0, ?string $search = null): array
     {
-        return $this->brandRepository->findAllForAdmin($limit, $offset);
+        return $this->brandRepository->findAllForAdmin($limit, $offset, $search);
     }
 
-    public function countForAdmin(): int
+    public function countForAdmin(?string $search = null): int
     {
-        return $this->brandRepository->countForAdmin();
+        return $this->brandRepository->countForAdmin($search);
     }
 
     public function create(string $name): Brand

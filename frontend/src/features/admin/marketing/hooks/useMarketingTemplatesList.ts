@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   deleteMarketingTemplate,
   fetchMarketingSegments,
-  fetchMarketingTemplates,
+  fetchMarketingTemplatesPage,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
@@ -16,19 +16,21 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   const [scenarioFilter, setScenarioFilter] = useState('all');
   const [usageFilter, setUsageFilter] = useState(isTransactionalView ? 'transactional' : 'all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const listQuery = useQuery({
-    queryKey: adminMarketingQueryKeys.templates(),
+    queryKey: [...adminMarketingQueryKeys.templates(), { page }],
     queryFn: async () => {
       const [templates, segments] = await Promise.all([
-        fetchMarketingTemplates(),
+        fetchMarketingTemplatesPage(page, 10),
         fetchMarketingSegments('templates'),
       ]);
       return { templates, segments };
     },
   });
-  const templates = listQuery.data?.templates ?? [];
+  const templates = listQuery.data?.templates.items ?? [];
+  const templatesMeta = listQuery.data?.templates.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const segments = listQuery.data?.segments ?? {};
   const deleteMutation = useMutation({
     mutationFn: deleteMarketingTemplate,
@@ -41,6 +43,9 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   useEffect(() => {
     setUsageFilter(isTransactionalView ? 'transactional' : 'all');
   }, [isTransactionalView]);
+  useEffect(() => {
+    setPage(1);
+  }, [query, scenarioFilter, usageFilter, statusFilter]);
   const filteredTemplates = useMemo(() => {
     const term = query.trim().toLowerCase();
     return templates.filter(
@@ -84,6 +89,8 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   };
   return {
     templates,
+    templatesMeta,
+    setPage,
     segments,
     loading: listQuery.isLoading,
     query,

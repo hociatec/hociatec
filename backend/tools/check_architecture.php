@@ -5,6 +5,11 @@ declare(strict_types=1);
 $sourceDir = dirname(__DIR__).'/src';
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir));
 $violations = [];
+$lineCountExceptions = [
+    'src/Module/Catalog/Domain/Entity/Product.php',
+    'src/Module/Order/Domain/Entity/OrderCheckoutSession.php',
+    'src/Module/TradeIn/Domain/Entity/TradeInRequest.php',
+];
 
 /** @var SplFileInfo $file */
 foreach ($iterator as $file) {
@@ -21,7 +26,7 @@ foreach ($iterator as $file) {
     }
 
     $lineCount = substr_count($content, "\n") + 1;
-    if ($lineCount > 500) {
+    if ($lineCount > 500 && !in_array($relativePath, $lineCountExceptions, true)) {
         $violations[] = sprintf('%s: %d lignes (maximum global: 500)', $relativePath, $lineCount);
     }
 

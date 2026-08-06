@@ -6,9 +6,9 @@ namespace App\Module\Contact\UI\Controller;
 
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Workflow\ContactSubmissionService;
+use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
-use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

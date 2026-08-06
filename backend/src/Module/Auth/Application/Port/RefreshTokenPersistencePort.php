@@ -9,5 +9,6 @@ use App\Module\Auth\Domain\Entity\RefreshToken;
 interface RefreshTokenPersistencePort
 {
     public function save(RefreshToken $token): void;
+
     public function commit(): void;
 }

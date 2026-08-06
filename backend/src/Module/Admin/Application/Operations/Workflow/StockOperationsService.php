@@ -8,9 +8,9 @@ use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFound
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Catalog\Application\Port\StockMovementRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
-use App\Module\Catalog\Application\Port\StockMovementRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 

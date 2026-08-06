@@ -19,8 +19,8 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Application\TransactionManager;
 use App\Shared\Application\Exception\ExternalServiceException;
+use App\Shared\Application\TransactionManager;
 
 final readonly class RefundOperationsService
 {

@@ -135,45 +135,229 @@ class Product
         $this->updatedAt = $now;
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): self { $this->name = $name; return $this; }
-    public function getSlug(): string { return $this->slug; }
-    public function setSlug(string $slug): self { $this->slug = $slug; return $this; }
-    public function getSku(): string { return $this->sku; }
-    public function setSku(string $sku): self { $this->sku = $sku; return $this; }
-    public function getShortDescription(): ?string { return $this->shortDescription; }
-    public function setShortDescription(?string $shortDescription): self { $this->shortDescription = $shortDescription; return $this; }
-    public function getDescription(): string { return $this->description; }
-    public function setDescription(string $description): self { $this->description = $description; return $this; }
-    public function getPriceCents(): int { return $this->pricing->priceCents(); }
-    public function setPriceCents(int $priceCents): self { $this->pricing->changePrice($priceCents); return $this; }
-    public function getSellingType(): string { return $this->pricing->sellingType(); }
-    public function setSellingType(string $type): self { $this->pricing->changeSellingType($type); return $this; }
-    public function getBrand(): ?string { return $this->brandReference?->getName(); }
-    public function getBrandId(): ?int { return $this->brandReference?->getId(); }
-    public function getBrandReference(): ?Brand { return $this->brandReference; }
-    public function setBrandReference(?Brand $brand): self { $this->brandReference = $brand; return $this; }
-    public function getVariantGroup(): ?string { return $this->characteristics->variantGroup(); }
-    public function setVariantGroup(?string $variantGroup): self { $this->characteristics->changeVariantGroup($variantGroup); return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getVariantPosition(): int { return $this->characteristics->variantPosition(); }
-    public function setVariantPosition(int $variantPosition): self { $this->characteristics->changeVariantPosition($variantPosition); return $this; }
-    public function getReleaseYear(): ?int { return $this->characteristics->releaseYear(); }
-    public function setReleaseYear(?int $releaseYear): self { $this->characteristics->changeReleaseYear($releaseYear); return $this; }
-    public function getStorageCapacity(): ?string { return $this->characteristics->storageCapacity(); }
-    public function setStorageCapacity(?string $storageCapacity): self { $this->characteristics->changeStorageCapacity($storageCapacity); return $this; }
-    public function getMemoryRam(): ?string { return $this->characteristics->memoryRam(); }
-    public function setMemoryRam(?string $memoryRam): self { $this->characteristics->changeMemoryRam($memoryRam); return $this; }
-    public function getColor(): ?string { return $this->characteristics->color(); }
-    public function setColor(?string $color): self { $this->characteristics->changeColor($color); return $this; }
-    public function getStock(): int { return $this->inventory->stock(); }
-    public function setStock(int $stock): self { $this->inventory->changeStock($stock); return $this; }
-    public function getLowStockThreshold(): int { return $this->inventory->lowStockThreshold(); }
-    public function setLowStockThreshold(int $lowStockThreshold): self { $this->inventory->changeLowStockThreshold($lowStockThreshold); return $this; }
-    public function isPublished(): bool { return $this->publication->isPublished(); }
-    public function setIsPublished(bool $isPublished): self { $this->publication->changePublished($isPublished); return $this; }
-    public function isFeaturedHome(): bool { return $this->publication->isFeaturedHome(); }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getSku(): string
+    {
+        return $this->sku;
+    }
+
+    public function setSku(string $sku): self
+    {
+        $this->sku = $sku;
+
+        return $this;
+    }
+
+    public function getShortDescription(): ?string
+    {
+        return $this->shortDescription;
+    }
+
+    public function setShortDescription(?string $shortDescription): self
+    {
+        $this->shortDescription = $shortDescription;
+
+        return $this;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPriceCents(): int
+    {
+        return $this->pricing->priceCents();
+    }
+
+    public function setPriceCents(int $priceCents): self
+    {
+        $this->pricing->changePrice($priceCents);
+
+        return $this;
+    }
+
+    public function getSellingType(): string
+    {
+        return $this->pricing->sellingType();
+    }
+
+    public function setSellingType(string $type): self
+    {
+        $this->pricing->changeSellingType($type);
+
+        return $this;
+    }
+
+    public function getBrand(): ?string
+    {
+        return $this->brandReference?->getName();
+    }
+
+    public function getBrandId(): ?int
+    {
+        return $this->brandReference?->getId();
+    }
+
+    public function getBrandReference(): ?Brand
+    {
+        return $this->brandReference;
+    }
+
+    public function setBrandReference(?Brand $brand): self
+    {
+        $this->brandReference = $brand;
+
+        return $this;
+    }
+
+    public function getVariantGroup(): ?string
+    {
+        return $this->characteristics->variantGroup();
+    }
+
+    public function setVariantGroup(?string $variantGroup): self
+    {
+        $this->characteristics->changeVariantGroup($variantGroup);
+
+        return $this;
+    }
+
+    public function getVariantPosition(): int
+    {
+        return $this->characteristics->variantPosition();
+    }
+
+    public function setVariantPosition(int $variantPosition): self
+    {
+        $this->characteristics->changeVariantPosition($variantPosition);
+
+        return $this;
+    }
+
+    public function getReleaseYear(): ?int
+    {
+        return $this->characteristics->releaseYear();
+    }
+
+    public function setReleaseYear(?int $releaseYear): self
+    {
+        $this->characteristics->changeReleaseYear($releaseYear);
+
+        return $this;
+    }
+
+    public function getStorageCapacity(): ?string
+    {
+        return $this->characteristics->storageCapacity();
+    }
+
+    public function setStorageCapacity(?string $storageCapacity): self
+    {
+        $this->characteristics->changeStorageCapacity($storageCapacity);
+
+        return $this;
+    }
+
+    public function getMemoryRam(): ?string
+    {
+        return $this->characteristics->memoryRam();
+    }
+
+    public function setMemoryRam(?string $memoryRam): self
+    {
+        $this->characteristics->changeMemoryRam($memoryRam);
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->characteristics->color();
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->characteristics->changeColor($color);
+
+        return $this;
+    }
+
+    public function getStock(): int
+    {
+        return $this->inventory->stock();
+    }
+
+    public function setStock(int $stock): self
+    {
+        $this->inventory->changeStock($stock);
+
+        return $this;
+    }
+
+    public function getLowStockThreshold(): int
+    {
+        return $this->inventory->lowStockThreshold();
+    }
+
+    public function setLowStockThreshold(int $lowStockThreshold): self
+    {
+        $this->inventory->changeLowStockThreshold($lowStockThreshold);
+
+        return $this;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->publication->isPublished();
+    }
+
+    public function setIsPublished(bool $isPublished): self
+    {
+        $this->publication->changePublished($isPublished);
+
+        return $this;
+    }
+
+    public function isFeaturedHome(): bool
+    {
+        return $this->publication->isFeaturedHome();
+    }
 
     public function setIsFeaturedHome(bool $isFeaturedHome): self
     {
@@ -209,15 +393,58 @@ class Product
         return $this;
     }
 
-    public function getImageFile(): ?object { return $this->imageFile; }
-    public function getImageName(): ?string { return $this->gallery()->imageName(); }
-    public function setImageName(?string $imageName): self { $this->gallery()->changeImageName($imageName); return $this; }
-    public function getImageSize(): ?int { return $this->gallery()->imageSize(); }
-    public function setImageSize(?int $imageSize): self { $this->gallery()->changeImageSize($imageSize); return $this; }
-    public function getImageAlt(): ?string { return $this->gallery()->imageAlt(); }
-    public function setImageAlt(?string $imageAlt): self { $this->gallery()->changeImageAlt($imageAlt); return $this; }
-    public function getImageExternalUrl(): ?string { return $this->imageExternalUrl; }
-    public function setImageExternalUrl(?string $imageExternalUrl): self { $this->imageExternalUrl = $imageExternalUrl; return $this; }
+    public function getImageFile(): ?object
+    {
+        return $this->imageFile;
+    }
+
+    public function getImageName(): ?string
+    {
+        return $this->gallery()->imageName();
+    }
+
+    public function setImageName(?string $imageName): self
+    {
+        $this->gallery()->changeImageName($imageName);
+
+        return $this;
+    }
+
+    public function getImageSize(): ?int
+    {
+        return $this->gallery()->imageSize();
+    }
+
+    public function setImageSize(?int $imageSize): self
+    {
+        $this->gallery()->changeImageSize($imageSize);
+
+        return $this;
+    }
+
+    public function getImageAlt(): ?string
+    {
+        return $this->gallery()->imageAlt();
+    }
+
+    public function setImageAlt(?string $imageAlt): self
+    {
+        $this->gallery()->changeImageAlt($imageAlt);
+
+        return $this;
+    }
+
+    public function getImageExternalUrl(): ?string
+    {
+        return $this->imageExternalUrl;
+    }
+
+    public function setImageExternalUrl(?string $imageExternalUrl): self
+    {
+        $this->imageExternalUrl = $imageExternalUrl;
+
+        return $this;
+    }
 
     public function setGalleryImageFile(int $position, ?object $file): self
     {
@@ -250,23 +477,102 @@ class Product
     }
 
     /** @return list<string> */
-    public function getGalleryImageNames(): array { return $this->gallery()->names(); }
-    public function getGalleryImageNameByPosition(int $position): ?string { return $this->gallery()->nameByPosition($position); }
-    public function getGalleryImage2File(): ?object { return $this->galleryImage2File; }
-    public function getGalleryImage2Name(): ?string { return $this->gallery()->galleryImage2Name(); }
-    public function setGalleryImage2Name(?string $galleryImage2Name): self { $this->gallery()->changeGalleryImage2Name($galleryImage2Name); return $this; }
-    public function getGalleryImage2Size(): ?int { return $this->gallery()->galleryImage2Size(); }
-    public function setGalleryImage2Size(?int $galleryImage2Size): self { $this->gallery()->changeGalleryImage2Size($galleryImage2Size); return $this; }
-    public function getGalleryImage3File(): ?object { return $this->galleryImage3File; }
-    public function getGalleryImage3Name(): ?string { return $this->gallery()->galleryImage3Name(); }
-    public function setGalleryImage3Name(?string $galleryImage3Name): self { $this->gallery()->changeGalleryImage3Name($galleryImage3Name); return $this; }
-    public function getGalleryImage3Size(): ?int { return $this->gallery()->galleryImage3Size(); }
-    public function setGalleryImage3Size(?int $galleryImage3Size): self { $this->gallery()->changeGalleryImage3Size($galleryImage3Size); return $this; }
-    public function getGalleryImage4File(): ?object { return $this->galleryImage4File; }
-    public function getGalleryImage4Name(): ?string { return $this->gallery()->galleryImage4Name(); }
-    public function setGalleryImage4Name(?string $galleryImage4Name): self { $this->gallery()->changeGalleryImage4Name($galleryImage4Name); return $this; }
-    public function getGalleryImage4Size(): ?int { return $this->gallery()->galleryImage4Size(); }
-    public function setGalleryImage4Size(?int $galleryImage4Size): self { $this->gallery()->changeGalleryImage4Size($galleryImage4Size); return $this; }
+    public function getGalleryImageNames(): array
+    {
+        return $this->gallery()->names();
+    }
+
+    public function getGalleryImageNameByPosition(int $position): ?string
+    {
+        return $this->gallery()->nameByPosition($position);
+    }
+
+    public function getGalleryImage2File(): ?object
+    {
+        return $this->galleryImage2File;
+    }
+
+    public function getGalleryImage2Name(): ?string
+    {
+        return $this->gallery()->galleryImage2Name();
+    }
+
+    public function setGalleryImage2Name(?string $galleryImage2Name): self
+    {
+        $this->gallery()->changeGalleryImage2Name($galleryImage2Name);
+
+        return $this;
+    }
+
+    public function getGalleryImage2Size(): ?int
+    {
+        return $this->gallery()->galleryImage2Size();
+    }
+
+    public function setGalleryImage2Size(?int $galleryImage2Size): self
+    {
+        $this->gallery()->changeGalleryImage2Size($galleryImage2Size);
+
+        return $this;
+    }
+
+    public function getGalleryImage3File(): ?object
+    {
+        return $this->galleryImage3File;
+    }
+
+    public function getGalleryImage3Name(): ?string
+    {
+        return $this->gallery()->galleryImage3Name();
+    }
+
+    public function setGalleryImage3Name(?string $galleryImage3Name): self
+    {
+        $this->gallery()->changeGalleryImage3Name($galleryImage3Name);
+
+        return $this;
+    }
+
+    public function getGalleryImage3Size(): ?int
+    {
+        return $this->gallery()->galleryImage3Size();
+    }
+
+    public function setGalleryImage3Size(?int $galleryImage3Size): self
+    {
+        $this->gallery()->changeGalleryImage3Size($galleryImage3Size);
+
+        return $this;
+    }
+
+    public function getGalleryImage4File(): ?object
+    {
+        return $this->galleryImage4File;
+    }
+
+    public function getGalleryImage4Name(): ?string
+    {
+        return $this->gallery()->galleryImage4Name();
+    }
+
+    public function setGalleryImage4Name(?string $galleryImage4Name): self
+    {
+        $this->gallery()->changeGalleryImage4Name($galleryImage4Name);
+
+        return $this;
+    }
+
+    public function getGalleryImage4Size(): ?int
+    {
+        return $this->gallery()->galleryImage4Size();
+    }
+
+    public function setGalleryImage4Size(?int $galleryImage4Size): self
+    {
+        $this->gallery()->changeGalleryImage4Size($galleryImage4Size);
+
+        return $this;
+    }
 
     private function changePrimaryGalleryImageFile(?object $file): void
     {
@@ -314,7 +620,10 @@ class Product
         }
     }
 
-    public function getReviewsCount(): int { return $this->reviewsCount; }
+    public function getReviewsCount(): int
+    {
+        return $this->reviewsCount;
+    }
 
     public function setReviewsCount(int $count): self
     {
@@ -323,7 +632,10 @@ class Product
         return $this;
     }
 
-    public function getReviewsAverage(): float { return $this->reviewsAverage; }
+    public function getReviewsAverage(): float
+    {
+        return $this->reviewsAverage;
+    }
 
     public function setReviewsAverage(float $average): self
     {
@@ -332,8 +644,15 @@ class Product
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
 
     #[ORM\PrePersist]
     public function onPrePersist(): void

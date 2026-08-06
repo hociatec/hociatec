@@ -39,6 +39,7 @@ export const AdminAuditsListPage = () => {
     paginatedView,
     page,
     setPage,
+    total,
     totalPages,
   } = useAdminAuditsList();
   const { types, statuses } = useAuditMetadata();
@@ -47,7 +48,7 @@ export const AdminAuditsListPage = () => {
     <PageContainer size="admin" title="Audits">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {view.length} audit{view.length > 1 ? 's' : ''} trouvé{view.length > 1 ? 's' : ''}
+          {total} audit{total > 1 ? 's' : ''} trouvé{total > 1 ? 's' : ''}
           {totalPages > 1 ? `, page ${page} sur ${totalPages}` : ''}.
         </p>
         <p className="text-sm text-stone-500">Filtrez par numéro, URL, type, statut et période.</p>
@@ -147,7 +148,7 @@ export const AdminAuditsListPage = () => {
         </AdminTableShell>
         <PaginationControls
           page={page}
-          total={view.length}
+          total={total}
           totalLabel="audit"
           totalPages={totalPages}
           onPageChange={setPage}

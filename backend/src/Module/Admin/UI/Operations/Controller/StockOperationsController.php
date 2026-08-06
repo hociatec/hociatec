@@ -11,6 +11,7 @@ use App\Module\Admin\Application\Operations\Workflow\StockOperationsService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,9 +31,15 @@ final class StockOperationsController extends AbstractController
     }
 
     #[Route('/stock-movements', name: 'api_admin_operations_stock_list', methods: ['GET'])]
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        return ApiResponse::successItem('items', $this->stock->list());
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $items = $this->stock->list();
+
+        return ApiResponse::paginated(
+            array_slice($items, $pagination->offset(), $pagination->perPage),
+            $pagination->metadata(count($items)),
+        );
     }
 
     #[Route('/stock-movements', name: 'api_admin_operations_stock_create', methods: ['POST'])]

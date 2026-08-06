@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Client;
 
-use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

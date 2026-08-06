@@ -6,8 +6,8 @@ namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Port\PrestationPersistencePort;
-use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
+use App\Module\Appointment\Domain\Entity\Prestation;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

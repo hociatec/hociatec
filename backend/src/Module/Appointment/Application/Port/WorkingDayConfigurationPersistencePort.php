@@ -9,5 +9,6 @@ use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 interface WorkingDayConfigurationPersistencePort
 {
     public function save(WorkingDayConfiguration $configuration): void;
+
     public function commit(): void;
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
@@ -9,8 +9,10 @@ import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { adminCustomerQueryKeys } from '@/shared/lib/queryKeys';
+import type { PaginatedResult } from '@/shared/types/api';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';
 
@@ -19,25 +21,28 @@ const normalizePhoneLink = (phoneNumber: string) => phoneNumber.replace(/[^+\d]/
 export const AdminCustomersListPage = () => {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('recent_order');
-  const customersQuery = useQuery<AdminCustomerSummaryDto[], Error>({
-    queryKey: adminCustomerQueryKeys.list(search, sort),
-    queryFn: () => fetchAdminCustomers(search, sort),
+  const [page, setPage] = useState(1);
+  const customersQuery = useQuery<PaginatedResult<AdminCustomerSummaryDto>, Error>({
+    queryKey: [...adminCustomerQueryKeys.list(search, sort), { page }],
+    queryFn: () => fetchAdminCustomers(search, sort, page, 10),
   });
-  const customers = customersQuery.data ?? [];
+  const customers = customersQuery.data?.items ?? [];
+  const customersMeta = customersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const status = customersQuery.isLoading ? 'loading' : customersQuery.isError ? 'error' : 'success';
   const error = customersQuery.error?.message ?? null;
 
-  const verifiedCount = useMemo(
-    () => customers.filter((customer) => customer.isVerified).length,
-    [customers],
-  );
+  const verifiedCount = customers.filter((customer) => customer.isVerified).length;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, sort]);
 
   return (
     <PageContainer size="admin" title="Clients">
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {customers.length} client{customers.length > 1 ? 's' : ''} affiché
-          {customers.length > 1 ? 's' : ''}.
+          {customersMeta.total} client{customersMeta.total > 1 ? 's' : ''} affiché
+          {customersMeta.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">
           Recherche par prénom, nom, email, téléphone ou numéro de commande. {verifiedCount} compte
@@ -158,6 +163,13 @@ export const AdminCustomersListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={customersMeta.page}
+          total={customersMeta.total}
+          totalLabel="client"
+          totalPages={customersMeta.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

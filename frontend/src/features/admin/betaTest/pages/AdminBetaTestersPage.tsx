@@ -7,6 +7,7 @@ import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminBetaTestersPage = () => {
   const controller = useAdminBetaTestersPage();
@@ -63,6 +64,14 @@ export const AdminBetaTestersPage = () => {
         onDelete={(tester) => void controller.deleteTester(tester)}
         onSelect={controller.setSelectedTester}
         onStatusChange={(id, nextStatus) => controller.updateMutation.mutate({ id, nextStatus })}
+      />
+
+      <PaginationControls
+        page={controller.testersPagination.page}
+        total={controller.testersPagination.total}
+        totalLabel="profil"
+        totalPages={controller.testersPagination.totalPages}
+        onPageChange={controller.setPage}
       />
 
       <AdminBetaTesterDetailDialog

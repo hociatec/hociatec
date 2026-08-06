@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Appointment\UI\Controller\Client;
 
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
+use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
-use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;

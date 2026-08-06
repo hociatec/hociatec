@@ -10,32 +10,43 @@ import { downloadMyTradeInReceipt, fetchMyTradeIns, respondToTradeIn } from '../
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import type { TradeInDto } from '../types';
 import { tradeInQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const MyTradeInsPage = () => {
   useDocumentTitle('Mes reprises');
   const queryClient = useQueryClient();
-  const tradeInsQuery = useQuery<TradeInDto[], Error>({
-    queryKey: tradeInQueryKeys.mine(),
-    queryFn: fetchMyTradeIns,
+  const [page, setPage] = useState(1);
+  const tradeInsQuery = useQuery<PaginatedResult<TradeInDto>, Error>({
+    queryKey: [...tradeInQueryKeys.mine(), { page }],
+    queryFn: () => fetchMyTradeIns(page, 10),
   });
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const items = tradeInsQuery.data ?? [];
+  const items = tradeInsQuery.data?.items ?? [];
+  const pagination = tradeInsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
 
   const responseMutation = useMutation({
     mutationFn: ({ id, action }: { id: number; action: 'accept' | 'decline' }) =>
       respondToTradeIn(id, action).then(() => ({ id, action })),
     onSuccess: ({ id, action }) => {
-      queryClient.setQueryData<TradeInDto[]>(tradeInQueryKeys.mine(), (current = []) =>
-        current.map((item) =>
-          item.id === id
+      queryClient.setQueryData<PaginatedResult<TradeInDto>>(
+        [...tradeInQueryKeys.mine(), { page }],
+        (current) =>
+          current
             ? {
-                ...item,
-                status: action === 'accept' ? 'accepted' : 'declined',
-                statusLabel: action === 'accept' ? 'Offre acceptée' : 'Offre refusée',
+                ...current,
+                items: current.items.map((item) =>
+                  item.id === id
+                    ? {
+                        ...item,
+                        status: action === 'accept' ? 'accepted' : 'declined',
+                        statusLabel: action === 'accept' ? 'Offre acceptée' : 'Offre refusée',
+                      }
+                    : item,
+                ),
               }
-            : item,
-        ),
+            : current,
       );
       setMessage(
         action === 'accept' ? 'Votre accord a été enregistré.' : 'Votre refus a été enregistré.',
@@ -142,6 +153,13 @@ export const MyTradeInsPage = () => {
             </PublicPageSection>
           ))}
         </div>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="reprise"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </PublicPageShell>
     </SiteLayout>
   );

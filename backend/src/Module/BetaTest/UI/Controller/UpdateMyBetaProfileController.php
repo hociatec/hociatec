@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\UI\Controller;
 
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
-use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
+use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;

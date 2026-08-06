@@ -2,6 +2,8 @@ import { Link } from 'react-router';
 
 import type { OrderDto } from '@/features/orders/publicApi';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
+import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { type OrderFilter } from './customerDetailShared';
 
 export const CustomerOrdersSection = ({
@@ -15,6 +17,7 @@ export const CustomerOrdersSection = ({
   orders: OrderDto[];
   onOrderFilterChange: (filter: OrderFilter) => void;
 }) => {
+  const ordersPagination = useAdminPagination(filteredOrders, orderFilter);
   const openOrdersCount = orders.filter(
     (order) => order.status === 'pending' || order.status === 'confirmed',
   ).length;
@@ -60,7 +63,7 @@ export const CustomerOrdersSection = ({
         <p className="text-sm text-stone-500">Aucune commande pour ce client.</p>
       ) : (
         <div className="space-y-3">
-          {filteredOrders.map((order) => (
+          {ordersPagination.paginatedItems.map((order) => (
             <div
               key={order.id}
               className="flex flex-col gap-3 rounded-2xl bg-brand-50 p-4 md:flex-row md:items-center md:justify-between"
@@ -88,6 +91,13 @@ export const CustomerOrdersSection = ({
           {filteredOrders.length === 0 ? (
             <p className="text-sm text-stone-500">Aucune commande dans ce filtre.</p>
           ) : null}
+          <PaginationControls
+            page={ordersPagination.page}
+            total={ordersPagination.total}
+            totalLabel="commande"
+            totalPages={ordersPagination.totalPages}
+            onPageChange={ordersPagination.setPage}
+          />
         </div>
       )}
     </section>

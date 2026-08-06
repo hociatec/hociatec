@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Infrastructure\Repository;
 
 use App\Module\Catalog\Application\Port\StockMovementRepositoryPort;
-
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

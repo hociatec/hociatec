@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
+import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type { TrainingEnrollmentDto } from './trainingTypes';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
 
@@ -17,11 +17,15 @@ export const enrollTrainingSession = async (
   }, 'Inscription impossible.');
 };
 
-export const fetchMyTrainingEnrollments = async (): Promise<TrainingEnrollmentDto[]> => {
+export const fetchMyTrainingEnrollments = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<TrainingEnrollmentDto>> => {
   return trainingRequest(async () => {
-    const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[] }>>(
+    const res = await httpClient.get<ApiResponse<{ items: TrainingEnrollmentDto[]; meta: PaginationMeta }>>(
       TRAINING_API_ROUTES.myEnrollments,
+      { params: { page, perPage } },
     );
-    return unwrapTrainingData(res.data).items;
+    return unwrapTrainingData(res.data);
   }, 'Impossible de charger vos inscriptions.');
 };

@@ -84,7 +84,9 @@ final class BetaTestModuleCompletionTest extends TestCase
         $get->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $get()->getStatusCode());
         $get->setContainer($this->container($user));
-        self::assertSame(Response::HTTP_NOT_FOUND, $get()->getStatusCode());
+        $emptyProfilePayload = json_decode((string) $get()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(Response::HTTP_OK, $get()->getStatusCode());
+        self::assertNull($emptyProfilePayload['data']['profile']);
 
         $update = new UpdateMyBetaProfileController($profiles, $this->validator(2), $profileService);
         $update->setContainer($this->container(null));

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\PublicApi;
 
-use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Port\TrainingRepositoryPort;
+use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

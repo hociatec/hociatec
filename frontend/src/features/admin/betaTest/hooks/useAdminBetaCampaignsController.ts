@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   ADMIN_CAMPAIGN_REPORTS_PER_PAGE,
@@ -8,8 +8,10 @@ import { useAdminCampaignMutations } from './useAdminCampaignMutations';
 import { useAdminCampaignQueries } from './useAdminCampaignQueries';
 
 export const useAdminBetaCampaignsController = () => {
+  const [campaignsPage, setCampaignsPage] = useState(1);
   const dialogs = useAdminCampaignDialogState();
   const queries = useAdminCampaignQueries({
+    campaignsPage,
     commentsPage: dialogs.commentsPage,
     selectedReportId: dialogs.selectedReportId,
   });
@@ -47,6 +49,8 @@ export const useAdminBetaCampaignsController = () => {
 
   return {
     ...dialogs,
+    campaignsPage,
+    setCampaignsPage,
     ...queries,
     ...mutations,
   };

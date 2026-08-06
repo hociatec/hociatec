@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
 import { parseCheckoutRedirect, parseOrder, parsePendingReview } from './orderValidation';
@@ -72,10 +72,16 @@ export const fetchCheckoutSessionStatus = async (
   throw new Error(message);
 };
 
-export const fetchMyOrders = async (): Promise<OrderDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[] }>>('/api/orders/me');
+export const fetchMyOrders = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<OrderDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[]; meta: PaginationMeta }>>(
+    '/api/orders/me',
+    { params: { page, perPage } },
+  );
   if (isApiOk(data)) {
-    return data.data.items.map(parseOrder);
+    return { items: data.data.items.map(parseOrder), meta: data.data.meta };
   }
   const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
   throw new Error(message);

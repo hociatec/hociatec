@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Workflow;
 
-use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
+use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
 

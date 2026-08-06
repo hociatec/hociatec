@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Projection;
 
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
+use App\Module\User\Domain\Entity\User;
 
 final readonly class UserProfileFormatter
 {

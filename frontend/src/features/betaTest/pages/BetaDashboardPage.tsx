@@ -1,3 +1,6 @@
+import { useState, type FormEvent } from 'react';
+
+import { BetaProfileDialog } from '../components/BetaProfileDialog';
 import { BetaBugReportDialog } from '../components/BetaBugReportDialog';
 import { BetaCampaignDetailsDialog } from '../components/dashboard/BetaCampaignDetailsDialog';
 import { BetaCampaignsSection } from '../components/dashboard/BetaCampaignsSection';
@@ -6,13 +9,75 @@ import { BetaEmptyProfileState } from '../components/dashboard/BetaEmptyProfileS
 import { BetaProfileSummary } from '../components/dashboard/BetaProfileSummary';
 import { BetaReportFollowUpDialog } from '../components/dashboard/BetaReportFollowUpDialog';
 import { useBetaDashboardController } from '../hooks/useBetaDashboardController';
+import {
+  buildBetaProfileForm,
+  emptyBetaProfileForm,
+  isBetaProfileComplete,
+  type EditableProfile,
+} from '../lib/betaProfileForm';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 
 export const BetaDashboardPage = () => {
   const dashboard = useBetaDashboardController();
+  const confirm = useConfirm();
+  const [profileDialogMode, setProfileDialogMode] = useState<'create' | 'edit' | null>(null);
+  const [profileForm, setProfileForm] = useState<EditableProfile | null>(null);
+  const [profileFormError, setProfileFormError] = useState<string | null>(null);
+
+  const openProfileDialog = (mode: 'create' | 'edit') => {
+    setProfileForm(mode === 'edit' && dashboard.profile ? buildBetaProfileForm(dashboard.profile) : emptyBetaProfileForm());
+    setProfileFormError(null);
+    setProfileDialogMode(mode);
+  };
+
+  const closeProfileDialog = () => {
+    if (dashboard.updatingProfile || dashboard.isDeletingProfile) return;
+    setProfileDialogMode(null);
+    setProfileForm(null);
+    setProfileFormError(null);
+  };
+
+  const submitProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!profileForm) return;
+
+    if (!isBetaProfileComplete(profileForm)) {
+      setProfileFormError('Veuillez remplir tous les choix obligatoires (*) du profil bêta.');
+      return;
+    }
+
+    try {
+      await dashboard.updateProfile(profileForm);
+      closeProfileDialog();
+    } catch (error) {
+      setProfileFormError(
+        error instanceof Error ? error.message : 'Impossible d’enregistrer le profil bêta.',
+      );
+    }
+  };
+
+  const deleteProfile = async () => {
+    const confirmed = await confirm({
+      title: 'Supprimer le profil bêta',
+      description: 'Supprimer définitivement votre profil bêta ?',
+      confirmLabel: 'Supprimer',
+      cancelLabel: 'Annuler',
+    });
+    if (!confirmed) return;
+
+    try {
+      await dashboard.deleteProfile();
+      closeProfileDialog();
+    } catch (error) {
+      setProfileFormError(
+        error instanceof Error ? error.message : 'Impossible de supprimer le profil bêta.',
+      );
+    }
+  };
 
   if (dashboard.isLoadingProfile) {
     return (
@@ -28,7 +93,20 @@ export const BetaDashboardPage = () => {
     return (
       <SiteLayout headerVariant="light">
         <PageContainer title="Espace Bêta-Testeur">
-          <BetaEmptyProfileState />
+          <BetaEmptyProfileState onCreate={() => openProfileDialog('create')} />
+          {profileDialogMode && profileForm && dashboard.choices ? (
+            <BetaProfileDialog
+              choices={dashboard.choices}
+              error={profileFormError ?? dashboard.profileErrorMessage}
+              form={profileForm}
+              mode={profileDialogMode}
+              saving={dashboard.updatingProfile}
+              deleting={dashboard.isDeletingProfile}
+              onClose={closeProfileDialog}
+              onSubmit={submitProfile}
+              setForm={setProfileForm}
+            />
+          ) : null}
         </PageContainer>
       </SiteLayout>
     );
@@ -45,7 +123,26 @@ export const BetaDashboardPage = () => {
           resolvedReports={dashboard.resolvedReports}
         />
 
-        <BetaProfileSummary canReport={dashboard.canReport} profileStatus={dashboard.profileStatus} />
+        <BetaProfileSummary
+          canReport={dashboard.canReport}
+          onEdit={() => openProfileDialog('edit')}
+          profileStatus={dashboard.profileStatus}
+        />
+
+        {profileDialogMode && profileForm && dashboard.choices ? (
+          <BetaProfileDialog
+            choices={dashboard.choices}
+            error={profileFormError ?? dashboard.profileErrorMessage}
+            form={profileForm}
+            mode={profileDialogMode}
+            saving={dashboard.updatingProfile}
+            deleting={dashboard.isDeletingProfile}
+            onClose={closeProfileDialog}
+            onDelete={profileDialogMode === 'edit' ? deleteProfile : undefined}
+            onSubmit={submitProfile}
+            setForm={setProfileForm}
+          />
+        ) : null}
 
         <BetaCampaignsSection
           campaigns={dashboard.campaigns}

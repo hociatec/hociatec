@@ -7,9 +7,9 @@ namespace App\Module\Quote\Infrastructure\Repository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -59,9 +59,9 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
     /**
      * @return list<Quote>
      */
-    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0): array
+    public function findBySearch(?string $search, ?string $statusCode, int $limit = 20, int $offset = 0, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $to = null): array
     {
-        return $this->createSearchQuery($search, $statusCode)
+        return $this->createSearchQuery($search, $statusCode, $from, $to)
             ->orderBy('q.createdAt', 'DESC')
             ->setFirstResult(max(0, $offset))
             ->setMaxResults(max(1, min(100, $limit)))
@@ -69,9 +69,9 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
             ->getResult();
     }
 
-    public function countBySearch(?string $search, ?string $statusCode): int
+    public function countBySearch(?string $search, ?string $statusCode, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $to = null): int
     {
-        return (int) $this->createSearchQuery($search, $statusCode)
+        return (int) $this->createSearchQuery($search, $statusCode, $from, $to)
             ->select('COUNT(q.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -147,7 +147,7 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
             ->getResult();
     }
 
-    private function createSearchQuery(?string $search, ?string $statusCode): \Doctrine\ORM\QueryBuilder
+    private function createSearchQuery(?string $search, ?string $statusCode, ?\DateTimeImmutable $from = null, ?\DateTimeImmutable $to = null): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('q');
 
@@ -162,6 +162,14 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
                 $qb->andWhere('q.status = :status')
                     ->setParameter('status', $statusCode);
             }
+        }
+
+        if (null !== $from) {
+            $qb->andWhere('q.createdAt >= :from')->setParameter('from', $from);
+        }
+
+        if (null !== $to) {
+            $qb->andWhere('q.createdAt <= :to')->setParameter('to', $to->setTime(23, 59, 59));
         }
 
         return $qb;

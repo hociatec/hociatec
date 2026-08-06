@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export type MarketingSegmentDefinition = {
   label: string;
@@ -72,8 +72,20 @@ export const fetchMarketingSegments = async (
 export const fetchMarketingTemplates = async (): Promise<MarketingTemplate[]> => {
   const { data } = await httpClient.get<{ data: { items: MarketingTemplate[] } }>(
     '/api/admin/marketing/templates',
+    { params: { page: 1, perPage: 100 } },
   );
   return data.data.items;
+};
+
+export const fetchMarketingTemplatesPage = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<MarketingTemplate>> => {
+  const { data } = await httpClient.get<{ data: { items: MarketingTemplate[]; meta: PaginationMeta } }>(
+    '/api/admin/marketing/templates',
+    { params: { page, perPage } },
+  );
+  return { items: data.data.items, meta: data.data.meta };
 };
 
 export const fetchMarketingTemplate = async (templateId: number): Promise<MarketingTemplate> => {
@@ -115,8 +127,20 @@ export const deleteMarketingTemplate = async (templateId: number) => {
 export const fetchMarketingCampaigns = async (): Promise<MarketingCampaign[]> => {
   const { data } = await httpClient.get<{ data: { items: MarketingCampaign[] } }>(
     '/api/admin/marketing/campaigns',
+    { params: { page: 1, perPage: 100 } },
   );
   return data.data.items;
+};
+
+export const fetchMarketingCampaignsPage = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<MarketingCampaign>> => {
+  const { data } = await httpClient.get<{ data: { items: MarketingCampaign[]; meta: PaginationMeta } }>(
+    '/api/admin/marketing/campaigns',
+    { params: { page, perPage } },
+  );
+  return { items: data.data.items, meta: data.data.meta };
 };
 
 export const previewMarketingAudience = async (

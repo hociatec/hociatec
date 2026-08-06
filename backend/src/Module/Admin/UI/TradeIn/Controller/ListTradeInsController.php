@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,13 +22,12 @@ final class ListTradeInsController extends AbstractController
     public function __construct(
         private readonly TradeInRequestRepositoryPort $requests,
         private readonly TradeInFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $pagination = RequestQueryMapper::pagination($request);
+        $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $statusValue = RequestQueryMapper::nullableString($request, 'status');
         $status = null !== $statusValue ? TradeInStatus::tryFrom($statusValue) : null;
         $search = RequestQueryMapper::nullableString($request, 'q');

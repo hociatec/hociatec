@@ -21,7 +21,7 @@ const emptyFacets: CatalogSearchFacets = {
   colors: [],
   price: { min: null, max: null },
 };
-const initialMeta: CatalogSearchMeta = { page: 1, perPage: 12, total: 0, totalPages: 1 };
+const initialMeta: CatalogSearchMeta = { page: 1, perPage: 10, total: 0, totalPages: 1 };
 
 interface CategorySearchParams {
   slug?: string | undefined;

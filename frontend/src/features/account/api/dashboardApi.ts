@@ -27,9 +27,9 @@ export const fetchDashboardData = async (): Promise<{
 
   return {
     data: {
-      quotes: quotes.status === 'fulfilled' ? quotes.value : [],
+      quotes: quotes.status === 'fulfilled' ? quotes.value.items : [],
       appointments: appointments.status === 'fulfilled' ? (appointments.value.upcoming ?? []) : [],
-      trainings: trainings.status === 'fulfilled' ? trainings.value : [],
+      trainings: trainings.status === 'fulfilled' ? trainings.value.items : [],
       pendingReviews: pendingReviews.status === 'fulfilled' ? pendingReviews.value : [],
       loyalty: loyalty.status === 'fulfilled' ? loyalty.value : emptyLoyalty,
     },

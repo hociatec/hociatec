@@ -50,7 +50,7 @@ final readonly class AdminOperationsExporter
                 yield [$order->getId(), $order->getNumber(), $order->getUser()->getFullName(), $order->getUser()->getEmail(), $order->getStatus(), $order->getTotalPriceCents(), $order->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */
@@ -64,7 +64,7 @@ final readonly class AdminOperationsExporter
                 yield [$user->getId(), $user->getFullName(), $user->getEmail(), $user->getPhoneNumber(), $user->isVerified() ? 'oui' : 'non', $user->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */
@@ -78,7 +78,7 @@ final readonly class AdminOperationsExporter
                 yield [$product->getId(), $product->getSku(), $product->getName(), $product->getStock(), $product->getPriceCents(), $product->isPublished() ? 'oui' : 'non'];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */
@@ -92,7 +92,7 @@ final readonly class AdminOperationsExporter
                 yield [$quote->getId(), $quote->getNumber(), $quote->getCustomerName(), $quote->getCustomerEmail(), $quote->getStatus(), $quote->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */
@@ -106,7 +106,7 @@ final readonly class AdminOperationsExporter
                 yield [$refund->getId(), $refund->getOrder()->getNumber(), $refund->getAmountCents(), $refund->getStatus(), $refund->getReason(), $refund->getStripeRefundId(), $refund->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */
@@ -120,7 +120,7 @@ final readonly class AdminOperationsExporter
                 yield [$support->getId(), $support->getCustomer()->getFullName(), $support->getCustomer()->getEmail(), $support->getOrder()?->getNumber(), $support->getStatus(), $support->getReason(), $support->getSubject(), $support->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
     }
 
     /** @return \Generator<list<int|string|null>> */

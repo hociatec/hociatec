@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\Admin\Application\User\DTO\CustomerEmailInput;
-use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Application\Port\UserRepositoryPort;
+use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;

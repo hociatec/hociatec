@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Audit\Infrastructure\Repository;
 
 use App\Module\Audit\Application\Port\AuditEventRepositoryPort;
-
 use App\Module\Audit\Domain\Entity\AuditEvent;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -14,6 +14,8 @@ import { AdminBugReportDiscussion } from './AdminBugReportDiscussion';
 
 interface AdminBugReportDetailDialogProps {
   activities: AdminBugReportActivityDto[];
+  activitiesMeta: PaginationMeta | null;
+  activityPage: number;
   commentPage: number;
   comments: BugReportCommentDto[];
   commentsMeta: PaginationMeta | null;
@@ -25,6 +27,7 @@ interface AdminBugReportDetailDialogProps {
   postCommentPending: boolean;
   report: AdminBugReportDto | undefined;
   onClose: () => void;
+  onActivityPageChange: (updater: (page: number) => number) => void;
   onCommentPageChange: (updater: (page: number) => number) => void;
   onDuplicateIdChange: (value: string) => void;
   onDuplicateReasonChange: (value: string) => void;
@@ -35,6 +38,8 @@ interface AdminBugReportDetailDialogProps {
 
 export const AdminBugReportDetailDialog = ({
   activities,
+  activitiesMeta,
+  activityPage,
   commentPage,
   comments,
   commentsMeta,
@@ -46,6 +51,7 @@ export const AdminBugReportDetailDialog = ({
   postCommentPending,
   report,
   onClose,
+  onActivityPageChange,
   onCommentPageChange,
   onDuplicateIdChange,
   onDuplicateReasonChange,
@@ -85,7 +91,12 @@ export const AdminBugReportDetailDialog = ({
                 onNewCommentTextChange={onNewCommentTextChange}
                 onPostComment={onPostComment}
               />
-              <AdminBugReportActivityLog activities={activities} />
+              <AdminBugReportActivityLog
+                activities={activities}
+                activityPage={activityPage}
+                activitiesMeta={activitiesMeta}
+                onActivityPageChange={onActivityPageChange}
+              />
             </section>
           </div>
         </DialogPanel>

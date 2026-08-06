@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
-import { deletePrestation, fetchAdminPrestations } from '@/features/admin/appointments/api';
+import { deletePrestation, fetchAdminPrestationsPage } from '@/features/admin/appointments/api';
 import type { Prestation } from '@/features/appointments/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -12,16 +12,19 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import type { PaginatedResult } from '@/shared/types/api';
 
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Motifs de rendez-vous');
 
   const [message, setMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const prestationsQuery = useQuery<Prestation[], Error>({
-    queryKey: adminAppointmentQueryKeys.prestations(),
-    queryFn: fetchAdminPrestations,
+  const prestationsQuery = useQuery<PaginatedResult<Prestation>, Error>({
+    queryKey: [...adminAppointmentQueryKeys.prestations(), { page }],
+    queryFn: () => fetchAdminPrestationsPage(page, 10),
   });
   const deleteMutation = useMutation({
     mutationFn: deletePrestation,
@@ -30,7 +33,8 @@ export const PrestationsListPage = () => {
       setMessage(response.message ?? 'La prestation a bien été supprimée.');
     },
   });
-  const prestations = prestationsQuery.data ?? [];
+  const prestations = prestationsQuery.data?.items ?? [];
+  const prestationsMeta = prestationsQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const error = prestationsQuery.error
     ? getHttpErrorMessage(prestationsQuery.error, 'Erreur lors du chargement des prestations')
     : deleteMutation.error
@@ -66,7 +70,7 @@ export const PrestationsListPage = () => {
     >
       <div className="mb-6 space-y-1">
         <p className="text-sm text-stone-600">
-          {prestations.length} motif{prestations.length > 1 ? 's' : ''} au catalogue.
+          {prestationsMeta.total} motif{prestationsMeta.total > 1 ? 's' : ''} au catalogue.
         </p>
         <p className="text-sm text-stone-500">
           Ces motifs sont utilisés uniquement pour la prise de rendez-vous et la planification des
@@ -130,6 +134,13 @@ export const PrestationsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={prestationsMeta.page}
+          total={prestationsMeta.total}
+          totalLabel="motif"
+          totalPages={prestationsMeta.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

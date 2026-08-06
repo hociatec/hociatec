@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
+import { FlaskConical, LogIn, Search, ShieldCheck, ShoppingCart, UserPlus } from 'lucide-react';
 
 import { AccountNotifications } from '../../notifications/AccountNotifications';
 import { UserAccountMenu } from '../../ui/user-account-menu';
@@ -13,11 +13,13 @@ interface SiteHeaderActionsProps {
 }
 
 export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps) => {
-  const { cartQuantity, isAdmin, isAuthenticated, onLogout } = useSiteHeaderActionsState();
+  const { betaLinkTarget, cartQuantity, isAdmin, isAuthenticated, onLogout, shouldShowBetaLink } =
+    useSiteHeaderActionsState();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [search, setSearch] = useState('');
   const searchId = useId();
+  const betaLinkLabel = 'Programme bêta';
 
   const profileActive = isAnyPathActive(pathname, [
     '/mon-espace',
@@ -92,6 +94,15 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
         <span>Panier</span>
         <span className="site-header__badge">{cartQuantity}</span>
       </Link>
+      {shouldShowBetaLink ? (
+        <Link
+          to={betaLinkTarget}
+          className={`site-header__beta-cta${isPathActive(pathname, betaLinkTarget) ? ' site-header__beta-cta--active' : ''}`}
+        >
+          <FlaskConical aria-hidden="true" />
+          <span>{betaLinkLabel}</span>
+        </Link>
+      ) : null}
       {isAuthenticated ? (
         <>
           {isAdmin && (

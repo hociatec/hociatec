@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Writer;
 
+use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class ShippingAddressWriter

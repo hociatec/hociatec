@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\News\Controller;
 
 use App\Module\News\Application\DTO\NewsArticleInput;
+use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
-use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Component\HttpFoundation\JsonResponse;

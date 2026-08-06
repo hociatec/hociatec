@@ -26,8 +26,7 @@ class CreateBrandController extends AbstractController
         private readonly BrandService $brandService,
         private readonly DtoValidator $validator,
         private readonly CatalogFormatter $catalogFormatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(Request $request): JsonResponse

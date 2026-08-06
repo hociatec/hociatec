@@ -38,7 +38,7 @@ final class ExportBetaTestersController
                     fputcsv($output, [$u->getFirstName(), $u->getLastName(), $u->getEmail(), $p->getStatus(), $p->getAccessibilityNeed(), implode(', ', $p->getAvailability()), implode(', ', $p->getDevices()), implode(', ', $p->getBrowsers()), implode(', ', $p->getTestingTypes()), $p->getCreatedAt()->format(DATE_ATOM)], ';');
                 }
                 $offset += self::BATCH_SIZE;
-            } while (count($profiles) === self::BATCH_SIZE);
+            } while (self::BATCH_SIZE === count($profiles));
 
             fclose($output);
         });

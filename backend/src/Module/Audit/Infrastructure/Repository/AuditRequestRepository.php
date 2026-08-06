@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Audit\Infrastructure\Repository;
 
 use App\Module\Audit\Application\Port\AuditRequestRepositoryPort;
-
 use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -54,5 +54,82 @@ class AuditRequestRepository extends ServiceEntityRepository implements AuditReq
             ->setParameter('u', $user)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @param array{search?:string,status?:string,type?:string,from?:string,to?:string,sort?:string} $filters
+     *
+     * @return list<AuditRequest>
+     */
+    public function findForAdminList(array $filters, int $limit = 20, int $offset = 0): array
+    {
+        $qb = $this->createAdminListQueryBuilder($filters)
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)));
+
+        [$field, $direction] = $this->adminSort($filters['sort'] ?? 'date_desc');
+        $qb->orderBy($field, $direction);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /** @param array{search?:string,status?:string,type?:string,from?:string,to?:string,sort?:string} $filters */
+    public function countForAdminList(array $filters): int
+    {
+        return (int) $this->createAdminListQueryBuilder($filters)
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** @param array{search?:string,status?:string,type?:string,from?:string,to?:string,sort?:string} $filters */
+    private function createAdminListQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('a');
+        $search = trim((string) ($filters['search'] ?? ''));
+        if ('' !== $search) {
+            $qb
+                ->andWhere('LOWER(a.number) LIKE :search OR LOWER(a.targetUrl) LIKE :search')
+                ->setParameter('search', '%'.mb_strtolower($search).'%');
+        }
+
+        $status = (string) ($filters['status'] ?? '');
+        if (in_array($status, [
+            AuditRequest::STATUS_NEW,
+            AuditRequest::STATUS_IN_PROGRESS,
+            AuditRequest::STATUS_REVIEW,
+            AuditRequest::STATUS_DONE,
+        ], true)) {
+            $qb->andWhere('a.status = :status')->setParameter('status', $status);
+        }
+
+        $type = AuditType::tryFrom((string) ($filters['type'] ?? ''));
+        if (null !== $type) {
+            $qb->andWhere('a.type = :type')->setParameter('type', $type);
+        }
+
+        if (!empty($filters['from'])) {
+            $qb->andWhere('a.createdAt >= :from')->setParameter('from', new \DateTimeImmutable($filters['from']));
+        }
+
+        if (!empty($filters['to'])) {
+            $to = new \DateTimeImmutable($filters['to']);
+            $qb->andWhere('a.createdAt <= :to')->setParameter('to', $to->setTime(23, 59, 59));
+        }
+
+        return $qb;
+    }
+
+    /** @return array{0:string,1:string} */
+    private function adminSort(string $sort): array
+    {
+        return match ($sort) {
+            'date_asc' => ['a.createdAt', 'ASC'],
+            'number_asc' => ['a.number', 'ASC'],
+            'number_desc' => ['a.number', 'DESC'],
+            'status_asc' => ['a.status', 'ASC'],
+            'status_desc' => ['a.status', 'DESC'],
+            default => ['a.createdAt', 'DESC'],
+        };
     }
 }

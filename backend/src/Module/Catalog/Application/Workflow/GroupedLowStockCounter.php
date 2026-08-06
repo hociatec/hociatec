@@ -35,7 +35,7 @@ final readonly class GroupedLowStockCounter
             }
 
             $offset += self::BATCH_SIZE;
-        } while (count($page) === self::BATCH_SIZE);
+        } while (self::BATCH_SIZE === count($page));
 
         return count(array_filter(
             $groups,

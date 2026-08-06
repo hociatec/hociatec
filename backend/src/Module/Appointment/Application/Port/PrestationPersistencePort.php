@@ -9,6 +9,8 @@ use App\Module\Appointment\Domain\Entity\Prestation;
 interface PrestationPersistencePort
 {
     public function save(Prestation $prestation): void;
+
     public function commit(): void;
+
     public function delete(Prestation $prestation): void;
 }

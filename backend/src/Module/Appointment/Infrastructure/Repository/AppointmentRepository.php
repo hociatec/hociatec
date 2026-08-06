@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Infrastructure\Repository;
 
 use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
-
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 

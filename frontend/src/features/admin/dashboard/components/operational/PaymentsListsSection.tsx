@@ -1,6 +1,8 @@
 import { CircleAlert, CircleCheckBig } from 'lucide-react';
 
 import { type AdminDashboardDto } from '@/features/admin/customers/api';
+import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { DashboardCardAction, PanelTitle } from './AdminDashboardShared';
 
@@ -30,7 +32,10 @@ const PaymentsPanel = ({
   helper: string;
   payments: AdminDashboardDto['payments']['attention'];
   title: string;
-}) => (
+}) => {
+  const paymentsPagination = useAdminPagination(payments);
+
+  return (
   <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6">
     <PanelTitle
       title={title}
@@ -44,7 +49,7 @@ const PaymentsPanel = ({
           Aucun paiement critique à traiter.
         </div>
       ) : (
-        payments.map((payment) => (
+        paymentsPagination.paginatedItems.map((payment) => (
           <article
             key={payment.id}
             className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 md:flex-row md:items-center md:justify-between"
@@ -90,5 +95,14 @@ const PaymentsPanel = ({
         ))
       )}
     </div>
+    <PaginationControls
+      className="mt-6 text-stone-300"
+      page={paymentsPagination.page}
+      total={paymentsPagination.total}
+      totalLabel="paiement"
+      totalPages={paymentsPagination.totalPages}
+      onPageChange={paymentsPagination.setPage}
+    />
   </div>
-);
+  );
+};

@@ -1,6 +1,8 @@
 import { type ChangeEvent } from 'react';
 
 import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { ADMIN_PAGE_SIZE, useAdminPagination } from '@/shared/hooks/useAdminPagination';
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
@@ -59,69 +61,86 @@ export const ProductExtraVariantsSection = ({
   onAdd: () => void;
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof VariantRowState, value: string) => void;
-}) => (
-  <section className="catalog-form-section">
-    <div className="catalog-form-section__header">
-      <h2 className="catalog-form-section__title">Variantes supplémentaires</h2>
-      <p className="catalog-form-section__description">
-        Ajoutez des variantes avec leur couleur, leur stockage et leur stock propre.
-      </p>
-    </div>
+}) => {
+  const rowsPagination = useAdminPagination(rows, String(rows.length));
 
-    <div className="catalog-variants-list">
-      {rows.map((row, index) => (
-        <div key={`${index}-${row.color}-${row.storageCapacity}`} className="catalog-variant-card">
-          <div className="catalog-variant-card__header">
-            <h3 className="catalog-variant-card__title">Variante {index + 1}</h3>
-            <button
-              type="button"
-              className="catalog-variant-switcher__remove"
-              onClick={() => onRemove(index)}
-            >
-              Supprimer
-            </button>
-          </div>
+  return (
+    <section className="catalog-form-section">
+      <div className="catalog-form-section__header">
+        <h2 className="catalog-form-section__title">Variantes supplémentaires</h2>
+        <p className="catalog-form-section__description">
+          Ajoutez des variantes avec leur couleur, leur stockage et leur stock propre.
+        </p>
+      </div>
 
-          <div className="catalog-form-row catalog-form-row--columns">
-            <label htmlFor={`variant-color-${index}`}>
-              Couleur
-              <input
-                id={`variant-color-${index}`}
-                value={row.color}
-                onChange={(event) => onUpdate(index, 'color', event.target.value)}
-                placeholder="Couleur"
-              />
-            </label>
-            <label htmlFor={`variant-storage-${index}`}>
-              Stockage
-              <input
-                id={`variant-storage-${index}`}
-                type="number"
-                min="1"
-                max="4096"
-                step="1"
-                value={row.storageCapacity}
-                onChange={(event) => onUpdate(index, 'storageCapacity', event.target.value)}
-                placeholder="128"
-              />
-            </label>
-            <label htmlFor={`variant-stock-${index}`}>
-              Stock
-              <input
-                id={`variant-stock-${index}`}
-                type="number"
-                min="0"
-                value={row.stock}
-                onChange={(event) => onUpdate(index, 'stock', event.target.value)}
-              />
-            </label>
-          </div>
-        </div>
-      ))}
+      <div className="catalog-variants-list">
+        {rowsPagination.paginatedItems.map((row, visibleIndex) => {
+          const index = (rowsPagination.page - 1) * ADMIN_PAGE_SIZE + visibleIndex;
 
-      <button type="button" className="catalog-admin-actions__edit w-fit" onClick={onAdd}>
-        Ajouter une variante
-      </button>
-    </div>
-  </section>
-);
+          return (
+            <div key={`${index}-${row.color}-${row.storageCapacity}`} className="catalog-variant-card">
+              <div className="catalog-variant-card__header">
+                <h3 className="catalog-variant-card__title">Variante {index + 1}</h3>
+                <button
+                  type="button"
+                  className="catalog-variant-switcher__remove"
+                  onClick={() => onRemove(index)}
+                >
+                  Supprimer
+                </button>
+              </div>
+
+              <div className="catalog-form-row catalog-form-row--columns">
+                <label htmlFor={`variant-color-${index}`}>
+                  Couleur
+                  <input
+                    id={`variant-color-${index}`}
+                    value={row.color}
+                    onChange={(event) => onUpdate(index, 'color', event.target.value)}
+                    placeholder="Couleur"
+                  />
+                </label>
+                <label htmlFor={`variant-storage-${index}`}>
+                  Stockage
+                  <input
+                    id={`variant-storage-${index}`}
+                    type="number"
+                    min="1"
+                    max="4096"
+                    step="1"
+                    value={row.storageCapacity}
+                    onChange={(event) => onUpdate(index, 'storageCapacity', event.target.value)}
+                    placeholder="128"
+                  />
+                </label>
+                <label htmlFor={`variant-stock-${index}`}>
+                  Stock
+                  <input
+                    id={`variant-stock-${index}`}
+                    type="number"
+                    min="0"
+                    value={row.stock}
+                    onChange={(event) => onUpdate(index, 'stock', event.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+          );
+        })}
+
+        <PaginationControls
+          className="mt-3"
+          page={rowsPagination.page}
+          total={rowsPagination.total}
+          totalLabel="variante"
+          totalPages={rowsPagination.totalPages}
+          onPageChange={rowsPagination.setPage}
+        />
+
+        <button type="button" className="catalog-admin-actions__edit w-fit" onClick={onAdd}>
+          Ajouter une variante
+        </button>
+      </div>
+    </section>
+  );
+};

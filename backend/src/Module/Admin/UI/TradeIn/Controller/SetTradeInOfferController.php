@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
-use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

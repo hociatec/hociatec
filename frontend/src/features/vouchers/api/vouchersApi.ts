@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export interface MyVoucherDto {
   id: number;
@@ -16,11 +16,17 @@ export interface MyVoucherDto {
   updatedAt: string;
 }
 
-export const fetchMyVouchers = async (): Promise<MyVoucherDto[]> => {
-  const { data } = await httpClient.get<ApiResponse<{ items: MyVoucherDto[] }>>('/api/vouchers/me');
+export const fetchMyVouchers = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<MyVoucherDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: MyVoucherDto[]; meta: PaginationMeta }>>(
+    '/api/vouchers/me',
+    { params: { page, perPage } },
+  );
 
   if (isApiOk(data)) {
-    return data.data.items;
+    return data.data;
   }
 
   const message =

@@ -66,6 +66,7 @@ final readonly class SendMarketingCampaignRecipientEmailHandler
         if (!$this->userNotifications->shouldSendNewsEmail($user)) {
             $recipient->markSkipped('Communication preferences disabled marketing news email.');
             $this->persistence->commit();
+
             return;
         }
 

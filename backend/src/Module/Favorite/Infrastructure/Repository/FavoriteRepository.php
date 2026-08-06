@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Favorite\Infrastructure\Repository;
 
-use App\Module\Favorite\Application\Port\FavoriteRepositoryPort;
-
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Favorite\Application\Port\FavoriteRepositoryPort;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

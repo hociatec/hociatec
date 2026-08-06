@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
+use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

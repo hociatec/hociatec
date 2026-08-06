@@ -7,12 +7,13 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { formatServiceBillingMode } from '@/features/quotes/publicApi';
 
 export const ServicesListPage = () => {
   useDocumentTitle('Admin - Services');
-  const { loading, error, message, search, setSearch, filtered, handleDelete } =
+  const { loading, error, message, search, setSearch, filtered, pagination, setPage, handleDelete } =
     useAdminServicesList();
 
   return (
@@ -95,6 +96,13 @@ export const ServicesListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={pagination.page}
+          total={pagination.total}
+          totalLabel="service"
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

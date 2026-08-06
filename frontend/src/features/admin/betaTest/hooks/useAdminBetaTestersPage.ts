@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -6,24 +6,30 @@ import {
   fetchAdminBetaTesters,
   updateAdminBetaTester,
   type AdminBetaTesterDto,
+  type PaginationMeta,
 } from '../api';
 import { fetchBetaProfileChoices, formatBetaList, type BetaProfileChoices } from '@/features/betaTest/publicApi';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export const useAdminBetaTestersPage = () => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedTester, setSelectedTester] = useState<AdminBetaTesterDto | null>(null);
 
-  const testersQuery = useQuery<AdminBetaTesterDto[], Error>({
-    queryKey: adminBetaQueryKeys.testers(search, status),
-    queryFn: () => {
-      const query = `${search ? `&search=${encodeURIComponent(search)}` : ''}${status ? `&status=${status}` : ''}`;
-      return fetchAdminBetaTesters(query);
-    },
+  const testersQuery = useQuery<{ items: AdminBetaTesterDto[]; meta: PaginationMeta }, Error>({
+    queryKey: [...adminBetaQueryKeys.testers(search, status), { page }],
+    queryFn: () =>
+      fetchAdminBetaTesters(omitUndefinedProperties({
+        page,
+        perPage: 10,
+        search: search || undefined,
+        status: status || undefined,
+      })),
   });
   const choicesQuery = useQuery<BetaProfileChoices, Error>({
     queryKey: adminBetaQueryKeys.profileChoices(),
@@ -44,6 +50,11 @@ export const useAdminBetaTestersPage = () => {
   });
 
   const choices = choicesQuery.data ?? {};
+  const testers = testersQuery.data?.items ?? [];
+  const testersPagination = testersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
+  useEffect(() => {
+    setPage(1);
+  }, [search, status]);
   const formatChoiceList = (group: string, values: string[]) => {
     const labels = new Map((choices[group] ?? []).map((choice) => [choice.value, choice.label]));
     const readableValues = values.map((value) => labels.get(value) ?? value);
@@ -71,7 +82,9 @@ export const useAdminBetaTestersPage = () => {
     setSelectedTester,
     setStatus,
     status,
-    testers: testersQuery.data ?? [],
+    testers,
+    testersPagination,
+    setPage,
     testersQuery,
     updateMutation,
     deleteTester,

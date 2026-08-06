@@ -10,18 +10,21 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
+import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminNewsListPage = () => {
   useDocumentTitle('Admin - Actualités');
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
   const newsQuery = useQuery({
-    queryKey: adminNewsQueryKeys.list(query),
-    queryFn: () => fetchAdminNewsArticles({ q: query }),
+    queryKey: adminNewsQueryKeys.list(`${query}:${page}`),
+    queryFn: () => fetchAdminNewsArticles({ page, q: query }),
   });
   const items: NewsArticleDto[] = newsQuery.data?.items ?? [];
+  const meta = newsQuery.data?.meta ?? null;
   const deleteMutation = useMutation({
     mutationFn: deleteAdminNewsArticle,
     onSuccess: () => {
@@ -79,7 +82,14 @@ export const AdminNewsListPage = () => {
         </FeedbackMessage>
       ) : null}
       <div className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
-        <SearchFilter value={query} onChange={setQuery} placeholder="Rechercher une actualité..." />
+        <SearchFilter
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setPage(1);
+          }}
+          placeholder="Rechercher une actualité..."
+        />
       </div>
       <AdminListState loading={newsQuery.isLoading} isEmpty={!newsQuery.error && items.length === 0} loadingLabel="Chargement des actualités..." emptyLabel="Aucune actualité.">
         <AdminTableShell>
@@ -118,6 +128,13 @@ export const AdminNewsListPage = () => {
             </tbody>
           </table>
         </AdminTableShell>
+        <PaginationControls
+          page={page}
+          total={meta?.total}
+          totalLabel="actualité"
+          totalPages={meta?.totalPages ?? 1}
+          onPageChange={setPage}
+        />
       </AdminListState>
     </PageContainer>
   );

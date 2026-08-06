@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
 use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
-use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
