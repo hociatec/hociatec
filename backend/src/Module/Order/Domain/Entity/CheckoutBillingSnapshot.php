@@ -4,40 +4,68 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\ValueObject\CheckoutBillingAddress;
+
 final class CheckoutBillingSnapshot
 {
-    private ?string $billingName;
+    private string $billingName;
     private ?string $billingCompany;
     private ?string $billingCompanySiren;
     private ?string $billingCompanyVatNumber;
     private ?string $purchaseOrderNumber;
     private ?string $billingEmail;
-    private ?string $billingAddress;
-    private ?string $billingPostalCode;
-    private ?string $billingCity;
+    private CheckoutBillingAddress $billingAddress;
 
-    public function __construct(?string ...$values)
+    /**
+     * @param array{
+     *     billingName: ?string,
+     *     billingCompany: ?string,
+     *     billingCompanySiren: ?string,
+     *     billingCompanyVatNumber: ?string,
+     *     purchaseOrderNumber: ?string,
+     *     billingEmail: ?string,
+     *     billingAddress: ?string,
+     *     billingPostalCode: ?string,
+     *     billingCity: ?string,
+     * } $payload
+     */
+    public function __construct(array $payload)
     {
-        $keys = ['billingName', 'billingCompany', 'billingCompanySiren', 'billingCompanyVatNumber', 'purchaseOrderNumber', 'billingEmail', 'billingAddress', 'billingPostalCode', 'billingCity'];
-        $data = array_fill_keys($keys, null);
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $data[$keys[$index]] = $value;
-            }
-        }
-        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-        $this->billingName = $data['billingName'];
-        $this->billingCompany = $data['billingCompany'];
-        $this->billingCompanySiren = $data['billingCompanySiren'];
-        $this->billingCompanyVatNumber = $data['billingCompanyVatNumber'];
-        $this->purchaseOrderNumber = $data['purchaseOrderNumber'];
-        $this->billingEmail = $data['billingEmail'];
-        $this->billingAddress = $data['billingAddress'];
-        $this->billingPostalCode = $data['billingPostalCode'];
-        $this->billingCity = $data['billingCity'];
+        $this->billingName = $payload['billingName'] ?? '';
+        $this->billingCompany = $payload['billingCompany'] ?? null;
+        $this->billingCompanySiren = $payload['billingCompanySiren'] ?? null;
+        $this->billingCompanyVatNumber = $payload['billingCompanyVatNumber'] ?? null;
+        $this->purchaseOrderNumber = $payload['purchaseOrderNumber'] ?? null;
+        $this->billingEmail = $payload['billingEmail'] ?? null;
+        $this->billingAddress = new CheckoutBillingAddress(
+            $payload['billingAddress'] ?? null,
+            $payload['billingPostalCode'] ?? null,
+            $payload['billingCity'] ?? null,
+        );
+    }
+
+    public static function fromScalars(
+        ?string $billingName,
+        ?string $billingCompany,
+        ?string $billingCompanySiren,
+        ?string $billingCompanyVatNumber,
+        ?string $purchaseOrderNumber,
+        ?string $billingEmail,
+        ?string $billingAddress,
+        ?string $billingPostalCode,
+        ?string $billingCity,
+    ): self {
+        return new self([
+            'billingName' => $billingName,
+            'billingCompany' => $billingCompany,
+            'billingCompanySiren' => $billingCompanySiren,
+            'billingCompanyVatNumber' => $billingCompanyVatNumber,
+            'purchaseOrderNumber' => $purchaseOrderNumber,
+            'billingEmail' => $billingEmail,
+            'billingAddress' => $billingAddress,
+            'billingPostalCode' => $billingPostalCode,
+            'billingCity' => $billingCity,
+        ]);
     }
 
     public function name(): ?string
@@ -72,16 +100,16 @@ final class CheckoutBillingSnapshot
 
     public function address(): ?string
     {
-        return $this->billingAddress;
+        return $this->billingAddress->address;
     }
 
     public function postalCode(): ?string
     {
-        return $this->billingPostalCode;
+        return $this->billingAddress->postalCode;
     }
 
     public function city(): ?string
     {
-        return $this->billingCity;
+        return $this->billingAddress->city;
     }
 }

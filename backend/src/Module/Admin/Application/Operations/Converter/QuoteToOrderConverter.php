@@ -41,7 +41,13 @@ final readonly class QuoteToOrderConverter
         $order = $this->createOrder($quote, $customer);
 
         $this->persistence->persist($order);
-        $quote->setConvertedOrder($order);
+        $this->persistence->commit();
+        if (null === $order->getId()) {
+            throw new \RuntimeException('La commande n\'a pas d\'identifiant après enregistrement.');
+        }
+
+        $quote->setConvertedOrderId($order->getId());
+        $quote->setConvertedOrderNumber($order->getNumber());
         $quote->setStatus(Quote::STATUS_ACCEPTED);
         $this->persistence->commit();
 
@@ -69,8 +75,8 @@ final readonly class QuoteToOrderConverter
 
     private function assertConvertible(Quote $quote): void
     {
-        if ($quote->getConvertedOrder() instanceof Order) {
-            throw new \InvalidArgumentException(sprintf('Ce devis a déjà été converti en commande %s.', $quote->getConvertedOrder()->getNumber()));
+        if (null !== $quote->getConvertedOrderId()) {
+            throw new \InvalidArgumentException(sprintf('Ce devis a déjà été converti en commande %s.', (string) $quote->getConvertedOrderNumber()));
         }
         if (Quote::STATUS_ACCEPTED !== $quote->getStatus()) {
             throw new \InvalidArgumentException('Le devis doit être accepté avant conversion en commande.');

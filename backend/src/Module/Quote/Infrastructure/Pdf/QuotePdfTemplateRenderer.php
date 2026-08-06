@@ -8,8 +8,8 @@ use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 use App\Shared\Application\InvoiceIssuerProfile;
+use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 
 final class QuotePdfTemplateRenderer
 {

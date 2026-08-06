@@ -43,7 +43,7 @@ final class UpdateQuoteStatusController extends AbstractController
         $this->validator->validate($input);
         $status = QuoteStatusTranslator::toCode($input->status);
 
-        if (null !== $quote->getConvertedOrder() && Quote::STATUS_ACCEPTED !== $status) {
+        if (null !== $quote->getConvertedOrderId() && Quote::STATUS_ACCEPTED !== $status) {
             return ApiResponse::error('Un devis converti doit rester accepté.', Response::HTTP_BAD_REQUEST);
         }
 

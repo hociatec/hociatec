@@ -20,4 +20,3 @@ enum BetaCampaignStatus: string
         ];
     }
 }
-

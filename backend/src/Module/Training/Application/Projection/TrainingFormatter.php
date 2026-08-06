@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Projection;
 
-use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\Training\Application\Calculator\TrainingAvailabilityCalculator;
+use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;

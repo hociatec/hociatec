@@ -4,38 +4,34 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\ValueObject\CheckoutShippingAddress;
+
 final class CheckoutShippingSnapshot
 {
-    private ?string $shippingName;
-    private ?string $shippingAddress;
-    private ?string $shippingPostalCode;
-    private ?string $shippingCity;
+    private CheckoutShippingAddress $data;
 
-    public function __construct(?string $shippingName, ?string $shippingAddress, ?string $shippingPostalCode, ?string $shippingCity)
+    public function __construct(CheckoutShippingAddress $data)
     {
-        $this->shippingName = $shippingName;
-        $this->shippingAddress = $shippingAddress;
-        $this->shippingPostalCode = $shippingPostalCode;
-        $this->shippingCity = $shippingCity;
+        $this->data = $data;
     }
 
     public function name(): ?string
     {
-        return $this->shippingName;
+        return $this->data->name;
     }
 
     public function address(): ?string
     {
-        return $this->shippingAddress;
+        return $this->data->address;
     }
 
     public function postalCode(): ?string
     {
-        return $this->shippingPostalCode;
+        return $this->data->postalCode;
     }
 
     public function city(): ?string
     {
-        return $this->shippingCity;
+        return $this->data->city;
     }
 }

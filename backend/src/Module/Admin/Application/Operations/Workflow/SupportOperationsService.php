@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Workflow;
 
-use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
+use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
@@ -58,7 +58,9 @@ final readonly class SupportOperationsService
 
         $order = null !== $data->orderId ? $this->orders->find($data->orderId) : null;
         if ($order instanceof Order) {
-            $support->setOrder($order);
+            $support->setOrderId($order->getId(), $order->getNumber());
+        } else {
+            $support->setOrderId(null);
         }
 
         $this->persistence->persist($support);

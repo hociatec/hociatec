@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Entity;
 
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
@@ -19,7 +18,6 @@ final class QuoteEntitiesTest extends TestCase
         $quoteUpdatedAt = $quote->getUpdatedAt();
         $item = new QuoteItem('Service item', 15000);
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
-        $order = new Order('ORD-1', $user);
 
         $quote
             ->setNumber('Q-2')
@@ -34,7 +32,8 @@ final class QuoteEntitiesTest extends TestCase
             ->setValidFrom(new \DateTimeImmutable('2026-07-01'))
             ->setValidUntil(new \DateTimeImmutable('2026-08-01'))
             ->setCreatedEmailSentAt(new \DateTimeImmutable('2026-07-02T09:00:00+00:00'))
-            ->setConvertedOrder($order)
+            ->setConvertedOrderId(22)
+            ->setConvertedOrderNumber('ORD-1')
             ->addItem($item);
 
         self::assertNull($quote->getId());
@@ -50,7 +49,8 @@ final class QuoteEntitiesTest extends TestCase
         self::assertSame('2026-07-01', $quote->getValidFrom()?->format('Y-m-d'));
         self::assertSame('2026-08-01', $quote->getValidUntil()?->format('Y-m-d'));
         self::assertSame('2026-07-02T09:00:00+00:00', $quote->getCreatedEmailSentAt()?->format(DATE_ATOM));
-        self::assertSame($order, $quote->getConvertedOrder());
+        self::assertSame(22, $quote->getConvertedOrderId());
+        self::assertSame('ORD-1', $quote->getConvertedOrderNumber());
         self::assertInstanceOf(\DateTimeImmutable::class, $quote->getCreatedAt());
         self::assertCount(1, $quote->getItems());
         self::assertSame($quote, $item->getQuote());

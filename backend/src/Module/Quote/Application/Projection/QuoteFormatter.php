@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Projection;
 
-use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
@@ -15,7 +14,6 @@ final class QuoteFormatter
 {
     public function __construct(
         private readonly QuoteCalculator $calculator,
-        private readonly OrderFormatter $orderFormatter,
     ) {
     }
 
@@ -82,8 +80,8 @@ final class QuoteFormatter
             'createdAt' => $quote->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $quote->getUpdatedAt()->format(DATE_ATOM),
             'sentAt' => $quote->getCreatedEmailSentAt()?->format(DATE_ATOM),
-            'convertedOrder' => null !== $quote->getConvertedOrder()
-                ? $this->orderFormatter->formatOrder($quote->getConvertedOrder())
+            'convertedOrder' => null !== $quote->getConvertedOrderId()
+                ? ['id' => $quote->getConvertedOrderId(), 'number' => $quote->getConvertedOrderNumber()]
                 : null,
         ];
     }

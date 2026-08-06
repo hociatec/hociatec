@@ -39,7 +39,7 @@ final class AcceptMyQuoteController extends AbstractController
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if (null !== $quote->getConvertedOrder()) {
+        if (null !== $quote->getConvertedOrderId()) {
             return ApiResponse::error('Ce devis est déjà converti en commande.', Response::HTTP_CONFLICT);
         }
 

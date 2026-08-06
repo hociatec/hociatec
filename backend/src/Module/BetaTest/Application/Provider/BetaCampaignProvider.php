@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\BetaTest\Application\Provider;
 
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
-use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class BetaCampaignProvider

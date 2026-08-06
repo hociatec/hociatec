@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Repository;
 
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
@@ -28,7 +27,6 @@ final class QuoteRepositoryTest extends TestCase
         $schemaTool = new SchemaTool($this->entityManager);
         $schemaTool->createSchema([
             $this->entityManager->getClassMetadata(User::class),
-            $this->entityManager->getClassMetadata(Order::class),
             $this->entityManager->getClassMetadata(Quote::class),
         ]);
     }
@@ -37,7 +35,6 @@ final class QuoteRepositoryTest extends TestCase
     {
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $user->setPassword('hashed');
-        $order = new Order('ORD-1', $user);
         $quoteA = (new Quote('Q-2026-001'))
             ->setCustomerName('Ada Lovelace')
             ->setCustomerEmail('ada@example.com')
@@ -50,7 +47,8 @@ final class QuoteRepositoryTest extends TestCase
         $quoteC = (new Quote('Q-2025-001'))
             ->setCustomerName('Old Quote')
             ->setStatus(Quote::STATUS_ACCEPTED)
-            ->setConvertedOrder($order)
+            ->setConvertedOrderId(1)
+            ->setConvertedOrderNumber('ORD-1')
             ->setCreatedEmailSentAt(new \DateTimeImmutable('2026-07-22T10:00:00+00:00'));
 
         $this->setDate($quoteA, 'createdAt', new \DateTimeImmutable('2026-01-10T10:00:00+00:00'));
@@ -60,7 +58,7 @@ final class QuoteRepositoryTest extends TestCase
         $this->setDate($quoteC, 'createdAt', new \DateTimeImmutable('2025-03-10T10:00:00+00:00'));
         $this->setDate($quoteC, 'updatedAt', new \DateTimeImmutable('2026-07-22T10:00:00+00:00'));
 
-        foreach ([$user, $order, $quoteA, $quoteB, $quoteC] as $entity) {
+        foreach ([$user, $quoteA, $quoteB, $quoteC] as $entity) {
             $this->entityManager->persist($entity);
         }
         $this->entityManager->flush();

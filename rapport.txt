@@ -1,9 +1,0 @@
-RAPPORT D'ACTIONS - OBJECTIF > 8/10
-
-5. Remplacer les groupes de primitives par des Value Objects utiles.
-17. Réduire les classes > 500 lignes.
-25. Déplacer les règles métier Admin dans les modules concernés.
-26. Limiter les relations Doctrine entre modules.
-27. Préférer IDs ou snapshots entre modules.
-28. Éliminer les cycles de dépendances.
-38. Centraliser les notifications.

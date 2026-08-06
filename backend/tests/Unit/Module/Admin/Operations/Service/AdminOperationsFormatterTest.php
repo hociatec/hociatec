@@ -129,7 +129,7 @@ final class AdminOperationsFormatterTest extends TestCase
 
         $support = new SupportRequest($user, 'Suivi');
         $support
-            ->setOrder($order)
+            ->setOrderId($order->getId(), $order->getNumber())
             ->setStatus(SupportRequest::STATUS_RESOLVED)
             ->setReason('delivery')
             ->setMessage('Où en est la livraison ?')
@@ -150,6 +150,7 @@ final class AdminOperationsFormatterTest extends TestCase
             $entityManager->persist($entity);
         }
         $entityManager->flush();
+        $support->setOrderId($order->getId(), $order->getNumber());
 
         $event = new OrderEvent($order, 'email_failed', 'SMTP indisponible', null, null);
         $entityManager->persist($event);

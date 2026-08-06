@@ -24,7 +24,7 @@ final class OrderNotificationContentProviderTest extends TestCase
         $quote = new Quote('DEV-2026-0042');
 
         $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_created')->willReturn(null);
-        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn($quote);
+        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with(77)->willReturn($quote);
 
         $content = $provider->build($order, 'order_created', ['custom_value' => 'X']);
 
@@ -53,7 +53,7 @@ final class OrderNotificationContentProviderTest extends TestCase
         );
 
         $templates->expects(self::once())->method('findActiveOneByScenarioKey')->with('order_status_delivered')->willReturn($template);
-        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with($order)->willReturn(null);
+        $quotes->expects(self::once())->method('findConvertedQuoteForOrder')->with(77)->willReturn(null);
 
         $content = $provider->build($order, 'order_status_delivered', ['custom_html' => '<b>unsafe</b>']);
 
@@ -73,7 +73,7 @@ final class OrderNotificationContentProviderTest extends TestCase
             ->setBillingEmail('billing@example.com');
 
         $templates->expects(self::exactly(3))->method('findActiveOneByScenarioKey')->willReturn(null);
-        $quotes->expects(self::exactly(3))->method('findConvertedQuoteForOrder')->willReturn(null);
+        $quotes->expects(self::exactly(3))->method('findConvertedQuoteForOrder')->with(77)->willReturn(null);
 
         $invoice = $provider->build($order, 'order_invoice_issued');
         self::assertStringContainsString('FAC-2026-0001', $invoice['subject']);

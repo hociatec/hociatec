@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Infrastructure\Repository;
 
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Shared\Application\LockMode as ApplicationLockMode;
@@ -51,9 +50,9 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function findConvertedQuoteForOrder(Order $order): ?Quote
+    public function findConvertedQuoteForOrder(int $orderId): ?Quote
     {
-        return $this->findOneBy(['convertedOrder' => $order]);
+        return $this->findOneBy(['convertedOrderId' => $orderId]);
     }
 
     /**
@@ -110,7 +109,7 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
     {
         return $this->createQueryBuilder('q')
             ->andWhere('q.status = :status')
-            ->andWhere('q.convertedOrder IS NULL')
+            ->andWhere('q.convertedOrderId IS NULL')
             ->setParameter('status', Quote::STATUS_ACCEPTED)
             ->orderBy('q.updatedAt', 'DESC')
             ->setMaxResults(max(1, $limit))

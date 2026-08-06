@@ -124,7 +124,7 @@ final class AdminOperationsControllersTest extends TestCase
         $order->addItem(new OrderItem('Phone', 'PH-OPS', 100000, 2));
 
         $support = (new SupportRequest($customer, 'Suivi'))
-            ->setOrder($order)
+            ->setOrderId($order->getId(), $order->getNumber())
             ->setStatus(SupportRequest::STATUS_NEW)
             ->setReason('delivery')
             ->setMessage('Ou en est la livraison ?');

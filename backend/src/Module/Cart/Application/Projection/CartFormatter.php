@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Projection;
 
-use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Application\Calculator\CartTotalsCalculator;
+use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\User\Domain\Entity\User;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\TradeIn;
 
-use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
+use App\Module\TradeIn\Application\DTO\TradeInClosureInput;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;

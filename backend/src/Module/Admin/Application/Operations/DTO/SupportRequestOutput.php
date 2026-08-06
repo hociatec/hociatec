@@ -6,9 +6,8 @@ namespace App\Module\Admin\Application\Operations\DTO;
 
 final readonly class SupportRequestOutput implements \ArrayAccess, \JsonSerializable
 {
-    public function __construct(
-        /**
-         * @param array{
+    /**
+     * @param array{
      *   id:int,
      *   status:string,
      *   statusLabel:string,
@@ -17,12 +16,13 @@ final readonly class SupportRequestOutput implements \ArrayAccess, \JsonSerializ
      *   message:string,
      *   internalNotes:?string,
      *   customer:array{id:?int,name:string,email:string},
-     *   order:?array{id:?int,number:string},
+     *   order:?array{id:?int,number:?string},
      *   createdAt:string,
      *   updatedAt:string,
      *   resolvedAt:?string,
      * } $payload
-         */
+     */
+    public function __construct(
         private array $payload,
     ) {
     }

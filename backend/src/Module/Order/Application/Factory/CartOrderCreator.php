@@ -7,7 +7,6 @@ namespace App\Module\Order\Application\Factory;
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
-use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;

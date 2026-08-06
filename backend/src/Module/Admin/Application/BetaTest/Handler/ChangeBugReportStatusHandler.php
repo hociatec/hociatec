@@ -6,8 +6,8 @@ namespace App\Module\Admin\Application\BetaTest\Handler;
 
 use App\Module\Admin\Application\BetaTest\Provider\BugReportStatusLabelProvider;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
-use App\Module\BetaTest\Domain\Enum\BugReportStatus;
 use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\BetaTest\Domain\Enum\BugReportStatus;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;

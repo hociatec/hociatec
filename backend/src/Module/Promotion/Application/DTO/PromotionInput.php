@@ -80,6 +80,7 @@ final readonly class PromotionInput
 
     /**
      * @param array<int|string, mixed> $values
+     *
      * @return array<string, mixed>
      */
     private function mapValues(array $values): array

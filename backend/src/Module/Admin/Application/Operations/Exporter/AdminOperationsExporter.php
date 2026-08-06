@@ -117,7 +117,7 @@ final readonly class AdminOperationsExporter
         do {
             $page = $this->supportRequests->findBy([], ['createdAt' => 'DESC'], self::BATCH_SIZE, $offset);
             foreach ($page as $support) {
-                yield [$support->getId(), $support->getCustomer()->getFullName(), $support->getCustomer()->getEmail(), $support->getOrder()?->getNumber(), $support->getStatus(), $support->getReason(), $support->getSubject(), $support->getCreatedAt()->format(DATE_ATOM)];
+                yield [$support->getId(), $support->getCustomer()->getFullName(), $support->getCustomer()->getEmail(), $support->getOrderNumber(), $support->getStatus(), $support->getReason(), $support->getSubject(), $support->getCreatedAt()->format(DATE_ATOM)];
             }
             $offset += self::BATCH_SIZE;
         } while (self::BATCH_SIZE === count($page));

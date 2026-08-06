@@ -44,7 +44,11 @@ final readonly class OrderNotificationContentProvider
     private function context(Order $order, array $extraContext): array
     {
         $frontendUrl = rtrim($this->frontendUrl, '/');
-        $quoteNumber = $this->quotes->findConvertedQuoteForOrder($order)?->getNumber() ?? '';
+        $orderId = $order->getId();
+        if (null === $orderId) {
+            throw new \RuntimeException('La commande doit être persistée pour générer la notification.');
+        }
+        $quoteNumber = $this->quotes->findConvertedQuoteForOrder($orderId)?->getNumber() ?? '';
         $isPendingPayment = Order::STATUS_PENDING === $order->getStatus();
 
         return $extraContext + [

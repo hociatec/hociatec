@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Projection;
 
+use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
-use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
@@ -24,7 +24,8 @@ final readonly class AdminOperationsFormatter
     public function supportRequest(SupportRequest $support): SupportRequestOutput
     {
         $customer = $support->getCustomer();
-        $order = $support->getOrder();
+        $orderId = $support->getOrderId();
+        $orderNumber = $support->getOrderNumber();
 
         return new SupportRequestOutput(
             [
@@ -36,7 +37,7 @@ final readonly class AdminOperationsFormatter
                 'message' => $support->getMessage(),
                 'internalNotes' => $support->getInternalNotes(),
                 'customer' => ['id' => $customer->getId(), 'name' => $customer->getFullName(), 'email' => $customer->getEmail()],
-                'order' => $order instanceof Order ? ['id' => $order->getId(), 'number' => $order->getNumber()] : null,
+                'order' => null !== $orderId || null !== $orderNumber ? ['id' => $orderId, 'number' => $orderNumber] : null,
                 'createdAt' => $support->getCreatedAt()->format(DATE_ATOM),
                 'updatedAt' => $support->getUpdatedAt()->format(DATE_ATOM),
                 'resolvedAt' => $support->getResolvedAt()?->format(DATE_ATOM),

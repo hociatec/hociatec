@@ -85,6 +85,7 @@ final class ProductSearchRequestMapper
         }
 
         $cents = (int) round((float) $normalized * 100);
+
         return 0 > $cents ? 0 : $cents;
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Shared\Application\InvoiceIssuerProfile;
 use App\Module\Order\Domain\Entity\Order;
+use App\Shared\Application\InvoiceIssuerProfile;
 
 final class OrderInvoiceXmlService
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Module\Order\Domain\ValueObject\CheckoutShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -12,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class OrderCheckoutSession
 {
+    use OrderCheckoutBillingSnapshotTrait;
+    use OrderCheckoutCustomerSnapshotTrait;
+    use OrderCheckoutShippingSnapshotTrait;
+
     public const STATUS_OPEN = 'open';
     public const STATUS_PAID = 'paid';
     public const STATUS_EXPIRED = 'expired';
@@ -308,186 +313,6 @@ class OrderCheckoutSession
         return $this;
     }
 
-    public function getCustomerFullName(): ?string
-    {
-        return $this->customerSnapshot()->fullName();
-    }
-
-    public function setCustomerFullName(?string $customerFullName): self
-    {
-        $this->customerFullName = $customerFullName;
-
-        return $this;
-    }
-
-    public function getCustomerEmail(): string
-    {
-        return $this->customerSnapshot()->email();
-    }
-
-    public function setCustomerEmail(string $customerEmail): self
-    {
-        $this->customerEmail = $customerEmail;
-
-        return $this;
-    }
-
-    public function getShippingName(): ?string
-    {
-        return $this->shippingSnapshot()->name();
-    }
-
-    public function setShippingName(?string $shippingName): self
-    {
-        $this->shippingName = $shippingName;
-
-        return $this;
-    }
-
-    public function getShippingAddress(): ?string
-    {
-        return $this->shippingSnapshot()->address();
-    }
-
-    public function setShippingAddress(?string $shippingAddress): self
-    {
-        $this->shippingAddress = $shippingAddress;
-
-        return $this;
-    }
-
-    public function getShippingPostalCode(): ?string
-    {
-        return $this->shippingSnapshot()->postalCode();
-    }
-
-    public function setShippingPostalCode(?string $shippingPostalCode): self
-    {
-        $this->shippingPostalCode = $shippingPostalCode;
-
-        return $this;
-    }
-
-    public function getShippingCity(): ?string
-    {
-        return $this->shippingSnapshot()->city();
-    }
-
-    public function setShippingCity(?string $shippingCity): self
-    {
-        $this->shippingCity = $shippingCity;
-
-        return $this;
-    }
-
-    public function getBillingName(): ?string
-    {
-        return $this->billingSnapshot()->name();
-    }
-
-    public function setBillingName(?string $billingName): self
-    {
-        $this->billingName = $billingName;
-
-        return $this;
-    }
-
-    public function getBillingCompany(): ?string
-    {
-        return $this->billingSnapshot()->company();
-    }
-
-    public function setBillingCompany(?string $billingCompany): self
-    {
-        $this->billingCompany = $billingCompany;
-
-        return $this;
-    }
-
-    public function getBillingCompanySiren(): ?string
-    {
-        return $this->billingSnapshot()->companySiren();
-    }
-
-    public function setBillingCompanySiren(?string $billingCompanySiren): self
-    {
-        $this->billingCompanySiren = $billingCompanySiren;
-
-        return $this;
-    }
-
-    public function getBillingCompanyVatNumber(): ?string
-    {
-        return $this->billingSnapshot()->companyVatNumber();
-    }
-
-    public function setBillingCompanyVatNumber(?string $billingCompanyVatNumber): self
-    {
-        $this->billingCompanyVatNumber = $billingCompanyVatNumber;
-
-        return $this;
-    }
-
-    public function getPurchaseOrderNumber(): ?string
-    {
-        return $this->billingSnapshot()->purchaseOrderNumber();
-    }
-
-    public function setPurchaseOrderNumber(?string $purchaseOrderNumber): self
-    {
-        $this->purchaseOrderNumber = $purchaseOrderNumber;
-
-        return $this;
-    }
-
-    public function getBillingEmail(): ?string
-    {
-        return $this->billingSnapshot()->email();
-    }
-
-    public function setBillingEmail(?string $billingEmail): self
-    {
-        $this->billingEmail = $billingEmail;
-
-        return $this;
-    }
-
-    public function getBillingAddress(): ?string
-    {
-        return $this->billingSnapshot()->address();
-    }
-
-    public function setBillingAddress(?string $billingAddress): self
-    {
-        $this->billingAddress = $billingAddress;
-
-        return $this;
-    }
-
-    public function getBillingPostalCode(): ?string
-    {
-        return $this->billingSnapshot()->postalCode();
-    }
-
-    public function setBillingPostalCode(?string $billingPostalCode): self
-    {
-        $this->billingPostalCode = $billingPostalCode;
-
-        return $this;
-    }
-
-    public function getBillingCity(): ?string
-    {
-        return $this->billingSnapshot()->city();
-    }
-
-    public function setBillingCity(?string $billingCity): self
-    {
-        $this->billingCity = $billingCity;
-
-        return $this;
-    }
-
     private function customerSnapshot(): CheckoutCustomerSnapshot
     {
         return new CheckoutCustomerSnapshot($this->customerFullName, $this->customerEmail);
@@ -495,12 +320,19 @@ class OrderCheckoutSession
 
     private function shippingSnapshot(): CheckoutShippingSnapshot
     {
-        return new CheckoutShippingSnapshot($this->shippingName, $this->shippingAddress, $this->shippingPostalCode, $this->shippingCity);
+        return new CheckoutShippingSnapshot(
+            new CheckoutShippingAddress(
+                $this->shippingName,
+                $this->shippingAddress,
+                $this->shippingPostalCode,
+                $this->shippingCity,
+            ),
+        );
     }
 
     private function billingSnapshot(): CheckoutBillingSnapshot
     {
-        return new CheckoutBillingSnapshot(
+        return CheckoutBillingSnapshot::fromScalars(
             $this->billingName,
             $this->billingCompany,
             $this->billingCompanySiren,

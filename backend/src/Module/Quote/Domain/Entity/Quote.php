@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Domain\Entity;
 
-use App\Module\Order\Domain\Entity\Order;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -72,8 +71,11 @@ class Quote
     private ?\DateTimeImmutable $createdEmailSentAt = null;
 
     #[ORM\OneToOne(targetEntity: Order::class)]
-    #[ORM\JoinColumn(name: 'converted_order_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
-    private ?Order $convertedOrder = null;
+    #[ORM\Column(name: 'converted_order_id', type: 'integer', nullable: true)]
+    private ?int $convertedOrderId = null;
+
+    #[ORM\Column(name: 'converted_order_number', length: 40, nullable: true)]
+    private ?string $convertedOrderNumber = null;
 
     public function __construct(string $number)
     {
@@ -278,14 +280,26 @@ class Quote
         return $this;
     }
 
-    public function getConvertedOrder(): ?Order
+    public function getConvertedOrderId(): ?int
     {
-        return $this->convertedOrder;
+        return $this->convertedOrderId;
     }
 
-    public function setConvertedOrder(?Order $convertedOrder): self
+    public function setConvertedOrderId(?int $convertedOrderId): self
     {
-        $this->convertedOrder = $convertedOrder;
+        $this->convertedOrderId = $convertedOrderId;
+
+        return $this;
+    }
+
+    public function getConvertedOrderNumber(): ?string
+    {
+        return $this->convertedOrderNumber;
+    }
+
+    public function setConvertedOrderNumber(?string $convertedOrderNumber): self
+    {
+        $this->convertedOrderNumber = $convertedOrderNumber;
 
         return $this;
     }

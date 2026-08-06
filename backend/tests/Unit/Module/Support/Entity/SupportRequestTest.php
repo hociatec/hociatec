@@ -20,7 +20,8 @@ final class SupportRequestTest extends TestCase
 
         self::assertNull($support->getId());
         self::assertSame($user, $support->getCustomer());
-        self::assertNull($support->getOrder());
+        self::assertNull($support->getOrderId());
+        self::assertNull($support->getOrderNumber());
         self::assertSame(SupportRequest::STATUS_NEW, $support->getStatus());
         self::assertSame('other', $support->getReason());
         self::assertSame('Demande SAV', $support->getSubject());
@@ -31,7 +32,7 @@ final class SupportRequestTest extends TestCase
         self::assertNull($support->getResolvedAt());
 
         $support
-            ->setOrder($order)
+            ->setOrderId(123, 'ORD-1')
             ->setStatus(SupportRequest::STATUS_IN_PROGRESS)
             ->setReason('  shipping ')
             ->setSubject('  Produit recu ')
@@ -39,7 +40,8 @@ final class SupportRequestTest extends TestCase
             ->setInternalNotes('  notes ')
             ->setAttachments([['name' => 'doc.pdf']]);
 
-        self::assertSame($order, $support->getOrder());
+        self::assertSame(123, $support->getOrderId());
+        self::assertSame('ORD-1', $support->getOrderNumber());
         self::assertSame(SupportRequest::STATUS_IN_PROGRESS, $support->getStatus());
         self::assertSame('shipping', $support->getReason());
         self::assertSame('Produit recu', $support->getSubject());

@@ -139,9 +139,9 @@ final class AdminQuoteCompletionTest extends TestCase
         self::assertSame(Response::HTTP_OK, $status($this->jsonRequest(['status' => Quote::STATUS_SENT], 'PATCH'), $quoteId)->getStatusCode());
         $quote = $quoteRepository->find($quoteId);
         self::assertInstanceOf(Quote::class, $quote);
-        $quote->setConvertedOrder(new Order('ADM-ORDER-1', new User('converted@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female')));
+        $quote->setConvertedOrderId(1)->setConvertedOrderNumber('ADM-ORDER-1');
         self::assertSame(Response::HTTP_BAD_REQUEST, $status($this->jsonRequest(['status' => Quote::STATUS_REFUSED], 'PATCH'), $quoteId)->getStatusCode());
-        $quote->setConvertedOrder(null);
+        $quote->setConvertedOrderId(null)->setConvertedOrderNumber(null);
 
         $send = new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new QuotePersistence($em)), $this->createMock(LoggerInterface::class), $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $send($this->jsonRequest(['to' => 'client@example.test']), '0')->getStatusCode());

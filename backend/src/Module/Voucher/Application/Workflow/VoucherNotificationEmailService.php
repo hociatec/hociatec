@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Voucher\Application\Workflow;
 
 use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
+use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 
 final class VoucherNotificationEmailService
 {
@@ -53,7 +52,15 @@ final class VoucherNotificationEmailService
         $textBody = $template?->getTextBody() ?? $fallback['text'];
 
         try {
-            $email = $this->buildEmail($user, $subject, $htmlBody, $textBody, $context);
+            $email = TemplatedEmailFactory::create(
+                $this->mailerFrom,
+                'Hociatec',
+                $user->getEmail(),
+                $user->getFullName(),
+                $this->renderTextTemplate($subject, $context),
+                $this->renderHtmlTemplate($htmlBody, $context),
+                $this->renderTextTemplate($textBody, $context),
+            );
             $this->mailer->send($email);
         } catch (\RuntimeException $exception) {
             $this->logger->warning('Voucher notification email send failed.', [
@@ -107,24 +114,6 @@ final class VoucherNotificationEmailService
             'html' => '<p>Bonjour {{first_name}},</p><p>Voici votre bon de réduction <strong>{{voucher_code}}</strong>.</p><p>Valeur: <strong>{{voucher_value_label}}</strong>.</p><p>{{voucher_description}}</p><p>Utilisez-le sur votre prochaine commande depuis <a href="{{cart_url}}">{{cart_url}}</a>.</p>',
             'text' => "Bonjour {{first_name}},\n\nVoici votre bon de réduction {{voucher_code}}.\nValeur: {{voucher_value_label}}.\n{{voucher_description}}\n\nUtilisez-le sur votre prochaine commande: {{cart_url}}",
         ];
-    }
-
-    /**
-     * @param array<string, string> $context
-     */
-    private function buildEmail(
-        User $user,
-        ?string $subject,
-        ?string $htmlBody,
-        ?string $textBody,
-        array $context,
-    ): Email {
-        return (new Email())
-            ->from(new Address($this->mailerFrom, 'Hociatec'))
-            ->to(new Address($user->getEmail(), $user->getFullName()))
-            ->subject($this->renderTextTemplate($subject, $context))
-            ->html($this->renderHtmlTemplate($htmlBody, $context))
-            ->text($this->renderTextTemplate($textBody, $context));
     }
 
     /**

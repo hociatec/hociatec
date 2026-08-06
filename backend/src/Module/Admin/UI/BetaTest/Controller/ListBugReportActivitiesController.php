@@ -33,18 +33,18 @@ final class ListBugReportActivitiesController extends AbstractController
 
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $items = array_map(static fn ($activity) => [
-                'id' => $activity->getId(),
-                'action' => $activity->getAction(),
-                'fromValue' => $activity->getFromValue(),
-                'toValue' => $activity->getToValue(),
-                'message' => $activity->getMessage(),
-                'createdAt' => $activity->getCreatedAt()->format(DATE_ATOM),
-                'actor' => null !== $activity->getActor() ? [
-                    'id' => $activity->getActor()->getId(),
-                    'name' => $activity->getActor()->getFullName(),
-                    'email' => $activity->getActor()->getEmail(),
-                ] : null,
-            ], $this->activities->findForReport($report));
+            'id' => $activity->getId(),
+            'action' => $activity->getAction(),
+            'fromValue' => $activity->getFromValue(),
+            'toValue' => $activity->getToValue(),
+            'message' => $activity->getMessage(),
+            'createdAt' => $activity->getCreatedAt()->format(DATE_ATOM),
+            'actor' => null !== $activity->getActor() ? [
+                'id' => $activity->getActor()->getId(),
+                'name' => $activity->getActor()->getFullName(),
+                'email' => $activity->getActor()->getEmail(),
+            ] : null,
+        ], $this->activities->findForReport($report));
 
         return ApiResponse::paginated(
             array_slice($items, $pagination->offset(), $pagination->perPage),

@@ -21,11 +21,6 @@ final readonly class OrderStatusWorkflow
         ],
     ];
 
-    /**
-     * @param string $currentStatus
-     * @param string $targetStatus
-     * @return string|null
-     */
     public function transitionFor(string $currentStatus, string $targetStatus): ?string
     {
         return self::TRANSITIONS[$currentStatus][$targetStatus] ?? null;

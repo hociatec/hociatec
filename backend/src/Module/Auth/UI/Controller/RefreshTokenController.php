@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\UI\Controller;
 
-use App\Module\Auth\UI\Http\AuthCookieResponseWriter;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
+use App\Module\Auth\UI\Http\AuthCookieResponseWriter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\RateLimitKeyFactory;

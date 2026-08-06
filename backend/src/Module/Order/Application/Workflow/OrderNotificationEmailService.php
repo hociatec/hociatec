@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
+use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Domain\Entity\Order;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 
 final class OrderNotificationEmailService
 {
@@ -182,13 +181,15 @@ final class OrderNotificationEmailService
     private function sendScenario(Order $order, string $scenarioKey, array $extraContext = []): void
     {
         $content = $this->contentProvider->build($order, $scenarioKey, $extraContext);
-        $email = (new Email())
-            ->from(new Address($this->mailerFrom, 'Hociatec'))
-            ->to(new Address($order->getUser()->getEmail(), $order->getUser()->getFullName()))
-            ->subject($content['subject'])
-            ->html($content['html'])
-            ->text($content['text']);
-
+        $email = TemplatedEmailFactory::create(
+            $this->mailerFrom,
+            'Hociatec',
+            $order->getUser()->getEmail(),
+            $order->getUser()->getFullName(),
+            $content['subject'],
+            $content['html'],
+            $content['text'],
+        );
         $this->mailer->send($email);
     }
 

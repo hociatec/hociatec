@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Support\Domain\Entity;
 
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,9 +27,11 @@ class SupportRequest
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $customer;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?Order $order = null;
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $orderId = null;
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $orderNumber = null;
 
     #[ORM\Column(length: 40)]
     private string $status = self::STATUS_NEW;
@@ -79,14 +80,20 @@ class SupportRequest
         return $this->customer;
     }
 
-    public function getOrder(): ?Order
+    public function getOrderId(): ?int
     {
-        return $this->order;
+        return $this->orderId;
     }
 
-    public function setOrder(?Order $order): self
+    public function getOrderNumber(): ?string
     {
-        $this->order = $order;
+        return $this->orderNumber;
+    }
+
+    public function setOrderId(?int $orderId, ?string $orderNumber = null): self
+    {
+        $this->orderId = $orderId;
+        $this->orderNumber = null !== $orderNumber ? trim($orderNumber) : null;
 
         return $this;
     }

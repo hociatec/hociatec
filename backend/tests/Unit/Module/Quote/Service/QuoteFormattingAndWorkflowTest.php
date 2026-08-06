@@ -8,14 +8,12 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\Domain\Entity\User;
@@ -95,7 +93,8 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         $quote->addItem($quoteItem);
 
         $order = $this->createOrder();
-        $quote->setConvertedOrder($order);
+        $quote->setConvertedOrderId(77);
+        $quote->setConvertedOrderNumber('ORD-2026-001');
 
         $payload = $this->quoteFormatter()->formatQuote($quote);
 
@@ -119,8 +118,8 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         self::assertSame(18500, $payload['totals']['ht']);
         self::assertSame(3900, $payload['totals']['vat']);
         self::assertSame(22890, $payload['totals']['ttc']);
+        self::assertSame(77, $payload['convertedOrder']['id']);
         self::assertSame('ORD-2026-001', $payload['convertedOrder']['number']);
-        self::assertSame('pending', $payload['convertedOrder']['status']);
     }
 
     public function testWorkflowSetStatusKeepsOriginalSentTimestampAfterFirstSend(): void
@@ -243,6 +242,6 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
 
     private function quoteFormatter(): QuoteFormatter
     {
-        return new QuoteFormatter(new QuoteCalculator(), new OrderFormatter(new ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        return new QuoteFormatter(new QuoteCalculator());
     }
 }

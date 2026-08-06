@@ -47,7 +47,7 @@ final readonly class TradeInInput
     public bool $consent;
 
     /**
-     * @param array{firstName:string,lastName:string,email:string,phone:string} $contact
+     * @param array{firstName:string,lastName:string,email:string,phone:string}                                                                                                                                                                                             $contact
      * @param array{category:string,productName:string,purchasePriceCents:int,purchaseYear:int,brand:?string,model:?string,serialNumber:?string,conditionGrade:string,functional:bool,hasAccessories:bool,hasProofOfPurchase:bool,description:string,catalogProductId:?int} $product
      */
     public function __construct(

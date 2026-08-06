@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Application\Workflow;
 
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 
 final readonly class TradeInNotificationEmailService
 {
@@ -72,13 +71,15 @@ final readonly class TradeInNotificationEmailService
         ] + $extraContext;
         $fallback = $this->fallback($scenario);
         $content = $this->templates->renderScenario($scenario, $context, $fallback);
-        $email = (new Email())
-            ->from(new Address($this->mailerFrom, 'Hociatec'))
-            ->to(new Address($request->getEmail(), $name))
-            ->subject($content['subject'])
-            ->html($content['html'])
-            ->text($content['text']);
-
+        $email = TemplatedEmailFactory::create(
+            $this->mailerFrom,
+            'Hociatec',
+            $request->getEmail(),
+            $name,
+            $content['subject'],
+            $content['html'],
+            $content['text'],
+        );
         try {
             $this->mailer->send($email);
         } catch (\RuntimeException $exception) {

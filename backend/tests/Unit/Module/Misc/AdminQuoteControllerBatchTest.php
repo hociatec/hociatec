@@ -47,7 +47,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $quote, null, $quote);
 
-        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator());
         $show = new ShowQuoteController($quotes, $quoteFormatter);
         self::assertSame(Response::HTTP_NOT_FOUND, $show(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $show(5)->getStatusCode());
@@ -207,7 +207,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $quote->getCreatedEmailSentAt());
 
         $convertedQuote = new Quote('Q-10');
-        $convertedQuote->setStatus(Quote::STATUS_ACCEPTED)->setConvertedOrder(new \App\Module\Order\Domain\Entity\Order('ORD-1', $this->user()));
+        $convertedQuote->setStatus(Quote::STATUS_ACCEPTED)->setConvertedOrderId(1)->setConvertedOrderNumber('ORD-1');
         $this->setId($convertedQuote, 10);
 
         $quotes2 = $this->createMock(QuoteRepository::class);

@@ -9,7 +9,6 @@ use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
-use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;

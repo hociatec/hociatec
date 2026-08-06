@@ -17,7 +17,6 @@ use App\Module\Admin\UI\TradeIn\Controller\ListTradeInsController;
 use App\Module\Admin\UI\TradeIn\Controller\SetTradeInOfferController;
 use App\Module\Admin\UI\TradeIn\Controller\ShowTradeInController;
 use App\Module\Admin\UI\TradeIn\Controller\UpdateTradeInStatusController;
-use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
 use App\Module\Admin\UI\Voucher\Controller\CreateVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\DeleteVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\GetVoucherController;
