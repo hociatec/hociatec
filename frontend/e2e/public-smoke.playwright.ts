@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type ConsoleMessage, type Page, type Response } from '@playwright/test';
 
 const PUBLIC_ROUTES = [
   '/',
@@ -67,24 +67,37 @@ const watchRuntimeErrors = (page: Page) => {
   const pageErrors: string[] = [];
   const apiFailures: string[] = [];
 
-  page.on('console', (message) => {
+  const onConsole = (message: ConsoleMessage) => {
     if (message.type() === 'error') {
       consoleErrors.push(message.text());
     }
-  });
+  };
 
-  page.on('pageerror', (error) => {
+  const onPageError = (error: Error) => {
     pageErrors.push(error.message);
-  });
+  };
 
-  page.on('response', (response) => {
+  const onResponse = (response: Response) => {
     const url = response.url();
     if (url.includes('/api/') && response.status() >= 500) {
       apiFailures.push(`${response.status()} ${url}`);
     }
-  });
+  };
 
-  return { apiFailures, consoleErrors, pageErrors };
+  page.on('console', onConsole);
+  page.on('pageerror', onPageError);
+  page.on('response', onResponse);
+
+  return {
+    apiFailures,
+    consoleErrors,
+    pageErrors,
+    dispose: () => {
+      page.off('console', onConsole);
+      page.off('pageerror', onPageError);
+      page.off('response', onResponse);
+    },
+  };
 };
 
 test('public home page renders without console errors', async ({ page }) => {
@@ -100,12 +113,15 @@ test('public home page renders without console errors', async ({ page }) => {
 for (const route of PUBLIC_ROUTES) {
   test(`public route ${route} renders without internal errors`, async ({ page }) => {
     const errors = watchRuntimeErrors(page);
-
-    await page.goto(route, { waitUntil: 'networkidle' });
-    await expect(page.locator('#root')).toBeAttached();
-    await expect(page.locator('.site-header').first()).toBeVisible();
-    await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
-    expectNoUnexpectedErrors(route, errors);
+    try {
+      await page.goto(route, { waitUntil: 'networkidle' });
+      await expect(page.locator('#root')).toBeAttached();
+      await expect(page.locator('.site-header').first()).toBeVisible();
+      await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
+      expectNoUnexpectedErrors(route, errors);
+    } finally {
+      errors.dispose();
+    }
   });
 }
 
@@ -124,12 +140,15 @@ test('public product and news detail pages render from live API slugs', async ({
 
   for (const route of [`/catalogue/produits/${productSlug}`, `/actualites/${newsSlug}`]) {
     const errors = watchRuntimeErrors(page);
-
-    await page.goto(route, { waitUntil: 'networkidle' });
-    await expect(page.locator('#root')).toBeAttached();
-    await expect(page.locator('.site-header').first()).toBeVisible();
-    await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
-    expectNoUnexpectedErrors(route, errors);
+    try {
+      await page.goto(route, { waitUntil: 'networkidle' });
+      await expect(page.locator('#root')).toBeAttached();
+      await expect(page.locator('.site-header').first()).toBeVisible();
+      await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
+      expectNoUnexpectedErrors(route, errors);
+    } finally {
+      errors.dispose();
+    }
   }
 });
 
@@ -158,12 +177,15 @@ test('public service, category and training pages render from live API slugs', a
     `/formations/${trainingSlug}`,
   ]) {
     const errors = watchRuntimeErrors(page);
-
-    await page.goto(route, { waitUntil: 'networkidle' });
-    await expect(page.locator('#root')).toBeAttached();
-    await expect(page.locator('.site-header').first()).toBeVisible();
-    await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
-    expectNoUnexpectedErrors(route, errors);
+    try {
+      await page.goto(route, { waitUntil: 'networkidle' });
+      await expect(page.locator('#root')).toBeAttached();
+      await expect(page.locator('.site-header').first()).toBeVisible();
+      await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
+      expectNoUnexpectedErrors(route, errors);
+    } finally {
+      errors.dispose();
+    }
   }
 });
 

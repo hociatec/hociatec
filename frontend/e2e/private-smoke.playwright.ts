@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type ConsoleMessage, type Page, type Response } from '@playwright/test';
 
 const PROTECTED_ROUTES = [
   '/quotes/me',
@@ -82,23 +82,36 @@ const watchRuntimeErrors = (page: Page) => {
   const pageErrors: string[] = [];
   const apiFailures: string[] = [];
 
-  page.on('console', (message) => {
+  const onConsole = (message: ConsoleMessage) => {
     if (message.type() === 'error') {
       consoleErrors.push(message.text());
     }
-  });
+  };
 
-  page.on('pageerror', (error) => {
+  const onPageError = (error: Error) => {
     pageErrors.push(error.message);
-  });
+  };
 
-  page.on('response', (response) => {
+  const onResponse = (response: Response) => {
     if (response.url().includes('/api/') && response.status() >= 500) {
       apiFailures.push(`${response.status()} ${response.url()}`);
     }
-  });
+  };
 
-  return { consoleErrors, pageErrors, apiFailures };
+  page.on('console', onConsole);
+  page.on('pageerror', onPageError);
+  page.on('response', onResponse);
+
+  return {
+    consoleErrors,
+    pageErrors,
+    apiFailures,
+    dispose: () => {
+      page.off('console', onConsole);
+      page.off('pageerror', onPageError);
+      page.off('response', onResponse);
+    },
+  };
 };
 
 const expectNoUnexpectedErrors = (errors: ReturnType<typeof watchRuntimeErrors>) => {
@@ -117,13 +130,19 @@ test('private routes redirect to authentication entry points and render cleanly'
     const errors = watchRuntimeErrors(page);
 
     await test.step(`route ${route}`, async () => {
-      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      try {
+        await page.goto(route, { waitUntil: 'domcontentloaded' });
 
-      await expect(page.locator('#root')).toBeAttached();
-      await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
-      await expect(page).toHaveURL(/\/login|\/$/);
+        await expect(page.locator('#root')).toBeAttached();
+        await expect(page.getByText(INTERNAL_ERROR_PATTERN)).toHaveCount(0);
+        const expectedRedirect = route.startsWith('/admin') ? /\/login|\/$/ : /\/login/;
+        await expect(page).toHaveURL(expectedRedirect, { timeout: 10000 });
+        await expect(page.locator('.site-header').first()).toBeVisible();
 
-      expectNoUnexpectedErrors(errors);
+        expectNoUnexpectedErrors(errors);
+      } finally {
+        errors.dispose();
+      }
     });
   }
 });
