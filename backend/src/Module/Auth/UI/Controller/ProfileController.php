@@ -20,7 +20,7 @@ class ProfileController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::success($this->profiles->anonymous());
         }

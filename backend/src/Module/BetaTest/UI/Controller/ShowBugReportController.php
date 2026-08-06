@@ -32,7 +32,7 @@ final class ShowBugReportController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         }
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
         }

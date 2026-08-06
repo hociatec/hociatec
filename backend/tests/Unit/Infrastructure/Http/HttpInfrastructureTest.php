@@ -48,7 +48,7 @@ final class HttpInfrastructureTest extends TestCase
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $this->setId($user, 77);
         $token = $this->createMock(TokenInterface::class);
-        $token->method('getUser')->willReturn($user);
+        $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
 
         $storage = $this->createMock(TokenStorageInterface::class);
         $storage->method('getToken')->willReturn($token);
@@ -293,7 +293,9 @@ final class HttpInfrastructureTest extends TestCase
     private function security(?object $user): Security
     {
         $security = $this->createMock(Security::class);
-        $security->method('getUser')->willReturn($user);
+        $security->method('getUser')->willReturn(
+            $user instanceof User ? new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user) : $user,
+        );
 
         return $security;
     }

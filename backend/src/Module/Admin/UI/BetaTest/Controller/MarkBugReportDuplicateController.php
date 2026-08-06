@@ -37,7 +37,7 @@ final class MarkBugReportDuplicateController extends AbstractController
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $duplicateOfId = RequestPayloadMapper::int($payload, 'duplicateOfId');
         $reason = RequestPayloadMapper::string($payload, 'reason');
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         try {
             $duplicateOf = $this->references->referenceReport($duplicateOfId, $id);

@@ -60,7 +60,7 @@ class AddCartItemController extends AbstractController
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $response = ApiResponse::success([
             'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
         ]);

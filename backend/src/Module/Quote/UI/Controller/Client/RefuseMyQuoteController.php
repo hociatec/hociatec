@@ -32,7 +32,7 @@ final class RefuseMyQuoteController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $quote = $this->quotes->find($id);
 
         if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {

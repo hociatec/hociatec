@@ -69,9 +69,9 @@ final class UserRemainingControllersTest extends TestCase
                 parent::__construct($writer, $validator, $formatter);
             }
 
-            protected function getUser(): ?User
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 
@@ -98,9 +98,9 @@ final class UserRemainingControllersTest extends TestCase
                 parent::__construct($addresses, $writer, $validator, $formatter);
             }
 
-            protected function getUser(): ?User
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(404, $update(99, Request::create('/', 'PUT', [], [], [], [], '{}'))->getStatusCode());
@@ -159,9 +159,9 @@ final class UserRemainingControllersTest extends TestCase
                 parent::__construct($u, $v, $p);
             }
 
-            protected function getUser(): ?User
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 
@@ -221,9 +221,9 @@ final class UserRemainingControllersTest extends TestCase
                 ), $logger);
             }
 
-            protected function getUser(): ?User
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(200, $delete()->getStatusCode());

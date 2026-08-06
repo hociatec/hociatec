@@ -31,7 +31,7 @@ class ListMyOrdersController extends AbstractController
     {
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $orders = $this->orders->findByUser($user, $pagination->perPage, $pagination->offset());
         $total = $this->orders->countByUser($user);
         $orderItemIds = [];

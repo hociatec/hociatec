@@ -30,7 +30,7 @@ final class RespondToTradeInOfferController extends AbstractController
     public function __invoke(int $id, string $action): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $request = $this->requests->find($id);
         if (null === $request || !$this->accessPolicy->canRespondToOffer($user, $request)) {
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);

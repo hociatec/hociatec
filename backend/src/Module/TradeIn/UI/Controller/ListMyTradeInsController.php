@@ -30,7 +30,7 @@ final class ListMyTradeInsController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $items = $this->requests->findByUser($user, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(array_map(fn ($item) => $this->formatter->format($item), $items), $pagination->metadata($this->requests->countByUser($user)));

@@ -87,7 +87,7 @@ final class StockOperationsController extends AbstractController
 
     private function currentAdmin(): ?User
     {
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         return $user instanceof User ? $user : null;
     }

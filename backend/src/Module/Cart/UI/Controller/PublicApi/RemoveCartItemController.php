@@ -56,7 +56,7 @@ class RemoveCartItemController extends AbstractController
             return ApiResponse::error($exception->getMessage(), $status);
         }
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $response = ApiResponse::success([
             'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),
         ]);

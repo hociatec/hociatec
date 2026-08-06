@@ -22,7 +22,7 @@ final class ProfileControllerTest extends TestCase
         $repository->expects(self::never())->method('findFirstForUser');
 
         $controller = new class(new AuthProfileResponseMapper(new UserProfileFormatter($repository))) extends ProfileController {
-            protected function getUser(): ?UserInterface
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
                 return null;
             }
@@ -69,9 +69,9 @@ final class ProfileControllerTest extends TestCase
                 parent::__construct($profiles);
             }
 
-            protected function getUser(): ?UserInterface
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 

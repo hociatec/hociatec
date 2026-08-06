@@ -31,7 +31,7 @@ final class MyLoyaltyController extends AbstractController
     public function show(): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         return ApiResponse::successItem('loyalty', $this->formatLoyalty($user));
     }
@@ -40,7 +40,7 @@ final class MyLoyaltyController extends AbstractController
     public function convert(Request $request): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         try {
             $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);

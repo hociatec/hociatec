@@ -17,6 +17,11 @@ Ce fichier documente les ecarts structurels conserves volontairement. Un ajout i
 - `PrePersist` et `PreUpdate` sont reserves aux dates techniques `createdAt` et `updatedAt`.
 - Les dates metier comme paiement, publication, cloture, expiration ou facturation doivent etre fixees par une methode applicative ou domaine explicite.
 
+## Deprecation Doctrine DBAL 5784
+
+- `Kernel::boot()` ignore uniquement `https://github.com/doctrine/dbal/issues/5784` pour `doctrine/dbal` `^3.10.6` avec `doctrine/orm` `^3.6.7`.
+- Cette exception doit etre retiree lors de la prochaine mise a jour Doctrine qui ne declenche plus cette deprecation ciblee.
+
 ## Monnaie et montants
 
 - Les nouveaux montants doivent passer par `App\Shared\Domain\ValueObject\Money`.

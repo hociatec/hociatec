@@ -79,7 +79,10 @@ final class AuthModuleCompletionTest extends TestCase
         $service->revokePlainToken($issued['refreshToken']);
         $issued = $service->issueForUser($user);
         $jwt = $this->createMock(JWTTokenManagerInterface::class);
-        $jwt->expects(self::exactly(2))->method('create')->with($user)->willReturn('jwt-token');
+        $jwt->expects(self::exactly(2))
+            ->method('create')
+            ->with(self::callback(static fn (object $securityUser): bool => $securityUser instanceof \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser && $securityUser->domainIdentity() === $user))
+            ->willReturn('jwt-token');
         $controller = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
 
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $controller(Request::create('/', 'POST', [], [], [], [], '{"refreshToken":""}'))->getStatusCode());
@@ -195,7 +198,7 @@ final class AuthModuleCompletionTest extends TestCase
         $jwt = $this->createMock(JWTTokenManagerInterface::class);
         $jwt->method('create')->willReturn('jwt');
         $token = $this->createMock(TokenInterface::class);
-        $token->method('getUser')->willReturn($user);
+        $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
         $success = new AuthenticationSuccessHandler($jwt, $this->refreshService($em), new AuthCookieService('prod'));
         self::assertSame(Response::HTTP_OK, $success->onAuthenticationSuccess(Request::create('/'), $token)->getStatusCode());
 

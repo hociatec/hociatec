@@ -29,7 +29,7 @@ final class DownloadBugReportAttachmentController extends AbstractController
 
     public function __invoke(int $id, string $name): BinaryFileResponse|JsonResponse
     {
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', Response::HTTP_UNAUTHORIZED);
         }

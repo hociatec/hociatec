@@ -32,7 +32,7 @@ class GenerateMyQuotePdfController extends AbstractController
     public function __invoke(int $id): Response
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $quote = $this->quoteRepository->find($id);
         if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);

@@ -37,7 +37,7 @@ final class CreateNewsCommentController extends AbstractController
             return ApiResponse::error('Actualité introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
         }

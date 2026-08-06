@@ -35,12 +35,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $checker = new UserChecker();
         $verified = $this->user();
         $verified->setIsVerified(true);
-        $checker->checkPreAuth($verified);
-        $checker->checkPostAuth($verified);
+        $checker->checkPreAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($verified));
+        $checker->checkPostAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($verified));
 
         $pending = $this->user();
         try {
-            $checker->checkPreAuth($pending);
+            $checker->checkPreAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($pending));
             self::fail('Expected inactive account exception.');
         } catch (CustomUserMessageAccountStatusException $exception) {
             self::assertSame('Votre compte n\'est pas encore activé. Veuillez vérifier vos emails.', $exception->getMessage());
@@ -72,9 +72,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
                 parent::__construct($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         $listPayload = json_decode((string) $listController()->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -93,9 +93,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
                 parent::__construct($addresses, $writer);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());
@@ -114,9 +114,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
                 parent::__construct($addresses, $writer);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $defaultController(7)->getStatusCode());
@@ -139,9 +139,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
                 parent::__construct($products, $favorites);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_OK, $favoriteController(5)->getStatusCode());
@@ -162,9 +162,9 @@ final class UserControllerAndSecurityBatchTest extends TestCase
                 parent::__construct($quotes, $workflow, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $quoteController(9)->getStatusCode());

@@ -347,7 +347,7 @@ final class TrainingModuleCompletionTest extends TestCase
     {
         $tokenStorage = new TokenStorage();
         if (null !== $user) {
-            $tokenStorage->setToken(new UsernamePasswordToken($user, 'main', $user->getRoles()));
+            $tokenStorage->setToken(new UsernamePasswordToken(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user), 'main', $user->getRoles()));
         }
         $container = new Container();
         $container->set('security.token_storage', $tokenStorage);

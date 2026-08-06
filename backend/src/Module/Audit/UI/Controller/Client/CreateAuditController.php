@@ -32,7 +32,7 @@ class CreateAuditController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $dto = new CreateAuditRequestDto();
         $dto->type = RequestPayloadMapper::string($payload, 'type');

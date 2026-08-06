@@ -213,6 +213,8 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('private const MAX_RIB_BYTES = 5_242_880', $tradeInStorage);
         self::assertStringContainsString('var/private/trade-ins', $tradeInStorage);
         self::assertStringContainsString('0600', $tradeInStorage);
+        self::assertStringContainsString('securePrivateFile', $tradeInStorage);
+        self::assertStringNotContainsString('@chmod', $tradeInStorage);
         self::assertStringContainsString('resolvePrivateDocumentPath', $tradeInStorage);
         self::assertStringContainsString('var/private/invoices', $invoiceStorageCommand);
         self::assertStringContainsString('private/invoices/', $invoiceStorageCommand);

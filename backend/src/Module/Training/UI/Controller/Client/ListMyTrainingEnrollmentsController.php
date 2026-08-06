@@ -30,7 +30,7 @@ class ListMyTrainingEnrollmentsController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         return ApiResponse::paginated(
             array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $this->enrollments->findForUser($user, $pagination->perPage, $pagination->offset())),

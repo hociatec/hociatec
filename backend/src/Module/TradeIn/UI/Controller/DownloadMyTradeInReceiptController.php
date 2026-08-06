@@ -29,7 +29,7 @@ final class DownloadMyTradeInReceiptController extends AbstractController
     public function __invoke(int $id): Response
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $request = $this->requests->find($id);
         if (null === $request || !$this->accessPolicy->canDownloadReceipt($user, $request)) {
             throw $this->createNotFoundException('Justificatif indisponible.');

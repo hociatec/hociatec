@@ -161,6 +161,49 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('PublicApiException => [$exception->publicMessage()', $subscriber);
     }
 
+    public function testSharedHttpDoesNotDuplicateApplicationProblemExceptions(): void
+    {
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Shared/Infrastructure/Http/ApiProblemException.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Shared/Infrastructure/Http/ExternalServiceException.php');
+
+        $publicApiException = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/PublicApiException.php');
+        self::assertIsString($publicApiException);
+        self::assertStringContainsString('extends \\App\\Shared\\Application\\Exception\\PublicApiException', $publicApiException);
+        self::assertStringNotContainsString('extends ApiProblemException', $publicApiException);
+    }
+
+    public function testUserDomainSecurityContractsDoNotImportSymfonySecurityInterfaces(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module/User/Domain/Security') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'Symfony\\Component\\Security\\Core\\User')) {
+                $violations[] = $this->relativePath($path).': Symfony Security user interface';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testStripeApiClientNormalizesTransportAndInvalidJsonFailures(): void
+    {
+        $client = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/StripeApiClient.php');
+        self::assertIsString($client);
+
+        foreach ([
+            'CURLOPT_CONNECTTIMEOUT',
+            'curl_error($curl)',
+            'catch (\\JsonException $exception)',
+            'Stripe a retourné une réponse invalide.',
+            'if (!\\is_array($decoded))',
+            'Stripe a refusé la requête avec le statut HTTP %d.',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $client);
+        }
+    }
+
     public function testApplicationModulesDoNotUseGenericManagerServices(): void
     {
         $violations = [];
@@ -355,6 +398,31 @@ final class ModuleBoundaryTest extends TestCase
 
         foreach (['Matrice autorisée', 'Règles `User`', 'Module `Admin`', 'Revue des `OperationsService`', 'Revue des entités volumineuses'] as $section) {
             self::assertStringContainsString($section, $documentation);
+        }
+    }
+
+    public function testDoctrineDomainCompromiseIsDocumentedPrecisely(): void
+    {
+        $decision = file_get_contents(__DIR__.'/../../../../docs/architecture/decisions/0001-doctrine-in-domain.md');
+        $exceptions = file_get_contents(__DIR__.'/../../../docs/architecture-exceptions.md');
+        self::assertIsString($decision);
+        self::assertIsString($exceptions);
+
+        foreach ([
+            "le domaine n'est pas indépendant de Doctrine",
+            'architecture modulaire en couches',
+            'pas une Clean Architecture stricte',
+            'Les interfaces Symfony Security ne doivent pas être placées dans un contrat de domaine',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $decision);
+        }
+
+        foreach ([
+            'Deprecation Doctrine DBAL 5784',
+            'doctrine/dbal` `^3.10.6',
+            'retiree lors de la prochaine mise a jour Doctrine',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $exceptions);
         }
     }
 

@@ -35,7 +35,7 @@ class AddFavoriteController extends AbstractController
         }
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         ['favorite' => $favorite, 'created' => $created] = $this->favorites->addProduct($user, $product);
 

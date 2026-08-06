@@ -40,7 +40,7 @@ final class CreatePublicTradeInController extends AbstractController
             return ApiResponse::error('Le RIB du demandeur doit être fourni au format PDF.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         /** @var User|null $user */
-        $user = $this->getUser() instanceof User ? $this->getUser() : null;
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser()) instanceof User ? \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser()) : null;
         if (null !== $user) {
             $input = $input->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
         }

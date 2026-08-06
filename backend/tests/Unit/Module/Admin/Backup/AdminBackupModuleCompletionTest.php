@@ -115,6 +115,25 @@ final class AdminBackupModuleCompletionTest extends TestCase
         (new BackupEncryptionService($projectDir.'/missing.key'))->encryptFile($missingKeySource, $projectDir.'/missing.enc');
     }
 
+    public function testEncryptionCleanupRemovesTemporaryFileAfterAnyKeyFailure(): void
+    {
+        $projectDir = $this->projectDir();
+        $source = $projectDir.'/var/backups/source.sql.gz';
+        $target = $projectDir.'/var/backups/source.sql.gz.enc';
+        $keyFile = $projectDir.'/var/backup.key';
+        file_put_contents($source, 'plain backup');
+        file_put_contents($keyFile, 'invalid-base64');
+
+        try {
+            (new BackupEncryptionService($keyFile))->encryptFile($source, $target);
+            self::fail('Expected encryption failure.');
+        } catch (\Throwable) {
+            self::assertFileDoesNotExist($target.'.tmp');
+            self::assertFileDoesNotExist($target);
+            self::assertFileExists($source);
+        }
+    }
+
     private function projectDir(): string
     {
         $dir = sys_get_temp_dir().'/hociatec-admin-backup-tests-'.bin2hex(random_bytes(4));

@@ -61,7 +61,7 @@ final class ResendOrderEmailController extends AbstractController
             return ApiResponse::error('Aucun email pertinent à renvoyer pour cette commande.', Response::HTTP_CONFLICT);
         }
 
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $this->events->log(
             $order,
             $actor instanceof \App\Module\User\Domain\Entity\User ? $actor : null,

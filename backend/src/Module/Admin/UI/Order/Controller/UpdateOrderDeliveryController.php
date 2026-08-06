@@ -41,7 +41,7 @@ final class UpdateOrderDeliveryController extends AbstractController
         }
 
         try {
-            $actor = $this->getUser();
+            $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
             $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, DeliveryInput::class);
             $this->validator->validate($input);
             $order = $this->delivery->update(

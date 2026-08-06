@@ -159,9 +159,9 @@ final class RatingServicesAndControllersTest extends TestCase
                 parent::__construct($orders, $reviews, new OrderAccessPolicy(), new \App\Module\Rating\Application\Projection\ProductReviewFormatter());
             }
 
-            protected function getUser(): User
+            protected function getUser(): \Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 

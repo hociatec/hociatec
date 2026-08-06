@@ -38,7 +38,7 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
         }
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$this->accessPolicy->canDownloadInvoice($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }

@@ -29,7 +29,7 @@ final class ClearCartController extends AbstractController
         $token = $this->extractToken($request);
 
         $cart = $this->cartService->clearCart($token);
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         $response = ApiResponse::success([
             'cart' => $this->cartFormatter->formatCart($cart, $user instanceof User ? $user : null),

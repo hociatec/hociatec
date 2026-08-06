@@ -30,7 +30,7 @@ class ListMyAuditsController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $items = $this->repository->findByUser($user, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(

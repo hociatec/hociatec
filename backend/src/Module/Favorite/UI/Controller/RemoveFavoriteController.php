@@ -26,7 +26,7 @@ class RemoveFavoriteController extends AbstractController
     public function __invoke(int $productId): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $product = $this->products->find($productId);
 
         if (null !== $product) {

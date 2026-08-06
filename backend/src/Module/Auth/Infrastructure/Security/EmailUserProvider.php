@@ -26,7 +26,7 @@ final readonly class EmailUserProvider implements UserProviderInterface
             throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
 
-        return $user;
+        return new SymfonySecurityUser($user);
     }
 
     public function refreshUser(UserInterface $user): UserInterface
@@ -41,7 +41,7 @@ final readonly class EmailUserProvider implements UserProviderInterface
             throw new UserNotFoundException(sprintf('User "%d" not found.', $id));
         }
 
-        return $refreshed;
+        return new SymfonySecurityUser($refreshed);
     }
 
     public function supportsClass(string $class): bool

@@ -13,11 +13,12 @@ class UserChecker implements UserCheckerInterface
 {
     public function checkPreAuth(UserInterface $user): void
     {
-        if (!$user instanceof User) {
+        $domainUser = SymfonySecurityUser::domainUser($user);
+        if (!$domainUser instanceof User) {
             return;
         }
 
-        if (!$user->isVerified()) {
+        if (!$domainUser->isVerified()) {
             throw new CustomUserMessageAccountStatusException('Votre compte n\'est pas encore activé. Veuillez vérifier vos emails.');
         }
     }

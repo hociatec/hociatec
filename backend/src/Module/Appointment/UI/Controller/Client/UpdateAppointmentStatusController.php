@@ -37,7 +37,7 @@ final class UpdateAppointmentStatusController extends AbstractController
     public function __invoke(int $id, Request $request): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         $appointment = $this->appointmentRepository->find($id);
 

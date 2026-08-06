@@ -26,7 +26,7 @@ class DeleteAddressController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $address = $this->addresses->findOneForUser($id, $user);
         if (null === $address) {
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);

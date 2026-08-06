@@ -39,7 +39,7 @@ class GeneratePdfController extends AbstractController
         }
 
         /** @var \App\Module\User\Domain\Entity\User|null $actor */
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $this->events->log($audit, $actor, 'pdf_generated', 'Rapport détaillé');
 
         return $this->attachments->create($bin, sprintf('%s-rapport.pdf', $audit->getNumber()), 'application/pdf');
@@ -59,7 +59,7 @@ class GeneratePdfController extends AbstractController
         }
 
         /** @var \App\Module\User\Domain\Entity\User|null $actor */
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $this->events->log($audit, $actor, 'pdf_generated', 'Synthèse PDF');
 
         return $this->attachments->create($bin, sprintf('%s-synthese.pdf', $audit->getNumber()), 'application/pdf');

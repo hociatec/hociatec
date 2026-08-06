@@ -62,9 +62,9 @@ final class PublicAndClientControllerBatchTest extends TestCase
                 parent::__construct($favorites, $formatter);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 
@@ -114,9 +114,9 @@ final class PublicAndClientControllerBatchTest extends TestCase
                 parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
 
@@ -128,9 +128,9 @@ final class PublicAndClientControllerBatchTest extends TestCase
                 parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $otherUserController(7)->getStatusCode());

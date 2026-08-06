@@ -29,7 +29,7 @@ class ListMyQuotesController extends AbstractController
     {
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $quotes = $this->quotes->findByCustomerEmail($user->getEmail(), $pagination->perPage, $pagination->offset());
         $items = array_map(
             fn ($q) => $this->formatter->formatQuote($q),

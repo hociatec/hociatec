@@ -30,7 +30,7 @@ class ListMyAddressesController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $items = array_map(
             fn ($a) => $this->formatter->toArray($a),
             $this->addresses->findAllForUser($user, $pagination->perPage, $pagination->offset())

@@ -44,7 +44,7 @@ final class UpdateOrderStatusController extends AbstractController
             $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
             $input = OrderStatusInput::fromArray($payload);
             $this->validator->validate($input);
-            $actor = $this->getUser();
+            $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
             $order = $this->statusUpdater->update($order, $input->status, $actor instanceof User ? $actor : null);
         } catch (\DomainException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);

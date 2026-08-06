@@ -35,7 +35,7 @@ class UpdateProfileController extends AbstractController
     {
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
         }

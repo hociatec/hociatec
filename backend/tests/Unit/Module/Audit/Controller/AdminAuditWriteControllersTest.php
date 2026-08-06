@@ -59,9 +59,9 @@ final class AdminAuditWriteControllersTest extends TestCase
                 parent::__construct($repository, $events, $validator);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->actor;
+                return null !== $this->actor ? new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->actor) : null;
             }
         };
 
@@ -128,9 +128,9 @@ final class AdminAuditWriteControllersTest extends TestCase
                 parent::__construct($audits, $items, $events, $validator);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->actor;
+                return null !== $this->actor ? new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->actor) : null;
             }
         };
 

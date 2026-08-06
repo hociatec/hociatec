@@ -28,7 +28,7 @@ class ListPendingReviewsController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         return ApiResponse::paginated(
             $this->resolver->resolve($user, $pagination->perPage, $pagination->offset()),

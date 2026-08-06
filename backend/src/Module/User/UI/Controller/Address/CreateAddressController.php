@@ -36,7 +36,7 @@ class CreateAddressController extends AbstractController
         $this->dtoValidator->validate($input);
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $address = new ShippingAddress($user, $input->name, $input->address, $input->postalCode, $input->city);
         $address
             ->setCompany($input->company)

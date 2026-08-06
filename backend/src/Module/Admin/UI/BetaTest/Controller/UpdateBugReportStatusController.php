@@ -35,7 +35,7 @@ final class UpdateBugReportStatusController extends AbstractController
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $status = RequestPayloadMapper::string($payload, 'status');
 
-        $admin = $this->getUser();
+        $admin = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $actor = $admin instanceof User ? $admin : null;
         try {
             $this->changeBugReportStatus->change($report, $status, $actor);

@@ -33,7 +33,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
         $input = ApplyCartVoucherInput::fromArray($payload);
         $this->validator->validate($input);
 
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         try {
             $cart = $this->cartVouchers->apply(

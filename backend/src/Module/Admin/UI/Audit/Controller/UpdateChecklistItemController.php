@@ -64,7 +64,7 @@ class UpdateChecklistItemController extends AbstractController
 
         if ([] !== $changes) {
             /** @var \App\Module\User\Domain\Entity\User|null $actor */
-            $actor = $this->getUser();
+            $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
             $this->events->log(
                 $audit,
                 $actor,

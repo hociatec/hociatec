@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
 use Monolog\LogRecord;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -34,8 +35,8 @@ final class RequestIdProcessor
         $ctx['route'] = (string) ($request->attributes->get('_route') ?? '');
 
         if (null !== $this->tokenStorage && ($token = $this->tokenStorage->getToken())) {
-            $user = $token->getUser();
-            if (\is_object($user) && \method_exists($user, 'getId')) {
+            $user = SymfonySecurityUser::domainUser($token->getUser());
+            if (null !== $user) {
                 $ctx['user_id'] = $user->getId();
             }
         }

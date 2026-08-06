@@ -28,7 +28,7 @@ class ListMyAppointmentsController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         $appointments = $this->appointmentService->getPaginatedAppointmentsForUser($user, limit: $pagination->perPage, offset: $pagination->offset());
         $totals = $this->appointmentService->countAppointmentsForUser($user);

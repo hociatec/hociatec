@@ -38,7 +38,7 @@ final class SendCampaignController extends AbstractController
         $template = $input->templateId ? $this->templates->find($input->templateId) : null;
 
         /** @var User|null $actor */
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         $campaign = $this->campaignService->sendCampaign(
             $input->name, $input->segmentKey, $input->criteria, $input->subject,

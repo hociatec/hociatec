@@ -26,8 +26,8 @@ final class SmallServiceTailBatchTest extends TestCase
 
         $verified = $this->user();
         $verified->setIsVerified(true);
-        $checker->checkPreAuth($verified);
-        $checker->checkPostAuth($verified);
+        $checker->checkPreAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($verified));
+        $checker->checkPostAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($verified));
 
         $foreignUser = new class implements UserInterface {
             public function getRoles(): array
@@ -47,7 +47,7 @@ final class SmallServiceTailBatchTest extends TestCase
         $checker->checkPreAuth($foreignUser);
 
         try {
-            $checker->checkPreAuth($this->user());
+            $checker->checkPreAuth(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user()));
             self::fail('Expected inactive account exception.');
         } catch (CustomUserMessageAccountStatusException $exception) {
             self::assertSame('Votre compte n\'est pas encore activé. Veuillez vérifier vos emails.', $exception->getMessage());

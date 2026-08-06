@@ -57,7 +57,7 @@ final class CommunicationPreferencesController extends AbstractController
 
     private function currentUser(): User
     {
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
         }

@@ -30,7 +30,7 @@ final class ListMyVouchersController extends AbstractController
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $userId = (int) $user->getId();
 
         return ApiResponse::paginated(

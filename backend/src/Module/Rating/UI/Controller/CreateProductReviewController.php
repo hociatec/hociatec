@@ -33,7 +33,7 @@ class CreateProductReviewController extends AbstractController
     public function __invoke(int $orderId, int $itemId, Request $request): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         $order = $this->orders->find($orderId);
         if (null === $order) {

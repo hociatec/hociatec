@@ -10,6 +10,8 @@ use App\Shared\Application\Exception\ExternalServiceException;
 final class StripeApiClient implements StripeRefundClient
 {
     private const BASE_URL = 'https://api.stripe.com/v1';
+    private const CONNECT_TIMEOUT_SECONDS = 5;
+    private const REQUEST_TIMEOUT_SECONDS = 30;
 
     public function __construct(private readonly string $secretKey)
     {
@@ -89,7 +91,8 @@ final class StripeApiClient implements StripeRefundClient
         }
 
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, self::CONNECT_TIMEOUT_SECONDS);
+        curl_setopt($curl, CURLOPT_TIMEOUT, self::REQUEST_TIMEOUT_SECONDS);
 
         if ('GET' !== $method) {
             curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
@@ -101,17 +104,37 @@ final class StripeApiClient implements StripeRefundClient
         curl_close($curl);
 
         if (!is_string($response)) {
-            throw new ExternalServiceException('Appel du service de paiement échoué.');
+            throw new ExternalServiceException(
+                sprintf('Erreur cURL Stripe : %s', '' !== $error ? $error : 'réponse absente'),
+                'Le service de paiement est momentanément indisponible.',
+            );
+        }
+
+        try {
+            $decoded = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new ExternalServiceException(
+                'Stripe a retourné une réponse invalide.',
+                'Le service de paiement a retourné une réponse inattendue.',
+                previous: $exception,
+            );
+        }
+
+        if (!\is_array($decoded)) {
+            throw new ExternalServiceException(
+                'Stripe a retourné une réponse JSON non objet.',
+                'Le service de paiement a retourné une réponse inattendue.',
+            );
+        }
+
+        if ($statusCode < 200 || $statusCode >= 300) {
+            throw new ExternalServiceException(
+                sprintf('Stripe a refusé la requête avec le statut HTTP %d.', $statusCode),
+                'Le service de paiement a refusé la requête.',
+            );
         }
 
         /** @var array<string, mixed> $decoded */
-        $decoded = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-
-        if ($statusCode < 200 || $statusCode >= 300) {
-            $message = (string) (($decoded['error']['message'] ?? null) ?: 'Stripe a refusé la requête.');
-            throw new ExternalServiceException($message, 'Le service de paiement a refusé la requête.');
-        }
-
         return $decoded;
     }
 }

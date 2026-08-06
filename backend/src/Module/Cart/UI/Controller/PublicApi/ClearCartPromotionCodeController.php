@@ -26,7 +26,7 @@ final class ClearCartPromotionCodeController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $cart = $this->cartVouchers->clear(
             $this->extractToken($request),
             $user instanceof User ? $user : null,

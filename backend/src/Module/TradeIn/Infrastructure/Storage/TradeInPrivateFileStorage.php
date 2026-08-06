@@ -45,7 +45,7 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         if (false === file_put_contents($absolutePath, $contents, LOCK_EX)) {
             throw new \RuntimeException('Impossible d’enregistrer le RIB.');
         }
-        @chmod($absolutePath, 0600);
+        $this->securePrivateFile($absolutePath);
 
         return ['path' => $relativePath, 'originalName' => $file->getClientOriginalName(), 'size' => strlen($contents), 'sha256' => hash('sha256', $contents)];
     }
@@ -65,7 +65,7 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         if (false === file_put_contents($absolutePath, $pdf, LOCK_EX)) {
             throw new \RuntimeException('Impossible d’enregistrer le justificatif.');
         }
-        @chmod($absolutePath, 0600);
+        $this->securePrivateFile($absolutePath);
 
         return $relativePath;
     }
@@ -97,5 +97,13 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         }
 
         return $path;
+    }
+
+    private function securePrivateFile(string $absolutePath): void
+    {
+        if (!chmod($absolutePath, 0600)) {
+            unlink($absolutePath);
+            throw new \RuntimeException('Impossible de sécuriser le document privé.');
+        }
     }
 }

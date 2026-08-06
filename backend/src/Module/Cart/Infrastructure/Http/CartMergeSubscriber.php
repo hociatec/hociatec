@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Cart\Infrastructure\Http;
 
 use App\Module\Cart\Application\Workflow\CartMergeService;
+use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
 use App\Module\User\Domain\Entity\User;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -34,7 +35,7 @@ final class CartMergeSubscriber implements EventSubscriberInterface
         if (null === $token) {
             return;
         }
-        $user = $token->getUser();
+        $user = SymfonySecurityUser::domainUser($token->getUser());
         if (!$user instanceof User) {
             return;
         }

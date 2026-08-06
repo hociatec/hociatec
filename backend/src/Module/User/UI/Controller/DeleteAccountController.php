@@ -27,7 +27,7 @@ class DeleteAccountController extends AbstractController
     public function __invoke(): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
         try {
             $this->deleter->delete($user);

@@ -36,7 +36,7 @@ final class CheckoutSessionStatusController extends AbstractController
         }
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$this->accessPolicy->canViewCheckoutSession($user, $checkout)) {
             return ApiResponse::error('Session de paiement introuvable.', Response::HTTP_NOT_FOUND);
         }

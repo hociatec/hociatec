@@ -31,7 +31,7 @@ class ShowMyAuditController extends AbstractController
     public function __invoke(int $id): JsonResponse
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $audit = $this->repository->find($id);
         if (null === $audit || !$this->accessPolicy->canView($user, $audit)) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);

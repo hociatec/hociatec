@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\User\Domain\Security;
 
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
-
-interface SecurityUserIdentity extends UserInterface, PasswordAuthenticatedUserInterface
+interface SecurityUserIdentity
 {
+    public function getUserIdentifier(): string;
+
+    /** @return list<string> */
+    public function getRoles(): array;
+
+    public function getPassword(): string;
 }

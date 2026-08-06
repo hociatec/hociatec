@@ -59,7 +59,7 @@ class RefreshTokenController extends AbstractController
             return ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
         }
 
-        $jwt = $this->jwtManager->create($rotated['user']);
+        $jwt = $this->jwtManager->create(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($rotated['user']));
 
         $response = ApiResponse::success([
             'authenticated' => true,

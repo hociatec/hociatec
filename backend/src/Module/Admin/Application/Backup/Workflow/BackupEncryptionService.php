@@ -15,12 +15,13 @@ final readonly class BackupEncryptionService
 
     public function encryptFile(string $sourcePath, string $targetPath): void
     {
+        $temporaryPath = $targetPath.'.tmp';
+        $completed = false;
         $source = fopen($sourcePath, 'rb');
         if (false === $source) {
             throw new \RuntimeException('Impossible de lire la sauvegarde à chiffrer.');
         }
 
-        $temporaryPath = $targetPath.'.tmp';
         $target = fopen($temporaryPath, 'wb');
         if (false === $target) {
             fclose($source);
@@ -30,7 +31,7 @@ final readonly class BackupEncryptionService
         try {
             $key = $this->key();
             [$state, $header] = sodium_crypto_secretstream_xchacha20poly1305_init_push($key);
-            fwrite($target, self::MAGIC.$header);
+            $this->writeAll($target, self::MAGIC.$header);
 
             do {
                 $chunk = fread($source, self::CHUNK_SIZE);
@@ -41,30 +42,30 @@ final readonly class BackupEncryptionService
                     ? SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL
                     : SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_MESSAGE;
                 $encrypted = sodium_crypto_secretstream_xchacha20poly1305_push($state, $chunk, '', $tag);
-                if (false === fwrite($target, $encrypted)) {
-                    throw new \RuntimeException('Écriture de sauvegarde chiffrée interrompue.');
-                }
+                $this->writeAll($target, $encrypted);
             } while (!feof($source));
 
             fclose($source);
             fclose($target);
             $source = false;
             $target = false;
-            chmod($temporaryPath, 0640);
+            if (!chmod($temporaryPath, 0640)) {
+                throw new \RuntimeException('Impossible de sécuriser la sauvegarde chiffrée.');
+            }
             if (!rename($temporaryPath, $targetPath)) {
                 throw new \RuntimeException('Impossible de finaliser la sauvegarde chiffrée.');
             }
-        } catch (\RuntimeException $exception) {
+            $completed = true;
+        } finally {
             if (is_resource($source)) {
                 fclose($source);
             }
             if (is_resource($target)) {
                 fclose($target);
             }
-            if (is_file($temporaryPath)) {
+            if (!$completed && is_file($temporaryPath)) {
                 unlink($temporaryPath);
             }
-            throw $exception;
         }
     }
 
@@ -77,5 +78,23 @@ final readonly class BackupEncryptionService
         }
 
         return $key;
+    }
+
+    /**
+     * @param resource $stream
+     */
+    private function writeAll($stream, string $data): void
+    {
+        $offset = 0;
+        $length = strlen($data);
+
+        while ($offset < $length) {
+            $written = fwrite($stream, substr($data, $offset));
+            if (false === $written || 0 === $written) {
+                throw new \RuntimeException('Écriture de sauvegarde chiffrée interrompue.');
+            }
+
+            $offset += $written;
+        }
     }
 }

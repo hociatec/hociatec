@@ -42,9 +42,9 @@ final class MoreLightControllerBatchesTest extends TestCase
                 parent::__construct($resolver);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         $pendingPayload = json_decode((string) $pending()->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -62,9 +62,9 @@ final class MoreLightControllerBatchesTest extends TestCase
                 parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
@@ -77,9 +77,9 @@ final class MoreLightControllerBatchesTest extends TestCase
                 parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $otherUserController(7)->getStatusCode());

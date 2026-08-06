@@ -36,7 +36,7 @@ final class RetryOrderInvoiceController extends AbstractController
 
         try {
             $this->documents->ensureGenerated($order);
-            $actor = $this->getUser();
+            $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
             $this->events->log(
                 $order,
                 $actor instanceof \App\Module\User\Domain\Entity\User ? $actor : null,

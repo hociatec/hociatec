@@ -43,7 +43,7 @@ final class AssignBugReportController extends AbstractController
             }
         }
 
-        $actor = $this->getUser();
+        $actor = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         try {
             $this->assignBugReport->assign($report, $assignedTo, $actor instanceof User ? $actor : null);
         } catch (\InvalidArgumentException $exception) {

@@ -32,7 +32,7 @@ class GeneratePdfController extends AbstractController
     public function detailed(int $id): Response
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $audit = $this->audits->find($id);
         if (null === $audit || !$this->accessPolicy->canView($user, $audit)) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
@@ -45,7 +45,7 @@ class GeneratePdfController extends AbstractController
         }
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $this->events->log($audit, $user, 'pdf_generated', 'Rapport détaillé (client)');
 
         return $this->attachments->create($bin, sprintf('%s-rapport.pdf', $audit->getNumber()), 'application/pdf');
@@ -55,7 +55,7 @@ class GeneratePdfController extends AbstractController
     public function summary(int $id): Response
     {
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $audit = $this->audits->find($id);
         if (null === $audit || !$this->accessPolicy->canView($user, $audit)) {
             return ApiResponse::error('Audit introuvable.', Response::HTTP_NOT_FOUND);
@@ -68,7 +68,7 @@ class GeneratePdfController extends AbstractController
         }
 
         /** @var User $user */
-        $user = $this->getUser();
+        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $this->events->log($audit, $user, 'pdf_generated', 'Synthèse PDF (client)');
 
         return $this->attachments->create($bin, sprintf('%s-synthese.pdf', $audit->getNumber()), 'application/pdf');

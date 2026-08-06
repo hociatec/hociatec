@@ -45,7 +45,7 @@ final class ListMyVouchersControllerTest extends TestCase
         $this->entityManager()->flush();
 
         $token = $this->createMock(TokenInterface::class);
-        $token->method('getUser')->willReturn($user);
+        $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
 
         $storage = $this->createMock(TokenStorageInterface::class);
         $storage->method('getToken')->willReturn($token);

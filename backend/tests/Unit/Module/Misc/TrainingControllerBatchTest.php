@@ -114,9 +114,9 @@ final class TrainingControllerBatchTest extends TestCase
                 parent::__construct($enrollments, $formatter);
             }
 
-            public function getUser(): ?User
+            public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
             {
-                return $this->user;
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
         };
         $clientPayload = json_decode((string) $client()->getContent(), true, 512, JSON_THROW_ON_ERROR);
