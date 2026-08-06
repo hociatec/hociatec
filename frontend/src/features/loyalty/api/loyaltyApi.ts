@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { MyVoucherDto } from '@/features/vouchers/publicApi';
 
@@ -26,8 +27,7 @@ export const fetchMyLoyalty = async (): Promise<LoyaltyBalanceDto> => {
   if (isApiOk(data)) {
     return data.data?.loyalty as LoyaltyBalanceDto;
   }
-
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger la fidélité');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger la fidélité'));
 };
 
 export const convertMyLoyalty = async (
@@ -42,8 +42,7 @@ export const convertMyLoyalty = async (
       voucher: data.data?.voucher as MyVoucherDto,
     };
   }
-
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de convertir la fidélité');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de convertir la fidélité'));
 };
 
 export const fetchAdminLoyaltyCustomers = async (
@@ -65,9 +64,7 @@ export const fetchAdminLoyaltyCustomers = async (
     return { items: data.data.items, meta: data.data.meta };
   }
 
-  throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de charger la fidélité admin',
-  );
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger la fidélité admin'));
 };
 
 export const updateAdminLoyaltyCustomer = async (
@@ -82,5 +79,5 @@ export const updateAdminLoyaltyCustomer = async (
     return { data: data.data.customer, message: data.message };
   }
 
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de mettre à jour le solde');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour le solde'));
 };

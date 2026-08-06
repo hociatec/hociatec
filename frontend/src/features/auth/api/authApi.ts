@@ -2,6 +2,7 @@ import { clearCsrfToken, httpClient } from '../../../shared/lib/httpClient';
 import axios from 'axios';
 import type { ApiResponse } from '../../../shared/types/api';
 import type { AuthUser } from '../../../shared/types/auth';
+import { createApiError, extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { parseAuthUser } from '../lib/authValidation';
 
 export interface RegisterPayload {
@@ -63,11 +64,7 @@ export interface AuthOperationResult<T> {
 
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') {
-    const error = new Error(response.message);
-    (error as Error & { details?: string[] }).details = Array.isArray(response.details)
-      ? response.details.map(String)
-      : [];
-    throw error;
+    throw createApiError(response, response.message);
   }
 
   return response.data;
@@ -77,9 +74,7 @@ const rethrowApiError = (error: unknown): never => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as ApiResponse<unknown> | undefined;
     if (data && data.status === 'error') {
-      const err = new Error(data.message) as Error & { details?: string[] };
-      err.details = Array.isArray(data.details) ? data.details.map(String) : [];
-      throw err;
+      throw createApiError(data, data.message);
     }
   }
 

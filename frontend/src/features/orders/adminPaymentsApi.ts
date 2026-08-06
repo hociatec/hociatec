@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type {
   AdminPaymentDetailDto,
@@ -11,7 +12,7 @@ import { parseAdminPayment, parseAdminPaymentDetail, parseAdminPaymentLiveStripe
 export const fetchAdminPaymentMetadata = async (): Promise<{ statuses: OrderStatusOptionDto[] }> => {
   const { data } = await httpClient.get<ApiResponse<{ statuses: OrderStatusOptionDto[] }>>('/api/admin/payments/metadata');
   if (isApiOk(data)) return data.data;
-  throw new Error(data.message);
+  throw new Error(extractApiErrorMessage(data, data.message));
 };
 
 export const fetchAdminPayments = async (
@@ -36,8 +37,7 @@ export const fetchAdminPayments = async (
   if (isApiOk(data)) {
     return { items: data.data.items.map(parseAdminPayment), meta: data.data.meta };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger les paiements';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les paiements'));
 };
 
 export const fetchAdminPaymentById = async (
@@ -55,6 +55,5 @@ export const fetchAdminPaymentById = async (
       liveStripe: parseAdminPaymentLiveStripe(data.data.liveStripe),
     };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger le paiement';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger le paiement'));
 };

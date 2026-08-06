@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { OrderStatus, OrderStatusFilter } from '@/shared/contracts/statuses';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
@@ -7,7 +8,7 @@ import { parseOrder, parseOrderEvent, parseOrderProcessing } from './orderValida
 export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> => {
   const { data } = await httpClient.get<ApiResponse<AdminOrderMetadataDto>>('/api/admin/orders/metadata');
   if (isApiOk(data)) return data.data;
-  throw new Error(data.message);
+  throw new Error(extractApiErrorMessage(data, data.message));
 };
 
 export const fetchAdminOrders = async (
@@ -40,8 +41,7 @@ export const fetchAdminOrders = async (
   if (isApiOk(data)) {
     return { items: data.data.items.map(parseOrder), meta: data.data.meta };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les commandes'));
 };
 
 export const fetchAdminOrderById = async (
@@ -61,8 +61,7 @@ export const fetchAdminOrderById = async (
       processing: parseOrderProcessing(data.data.processing),
     };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger la commande';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger la commande'));
 };
 
 export const updateAdminOrderStatus = async (
@@ -76,8 +75,7 @@ export const updateAdminOrderStatus = async (
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de mettre à jour le statut';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour le statut'));
 };
 
 export const updateAdminOrderDelivery = async (
@@ -97,9 +95,9 @@ export const updateAdminOrderDelivery = async (
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message =
-    data.status === 'error' ? data.message : 'Impossible de mettre à jour la livraison';
-  throw new Error(message);
+  throw new Error(
+    extractApiErrorMessage(data, 'Impossible de mettre à jour la livraison'),
+  );
 };
 
 export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto> => {
@@ -109,8 +107,7 @@ export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto>
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de regénérer la facture';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de regénérer la facture'));
 };
 
 export const resendAdminOrderEmail = async (
@@ -124,6 +121,5 @@ export const resendAdminOrderEmail = async (
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de renvoyer l’email';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de renvoyer l’email'));
 };

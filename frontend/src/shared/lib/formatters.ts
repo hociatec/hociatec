@@ -35,6 +35,8 @@ export const formatEuroInputFromCents = (valueInCents?: number | null) =>
 
 export const parseEuroInputToCents = (value: string) => {
   const parsed = parseNullableNonNegativeDecimal(value, 0);
+  if (parsed === null) return 0;
+
   return Math.round(parsed * 100);
 };
 

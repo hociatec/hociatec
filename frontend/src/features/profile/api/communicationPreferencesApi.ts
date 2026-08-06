@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export interface CommunicationPreferenceChoice {
@@ -17,7 +18,7 @@ const unwrap = (response: ApiResponse<CommunicationPreferencesPayload>) => {
 
   throw new Error(
     response.status === 'error'
-      ? response.message
+      ? extractApiErrorMessage(response, response.message)
       : 'Impossible de charger les préférences de communication.',
   );
 };

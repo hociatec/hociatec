@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { idempotencyRequestConfig } from '@/shared/lib/idempotency';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
@@ -21,8 +22,7 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
     return parseOrder('order' in payload ? payload.order : payload);
   }
 
-  const message = data.status === 'error' ? data.message : 'Échec de validation de la commande';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Échec de validation de la commande'));
 };
 
 export const checkoutExistingOrder = async (
@@ -44,8 +44,7 @@ export const checkoutExistingOrder = async (
     return parseOrder('order' in payload ? payload.order : payload);
   }
 
-  const message = data.status === 'error' ? data.message : 'Impossible de lancer le règlement';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de lancer le règlement'));
 };
 
 export const fetchCheckoutSessionStatus = async (
@@ -70,8 +69,7 @@ export const fetchCheckoutSessionStatus = async (
       order: data.data.order ? parseOrder(data.data.order) : null,
     };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de vérifier le paiement';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de vérifier le paiement'));
 };
 
 export const fetchMyOrders = async (
@@ -85,8 +83,7 @@ export const fetchMyOrders = async (
   if (isApiOk(data)) {
     return { items: data.data.items.map(parseOrder), meta: data.data.meta };
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger les commandes';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les commandes'));
 };
 
 export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
@@ -94,8 +91,7 @@ export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message = data.status === 'error' ? data.message : 'Commande introuvable';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Commande introuvable'));
 };
 
 export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
@@ -107,8 +103,7 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
   if (isApiOk(data)) {
     return parseOrder(data.data.order);
   }
-  const message = data.status === 'error' ? data.message : "Impossible d'annuler la commande";
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, "Impossible d'annuler la commande"));
 };
 
 export const downloadOrderInvoicePdf = async (orderId: number, filenameBase: string) => {
@@ -139,8 +134,7 @@ export const submitOrderItemReview = async (
     return data.data.review;
   }
 
-  const message = data.status === 'error' ? data.message : "Impossible d'enregistrer l'avis";
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, "Impossible d'enregistrer l'avis"));
 };
 
 export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
@@ -152,7 +146,7 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
     return data.data.items.map(parsePendingReview);
   }
 
-  const message =
-    data.status === 'error' ? data.message : 'Impossible de charger les avis en attente';
-  throw new Error(message);
+  throw new Error(
+    extractApiErrorMessage(data, 'Impossible de charger les avis en attente'),
+  );
 };

@@ -1,20 +1,39 @@
 import { useCallback } from 'react';
-import { useNavigate, type NavigateFunction } from 'react-router';
+import { useNavigate, type NavigateOptions, type To } from 'react-router';
 import { useTimeout } from '@/shared/hooks/useTimeout';
 
-type NavigateTarget = Parameters<NavigateFunction>[0];
-type NavigateOptions = Parameters<NavigateFunction>[1];
+type NavigateWithDelay = {
+  (to: number, delayMs?: number): void;
+  (to: To, options?: NavigateOptions, delayMs?: number): void;
+};
 
 export const useDelayedNavigation = (defaultDelayMs = 500) => {
   const navigate = useNavigate();
   const { schedule } = useTimeout();
 
   const navigateWithDelay = useCallback(
-    (to: NavigateTarget, options?: NavigateOptions, delayMs = defaultDelayMs) => {
+    ((to: To | number, optionsOrDelayMs?: NavigateOptions | number, delayMs?: number) => {
+      const finalDelayMs =
+        typeof optionsOrDelayMs === 'number'
+          ? optionsOrDelayMs
+          : delayMs === undefined
+            ? defaultDelayMs
+            : delayMs;
+      const options = typeof optionsOrDelayMs === 'number' ? undefined : optionsOrDelayMs;
+
       schedule(() => {
-        navigate(to, options);
-      }, delayMs);
-    },
+        if (typeof to === 'number') {
+          navigate(to);
+          return;
+        }
+
+        if (options === undefined) {
+          navigate(to);
+        } else {
+          navigate(to, options);
+        }
+      }, finalDelayMs);
+    }) as NavigateWithDelay,
     [defaultDelayMs, navigate, schedule],
   );
 

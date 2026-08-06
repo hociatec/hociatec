@@ -37,6 +37,7 @@ const emptyForm: PrestationFormState = {
 export const PrestationFormPage = () => {
   const { prestationId } = useParams();
   const parsedPrestationId = parseNullablePositiveInteger(prestationId);
+  const prestationIdForMutation = parsedPrestationId ?? 0;
   const isEdit = parsedPrestationId !== null;
   const navigate = useNavigate();
   const navigateWithDelay = useDelayedNavigation(600);
@@ -53,12 +54,12 @@ export const PrestationFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
   const prestationQuery = useQuery<Prestation, Error>({
     queryKey: adminAppointmentQueryKeys.prestation(isEdit ? parsedPrestationId : null),
-    queryFn: () => fetchAdminPrestation(parsedPrestationId!),
+    queryFn: () => fetchAdminPrestation(prestationIdForMutation),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertPrestationPayload) =>
-      isEdit ? updatePrestation(parsedPrestationId, payload) : createPrestation(payload),
+      isEdit ? updatePrestation(prestationIdForMutation, payload) : createPrestation(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminAppointmentQueryKeys.prestations() });
       setMessage(

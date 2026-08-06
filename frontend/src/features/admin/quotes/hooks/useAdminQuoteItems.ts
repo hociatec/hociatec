@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { parseNonNegativeDecimal } from '@/shared/lib/parsers';
 import { clampAtLeast } from '@/shared/lib/number';
 
 import type { CatalogProduct } from '@/features/catalog/adminApi';
@@ -92,16 +91,16 @@ export const useAdminQuoteItems = ({
           ...current.items,
           {
             type: 'service',
-            serviceId: service.id,
-            name: service.title,
-            description: service.description ?? null,
-            unit: service.unit ?? null,
-            quantity: 1,
-            unitPriceCents: service.priceCents,
-            vatRate: parseNonNegativeDecimal(service.vatRate, 0),
-            discountCents: 0,
-          },
-        ],
+              serviceId: service.id,
+              name: service.title,
+              description: service.description ?? null,
+              unit: service.unit ?? null,
+              quantity: 1,
+              unitPriceCents: service.priceCents,
+              vatRate: service.vatRate,
+              discountCents: 0,
+            },
+          ],
       };
     });
   };

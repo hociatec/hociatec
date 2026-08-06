@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export interface MaintenanceStatusDto {
@@ -13,7 +14,7 @@ export interface SystemStatusDto {
 
 const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
   if (isApiOk(data)) return data.data as T;
-  throw new Error(data.status === 'error' ? data.message : fallback);
+  throw new Error(extractApiErrorMessage(data, fallback));
 };
 
 export const fetchSystemStatus = async (): Promise<SystemStatusDto> => {

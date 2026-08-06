@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { createApiError, extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 
 export interface ContactPayload {
@@ -10,11 +11,7 @@ export interface ContactPayload {
 
 const unwrapResponse = <T>(response: ApiResponse<T>): T => {
   if (response.status === 'error') {
-    const error = new Error(response.message);
-    (error as Error & { details?: string[] }).details = Array.isArray(response.details)
-      ? response.details.map(String)
-      : [];
-    throw error;
+    throw createApiError(response, response.message);
   }
   return response.data;
 };
@@ -26,5 +23,5 @@ export const sendContactMessage = async (payload: ContactPayload): Promise<ApiMu
   );
 
   unwrapResponse(data);
-  return { data: null, message: data.status === 'error' ? undefined : data.message };
+  return { data: null, message: extractApiErrorMessage(data, '') };
 };

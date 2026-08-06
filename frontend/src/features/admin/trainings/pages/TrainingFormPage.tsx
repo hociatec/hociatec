@@ -45,6 +45,7 @@ const parseEuroToCents = (value: string) => {
 export const TrainingFormPage = () => {
   const { trainingId } = useParams();
   const parsedTrainingId = parseNullablePositiveInteger(trainingId);
+  const safeTrainingId = parsedTrainingId ?? 0;
   const isEdit = parsedTrainingId !== null;
   const navigate = useNavigate();
   const navigateWithDelay = useDelayedNavigation(600);
@@ -60,7 +61,7 @@ export const TrainingFormPage = () => {
     queryFn: async () => {
       const [categories, training] = await Promise.all([
         fetchAdminTrainingCategories(),
-        isEdit ? fetchAdminTraining(parsedTrainingId) : Promise.resolve(null),
+        isEdit ? fetchAdminTraining(safeTrainingId) : Promise.resolve(null),
       ]);
       return { categories, training };
     },
@@ -119,7 +120,7 @@ export const TrainingFormPage = () => {
             .map((line) => line.trim())
             .filter(Boolean),
         },
-        isEdit ? parsedTrainingId : undefined,
+        isEdit ? safeTrainingId : undefined,
       ),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });

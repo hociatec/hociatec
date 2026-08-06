@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export interface SupportRequestDto {
@@ -101,14 +102,14 @@ export interface OperationsOverviewDto {
 
 export const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
   if (isApiOk(data)) return data.data as T;
-  throw new Error(data.status === 'error' ? data.message : fallback);
+  throw new Error(extractApiErrorMessage(data, fallback));
 };
 
 export const rethrowApiError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as ApiResponse<unknown> | undefined;
-    if (data?.status === 'error' && data.message) {
-      throw new Error(data.message);
+    if (data) {
+      throw new Error(extractApiErrorMessage(data, fallback));
     }
   }
 

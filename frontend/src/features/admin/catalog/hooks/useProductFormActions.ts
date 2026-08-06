@@ -65,7 +65,7 @@ export const useProductFormActions = ({
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertProductPayload) =>
-      isEdit && currentProductId
+      isEdit && currentProductId !== null
         ? updateProduct(currentProductId, payload)
         : createProduct(payload),
     onSuccess: () => {

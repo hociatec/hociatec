@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export interface MyVoucherDto {
@@ -29,7 +30,5 @@ export const fetchMyVouchers = async (
     return data.data;
   }
 
-  const message =
-    data.status === 'error' ? data.message : 'Impossible de charger vos bons de réduction';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger vos bons de réduction'));
 };

@@ -46,6 +46,7 @@ const generateCode = (name: string) => {
 export const VoucherFormPage = () => {
   const { voucherId } = useParams();
   const editingId = parseNullablePositiveInteger(voucherId);
+  const safeVoucherId = editingId ?? 0;
   const isEdit = editingId !== null;
   useDocumentTitle(isEdit ? 'Admin - Modifier un bon' : 'Admin - Nouveau bon');
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export const VoucherFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const voucherQuery = useQuery({
     queryKey: adminVoucherQueryKeys.detail(editingId),
-    queryFn: () => fetchVoucher(editingId),
+    queryFn: () => fetchVoucher(safeVoucherId),
     enabled: isEdit,
   });
 
@@ -101,7 +102,7 @@ export const VoucherFormPage = () => {
         code: form.code.trim() || generateCode(form.name),
       };
       if (isEdit && editingId !== null) {
-        return updateVoucher(editingId, nextPayload);
+        return updateVoucher(safeVoucherId, nextPayload);
       }
       return createVoucher(nextPayload);
     },

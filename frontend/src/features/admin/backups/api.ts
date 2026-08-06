@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import type { MaintenanceStatusDto } from '@/shared/api/systemStatus';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 
@@ -46,14 +47,14 @@ export interface BackupStatusDto {
 
 const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
   if (isApiOk(data)) return data.data as T;
-  throw new Error(data.status === 'error' ? data.message : fallback);
+  throw new Error(extractApiErrorMessage(data, fallback));
 };
 
 const rethrowApiError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as ApiResponse<unknown> | undefined;
-    if (data?.status === 'error' && data.message) {
-      throw new Error(data.message);
+    if (data) {
+      throw new Error(extractApiErrorMessage(data, fallback));
     }
   }
 

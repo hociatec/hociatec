@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type { TrainingEnrollmentDto } from './trainingTypes';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
@@ -13,7 +14,10 @@ export const enrollTrainingSession = async (
       { sessionId, startsAt },
     );
     const data = unwrapTrainingData(res.data);
-    return { data, message: res.data.status === 'error' ? undefined : res.data.message };
+    return {
+      data,
+      message: extractApiErrorMessage(res.data, res.data.message),
+    };
   }, 'Inscription impossible.');
 };
 

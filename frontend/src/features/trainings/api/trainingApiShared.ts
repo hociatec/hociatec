@@ -1,4 +1,5 @@
 import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const TRAINING_API_ROUTES = {
@@ -18,13 +19,13 @@ export const TRAINING_API_ROUTES = {
 } as const;
 
 export const unwrapTrainingData = <T>(response: ApiResponse<T>): T => {
-  if (response.status === 'error') throw new Error(response.message);
+  if (response.status === 'error') throw new Error(extractApiErrorMessage(response, response.message));
   return response.data;
 };
 
 export const unwrapTrainingResult = <T>(response: ApiResponse<T>): ApiMutationResult<T> => ({
   data: unwrapTrainingData(response),
-  message: response.status === 'error' ? undefined : response.message,
+  message: extractApiErrorMessage(response, response.message),
 });
 
 export const trainingRequest = async <T>(

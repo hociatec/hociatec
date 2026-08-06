@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export type PromotionAudienceDefinition = {
@@ -52,7 +53,7 @@ export const fetchPromotions = async (page = 1, perPage = 10): Promise<Paginated
     '/api/admin/promotions',
     { params: { page, perPage } },
   );
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return data.data;
 };
 
@@ -68,7 +69,7 @@ export const createPromotion = async (payload: PromotionPayload): Promise<ApiMut
     '/api/admin/promotions',
     payload,
   );
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data.promotion, message: data.message };
 };
 
@@ -80,12 +81,12 @@ export const updatePromotion = async (
     `/api/admin/promotions/${promotionId}`,
     payload,
   );
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data.promotion, message: data.message };
 };
 
 export const deletePromotion = async (promotionId: number): Promise<ApiMutationResult<{ deleted: boolean }>> => {
   const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/promotions/${promotionId}`);
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data, message: data.message };
 };

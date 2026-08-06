@@ -28,6 +28,7 @@ const emptyForm: BrandFormState = {
 export const BrandFormPage = () => {
   const { brandId } = useParams();
   const parsedBrandId = parseNullablePositiveInteger(brandId);
+  const safeBrandId = parsedBrandId ?? 0;
   const isEdit = parsedBrandId !== null;
   const navigate = useNavigate();
   const navigateWithDelay = useDelayedNavigation(600);
@@ -40,12 +41,12 @@ export const BrandFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
   const brandQuery = useQuery<CatalogBrand, Error>({
     queryKey: adminCatalogQueryKeys.brand(isEdit ? parsedBrandId : null),
-    queryFn: () => fetchAdminBrand(parsedBrandId),
+    queryFn: () => fetchAdminBrand(safeBrandId),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertBrandPayload) =>
-      isEdit ? updateBrand(parsedBrandId, payload) : createBrand(payload),
+      isEdit ? updateBrand(safeBrandId, payload) : createBrand(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.brands() });
       setMessage(

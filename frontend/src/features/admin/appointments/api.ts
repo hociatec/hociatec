@@ -1,10 +1,8 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 import type { Prestation, WorkingDay } from '@/features/appointments/publicApi';
-
-const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
-  response.status === 'error' ? response.message : fallback;
 
 export const fetchAdminPrestationsPage = async (
   page = 1,
@@ -19,7 +17,7 @@ export const fetchAdminPrestationsPage = async (
     return { items: data.data.items, meta: data.data.meta };
   }
 
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
+  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des prestations'));
 };
 
 export const fetchAdminPrestation = async (id: number) => {
@@ -31,7 +29,7 @@ export const fetchAdminPrestation = async (id: number) => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Prestation introuvable'));
+  throw new Error(extractApiErrorMessage(data, 'Prestation introuvable'));
 };
 
 export interface UpsertPrestationPayload {
@@ -63,7 +61,7 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
     return { data: data.data, message: data.message } satisfies ApiMutationResult<Prestation>;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de mettre à jour la prestation'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour la prestation'));
 };
 
 export const deletePrestation = async (id: number) => {
@@ -75,7 +73,7 @@ export const deletePrestation = async (id: number) => {
     return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de supprimer la prestation'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de supprimer la prestation'));
 };
 
 export const fetchConfiguration = async () => {
@@ -87,7 +85,7 @@ export const fetchConfiguration = async () => {
     return data.data.days;
   }
 
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement de la configuration'));
+  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement de la configuration'));
 };
 
 export const updateConfiguration = async (days: WorkingDay[]) => {
@@ -100,5 +98,5 @@ export const updateConfiguration = async (days: WorkingDay[]) => {
     return data.data.days;
   }
 
-  throw new Error(extractErrorMessage(data, 'Impossible de mettre à jour la configuration'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour la configuration'));
 };

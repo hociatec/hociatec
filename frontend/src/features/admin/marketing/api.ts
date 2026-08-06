@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export type MarketingSegmentDefinition = {
@@ -102,7 +103,7 @@ export const createMarketingTemplate = async (
     '/api/admin/marketing/templates',
     payload,
   );
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data.template, message: data.message };
 };
 
@@ -114,13 +115,13 @@ export const updateMarketingTemplate = async (
     `/api/admin/marketing/templates/${templateId}`,
     payload,
   );
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data.template, message: data.message };
 };
 
 export const deleteMarketingTemplate = async (templateId: number) => {
   const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/marketing/templates/${templateId}`);
-  if (!isApiOk(data)) throw new Error('Réponse API invalide.');
+  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
   return { data: data.data, message: data.message };
 };
 

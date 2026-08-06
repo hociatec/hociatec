@@ -39,6 +39,7 @@ const emptyForm: TrainingSessionFormState = {
 export const TrainingSessionFormPage = () => {
   const { sessionId } = useParams();
   const parsedSessionId = parseNullablePositiveInteger(sessionId);
+  const safeSessionId = parsedSessionId ?? 0;
   const isEdit = parsedSessionId !== null;
   const navigate = useNavigate();
   const navigateWithDelay = useDelayedNavigation(600);
@@ -97,7 +98,7 @@ export const TrainingSessionFormPage = () => {
           location: form.format === 'onsite' ? form.location.trim() || null : null,
           meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
         },
-        isEdit ? parsedSessionId : undefined,
+        isEdit ? safeSessionId : undefined,
       ),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });

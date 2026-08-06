@@ -1,15 +1,16 @@
 import { isAxiosError } from 'axios';
 
 import type { ApiResponse } from '@/shared/types/api';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 
 export const unwrapQuoteApiData = <T>(response: ApiResponse<T>): T => {
-  if (response.status === 'error') throw new Error(response.message);
+  if (response.status === 'error') throw new Error(extractApiErrorMessage(response, response.message));
   return response.data;
 };
 
 export const unwrapQuoteApiResult = <T>(response: ApiResponse<T>) => ({
   data: unwrapQuoteApiData(response),
-  message: response.status === 'error' ? undefined : response.message,
+  message: extractApiErrorMessage(response, response.message),
 });
 
 export const extractQuoteApiError = (error: unknown, fallback: string) => {

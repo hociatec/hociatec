@@ -18,6 +18,7 @@ import type {
 } from '@/features/account/types/dashboard';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatOptionalEuroCents } from '@/shared/lib/formatters';
+import { convertLoyaltyPointsToEuroCents } from '@/shared/lib/loyalty';
 import { accountQueryKeys } from '@/features/account/queryKeys';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { parseNonNegativeInteger } from '@/shared/lib/parsers';
@@ -57,16 +58,20 @@ export const useClientDashboard = () => {
     }
     const currentPoints = parseNonNegativeInteger(convertPoints, 0);
     if (currentPoints <= 0 || currentPoints > data.loyalty.points)
-      setConvertPoints(getDefaultConvertPoints(data.loyalty.points));
-  }, [convertPoints, data.loyalty.points]);
+      setConvertPoints(
+        getDefaultConvertPoints(data.loyalty.points, data.loyalty.pointsPerEuroConverted),
+      );
+  }, [convertPoints, data.loyalty.points, data.loyalty.pointsPerEuroConverted]);
 
   const dashboardActions = useMemo(
     () => selectDashboardActions(data, loadedAtMs),
     [data, loadedAtMs],
   );
   const conversionPoints = normalizeConversionPoints(convertPoints);
-  const conversionEuroCents =
-    Math.floor(conversionPoints / data.loyalty.pointsPerEuroConverted) * 100;
+  const conversionEuroCents = convertLoyaltyPointsToEuroCents(
+    conversionPoints,
+    data.loyalty.pointsPerEuroConverted,
+  );
   const convertMutation = useMutation({
     mutationFn: convertMyLoyalty,
     onSuccess: (result) => {

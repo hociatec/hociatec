@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-type TimeoutHandle = ReturnType<typeof window.setTimeout>;
+type TimeoutHandle = ReturnType<typeof setTimeout>;
 
 export const useTimeout = () => {
   const timeoutRef = useRef<TimeoutHandle | null>(null);
@@ -10,7 +10,7 @@ export const useTimeout = () => {
       return;
     }
 
-    window.clearTimeout(timeoutRef.current);
+    clearTimeout(timeoutRef.current);
     timeoutRef.current = null;
   }, []);
 
@@ -22,7 +22,7 @@ export const useTimeout = () => {
         return;
       }
 
-      timeoutRef.current = window.setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         timeoutRef.current = null;
         callback();
       }, delayMs);

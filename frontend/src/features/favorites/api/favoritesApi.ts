@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
+import { isApiOk, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 export interface FavoriteDto {
@@ -12,9 +13,6 @@ export interface FavoriteResponse {
   alreadyFavorite: boolean;
 }
 
-const buildErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
-  response.status === 'error' ? response.message : fallback;
-
 export const fetchFavorites = async (): Promise<FavoriteDto[]> => {
   const { data } = await httpClient.get<ApiResponse<{ items: FavoriteDto[] }>>('/api/favorites', {
     params: { page: 1, perPage: 50 },
@@ -24,7 +22,7 @@ export const fetchFavorites = async (): Promise<FavoriteDto[]> => {
     return data.data.items;
   }
 
-  throw new Error(buildErrorMessage(data, 'Impossible de charger vos favoris.'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger vos favoris.'));
 };
 
 export const fetchFavoritesPage = async (
@@ -40,7 +38,7 @@ export const fetchFavoritesPage = async (
     return { items: data.data.items, meta: data.data.meta };
   }
 
-  throw new Error(buildErrorMessage(data, 'Impossible de charger vos favoris.'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger vos favoris.'));
 };
 
 export const addFavorite = async (productId: number): Promise<FavoriteResponse> => {
@@ -56,7 +54,7 @@ export const addFavorite = async (productId: number): Promise<FavoriteResponse> 
     };
   }
 
-  throw new Error(buildErrorMessage(data, "Impossible d'ajouter ce produit aux favoris."));
+  throw new Error(extractApiErrorMessage(data, "Impossible d'ajouter ce produit aux favoris."));
 };
 
 export const removeFavorite = async (productId: number): Promise<void> => {
@@ -68,5 +66,5 @@ export const removeFavorite = async (productId: number): Promise<void> => {
     return;
   }
 
-  throw new Error(buildErrorMessage(data, 'Impossible de retirer ce produit des favoris.'));
+  throw new Error(extractApiErrorMessage(data, 'Impossible de retirer ce produit des favoris.'));
 };

@@ -1,6 +1,7 @@
 import axios, { type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { normalizeSearchText } from '@/shared/lib/searchText';
 
@@ -59,7 +60,7 @@ const toCartError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const response = error.response;
     const data = response?.data as ApiResponse<unknown> | undefined;
-    const message = data?.status === 'error' && data.message ? data.message : fallback;
+    const message = data ? extractApiErrorMessage(data, fallback) : fallback;
 
     if (!response) {
       throw new CartApiError(message, 'unknown');
@@ -94,7 +95,7 @@ const handleCartResponse = (response: ApiResponse<CartPayload>, fallback: string
     return cart;
   }
 
-  const message = response.status === 'error' ? response.message : fallback;
+  const message = extractApiErrorMessage(response, fallback);
   throw new CartApiError(message, 'unknown');
 };
 
@@ -237,7 +238,7 @@ export const clearCart = async (): Promise<ApiMutationResult<Cart>> => {
   try {
     const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart');
     const cart = readCartFromResponse(data, headers, 'Impossible de vider le panier.');
-    return { data: cart, message: data.status === 'error' ? undefined : data.message };
+    return { data: cart, message: extractApiErrorMessage(data, '') };
   } catch (error) {
     throw toCartError(error, 'Impossible de vider le panier.');
   }

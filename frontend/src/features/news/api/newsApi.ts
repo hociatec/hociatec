@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios';
 
 import { getHttpErrorMessage, httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export class NewsApiError extends Error {
@@ -66,7 +67,7 @@ export const fetchNewsArticles = async ({
   });
 
   if (isApiOk(data)) return data.data;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les actualités.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les actualités.'));
 };
 
 export const fetchNewsArticle = async (
@@ -79,7 +80,7 @@ export const fetchNewsArticle = async (
   );
 
   if (isApiOk(data)) return data.data.article;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger l’actualité.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger l’actualité.'));
 };
 
 export const shareNewsArticleByEmail = async (
@@ -92,9 +93,7 @@ export const shareNewsArticleByEmail = async (
     >(`/api/public/news/${encodeURIComponent(slug)}/share`, payload);
 
     if (isApiOk(data)) return data.data;
-    throw new NewsApiError(
-      data.status === 'error' ? data.message : "Impossible d'envoyer l’actualité par e-mail.",
-    );
+    throw new NewsApiError(extractApiErrorMessage(data, "Impossible d'envoyer l’actualité par e-mail."));
   } catch (error) {
     if (error instanceof NewsApiError) throw error;
     if (isAxiosError(error)) {
@@ -121,7 +120,7 @@ export const fetchNewsComments = async (
   });
 
   if (isApiOk(data)) return data.data;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les commentaires.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les commentaires.'));
 };
 
 export const createNewsComment = async (
@@ -134,7 +133,7 @@ export const createNewsComment = async (
   );
 
   if (isApiOk(data)) return data.data.comment;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de publier le commentaire.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de publier le commentaire.'));
 };
 
 export interface NewsArticlePayload {
@@ -159,7 +158,7 @@ export const fetchAdminNewsArticles = async ({
   >('/api/admin/news', { params: { page, perPage: 10, q: q?.trim() || undefined } });
 
   if (isApiOk(data)) return data.data;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de charger les actualités.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les actualités.'));
 };
 
 export const fetchAdminNewsArticle = async (id: number): Promise<NewsArticleDto> => {
@@ -167,7 +166,7 @@ export const fetchAdminNewsArticle = async (id: number): Promise<NewsArticleDto>
     `/api/admin/news/${id}`,
   );
   if (isApiOk(data)) return data.data.article;
-  throw new Error(data.status === 'error' ? data.message : 'Actualité introuvable.');
+  throw new Error(extractApiErrorMessage(data, 'Actualité introuvable.'));
 };
 
 export const createAdminNewsArticle = async (payload: NewsArticlePayload): Promise<NewsArticleDto> => {
@@ -176,7 +175,7 @@ export const createAdminNewsArticle = async (payload: NewsArticlePayload): Promi
     payload,
   );
   if (isApiOk(data)) return data.data.article;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de créer l’actualité.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de créer l’actualité.'));
 };
 
 export const updateAdminNewsArticle = async (
@@ -188,24 +187,27 @@ export const updateAdminNewsArticle = async (
     payload,
   );
   if (isApiOk(data)) return data.data.article;
-  throw new Error(data.status === 'error' ? data.message : 'Impossible de modifier l’actualité.');
+  throw new Error(extractApiErrorMessage(data, 'Impossible de modifier l’actualité.'));
 };
 
 export const deleteAdminNewsArticle = async (id: number): Promise<void> => {
   const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/news/${id}`);
-  if (!isApiOk(data)) throw new Error(data.status === 'error' ? data.message : 'Impossible de supprimer l’actualité.');
+  if (!isApiOk(data))
+    throw new Error(extractApiErrorMessage(data, 'Impossible de supprimer l’actualité.'));
 };
 
 export const sendAdminNewsArticleEmail = async (id: number): Promise<void> => {
   const { data } = await httpClient.post<ApiResponse<{ sent: boolean }>>(
     `/api/admin/news/${id}/send-email`,
   );
-  if (!isApiOk(data)) throw new Error(data.status === 'error' ? data.message : 'Impossible de planifier l’envoi.');
+  if (!isApiOk(data))
+    throw new Error(extractApiErrorMessage(data, 'Impossible de planifier l’envoi.'));
 };
 
 export const deleteAdminNewsComment = async (id: number): Promise<void> => {
   const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(
     `/api/admin/news/comments/${id}`,
   );
-  if (!isApiOk(data)) throw new Error(data.status === 'error' ? data.message : 'Impossible de supprimer le commentaire.');
+  if (!isApiOk(data))
+    throw new Error(extractApiErrorMessage(data, 'Impossible de supprimer le commentaire.'));
 };

@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export interface AddressDto {
@@ -25,8 +26,7 @@ export const fetchMyAddresses = async (
   if (isApiOk(data)) {
     return data.data;
   }
-  const message = data.status === 'error' ? data.message : 'Impossible de charger les adresses';
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les adresses'));
 };
 
 export const createAddress = async (
@@ -39,8 +39,7 @@ export const createAddress = async (
   if (isApiOk(data)) {
     return data.data.address;
   }
-  const message = data.status === 'error' ? data.message : "Impossible de créer l'adresse";
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, "Impossible de créer l'adresse"));
 };
 
 export const updateAddress = async (
@@ -54,8 +53,7 @@ export const updateAddress = async (
   if (isApiOk(data)) {
     return data.data.address;
   }
-  const message = data.status === 'error' ? data.message : "Impossible de mettre à jour l'adresse";
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, "Impossible de mettre à jour l'adresse"));
 };
 
 export const deleteAddress = async (id: number): Promise<void> => {
@@ -63,8 +61,7 @@ export const deleteAddress = async (id: number): Promise<void> => {
     `/api/addresses/${id}`,
   );
   if (isApiOk(data)) return;
-  const message = data.status === 'error' ? data.message : "Impossible de supprimer l'adresse";
-  throw new Error(message);
+  throw new Error(extractApiErrorMessage(data, "Impossible de supprimer l'adresse"));
 };
 
 export const setDefaultAddress = async (id: number): Promise<void> => {
@@ -72,7 +69,7 @@ export const setDefaultAddress = async (id: number): Promise<void> => {
     `/api/addresses/${id}/default`,
   );
   if (isApiOk(data)) return;
-  const message =
-    data.status === 'error' ? data.message : "Impossible de définir l'adresse par défaut";
-  throw new Error(message);
+  throw new Error(
+    extractApiErrorMessage(data, "Impossible de définir l'adresse par défaut"),
+  );
 };

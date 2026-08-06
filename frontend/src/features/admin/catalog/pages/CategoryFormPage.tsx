@@ -35,6 +35,7 @@ const emptyForm: CategoryFormState = {
 export const CategoryFormPage = () => {
   const { categoryId } = useParams();
   const parsedCategoryId = parseNullablePositiveInteger(categoryId);
+  const safeCategoryId = parsedCategoryId ?? 0;
   const isEdit = parsedCategoryId !== null;
   const navigate = useNavigate();
   const navigateWithDelay = useDelayedNavigation(600);
@@ -47,12 +48,12 @@ export const CategoryFormPage = () => {
   const [message, setMessage] = useState<string | null>(null);
   const categoryQuery = useQuery<CatalogCategory, Error>({
     queryKey: adminCatalogQueryKeys.category(isEdit ? parsedCategoryId : null),
-    queryFn: () => fetchAdminCategory(parsedCategoryId),
+    queryFn: () => fetchAdminCategory(safeCategoryId),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertCategoryPayload) =>
-      isEdit ? updateCategory(parsedCategoryId, payload) : createCategory(payload),
+      isEdit ? updateCategory(safeCategoryId, payload) : createCategory(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.categories() });
       setMessage(

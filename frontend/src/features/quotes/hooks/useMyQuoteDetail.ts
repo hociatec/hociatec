@@ -11,21 +11,22 @@ import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 export const useMyQuoteDetail = () => {
   const { quoteId } = useParams();
   const id = parseNullablePositiveInteger(quoteId);
+  const safeQuoteId = id ?? 0;
   const [downloading, setDownloading] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<'accept' | 'refuse' | null>(null);
   const toast = useToast();
   const queryClient = useQueryClient();
   const quoteQuery = useQuery({
-    queryKey: quoteQueryKeys.mineDetail(id),
-    queryFn: () => fetchMyQuote(id || 0),
+    queryKey: quoteQueryKeys.mineDetail(safeQuoteId),
+    queryFn: () => fetchMyQuote(safeQuoteId),
     enabled: id !== null,
   });
   const quote = quoteQuery.data ?? null;
   const statusMutation = useMutation({
     mutationFn: (action: 'accept' | 'refuse') =>
-      action === 'accept' ? acceptMyQuote(id) : refuseMyQuote(id),
+      action === 'accept' ? acceptMyQuote(safeQuoteId) : refuseMyQuote(safeQuoteId),
     onSuccess: (response, action) => {
-      queryClient.setQueryData(quoteQueryKeys.mineDetail(id), response.data);
+      queryClient.setQueryData(quoteQueryKeys.mineDetail(safeQuoteId), response.data);
       void queryClient.invalidateQueries({ queryKey: quoteQueryKeys.mine() });
       toast.show(
         response.message ??

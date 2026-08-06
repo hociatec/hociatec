@@ -23,6 +23,7 @@ const emptyForm: PromotionFormState = { name: '', slug: '', description: '', dis
 export const PromotionFormPage = () => {
   const { promotionId } = useParams();
   const editingPromotionId = parseNullablePositiveInteger(promotionId);
+  const safePromotionId = editingPromotionId ?? 0;
   const isEdit = editingPromotionId !== null;
   useDocumentTitle(isEdit ? 'Admin - Modifier une promotion' : 'Admin - Nouvelle promotion');
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export const PromotionFormPage = () => {
   });
   const promotionQuery = useQuery({
     queryKey: adminPromotionQueryKeys.detail(editingPromotionId),
-    queryFn: () => fetchPromotion(editingPromotionId),
+    queryFn: () => fetchPromotion(safePromotionId),
     enabled: isEdit,
   });
   const audiences = audiencesQuery.data ?? {};
@@ -77,7 +78,7 @@ export const PromotionFormPage = () => {
   const saveMutation = useMutation({
     mutationFn: () =>
       isEdit
-        ? updatePromotion(editingPromotionId, payload)
+        ? updatePromotion(safePromotionId, payload)
         : createPromotion(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminPromotionQueryKeys.overview() });

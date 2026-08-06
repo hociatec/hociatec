@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export interface AccountNotificationsReadStateDto {
@@ -26,7 +27,7 @@ export const fetchAccountNotifications = async (): Promise<StoredAccountNotifica
   }
 
   throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de charger les notifications',
+    extractApiErrorMessage(data, 'Impossible de charger les notifications'),
   );
 };
 
@@ -41,7 +42,7 @@ export const fetchAccountNotificationsReadState =
     }
 
     throw new Error(
-      data.status === 'error' ? data.message : 'Impossible de charger les notifications lues',
+      extractApiErrorMessage(data, 'Impossible de charger les notifications lues'),
     );
   };
 
@@ -57,7 +58,7 @@ export const markAccountNotificationsSeen = async (
   }
 
   throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de marquer les notifications comme lues',
+    extractApiErrorMessage(data, 'Impossible de marquer les notifications comme lues'),
   );
 };
 
@@ -73,7 +74,7 @@ export const dismissAccountNotification = async (
   }
 
   throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de supprimer la notification',
+    extractApiErrorMessage(data, 'Impossible de supprimer la notification'),
   );
 };
 
@@ -89,6 +90,6 @@ export const dismissAccountNotifications = async (
   }
 
   throw new Error(
-    data.status === 'error' ? data.message : 'Impossible de supprimer les notifications',
+    extractApiErrorMessage(data, 'Impossible de supprimer les notifications'),
   );
 };

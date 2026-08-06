@@ -1,4 +1,5 @@
 import { getHttpErrorMessage, httpClient } from '@/shared/lib/httpClient';
+import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 import type {
@@ -7,9 +8,6 @@ import type {
   AvailabilitySlot,
   Prestation,
 } from '../types/appointments';
-
-const extractErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
-  response.status === 'error' ? response.message : fallback;
 
 export const fetchPrestations = async () => {
   try {
@@ -21,7 +19,7 @@ export const fetchPrestations = async () => {
       return data.data.items;
     }
 
-    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des prestations'));
+    throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des prestations'));
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des prestations'));
   }
@@ -46,7 +44,7 @@ export const fetchAvailability = async ({
       return data.data.slots;
     }
 
-    throw new Error(extractErrorMessage(data, 'Erreur lors du chargement des créneaux'));
+    throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des créneaux'));
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des créneaux'));
   }
@@ -79,7 +77,7 @@ export const fetchMyAppointments = async () => {
     return data.data;
   }
 
-  throw new Error(extractErrorMessage(data, 'Erreur lors du chargement de mes rendez-vous'));
+  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement de mes rendez-vous'));
 };
 
 export const cancelAppointment = async (id: number) => {
@@ -92,5 +90,5 @@ export const cancelAppointment = async (id: number) => {
     return data.data.appointment;
   }
 
-  throw new Error(extractErrorMessage(data, "Erreur lors de l'annulation du rendez-vous"));
+  throw new Error(extractApiErrorMessage(data, "Erreur lors de l'annulation du rendez-vous"));
 };

@@ -123,6 +123,7 @@ export const ServiceFormPage = () => {
     const durationValue = form.durationValue.trim();
     const parsedDurationValue =
       durationValue === '' ? '' : parseNullablePositiveInteger(durationValue);
+    const sanitizedDurationValue = parsedDurationValue === null ? '' : parsedDurationValue;
 
     if (durationValue !== '' && parsedDurationValue === null) {
       setError('Veuillez renseigner une durée estimée valide.');
@@ -139,7 +140,7 @@ export const ServiceFormPage = () => {
       image: form.imageFile,
       imageUrl: form.imageUrl.trim(),
       imageAlt: form.imageAlt.trim(),
-      durationValue: parsedDurationValue,
+      durationValue: sanitizedDurationValue,
       durationUnit: parsedDurationUnit,
       price,
       vatRate,

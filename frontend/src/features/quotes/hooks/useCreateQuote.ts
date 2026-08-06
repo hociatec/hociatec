@@ -10,7 +10,6 @@ import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
-import { parseNonNegativeDecimal } from '@/shared/lib/parsers';
 import {
   createDefaultQuoteValidity,
   calculateQuoteTotals,
@@ -96,7 +95,7 @@ export const useCreateQuote = () => {
           name: s.title,
           quantity: 1,
           unitPriceCents: s.priceCents,
-          vatRate: parseNonNegativeDecimal(s.vatRate, 0),
+          vatRate: s.vatRate,
           discountCents: 0,
         },
       ],

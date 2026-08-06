@@ -29,6 +29,7 @@ export const useMarketingTemplateForm = () => {
   const navigateWithDelay = useDelayedNavigation(500);
   const queryClient = useQueryClient();
   const parsedTemplateId = parseNullablePositiveInteger(templateId);
+  const safeTemplateId = parsedTemplateId ?? 0;
   const isEdit = parsedTemplateId !== null;
   const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
   const [form, setForm] = useState<MarketingTemplatePayload>(defaultMarketingTemplateForm);
@@ -41,13 +42,13 @@ export const useMarketingTemplateForm = () => {
   });
   const templateQuery = useQuery({
     queryKey: adminMarketingQueryKeys.template(isEdit ? parsedTemplateId : null),
-    queryFn: () => fetchMarketingTemplate(parsedTemplateId || 0),
+    queryFn: () => fetchMarketingTemplate(safeTemplateId),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: MarketingTemplatePayload) =>
       isEdit
-        ? updateMarketingTemplate(parsedTemplateId, payload)
+        ? updateMarketingTemplate(safeTemplateId, payload)
         : createMarketingTemplate(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.templates() });
