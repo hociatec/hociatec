@@ -30,10 +30,7 @@ const PUBLIC_ROUTES = [
 
 const INTERNAL_ERROR_PATTERN =
   /Une erreur interne est survenue|La page n'a pas pu être affichée correctement/i;
-const EXPECTED_500_API_PATTERNS = [
-  '/api/public/catalog/products',
-  '/api/public/catalog/categories',
-] as const;
+const EXPECTED_500_API_PATTERNS = [] as const;
 
 const isExpectedApiFailure = (entry: string) => {
   const [path] = entry.split(' ');
