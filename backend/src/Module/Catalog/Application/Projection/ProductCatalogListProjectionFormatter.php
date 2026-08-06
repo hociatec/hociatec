@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Projection;
 
+use App\Module\Catalog\Domain\Entity\ProductSellingType;
 use App\Module\Catalog\Domain\ValueObject\ProductDiscount;
 
 final class ProductCatalogListProjectionFormatter
@@ -16,7 +17,7 @@ final class ProductCatalogListProjectionFormatter
     public function format(array $product): array
     {
         $name = (string) $product['name'];
-        $sellingType = (string) $product['sellingType'];
+        $sellingType = $this->normalizeSellingType($product['sellingType']);
         $imageAlt = null !== $product['imageAlt'] ? (string) $product['imageAlt'] : null;
         $gallery = $this->formatGallery($product, $imageAlt ?? $name);
         $priceCents = (int) $product['priceCents'];
@@ -127,6 +128,19 @@ final class ProductCatalogListProjectionFormatter
         }
 
         return sprintf('/uploads/products/%s', ltrim($fileName, '/'));
+    }
+
+    private function normalizeSellingType(mixed $sellingType): string
+    {
+        if ($sellingType instanceof ProductSellingType) {
+            return $sellingType->value;
+        }
+
+        if (\is_string($sellingType)) {
+            return $sellingType;
+        }
+
+        return '';
     }
 
     /**
