@@ -1,8 +1,8 @@
 import axios, { type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { extractApiErrorMessage, unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { normalizeSearchText } from '@/shared/lib/searchText';
 
 import type { Cart } from '../types/cart';
@@ -89,14 +89,15 @@ const toCartError = (error: unknown, fallback: string): never => {
 };
 
 const handleCartResponse = (response: ApiResponse<CartPayload>, fallback: string) => {
-  if (isApiOk(response)) {
-    const cart = parseCart(response.data.cart);
+  const payload = unwrapApiData(response, fallback);
+  try {
+    const cart = parseCart(payload.cart);
     persistCartToken(cart.token);
     return cart;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : fallback;
+    throw new CartApiError(message, 'unknown');
   }
-
-  const message = extractApiErrorMessage(response, fallback);
-  throw new CartApiError(message, 'unknown');
 };
 
 const extractCartTokenFromHeaders = (headers?: AxiosResponseHeaders | Record<string, unknown>) => {
@@ -238,7 +239,7 @@ export const clearCart = async (): Promise<ApiMutationResult<Cart>> => {
   try {
     const { data, headers } = await httpClient.delete<ApiResponse<CartPayload>>('/api/public/cart');
     const cart = readCartFromResponse(data, headers, 'Impossible de vider le panier.');
-    return { data: cart, message: extractApiErrorMessage(data, '') };
+    return { data: cart, message: data.message };
   } catch (error) {
     throw toCartError(error, 'Impossible de vider le panier.');
   }
