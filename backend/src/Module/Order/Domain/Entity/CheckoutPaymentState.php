@@ -15,11 +15,11 @@ final class CheckoutPaymentState
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $stripePaymentIntentId = null;
 
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $stripePaymentStatus = null;
+    #[ORM\Column(length: 40, nullable: true, enumType: StripePaymentStatus::class)]
+    private ?StripePaymentStatus $stripePaymentStatus = null;
 
-    #[ORM\Column(length: 80, nullable: true)]
-    private ?string $lastStripeEventType = null;
+    #[ORM\Column(length: 80, nullable: true, enumType: StripeCheckoutEventType::class)]
+    private ?StripeCheckoutEventType $lastStripeEventType = null;
 
     #[ORM\Column(length: 120, nullable: true)]
     private ?string $failureCode = null;
@@ -53,22 +53,22 @@ final class CheckoutPaymentState
 
     public function stripePaymentStatus(): ?string
     {
-        return $this->stripePaymentStatus;
+        return $this->stripePaymentStatus?->value;
     }
 
     public function changeStripePaymentStatus(?string $paymentStatus): void
     {
-        $this->stripePaymentStatus = $paymentStatus;
+        $this->stripePaymentStatus = null !== $paymentStatus ? StripePaymentStatus::fromInput($paymentStatus) : null;
     }
 
     public function lastStripeEventType(): ?string
     {
-        return $this->lastStripeEventType;
+        return $this->lastStripeEventType?->value;
     }
 
     public function changeLastStripeEventType(?string $eventType): void
     {
-        $this->lastStripeEventType = $eventType;
+        $this->lastStripeEventType = null !== $eventType ? StripeCheckoutEventType::fromInput($eventType) : null;
     }
 
     public function failureCode(): ?string
@@ -99,22 +99,22 @@ final class CheckoutPaymentState
     public function markPaid(?string $paymentIntentId, ?string $paymentStatus, ?string $eventType): void
     {
         $this->stripePaymentIntentId = $paymentIntentId;
-        $this->stripePaymentStatus = $paymentStatus;
-        $this->lastStripeEventType = $eventType;
+        $this->changeStripePaymentStatus($paymentStatus);
+        $this->changeLastStripeEventType($eventType);
         $this->failureCode = null;
         $this->failureMessage = null;
     }
 
     public function markExpired(?string $eventType): void
     {
-        $this->lastStripeEventType = $eventType;
+        $this->changeLastStripeEventType($eventType);
     }
 
     public function markFailed(?string $paymentIntentId, ?string $paymentStatus, ?string $eventType, ?string $failureCode, ?string $failureMessage): void
     {
         $this->stripePaymentIntentId = $paymentIntentId ?? $this->stripePaymentIntentId;
-        $this->stripePaymentStatus = $paymentStatus;
-        $this->lastStripeEventType = $eventType;
+        $this->changeStripePaymentStatus($paymentStatus);
+        $this->changeLastStripeEventType($eventType);
         $this->failureCode = $failureCode;
         $this->failureMessage = $failureMessage;
     }

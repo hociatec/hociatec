@@ -46,9 +46,7 @@ final readonly class QuoteToOrderConverter
             throw new \RuntimeException('La commande n\'a pas d\'identifiant après enregistrement.');
         }
 
-        $quote->setConvertedOrderId($order->getId());
-        $quote->setConvertedOrderNumber($order->getNumber());
-        $quote->setStatus(Quote::STATUS_ACCEPTED);
+        $quote->convertToOrder($order->getId(), $order->getNumber());
         $this->persistence->commit();
 
         [$emailSent, $emailError] = $this->sendNotification($order);

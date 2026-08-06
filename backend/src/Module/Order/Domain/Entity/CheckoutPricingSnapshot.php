@@ -9,8 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Embeddable]
 final class CheckoutPricingSnapshot
 {
-    #[ORM\Column(length: 3)]
-    private string $currencyCode = 'EUR';
+    #[ORM\Column(length: 3, enumType: CheckoutCurrency::class)]
+    private CheckoutCurrency $currencyCode = CheckoutCurrency::EUR;
 
     #[ORM\Column(type: 'integer')]
     private int $subtotalPriceCents = 0;
@@ -29,12 +29,12 @@ final class CheckoutPricingSnapshot
 
     public function currencyCode(): string
     {
-        return $this->currencyCode;
+        return $this->currencyCode->value;
     }
 
     public function changeCurrencyCode(string $currencyCode): void
     {
-        $this->currencyCode = $currencyCode;
+        $this->currencyCode = CheckoutCurrency::fromCode($currencyCode);
     }
 
     public function subtotalPriceCents(): int
@@ -44,6 +44,10 @@ final class CheckoutPricingSnapshot
 
     public function changeSubtotalPriceCents(int $amount): void
     {
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('Le sous-total ne peut pas etre negatif.');
+        }
+
         $this->subtotalPriceCents = $amount;
     }
 
@@ -54,6 +58,10 @@ final class CheckoutPricingSnapshot
 
     public function changeDiscountAmountCents(int $amount): void
     {
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('La remise ne peut pas etre negative.');
+        }
+
         $this->discountAmountCents = $amount;
     }
 
@@ -64,7 +72,27 @@ final class CheckoutPricingSnapshot
 
     public function changeTotalPriceCents(int $amount): void
     {
+        if ($amount < 0) {
+            throw new \InvalidArgumentException('Le total ne peut pas etre negatif.');
+        }
+
         $this->totalPriceCents = $amount;
+    }
+
+    public function replaceAmounts(int $subtotalPriceCents, int $discountAmountCents, int $totalPriceCents, string $currencyCode): void
+    {
+        $this->changeCurrencyCode($currencyCode);
+        $this->changeSubtotalPriceCents($subtotalPriceCents);
+        $this->changeDiscountAmountCents($discountAmountCents);
+        $this->changeTotalPriceCents($totalPriceCents);
+    }
+
+    public function applyPromotion(?string $name, ?string $slug, int $discountAmountCents, int $totalPriceCents): void
+    {
+        $this->changeDiscountAmountCents($discountAmountCents);
+        $this->changeTotalPriceCents($totalPriceCents);
+        $this->appliedPromotionName = null !== $name && '' !== trim($name) ? trim($name) : null;
+        $this->appliedPromotionSlug = null !== $slug && '' !== trim($slug) ? trim($slug) : null;
     }
 
     public function appliedPromotionName(): ?string

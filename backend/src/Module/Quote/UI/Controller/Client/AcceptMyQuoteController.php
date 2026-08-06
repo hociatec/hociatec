@@ -47,6 +47,7 @@ final class AcceptMyQuoteController extends AbstractController
             return ApiResponse::error('Ce devis ne peut pas être accepté.', Response::HTTP_BAD_REQUEST);
         }
 
+        $quote->accept();
         $this->workflow->setStatus($quote, Quote::STATUS_ACCEPTED);
 
         return ApiResponse::success($this->formatter->formatQuote($quote), JsonResponse::HTTP_OK, 'Le devis a bien été accepté.');

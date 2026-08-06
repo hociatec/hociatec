@@ -12,8 +12,8 @@ final class ProductPricing
     #[ORM\Column(type: 'integer')]
     private int $priceCents;
 
-    #[ORM\Column(length: 10, options: ['default' => 'sale'])]
-    private string $sellingType = 'sale';
+    #[ORM\Column(length: 10, enumType: ProductSellingType::class, options: ['default' => 'sale'])]
+    private ProductSellingType $sellingType = ProductSellingType::Sale;
 
     public function __construct(int $priceCents)
     {
@@ -32,16 +32,11 @@ final class ProductPricing
 
     public function sellingType(): string
     {
-        return $this->sellingType;
+        return $this->sellingType->value;
     }
 
-    public function changeSellingType(string $type): void
+    public function changeSellingType(ProductSellingType|string $type): void
     {
-        $type = strtolower($type);
-        if (!in_array($type, ['sale', 'rental'], true)) {
-            throw new \InvalidArgumentException('Type de vente/location invalide.');
-        }
-
-        $this->sellingType = $type;
+        $this->sellingType = ProductSellingType::fromInput($type);
     }
 }

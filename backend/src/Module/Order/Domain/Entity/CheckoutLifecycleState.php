@@ -31,6 +31,11 @@ final class CheckoutLifecycleState
         $this->status = CheckoutStatus::from($status);
     }
 
+    public function statusEnum(): CheckoutStatus
+    {
+        return $this->status;
+    }
+
     public function orderId(): ?int
     {
         return $this->orderId;
@@ -38,7 +43,17 @@ final class CheckoutLifecycleState
 
     public function changeOrderId(?int $orderId): void
     {
+        if (null !== $orderId && $orderId <= 0) {
+            throw new \InvalidArgumentException('Identifiant de commande invalide.');
+        }
+
         $this->orderId = $orderId;
+    }
+
+    public function completeWithOrder(int $orderId, \DateTimeImmutable $completedAt): void
+    {
+        $this->changeOrderId($orderId);
+        $this->markPaid($completedAt);
     }
 
     public function completedAt(): ?\DateTimeImmutable

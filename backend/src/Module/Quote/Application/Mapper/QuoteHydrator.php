@@ -28,8 +28,7 @@ final readonly class QuoteHydrator
 
         $status = QuoteStatusTranslator::toCode($payload->status);
         $quote->setStatus('' !== $status ? $status : Quote::STATUS_DRAFT);
-        $quote->setGlobalDiscountCents($payload->discount->cents());
-        $quote->setShippingCents($payload->shipping->cents());
+        $quote->applyCommercialTerms($payload->discount->cents(), $payload->shipping->cents());
 
         if (null !== $payload->conditions || !$clearItems) {
             $quote->setConditions(QuoteValueNormalizer::strOrNull($payload->conditions) ?? QuoteService::DEFAULT_CONDITIONS);

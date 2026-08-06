@@ -105,7 +105,7 @@ final readonly class CheckoutSessionOrderCreator
         if ($quantity > $product->getStock()) {
             throw new \InvalidArgumentException('Stock insuffisant pour le produit '.$product->getSku().'.');
         }
-        $product->setStock($product->getStock() - $quantity);
+        $product->reserveStock($quantity);
 
         $item = (new OrderItem(
             (string) ($rawItem['productName'] ?? $product->getName()),

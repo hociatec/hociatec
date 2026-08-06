@@ -16,6 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Voucher
 {
+    use VoucherLifecycleTrait;
+
     public const TYPE_PERCENT = 'percent';
     public const TYPE_FIXED_CENTS = 'fixed_cents';
 
@@ -162,44 +164,6 @@ class Voucher
         return $this;
     }
 
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): self
-    {
-        $this->isActive = $isActive;
-
-        return $this;
-    }
-
-    public function getStartsAt(): ?\DateTimeImmutable
-    {
-        return $this->startsAt;
-    }
-
-    public function setStartsAt(?\DateTimeImmutable $startsAt): self
-    {
-        new VoucherValidityPeriod($startsAt, $this->endsAt);
-        $this->startsAt = $startsAt;
-
-        return $this;
-    }
-
-    public function getEndsAt(): ?\DateTimeImmutable
-    {
-        return $this->endsAt;
-    }
-
-    public function setEndsAt(?\DateTimeImmutable $endsAt): self
-    {
-        new VoucherValidityPeriod($this->startsAt, $endsAt);
-        $this->endsAt = $endsAt;
-
-        return $this;
-    }
-
     public function getRecipientUserId(): ?int
     {
         return $this->recipientUserId;
@@ -207,6 +171,10 @@ class Voucher
 
     public function setRecipientUserId(?int $recipientUserId): self
     {
+        if (null !== $recipientUserId && $recipientUserId <= 0) {
+            throw new \InvalidArgumentException('Destinataire invalide.');
+        }
+
         $this->recipientUserId = $recipientUserId;
 
         return $this;
@@ -258,18 +226,6 @@ class Voucher
     public function canBeNotifiedTo(User $user, \DateTimeImmutable $now): bool
     {
         return $this->canBeUsedBy($user, $now);
-    }
-
-    public function getSentAt(): ?\DateTimeImmutable
-    {
-        return $this->sentAt;
-    }
-
-    public function setSentAt(?\DateTimeImmutable $sentAt): self
-    {
-        $this->sentAt = $sentAt;
-
-        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

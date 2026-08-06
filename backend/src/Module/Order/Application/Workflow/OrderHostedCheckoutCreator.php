@@ -90,12 +90,13 @@ final readonly class OrderHostedCheckoutCreator
         );
         $checkout
             ->setOrderId($orderId)
-            ->setCurrencyCode($order->getCurrencyCode())
-            ->setSubtotalPriceCents($order->getSubtotalPriceCents())
-            ->setDiscountAmountCents($order->getDiscountAmountCents())
-            ->setTotalPriceCents($order->getTotalPriceCents())
-            ->setAppliedPromotionName($order->getAppliedPromotionName())
-            ->setAppliedPromotionSlug($order->getAppliedPromotionSlug())
+            ->replacePricing($order->getSubtotalPriceCents(), $order->getDiscountAmountCents(), $order->getTotalPriceCents(), $order->getCurrencyCode())
+            ->applyPromotion(
+                $order->getAppliedPromotionName(),
+                $order->getAppliedPromotionSlug(),
+                $order->getDiscountAmountCents(),
+                $order->getTotalPriceCents(),
+            )
             ->setCustomerFullName('' !== $customerName ? $customerName : $address->getName())
             ->setCustomerEmail($user->getEmail())
             ->setShippingName($order->getShippingName() ?: ('' !== $customerName ? $customerName : $address->getName()))

@@ -17,7 +17,7 @@ final class ProductInventory
 
     public function __construct(int $stock)
     {
-        $this->stock = $stock;
+        $this->changeStock($stock);
     }
 
     public function stock(): int
@@ -27,7 +27,33 @@ final class ProductInventory
 
     public function changeStock(int $stock): void
     {
+        if ($stock < 0) {
+            throw new \InvalidArgumentException('Le stock ne peut pas etre negatif.');
+        }
+
         $this->stock = $stock;
+    }
+
+    public function increase(int $quantity): void
+    {
+        $this->assertPositiveQuantity($quantity);
+        $this->stock += $quantity;
+    }
+
+    public function decrease(int $quantity): void
+    {
+        $this->assertPositiveQuantity($quantity);
+        $this->changeStock($this->stock - $quantity);
+    }
+
+    public function reserve(int $quantity): void
+    {
+        $this->decrease($quantity);
+    }
+
+    public function release(int $quantity): void
+    {
+        $this->increase($quantity);
     }
 
     public function lowStockThreshold(): int
@@ -42,5 +68,12 @@ final class ProductInventory
         }
 
         $this->lowStockThreshold = $threshold;
+    }
+
+    private function assertPositiveQuantity(int $quantity): void
+    {
+        if ($quantity <= 0) {
+            throw new \InvalidArgumentException('La quantite de stock doit etre positive.');
+        }
     }
 }

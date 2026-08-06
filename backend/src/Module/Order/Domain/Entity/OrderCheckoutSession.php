@@ -15,6 +15,9 @@ class OrderCheckoutSession
 {
     use OrderCheckoutBillingSnapshotTrait;
     use OrderCheckoutCustomerSnapshotTrait;
+    use OrderCheckoutLifecycleTrait;
+    use OrderCheckoutPaymentStateTrait;
+    use OrderCheckoutPricingStateTrait;
     use OrderCheckoutShippingSnapshotTrait;
 
     public const STATUS_OPEN = 'open';
@@ -159,160 +162,6 @@ class OrderCheckoutSession
         return $this->shippingAddressId;
     }
 
-    public function getStripeSessionId(): string
-    {
-        return $this->payment->stripeSessionId();
-    }
-
-    public function getStripePaymentIntentId(): ?string
-    {
-        return $this->payment->stripePaymentIntentId();
-    }
-
-    public function setStripePaymentIntentId(?string $stripePaymentIntentId): self
-    {
-        $this->payment->changeStripePaymentIntentId($stripePaymentIntentId);
-
-        return $this;
-    }
-
-    public function getStripePaymentStatus(): ?string
-    {
-        return $this->payment->stripePaymentStatus();
-    }
-
-    public function setStripePaymentStatus(?string $stripePaymentStatus): self
-    {
-        $this->payment->changeStripePaymentStatus($stripePaymentStatus);
-
-        return $this;
-    }
-
-    public function getLastStripeEventType(): ?string
-    {
-        return $this->payment->lastStripeEventType();
-    }
-
-    public function setLastStripeEventType(?string $lastStripeEventType): self
-    {
-        $this->payment->changeLastStripeEventType($lastStripeEventType);
-
-        return $this;
-    }
-
-    public function getFailureCode(): ?string
-    {
-        return $this->payment->failureCode();
-    }
-
-    public function setFailureCode(?string $failureCode): self
-    {
-        $this->payment->changeFailureCode($failureCode);
-
-        return $this;
-    }
-
-    public function getFailureMessage(): ?string
-    {
-        return $this->payment->failureMessage();
-    }
-
-    public function setFailureMessage(?string $failureMessage): self
-    {
-        $this->payment->changeFailureMessage($failureMessage);
-
-        return $this;
-    }
-
-    public function getCheckoutUrl(): string
-    {
-        return $this->payment->checkoutUrl();
-    }
-
-    public function getStatus(): string
-    {
-        return $this->lifecycle->status();
-    }
-
-    public function setStatus(string $status): self
-    {
-        $this->lifecycle->changeStatus($status);
-
-        return $this;
-    }
-
-    public function getCurrencyCode(): string
-    {
-        return $this->pricing->currencyCode();
-    }
-
-    public function setCurrencyCode(string $currencyCode): self
-    {
-        $this->pricing->changeCurrencyCode($currencyCode);
-
-        return $this;
-    }
-
-    public function getSubtotalPriceCents(): int
-    {
-        return $this->pricing->subtotalPriceCents();
-    }
-
-    public function setSubtotalPriceCents(int $subtotalPriceCents): self
-    {
-        $this->pricing->changeSubtotalPriceCents($subtotalPriceCents);
-
-        return $this;
-    }
-
-    public function getDiscountAmountCents(): int
-    {
-        return $this->pricing->discountAmountCents();
-    }
-
-    public function setDiscountAmountCents(int $discountAmountCents): self
-    {
-        $this->pricing->changeDiscountAmountCents($discountAmountCents);
-
-        return $this;
-    }
-
-    public function getTotalPriceCents(): int
-    {
-        return $this->pricing->totalPriceCents();
-    }
-
-    public function setTotalPriceCents(int $totalPriceCents): self
-    {
-        $this->pricing->changeTotalPriceCents($totalPriceCents);
-
-        return $this;
-    }
-
-    public function getAppliedPromotionName(): ?string
-    {
-        return $this->pricing->appliedPromotionName();
-    }
-
-    public function setAppliedPromotionName(?string $appliedPromotionName): self
-    {
-        $this->pricing->changeAppliedPromotionName($appliedPromotionName);
-
-        return $this;
-    }
-
-    public function getAppliedPromotionSlug(): ?string
-    {
-        return $this->pricing->appliedPromotionSlug();
-    }
-
-    public function setAppliedPromotionSlug(?string $appliedPromotionSlug): self
-    {
-        $this->pricing->changeAppliedPromotionSlug($appliedPromotionSlug);
-
-        return $this;
-    }
-
     private function customerSnapshot(): CheckoutCustomerSnapshot
     {
         return new CheckoutCustomerSnapshot($this->customerFullName, $this->customerEmail);
@@ -359,71 +208,9 @@ class OrderCheckoutSession
         return $this;
     }
 
-    public function getOrderId(): ?int
-    {
-        return $this->lifecycle->orderId();
-    }
-
-    public function setOrderId(?int $orderId): self
-    {
-        $this->lifecycle->changeOrderId($orderId);
-
-        return $this;
-    }
-
-    public function getCompletedAt(): ?\DateTimeImmutable
-    {
-        return $this->lifecycle->completedAt();
-    }
-
-    public function getExpiresAt(): ?\DateTimeImmutable
-    {
-        return $this->lifecycle->expiresAt();
-    }
-
-    public function setExpiresAt(?\DateTimeImmutable $expiresAt): self
-    {
-        $this->lifecycle->changeExpiresAt($expiresAt);
-
-        return $this;
-    }
-
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function markPaid(?string $paymentIntentId = null, ?string $paymentStatus = null, ?string $eventType = null): self
-    {
-        $this->lifecycle->markPaid(new \DateTimeImmutable());
-        $this->payment->markPaid($paymentIntentId, $paymentStatus, $eventType);
-        $this->updatedAt = new \DateTimeImmutable();
-
-        return $this;
-    }
-
-    public function markExpired(?string $eventType = null): self
-    {
-        $this->lifecycle->markExpired();
-        $this->payment->markExpired($eventType);
-        $this->updatedAt = new \DateTimeImmutable();
-
-        return $this;
-    }
-
-    public function markFailed(?string $paymentIntentId = null, ?string $paymentStatus = null, ?string $eventType = null, ?string $failureCode = null, ?string $failureMessage = null): self
-    {
-        $this->lifecycle->markFailed();
-        $this->payment->markFailed($paymentIntentId, $paymentStatus, $eventType, $failureCode, $failureMessage);
-        $this->updatedAt = new \DateTimeImmutable();
-
-        return $this;
-    }
-
-    public function isPendingFulfillment(): bool
-    {
-        return self::STATUS_OPEN === $this->lifecycle->status()
-            || (self::STATUS_PAID === $this->lifecycle->status() && null === $this->lifecycle->orderId());
     }
 
     #[ORM\PreUpdate]

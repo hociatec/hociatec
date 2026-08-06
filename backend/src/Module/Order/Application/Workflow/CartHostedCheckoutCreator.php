@@ -87,12 +87,13 @@ final readonly class CartHostedCheckoutCreator
         );
         $checkout
             ->setCartId($cart->getId())
-            ->setCurrencyCode('EUR')
-            ->setSubtotalPriceCents((int) $summary['subtotalPriceCents'])
-            ->setDiscountAmountCents((int) $summary['discountAmountCents'])
-            ->setTotalPriceCents((int) $summary['totalPriceCents'])
-            ->setAppliedPromotionName($summary['appliedVoucher']['name'] ?? ($summary['appliedPromotion']['name'] ?? null))
-            ->setAppliedPromotionSlug($summary['appliedVoucher']['code'] ?? ($summary['appliedPromotion']['slug'] ?? null))
+            ->replacePricing((int) $summary['subtotalPriceCents'], (int) $summary['discountAmountCents'], (int) $summary['totalPriceCents'], 'EUR')
+            ->applyPromotion(
+                $summary['appliedVoucher']['name'] ?? ($summary['appliedPromotion']['name'] ?? null),
+                $summary['appliedVoucher']['code'] ?? ($summary['appliedPromotion']['slug'] ?? null),
+                (int) $summary['discountAmountCents'],
+                (int) $summary['totalPriceCents'],
+            )
             ->setCustomerFullName('' !== $customerName ? $customerName : $address->getName())
             ->setCustomerEmail($user->getEmail())
             ->setShippingName('' !== $customerName ? $customerName : $address->getName())

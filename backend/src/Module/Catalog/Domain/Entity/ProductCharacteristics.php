@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Domain\Entity;
 
+use App\Module\Catalog\Domain\ValueObject\ProductColor;
+use App\Module\Catalog\Domain\ValueObject\ProductMemoryRam;
+use App\Module\Catalog\Domain\ValueObject\ProductStorageCapacity;
+use App\Module\Catalog\Domain\ValueObject\ProductVariantGroup;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -32,10 +36,11 @@ final class ProductCharacteristics
         return $this->variantGroup;
     }
 
-    public function changeVariantGroup(?string $variantGroup): void
+    public function changeVariantGroup(ProductVariantGroup|string|null $variantGroup): void
     {
-        $normalized = null !== $variantGroup ? trim($variantGroup) : null;
-        $this->variantGroup = '' !== $normalized ? $normalized : null;
+        $this->variantGroup = $variantGroup instanceof ProductVariantGroup
+            ? $variantGroup->value()
+            : ProductVariantGroup::fromNullable($variantGroup)->value();
     }
 
     public function variantPosition(): int
@@ -71,10 +76,11 @@ final class ProductCharacteristics
         return $this->storageCapacity;
     }
 
-    public function changeStorageCapacity(?string $capacity): void
+    public function changeStorageCapacity(ProductStorageCapacity|string|null $capacity): void
     {
-        $normalized = null !== $capacity ? trim($capacity) : null;
-        $this->storageCapacity = '' !== $normalized ? $normalized : null;
+        $this->storageCapacity = $capacity instanceof ProductStorageCapacity
+            ? $capacity->value()
+            : ProductStorageCapacity::fromNullable($capacity)->value();
     }
 
     public function memoryRam(): ?string
@@ -82,10 +88,11 @@ final class ProductCharacteristics
         return $this->memoryRam;
     }
 
-    public function changeMemoryRam(?string $memoryRam): void
+    public function changeMemoryRam(ProductMemoryRam|string|null $memoryRam): void
     {
-        $normalized = null !== $memoryRam ? trim($memoryRam) : null;
-        $this->memoryRam = '' !== $normalized ? $normalized : null;
+        $this->memoryRam = $memoryRam instanceof ProductMemoryRam
+            ? $memoryRam->value()
+            : ProductMemoryRam::fromNullable($memoryRam)->value();
     }
 
     public function color(): ?string
@@ -93,9 +100,10 @@ final class ProductCharacteristics
         return $this->color;
     }
 
-    public function changeColor(?string $color): void
+    public function changeColor(ProductColor|string|null $color): void
     {
-        $normalized = null !== $color ? trim($color) : null;
-        $this->color = '' !== $normalized ? $normalized : null;
+        $this->color = $color instanceof ProductColor
+            ? $color->value()
+            : ProductColor::fromNullable($color)->value();
     }
 }

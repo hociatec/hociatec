@@ -35,10 +35,14 @@ final readonly class DashboardNotificationsProvider
             ...$this->orderEvents(),
         ];
 
-        usort($items, static fn (array $left, array $right): int => strcmp(
-            (string) $right['createdAt'],
-            (string) $left['createdAt'],
-        ));
+        usort($items, static function (array $left, array $right): int {
+            $dateComparison = strcmp((string) $right['createdAt'], (string) $left['createdAt']);
+            if (0 !== $dateComparison) {
+                return $dateComparison;
+            }
+
+            return self::notificationPriority((string) $left['type']) <=> self::notificationPriority((string) $right['type']);
+        });
 
         return array_slice($items, 0, 12);
     }
@@ -165,6 +169,16 @@ final readonly class DashboardNotificationsProvider
             'payment_confirmed' => 'Paiement confirmé',
             'order_created' => 'Commande créée',
             default => $type,
+        };
+    }
+
+    private static function notificationPriority(string $type): int
+    {
+        return match ($type) {
+            'quote_accepted' => 10,
+            'order_pending_payment' => 20,
+            'email_failed' => 30,
+            default => 100,
         };
     }
 }

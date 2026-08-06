@@ -14,9 +14,12 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 class Product
 {
     use ProductDiscountTrait;
+    use ProductCharacteristicsStateTrait;
     use ProductGalleryInfoTrait;
     use ProductGalleryExtendedTrait;
     use ProductGalleryMutationsTrait;
+    use ProductInventoryPublicationTrait;
+    use ProductReviewStateTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -178,7 +181,7 @@ class Product
         return $this->pricing->sellingType();
     }
 
-    public function setSellingType(string $type): self
+    public function setSellingType(ProductSellingType|string $type): self
     {
         $this->pricing->changeSellingType($type);
 
@@ -207,126 +210,6 @@ class Product
         return $this;
     }
 
-    public function getVariantGroup(): ?string
-    {
-        return $this->characteristics->variantGroup();
-    }
-
-    public function setVariantGroup(?string $variantGroup): self
-    {
-        $this->characteristics->changeVariantGroup($variantGroup);
-
-        return $this;
-    }
-
-    public function getVariantPosition(): int
-    {
-        return $this->characteristics->variantPosition();
-    }
-
-    public function setVariantPosition(int $variantPosition): self
-    {
-        $this->characteristics->changeVariantPosition($variantPosition);
-
-        return $this;
-    }
-
-    public function getReleaseYear(): ?int
-    {
-        return $this->characteristics->releaseYear();
-    }
-
-    public function setReleaseYear(?int $releaseYear): self
-    {
-        $this->characteristics->changeReleaseYear($releaseYear);
-
-        return $this;
-    }
-
-    public function getStorageCapacity(): ?string
-    {
-        return $this->characteristics->storageCapacity();
-    }
-
-    public function setStorageCapacity(?string $storageCapacity): self
-    {
-        $this->characteristics->changeStorageCapacity($storageCapacity);
-
-        return $this;
-    }
-
-    public function getMemoryRam(): ?string
-    {
-        return $this->characteristics->memoryRam();
-    }
-
-    public function setMemoryRam(?string $memoryRam): self
-    {
-        $this->characteristics->changeMemoryRam($memoryRam);
-
-        return $this;
-    }
-
-    public function getColor(): ?string
-    {
-        return $this->characteristics->color();
-    }
-
-    public function setColor(?string $color): self
-    {
-        $this->characteristics->changeColor($color);
-
-        return $this;
-    }
-
-    public function getStock(): int
-    {
-        return $this->inventory->stock();
-    }
-
-    public function setStock(int $stock): self
-    {
-        $this->inventory->changeStock($stock);
-
-        return $this;
-    }
-
-    public function getLowStockThreshold(): int
-    {
-        return $this->inventory->lowStockThreshold();
-    }
-
-    public function setLowStockThreshold(int $lowStockThreshold): self
-    {
-        $this->inventory->changeLowStockThreshold($lowStockThreshold);
-
-        return $this;
-    }
-
-    public function isPublished(): bool
-    {
-        return $this->publication->isPublished();
-    }
-
-    public function setIsPublished(bool $isPublished): self
-    {
-        $this->publication->changePublished($isPublished);
-
-        return $this;
-    }
-
-    public function isFeaturedHome(): bool
-    {
-        return $this->publication->isFeaturedHome();
-    }
-
-    public function setIsFeaturedHome(bool $isFeaturedHome): self
-    {
-        $this->publication->changeFeaturedHome($isFeaturedHome);
-
-        return $this;
-    }
-
     public function getCategory(): Category
     {
         return $this->category;
@@ -339,38 +222,6 @@ class Product
         }
 
         $this->category = $category;
-
-        return $this;
-    }
-
-    public function getReviewsCount(): int
-    {
-        return $this->reviewsCount;
-    }
-
-    public function setReviewsCount(int $count): self
-    {
-        if ($count < 0) {
-            throw new \InvalidArgumentException('Le nombre d’avis ne peut pas être négatif.');
-        }
-
-        $this->reviewsCount = $count;
-
-        return $this;
-    }
-
-    public function getReviewsAverage(): float
-    {
-        return $this->reviewsAverage;
-    }
-
-    public function setReviewsAverage(float $average): self
-    {
-        if ($average < 0) {
-            throw new \InvalidArgumentException('La moyenne des avis ne peut pas être négative.');
-        }
-
-        $this->reviewsAverage = $average;
 
         return $this;
     }

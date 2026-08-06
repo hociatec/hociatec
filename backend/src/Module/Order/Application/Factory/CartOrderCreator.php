@@ -71,7 +71,7 @@ final readonly class CartOrderCreator
                     if ($quantity > $product->getStock()) {
                         throw new \InvalidArgumentException('Stock insuffisant pour le produit '.$product->getSku().'.');
                     }
-                    $product->setStock($product->getStock() - $quantity);
+                    $product->reserveStock($quantity);
 
                     $item = (new OrderItem($product->getName(), $product->getSku(), $product->getPriceCents(), $quantity))
                         ->setProduct($product)

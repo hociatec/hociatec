@@ -25,6 +25,16 @@ final class ProductPublication
         $this->isPublished = $published;
     }
 
+    public function publish(): void
+    {
+        $this->isPublished = true;
+    }
+
+    public function unpublish(): void
+    {
+        $this->isPublished = false;
+    }
+
     public function isFeaturedHome(): bool
     {
         return $this->isFeaturedHome;
@@ -33,5 +43,15 @@ final class ProductPublication
     public function changeFeaturedHome(bool $featuredHome): void
     {
         $this->isFeaturedHome = $featuredHome;
+    }
+
+    public function featureOnHomepage(): void
+    {
+        $this->isFeaturedHome = true;
+    }
+
+    public function removeFromHomepage(): void
+    {
+        $this->isFeaturedHome = false;
     }
 }

@@ -13,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Quote
 {
+    use QuoteCommercialTermsTrait;
+    use QuoteConversionTrait;
+    use QuoteLifecycleTrait;
+
     public const STATUS_DRAFT = 'draft';
     public const STATUS_SENT = 'sent';
     public const STATUS_ACCEPTED = 'accepted';
@@ -103,18 +107,6 @@ class Quote
         return $this;
     }
 
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): self
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
     public function getCustomerName(): ?string
     {
         return $this->customerName;
@@ -159,38 +151,6 @@ class Quote
     public function setCustomerAddress(?string $address): self
     {
         $this->customerAddress = $address;
-
-        return $this;
-    }
-
-    public function getGlobalDiscountCents(): int
-    {
-        return $this->globalDiscountCents;
-    }
-
-    public function setGlobalDiscountCents(int $cents): self
-    {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('La remise globale ne peut pas être négative.');
-        }
-
-        $this->globalDiscountCents = $cents;
-
-        return $this;
-    }
-
-    public function getShippingCents(): int
-    {
-        return $this->shippingCents;
-    }
-
-    public function setShippingCents(int $cents): self
-    {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('Les frais de livraison ne peuvent pas être négatifs.');
-        }
-
-        $this->shippingCents = $cents;
 
         return $this;
     }
@@ -276,30 +236,6 @@ class Quote
     public function setCreatedEmailSentAt(?\DateTimeImmutable $createdEmailSentAt): self
     {
         $this->createdEmailSentAt = $createdEmailSentAt;
-
-        return $this;
-    }
-
-    public function getConvertedOrderId(): ?int
-    {
-        return $this->convertedOrderId;
-    }
-
-    public function setConvertedOrderId(?int $convertedOrderId): self
-    {
-        $this->convertedOrderId = $convertedOrderId;
-
-        return $this;
-    }
-
-    public function getConvertedOrderNumber(): ?string
-    {
-        return $this->convertedOrderNumber;
-    }
-
-    public function setConvertedOrderNumber(?string $convertedOrderNumber): self
-    {
-        $this->convertedOrderNumber = $convertedOrderNumber;
 
         return $this;
     }
