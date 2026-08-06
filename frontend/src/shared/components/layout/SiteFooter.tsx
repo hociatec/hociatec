@@ -76,10 +76,10 @@ export const SiteFooter = () => {
               </li>
             </ul>
             <nav className="site-footer__about-links" aria-label="Liens À propos">
-              <Link to="/contact" className="site-footer__link">
+              <Link to="/contact" prefetch="intent" className="site-footer__link">
                 Contact
               </Link>
-              <Link to="/actualites" className="site-footer__link">
+              <Link to="/actualites" prefetch="intent" className="site-footer__link">
                 Actualité
               </Link>
               <a href="/#histoire" className="site-footer__link">
@@ -92,7 +92,7 @@ export const SiteFooter = () => {
             <h2>Informations légales</h2>
             <nav className="site-footer__links" aria-label="Liens légaux">
               {legalLinks.map((link) => (
-                <Link key={link.to} to={link.to} className="site-footer__link">
+                <Link key={link.to} to={link.to} prefetch="none" className="site-footer__link">
                   {link.label}
                 </Link>
               ))}

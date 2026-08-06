@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { fetchAdminOrders, fetchAdminOrderMetadata, updateAdminOrderStatus, type OrderDto } from '@/features/orders/publicApi';
 import {
-  filterAndSortAdminOrders,
   type OrderHealthFilter,
   type OrderSortKey,
   type OrderStatus,
@@ -40,14 +39,14 @@ export const useAdminOrdersList = () => {
     queryFn: fetchAdminOrderMetadata,
   });
   const ordersQuery = useQuery<PaginatedResult<OrderDto>, Error>({
-    queryKey: [...adminOrderQueryKeys.list(filter, health), { page }],
-    queryFn: () => fetchAdminOrders(filter, health, page, 10),
+    queryKey: [...adminOrderQueryKeys.list(filter, health, search, sort), { page }],
+    queryFn: () => fetchAdminOrders(filter, health, search, sort, page, 10),
   });
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, next }: { id: number; next: OrderStatus }) => updateAdminOrderStatus(id, next),
     onSuccess: (updated) => {
       queryClient.setQueryData<PaginatedResult<OrderDto>>(
-        [...adminOrderQueryKeys.list(filter, health), { page }],
+        [...adminOrderQueryKeys.list(filter, health, search, sort), { page }],
         (previous) =>
           previous
             ? { ...previous, items: previous.items.map((order) => (order.id === updated.id ? updated : order)) }
@@ -77,18 +76,28 @@ export const useAdminOrdersList = () => {
   useEffect(() => {
     setPage(1);
   }, [filter, health, search, sort]);
-  const filteredOrders = useMemo(
-    () => filterAndSortAdminOrders(orders, search, sort),
-    [orders, search, sort],
-  );
-  const handleConfirmUpdate = () => {
+  const handleConfirmUpdate = useCallback(() => {
     if (!editing) return;
     if (!editing.options.length) {
       setUpdateError('Aucune transition disponible pour ce statut.');
       return;
     }
     updateStatusMutation.mutate({ id: editing.id, next: editing.next });
-  };
+  }, [editing, updateStatusMutation]);
+  const handleEditStatus = useCallback(
+    (order: OrderDto, options: OrderStatus[]) => {
+      if (!options.length) return;
+      const [next] = options;
+      setEditing({
+        id: order.id,
+        current: (order.status as OrderStatus) ?? 'pending',
+        next: next ?? 'pending',
+        options,
+        order,
+      });
+    },
+    [setEditing],
+  );
   return {
     orders,
     pagination,
@@ -108,7 +117,7 @@ export const useAdminOrdersList = () => {
     setEditing,
     updateError,
     setUpdateError,
-    filteredOrders,
+    handleEditStatus,
     handleConfirmUpdate,
   };
 };

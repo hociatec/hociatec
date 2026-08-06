@@ -44,7 +44,7 @@ export const HomeNewsHeading = () => (
       <h2>Actualité</h2>
       <span>Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.</span>
     </div>
-    <Link to="/actualites" className="home-button home-button--secondary">
+    <Link to="/actualites" prefetch="intent" className="home-button home-button--secondary">
       Toutes les actualités
     </Link>
   </div>
@@ -59,10 +59,16 @@ export const HomeNewsCard = ({ article }: { article: NewsArticleDto }) => (
       {article.category ? <span>{article.category}</span> : null}
     </div>
     <h3>
-      <Link to={`/actualites/${article.slug}`}>{article.title}</Link>
+      <Link to={`/actualites/${article.slug}`} prefetch="intent">
+        {article.title}
+      </Link>
     </h3>
     <p>{article.excerpt}</p>
-    <Link to={`/actualites/${article.slug}`} className="home-news-card__link">
+    <Link
+      to={`/actualites/${article.slug}`}
+      prefetch="intent"
+      className="home-news-card__link"
+    >
       Lire l'actualité
       <ArrowRight aria-hidden="true" />
     </Link>
@@ -74,7 +80,7 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
 
   return (
     <article className="home-service-card home-service-card--featured">
-      <Link to={`/services/${service.id}`} className="home-service-card__media">
+      <Link to={`/services/${service.id}`} prefetch="intent" className="home-service-card__media">
         {illustration ? (
           <img
             src={illustration.imageUrl}
@@ -90,7 +96,9 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
       </Link>
       <div className="home-service-card__body">
         <h3 className="home-service-card__title">
-          <Link to={`/services/${service.id}`}>{service.title}</Link>
+          <Link to={`/services/${service.id}`} prefetch="intent">
+            {service.title}
+          </Link>
         </h3>
         <dl className="home-service-card__facts">
           <div>

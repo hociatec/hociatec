@@ -68,10 +68,13 @@ export const AdminTradeInDetailsModal = ({
   paymentMethods,
   paymentStatuses,
 }: AdminTradeInDetailsModalProps) => (
-  <Dialog open onClose={onClose} className="relative z-50">
-    <DialogBackdrop className="fixed inset-0 bg-black/60" />
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <DialogPanel className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
+    <Dialog open onClose={onClose} className="relative z-50">
+      <DialogBackdrop className="fixed inset-0 bg-black/60" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <DialogPanel
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
+        aria-labelledby="trade-in-dialog-title"
+      >
         <AdminTradeInHeader selected={selected} onClose={onClose} closeButtonRef={closeButtonRef} />
 
         <div className="mt-5 space-y-5">

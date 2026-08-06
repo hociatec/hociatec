@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { memo } from 'react';
 
 import type { OrderDto } from '@/features/orders/publicApi';
 import { AdminTableShell } from '@/shared/components/admin/AdminDataView';
@@ -19,7 +20,7 @@ type AdminOrdersTableProps = {
   onEditStatus: (order: OrderDto, options: OrderStatus[]) => void;
 };
 
-export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps) => (
+export const AdminOrdersTable = memo(({ orders, onEditStatus }: AdminOrdersTableProps) => (
   <AdminTableShell>
     <table className="catalog-admin-table">
       <thead>
@@ -96,18 +97,23 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
             </td>
             <td>
               <div className="flex flex-wrap gap-3">
-                {getNextOrderStatuses(order).length === 0 ? (
-                  <span className="inline-flex items-center text-xs text-stone-500">Statut final</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-                    onClick={() => onEditStatus(order, getNextOrderStatuses(order))}
-                    aria-label={`Modifier le statut de la commande ${order.number}`}
-                  >
-                    Modifier le statut
-                  </button>
-                )}
+                {(() => {
+                  const nextStatuses = getNextOrderStatuses(order);
+                  return nextStatuses.length === 0 ? (
+                    <span className="inline-flex items-center text-xs text-stone-500">
+                      Statut final
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
+                      onClick={() => onEditStatus(order, nextStatuses)}
+                      aria-label={`Modifier le statut de la commande ${order.number}`}
+                    >
+                      Modifier le statut
+                    </button>
+                  );
+                })()}
                 <Link
                   className="inline-flex items-center text-sm font-semibold underline"
                   to={`/admin/orders/${order.id}`}
@@ -121,4 +127,6 @@ export const AdminOrdersTable = ({ orders, onEditStatus }: AdminOrdersTableProps
       </tbody>
     </table>
   </AdminTableShell>
-);
+));
+
+AdminOrdersTable.displayName = 'AdminOrdersTable';

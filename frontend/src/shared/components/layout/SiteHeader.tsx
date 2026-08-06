@@ -14,7 +14,7 @@ export const SiteHeader = ({
 }: SiteHeaderProps) => (
   <header className={`site-header site-header--${variant}`}>
     <div className="site-header__container">
-      <Link to="/" className="site-header__brand">
+      <Link to="/" prefetch="intent" className="site-header__brand">
         <img
           src="/logo.png"
           alt="Hociatec"

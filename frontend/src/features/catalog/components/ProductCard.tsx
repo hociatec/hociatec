@@ -54,7 +54,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
         <header className="catalog-product-card__header">
           <span className="catalog-product-card__sku">{product.sku}</span>
           <h3 className="catalog-product-card__title">
-            <Link to={productLink} className="catalog-product-card__title-link">
+            <Link to={productLink} prefetch="intent" className="catalog-product-card__title-link">
               {productDisplayName}
             </Link>
           </h3>

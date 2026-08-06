@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 
 import { fetchAdminCustomers, type AdminCustomerSummaryDto } from '@/features/admin/customers/api';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
-import { AdminListState, AdminTableShell } from '@/shared/components/admin/AdminDataView';
+import {
+  AdminListState,
+  AdminTableShell,
+  AdminTableSkeleton,
+} from '@/shared/components/admin/AdminDataView';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
@@ -31,7 +35,22 @@ export const AdminCustomersListPage = () => {
   const status = customersQuery.isLoading ? 'loading' : customersQuery.isError ? 'error' : 'success';
   const error = customersQuery.error?.message ?? null;
 
-  const verifiedCount = customers.filter((customer) => customer.isVerified).length;
+  const verifiedCount = useMemo(
+    () => customers.filter((customer) => customer.isVerified).length,
+    [customers],
+  );
+  const sortOptions = useMemo(
+    () => [
+      { value: 'recent_order', label: 'Dernière commande' },
+      { value: 'highest_spent', label: 'Plus gros CA' },
+      { value: 'most_orders', label: 'Plus de commandes' },
+      { value: 'newest_account', label: 'Comptes récents' },
+      { value: 'name_asc', label: 'Nom A → Z' },
+    ],
+    [],
+  );
+  const onSearchChange = useCallback((value: string) => setSearch(value), [setSearch]);
+  const onSortChange = useCallback((value: string) => setSort(value as SortKey), [setSort]);
 
   useEffect(() => {
     setPage(1);
@@ -53,19 +72,13 @@ export const AdminCustomersListPage = () => {
       <FilterBar>
         <SearchFilter
           value={search}
-          onChange={setSearch}
+          onChange={onSearchChange}
           placeholder="Rechercher un client, un email, un téléphone, une commande..."
         />
         <SelectFilter
           value={sort}
-          onChange={(value) => setSort(value as SortKey)}
-          options={[
-            { value: 'recent_order', label: 'Dernière commande' },
-            { value: 'highest_spent', label: 'Plus gros CA' },
-            { value: 'most_orders', label: 'Plus de commandes' },
-            { value: 'newest_account', label: 'Comptes récents' },
-            { value: 'name_asc', label: 'Nom A → Z' },
-          ]}
+          onChange={onSortChange}
+          options={sortOptions}
           ariaLabel="Tri clients"
         />
       </FilterBar>
@@ -76,6 +89,7 @@ export const AdminCustomersListPage = () => {
         loading={status === 'loading'}
         isEmpty={status === 'success' && customers.length === 0}
         loadingLabel="Chargement..."
+        loadingSkeleton={<AdminTableSkeleton columns={6} rows={10} />}
         emptyLabel="Aucun client trouvé."
       >
         <AdminTableShell>

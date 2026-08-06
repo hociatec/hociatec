@@ -50,7 +50,9 @@ export const HomeFeaturedProductCard = ({
       <div className="home-product-card__content">
         <header className="flex flex-col gap-2">
           <h3>
-            <Link to={productLink} className="home-product-card__title-link">{productDisplayName}</Link>
+            <Link to={productLink} prefetch="intent" className="home-product-card__title-link">
+              {productDisplayName}
+            </Link>
           </h3>
           <p className="home-product-card__sku">
             Référence: <span className="font-semibold">{product.sku}</span>

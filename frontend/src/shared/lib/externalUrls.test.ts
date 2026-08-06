@@ -22,7 +22,7 @@ describe('external URL safety', () => {
     openMailtoClient('Jean.Dupont+test@exemple.fr', 'Bonjour', 'Lien : https://hociatec.fr');
 
     expect(setLocation).toHaveBeenCalledTimes(1);
-    const calledWith = setLocation.mock.calls[0][0] as string;
+    const calledWith = setLocation.mock.calls[0]![0] as string;
     expect(calledWith).toContain('mailto:Jean.Dupont%2Btest%40exemple.fr');
     expect(calledWith).toContain('subject=Bonjour');
     expect(calledWith).toContain('body=Lien%20%3A%20https%3A%2F%2Fhociatec.fr');

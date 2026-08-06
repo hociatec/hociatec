@@ -87,6 +87,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
       )}
       <Link
         to="/panier"
+        prefetch="intent"
         className={linkClass('/panier', 'site-header__cart-button')}
         aria-label={`Mon panier (${cartQuantity})`}
       >
@@ -97,6 +98,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
       {shouldShowBetaLink ? (
         <Link
           to={betaLinkTarget}
+          prefetch="intent"
           className={`site-header__beta-cta${isPathActive(pathname, betaLinkTarget) ? ' site-header__beta-cta--active' : ''}`}
         >
           <FlaskConical aria-hidden="true" />
@@ -108,6 +110,7 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
           {isAdmin && (
             <Link
               to="/admin"
+              prefetch="intent"
               className={`site-header__admin-button${pathname.startsWith('/admin') ? ' site-header__admin-button--active' : ''}`}
             >
               <ShieldCheck aria-hidden="true" />
@@ -119,12 +122,13 @@ export const SiteHeaderActions = ({ showCatalogSearch }: SiteHeaderActionsProps)
         </>
       ) : (
         <>
-          <Link to="/login" className={linkClass('/login')}>
+          <Link to="/login" prefetch="intent" className={linkClass('/login')}>
             <LogIn aria-hidden="true" />
             Se connecter
           </Link>
           <Link
             to="/register"
+            prefetch="intent"
             className={`site-header__cta${pathname === '/register' ? ' site-header__cta--active' : ''}`}
           >
             <UserPlus aria-hidden="true" />

@@ -13,16 +13,23 @@ import { badgeClassName } from '../betaDashboardUtils';
 interface BetaReportFollowUpHeaderProps {
   report: BugReport;
   onClose: () => void;
+  titleId: string;
+  descriptionId: string;
 }
 
-export const BetaReportFollowUpHeader = ({ report, onClose }: BetaReportFollowUpHeaderProps) => (
+export const BetaReportFollowUpHeader = ({
+  report,
+  onClose,
+  titleId,
+  descriptionId,
+}: BetaReportFollowUpHeaderProps) => (
   <header className="border-b border-stone-200 p-5">
     <div className="flex items-start justify-between gap-4">
       <div>
-        <DialogTitle className="text-xl font-bold text-brand-900">
+        <DialogTitle id={titleId} className="text-xl font-bold text-brand-900">
           {report.title}
         </DialogTitle>
-        <p className="mt-1 text-xs text-stone-500">
+        <p id={descriptionId} className="mt-1 text-xs text-stone-500">
           {report.campaign ? `Campagne : ${report.campaign}` : 'Signalement général'}.
           {' '}
           Date du signalement : {formatDate(report.createdAt)}

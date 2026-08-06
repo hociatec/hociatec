@@ -79,6 +79,7 @@ export const SiteHeaderNavigation = () => {
             <Link
               key={path}
               to={path}
+              prefetch="intent"
               className={isPathActive(pathname, path) ? 'is-active' : undefined}
               onClick={() => setCatalogOpen(false)}
             >
@@ -106,6 +107,7 @@ export const SiteHeaderNavigation = () => {
             <Link
               key={path}
               to={path}
+              prefetch="intent"
               className={isPathActive(pathname, path) ? 'is-active' : undefined}
               onClick={() => setServicesOpen(false)}
             >
@@ -118,6 +120,7 @@ export const SiteHeaderNavigation = () => {
 
       <Link
         to="/formations"
+        prefetch="viewport"
         className={`site-header__link${isPathActive(pathname, '/formations') ? ' site-header__link--active' : ''}`}
       >
         <GraduationCap aria-hidden="true" />
@@ -126,6 +129,7 @@ export const SiteHeaderNavigation = () => {
 
       <Link
         to="/contact"
+        prefetch="intent"
         className={`site-header__link site-header__link--contact${isPathActive(pathname, '/contact') ? ' site-header__link--contact-active' : ''}`}
       >
         <BriefcaseBusiness aria-hidden="true" />

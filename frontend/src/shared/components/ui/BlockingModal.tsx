@@ -1,7 +1,8 @@
-import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 type BlockingModalProps = {
+  onClose?: () => void;
   children: ReactNode;
   describedBy?: string;
   labelledBy: string;
@@ -12,6 +13,7 @@ export const BlockingModal = ({
   children,
   describedBy,
   labelledBy,
+  onClose,
   panelClassName = 'mx-auto w-full max-w-2xl rounded-xl border border-brand-100 bg-white p-6 shadow-2xl',
 }: BlockingModalProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -69,11 +71,21 @@ export const BlockingModal = ({
     };
   }, []);
 
-  if (typeof document === 'undefined') {
-    return null;
-  }
+  const handleBackdropClose = (event: MouseEvent<HTMLDivElement>) => {
+    if (!onClose) return;
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      if (!onClose) return;
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
     if (event.key !== 'Tab') return;
 
     const focusableElements = Array.from(
@@ -101,6 +113,10 @@ export const BlockingModal = ({
     }
   };
 
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
   return createPortal(
     <div
       ref={overlayRef}
@@ -109,6 +125,7 @@ export const BlockingModal = ({
       aria-modal="true"
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
+      onMouseDown={handleBackdropClose}
       onKeyDown={handleKeyDown}
     >
       <div ref={panelRef} className={panelClassName} tabIndex={-1}>

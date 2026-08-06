@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useId,
   useState,
   type HTMLAttributes,
   type HTMLInputTypeAttribute,
@@ -49,6 +50,9 @@ export const usePrompt = () => {
 export const PromptProvider = ({ children }: { children: ReactNode }) => {
   const [pendingPrompt, setPendingPrompt] = useState<PendingPrompt | null>(null);
   const [value, setValue] = useState('');
+  const titleId = useId();
+  const descriptionId = useId();
+  const hasDescription = Boolean(pendingPrompt?.description);
 
   const prompt = useCallback(
     (options: PromptOptions) =>
@@ -76,12 +80,16 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
       <Dialog open={Boolean(pendingPrompt)} onClose={() => close(null)} className="relative z-50">
         <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
         <div className="fixed inset-0 flex items-center justify-center px-4 py-6">
-          <DialogPanel className="w-full max-w-md rounded-2xl border border-brand-100 bg-white p-6 shadow-2xl">
-            <DialogTitle className="text-xl font-bold text-brand-900">
+          <DialogPanel
+            className="w-full max-w-md rounded-2xl border border-brand-100 bg-white p-6 shadow-2xl"
+            aria-labelledby={titleId}
+            aria-describedby={hasDescription ? descriptionId : undefined}
+          >
+            <DialogTitle id={titleId} className="text-xl font-bold text-brand-900">
               {pendingPrompt?.title}
             </DialogTitle>
             {pendingPrompt?.description ? (
-              <DialogDescription className="mt-2 text-sm text-stone-600">
+              <DialogDescription id={descriptionId} className="mt-2 text-sm text-stone-600">
                 {pendingPrompt.description}
               </DialogDescription>
             ) : null}
@@ -96,6 +104,8 @@ export const PromptProvider = ({ children }: { children: ReactNode }) => {
                 <span>{pendingPrompt?.label}</span>
                 <input
                   autoFocus
+                  aria-labelledby={titleId}
+                  aria-describedby={hasDescription ? descriptionId : undefined}
                   className="register-form__input"
                   type={pendingPrompt?.inputType ?? 'text'}
                   inputMode={pendingPrompt?.inputMode}

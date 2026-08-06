@@ -65,7 +65,11 @@ export const AdminBugReportDetailDialog = ({
     <Dialog open={Boolean(report)} onClose={onClose} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+        <DialogPanel
+          className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-xl"
+          aria-labelledby="admin-bug-report-dialog-title"
+          aria-describedby="admin-bug-report-dialog-description"
+        >
           <AdminBugReportDialogHeader report={report} onClose={onClose} />
 
           <div className="grid flex-1 overflow-y-auto md:grid-cols-[1.1fr_0.9fr]">

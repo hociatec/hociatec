@@ -1,10 +1,10 @@
+import { useCallback, useMemo } from 'react';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
-import { AdminListState } from '@/shared/components/admin/AdminDataView';
+import { AdminListState, AdminTableSkeleton } from '@/shared/components/admin/AdminDataView';
 import { AdminOrdersTable } from '@/features/admin/orders/components/AdminOrdersTable';
 import { OrderStatusDialog } from '@/features/admin/orders/components/OrderStatusDialog';
-import type { OrderDto } from '../../../orders/api';
 import { useAdminOrdersList } from '../hooks/useAdminOrdersList';
-import { type OrderSortKey, type OrderStatus } from '../lib/adminOrderList';
+import { type OrderSortKey } from '../lib/adminOrderList';
 import { FilterBar } from '@/shared/components/filters/FilterBar';
 import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
@@ -30,9 +30,43 @@ export const OrdersListPage = () => {
     setEditing,
     updateError,
     setUpdateError,
-    filteredOrders,
+    orders,
     handleConfirmUpdate,
+    handleEditStatus,
   } = useAdminOrdersList();
+
+  const statusOptionsItems = useMemo(
+    () => [{ value: 'all', label: 'Tous les statuts' }, ...statusOptions],
+    [statusOptions],
+  );
+  const sortOptions = useMemo(
+    () => [
+      { value: 'newest', label: 'Plus récentes' },
+      { value: 'oldest', label: 'Plus anciennes' },
+      { value: 'amount_desc', label: 'Montant décroissant' },
+      { value: 'amount_asc', label: 'Montant croissant' },
+      { value: 'customer_asc', label: 'Client A → Z' },
+    ],
+    [],
+  );
+  const healthOptions = useMemo(
+    () => [
+      { value: 'all', label: 'Toutes' },
+      { value: 'issues', label: 'Avec incident de traitement' },
+    ],
+    [],
+  );
+
+  const onSearchChange = useCallback((value: string) => setSearch(value), [setSearch]);
+  const onFilterChange = useCallback(
+    (value: string) => setFilter(value as typeof filter),
+    [setFilter],
+  );
+  const onSortChange = useCallback((value: string) => setSort(value as OrderSortKey), [setSort]);
+  const onHealthChange = useCallback(
+    (value: string) => setHealth(value as typeof health),
+    [setHealth],
+  );
 
   return (
     <PageContainer size="admin" title="Commandes">
@@ -48,65 +82,22 @@ export const OrdersListPage = () => {
       </div>
 
       <FilterBar>
-        <SearchFilter
-          value={search}
-          onChange={setSearch}
-          placeholder="Rechercher un client, une commande, un email, une facture..."
-        />
-        <SelectFilter
-          value={filter}
-          onChange={(v) => setFilter(v as typeof filter)}
-          options={[
-            { value: 'all', label: 'Tous les statuts' },
-            ...statusOptions,
-          ]}
-          ariaLabel="Filtre statut"
-        />
-        <SelectFilter
-          value={sort}
-          onChange={(v) => setSort(v as OrderSortKey)}
-          options={[
-            { value: 'newest', label: 'Plus récentes' },
-            { value: 'oldest', label: 'Plus anciennes' },
-            { value: 'amount_desc', label: 'Montant décroissant' },
-            { value: 'amount_asc', label: 'Montant croissant' },
-            { value: 'customer_asc', label: 'Client A → Z' },
-          ]}
-          ariaLabel="Tri commandes"
-        />
-        <SelectFilter
-          value={health}
-          onChange={(v) => setHealth(v as typeof health)}
-          options={[
-            { value: 'all', label: 'Toutes' },
-            { value: 'issues', label: 'Avec incident de traitement' },
-          ]}
-          ariaLabel="Filtre incident"
-        />
+        <SearchFilter value={search} onChange={onSearchChange} placeholder="Rechercher un client, une commande, un email, une facture..." />
+        <SelectFilter value={filter} onChange={onFilterChange} options={statusOptionsItems} ariaLabel="Filtre statut" />
+        <SelectFilter value={sort} onChange={onSortChange} options={sortOptions} ariaLabel="Tri commandes" />
+        <SelectFilter value={health} onChange={onHealthChange} options={healthOptions} ariaLabel="Filtre incident" />
       </FilterBar>
 
       {error && <FeedbackMessage>{error}</FeedbackMessage>}
 
       <AdminListState
         loading={status === 'loading'}
-        isEmpty={status === 'success' && filteredOrders.length === 0}
+        isEmpty={status === 'success' && orders.length === 0}
         loadingLabel="Chargement..."
+        loadingSkeleton={<AdminTableSkeleton columns={8} rows={12} />}
         emptyLabel="Aucune commande ne correspond aux filtres actuels."
       >
-        <AdminOrdersTable
-          orders={filteredOrders}
-          onEditStatus={(order: OrderDto, options) => {
-            const nextStatus = options[0];
-            if (!nextStatus) return;
-            setEditing({
-              id: order.id,
-              current: (order.status as OrderStatus) ?? 'pending',
-              next: nextStatus,
-              options,
-              order,
-            });
-          }}
-        />
+        <AdminOrdersTable orders={orders} onEditStatus={handleEditStatus} />
       </AdminListState>
 
       <PaginationControls
@@ -117,7 +108,13 @@ export const OrdersListPage = () => {
         onPageChange={setPage}
       />
 
-      <OrderStatusDialog editing={editing} setEditing={setEditing} updateError={updateError} setUpdateError={setUpdateError} onConfirm={handleConfirmUpdate} />
+      <OrderStatusDialog
+        editing={editing}
+        setEditing={setEditing}
+        updateError={updateError}
+        setUpdateError={setUpdateError}
+        onConfirm={handleConfirmUpdate}
+      />
     </PageContainer>
   );
 };

@@ -1,5 +1,5 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -11,7 +11,7 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { adminVoucherQueryKeys } from '@/features/admin/customers/queryKeys';
+import { adminVoucherQueryKeys } from '@/features/admin/vouchers/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 
@@ -43,21 +43,24 @@ export const VouchersPage = () => {
     },
   });
 
-  const handleDelete = async (voucherId: number) => {
-    const voucher = vouchers.find((item) => item.id === voucherId);
-    const voucherLabel = voucher ? `"${voucher.name}" (${voucher.code})` : 'ce bon de reduction';
+  const handleDelete = useCallback(
+    async (voucherId: number) => {
+      const voucher = vouchers.find((item) => item.id === voucherId);
+      const voucherLabel = voucher ? `"${voucher.name}" (${voucher.code})` : 'ce bon de réduction';
 
-    const confirmed = await confirm({
-      title: 'Supprimer le bon',
-      description: `Supprimer ${voucherLabel} ?`,
-      confirmLabel: 'Supprimer',
-      cancelLabel: 'Annuler',
-    });
+      const confirmed = await confirm({
+        title: 'Supprimer le bon',
+        description: `Supprimer ${voucherLabel} ?`,
+        confirmLabel: 'Supprimer',
+        cancelLabel: 'Annuler',
+      });
 
-    if (!confirmed) return;
+      if (!confirmed) return;
 
-    deleteMutation.mutate(voucherId);
-  };
+      deleteMutation.mutate(voucherId);
+    },
+    [vouchers, confirm, deleteMutation],
+  );
 
   return (
     <PageContainer

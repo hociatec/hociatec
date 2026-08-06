@@ -22,7 +22,7 @@ import {
   VoucherFormFields,
   type VoucherFormState,
 } from '@/features/admin/vouchers/components/VoucherFormFields';
-import { adminVoucherQueryKeys } from '@/features/admin/customers/queryKeys';
+import { adminVoucherQueryKeys } from '@/features/admin/vouchers/queryKeys';
 import { createRandomCodeSuffix } from '@/shared/lib/random';
 
 const emptyForm: VoucherFormState = {

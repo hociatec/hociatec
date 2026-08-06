@@ -114,7 +114,11 @@ export const AdminBugReportDialogHeader = ({
 }) => (
   <header className="border-b border-stone-200 p-5">
     <button type="button" className="mb-3 rounded-lg border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50" onClick={onClose}>Fermer</button>
-    <DialogTitle className="text-2xl font-bold text-brand-900">{report.title}</DialogTitle>
-    <p className="mt-1 text-sm text-stone-500">Email : {report.reporter} · Campagne : {report.campaign || 'Général'} · Date : {formatDate(report.createdAt)}</p>
+    <DialogTitle id="admin-bug-report-dialog-title" className="text-2xl font-bold text-brand-900">
+      {report.title}
+    </DialogTitle>
+    <p id="admin-bug-report-dialog-description" className="mt-1 text-sm text-stone-500">
+      Email : {report.reporter} · Campagne : {report.campaign || 'Général'} · Date : {formatDate(report.createdAt)}
+    </p>
   </header>
 );

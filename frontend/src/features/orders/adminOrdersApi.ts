@@ -13,6 +13,8 @@ export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> 
 export const fetchAdminOrders = async (
   status: OrderStatusFilter = 'all',
   health: 'all' | 'issues' = 'all',
+  search = '',
+  sort = 'newest',
   page = 1,
   perPage = 10,
 ): Promise<PaginatedResult<OrderDto>> => {
@@ -24,6 +26,12 @@ export const fetchAdminOrders = async (
   }
   if (health === 'issues') {
     query.set('health', health);
+  }
+  if (search.trim() !== '') {
+    query.set('search', search.trim());
+  }
+  if (sort && sort !== 'newest') {
+    query.set('sort', sort);
   }
 
   const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[]; meta: PaginationMeta }>>(

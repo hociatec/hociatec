@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { HomeFeaturedServiceCard } from '@/features/home/homeContent';
@@ -48,6 +48,32 @@ export const HomeFeaturedServicesCarousel = ({ services }: { services: QuoteServ
     setActiveIndex((current) => (current + direction + services.length) % services.length);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!canSlide) return;
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      move(-1);
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      move(1);
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setActiveIndex(0);
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      setActiveIndex(services.length - 1);
+    }
+  };
+
   return (
     <div
       className="home-services-carousel"
@@ -55,7 +81,14 @@ export const HomeFeaturedServicesCarousel = ({ services }: { services: QuoteServ
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
+      onKeyDown={handleKeyDown}
+      role="region"
+      tabIndex={0}
+      aria-label="Sélection des services mis en avant"
     >
+      <span className="sr-only" aria-live="polite">
+        {canSlide ? `Slide ${activeIndex + 1} sur ${services.length}` : 'Service en vedette'}
+      </span>
       <div className="home-services-carousel__viewport">
         <div ref={trackRef} className="home-services-carousel__track">
           {services.map((service, index) => (

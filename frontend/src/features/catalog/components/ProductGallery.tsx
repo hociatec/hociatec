@@ -1,5 +1,7 @@
 import type { CatalogProduct } from '../api';
 
+import { type KeyboardEvent } from 'react';
+
 type ProductSlide = CatalogProduct['gallery'][number];
 
 interface ProductGalleryProps {
@@ -21,7 +23,37 @@ export const ProductGallery = ({
 }: ProductGalleryProps) => (
   <div className="catalog-detail-hero">
     {slides.length > 0 ? (
-      <div className="catalog-slider">
+      <div
+        className="catalog-slider"
+        onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+          if (slides.length <= 1) return;
+
+          if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            onPrevSlide();
+            return;
+          }
+
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            onNextSlide();
+            return;
+          }
+
+          if (event.key === 'Home') {
+            event.preventDefault();
+            onSelectSlide(0);
+          }
+
+          if (event.key === 'End') {
+            event.preventDefault();
+            onSelectSlide(slides.length - 1);
+          }
+        }}
+        role="region"
+        aria-label="Galerie produit"
+        tabIndex={0}
+      >
         <div className="catalog-slider__viewport">
           {slides.map((slide, index) => (
             <img
@@ -44,7 +76,7 @@ export const ProductGallery = ({
               type="button"
               className="catalog-slider__control catalog-slider__control--prev"
               onClick={onPrevSlide}
-              aria-label="Image precedente"
+              aria-label="Image précédente"
             >
               ‹
             </button>

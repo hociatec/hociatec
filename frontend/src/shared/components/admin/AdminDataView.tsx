@@ -22,6 +22,7 @@ interface AdminListStateProps {
   loading: boolean;
   isEmpty: boolean;
   loadingLabel: string;
+  loadingSkeleton?: ReactNode;
   emptyLabel: ReactNode;
   children: ReactNode;
 }
@@ -30,11 +31,12 @@ export const AdminListState = ({
   loading,
   isEmpty,
   loadingLabel,
+  loadingSkeleton,
   emptyLabel,
   children,
 }: AdminListStateProps) => {
   if (loading && isEmpty) {
-    return <LoadingState>{loadingLabel}</LoadingState>;
+    return loadingSkeleton ?? <LoadingState>{loadingLabel}</LoadingState>;
   }
 
   if (!loading && isEmpty) {
@@ -63,4 +65,42 @@ export const AdminMetricCard = ({ label, value }: { label: string; value: ReactN
     <p className="text-sm text-stone-500">{label}</p>
     <strong className="mt-1 block text-2xl text-brand-900">{value}</strong>
   </div>
+);
+
+type AdminTableSkeletonProps = {
+  rows?: number;
+  columns?: number;
+};
+
+const SKELETON_COLUMNS_DEFAULT = 6;
+const SKELETON_ROWS_DEFAULT = 6;
+
+export const AdminTableSkeleton = ({
+  rows = SKELETON_ROWS_DEFAULT,
+  columns = SKELETON_COLUMNS_DEFAULT,
+}: AdminTableSkeletonProps) => (
+  <AdminTableShell>
+    <table className="catalog-admin-table">
+      <thead>
+        <tr>
+          {Array.from({ length: columns }, (_, index) => (
+            <th key={index}>
+              <span className="sr-only">Chargement</span>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: rows }, (_, rowIndex) => (
+          <tr key={`skeleton-row-${rowIndex}`}>
+            {Array.from({ length: columns }, (_, colIndex) => (
+              <td key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+                <div className="h-4 animate-pulse rounded bg-brand-100" />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </AdminTableShell>
 );
