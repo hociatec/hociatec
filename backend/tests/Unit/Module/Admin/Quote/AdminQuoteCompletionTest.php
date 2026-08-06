@@ -59,7 +59,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -264,10 +264,10 @@ final class AdminQuoteCompletionTest extends TestCase
             new QuotePersistence($em),
             new Outbox(new DoctrineUnitOfWork($em)),
             new UserRepository($this->registry($em)),
-            new UserCommunicationNotifier(
+            \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
                 new AccountNotificationEventRepository($this->registry($em)),
                 new DoctrineUnitOfWork($em),
-                $this->createMock(MailerInterface::class),
+                $this->createMock(EmailSender::class),
                 $this->createMock(MessageBusInterface::class),
                 $this->createMock(LoggerInterface::class),
                 'noreply@example.test',

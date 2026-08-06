@@ -69,7 +69,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -274,11 +274,11 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
                 $this->createVoucherHandler($em),
                 new VoucherNotificationEmailService(
                     new EmailTemplateRepository($this->registry($em)),
-                    $this->createMock(MailerInterface::class),
+                    $this->createMock(EmailSender::class),
                     $this->notifier($em),
                     $this->createMock(LoggerInterface::class),
-                    'https://front.example.test',
                     'noreply@example.com',
+                    \App\Tests\Support\VoucherNotificationRenderingFactory::create(),
                 ),
                 new DoctrineUnitOfWork($em),
                 $this->createMock(LoggerInterface::class),
@@ -290,7 +290,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
     {
         return new TradeInNotificationEmailService(
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(LoggerInterface::class),
             $this->notifier($this->entityManager()),
             'noreply@example.com',
@@ -300,10 +300,10 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
 
     private function notifier(EntityManager $em): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             new AccountNotificationEventRepository($this->registry($em)),
             new DoctrineUnitOfWork($em),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',

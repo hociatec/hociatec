@@ -8,16 +8,17 @@ use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final readonly class BetaTesterProfileService
 {
-    public function __construct(private UnitOfWork $persistence)
+    public function __construct(private UnitOfWork $persistence, private ClockInterface $clock)
     {
     }
 
     public function create(User $user, BetaProfileInput $input): BetaTesterProfile
     {
-        $profile = new BetaTesterProfile($user, $input->availability, $input->motivation, $input->testingExperience, $input->bugDescriptionAbility, $input->technicalKnowledge, $input->accessibilityNeed, $input->assistiveTools, $input->devices, $input->browsers, $input->testingTypes, new \DateTimeImmutable(), '2026-07-26');
+        $profile = new BetaTesterProfile($user, $input->availability, $input->motivation, $input->testingExperience, $input->bugDescriptionAbility, $input->technicalKnowledge, $input->accessibilityNeed, $input->assistiveTools, $input->devices, $input->browsers, $input->testingTypes, $this->clock->now(), '2026-07-26');
         $this->persistence->persist($profile);
 
         return $profile;

@@ -7,8 +7,8 @@ namespace App\Module\User\Application\Workflow;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -16,7 +16,7 @@ final readonly class AccountActivationEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $emailTemplates,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private LoggerInterface $logger,
         private string $frontendUrl,
         private string $mailerFrom,

@@ -36,7 +36,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -119,7 +119,7 @@ final class AuthModuleCompletionTest extends TestCase
         $em->persist($user);
         $em->flush();
 
-        $passwords = $this->createMock(UserPasswordHasherInterface::class);
+        $passwords = $this->createMock(UserPasswordHasher::class);
         $passwords->method('hashPassword')->willReturn('new-hash');
         $passwordReset = new PasswordResetService(
             $this->userRepository($em),

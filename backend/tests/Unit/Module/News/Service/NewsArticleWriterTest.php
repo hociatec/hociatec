@@ -14,7 +14,7 @@ use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 
 final class NewsArticleWriterTest extends TestCase
 {
@@ -34,7 +34,7 @@ final class NewsArticleWriterTest extends TestCase
         $userRepository->expects(self::exactly(3))->method('findNewsEmailSubscribers')->willReturn([$subscriber, $unsaved]);
 
         $messages = [];
-        $bus = new class($messages) implements MessageBusInterface {
+        $bus = new class($messages) implements AsyncMessageDispatcher {
             public array $messages = [];
 
             public function __construct(array &$messages)
@@ -42,11 +42,9 @@ final class NewsArticleWriterTest extends TestCase
                 $this->messages = &$messages;
             }
 
-            public function dispatch(object $message, array $stamps = []): Envelope
+            public function dispatch(object $message): void
             {
                 $this->messages[] = $message;
-
-                return new Envelope($message, $stamps);
             }
         };
 
@@ -88,7 +86,7 @@ final class NewsArticleWriterTest extends TestCase
         $writer = new NewsArticleWriter(
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             $this->createMock(UserRepository::class),
-            $this->createMock(MessageBusInterface::class),
+            $this->createMock(AsyncMessageDispatcher::class),
         );
 
         try {
@@ -107,7 +105,7 @@ final class NewsArticleWriterTest extends TestCase
 
         $users = $this->createMock(UserRepository::class);
         $users->expects(self::once())->method('findNewsEmailSubscribers')->willReturn([]);
-        $bus = $this->createMock(MessageBusInterface::class);
+        $bus = $this->createMock(AsyncMessageDispatcher::class);
         $bus->expects(self::never())->method('dispatch');
 
         $writer = new NewsArticleWriter(new DoctrineUnitOfWork($entityManager), $users, $bus);

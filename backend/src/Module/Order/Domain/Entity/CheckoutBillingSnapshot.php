@@ -68,7 +68,7 @@ final class CheckoutBillingSnapshot
         ]);
     }
 
-    public function name(): ?string
+    public function name(): string
     {
         return $this->billingName;
     }

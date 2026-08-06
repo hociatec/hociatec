@@ -9,8 +9,6 @@ use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class BrandService
 {
@@ -18,7 +16,6 @@ final class BrandService
         private readonly BrandRepositoryPort $brandRepository,
         private readonly ProductCatalogRepository $productRepository,
         private readonly CatalogPersistencePort $persistence,
-        private readonly ValidatorInterface $validator,
     ) {
     }
 
@@ -86,21 +83,11 @@ final class BrandService
 
     private function assertValidName(string $name): void
     {
-        $violations = $this->validator->validate(
-            ['name' => $name],
-            new Assert\Collection([
-                'name' => [
-                    new Assert\NotBlank(message: 'La marque doit avoir un nom.'),
-                    new Assert\Length(
-                        max: 80,
-                        maxMessage: 'Le nom ne doit pas dépasser 80 caractères.'
-                    ),
-                ],
-            ])
-        );
-
-        if ($violations->count() > 0) {
-            throw new \InvalidArgumentException((string) $violations);
+        if ('' === $name) {
+            throw new \InvalidArgumentException('La marque doit avoir un nom.');
+        }
+        if (mb_strlen($name) > 80) {
+            throw new \InvalidArgumentException('Le nom ne doit pas dépasser 80 caractères.');
         }
     }
 

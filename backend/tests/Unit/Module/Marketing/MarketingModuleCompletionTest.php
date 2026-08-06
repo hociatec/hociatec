@@ -36,6 +36,7 @@ use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -49,8 +50,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
 final class MarketingModuleCompletionTest extends TestCase
@@ -230,13 +229,12 @@ final class MarketingModuleCompletionTest extends TestCase
 
     public function testMarketingRecipientEmailOutboxPublishesMessengerMessage(): void
     {
-        $messageBus = $this->createMock(MessageBusInterface::class);
+        $messageBus = $this->createMock(AsyncMessageDispatcher::class);
         $messageBus->expects(self::once())
             ->method('dispatch')
             ->with(self::callback(static fn (object $message): bool => $message instanceof MarketingCampaignRecipientEmailMessage
                 && 42 === $message->campaignId
-                && 99 === $message->userId))
-            ->willReturnCallback(static fn (object $message, array $stamps = []): Envelope => new Envelope($message, $stamps));
+                && 99 === $message->userId));
 
         (new DispatchMarketingCampaignRecipientEmailHandler($messageBus))->handle(new OutboxEvent(
             PrepareMarketingCampaignHandler::recipientEmailKey(42, 99),
@@ -262,11 +260,11 @@ final class MarketingModuleCompletionTest extends TestCase
 
     private function notifier(EntityManager $em): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             new AccountNotificationEventRepository($this->registry($em)),
             new DoctrineUnitOfWork($em),
             $this->createMock(MailerInterface::class),
-            $this->createMock(MessageBusInterface::class),
+            $this->createMock(AsyncMessageDispatcher::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
             'https://front.example.test',

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
-use Symfony\Component\Validator\Constraints as Assert;
-
 trait CategoryValidationTrait
 {
     private function generateUniqueSlug(string $name, ?int $excludeId): string
@@ -50,23 +48,14 @@ trait CategoryValidationTrait
 
     private function assertValidData(string $name, ?string $description): void
     {
-        $violations = $this->validator->validate(
-            ['name' => $name, 'description' => $description],
-            new Assert\Collection([
-                'name' => [
-                    new Assert\NotBlank(message: 'La categorie doit avoir un nom.'),
-                    new Assert\Length(max: 150, maxMessage: 'Le nom ne doit pas depasser 150 caracteres.'),
-                ],
-                'description' => [
-                    new Assert\Optional([
-                        new Assert\Length(max: 2000, maxMessage: 'La description est trop longue.'),
-                    ]),
-                ],
-            ])
-        );
-
-        if ($violations->count() > 0) {
-            throw new \InvalidArgumentException((string) $violations);
+        if ('' === trim($name)) {
+            throw new \InvalidArgumentException('La categorie doit avoir un nom.');
+        }
+        if (mb_strlen($name) > 150) {
+            throw new \InvalidArgumentException('Le nom ne doit pas depasser 150 caracteres.');
+        }
+        if (null !== $description && mb_strlen($description) > 2000) {
+            throw new \InvalidArgumentException('La description est trop longue.');
         }
     }
 

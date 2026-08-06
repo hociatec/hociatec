@@ -9,14 +9,14 @@ use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 
 final readonly class TradeInNotificationEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private LoggerInterface $logger,
         private UserCommunicationNotifier $userNotifications,
         private string $mailerFrom,

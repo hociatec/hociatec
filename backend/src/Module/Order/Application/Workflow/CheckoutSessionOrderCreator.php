@@ -13,6 +13,7 @@ use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final readonly class CheckoutSessionOrderCreator
 {
@@ -23,6 +24,7 @@ final readonly class CheckoutSessionOrderCreator
         private OrderRepositoryPort $orders,
         private ProductCatalogRepository $products,
         private CartSessionRepositoryPort $carts,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -42,7 +44,7 @@ final readonly class CheckoutSessionOrderCreator
                     $this->addItem($order, $rawItem);
                 }
 
-                $this->orderCreation->invoiceCalculator->snapshot($order);
+                $this->orderCreation->snapshotInvoice($order);
                 $this->persistence->persist($order);
                 $this->persistence->commit();
                 if (null === $order->getId()) {
@@ -61,7 +63,7 @@ final readonly class CheckoutSessionOrderCreator
 
     private function createOrder(OrderCheckoutSession $checkout): Order
     {
-        return (new Order($this->orderCreation->orderNumbers->generate(), $checkout->getUser()))
+        return (new Order($this->orderCreation->nextOrderNumber(), $checkout->getUser()))
             ->setStatus(Order::STATUS_CONFIRMED)
             ->setShippingName($checkout->getShippingName())
             ->setShippingAddress($checkout->getShippingAddress())
@@ -76,9 +78,9 @@ final readonly class CheckoutSessionOrderCreator
             ->setBillingPostalCode($checkout->getBillingPostalCode())
             ->setBillingCity($checkout->getBillingCity())
             ->setBillingEmail($checkout->getBillingEmail())
-            ->setInvoiceNumber($this->orderCreation->invoiceNumbers->generate())
+            ->setInvoiceNumber($this->orderCreation->nextInvoiceNumber())
             ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
-            ->setInvoicedAt(new \DateTimeImmutable())
+            ->setInvoicedAt($this->clock->now())
             ->setCurrencyCode($checkout->getCurrencyCode())
             ->setElectronicFormat('UBL-2.1')
             ->setSubtotalPriceCents($checkout->getSubtotalPriceCents())

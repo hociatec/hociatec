@@ -7,8 +7,8 @@ namespace App\Module\Order\Application\Workflow;
 use App\Module\Order\Application\Message\OrderCreatedMessage;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 final readonly class OrderPostCreationProcessor
 {
@@ -16,7 +16,7 @@ final readonly class OrderPostCreationProcessor
         private OrderInvoiceDocumentService $invoiceDocuments,
         private OrderNotificationEmailService $notifications,
         private OrderEventLogger $events,
-        private MessageBusInterface $bus,
+        private AsyncMessageDispatcher $bus,
         private LoggerInterface $logger,
     ) {
     }

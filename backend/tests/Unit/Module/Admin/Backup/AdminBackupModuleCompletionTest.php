@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Backup;
 
-use App\Module\Admin\Application\Backup\Dumper\DatabaseBackupDumper;
+use App\Module\Admin\Infrastructure\Backup\Dumper\DatabaseBackupDumper;
 use App\Module\Admin\Application\Backup\Handler\RunBackupHandler;
 use App\Module\Admin\Application\Backup\Handler\RunDueBackupsHandler;
 use App\Module\Admin\Application\Backup\Handler\UpdateBackupSettingsHandler;

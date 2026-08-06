@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Module\User\Application\Mapper;
 
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Domain\Entity\User;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final readonly class ProfileCurrentPasswordVerifier
 {
     public function __construct(
-        private UserPasswordHasherInterface $passwordHasher,
+        private UserPasswordHasher $passwordHasher,
     ) {
     }
 

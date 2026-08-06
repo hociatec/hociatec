@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Converter;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Admin\Application\Operations\DTO\QuoteConversionResult;
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
-use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
 
 final readonly class QuoteToOrderConverter
 {
@@ -18,39 +19,32 @@ final readonly class QuoteToOrderConverter
         private QuoteRepositoryPort $quotes,
         private UserRepositoryPort $users,
         private OperationsPersistence $persistence,
-        private OrderFormatter $orderFormatter,
-        private QuoteConversionPolicy $policy,
-        private QuoteOrderFactory $orderFactory,
-        private QuoteConversionNotifier $notifier,
+        private TransactionManager $transactions,
+        private QuoteConversionServices $services,
     ) {
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function convert(string $reference): array
+    public function convert(string $reference): QuoteConversionResult
     {
         $quote = $this->findQuote(trim($reference));
-        $this->policy->assertConvertible($quote);
+        $this->services->assertConvertible($quote);
         $customer = $this->resolveCustomer($quote);
-        $order = $this->orderFactory->create($quote, $customer);
 
-        $this->persistence->persist($order);
-        $this->persistence->commit();
-        if (null === $order->getId()) {
-            throw new \RuntimeException('La commande n\'a pas d\'identifiant après enregistrement.');
-        }
+        $order = $this->transactions->transactional(function () use ($quote, $customer) {
+            $order = $this->services->createOrder($quote, $customer);
+            $this->persistence->persist($order);
+            $this->persistence->commit();
+            if (null === $order->getId()) {
+                throw new \RuntimeException('La commande n\'a pas d\'identifiant après enregistrement.');
+            }
 
-        $quote->convertToOrder($order->getId(), $order->getNumber());
-        $this->persistence->commit();
+            $quote->convertToOrder($order->getId(), $order->getNumber());
+            $this->persistence->commit();
 
-        [$emailSent, $emailError] = $this->notifier->sendOrderCreated($order);
+            return $order;
+        });
 
-        return [
-            'order' => $this->orderFormatter->formatOrder($order),
-            'emailNotificationSent' => $emailSent,
-            'emailNotificationError' => $emailError,
-        ];
+        return $this->services->result($order);
     }
 
     private function findQuote(string $reference): Quote

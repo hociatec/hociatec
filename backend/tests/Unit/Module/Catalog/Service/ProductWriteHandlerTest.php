@@ -14,6 +14,9 @@ use App\Module\Catalog\Application\DTO\ProductVariantWriteData;
 use App\Module\Catalog\Application\DTO\ProductWriteCommand;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Handler\ProductWriteHandler;
+use App\Module\Catalog\Application\Handler\ProductWriteGalleryPlan;
+use App\Module\Catalog\Application\Handler\ProductWriteServices;
+use App\Module\Catalog\Application\Handler\ProductWriteValidator;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
 use App\Module\Catalog\Application\Writer\ProductDiscountApplicator;
 use App\Module\Catalog\Application\Writer\ProductGalleryUpdater;
@@ -29,7 +32,6 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Validator\Validation;
 
 final class ProductWriteHandlerTest extends TestCase
 {
@@ -335,7 +337,7 @@ final class ProductWriteHandlerTest extends TestCase
         EntityManagerInterface $entityManager,
         CacheItemPoolInterface $cache,
     ): ProductWriteHandler {
-        $rules = new ProductCatalogRules($productRepository, Validation::createValidator());
+        $rules = new ProductCatalogRules($productRepository);
         $variants = new ProductVariantService(
             new \App\Module\Catalog\Application\Factory\ProductVariantFactory($productRepository, $rules),
             new \App\Module\Catalog\Application\Policy\ProductVariantIdentityPolicy($productRepository),
@@ -363,12 +365,15 @@ final class ProductWriteHandlerTest extends TestCase
                 $transactions,
                 new CatalogCacheInvalidator(new CatalogCacheVersion($cache, new NullLogger())),
             ),
-            $rules,
-            $variants,
-            $variantBatch,
-            new ProductGalleryUpdater(),
-            new ProductDiscountApplicator(),
-            new \App\Module\Catalog\Application\Writer\ProductAttributeWriter(),
+            new ProductWriteValidator($rules, $variants),
+            new ProductWriteGalleryPlan(),
+            new ProductWriteServices(
+                $variants,
+                $variantBatch,
+                new ProductGalleryUpdater(),
+                new ProductDiscountApplicator(),
+                new \App\Module\Catalog\Application\Writer\ProductAttributeWriter(),
+            ),
         );
     }
 

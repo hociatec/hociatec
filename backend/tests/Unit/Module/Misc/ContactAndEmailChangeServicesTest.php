@@ -10,7 +10,7 @@ use App\Module\User\Application\Workflow\ChangeProfileEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Module\User\Application\Port\UserPasswordHasher;
 
 final class ContactAndEmailChangeServicesTest extends TestCase
 {
@@ -20,7 +20,7 @@ final class ContactAndEmailChangeServicesTest extends TestCase
         $user->setEmail('ada@example.com');
 
         $repository = $this->createMock(UserRepository::class);
-        $hasher = $this->createMock(UserPasswordHasherInterface::class);
+        $hasher = $this->createMock(UserPasswordHasher::class);
         $hasher->expects(self::exactly(2))->method('isPasswordValid')->with($user, 'secret')->willReturn(true);
         $service = new ChangeProfileEmailService($repository, new ProfileCurrentPasswordVerifier($hasher));
 

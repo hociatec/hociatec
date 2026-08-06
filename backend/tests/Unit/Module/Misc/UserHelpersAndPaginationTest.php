@@ -15,13 +15,13 @@ use Doctrine\DBAL\Driver\PDO\Exception as PdoDriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Module\User\Application\Port\UserPasswordHasher;
 
 final class UserHelpersAndPaginationTest extends TestCase
 {
     public function testProfileCurrentPasswordVerifierHandlesMissingInvalidAndValidPasswords(): void
     {
-        $hasher = $this->createMock(UserPasswordHasherInterface::class);
+        $hasher = $this->createMock(UserPasswordHasher::class);
         $verifier = new ProfileCurrentPasswordVerifier($hasher);
         $user = $this->user();
 
@@ -50,8 +50,8 @@ final class UserHelpersAndPaginationTest extends TestCase
 
     public function testChangeProfilePasswordServiceSupportsNullRejectsBlankAndHashesPassword(): void
     {
-        $hasher = $this->createMock(UserPasswordHasherInterface::class);
-        $verifierHasher = $this->createMock(UserPasswordHasherInterface::class);
+        $hasher = $this->createMock(UserPasswordHasher::class);
+        $verifierHasher = $this->createMock(UserPasswordHasher::class);
         $verifier = new ProfileCurrentPasswordVerifier($verifierHasher);
         $service = new ChangeProfilePasswordService($hasher, $verifier);
         $user = $this->user();

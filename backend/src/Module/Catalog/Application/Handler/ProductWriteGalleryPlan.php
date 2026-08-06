@@ -11,11 +11,11 @@ final readonly class ProductWriteGalleryPlan
     /** @return list<int> */
     public function removals(ProductGalleryWriteData $gallery): array
     {
-        $toRemove = $gallery->toRemove;
+        $toRemove = array_map(static fn (int|string $index): int => (int) $index, $gallery->toRemove);
         if ($gallery->removeMainImage) {
             $toRemove[] = 0;
         }
 
-        return $toRemove;
+        return array_values($toRemove);
     }
 }

@@ -9,33 +9,24 @@ use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use Psr\Clock\ClockInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 
 final class VoucherNotificationEmailService
 {
-    private readonly VoucherNotificationValidator $validator;
-    private readonly VoucherNotificationContextBuilder $contextBuilder;
-    private readonly VoucherNotificationTemplateRenderer $templateRenderer;
-
     public function __construct(
         private readonly EmailTemplateRepositoryPort $templates,
-        private readonly MailerInterface $mailer,
+        private readonly EmailSender $mailer,
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly LoggerInterface $logger,
-        private readonly string $frontendUrl,
         private readonly string $mailerFrom,
-        ?ClockInterface $clock = null,
+        private readonly VoucherNotificationRendering $rendering,
     ) {
-        $this->validator = new VoucherNotificationValidator($clock);
-        $this->contextBuilder = new VoucherNotificationContextBuilder($frontendUrl);
-        $this->templateRenderer = new VoucherNotificationTemplateRenderer();
     }
 
     public function sendCustomerVoucher(User $user, Voucher $voucher): void
     {
-        $this->validator->assertCanNotify($user, $voucher);
+        $this->rendering->assertCanNotify($user, $voucher);
 
         $this->userNotifications->notifyInternal(
             $user,
@@ -51,8 +42,8 @@ final class VoucherNotificationEmailService
         }
 
         $template = $this->templates->findActiveOneByScenarioKey('customer_voucher_offer');
-        $context = $this->contextBuilder->build($user, $voucher);
-        $fallback = $this->templateRenderer->fallbackTemplate();
+        $context = $this->rendering->buildContext($user, $voucher);
+        $fallback = $this->rendering->fallbackTemplate();
 
         $subject = $template?->getSubjectTemplate() ?? $fallback['subject'];
         $htmlBody = $template?->getHtmlBody() ?? $fallback['html'];
@@ -64,9 +55,9 @@ final class VoucherNotificationEmailService
                 'Hociatec',
                 $user->getEmail(),
                 $user->getFullName(),
-                $this->templateRenderer->text($subject, $context),
-                $this->templateRenderer->html($htmlBody, $context),
-                $this->templateRenderer->text($textBody, $context),
+                $this->rendering->text($subject, $context),
+                $this->rendering->html($htmlBody, $context),
+                $this->rendering->text($textBody, $context),
             );
             $this->mailer->send($email);
         } catch (\RuntimeException $exception) {

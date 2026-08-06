@@ -646,7 +646,7 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('resolveRecipientsAfterId', $prepareHandler);
         self::assertStringContainsString('findExistingUserIdsForCampaign', $prepareHandler);
         self::assertStringContainsString('recipientEmailKey', $prepareHandler);
-        self::assertStringContainsString('MessageBusInterface', $dispatchHandler);
+        self::assertStringContainsString('AsyncMessageDispatcher', $dispatchHandler);
     }
 
     public function testBackendTransactionConventionIsDocumented(): void

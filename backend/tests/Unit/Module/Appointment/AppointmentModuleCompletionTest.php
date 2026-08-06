@@ -201,7 +201,7 @@ final class AppointmentModuleCompletionTest extends TestCase
             ['dayOfWeek' => 6, 'isWorkingDay' => false],
         ]], 'PUT'))->getStatusCode());
 
-        $delete = new AdminDeletePrestationController($this->prestations(), new PrestationService($this->prestations(), new PrestationPersistence($this->entityManager()), Validation::createValidator()));
+        $delete = new AdminDeletePrestationController($this->prestations(), new PrestationService($this->prestations(), new PrestationPersistence($this->entityManager())));
         self::assertSame(404, $delete(999)->getStatusCode());
         $createdId = (int) $this->payload($create($this->jsonRequest(['name' => 'Temporary', 'durationMinutes' => 15, 'price' => 5])))['data']['id'];
         self::assertSame(200, $delete($createdId)->getStatusCode());
@@ -256,19 +256,27 @@ final class AppointmentModuleCompletionTest extends TestCase
         return new PrestationService(
             $this->prestations(),
             new PrestationPersistence($this->entityManager()),
-            Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
         );
     }
 
     private function failingPrestationService(): PrestationService
     {
-        $validator = $this->createMock(ValidatorInterface::class);
-        $validator->method('validate')->willThrowException(new \RuntimeException('storage down'));
-
         return new PrestationService(
             $this->prestations(),
-            new PrestationPersistence($this->entityManager()),
-            $validator,
+            new class implements \App\Module\Appointment\Application\Port\PrestationPersistencePort {
+                public function save(object $entity): void
+                {
+                }
+
+                public function delete(object $entity): void
+                {
+                }
+
+                public function commit(): void
+                {
+                    throw new \RuntimeException('storage down');
+                }
+            },
         );
     }
 

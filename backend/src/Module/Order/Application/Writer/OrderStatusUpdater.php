@@ -10,9 +10,9 @@ use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Application\UnitOfWork;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Workflow\WorkflowInterface;
 
 final readonly class OrderStatusUpdater
@@ -21,7 +21,7 @@ final readonly class OrderStatusUpdater
         private UnitOfWork $persistence,
         #[Autowire(service: 'state_machine.order_status')]
         private WorkflowInterface $stateMachine,
-        private MessageBusInterface $bus,
+        private AsyncMessageDispatcher $bus,
         private OrderEventLogger $events,
         private OrderFormatter $orderFormatter,
         private OrderStatusWorkflow $workflow,

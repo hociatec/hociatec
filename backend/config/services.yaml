@@ -52,6 +52,18 @@ services:
     App\Shared\Application\UnitOfWork:
         alias: App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork
 
+    App\Shared\Application\Mail\EmailSender:
+        alias: App\Shared\Infrastructure\Mail\SymfonyEmailSender
+
+    App\Shared\Application\Messaging\AsyncMessageDispatcher:
+        alias: App\Shared\Infrastructure\Messaging\SymfonyAsyncMessageDispatcher
+
+    App\Module\User\Application\Port\UserPasswordHasher:
+        alias: App\Module\User\Infrastructure\Security\SymfonyUserPasswordHasher
+
+    App\Module\Catalog\Application\Cache\CatalogResultCache:
+        alias: App\Module\Catalog\Infrastructure\Cache\SymfonyCatalogResultCache
+
     App\Shared\Application\TransactionSideEffectRegistry:
         alias: App\Shared\Infrastructure\Transaction\InMemoryTransactionSideEffectRegistry
 
@@ -311,10 +323,13 @@ services:
         arguments:
             $projectDir: '%kernel.project_dir%'
 
-    App\Module\Admin\Application\Backup\Dumper\DatabaseBackupDumper:
+    App\Module\Admin\Infrastructure\Backup\Dumper\DatabaseBackupDumper:
         arguments:
             $projectDir: '%kernel.project_dir%'
             $databaseUrl: '%env(resolve:DATABASE_URL)%'
+
+    App\Module\Admin\Application\Backup\Port\DatabaseBackupDumper:
+        alias: App\Module\Admin\Infrastructure\Backup\Dumper\DatabaseBackupDumper
 
     App\Module\System\UI\Controller\MetricsController:
         arguments:
@@ -376,8 +391,11 @@ services:
 
     App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService:
         arguments:
-            $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\Voucher\Application\Workflow\VoucherNotificationContextBuilder:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
     App\Module\Order\Application\Port\OrderInvoiceXmlRenderer:
         alias: App\Module\Order\Infrastructure\Xml\UblOrderInvoiceXmlRenderer
@@ -386,7 +404,7 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    App\Module\Notification\Application\Notification\UserCommunicationNotifier:
+    App\Module\Notification\Application\Notification\UserCommunicationEmailSender:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'

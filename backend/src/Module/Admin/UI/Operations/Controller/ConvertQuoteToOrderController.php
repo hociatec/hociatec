@@ -23,7 +23,7 @@ final readonly class ConvertQuoteToOrderController
     public function __invoke(string $reference): JsonResponse
     {
         try {
-            return ApiResponse::created($this->converter->convert($reference));
+            return ApiResponse::created($this->converter->convert($reference)->toArray());
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {

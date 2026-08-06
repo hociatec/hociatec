@@ -32,7 +32,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 
 final class AdminNewsControllersTest extends TestCase
 {
@@ -104,8 +104,8 @@ final class AdminNewsControllersTest extends TestCase
     {
         $users = $this->createMock(UserRepository::class);
         $users->method('findNewsEmailSubscribers')->willReturn([$this->persistUser('subscriber@example.test')]);
-        $bus = $this->createMock(MessageBusInterface::class);
-        $bus->method('dispatch')->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
+        $bus = $this->createMock(AsyncMessageDispatcher::class);
+        $bus->method('dispatch')->willReturnCallback(static fn (object $message): null => null);
 
         return new NewsArticleWriter(new DoctrineUnitOfWork($this->entityManager()), $users, $bus);
     }

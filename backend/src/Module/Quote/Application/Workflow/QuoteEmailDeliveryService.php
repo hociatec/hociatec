@@ -7,8 +7,8 @@ namespace App\Module\Quote\Application\Workflow;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Port\QuotePdfRenderer;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -17,7 +17,7 @@ final readonly class QuoteEmailDeliveryService
     public function __construct(
         private QuoteCalculator $calculator,
         private QuotePdfRenderer $pdfService,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private LoggerInterface $logger,
         private string $mailerFrom,
     ) {

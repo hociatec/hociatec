@@ -7,7 +7,7 @@ namespace App\Module\News\Application\Workflow;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Shared\Application\Exception\MailDeliveryException;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -15,7 +15,7 @@ final readonly class NewsArticleShareEmailService
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private string $frontendUrl,
         private string $mailerFrom,
     ) {

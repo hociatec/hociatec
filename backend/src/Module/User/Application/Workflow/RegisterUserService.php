@@ -11,17 +11,17 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\UserUniqueConstraintViolationDetector;
 use App\Module\User\Application\Port\UserPersistencePort;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class RegisterUserService
 {
     public function __construct(
         private readonly UserRepositoryPort $userRepository,
-        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UserPasswordHasher $passwordHasher,
         private readonly Outbox $outbox,
         private readonly UserPersistencePort $persistence,
         private readonly TransactionManager $transactions,

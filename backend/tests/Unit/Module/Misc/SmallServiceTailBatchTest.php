@@ -14,6 +14,7 @@ use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -60,7 +61,7 @@ final class SmallServiceTailBatchTest extends TestCase
         $persistence = new DoctrineUnitOfWork($entityManager);
 
         $user = $this->user();
-        $profileService = new BetaTesterProfileService($persistence);
+        $profileService = new BetaTesterProfileService($persistence, new MockClock('2026-07-26'));
         $profile = $profileService->create($user, new BetaProfileInput(
             ['weekly'],
             'motivation',

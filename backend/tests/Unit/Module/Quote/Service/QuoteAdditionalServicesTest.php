@@ -34,7 +34,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class QuoteAdditionalServicesTest extends TestCase
@@ -157,7 +157,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $quotes->expects(self::once())->method('find')->with(700)->willReturn($quote);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (\Symfony\Component\Mime\Email $email): bool {
             return 'quote-email-700' === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
         }));
@@ -212,7 +212,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         return new QuoteEmailDeliveryService(
             new QuoteCalculator(),
             $pdf,
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(LoggerInterface::class),
             'contact@example.test',
         );
@@ -228,10 +228,10 @@ final class QuoteAdditionalServicesTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->repository(AccountNotificationEventRepository::class),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'contact@example.test',

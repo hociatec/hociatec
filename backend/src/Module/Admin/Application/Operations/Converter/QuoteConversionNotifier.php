@@ -16,9 +16,9 @@ final readonly class QuoteConversionNotifier
     public function sendOrderCreated(Order $order): array
     {
         try {
-            return [$this->orderServices->notifications->sendOrderCreatedIfNeeded($order), null];
+            return [$this->orderServices->sendOrderCreatedNotification($order), null];
         } catch (\RuntimeException $exception) {
-            $this->orderServices->events->log($order, null, 'email_failed', 'Échec email commande à régler: '.$exception->getMessage());
+            $this->orderServices->logEmailFailure($order, $exception);
 
             return [false, 'La notification email n’a pas pu être envoyée.'];
         }

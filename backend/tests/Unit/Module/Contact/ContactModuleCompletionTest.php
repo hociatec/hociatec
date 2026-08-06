@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -27,13 +27,13 @@ final class ContactModuleCompletionTest extends TestCase
 {
     public function testContactControllerReturnsSuccessAndDeliveryFailure(): void
     {
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(2))->method('send')->with(self::isInstanceOf(Email::class));
         $controller = new ContactController($this->submission($mailer), $this->validator(1));
 
         self::assertSame(Response::HTTP_OK, $controller(Request::create('/', 'POST', [], [], [], [], json_encode($this->payload(), JSON_THROW_ON_ERROR)))->getStatusCode());
 
-        $failingMailer = $this->createMock(MailerInterface::class);
+        $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $failingController = new ContactController($this->submission($failingMailer), $this->validator(1));
 
@@ -42,7 +42,7 @@ final class ContactModuleCompletionTest extends TestCase
 
     public function testSubmissionWrapsNotificationErrorsAndIgnoresAcknowledgementErrors(): void
     {
-        $notificationFailure = $this->createMock(MailerInterface::class);
+        $notificationFailure = $this->createMock(EmailSender::class);
         $notificationFailure->expects(self::once())->method('send')->willThrowException(new \RuntimeException('smtp down'));
 
         try {
@@ -53,7 +53,7 @@ final class ContactModuleCompletionTest extends TestCase
         }
 
         $typedFailure = MailDeliveryException::failed('typed_failure', new \RuntimeException('smtp down'));
-        $typedFailureMailer = $this->createMock(MailerInterface::class);
+        $typedFailureMailer = $this->createMock(EmailSender::class);
         $typedFailureMailer->expects(self::once())->method('send')->willThrowException($typedFailure);
 
         try {
@@ -63,7 +63,7 @@ final class ContactModuleCompletionTest extends TestCase
             self::assertSame($typedFailure, $exception);
         }
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(2))->method('send')->willReturnCallback(static function (): void {
             static $calls = 0;
             ++$calls;
@@ -77,7 +77,7 @@ final class ContactModuleCompletionTest extends TestCase
         $this->submission($mailer, $logger)->submit(new ContactInput('Ada', 'ada@example.com', 'Sujet', 'Bonjour'));
     }
 
-    private function submission(MailerInterface $mailer, ?LoggerInterface $logger = null): ContactFormSubmissionService
+    private function submission(EmailSender $mailer, ?LoggerInterface $logger = null): ContactFormSubmissionService
     {
         $renderer = new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class));
 

@@ -74,7 +74,6 @@ class Quote
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $createdEmailSentAt = null;
 
-    #[ORM\OneToOne(targetEntity: Order::class)]
     #[ORM\Column(name: 'converted_order_id', type: 'integer', nullable: true)]
     private ?int $convertedOrderId = null;
 

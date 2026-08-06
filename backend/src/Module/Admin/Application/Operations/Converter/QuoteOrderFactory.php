@@ -12,6 +12,7 @@ use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\User\Domain\Entity\User;
+use Psr\Clock\ClockInterface;
 
 final readonly class QuoteOrderFactory
 {
@@ -20,18 +21,19 @@ final readonly class QuoteOrderFactory
         private QuoteCalculator $quoteCalculator,
         private QuoteToOrderServices $orderServices,
         private OperationsPersistence $persistence,
+        private ClockInterface $clock,
     ) {
     }
 
     public function create(Quote $quote, User $customer): Order
     {
         $totals = $this->quoteCalculator->computeTotals($quote);
-        $order = new Order($this->orderServices->orderNumbers->generate(), $customer);
+        $order = new Order($this->orderServices->nextOrderNumber(), $customer);
         $order
             ->setStatus(Order::STATUS_PENDING)
-            ->setInvoiceNumber($this->orderServices->invoiceNumbers->generate())
+            ->setInvoiceNumber($this->orderServices->nextInvoiceNumber())
             ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
-            ->setInvoicedAt(new \DateTimeImmutable())
+            ->setInvoicedAt($this->clock->now())
             ->setBillingName($quote->getCustomerName())
             ->setBillingCompany($quote->getCustomerCompany())
             ->setBillingEmail($quote->getCustomerEmail())
@@ -53,7 +55,7 @@ final readonly class QuoteOrderFactory
             $this->persistence->persist($item);
         }
 
-        $this->orderServices->invoiceCalculator->snapshot($order);
+        $this->orderServices->snapshotInvoice($order);
 
         return $order;
     }

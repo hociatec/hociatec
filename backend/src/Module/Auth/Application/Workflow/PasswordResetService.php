@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Module\Auth\Application\Workflow;
 
 use App\Module\Outbox\Application\Outbox;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PasswordResetService
 {
@@ -17,7 +17,7 @@ class PasswordResetService
         private readonly UserRepositoryPort $users,
         private readonly UnitOfWork $unitOfWork,
         private readonly TransactionManager $transactions,
-        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly UserPasswordHasher $passwordHasher,
         private readonly Outbox $outbox,
     ) {
     }

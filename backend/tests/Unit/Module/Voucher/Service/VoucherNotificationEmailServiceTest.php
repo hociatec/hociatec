@@ -12,6 +12,10 @@ use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
+use App\Module\Voucher\Application\Workflow\VoucherNotificationContextBuilder;
+use App\Module\Voucher\Application\Workflow\VoucherNotificationRendering;
+use App\Module\Voucher\Application\Workflow\VoucherNotificationTemplateRenderer;
+use App\Module\Voucher\Application\Workflow\VoucherNotificationValidator;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -21,8 +25,9 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Mime\Email;
 
 final class VoucherNotificationEmailServiceTest extends TestCase
@@ -39,7 +44,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->expects(self::never())->method('findActiveOneByScenarioKey');
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::never())->method('send');
 
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION]);
@@ -50,8 +55,8 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test/',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $service->sendCustomerVoucher($user, $voucher);
@@ -68,7 +73,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             ->with('customer_voucher_offer')
             ->willReturn(null);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(function (Email $email): bool {
@@ -87,8 +92,8 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test/',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $service->sendCustomerVoucher($user, $voucher);
@@ -111,7 +116,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
                 'Texte {{voucher_code}} {{voucher_description}}'
             ));
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -129,8 +134,8 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $service->sendCustomerVoucher($user, $voucher);
@@ -144,7 +149,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->method('findActiveOneByScenarioKey')->willReturn(null);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -161,8 +166,8 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $service->sendCustomerVoucher($user, $voucher);
@@ -173,7 +178,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->method('findActiveOneByScenarioKey')->willReturn(null);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning');
@@ -183,8 +188,8 @@ final class VoucherNotificationEmailServiceTest extends TestCase
             $mailer,
             $this->notifier(),
             $logger,
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         try {
@@ -211,15 +216,15 @@ final class VoucherNotificationEmailServiceTest extends TestCase
                 'Texte {{voucher_code}}'
             )
         );
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $logger = $this->createMock(LoggerInterface::class);
         $service = new VoucherNotificationEmailService(
             $templates,
             $mailer,
             $this->notifier(),
             $logger,
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
@@ -244,15 +249,15 @@ final class VoucherNotificationEmailServiceTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->method('findActiveOneByScenarioKey')->willReturn(null);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send');
         $service = new VoucherNotificationEmailService(
             $templates,
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
@@ -268,15 +273,15 @@ final class VoucherNotificationEmailServiceTest extends TestCase
     public function testSendCustomerVoucherRejectsVoucherWhenUserIdConstraintDoesNotMatch(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::never())->method('send');
         $service = new VoucherNotificationEmailService(
             $templates,
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
@@ -293,15 +298,15 @@ final class VoucherNotificationEmailServiceTest extends TestCase
     public function testSendCustomerVoucherRejectsFutureAndExpiredVouchers(): void
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::never())->method('send');
         $service = new VoucherNotificationEmailService(
             $templates,
             $mailer,
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            $this->rendering(),
         );
 
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
@@ -346,14 +351,23 @@ final class VoucherNotificationEmailServiceTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->entityManager()),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
             'https://front.example.test',
+        );
+    }
+
+    private function rendering(): VoucherNotificationRendering
+    {
+        return new VoucherNotificationRendering(
+            new VoucherNotificationValidator(new MockClock('now')),
+            new VoucherNotificationContextBuilder('https://front.example.test'),
+            new VoucherNotificationTemplateRenderer(),
         );
     }
 

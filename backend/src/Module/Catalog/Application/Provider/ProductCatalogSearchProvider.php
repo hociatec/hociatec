@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Provider;
 
 use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
+use App\Module\Catalog\Application\Cache\CatalogResultCache;
 use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
 use App\Module\Catalog\Application\Query\ProductCatalogQuery;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Contracts\Cache\CacheInterface;
 
 final readonly class ProductCatalogSearchProvider
 {
@@ -17,8 +16,7 @@ final readonly class ProductCatalogSearchProvider
         private ProductQueryService $products,
         private CatalogCacheVersion $cacheVersion,
         private ProductCatalogListProjectionFormatter $formatter,
-        #[Autowire(service: 'app.catalog_cache')]
-        private CacheInterface $cache,
+        private CatalogResultCache $cache,
     ) {
     }
 

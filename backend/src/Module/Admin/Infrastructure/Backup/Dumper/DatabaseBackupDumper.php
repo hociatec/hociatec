@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Backup\Dumper;
+namespace App\Module\Admin\Infrastructure\Backup\Dumper;
 
+use App\Module\Admin\Application\Backup\Port\DatabaseBackupDumper as DatabaseBackupDumperPort;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
-final readonly class DatabaseBackupDumper
+final readonly class DatabaseBackupDumper implements DatabaseBackupDumperPort
 {
     private const PROCESS_TIMEOUT_SECONDS = 900;
 

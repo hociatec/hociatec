@@ -64,7 +64,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -210,10 +210,10 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
 
     private function notifier(EntityManager $em): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             new AccountNotificationEventRepository($this->registry($em)),
             new DoctrineUnitOfWork($em),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',

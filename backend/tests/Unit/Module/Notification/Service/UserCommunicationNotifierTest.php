@@ -18,7 +18,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
@@ -29,7 +29,7 @@ final class UserCommunicationNotifierTest extends TestCase
     {
         $entityManager = $this->notificationEntityManager();
         $persistence = new DoctrineUnitOfWork($entityManager);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $messages = [];
         $bus = new class($messages) implements MessageBusInterface {
             public array $messages = [];
@@ -47,7 +47,7 @@ final class UserCommunicationNotifierTest extends TestCase
             }
         };
         $logger = $this->createMock(LoggerInterface::class);
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($entityManager),
             $persistence,
             $mailer,
@@ -83,7 +83,7 @@ final class UserCommunicationNotifierTest extends TestCase
 
     public function testSendEmailNowBuildsExpectedEmail(): void
     {
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer
             ->expects(self::once())
             ->method('send')
@@ -95,7 +95,7 @@ final class UserCommunicationNotifierTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::never())->method('warning');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->notificationEntityManager()),
             new DoctrineUnitOfWork($this->notificationEntityManager()),
             $mailer,
@@ -111,12 +111,12 @@ final class UserCommunicationNotifierTest extends TestCase
 
     public function testSendEmailNowLogsFailureWhenMailerThrows(): void
     {
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->notificationEntityManager()),
             new DoctrineUnitOfWork($this->notificationEntityManager()),
             $mailer,

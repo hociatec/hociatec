@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Backup\Provider;
 
-use App\Module\Admin\Application\Backup\Dumper\DatabaseBackupDumper;
+use App\Module\Admin\Application\Backup\Port\DatabaseBackupDumper;
 use App\Module\Admin\Application\Backup\State\BackupStateStore;
 use App\Module\Admin\Application\Backup\Storage\BackupFileStorage;
 use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;

@@ -6,15 +6,15 @@ namespace App\Module\Auth\Application\Workflow;
 
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 final readonly class PasswordResetEmailService
 {
     public function __construct(
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private EmailTemplateRenderer $emailTemplates,
         private LoggerInterface $logger,
         private string $frontendUrl,

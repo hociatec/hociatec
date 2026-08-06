@@ -13,12 +13,13 @@ use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
 use App\Module\TradeIn\Domain\ValueObject\TradeInTechnicalIdentity;
+use App\Module\User\Domain\Entity\User;
 
 final class TradeInRequestFactory
 {
     public static function submitted(
         string $reference,
-        ?object $user,
+        ?User $user,
         string $firstName,
         string $lastName,
         string $email,

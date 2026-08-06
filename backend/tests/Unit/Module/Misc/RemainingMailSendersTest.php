@@ -33,7 +33,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -51,7 +51,7 @@ final class RemainingMailSendersTest extends TestCase
     {
         $user = $this->user('ada@example.com');
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -69,7 +69,7 @@ final class RemainingMailSendersTest extends TestCase
         );
         $service->send($user, 'reset-token');
 
-        $failingMailer = $this->createMock(MailerInterface::class);
+        $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning');
@@ -92,7 +92,7 @@ final class RemainingMailSendersTest extends TestCase
         $repository->expects(self::exactly(2))->method('findOneByEmailInsensitive')->willReturn($user);
 
         $eventKey = 'auth.password_reset.'.hash('sha256', 'current-token');
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email) use ($eventKey): bool {
             return $eventKey === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
         }));
@@ -115,7 +115,7 @@ final class RemainingMailSendersTest extends TestCase
         $renderer = new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class));
         $input = new ContactInput('Ada', 'ada@example.com', 'Sujet', 'Bonjour');
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(2))
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -132,7 +132,7 @@ final class RemainingMailSendersTest extends TestCase
         $entityManager = $this->entityManager();
         $persistence = new DoctrineUnitOfWork($entityManager);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::never())->method('send');
 
         $sender = new MarketingCampaignSender(
@@ -189,10 +189,10 @@ final class RemainingMailSendersTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->entityManager()),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',

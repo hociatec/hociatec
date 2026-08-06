@@ -6,7 +6,7 @@ namespace App\Module\Contact\Application\Notification;
 
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -14,7 +14,7 @@ final readonly class ContactAcknowledgementSender
 {
     public function __construct(
         private EmailTemplateRenderer $templates,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private string $mailerFrom,
     ) {
     }

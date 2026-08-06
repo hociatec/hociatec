@@ -18,7 +18,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -31,10 +31,10 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
         $entityManager->expects(self::never())->method('persist');
         $entityManager->expects(self::never())->method('flush');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $repository,
             new DoctrineUnitOfWork($entityManager),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
@@ -69,10 +69,10 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
                 }),
             );
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $repository,
             new DoctrineUnitOfWork($entityManager),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $logger,
             'noreply@example.com',
@@ -102,10 +102,10 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
         $persistenceEntityManager->expects(self::never())->method('persist');
         $persistenceEntityManager->expects(self::never())->method('flush');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $repository,
             new DoctrineUnitOfWork($persistenceEntityManager),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
@@ -127,10 +127,10 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::never())->method('dispatch');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $repository,
             new DoctrineUnitOfWork($entityManager),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $bus,
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
@@ -146,7 +146,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
     public function testSendEmailNowRendersBetaNewsAndDefaultLabels(): void
     {
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(3))
             ->method('send')
             ->with(self::callback(function (Email $email): bool {
@@ -160,7 +160,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::never())->method('warning');
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->notificationEntityManager()),
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             $mailer,
@@ -196,10 +196,10 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
                     && $context['exception'] instanceof \RuntimeException),
             );
 
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $repository,
             $persistence,
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $bus,
             $logger,
             'noreply@example.com',

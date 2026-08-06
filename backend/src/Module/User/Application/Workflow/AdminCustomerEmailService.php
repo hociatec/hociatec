@@ -6,15 +6,15 @@ namespace App\Module\User\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 final class AdminCustomerEmailService
 {
     public function __construct(
-        private readonly MailerInterface $mailer,
+        private readonly EmailSender $mailer,
         private readonly LoggerInterface $logger,
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,

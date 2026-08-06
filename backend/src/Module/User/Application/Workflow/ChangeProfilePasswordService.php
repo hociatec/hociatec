@@ -6,13 +6,13 @@ namespace App\Module\User\Application\Workflow;
 
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Domain\Entity\User;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final readonly class ChangeProfilePasswordService
 {
     public function __construct(
-        private UserPasswordHasherInterface $passwordHasher,
+        private UserPasswordHasher $passwordHasher,
         private ProfileCurrentPasswordVerifier $currentPasswordVerifier,
     ) {
     }

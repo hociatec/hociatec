@@ -6,17 +6,17 @@ namespace App\Module\Notification\Application\Notification;
 
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 final readonly class UserCommunicationEmailSender
 {
     public function __construct(
-        private MailerInterface $mailer,
-        private MessageBusInterface $bus,
+        private EmailSender $mailer,
+        private AsyncMessageDispatcher $bus,
         private LoggerInterface $logger,
         private string $mailerFrom,
         private string $frontendUrl,

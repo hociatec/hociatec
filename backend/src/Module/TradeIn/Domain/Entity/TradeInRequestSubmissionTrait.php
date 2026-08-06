@@ -7,12 +7,13 @@ namespace App\Module\TradeIn\Domain\Entity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
+use App\Module\User\Domain\Entity\User;
 
 trait TradeInRequestSubmissionTrait
 {
     public static function fromSubmittedData(
         string $reference,
-        ?object $user,
+        ?User $user,
         TradeInApplicant $applicant,
         TradeInProductSnapshot $product,
         TradeInEstimate $estimate,

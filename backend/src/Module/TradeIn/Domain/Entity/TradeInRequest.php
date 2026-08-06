@@ -10,6 +10,7 @@ use App\Module\TradeIn\Domain\ValueObject\TradeInClosure;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPrivateDocument;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
+use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -18,9 +19,6 @@ use Doctrine\ORM\Mapping as ORM;
 class TradeInRequest
 {
     use TradeInRequestAccessors;
-
-    private const TRADE_IN_CLOSURE_CLASS = TradeInClosure::class;
-    private const TRADE_IN_PRIVATE_DOCUMENT_CLASS = TradeInPrivateDocument::class;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -32,7 +30,7 @@ class TradeInRequest
 
     #[ORM\ManyToOne(targetEntity: 'App\Module\User\Domain\Entity\User')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?object $user;
+    private ?User $user;
 
     #[ORM\Column(name: 'requester_user_id', type: 'integer', nullable: true)]
     private ?int $userId = null;
@@ -156,7 +154,7 @@ class TradeInRequest
 
     public function __construct(
         string $reference,
-        ?object $user,
+        ?User $user,
         TradeInApplicant $applicant,
         TradeInProductSnapshot $product,
         TradeInEstimate $estimate,
@@ -197,14 +195,8 @@ class TradeInRequest
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    private function extractUserId(?object $user): ?int
+    private function extractUserId(?User $user): ?int
     {
-        if (null === $user || !method_exists($user, 'getId')) {
-            return null;
-        }
-
-        $id = $user->getId();
-
-        return is_int($id) ? $id : null;
+        return $user?->getId();
     }
 }

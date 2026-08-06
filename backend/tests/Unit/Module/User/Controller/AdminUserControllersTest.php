@@ -38,7 +38,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -144,7 +144,7 @@ final class AdminUserControllersTest extends TestCase
         $users = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $users->expects(self::exactly(5))->method('find')->with(42)->willReturnOnConsecutiveCalls(null, $user, $user, $user, $user);
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $service = new AdminCustomerEmailService(
             $mailer,
@@ -254,10 +254,10 @@ final class AdminUserControllersTest extends TestCase
         $entityManager = $this->entityManager([User::class, AccountNotificationEvent::class]);
         $notifications = $this->notificationRepository($entityManager);
 
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $notifications,
             new DoctrineUnitOfWork($entityManager),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',
@@ -275,11 +275,11 @@ final class AdminUserControllersTest extends TestCase
 
         return new VoucherNotificationEmailService(
             $templates,
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->notifier(),
             $this->createMock(LoggerInterface::class),
-            'https://front.example.test',
             'noreply@example.com',
+            \App\Tests\Support\VoucherNotificationRenderingFactory::create(),
         );
     }
 

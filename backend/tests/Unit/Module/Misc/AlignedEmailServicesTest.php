@@ -33,7 +33,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -51,7 +51,7 @@ final class AlignedEmailServicesTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $renderer = new EmailTemplateRenderer($templates);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -63,7 +63,7 @@ final class AlignedEmailServicesTest extends TestCase
         $service = new ProductShareEmailService($renderer, $mailer, 'https://front.example.test', 'noreply@example.com');
         $service->send($this->product(), 'client@example.com');
 
-        $failingMailer = $this->createMock(MailerInterface::class);
+        $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $service2 = new ProductShareEmailService($renderer, $failingMailer, 'https://front.example.test', 'noreply@example.com');
 
@@ -86,7 +86,7 @@ final class AlignedEmailServicesTest extends TestCase
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->getMock();
         $content = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -145,7 +145,7 @@ final class AlignedEmailServicesTest extends TestCase
 
         $templates = $this->createMock(EmailTemplateRepository::class);
         $renderer = new EmailTemplateRenderer($templates);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -164,7 +164,7 @@ final class AlignedEmailServicesTest extends TestCase
         );
         $service->sendCreated($request);
 
-        $failingMailer = $this->createMock(MailerInterface::class);
+        $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
@@ -205,10 +205,10 @@ final class AlignedEmailServicesTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($this->entityManager()),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',

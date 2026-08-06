@@ -11,7 +11,7 @@ use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Mime\Email;
 
 final class QuoteEmailDeliveryServiceTest extends TestCase
@@ -28,7 +28,7 @@ final class QuoteEmailDeliveryServiceTest extends TestCase
         $pdf = $this->createMock(QuotePdfService::class);
         $pdf->method('render')->willReturn('%PDF-1.4');
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -72,7 +72,7 @@ final class QuoteEmailDeliveryServiceTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('warning');
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -94,7 +94,7 @@ final class QuoteEmailDeliveryServiceTest extends TestCase
         ]);
         self::assertFalse($result['attachmentIncluded']);
 
-        $mailer2 = $this->createMock(MailerInterface::class);
+        $mailer2 = $this->createMock(EmailSender::class);
         $mailer2->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger2 = $this->createMock(LoggerInterface::class);
         $logger2->expects(self::once())->method('warning');

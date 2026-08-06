@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\DTO;
 
+/**
+ * @implements \ArrayAccess<string, mixed>
+ */
 final readonly class SupportRequestOutput implements \ArrayAccess, \JsonSerializable
 {
     /**
      * @param array{
-     *   id:int,
+     *   id:?int,
      *   status:string,
      *   statusLabel:string,
      *   reason:string,
      *   subject:string,
-     *   message:string,
+     *   message:?string,
      *   internalNotes:?string,
      *   customer:array{id:?int,name:string,email:string},
      *   order:?array{id:?int,number:?string},
@@ -47,11 +50,43 @@ final readonly class SupportRequestOutput implements \ArrayAccess, \JsonSerializ
         throw new \BadMethodCallException('SupportRequestOutput is immutable.');
     }
 
+    /**
+     * @return array{
+     *   id:?int,
+     *   status:string,
+     *   statusLabel:string,
+     *   reason:string,
+     *   subject:string,
+     *   message:?string,
+     *   internalNotes:?string,
+     *   customer:array{id:?int,name:string,email:string},
+     *   order:?array{id:?int,number:?string},
+     *   createdAt:string,
+     *   updatedAt:string,
+     *   resolvedAt:?string,
+     * }
+     */
     public function toArray(): array
     {
         return $this->payload;
     }
 
+    /**
+     * @return array{
+     *   id:?int,
+     *   status:string,
+     *   statusLabel:string,
+     *   reason:string,
+     *   subject:string,
+     *   message:?string,
+     *   internalNotes:?string,
+     *   customer:array{id:?int,name:string,email:string},
+     *   order:?array{id:?int,number:?string},
+     *   createdAt:string,
+     *   updatedAt:string,
+     *   resolvedAt:?string,
+     * }
+     */
     public function jsonSerialize(): array
     {
         return $this->toArray();

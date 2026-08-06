@@ -7,8 +7,6 @@ namespace App\Module\Catalog\Application\Calculator;
 use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Shared\Application\Text\Slugifier;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class ProductCatalogRules
 {
@@ -16,64 +14,47 @@ final readonly class ProductCatalogRules
 
     public function __construct(
         private ProductCatalogRepository $productRepository,
-        private ValidatorInterface $validator,
     ) {
     }
 
     public function assertValidData(ProductCoreWriteData $core, string $normalizedSku): void
     {
-        $violations = $this->validator->validate(
-            [
-                'name' => $core->name,
-                'sku' => $normalizedSku,
-                'description' => $core->description,
-                'shortDescription' => $core->shortDescription,
-                'price' => $core->priceCents,
-                'stock' => $core->stock,
-            ],
-            new Assert\Collection([
-                'name' => [
-                    new Assert\NotBlank(message: 'Le produit doit avoir un nom.'),
-                    new Assert\Length(max: 180, maxMessage: 'Le nom ne doit pas depasser 180 caracteres.'),
-                ],
-                'sku' => [
-                    new Assert\NotBlank(message: 'Le SKU est obligatoire.'),
-                    new Assert\Length(
-                        max: 60,
-                        maxMessage: 'Le SKU ne doit pas depasser 60 caracteres.'
-                    ),
-                    new Assert\Regex(
-                        pattern: '/^[A-Z0-9\-_]+$/i',
-                        message: 'Le SKU ne peut contenir que des lettres, chiffres, tirets et underscores.'
-                    ),
-                ],
-                'description' => [
-                    new Assert\NotBlank(message: 'La description detaillee est obligatoire.'),
-                ],
-                'shortDescription' => [
-                    new Assert\Optional([
-                        new Assert\Length(
-                            max: 255,
-                            maxMessage: 'Le resume est trop long.'
-                        ),
-                    ]),
-                ],
-                'price' => [
-                    new Assert\GreaterThanOrEqual(value: 0, message: 'Le prix doit etre positif.'),
-                    new Assert\LessThanOrEqual(
-                        value: 100000000,
-                        message: 'Le prix indique est trop eleve.'
-                    ),
-                ],
-                'stock' => [
-                    new Assert\GreaterThanOrEqual(value: 0, message: 'Le stock doit etre positif.'),
-                    new Assert\LessThanOrEqual(value: 1000000, message: 'Le stock est trop eleve.'),
-                ],
-            ])
-        );
-
-        if ($violations->count() > 0) {
-            throw new \InvalidArgumentException((string) $violations);
+        $errors = [];
+        if ('' === trim($core->name)) {
+            $errors[] = 'Le produit doit avoir un nom.';
+        }
+        if (mb_strlen($core->name) > 180) {
+            $errors[] = 'Le nom ne doit pas depasser 180 caracteres.';
+        }
+        if ('' === trim($normalizedSku)) {
+            $errors[] = 'Le SKU est obligatoire.';
+        }
+        if (mb_strlen($normalizedSku) > 60) {
+            $errors[] = 'Le SKU ne doit pas depasser 60 caracteres.';
+        }
+        if (1 !== preg_match('/^[A-Z0-9\-_]+$/i', $normalizedSku)) {
+            $errors[] = 'Le SKU ne peut contenir que des lettres, chiffres, tirets et underscores.';
+        }
+        if ('' === trim($core->description)) {
+            $errors[] = 'La description detaillee est obligatoire.';
+        }
+        if (null !== $core->shortDescription && mb_strlen($core->shortDescription) > 255) {
+            $errors[] = 'Le resume est trop long.';
+        }
+        if ($core->priceCents < 0) {
+            $errors[] = 'Le prix doit etre positif.';
+        }
+        if ($core->priceCents > 100000000) {
+            $errors[] = 'Le prix indique est trop eleve.';
+        }
+        if ($core->stock < 0) {
+            $errors[] = 'Le stock doit etre positif.';
+        }
+        if ($core->stock > 1000000) {
+            $errors[] = 'Le stock est trop eleve.';
+        }
+        if ([] !== $errors) {
+            throw new \InvalidArgumentException(implode("\n", $errors));
         }
     }
 

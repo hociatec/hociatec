@@ -8,7 +8,10 @@ use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\CommunicationPreferencePolicy;
+use App\Module\Notification\Application\Notification\InternalAccountNotificationSender;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Notification\Application\Notification\UserCommunicationEmailSender;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
@@ -20,6 +23,7 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use App\Module\User\Application\Outbox\SendActivationEmailHandler;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\AccountActivationEmailService;
 use App\Module\User\Application\Workflow\AdminCustomerEmailService;
@@ -35,6 +39,8 @@ use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -44,10 +50,8 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class UserRemainingServicesTest extends TestCase
 {
@@ -139,7 +143,7 @@ final class UserRemainingServicesTest extends TestCase
         ]);
 
         $userRepository = $this->createMock(UserRepository::class);
-        $passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
+        $passwordHasher = $this->createMock(UserPasswordHasher::class);
         $passwordHasher->method('isPasswordValid')->willReturn(true);
         $passwordHasher->method('hashPassword')->willReturn('hashed-new');
 
@@ -211,7 +215,7 @@ final class UserRemainingServicesTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
 
-        $fallbackMailer = $this->createMock(MailerInterface::class);
+        $fallbackMailer = $this->createMock(EmailSender::class);
         $fallbackMailer->expects(self::exactly(2))->method('send')->willReturnCallback(
             function (Email $email): void {
                 if ('KO' === $email->getSubject()) {
@@ -246,7 +250,7 @@ final class UserRemainingServicesTest extends TestCase
         }
 
         $noEmailUser = $this->persistUser([CommunicationPreferences::NOTIFICATION], 'grace@example.com');
-        $fallbackMailer2 = $this->createMock(MailerInterface::class);
+        $fallbackMailer2 = $this->createMock(EmailSender::class);
         $fallbackMailer2->expects(self::never())->method('send');
         $service2 = new AdminCustomerEmailService(
             $fallbackMailer2,
@@ -260,7 +264,7 @@ final class UserRemainingServicesTest extends TestCase
     public function testAdminCustomerEmailServiceSendsHtmlAndTextThroughMailer(): void
     {
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL], 'primary@example.com');
-        $fallbackMailer = $this->createMock(MailerInterface::class);
+        $fallbackMailer = $this->createMock(EmailSender::class);
         $fallbackMailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static function (Email $email): bool {
@@ -288,7 +292,7 @@ final class UserRemainingServicesTest extends TestCase
         $templates = $this->createMock(EmailTemplateRepository::class);
         $renderer = new EmailTemplateRenderer($templates);
 
-        $fallbackMailer = $this->createMock(MailerInterface::class);
+        $fallbackMailer = $this->createMock(EmailSender::class);
         $fallbackMailer->expects(self::once())->method('send')->with(self::isInstanceOf(Email::class));
         $service = new AccountActivationEmailService(
             $renderer,
@@ -305,7 +309,7 @@ final class UserRemainingServicesTest extends TestCase
         $renderLogger->expects(self::once())->method('error');
         $service2 = new AccountActivationEmailService(
             new EmailTemplateRenderer($brokenTemplates),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $renderLogger,
             'https://front.example.test',
             'noreply@example.com',
@@ -317,7 +321,7 @@ final class UserRemainingServicesTest extends TestCase
             self::assertInstanceOf(\RuntimeException::class, $exception->getPrevious());
         }
 
-        $failingFallback = $this->createMock(MailerInterface::class);
+        $failingFallback = $this->createMock(EmailSender::class);
         $failingFallback->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $sendLogger = $this->createMock(LoggerInterface::class);
         $sendLogger->expects(self::once())->method('warning');
@@ -341,7 +345,7 @@ final class UserRemainingServicesTest extends TestCase
         $user = $this->user('activation-handler@example.com');
         $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $repository->expects(self::once())->method('find')->with(42)->willReturn($user);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email): bool {
             return 'activation-42' === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
         }));
@@ -363,14 +367,14 @@ final class UserRemainingServicesTest extends TestCase
     public function testRegisterUserServiceCoversFailuresSuccessAndBetaProfileBranch(): void
     {
         $userRepository = $this->createMock(UserRepository::class);
-        $hasher = $this->createMock(UserPasswordHasherInterface::class);
+        $hasher = $this->createMock(UserPasswordHasher::class);
         $hasher->method('hashPassword')->willReturn('hashed');
 
         $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
         $entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $callback): mixed => $callback());
         $entityManager->expects(self::atLeast(1))->method('persist');
         $persistence = new UserPersistence($entityManager);
-        $betaProfiles = new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager));
+        $betaProfiles = new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager), new MockClock('2026-07-26'));
 
         $service = new RegisterUserService($userRepository, $hasher, new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager)), $persistence, new DoctrineTransactionManager($entityManager), $betaProfiles);
 
@@ -463,7 +467,7 @@ final class UserRemainingServicesTest extends TestCase
             new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager2)),
             new UserPersistence($entityManager2),
             new DoctrineTransactionManager($entityManager2),
-            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager2)),
+            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager2), new MockClock('2026-07-26')),
         );
         try {
             $dupService->register(RegisterUserInput::fromArray([
@@ -491,7 +495,7 @@ final class UserRemainingServicesTest extends TestCase
             new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager3)),
             new UserPersistence($entityManager3),
             new DoctrineTransactionManager($entityManager3),
-            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager3)),
+            new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager3), new MockClock('2026-07-26')),
         );
 
         try {
@@ -544,14 +548,22 @@ final class UserRemainingServicesTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
-            $this->notificationRepository($this->entityManager()),
-            new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
-            $this->createMock(MessageBusInterface::class),
-            $this->createMock(LoggerInterface::class),
-            'noreply@example.com',
-            'https://front.example.test',
+        $repository = $this->notificationRepository($this->entityManager());
+        $persistence = new DoctrineUnitOfWork($this->entityManager());
+        $logger = $this->createMock(LoggerInterface::class);
+        $preferences = new CommunicationPreferencePolicy();
+
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
+            $repository,
+            $preferences,
+            new InternalAccountNotificationSender($repository, $persistence, $preferences, $logger),
+            new UserCommunicationEmailSender(
+                $this->createMock(EmailSender::class),
+                $this->createMock(AsyncMessageDispatcher::class),
+                $logger,
+                'noreply@example.com',
+                'https://front.example.test',
+            ),
         );
     }
 

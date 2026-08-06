@@ -7,13 +7,13 @@ namespace App\Module\Marketing\Application\Outbox;
 use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMessage;
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 
 final readonly class DispatchMarketingCampaignRecipientEmailHandler implements OutboxEventHandler
 {
     public const TYPE = 'marketing.campaign.recipient_email_requested';
 
-    public function __construct(private MessageBusInterface $messageBus)
+    public function __construct(private AsyncMessageDispatcher $messageBus)
     {
     }
 

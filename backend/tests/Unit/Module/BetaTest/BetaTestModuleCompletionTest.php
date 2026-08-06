@@ -34,11 +34,16 @@ use App\Module\BetaTest\UI\Http\BetaCampaignResponseFormatter;
 use App\Module\BetaTest\UI\Http\BetaProfileResponseFormatter;
 use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\Notification\Application\Notification\CommunicationPreferencePolicy;
+use App\Module\Notification\Application\Notification\InternalAccountNotificationSender;
+use App\Module\Notification\Application\Notification\UserCommunicationEmailSender;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -48,13 +53,12 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Validator\ConstraintViolationList;
@@ -73,7 +77,7 @@ final class BetaTestModuleCompletionTest extends TestCase
         $campaigns = $this->campaigns($em);
         $persistence = new DoctrineUnitOfWork($em);
 
-        $profileService = new BetaTesterProfileService($persistence);
+        $profileService = new BetaTesterProfileService($persistence, new MockClock('2026-07-26'));
         $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence), new BetaCampaignResponseFormatter());
         $list->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $list()->getStatusCode());
@@ -256,14 +260,22 @@ final class BetaTestModuleCompletionTest extends TestCase
 
     private function notifier(EntityManager $em): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
-            new AccountNotificationEventRepository($this->registry($em)),
-            new DoctrineUnitOfWork($em),
-            $this->createMock(MailerInterface::class),
-            $this->createMock(MessageBusInterface::class),
-            $this->createMock(LoggerInterface::class),
-            'noreply@example.com',
-            'https://front.example.test',
+        $repository = new AccountNotificationEventRepository($this->registry($em));
+        $persistence = new DoctrineUnitOfWork($em);
+        $logger = $this->createMock(LoggerInterface::class);
+        $preferences = new CommunicationPreferencePolicy();
+
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
+            $repository,
+            $preferences,
+            new InternalAccountNotificationSender($repository, $persistence, $preferences, $logger),
+            new UserCommunicationEmailSender(
+                $this->createMock(EmailSender::class),
+                $this->createMock(AsyncMessageDispatcher::class),
+                $logger,
+                'noreply@example.com',
+                'https://front.example.test',
+            ),
         );
     }
 

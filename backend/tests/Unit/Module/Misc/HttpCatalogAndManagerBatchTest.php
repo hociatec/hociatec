@@ -17,6 +17,7 @@ use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormat
 use App\Module\Catalog\Application\Provider\ProductCatalogSearchProvider;
 use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
+use App\Module\Catalog\Infrastructure\Cache\SymfonyCatalogResultCache;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -169,7 +170,7 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $cache = new ArrayAdapter();
         $controller = new ListProductsController(
             new ProductSearchRequestMapper(),
-            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), new ProductCatalogListProjectionFormatter(), $cache),
+            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), new ProductCatalogListProjectionFormatter(), new SymfonyCatalogResultCache($cache)),
         );
 
         $request = new Request([

@@ -57,7 +57,7 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
@@ -171,7 +171,7 @@ final class TradeInModuleCompletionTest extends TestCase
 
     public function testNotificationsCoverAllStatusLabelsOffersSkipAndFailures(): void
     {
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(10))->method('send')->with(self::isInstanceOf(Email::class));
         $service = $this->notificationService($mailer);
         foreach (TradeInStatus::cases() as $status) {
@@ -182,12 +182,12 @@ final class TradeInModuleCompletionTest extends TestCase
             $service->sendStatusChanged($request);
         }
 
-        $skipMailer = $this->createMock(MailerInterface::class);
+        $skipMailer = $this->createMock(EmailSender::class);
         $skipMailer->expects(self::never())->method('send');
         $skipUser = $this->user();
         $this->notificationService($skipMailer)->sendStatusChanged($this->tradeInRequest($skipUser));
 
-        $failingMailer = $this->createMock(MailerInterface::class);
+        $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
@@ -248,13 +248,13 @@ final class TradeInModuleCompletionTest extends TestCase
             new TradeInPersistence($em),
             new TradeInEstimator(),
             new TradeInNumberGenerator(),
-            $this->notificationService($this->createMock(MailerInterface::class)),
+            $this->notificationService($this->createMock(EmailSender::class)),
             new TradeInPrivateFileStorage($this->projectDir()),
             new \App\Module\TradeIn\Application\Workflow\TradeInStatusWorkflow(),
         );
     }
 
-    private function notificationService(MailerInterface $mailer, ?LoggerInterface $logger = null): TradeInNotificationEmailService
+    private function notificationService(EmailSender $mailer, ?LoggerInterface $logger = null): TradeInNotificationEmailService
     {
         return new TradeInNotificationEmailService(
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
@@ -280,11 +280,11 @@ final class TradeInModuleCompletionTest extends TestCase
                 new CreateVoucherHandler(new DoctrineUnitOfWork($em), new VoucherPayload($this->voucherRepository($em))),
                 new VoucherNotificationEmailService(
                     new EmailTemplateRepository($this->registry($em)),
-                    $this->createMock(MailerInterface::class),
+                    $this->createMock(EmailSender::class),
                     $this->notifier(),
                     $this->createMock(LoggerInterface::class),
-                    'https://front.example.test',
                     'noreply@example.com',
+                    \App\Tests\Support\VoucherNotificationRenderingFactory::create(),
                 ),
                 new DoctrineUnitOfWork($em),
                 $this->createMock(LoggerInterface::class),
@@ -296,10 +296,10 @@ final class TradeInModuleCompletionTest extends TestCase
     {
         $em = $this->entityManager();
 
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository($em),
             new DoctrineUnitOfWork($em),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.com',

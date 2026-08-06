@@ -22,7 +22,7 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Module\User\Application\Port\UserPasswordHasher;
 use Symfony\Component\Validator\Validation;
 
 final class UserSupportingTypesTest extends TestCase
@@ -189,7 +189,7 @@ final class UserSupportingTypesTest extends TestCase
     public function testProfilePasswordAndEmailServicesCoverNoopAndValidationPaths(): void
     {
         $user = $this->user();
-        $hasher = $this->createMock(UserPasswordHasherInterface::class);
+        $hasher = $this->createMock(UserPasswordHasher::class);
         $hasher->method('isPasswordValid')->willReturnCallback(static fn (User $user, ?string $password): bool => 'Current1' === $password);
         $hasher->method('hashPassword')->willReturn('hashed-new');
         $verifier = new ProfileCurrentPasswordVerifier($hasher);

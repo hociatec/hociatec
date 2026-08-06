@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -178,10 +178,10 @@ final class SupportOperationsServiceTest extends TestCase
 
     private function customerEmailService(): AdminCustomerEmailService
     {
-        $notifier = new UserCommunicationNotifier(
+        $notifier = \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->repository(AccountNotificationEventRepository::class),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'contact@example.test',
@@ -189,7 +189,7 @@ final class SupportOperationsServiceTest extends TestCase
         );
 
         return new AdminCustomerEmailService(
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(LoggerInterface::class),
             $notifier,
             'contact@example.test',

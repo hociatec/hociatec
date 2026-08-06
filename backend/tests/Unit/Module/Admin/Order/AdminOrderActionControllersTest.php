@@ -30,7 +30,7 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Validator\Validation;
@@ -94,8 +94,8 @@ final class AdminOrderActionControllersTest extends TestCase
 
             return new Marking([$order->getStatus() => 1]);
         });
-        $bus = $this->createMock(MessageBusInterface::class);
-        $bus->method('dispatch')->willReturnCallback(static fn (object $message): Envelope => new Envelope($message));
+        $bus = $this->createMock(AsyncMessageDispatcher::class);
+        $bus->method('dispatch')->willReturnCallback(static fn (object $message): null => null);
 
         return new OrderStatusUpdater(new DoctrineUnitOfWork($this->entityManager()), $workflow, $bus, $this->eventLogger(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow());
     }

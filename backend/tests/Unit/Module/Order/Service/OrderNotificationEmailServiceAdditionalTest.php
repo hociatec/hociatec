@@ -26,7 +26,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -43,7 +43,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
     public function testOrderCreatedSkipsWhenAlreadySentOrEmailPreferenceMissing(): void
     {
         $order = $this->order([CommunicationPreferences::NOTIFICATION]);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::never())->method('send');
 
         $service = $this->service($mailer, $this->createMock(EntityManagerInterface::class), $this->createMock(EntityManagerInterface::class));
@@ -59,7 +59,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
     public function testInvoiceRequiresDocumentsAndResendPersistsSentStateAndEvent(): void
     {
         $order = $this->order([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email): bool {
             $html = $email->getHtmlBody();
 
@@ -91,7 +91,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
     public function testStatusChangedSendsOnlySupportedStatusesAndAvoidsDuplicatesUnlessForced(): void
     {
         $order = $this->order([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(3))->method('send')->with(self::callback(static function (Email $email): bool {
             return str_contains((string) $email->getSubject(), 'Commande');
         }));
@@ -113,7 +113,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $order->getStatusCancelledEmailSentAt());
     }
 
-    private function service(MailerInterface $mailer, EntityManagerInterface $orderEntityManager, EntityManagerInterface $eventEntityManager): OrderNotificationEmailService
+    private function service(EmailSender $mailer, EntityManagerInterface $orderEntityManager, EntityManagerInterface $eventEntityManager): OrderNotificationEmailService
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->method('findActiveOneByScenarioKey')->willReturn(null);
@@ -148,10 +148,10 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return new UserCommunicationNotifier(
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
             $this->notificationRepository(),
             new DoctrineUnitOfWork($this->entityManager()),
-            $this->createMock(MailerInterface::class),
+            $this->createMock(EmailSender::class),
             $this->createMock(MessageBusInterface::class),
             $this->createMock(LoggerInterface::class),
             'noreply@example.test',

@@ -6,21 +6,25 @@ namespace App\Module\Order\Application\Factory;
 
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Order\Application\DTO\CartOrderSummary;
+use App\Module\Order\Application\DTO\OrderCreationData;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final readonly class CartOrderCreator
 {
     public function __construct(
         private UnitOfWork $persistence,
         private TransactionManager $transactions,
-        private OrderCreationServices $orderCreation,
+        private CartSubmittedOrderFactory $orders,
         private CartSessionRepositoryPort $carts,
         private CartOrderLineConverter $lineConverter,
         private CartOrderSummaryBuilder $summaryBuilder,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -52,8 +56,6 @@ final readonly class CartOrderCreator
 
                 $order = $this->createOrder($user, $address, $summary);
                 $this->lineConverter->addLines($order, $lockedCart);
-
-                $this->orderCreation->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
                 $this->persistence->commit();
 
@@ -69,33 +71,8 @@ final readonly class CartOrderCreator
         );
     }
 
-    /** @param array<string, mixed> $summary */
-    private function createOrder(User $user, ShippingAddress $address, array $summary): Order
+    private function createOrder(User $user, ShippingAddress $address, CartOrderSummary $summary): Order
     {
-        $customerName = trim($user->getFirstName().' '.$user->getLastName());
-
-        return (new Order($this->orderCreation->orderNumbers->generate(), $user))
-            ->setStatus(Order::STATUS_CONFIRMED)
-            ->setShippingName('' !== $customerName ? $customerName : $address->getName())
-            ->setShippingAddress($address->getAddress())
-            ->setShippingPostalCode($address->getPostalCode())
-            ->setShippingCity($address->getCity())
-            ->setBillingName('' !== $customerName ? $customerName : $address->getName())
-            ->setBillingCompany($address->getCompany())
-            ->setBillingCompanySiren($address->getCompanySiren())
-            ->setBillingCompanyVatNumber($address->getCompanyVatNumber())
-            ->setPurchaseOrderNumber($address->getPurchaseOrderNumber())
-            ->setBillingAddress($address->getAddress())
-            ->setBillingPostalCode($address->getPostalCode())
-            ->setBillingCity($address->getCity())
-            ->setBillingEmail($user->getEmail())
-            ->setInvoiceNumber($this->orderCreation->invoiceNumbers->generate())
-            ->setInvoiceStatus(Order::INVOICE_STATUS_ISSUED)
-            ->setInvoicedAt(new \DateTimeImmutable())
-            ->setCurrencyCode('EUR')
-            ->setElectronicFormat('UBL-2.1')
-            ->replacePaymentAmounts((int) $summary['subtotalPriceCents'], (int) $summary['discountAmountCents'], (int) $summary['totalPriceCents'])
-            ->setAppliedPromotionName($summary['appliedVoucher']['name'] ?? ($summary['appliedPromotion']['name'] ?? null))
-            ->setAppliedPromotionSlug($summary['appliedVoucher']['code'] ?? ($summary['appliedPromotion']['slug'] ?? null));
+        return $this->orders->create(new OrderCreationData($user, $address, $summary, $this->clock->now()));
     }
 }
