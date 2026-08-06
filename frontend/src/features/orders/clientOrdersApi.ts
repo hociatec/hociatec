@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { idempotencyRequestConfig } from '@/shared/lib/idempotency';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';

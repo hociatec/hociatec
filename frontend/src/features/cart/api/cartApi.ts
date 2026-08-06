@@ -1,7 +1,7 @@
 import axios, { AxiosHeaders, type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, getHttpErrorMessage, httpClient, persistCartToken } from '@/shared/lib/httpClient';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
 import { normalizeSearchText } from '@/shared/lib/searchText';
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
-import { createApiError, unwrapApiData } from '@/shared/lib/apiResponses';
+import { createApiError, unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { MaintenanceStatusDto } from '@/shared/api/systemStatus';
 import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 

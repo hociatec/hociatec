@@ -1,5 +1,5 @@
 import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const TRAINING_API_ROUTES = {

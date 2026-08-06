@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { OrderStatus, OrderStatusFilter } from '@/shared/contracts/statuses';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';

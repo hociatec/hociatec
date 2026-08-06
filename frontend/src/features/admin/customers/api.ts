@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
-import { createApiError, unwrapApiData } from '@/shared/lib/apiResponses';
+import { createApiError, unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { AdminPaymentDto, OrderDto } from '@/features/orders/publicApi';
 

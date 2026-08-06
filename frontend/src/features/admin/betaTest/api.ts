@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { downloadCsvBlob } from '@/shared/lib/downloadFile';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { toSafeAttachmentUrl } from '@/shared/lib/externalUrls';
 import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';

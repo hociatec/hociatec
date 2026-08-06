@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios';
 
 import type { ApiResponse } from '@/shared/types/api';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 
 export const unwrapQuoteApiData = <T>(response: ApiResponse<T>): T => {
   return unwrapApiData(response, response.message && response.message.trim() !== '' ? response.message : 'Réponse API invalide.');

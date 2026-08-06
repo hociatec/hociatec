@@ -12,7 +12,7 @@ export const useDelayedNavigation = (defaultDelayMs = 500) => {
   const { schedule } = useTimeout();
 
   const navigateWithDelay = useCallback(
-    ((to: To | number, optionsOrDelayMs?: NavigateOptions | number, delayMs?: number) => {
+    (to: To | number, optionsOrDelayMs?: NavigateOptions | number, delayMs?: number) => {
       const finalDelayMs =
         typeof optionsOrDelayMs === 'number'
           ? optionsOrDelayMs
@@ -33,9 +33,9 @@ export const useDelayedNavigation = (defaultDelayMs = 500) => {
           navigate(to, options);
         }
       }, finalDelayMs);
-    }) as NavigateWithDelay,
+    },
     [defaultDelayMs, navigate, schedule],
   );
 
-  return navigateWithDelay;
+  return navigateWithDelay as NavigateWithDelay;
 };

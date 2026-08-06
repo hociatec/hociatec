@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { createApiError, unwrapApiData } from '@/shared/lib/apiResponses';
+import { createApiError, unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiResponse } from '@/shared/types/api';
 
 export interface SupportRequestDto {

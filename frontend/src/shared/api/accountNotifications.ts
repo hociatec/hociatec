@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { ApiResponse } from '@/shared/types/api';
 
 export interface AccountNotificationsReadStateDto {

@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { toSafeAttachmentUrl } from '@/shared/lib/externalUrls';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 import type { ApiResponse } from '@/shared/types/api';
 

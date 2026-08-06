@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 import type { CatalogProduct, CatalogSort, UpsertProductPayload } from './apiTypes';
 import { parseCatalogProduct, parseCatalogSearchMeta } from './catalogValidation';

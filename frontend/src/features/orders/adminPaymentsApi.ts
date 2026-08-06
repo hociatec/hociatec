@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type {
   AdminPaymentDetailDto,

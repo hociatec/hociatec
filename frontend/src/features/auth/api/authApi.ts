@@ -2,7 +2,7 @@ import { clearCsrfToken, httpClient } from '../../../shared/lib/httpClient';
 import axios from 'axios';
 import type { ApiResponse } from '../../../shared/types/api';
 import type { AuthUser } from '../../../shared/types/auth';
-import { createApiError } from '@/shared/lib/apiResponses';
+import { createApiError } from '@/shared/lib/responseHelpers';
 import { parseAuthUser } from '../lib/authValidation';
 
 export interface RegisterPayload {
