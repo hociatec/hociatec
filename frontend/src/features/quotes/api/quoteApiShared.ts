@@ -4,7 +4,7 @@ import type { ApiResponse } from '@/shared/types/api';
 import { unwrapApiData } from '@/shared/lib/apiResponses';
 
 export const unwrapQuoteApiData = <T>(response: ApiResponse<T>): T => {
-  return unwrapApiData(response, response.message);
+  return unwrapApiData(response, response.message && response.message.trim() !== '' ? response.message : 'Réponse API invalide.');
 };
 
 export const unwrapQuoteApiResult = <T>(response: ApiResponse<T>) => ({

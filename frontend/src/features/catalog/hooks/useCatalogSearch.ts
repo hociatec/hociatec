@@ -53,7 +53,7 @@ export const useCatalogSearch = ({
       color: color !== ALL_CATALOG_FILTER ? color : undefined,
       minPrice: minPrice ?? undefined,
       maxPrice: maxPrice ?? undefined,
-      inStock,
+      ...(inStock ? { inStock } : {}),
       page,
       perPage: CATALOG_PAGE_SIZE,
       sort,

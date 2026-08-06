@@ -208,10 +208,10 @@ export const updateAdminCustomerAdminProfile = async (
     }>
   >(`/api/admin/customers/${customerId}/admin-profile`, payload);
 
-  const payload = unwrapApiData(data, 'Impossible de mettre à jour le suivi interne');
+  const responsePayload = unwrapApiData(data, 'Impossible de mettre à jour le suivi interne');
   return {
-    adminNotes: payload?.customer?.adminNotes ?? null,
-    adminTags: payload.customer.adminTags,
+    adminNotes: responsePayload.customer?.adminNotes ?? null,
+    adminTags: responsePayload.customer.adminTags,
   };
 };
 
@@ -226,10 +226,10 @@ export const createCustomerVoucher = async (
     }>
   >(`/api/admin/customers/${customerId}/vouchers`, payload);
 
-  const payload = unwrapApiData(data, 'Impossible de créer le bon de réduction');
+  const responsePayload = unwrapApiData(data, 'Impossible de créer le bon de réduction');
   return {
-    voucher: payload?.voucher as AdminCustomerVoucherDto,
-    emailSent: Boolean(payload?.emailSent),
+    voucher: responsePayload.voucher,
+    emailSent: responsePayload.emailSent,
   };
 };
 
@@ -244,7 +244,7 @@ export const sendCustomerEmail = async (
     );
 
     unwrapApiData(data, 'Impossible d’envoyer l’email');
-    return { message: data.message ?? undefined };
+    return { message: typeof data.message === 'string' && data.message.trim() !== '' ? data.message : undefined };
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as ApiResponse<unknown> | undefined;

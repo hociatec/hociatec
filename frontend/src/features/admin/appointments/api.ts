@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { unwrapApiData } from '@/shared/lib/apiResponses';
-import { type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 import type { Prestation, WorkingDay } from '@/features/appointments/publicApi';
 
@@ -12,10 +12,6 @@ export const fetchAdminPrestationsPage = async (
     '/api/admin/appointments/prestations',
     { params: { page, perPage } },
   );
-
-  if (data.status === 'success') {
-    return { items: data.data.items, meta: data.data.meta };
-  }
   return unwrapApiData(data, 'Erreur lors du chargement des prestations');
 };
 
@@ -39,8 +35,8 @@ export const createPrestation = async (payload: UpsertPrestationPayload) => {
     payload,
   );
 
-  const payload = unwrapApiData(data, 'Impossible de créer la prestation');
-  return { data: payload, message: data.message };
+  const responsePayload = unwrapApiData(data, 'Impossible de créer la prestation');
+  return { data: responsePayload, message: data.message };
 };
 
 export const updatePrestation = async (id: number, payload: UpsertPrestationPayload) => {
@@ -49,8 +45,8 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
     payload,
   );
 
-  const payload = unwrapApiData(data, 'Impossible de mettre à jour la prestation');
-  return { data: payload, message: data.message };
+  const responsePayload = unwrapApiData(data, 'Impossible de mettre à jour la prestation');
+  return { data: responsePayload, message: data.message };
 };
 
 export const deletePrestation = async (id: number) => {
@@ -58,8 +54,8 @@ export const deletePrestation = async (id: number) => {
     `/api/admin/appointments/prestations/${id}`,
   );
 
-  const payload = unwrapApiData(data, 'Impossible de supprimer la prestation');
-  return { data: payload, message: data.message };
+  const responsePayload = unwrapApiData(data, 'Impossible de supprimer la prestation');
+  return { data: responsePayload, message: data.message };
 };
 
 export const fetchConfiguration = async () => {

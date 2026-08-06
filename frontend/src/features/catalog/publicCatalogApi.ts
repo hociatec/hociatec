@@ -59,7 +59,7 @@ const toPublicProductQueryParams = (params: PublicProductSearchParams) =>
       ['color', params.color],
       ['minPrice', hasValidNumber(params.minPrice) ? String(params.minPrice) : undefined],
       ['maxPrice', hasValidNumber(params.maxPrice) ? String(params.maxPrice) : undefined],
-      ['inStock', params.inStock === undefined ? undefined : params.inStock ? '1' : '0'],
+      ['inStock', params.inStock ? '1' : undefined],
       ['page', params.page === undefined ? undefined : String(params.page)],
       ['perPage', params.perPage === undefined ? undefined : String(params.perPage)],
       ['sort', params.sort],

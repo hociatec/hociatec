@@ -3,7 +3,7 @@ import { API_BASE_URL } from '@/shared/config/appConfig';
 import { downloadCsvBlob } from '@/shared/lib/downloadFile';
 import { unwrapApiData } from '@/shared/lib/apiResponses';
 import { toSafeAttachmentUrl } from '@/shared/lib/externalUrls';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 
 export interface AdminBetaTesterDto {
@@ -24,13 +24,6 @@ export interface AdminBetaTesterDto {
   bugDescriptionAbility: string[];
   technicalKnowledge: string[];
   createdAt: string;
-}
-
-export interface PaginationMeta {
-  page: number;
-  perPage: number;
-  total: number;
-  totalPages: number;
 }
 
 export interface BetaAdminUserDto {
@@ -106,27 +99,26 @@ export const fetchAdminBetaTesters = async (params: {
   perPage?: number;
   search?: string;
   status?: string;
-} = {}) =>
-  unwrapApiData(
-    (
-      await httpClient.get<ApiResponse<{ items: AdminBetaTesterDto[]; meta: PaginationMeta }>>(
-        '/api/admin/beta-testers',
-        { params: { perPage: 10, ...params } },
-      )
-    ).data,
-    'Réponse API invalide.',
-  ).items;
+} = {}): Promise<PaginatedResult<AdminBetaTesterDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminBetaTesterDto[]; meta: PaginationMeta }>>(
+    '/api/admin/beta-testers',
+    { params: { perPage: 10, ...params } },
+  );
+  const payload = unwrapApiData(data, 'Réponse API invalide.');
+  return { items: payload.items, meta: payload.meta };
+};
 
-export const fetchAdminCampaigns = async (page = 1, perPage = 10) =>
-  unwrapApiData(
-    (
-      await httpClient.get<ApiResponse<{ items: AdminCampaignDto[]; meta: PaginationMeta }>>(
-        '/api/admin/beta-campaigns',
-        { params: { page, perPage } },
-      )
-    ).data,
-    'Réponse API invalide.',
-  ).items;
+export const fetchAdminCampaigns = async (
+  page = 1,
+  perPage = 10,
+): Promise<PaginatedResult<AdminCampaignDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminCampaignDto[]; meta: PaginationMeta }>>(
+    '/api/admin/beta-campaigns',
+    { params: { page, perPage } },
+  );
+  const payload = unwrapApiData(data, 'Réponse API invalide.');
+  return { items: payload.items, meta: payload.meta };
+};
 
 export const fetchAdminBugReports = async (params: {
   page?: number;
@@ -136,16 +128,14 @@ export const fetchAdminBugReports = async (params: {
   search?: string;
   assignedTo?: number | string;
   campaignId?: number | string;
-} = {}) =>
-  unwrapApiData(
-    (
-      await httpClient.get<ApiResponse<{ items: AdminBugReportDto[]; meta: PaginationMeta }>>(
-        '/api/admin/beta-reports',
-        { params },
-      )
-    ).data,
-    'Réponse API invalide.',
-  ).items;
+} = {}): Promise<PaginatedResult<AdminBugReportDto>> => {
+  const { data } = await httpClient.get<ApiResponse<{ items: AdminBugReportDto[]; meta: PaginationMeta }>>(
+    '/api/admin/beta-reports',
+    { params },
+  );
+  const payload = unwrapApiData(data, 'Réponse API invalide.');
+  return { items: payload.items, meta: payload.meta };
+};
 
 export const fetchAdminBugReport = async (id: number) =>
   unwrapApiData(
@@ -276,6 +266,8 @@ export const fetchBugReportActivity = async (id: number, page = 1) =>
     ).data,
     'Réponse API invalide.',
   );
+
+export type { PaginationMeta };
 
 export const createBugReportComment = async (id: number, content: string) =>
   unwrapApiData(

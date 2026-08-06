@@ -73,7 +73,7 @@ export const updateAdminOrderStatus = async (
 
 export const updateAdminOrderDelivery = async (
   orderId: number,
-  payload: {
+  payloadData: {
     status: string;
     carrier?: string | null;
     trackingNumber?: string | null;
@@ -83,10 +83,10 @@ export const updateAdminOrderDelivery = async (
 ): Promise<OrderDto> => {
   const { data } = await httpClient.patch<ApiResponse<{ order: OrderDto }>>(
     `/api/admin/orders/${orderId}/delivery`,
-    payload,
+    payloadData,
   );
-  const payload = unwrapApiData(data, 'Impossible de mettre à jour la livraison');
-  return parseOrder(payload.order);
+  const responsePayload = unwrapApiData(data, 'Impossible de mettre à jour la livraison');
+  return parseOrder(responsePayload.order);
 };
 
 export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto> => {

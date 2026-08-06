@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { unwrapApiData } from '@/shared/lib/apiResponses';
-import { type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 export interface FavoriteDto {

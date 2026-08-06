@@ -62,7 +62,7 @@ export const useCategoryData = ({
       color: color !== 'all' ? color : undefined,
       minPrice: minPrice ?? undefined,
       maxPrice: maxPrice ?? undefined,
-      inStock,
+      ...(inStock ? { inStock } : {}),
       page,
       perPage,
       sort,

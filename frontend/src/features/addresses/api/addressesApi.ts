@@ -33,8 +33,8 @@ export const createAddress = async (
     '/api/addresses',
     payload,
   );
-  const payload = unwrapApiData(data, "Impossible de créer l'adresse");
-  return payload.address;
+  const responsePayload = unwrapApiData(data, "Impossible de créer l'adresse");
+  return responsePayload.address;
 };
 
 export const updateAddress = async (
@@ -45,8 +45,8 @@ export const updateAddress = async (
     `/api/addresses/${id}`,
     payload,
   );
-  const payload = unwrapApiData(data, "Impossible de mettre à jour l'adresse");
-  return payload.address;
+  const responsePayload = unwrapApiData(data, "Impossible de mettre à jour l'adresse");
+  return responsePayload.address;
 };
 
 export const deleteAddress = async (id: number): Promise<void> => {

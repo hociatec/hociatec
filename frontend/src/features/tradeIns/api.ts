@@ -27,7 +27,11 @@ export async function createTradeIn(input: TradeInInput, authenticated: boolean)
     form,
   );
   const payload = unwrapApiData(response.data, 'Impossible de créer la reprise.');
-  return { item: payload.item, message: response.data.message };
+  const message =
+    typeof response.data.message === 'string' && response.data.message.trim() !== ''
+      ? response.data.message
+      : undefined;
+  return message === undefined ? { item: payload.item } : { item: payload.item, message };
 }
 
 export async function fetchMyTradeIns(page = 1, perPage = 10): Promise<PaginatedResult<TradeInDto>> {

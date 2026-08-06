@@ -19,12 +19,12 @@ export const TRAINING_API_ROUTES = {
 } as const;
 
 export const unwrapTrainingData = <T>(response: ApiResponse<T>): T => {
-  return unwrapApiData(response, response.message);
+  return unwrapApiData(response, response.message && response.message.trim() !== '' ? response.message : 'Réponse API invalide.');
 };
 
 export const unwrapTrainingResult = <T>(response: ApiResponse<T>): ApiMutationResult<T> => ({
   data: unwrapTrainingData(response),
-  message: response.message,
+  message: response.message && response.message.trim() !== '' ? response.message : null,
 });
 
 export const trainingRequest = async <T>(

@@ -1,7 +1,11 @@
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export const extractApiErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
-  response.status === 'error' ? response.message : fallback;
+  response.status === 'error'
+    ? response.message && response.message.trim() !== ''
+      ? response.message
+      : fallback
+    : fallback;
 
 export interface ApiErrorWithDetails extends Error {
   details?: string[];
@@ -9,8 +13,11 @@ export interface ApiErrorWithDetails extends Error {
 
 export const createApiError = (response: ApiResponse<unknown>, fallback: string): ApiErrorWithDetails => {
   const error = new Error(extractApiErrorMessage(response, fallback)) as ApiErrorWithDetails;
-  if (Array.isArray(response.details)) {
-    error.details = response.details.map((detail) => String(detail));
+  const details = response.status === 'error'
+    ? response.error?.details ?? response.details
+    : undefined;
+  if (Array.isArray(details)) {
+    error.details = details.map((detail) => String(detail));
   }
   return error;
 };
