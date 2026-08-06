@@ -19,8 +19,8 @@
 - `Admin` peut composer plusieurs modules pour une opération d’administration, mais ne duplique pas leurs invariants.
 - `Notification` et `Outbox` transportent des événements ou messages, pas des décisions métier.
 - Les associations Doctrine entre modules doivent être justifiées par une navigation métier fréquente ; sinon préférer des identifiants ou snapshots.
+- La matrice détaillée et les exceptions contrôlées sont décrites dans [intermodule-dependencies.md](intermodule-dependencies.md).
 
 ## Données
 
 Chaque module reste propriétaire de ses entités principales. Les snapshots intermodules sont autorisés pour historiser une décision, une facture ou un document, mais doivent prévoir anonymisation ou suppression logique lorsque des données personnelles sont conservées.
-

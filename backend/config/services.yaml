@@ -379,6 +379,9 @@ services:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
 
+    App\Module\Order\Application\Port\OrderInvoiceXmlRenderer:
+        alias: App\Module\Order\Infrastructure\Xml\UblOrderInvoiceXmlRenderer
+
     App\Module\User\Application\Workflow\AdminCustomerEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'

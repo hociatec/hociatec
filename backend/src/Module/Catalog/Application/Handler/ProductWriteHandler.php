@@ -18,29 +18,32 @@ use Doctrine\ORM\Exception\ORMException;
 
 final readonly class ProductWriteHandler
 {
+    private ProductWriteValidator $validator;
+    private ProductWriteGalleryPlan $galleryPlan;
+
     public function __construct(
         private ProductWriteExecution $execution,
-        private ProductCatalogRules $rules,
+        ProductCatalogRules $rules,
         private ProductVariantService $variants,
         private ProductVariantBatchCreator $variantBatch,
         private ProductGalleryUpdater $gallery,
         private ProductDiscountApplicator $discounts,
         private ProductAttributeWriter $attributes,
     ) {
+        $this->validator = new ProductWriteValidator($rules, $variants);
+        $this->galleryPlan = new ProductWriteGalleryPlan();
     }
 
     public function create(ProductWriteCommand $command): Product
     {
-        $normalizedSku = strtoupper($command->core->sku);
+        $normalizedSku = $this->validator->normalizedSku($command);
         $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group, $command->core->name, $command->variant->definitions);
 
-        $this->rules->assertValidData($command->core, $normalizedSku);
-        $this->rules->assertUniqueness($normalizedSku, null);
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, null, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
+        $this->validator->validateCreate($command, $normalizedSku, $resolvedVariantGroup);
 
         $product = $this->attributes->create(
             $command,
-            $this->rules->resolveSlug($command->core->slug, $command->core->name, null),
+            $this->validator->resolveSlug($command, null),
             $normalizedSku,
             $resolvedVariantGroup,
         );
@@ -68,26 +71,21 @@ final readonly class ProductWriteHandler
             throw new \InvalidArgumentException('Produit introuvable.');
         }
 
-        $normalizedSku = strtoupper($command->core->sku);
+        $normalizedSku = $this->validator->normalizedSku($command);
         $resolvedVariantGroup = $this->variants->resolveVariantGroup($command->variant->group ?? $product->getVariantGroup(), $command->core->name, []);
 
-        $this->rules->assertValidData($command->core, $normalizedSku);
-        $this->rules->assertUniqueness($normalizedSku, $product->getId());
-        $this->variants->assertDefinitionsAreUnique($resolvedVariantGroup, $product, $command->variant->color, $command->variant->storageCapacity, $command->variant->definitions);
+        $this->validator->validateUpdate($command, $product, $normalizedSku, $resolvedVariantGroup);
 
         $this->attributes->update(
             $product,
             $command,
-            $this->rules->resolveSlug($command->core->slug, $command->core->name, $product->getId()),
+            $this->validator->resolveSlug($command, $product->getId()),
             $normalizedSku,
             $resolvedVariantGroup,
         );
         $this->discounts->applyOnUpdate($product, $command->discount->enabled, $command->discount->type, $command->discount->value, $command->discount->startsAt, $command->discount->endsAt);
 
-        $galleryToRemove = $command->gallery->toRemove;
-        if ($command->gallery->removeMainImage) {
-            $galleryToRemove[] = 0;
-        }
+        $galleryToRemove = $this->galleryPlan->removals($command->gallery);
 
         try {
             $this->execution->transactions->transactional(function () use ($product, $command, $resolvedVariantGroup, $galleryToRemove): void {

@@ -2,17 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Order\Application\Workflow;
+namespace App\Module\Order\Application\Port;
 
-use App\Module\Order\Application\Port\OrderInvoiceXmlRenderer;
 use App\Module\Order\Domain\Entity\Order;
 
-final readonly class OrderInvoiceXmlService
+interface OrderInvoiceXmlRenderer
 {
-    public function __construct(private OrderInvoiceXmlRenderer $renderer)
-    {
-    }
-
     /**
      * @param array{
      *   subtotalTtcBeforeDiscount:int,
@@ -24,8 +19,5 @@ final readonly class OrderInvoiceXmlService
      *   items:list<array<string,mixed>>
      * } $totals
      */
-    public function render(Order $order, array $totals): string
-    {
-        return $this->renderer->render($order, $totals);
-    }
+    public function render(Order $order, array $totals): string;
 }

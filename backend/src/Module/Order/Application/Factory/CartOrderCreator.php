@@ -6,13 +6,9 @@ namespace App\Module\Order\Application\Factory;
 
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
 
@@ -22,10 +18,9 @@ final readonly class CartOrderCreator
         private UnitOfWork $persistence,
         private TransactionManager $transactions,
         private OrderCreationServices $orderCreation,
-        private PromotionEngine $promotionEngine,
-        private VoucherEngine $voucherEngine,
         private CartSessionRepositoryPort $carts,
-        private ProductCatalogRepository $products,
+        private CartOrderLineConverter $lineConverter,
+        private CartOrderSummaryBuilder $summaryBuilder,
     ) {
     }
 
@@ -35,7 +30,7 @@ final readonly class CartOrderCreator
             throw new \InvalidArgumentException('Le panier est vide.');
         }
 
-        $summary = $this->cartSummary($cart, $user);
+        $summary = $this->summaryBuilder->build($cart, $user);
 
         return $this->transactions->transactional(
             function () use ($user, $cart, $address, $summary): Order {
@@ -56,29 +51,7 @@ final readonly class CartOrderCreator
                 }
 
                 $order = $this->createOrder($user, $address, $summary);
-                foreach ($lockedCart->getItems() as $cartItem) {
-                    $productId = $cartItem->getProduct()->getId();
-                    if (null === $productId) {
-                        throw new \InvalidArgumentException('Produit invalide.');
-                    }
-
-                    $product = $this->products->findForUpdate($productId);
-                    if (null === $product) {
-                        throw new \InvalidArgumentException('Produit introuvable.');
-                    }
-
-                    $quantity = $cartItem->getQuantity();
-                    if ($quantity > $product->getStock()) {
-                        throw new \InvalidArgumentException('Stock insuffisant pour le produit '.$product->getSku().'.');
-                    }
-                    $product->reserveStock($quantity);
-
-                    $item = (new OrderItem($product->getName(), $product->getSku(), $product->getPriceCents(), $quantity))
-                        ->setProduct($product)
-                        ->setVatRateBps(2000);
-                    $order->addItem($item);
-                    $this->persistence->persist($item);
-                }
+                $this->lineConverter->addLines($order, $lockedCart);
 
                 $this->orderCreation->invoiceCalculator->snapshot($order);
                 $this->persistence->persist($order);
@@ -124,16 +97,5 @@ final readonly class CartOrderCreator
             ->replacePaymentAmounts((int) $summary['subtotalPriceCents'], (int) $summary['discountAmountCents'], (int) $summary['totalPriceCents'])
             ->setAppliedPromotionName($summary['appliedVoucher']['name'] ?? ($summary['appliedPromotion']['name'] ?? null))
             ->setAppliedPromotionSlug($summary['appliedVoucher']['code'] ?? ($summary['appliedPromotion']['slug'] ?? null));
-    }
-
-    /** @return array<string, mixed> */
-    private function cartSummary(CartSession $cart, User $user): array
-    {
-        $promotion = $this->promotionEngine->calculateCartSummary($cart, $user);
-        $voucher = $this->voucherEngine->calculateCartSummary($cart, $user, $cart->getVoucherCode());
-
-        return null !== $cart->getVoucherCode() && 'applied' === $voucher['voucherCodeStatus']
-            ? $voucher
-            : $promotion;
     }
 }

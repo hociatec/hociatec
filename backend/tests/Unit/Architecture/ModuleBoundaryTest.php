@@ -345,6 +345,19 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testIntermoduleDependenciesAreDocumented(): void
+    {
+        $path = __DIR__.'/../../../../docs/architecture/intermodule-dependencies.md';
+        self::assertFileExists($path);
+
+        $documentation = file_get_contents($path);
+        self::assertIsString($documentation);
+
+        foreach (['Matrice autorisée', 'Règles `User`', 'Module `Admin`', 'Revue des `OperationsService`', 'Revue des entités volumineuses'] as $section) {
+            self::assertStringContainsString($section, $documentation);
+        }
+    }
+
     public function testApplicationLayerDoesNotImportInfrastructureRepositories(): void
     {
         $violations = [];
