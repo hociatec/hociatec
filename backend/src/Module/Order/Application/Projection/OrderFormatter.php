@@ -4,29 +4,30 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Projection;
 
+use App\Module\Order\Application\DTO\OrderCustomerSnapshot;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Domain\Entity\ProductRating;
 
 final class OrderFormatter
 {
+    private readonly OrderStatusLabelFormatter $labels;
+    private readonly OrderItemFormatter $items;
+
     public function __construct(
-        private readonly ProductReviewFormatter $productReviewFormatter,
+        ProductReviewFormatter $productReviewFormatter,
         private readonly OrderStatusWorkflow $statusWorkflow,
+        ?OrderStatusLabelFormatter $labels = null,
+        ?OrderItemFormatter $items = null,
     ) {
+        $this->labels = $labels ?? new OrderStatusLabelFormatter();
+        $this->items = $items ?? new OrderItemFormatter($productReviewFormatter);
     }
 
     public function formatStatusLabel(string $status): string
     {
-        return match ($status) {
-            Order::STATUS_PENDING => 'En attente',
-            Order::STATUS_CONFIRMED => 'Confirmée',
-            Order::STATUS_DELIVERED => 'Livrée',
-            Order::STATUS_CANCELLED => 'Annulée',
-            default => $status,
-        };
+        return $this->labels->status($status);
     }
 
     /** @return list<array{value: string, label: string}> */
@@ -42,24 +43,12 @@ final class OrderFormatter
 
     public function formatDeliveryStatusLabel(string $deliveryStatus): string
     {
-        return match ($deliveryStatus) {
-            Order::DELIVERY_STATUS_PREPARING => 'Préparation en cours',
-            Order::DELIVERY_STATUS_SHIPPED => 'Expédiée',
-            Order::DELIVERY_STATUS_IN_TRANSIT => 'En transit',
-            Order::DELIVERY_STATUS_OUT_FOR_DELIVERY => 'En cours de livraison',
-            Order::DELIVERY_STATUS_DELIVERED => 'Livrée',
-            Order::DELIVERY_STATUS_ISSUE => 'Incident de livraison',
-            default => $deliveryStatus,
-        };
+        return $this->labels->delivery($deliveryStatus);
     }
 
     public function formatInvoiceStatusLabel(string $invoiceStatus): string
     {
-        return match ($invoiceStatus) {
-            Order::INVOICE_STATUS_ISSUED => 'Émise',
-            Order::INVOICE_STATUS_CANCELLED => 'Annulée',
-            default => $invoiceStatus,
-        };
+        return $this->labels->invoice($invoiceStatus);
     }
 
     /**
@@ -70,36 +59,9 @@ final class OrderFormatter
      */
     public function formatOrder(Order $order, array $ratingsByOrderItemId = [], array $extra = []): array
     {
-        $items = [];
-        $pendingReviews = 0;
-
-        /** @var OrderItem $item */
-        foreach ($order->getItems() as $item) {
-            $line = $item->getLinePriceCents();
-            $product = $item->getProduct();
-            $rating = $ratingsByOrderItemId[$item->getId()] ?? null;
-            $hasReview = $rating instanceof ProductRating;
-            $canReview = null !== $product && Order::STATUS_DELIVERED === $order->getStatus() && !$hasReview;
-
-            if ($canReview) {
-                ++$pendingReviews;
-            }
-
-            $items[] = [
-                'orderItemId' => $item->getId(),
-                'productId' => $product?->getId(),
-                'productName' => $item->getProductName(),
-                'productSku' => $item->getProductSku(),
-                'quantity' => $item->getQuantity(),
-                'unitPriceCents' => $item->getUnitPriceCents(),
-                'vatRateBps' => $item->getVatRateBps(),
-                'lineSubtotalCents' => $item->getLineSubtotalCents(),
-                'lineVatCents' => $item->getLineVatCents(),
-                'linePriceCents' => $line,
-                'canReview' => $canReview,
-                'review' => $hasReview ? $this->productReviewFormatter->formatRating($rating, true) : null,
-            ];
-        }
+        $formattedItems = $this->items->formatItems($order, $ratingsByOrderItemId);
+        $items = $formattedItems['items'];
+        $pendingReviews = $formattedItems['pendingReviews'];
 
         $status = $order->getStatus();
         $statusLabel = $this->formatStatusLabel($status);
@@ -107,6 +69,7 @@ final class OrderFormatter
 
         $deliveryStatus = $order->getDeliveryStatus();
         $deliveryStatusLabel = $this->formatDeliveryStatusLabel($deliveryStatus);
+        $customer = OrderCustomerSnapshot::fromOrder($order);
         $appliedPromotionName = $order->getAppliedPromotionName();
         $appliedPromotion = null !== $appliedPromotionName && !str_starts_with($appliedPromotionName, 'Conversion devis ')
             ? [
@@ -118,8 +81,8 @@ final class OrderFormatter
         return [
             'id' => $order->getId(),
             'number' => $order->getNumber(),
-            'userId' => $order->getUser()->getId(),
-            'customerDisplayName' => trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName()),
+            'userId' => $customer->id,
+            'customerDisplayName' => $customer->displayName(),
             'status' => $status,
             'statusLabel' => $statusLabel,
             'allowedNextStatuses' => array_map(static fn (string $nextStatus): string => $nextStatus, $allowedNextStatuses),

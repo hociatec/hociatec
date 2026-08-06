@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Operations\Converter;
+namespace App\Module\Quote\Application\Conversion;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
+use App\Shared\Application\UnitOfWork;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
@@ -20,7 +20,7 @@ final readonly class QuoteOrderFactory
         private ProductCatalogRepository $products,
         private QuoteCalculator $quoteCalculator,
         private QuoteToOrderServices $orderServices,
-        private OperationsPersistence $persistence,
+        private UnitOfWork $persistence,
         private ClockInterface $clock,
     ) {
     }

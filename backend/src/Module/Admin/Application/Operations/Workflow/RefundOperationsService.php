@@ -11,22 +11,24 @@ use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Application\Exception\ExternalServiceException;
 use App\Shared\Application\TransactionManager;
 
-final readonly class RefundOperationsService
+final class RefundOperationsService
 {
+    private readonly RefundStripeProcessor $stripeProcessor;
+
     public function __construct(
         private RefundOperationPorts $ports,
         private OrderEventLogger $events,
         private OperationsPersistence $persistence,
-        private TransactionManager $transactions,
+        TransactionManager $transactions,
         private AdminOperationsFormatter $formatter,
+        ?RefundStripeProcessor $stripeProcessor = null,
     ) {
+        $this->stripeProcessor = $stripeProcessor ?? new RefundStripeProcessor($ports, $persistence, $transactions);
     }
 
     /** @return list<array<string, mixed>> */
@@ -44,7 +46,7 @@ final readonly class RefundOperationsService
     public function create(RefundCreateData $data, ?User $actor): array
     {
         $order = $this->ports->orders->find($data->orderId);
-        if (!$order instanceof Order) {
+        if (!$order instanceof \App\Module\Order\Domain\Entity\Order) {
             throw new OperationsResourceNotFoundException('Commande introuvable.');
         }
 
@@ -86,63 +88,14 @@ final readonly class RefundOperationsService
     public function processStripe(int $refundId, RefundProcessData $data, ?User $actor): array
     {
         $refund = $this->findRefund($refundId);
-        if (null !== $refund->getStripeRefundId() || RefundRequest::STATUS_PROCESSED === $refund->getStatus()) {
-            throw new \InvalidArgumentException('Ce remboursement a déjà été traité.');
-        }
-        if ($refund->getAmountCents() <= 0) {
-            throw new \InvalidArgumentException('Le montant du remboursement doit être supérieur à zéro.');
-        }
-        if ('REMBOURSER' !== $data->confirmation) {
-            throw new \InvalidArgumentException('Confirmation requise : saisis REMBOURSER pour déclencher Stripe.');
-        }
-
-        $paymentIntentId = null !== $data->paymentIntentId && '' !== trim($data->paymentIntentId)
-            ? trim($data->paymentIntentId)
-            : $this->findPaymentIntent($refund->getOrder());
-        if (null === $paymentIntentId) {
-            throw new \InvalidArgumentException('Aucun PaymentIntent Stripe trouvé pour cette commande.');
-        }
-
-        $previousStatus = $refund->getStatus();
-        $refund = $this->transactions->transactional(function () use ($refundId): RefundRequest {
-            $locked = $this->ports->refunds->findForUpdate($refundId);
-            if (!$locked instanceof RefundRequest) {
-                throw new OperationsResourceNotFoundException('Remboursement introuvable.');
-            }
-            if (null !== $locked->getStripeRefundId() || in_array($locked->getStatus(), [RefundRequest::STATUS_PROCESSING, RefundRequest::STATUS_PROCESSED], true)) {
-                throw new \InvalidArgumentException('Ce remboursement est déjà en cours ou a déjà été traité.');
-            }
-            $locked->setStatus(RefundRequest::STATUS_PROCESSING);
-            $this->persistence->commit();
-
-            return $locked;
-        });
-
-        try {
-            $stripeRefund = $this->ports->stripe->createRefund(
-                [
-                    'payment_intent' => $paymentIntentId,
-                    'amount' => $refund->getAmountCents(),
-                    'reason' => 'requested_by_customer',
-                    'metadata[refund_request_id]' => (string) $refund->getId(),
-                    'metadata[order_number]' => $refund->getOrder()->getNumber(),
-                ],
-                'refund_request:'.$refund->getId(),
-            );
-        } catch (ExternalServiceException|\JsonException $exception) {
-            $refund->setStatus($previousStatus);
-            $this->persistence->commit();
-            throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);
-        }
-
-        $stripeRefundId = is_string($stripeRefund['id'] ?? null) ? $stripeRefund['id'] : null;
-        $refund->setStripeRefundId($stripeRefundId)->setStatus(RefundRequest::STATUS_PROCESSED);
-        $this->persistence->commit();
+        $processed = $this->stripeProcessor->process($refund, $data);
+        $refund = $processed['refund'];
+        $stripeRefund = $processed['stripeRefund'];
         $this->events->log(
             $refund->getOrder(),
             $actor,
             'refund_processed',
-            sprintf('Remboursement Stripe %s créé pour %s.', $stripeRefundId ?? '-', $refund->getAmountCents() / 100),
+            sprintf('Remboursement Stripe %s créé pour %s.', (string) ($stripeRefund['id'] ?? '-'), $refund->getAmountCents() / 100),
         );
 
         return ['item' => $this->formatter->refund($refund), 'stripeRefund' => $stripeRefund];
@@ -156,17 +109,5 @@ final readonly class RefundOperationsService
         }
 
         return $refund;
-    }
-
-    private function findPaymentIntent(Order $order): ?string
-    {
-        foreach ($this->ports->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
-            $paymentIntentId = $payment->getStripePaymentIntentId();
-            if (null !== $paymentIntentId && '' !== $paymentIntentId) {
-                return $paymentIntentId;
-            }
-        }
-
-        return null;
     }
 }

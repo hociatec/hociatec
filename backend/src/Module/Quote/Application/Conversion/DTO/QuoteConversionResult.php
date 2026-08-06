@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Operations\DTO;
+namespace App\Module\Quote\Application\Conversion\DTO;
 
 final readonly class QuoteConversionResult
 {

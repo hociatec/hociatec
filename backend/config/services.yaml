@@ -442,6 +442,10 @@ services:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
+    App\Module\Order\Application\Provider\OrderNotificationContextBuilder:
+        arguments:
+            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+
     App\Module\Quote\Application\Provider\QuoteCreatedEmailContentProvider:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Operations\Converter;
+namespace App\Module\Quote\Application\Conversion;
 
-use App\Module\Admin\Application\Operations\DTO\QuoteConversionResult;
+use App\Module\Quote\Application\Conversion\DTO\QuoteConversionResult;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Domain\Entity\Quote;

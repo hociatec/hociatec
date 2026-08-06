@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Infrastructure\Pdf;
 
+use App\Module\Order\Application\DTO\OrderCustomerSnapshot;
 use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
 
@@ -18,6 +19,7 @@ final readonly class OrderInvoicePdfCustomerBlock
     {
         $customerDisplayName = $this->resolveCustomerName($order);
         $customerCity = trim(sprintf('%s %s', (string) $order->getBillingPostalCode(), (string) $order->getBillingCity()));
+        $customer = OrderCustomerSnapshot::fromOrder($order);
 
         return [
             'name' => '' !== $customerDisplayName ? $this->formatter->escape($customerDisplayName) : '-',
@@ -27,7 +29,7 @@ final readonly class OrderInvoicePdfCustomerBlock
             'address' => $order->getBillingAddress() ? $this->formatter->paragraphsFromLines($order->getBillingAddress()) : '',
             'city' => '' !== $customerCity ? '<p>'.$this->formatter->escape($customerCity).'</p>' : '',
             'email' => $order->getBillingEmail() ? '<p>Email : '.$this->formatter->escape($order->getBillingEmail()).'</p>' : '',
-            'phone' => '' !== trim($order->getUser()->getPhoneNumber()) ? '<p>Téléphone : '.$this->formatter->escape($order->getUser()->getPhoneNumber()).'</p>' : '',
+            'phone' => '' !== trim($customer->phoneNumber) ? '<p>Téléphone : '.$this->formatter->escape($customer->phoneNumber).'</p>' : '',
             'delivery' => $this->deliveryHtml($order),
         ];
     }
@@ -36,7 +38,7 @@ final readonly class OrderInvoicePdfCustomerBlock
     {
         $billingName = trim((string) $order->getBillingName());
 
-        return '' !== $billingName ? $billingName : trim($order->getUser()->getFirstName().' '.$order->getUser()->getLastName());
+        return '' !== $billingName ? $billingName : OrderCustomerSnapshot::fromOrder($order)->displayName();
     }
 
     private function deliveryHtml(Order $order): string

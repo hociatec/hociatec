@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Operations\Controller;
 
-use App\Module\Admin\Application\Operations\Converter\QuoteToOrderConverter;
-use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Quote\Application\Conversion\Exception\QuoteConversionResourceNotFoundException;
+use App\Module\Quote\Application\Conversion\QuoteToOrderConverter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +24,7 @@ final readonly class ConvertQuoteToOrderController
     {
         try {
             return ApiResponse::created($this->converter->convert($reference)->toArray());
-        } catch (OperationsResourceNotFoundException $exception) {
+        } catch (QuoteConversionResourceNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
