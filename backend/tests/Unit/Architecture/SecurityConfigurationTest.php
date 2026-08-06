@@ -172,7 +172,7 @@ final class SecurityConfigurationTest extends TestCase
         self::assertIsString($source);
 
         self::assertStringContainsString('Cookie::SAMESITE_LAX', $source);
-        self::assertStringContainsString('clearCookie(AuthCookiePort::ACCESS_COOKIE, \'/api\', null, $secure, true', $source);
+        self::assertStringContainsString('clearCookie(AuthCookieResponseWriter::ACCESS_COOKIE, \'/api\', null, $secure, true', $source);
         self::assertStringContainsString('$secure,', $source);
         self::assertStringContainsString('true,', $source);
     }
@@ -203,7 +203,7 @@ final class SecurityConfigurationTest extends TestCase
 
     public function testPrivateDocumentsAndUploadLimitsAreGuardedInCode(): void
     {
-        $tradeInStorage = file_get_contents(__DIR__.'/../../../src/Module/TradeIn/Application/Storage/TradeInPrivateFileStorage.php');
+        $tradeInStorage = file_get_contents(__DIR__.'/../../../src/Module/TradeIn/Infrastructure/Storage/TradeInPrivateFileStorage.php');
         $invoiceStorageCommand = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Command/SecureInvoiceStorageCommand.php');
         $jsonPayload = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/JsonPayload.php');
         self::assertIsString($tradeInStorage);

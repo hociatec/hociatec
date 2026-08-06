@@ -30,6 +30,46 @@ foreach ($iterator as $file) {
         $violations[] = sprintf('%s: %d lignes (maximum global: 500)', $relativePath, $lineCount);
     }
 
+    if (str_contains($relativePath, '/Application/') && str_contains($content, 'Symfony\\Component\\HttpFoundation')) {
+        $violations[] = $relativePath.': HttpFoundation interdit dans Application';
+    }
+
+    if (
+        str_contains($relativePath, '/Application/')
+        && (
+            1 === preg_match('/^use App\\\\Module\\\\[^;]+\\\\Infrastructure\\\\/m', $content)
+            || 1 === preg_match('/^use App\\\\Shared\\\\Infrastructure\\\\/m', $content)
+        )
+    ) {
+        $violations[] = $relativePath.': Application ne doit pas dépendre d’Infrastructure';
+    }
+
+    if (str_contains($relativePath, '/Application/') && str_ends_with($relativePath, 'RequestMapper.php')) {
+        $violations[] = $relativePath.': les mappers de Request HTTP doivent vivre dans UI';
+    }
+
+    if (
+        (str_contains($relativePath, '/Application/') || str_contains($relativePath, '/UI/'))
+        && (
+            str_contains($content, 'Doctrine\\ORM\\EntityManagerInterface')
+            || str_contains($content, 'Doctrine\\ORM\\QueryBuilder')
+            || str_contains($content, 'createQueryBuilder(')
+        )
+    ) {
+        $violations[] = $relativePath.': Doctrine direct interdit hors Infrastructure/Repository';
+    }
+
+    if (
+        str_starts_with($relativePath, 'src/Module/')
+        && (
+            str_ends_with($relativePath, 'Manager.php')
+            || str_ends_with($relativePath, 'Helper.php')
+            || str_ends_with($relativePath, 'Utils.php')
+        )
+    ) {
+        $violations[] = $relativePath.': suffixe trop générique interdit dans les modules';
+    }
+
     if (str_contains($relativePath, '/Controller/') && $lineCount > 120) {
         $violations[] = sprintf('%s: %d lignes (maximum contrôleur: 120)', $relativePath, $lineCount);
     }

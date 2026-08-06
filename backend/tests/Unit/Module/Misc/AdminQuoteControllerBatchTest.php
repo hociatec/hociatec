@@ -14,7 +14,7 @@ use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
 use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
-use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
 use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Domain\Entity\Quote;
@@ -96,7 +96,7 @@ final class AdminQuoteControllerBatchTest extends TestCase
             ->willReturnOnConsecutiveCalls(null, $service, null, $service, $service, $service);
         $repository->expects(self::once())
             ->method('findBy')
-            ->with([], ['title' => 'ASC'], 20, 20)
+            ->with([], ['title' => 'ASC'], 10, 10)
             ->willReturn([$service]);
         $repository->expects(self::once())->method('count')->with([])->willReturn(21);
 

@@ -39,6 +39,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -69,7 +70,7 @@ final class AdminOperationsControllersTest extends TestCase
         self::assertSame(1, $overview['data']['stock']['lowStockCount']);
         self::assertSame('/api/admin/operations/exports/orders.csv', $overview['data']['actions'][0]['href']);
 
-        $emailLogs = $this->payload((new EmailLogsController($formatter))());
+        $emailLogs = $this->payload((new EmailLogsController($formatter))(new Request()));
         self::assertSame('email_failed', $emailLogs['data']['items'][0]['scenario']);
         self::assertSame('order_created', $emailLogs['data']['items'][1]['scenario']);
 
@@ -81,8 +82,8 @@ final class AdminOperationsControllersTest extends TestCase
             $formatter,
             new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
         ));
-        self::assertSame(404, $timeline(999)->getStatusCode());
-        $timelinePayload = $this->payload($timeline((int) $customer->getId()));
+        self::assertSame(404, $timeline(999, new Request())->getStatusCode());
+        $timelinePayload = $this->payload($timeline((int) $customer->getId(), new Request()));
         self::assertSame(['order', 'support', 'quote'], array_column($timelinePayload['data']['items'], 'type'));
 
         $export = new OperationsExportController(new AdminOperationsExporter(

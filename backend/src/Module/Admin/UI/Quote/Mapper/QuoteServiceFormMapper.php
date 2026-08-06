@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Quote\Mapper;
+namespace App\Module\Admin\UI\Quote\Mapper;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Domain\Entity\ServiceOffering;

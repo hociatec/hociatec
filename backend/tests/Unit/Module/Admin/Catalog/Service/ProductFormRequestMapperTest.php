@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Admin\Catalog\Service;
 
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
-use App\Module\Admin\Application\Catalog\Mapper\ProductDiscountRequestMapper;
-use App\Module\Admin\Application\Catalog\Mapper\ProductFormRequestMapper;
-use App\Module\Admin\Application\Catalog\Mapper\ProductGalleryRequestMapper;
+use App\Module\Admin\UI\Catalog\Mapper\ProductDiscountRequestMapper;
+use App\Module\Admin\UI\Catalog\Mapper\ProductFormRequestMapper;
+use App\Module\Admin\UI\Catalog\Mapper\ProductGalleryRequestMapper;
 use App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;

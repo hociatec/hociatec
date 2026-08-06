@@ -26,7 +26,7 @@ use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportCommentRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
+use App\Module\BetaTest\Infrastructure\Storage\BetaAttachmentStorage;
 use App\Module\BetaTest\Application\Provider\BetaCampaignProvider;
 use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;

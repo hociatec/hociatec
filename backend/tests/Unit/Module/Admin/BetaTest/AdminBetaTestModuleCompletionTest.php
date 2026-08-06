@@ -46,7 +46,7 @@ use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
-use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
+use App\Module\BetaTest\Infrastructure\Storage\BetaAttachmentStorage;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
@@ -168,8 +168,8 @@ final class AdminBetaTestModuleCompletionTest extends TestCase
         self::assertSame(200, $markDuplicate((int) $report->getId(), $this->jsonRequest(['duplicateOfId' => $duplicate->getId(), 'reason' => 'same'], 'PATCH'))->getStatusCode());
 
         $activities = new ListBugReportActivitiesController($reports, new BugReportActivityRepository($this->registry($em)));
-        self::assertSame(404, $activities(999)->getStatusCode());
-        self::assertSame(200, $activities((int) $report->getId())->getStatusCode());
+        self::assertSame(404, $activities(999, new Request())->getStatusCode());
+        self::assertSame(200, $activities((int) $report->getId(), new Request())->getStatusCode());
 
         $deleteTester = new DeleteBetaTesterController($this->profiles($em), $deleteTesterHandler);
         self::assertSame(404, $deleteTester(999)->getStatusCode());

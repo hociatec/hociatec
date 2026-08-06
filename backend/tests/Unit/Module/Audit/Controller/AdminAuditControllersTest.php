@@ -23,17 +23,31 @@ final class AdminAuditControllersTest extends TestCase
     {
         $repository = $this->getMockBuilder(AuditRequestRepository::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['findBy', 'count'])
+            ->onlyMethods(['findForAdminList', 'countForAdminList'])
             ->getMock();
 
         $audit = $this->audit();
         $repository->expects(self::once())
-            ->method('findBy')
-            ->with([], ['createdAt' => 'DESC'], 10, 10)
+            ->method('findForAdminList')
+            ->with([
+                'search' => null,
+                'status' => null,
+                'type' => null,
+                'from' => null,
+                'to' => null,
+                'sort' => 'date_desc',
+            ], 10, 10)
             ->willReturn([$audit]);
         $repository->expects(self::once())
-            ->method('count')
-            ->with([])
+            ->method('countForAdminList')
+            ->with([
+                'search' => null,
+                'status' => null,
+                'type' => null,
+                'from' => null,
+                'to' => null,
+                'sort' => 'date_desc',
+            ])
             ->willReturn(21);
 
         $response = (new ListAuditsController($repository, new AuditMetadataFormatter()))(

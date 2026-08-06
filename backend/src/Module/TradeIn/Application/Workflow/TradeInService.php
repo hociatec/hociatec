@@ -8,20 +8,19 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
+use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class TradeInService
 {
-    public function __construct(private TradeInPersistencePort $persistence, private TradeInEstimator $estimator, private TradeInNumberGenerator $numbers, private TradeInNotificationEmailService $notifications, private TradeInPrivateFileStorage $files)
+    public function __construct(private TradeInPersistencePort $persistence, private TradeInEstimator $estimator, private TradeInNumberGenerator $numbers, private TradeInNotificationEmailService $notifications, private TradeInPrivateFileStoragePort $files)
     {
     }
 
-    public function create(TradeInInput $input, ?User $user, ?Product $product, ?UploadedFile $rib = null): TradeInRequest
+    public function create(TradeInInput $input, ?User $user, ?Product $product, ?object $rib = null): TradeInRequest
     {
         $estimate = $this->estimator->estimate($input, $product?->getPriceCents());
         $request = new TradeInRequest($this->numbers->generate(), $user, $input->firstName, $input->lastName, $input->email, $input->phone, $input->category, $input->productName, $input->purchasePriceCents, $input->purchaseYear, $input->brand, $input->model, $input->serialNumber, $input->conditionGrade, $input->functional, $input->hasAccessories, $input->hasProofOfPurchase, $input->description, $product?->getId(), $product?->getName(), $estimate['minCents'], $estimate['maxCents'], new \DateTimeImmutable());

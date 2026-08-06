@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Writer;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class ProductGalleryUpdater
 {
     /**
-     * @param array<int, UploadedFile|null> $files
-     * @param array<int, int|string>        $indexesToRemove
+     * @param array<int, object|null> $files
+     * @param array<int, int|string>  $indexesToRemove
      */
     public function stage(Product $product, array $files, array $indexesToRemove): void
     {
@@ -19,7 +18,7 @@ final class ProductGalleryUpdater
 
         foreach ($files as $index => $file) {
             $index = (int) $index;
-            if ($index < 0 || $index > 3 || !$file instanceof UploadedFile) {
+            if ($index < 0 || $index > 3 || !is_object($file)) {
                 continue;
             }
 

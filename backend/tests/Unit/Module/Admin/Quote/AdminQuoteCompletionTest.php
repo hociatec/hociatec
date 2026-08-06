@@ -22,7 +22,7 @@ use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
 use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
-use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
 use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;

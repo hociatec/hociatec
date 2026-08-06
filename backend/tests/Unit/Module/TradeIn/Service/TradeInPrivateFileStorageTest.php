@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\TradeIn\Service;
 
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
+use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 

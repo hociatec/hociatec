@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\Application\Writer;
 
-use App\Module\BetaTest\Application\Storage\BetaAttachmentStorage;
+use App\Module\BetaTest\Application\Port\BetaAttachmentStoragePort;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Entity\BugReport;
@@ -13,13 +13,12 @@ use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class BugReportWriter
 {
     public function __construct(
         private UnitOfWork $persistence,
-        private BetaAttachmentStorage $attachments,
+        private BetaAttachmentStoragePort $attachments,
         private BugReportActivityLogger $activityLogger,
         private UserRepositoryPort $users,
         private UserCommunicationNotifier $notifier,
@@ -28,7 +27,7 @@ final readonly class BugReportWriter
 
     /**
      * @param array<string, mixed> $payload
-     * @param list<UploadedFile>   $files
+     * @param list<object>         $files
      */
     public function create(User $user, ?BetaCampaign $campaign, array $payload, array $files): BugReport
     {

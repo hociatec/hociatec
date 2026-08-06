@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Outbox\Application;
 
+use App\Module\Outbox\Application\Port\OutboxRequestContextPort;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Shared\Application\Http\RequestContext;
 use App\Shared\Application\UnitOfWork;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 final readonly class Outbox
 {
     public function __construct(
         private UnitOfWork $persistence,
-        private ?RequestStack $requestStack = null,
+        private ?OutboxRequestContextPort $requestContext = null,
     ) {
     }
 
@@ -33,9 +32,8 @@ final readonly class Outbox
      */
     private function withRequestId(array $payload): array
     {
-        $request = $this->requestStack?->getCurrentRequest();
-        $requestId = $request?->attributes->get(RequestContext::REQUEST_ID_ATTRIBUTE);
-        if (!\is_string($requestId) || '' === $requestId) {
+        $requestId = $this->requestContext?->requestId();
+        if (null === $requestId) {
             return $payload;
         }
 

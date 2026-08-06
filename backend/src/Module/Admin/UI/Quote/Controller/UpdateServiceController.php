@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
-use App\Module\Admin\Application\Quote\Mapper\QuoteServiceFormMapper;
+use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
 use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\ServiceOffering;

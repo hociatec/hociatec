@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Catalog\Mapper;
+namespace App\Module\Admin\UI\Catalog\Mapper;
 
 use App\Module\Admin\Application\Catalog\DTO\ProductWriteData;
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;

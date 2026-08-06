@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Module\TradeIn\Application\Storage;
+namespace App\Module\TradeIn\Infrastructure\Storage;
 
+use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-final readonly class TradeInPrivateFileStorage
+final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStoragePort
 {
     private const MAX_RIB_BYTES = 5_242_880;
 
@@ -15,8 +16,12 @@ final readonly class TradeInPrivateFileStorage
     }
 
     /** @return array{path: string, originalName: string, size: int, sha256: string} */
-    public function storeRib(UploadedFile $file): array
+    public function storeRib(object $file): array
     {
+        if (!$file instanceof UploadedFile) {
+            throw new \InvalidArgumentException('Le RIB PDF est invalide.');
+        }
+
         if (!$file->isValid() || self::MAX_RIB_BYTES < (int) $file->getSize()) {
             throw new \InvalidArgumentException('Le RIB PDF est invalide ou dépasse 5 Mo.');
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Catalog\Controller;
 
-use App\Module\Admin\Application\Catalog\Mapper\ProductAdminListQueryMapper;
+use App\Module\Admin\UI\Catalog\Mapper\ProductAdminListQueryMapper;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Shared\Infrastructure\Http\ApiResponse;

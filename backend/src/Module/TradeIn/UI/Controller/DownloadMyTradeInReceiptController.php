@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
+use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
@@ -20,7 +20,7 @@ final class DownloadMyTradeInReceiptController extends AbstractController
 {
     public function __construct(
         private readonly TradeInRequestRepositoryPort $requests,
-        private readonly TradeInPrivateFileStorage $files,
+        private readonly TradeInPrivateFileStoragePort $files,
         private readonly TradeInAccessPolicy $accessPolicy,
         private readonly AttachmentResponseFactory $attachments,
     ) {

@@ -173,6 +173,31 @@ final class ModuleBoundaryTest extends TestCase
         self::assertSame([], $violations);
     }
 
+    public function testApplicationLayerDoesNotKnowHttpFoundationOutsideDocumentedMigrationBacklog(): void
+    {
+        $allowedBacklog = [];
+
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $relativePath = $this->relativePath($path);
+            if (!str_contains($relativePath, '/Application/')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+            if (!str_contains($source, 'Symfony\\Component\\HttpFoundation')) {
+                continue;
+            }
+
+            if (!in_array($relativePath, $allowedBacklog, true)) {
+                $violations[] = $relativePath;
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testSharedConceptsDoNotLiveInRootInfrastructure(): void
     {
         $forbiddenPaths = [

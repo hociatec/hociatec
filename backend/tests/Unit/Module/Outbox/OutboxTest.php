@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Outbox;
 
-use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Application\OutboxAlert;
 use App\Module\Outbox\Application\OutboxAlertNotifier;
@@ -16,6 +15,8 @@ use App\Module\Outbox\Application\OutboxMetrics;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Outbox\Infrastructure\Alert\WebhookOutboxAlertNotifier;
 use App\Module\Outbox\Infrastructure\Command\DispatchOutboxCommand;
+use App\Module\Outbox\Infrastructure\Http\RequestStackOutboxRequestContext;
+use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,7 +53,7 @@ final class OutboxTest extends TestCase
         $requestStack = new RequestStack();
         $requestStack->push($request);
 
-        $event = (new Outbox(new DoctrineUnitOfWork($entityManager), $requestStack))->record('key-request', 'test.event', ['id' => 1]);
+        $event = (new Outbox(new DoctrineUnitOfWork($entityManager), new RequestStackOutboxRequestContext($requestStack)))->record('key-request', 'test.event', ['id' => 1]);
 
         self::assertSame('req-123', $event->getRequestId());
         self::assertSame('req-123', $event->getPayload()['_meta']['requestId']);

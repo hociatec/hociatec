@@ -10,7 +10,7 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\RegisterUserService;
-use App\Module\User\Application\Workflow\RegistrationRateLimiter;
+use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Validation\DtoValidator;

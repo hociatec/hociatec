@@ -38,7 +38,7 @@ services:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Module\Auth\Application\Port\AuthCookiePort:
+    App\Module\Auth\UI\Http\AuthCookieResponseWriter:
         alias: App\Module\Auth\Infrastructure\Http\AuthCookieService
 
     App\Module\Auth\UI\Controller\ActivationRedirectController:
@@ -320,9 +320,18 @@ services:
         arguments:
             $metricsToken: '%env(METRICS_TOKEN)%'
 
-    App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage:
+    App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Module\BetaTest\Application\Port\BetaAttachmentStoragePort:
+        alias: App\Module\BetaTest\Infrastructure\Storage\BetaAttachmentStorage
+
+    App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort:
+        alias: App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage
+
+    App\Module\Outbox\Application\Port\OutboxRequestContextPort:
+        alias: App\Module\Outbox\Infrastructure\Http\RequestStackOutboxRequestContext
 
     App\Module\Admin\Application\Backup\Workflow\BackupEncryptionService:
         arguments:

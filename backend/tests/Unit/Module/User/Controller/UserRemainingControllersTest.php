@@ -8,7 +8,7 @@ use App\Module\User\UI\Controller\Address\CreateAddressController;
 use App\Module\User\UI\Controller\Address\UpdateAddressController;
 use App\Module\User\UI\Controller\DeleteAccountController;
 use App\Module\User\UI\Controller\RegisterController;
-use App\Module\User\Application\Workflow\RegistrationRateLimiter;
+use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Module\User\UI\Controller\UpdateProfileController;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;

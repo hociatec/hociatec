@@ -41,7 +41,7 @@ final class TrainingControllerBatchTest extends TestCase
         $trainings->expects(self::exactly(4))
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $training, null, $training);
-        $trainings->expects(self::once())->method('findBy')->with([], ['title' => 'ASC'], 20, 20)->willReturn([$training]);
+        $trainings->expects(self::once())->method('findBy')->with([], ['title' => 'ASC'], 10, 10)->willReturn([$training]);
         $trainings->expects(self::once())->method('count')->with([])->willReturn(21);
         $trainings->expects(self::exactly(2))->method('findOneBy')->with(['slug' => 'seo', 'isActive' => true])->willReturnOnConsecutiveCalls($training, null);
 
@@ -89,11 +89,11 @@ final class TrainingControllerBatchTest extends TestCase
 
         $sessionRepo = $this->createMock(TrainingSessionRepository::class);
         $sessionRepo->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $session);
-        $sessionRepo->expects(self::once())->method('findBy')->with([], ['startsAt' => 'DESC'], 20, 0)->willReturn([$session]);
+        $sessionRepo->expects(self::once())->method('findBy')->with([], ['startsAt' => 'DESC'], 10, 0)->willReturn([$session]);
         $sessionRepo->expects(self::once())->method('count')->with([])->willReturn(1);
 
         $enrollmentRepo = $this->createMock(TrainingEnrollmentRepository::class);
-        $enrollmentRepo->expects(self::once())->method('findBy')->with([], ['createdAt' => 'DESC'], 20, 0)->willReturn([$enrollment]);
+        $enrollmentRepo->expects(self::once())->method('findBy')->with([], ['createdAt' => 'DESC'], 10, 0)->willReturn([$enrollment]);
         $enrollmentRepo->expects(self::once())->method('count')->with([])->willReturn(1);
         $enrollmentRepo->expects(self::once())->method('findForUser')->with($enrollment->getUser())->willReturn([$enrollment]);
         $enrollmentRepo->method('countActiveForSession')->with($session)->willReturn(1);

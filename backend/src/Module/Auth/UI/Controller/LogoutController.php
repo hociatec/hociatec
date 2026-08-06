@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\UI\Controller;
 
-use App\Module\Auth\Application\Port\AuthCookiePort;
+use App\Module\Auth\UI\Http\AuthCookieResponseWriter;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,14 +16,14 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LogoutController extends AbstractController
 {
     public function __construct(
-        private readonly AuthCookiePort $authCookieService,
+        private readonly AuthCookieResponseWriter $authCookieService,
         private readonly RefreshTokenService $refreshTokenService,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $refreshToken = $request->cookies->get(AuthCookiePort::REFRESH_COOKIE);
+        $refreshToken = $request->cookies->get(AuthCookieResponseWriter::REFRESH_COOKIE);
         if (is_string($refreshToken) && '' !== $refreshToken) {
             $this->refreshTokenService->revokePlainToken($refreshToken);
         }

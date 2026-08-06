@@ -180,7 +180,17 @@ class TradeInRequest
         $this->phone = $phone;
         $this->category = $category;
         $this->productName = $productName;
-        $this->purchasePriceCents = max(0, $purchasePriceCents);
+        if ($purchasePriceCents < 0) {
+            throw new \InvalidArgumentException('Le prix d’achat ne peut pas être négatif.');
+        }
+        if ($estimatedMinCents < 0 || $estimatedMaxCents < 0) {
+            throw new \InvalidArgumentException('Les estimations de reprise ne peuvent pas être négatives.');
+        }
+        if ($estimatedMaxCents < $estimatedMinCents) {
+            throw new \InvalidArgumentException('L’estimation maximale doit être supérieure ou égale à l’estimation minimale.');
+        }
+
+        $this->purchasePriceCents = $purchasePriceCents;
         $this->purchaseYear = $purchaseYear;
         $this->brand = $brand;
         $this->model = $model;
@@ -192,8 +202,8 @@ class TradeInRequest
         $this->description = $description;
         $this->catalogProductId = $catalogProductId;
         $this->catalogProductName = $catalogProductName;
-        $this->estimatedMinCents = max(0, $estimatedMinCents);
-        $this->estimatedMaxCents = max($this->estimatedMinCents, $estimatedMaxCents);
+        $this->estimatedMinCents = $estimatedMinCents;
+        $this->estimatedMaxCents = $estimatedMaxCents;
         $this->consentAt = $consentAt;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
@@ -471,7 +481,11 @@ class TradeInRequest
 
     public function setOffer(?int $offerCents, ?\DateTimeImmutable $expiresAt = null): self
     {
-        $this->offerCents = null === $offerCents ? null : max(0, $offerCents);
+        if (null !== $offerCents && $offerCents < 0) {
+            throw new \InvalidArgumentException('Le montant de l’offre ne peut pas être négatif.');
+        }
+
+        $this->offerCents = $offerCents;
         $this->offerExpiresAt = $expiresAt;
         $this->touch();
 

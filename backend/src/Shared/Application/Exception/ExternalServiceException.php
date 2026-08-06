@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Application\Exception;
 
-use Symfony\Component\HttpFoundation\Response;
-
 final class ExternalServiceException extends \RuntimeException implements PublicApiException
 {
+    private const HTTP_BAD_GATEWAY = 502;
+
     private string $publicMessage;
 
     public function __construct(string $message = 'Service externe indisponible.', ?string $publicMessage = null, int $code = 0, ?\Throwable $previous = null)
@@ -18,7 +18,7 @@ final class ExternalServiceException extends \RuntimeException implements Public
 
     public function getStatusCode(): int
     {
-        return Response::HTTP_BAD_GATEWAY;
+        return self::HTTP_BAD_GATEWAY;
     }
 
     public function publicMessage(): string

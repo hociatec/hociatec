@@ -53,7 +53,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['listForUser', 'countForUser'])
             ->getMock();
-        $favorites->expects(self::once())->method('listForUser')->with($user, 12, 0)->willReturn([$favorite]);
+        $favorites->expects(self::once())->method('listForUser')->with($user, 10, 0)->willReturn([$favorite]);
         $favorites->expects(self::once())->method('countForUser')->with($user)->willReturn(1);
 
         $controller = new class($favorites, new CatalogFormatter(), $user) extends ListFavoritesController {

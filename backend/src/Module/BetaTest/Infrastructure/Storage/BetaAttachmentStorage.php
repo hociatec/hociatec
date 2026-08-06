@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Module\BetaTest\Application\Storage;
+namespace App\Module\BetaTest\Infrastructure\Storage;
 
+use App\Module\BetaTest\Application\Port\BetaAttachmentStoragePort;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-final readonly class BetaAttachmentStorage
+final readonly class BetaAttachmentStorage implements BetaAttachmentStoragePort
 {
     public function __construct(
         #[Autowire('%kernel.project_dir%')]

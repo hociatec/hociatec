@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\DTO;
 
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-
 final readonly class ProductGalleryWriteData
 {
     /**
-     * @param array<int, UploadedFile|null> $files
-     * @param array<int, int|string>        $toRemove
+     * @param array<int, object|null> $files
+     * @param array<int, int|string>  $toRemove
      */
     public function __construct(
         public array $files,

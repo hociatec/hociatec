@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Shared\Application\Http;
 
-use Symfony\Component\HttpFoundation\Request;
-
 readonly class RateLimitKeyFactory
 {
-    public function forRequest(Request $request, ?string $identity = null): string
+    public function forClient(string $clientIp, ?string $identity = null): string
     {
-        $ip = $request->getClientIp() ?? 'unknown';
+        $ip = '' !== trim($clientIp) ? trim($clientIp) : 'unknown';
         $identity = null !== $identity ? strtolower(trim($identity)) : '';
 
         if ('' === $identity) {

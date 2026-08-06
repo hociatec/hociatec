@@ -23,7 +23,7 @@ final class TradeInRequestDetailedTest extends TestCase
             '0102030405',
             'smartphones',
             'iPhone',
-            -100,
+            100,
             2023,
             'Apple',
             '13',
@@ -35,7 +35,7 @@ final class TradeInRequestDetailedTest extends TestCase
             'Bon etat',
             10,
             'iPhone 13',
-            -50,
+            50,
             80,
             new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
         );
@@ -51,7 +51,7 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('Ada Lovelace', $request->applicant()->fullName());
         self::assertSame('smartphones', $request->getCategory());
         self::assertSame('iPhone', $request->getProductName());
-        self::assertSame(0, $request->getPurchasePriceCents());
+        self::assertSame(100, $request->getPurchasePriceCents());
         self::assertSame(2023, $request->getPurchaseYear());
         self::assertSame('Apple', $request->getBrand());
         self::assertSame('13', $request->getModel());
@@ -65,7 +65,7 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame('iPhone 13', $request->getCatalogProductName());
         self::assertSame('iPhone', $request->productSnapshot()->productName);
         self::assertTrue($request->productSnapshot()->functional);
-        self::assertSame(0, $request->getEstimatedMinCents());
+        self::assertSame(50, $request->getEstimatedMinCents());
         self::assertSame(80, $request->getEstimatedMaxCents());
         self::assertSame(80, $request->estimate()->maxCents);
         self::assertNull($request->getOfferCents());
@@ -91,8 +91,17 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame(TradeInStatus::UNDER_REVIEW, $request->getStatus());
         self::assertGreaterThan($updatedAt, $request->getUpdatedAt());
 
+        self::expectException(\InvalidArgumentException::class);
+        self::expectExceptionMessage('Le montant de l’offre ne peut pas être négatif.');
         $request->setOffer(-10, new \DateTimeImmutable('2026-08-01T10:00:00+00:00'));
-        self::assertSame(0, $request->getOfferCents());
+    }
+
+    public function testTradeInRequestAcceptsValidFinancialState(): void
+    {
+        $request = $this->request();
+
+        $request->setOffer(10, new \DateTimeImmutable('2026-08-01T10:00:00+00:00'));
+        self::assertSame(10, $request->getOfferCents());
         self::assertSame('2026-08-01T10:00:00+00:00', $request->getOfferExpiresAt()?->format(DATE_ATOM));
 
         $request->setClosure(250, ' bank_transfer ', ' paid ', '  TX-1  ', new \DateTimeImmutable('2026-07-15T10:00:00+00:00'));
@@ -128,6 +137,67 @@ final class TradeInRequestDetailedTest extends TestCase
         self::assertSame(
             ['submitted', 'under_review', 'offer_sent', 'accepted', 'declined', 'received', 'inspected', 'completed', 'cancelled', 'expired'],
             array_map(static fn (TradeInStatus $status): string => $status->value, TradeInStatus::cases()),
+        );
+    }
+
+    public function testTradeInRequestRejectsInvalidFinancialStateAtCreation(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Le prix d’achat ne peut pas être négatif.');
+
+        new TradeInRequest(
+            'TR-INVALID',
+            null,
+            'Ada',
+            'Lovelace',
+            'ada@example.com',
+            '0102030405',
+            'smartphones',
+            'iPhone',
+            -1,
+            2023,
+            null,
+            null,
+            null,
+            'A',
+            true,
+            true,
+            false,
+            'Bon etat',
+            null,
+            null,
+            50,
+            80,
+            new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
+        );
+    }
+
+    private function request(): TradeInRequest
+    {
+        return new TradeInRequest(
+            'TR-VALID',
+            null,
+            'Ada',
+            'Lovelace',
+            'ada@example.com',
+            '0102030405',
+            'smartphones',
+            'iPhone',
+            100,
+            2023,
+            'Apple',
+            '13',
+            'SN-1',
+            'A',
+            true,
+            true,
+            false,
+            'Bon etat',
+            10,
+            'iPhone 13',
+            50,
+            80,
+            new \DateTimeImmutable('2026-07-01T10:00:00+00:00'),
         );
     }
 }

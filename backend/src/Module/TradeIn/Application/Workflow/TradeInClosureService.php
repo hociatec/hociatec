@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Application\Workflow;
 
 use App\Module\Admin\Application\TradeIn\DTO\TradeInClosureInput;
+use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
@@ -24,7 +24,7 @@ final readonly class TradeInClosureService
         private TradeInService $tradeIns,
         private UnitOfWork $unitOfWork,
         private TransactionManager $transactions,
-        private TradeInPrivateFileStorage $files,
+        private TradeInPrivateFileStoragePort $files,
         private TradeInReceiptRenderer $receiptRenderer,
         private CreateVoucherHandler $createVoucher,
         private VoucherNotificationEmailService $voucherNotifications,

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Quote\DTO;
 
-use Symfony\Component\HttpFoundation\File\UploadedFile;
-
 final readonly class QuoteServiceFormData
 {
     public function __construct(
@@ -17,7 +15,7 @@ final readonly class QuoteServiceFormData
         public ?int $priceCents,
         public ?int $vatRateBps,
         public bool $isFeaturedHome,
-        public ?UploadedFile $imageFile,
+        public ?object $imageFile,
         public ?string $imageUrl,
         public ?string $imageAlt,
         public bool $updatesBillingMode,

@@ -29,7 +29,7 @@ use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
 use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
-use App\Module\TradeIn\Application\Storage\TradeInPrivateFileStorage;
+use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
 use App\Module\TradeIn\Application\Workflow\TradeInService;
 use App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer;
 use App\Module\User\Domain\Entity\User;

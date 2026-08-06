@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Infrastructure\Http;
 
-use App\Module\Auth\Application\Port\AuthCookiePort;
+use App\Module\Auth\UI\Http\AuthCookieResponseWriter;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class AuthCookieService implements AuthCookiePort
+final class AuthCookieService implements AuthCookieResponseWriter
 {
     private const ACCESS_TOKEN_TTL_SECONDS = 3600;
 
@@ -32,14 +32,14 @@ final class AuthCookieService implements AuthCookiePort
     public function clearAuthCookies(Response $response, Request $request): void
     {
         $secure = $this->isSecureCookie($request);
-        $response->headers->clearCookie(AuthCookiePort::ACCESS_COOKIE, '/api', null, $secure, true, Cookie::SAMESITE_LAX);
-        $response->headers->clearCookie(AuthCookiePort::REFRESH_COOKIE, '/api/auth', null, $secure, true, Cookie::SAMESITE_LAX);
+        $response->headers->clearCookie(AuthCookieResponseWriter::ACCESS_COOKIE, '/api', null, $secure, true, Cookie::SAMESITE_LAX);
+        $response->headers->clearCookie(AuthCookieResponseWriter::REFRESH_COOKIE, '/api/auth', null, $secure, true, Cookie::SAMESITE_LAX);
     }
 
     private function createAccessCookie(Request $request, string $jwt): Cookie
     {
         return Cookie::create(
-            AuthCookiePort::ACCESS_COOKIE,
+            AuthCookieResponseWriter::ACCESS_COOKIE,
             $jwt,
             time() + self::ACCESS_TOKEN_TTL_SECONDS,
             '/api',
@@ -54,7 +54,7 @@ final class AuthCookieService implements AuthCookiePort
     private function createRefreshCookie(Request $request, string $refreshToken, string $expiresAt): Cookie
     {
         return Cookie::create(
-            AuthCookiePort::REFRESH_COOKIE,
+            AuthCookieResponseWriter::REFRESH_COOKIE,
             $refreshToken,
             new \DateTimeImmutable($expiresAt),
             '/api/auth',
