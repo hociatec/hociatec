@@ -24,6 +24,7 @@ export const PageContainer = ({
         className={cn('card', `card--${size}`)}
         role="main"
         aria-labelledby={titleId}
+        data-page-focus-target
         tabIndex={-1}
       >
         <header className="card__header">

@@ -31,6 +31,30 @@ describe('getHttpErrorMessage', () => {
     expect(getHttpErrorMessage(error)).toContain('service est momentanément indisponible');
   });
 
+  it('distinguishes request timeouts', () => {
+    const error = new AxiosError('timeout', 'ECONNABORTED');
+
+    expect(normalizeHttpError(error)).toMatchObject({
+      kind: 'timeout',
+      message: 'La requête a expiré. Vérifiez votre connexion puis réessayez.',
+    });
+  });
+
+  it('distinguishes maintenance responses', () => {
+    const error = new AxiosError('Request failed', '503', undefined, undefined, {
+      data: {},
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    });
+
+    expect(normalizeHttpError(error)).toMatchObject({
+      kind: 'maintenance',
+      message: 'Le service est temporairement en maintenance. Réessayez dans quelques instants.',
+    });
+  });
+
   it('hides technical backend details and keeps the request id', () => {
     const error = new AxiosError('Request failed', '500', undefined, undefined, {
       data: {
@@ -63,6 +87,22 @@ describe('getHttpErrorMessage', () => {
       kind: 'rate_limit',
       retryAfterSeconds: 12,
       status: 429,
+    });
+  });
+
+  it('falls back to the frontend request id when the backend has no request id', () => {
+    const headers = new AxiosHeaders();
+    headers.set('X-Frontend-Request-Id', 'front_req_123');
+    const error = new AxiosError('Request failed', '500', { headers }, undefined, {
+      data: {},
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    });
+
+    expect(normalizeHttpError(error)).toMatchObject({
+      requestId: 'front_req_123',
     });
   });
 

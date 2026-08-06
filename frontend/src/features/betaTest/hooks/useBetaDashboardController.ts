@@ -18,7 +18,7 @@ import {
 } from '../api/betaApi';
 import { isCampaignOpenForReports } from '../components/dashboard/betaDashboardUtils';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminBetaQueryKeys, betaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys, betaQueryKeys } from '@/features/betaTest/queryKeys';
 
 export const useBetaDashboardController = () => {
   const queryClient = useQueryClient();

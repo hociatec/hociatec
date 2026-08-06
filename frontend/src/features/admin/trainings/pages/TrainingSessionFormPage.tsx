@@ -18,7 +18,7 @@ import {
   TrainingSessionFormFields,
   type TrainingSessionFormState,
 } from '@/features/admin/trainings/components/TrainingSessionFormFields';
-import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 
 const emptyForm: TrainingSessionFormState = {
   trainingId: 0,

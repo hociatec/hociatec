@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchAdminDashboard, type AdminDashboardDto } from '@/features/admin/customers/api';
-import { adminDashboardQueryKeys } from '@/shared/lib/queryKeys';
+import { adminDashboardQueryKeys } from '@/features/admin/dashboard/queryKeys';
 
 type AdminDashboardStatus = 'loading' | 'error' | 'success';
 

@@ -7,7 +7,7 @@ body {
     radial-gradient(circle at 10% 15%, rgba(56, 189, 248, 0.16), transparent 55%),
     radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.12), transparent 45%),
     linear-gradient(160deg, var(--hocia-ink) 0%, var(--hocia-ink-soft) 55%, var(--hocia-ink) 100%);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
@@ -16,13 +16,13 @@ body {
 
 /* Typography Enhancements */
 p, li {
-  line-height: 1.68;
+  line-height: var(--line-height-relaxed);
 }
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--hocia-ink);
   font-weight: 800;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
 }
 
 h1 {

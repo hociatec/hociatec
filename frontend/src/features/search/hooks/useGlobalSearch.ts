@@ -9,7 +9,7 @@ import {
   fetchPublicTrainings,
   type TrainingDto,
 } from '@/features/trainings/publicApi';
-import { searchQueryKeys } from '@/shared/lib/queryKeys';
+import { searchQueryKeys } from '@/features/search/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const normalize = (value: string | null | undefined) =>

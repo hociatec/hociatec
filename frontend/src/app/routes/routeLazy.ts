@@ -1,11 +1,17 @@
 import { lazy, type ComponentType } from 'react';
 
-type RoutePageModule = Record<string, unknown>;
+type LazyPageModule<Props extends object, ExportName extends string> = Record<
+  ExportName,
+  ComponentType<Props>
+>;
 
-export const lazyPage = <Props extends object = Record<string, never>>(
-  load: () => Promise<unknown>,
-  exportName: string,
+export const lazyPage = <
+  Props extends object = Record<string, never>,
+  ExportName extends string = string,
+>(
+  load: () => Promise<LazyPageModule<Props, ExportName>>,
+  exportName: ExportName,
 ) =>
   lazy(async () => ({
-    default: ((await load()) as RoutePageModule)[exportName] as ComponentType<Props>,
+    default: (await load())[exportName],
   }));

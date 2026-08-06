@@ -4,6 +4,7 @@ import { Facebook, Mail } from 'lucide-react';
 import { ProductCartActions } from '@/features/cart/publicApi';
 import type { CatalogProduct } from '@/features/catalog/api';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { openTrustedExternalUrl } from '@/shared/lib/externalUrls';
 import { ProductShareDialog } from './ProductShareDialog';
 
 interface ProductActionToolbarProps {
@@ -22,7 +23,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
         <ProductCartActions product={product} />
         <button
           type="button"
-          onClick={() => window.open(facebookShareUrl, '_blank', 'noopener,noreferrer')}
+          onClick={() => openTrustedExternalUrl(facebookShareUrl)}
           className="product-action-toolbar__button"
           title="Partager sur Facebook"
           aria-label="Partager sur Facebook"

@@ -3,7 +3,15 @@ import { Facebook, Mail } from 'lucide-react';
 
 import { NewsApiError, shareNewsArticleByEmail, type NewsArticleDto } from '@/features/news/api/newsApi';
 import { useToast } from '@/shared/components/ui/toast';
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogDescription,
+  DialogPanel,
+  DialogTitle,
+} from '@/shared/components/ui/dialog';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { openMailtoClient, openTrustedExternalUrl } from '@/shared/lib/externalUrls';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,10 +47,6 @@ export const NewsShareActions = ({ article, compact = false }: NewsShareActionsP
     setIsEmailDialogOpen(false);
   };
 
-  const openMailClientFallback = (recipientEmail: string) => {
-    window.location.href = `mailto:${encodeURIComponent(recipientEmail)}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
-  };
-
   const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedEmail = shareEmail.trim();
@@ -68,7 +72,7 @@ export const NewsShareActions = ({ article, compact = false }: NewsShareActionsP
       closeDialog();
     } catch (error) {
       if (error instanceof NewsApiError && error.statusCode === 503) {
-        openMailClientFallback(normalizedEmail);
+        openMailtoClient(normalizedEmail, mailtoSubject, mailtoBody);
         const fallbackMessage =
           'Le service e-mail est indisponible. Votre messagerie a été ouverte avec l’actualité préremplie.';
         setShareFeedback({ type: 'info', message: fallbackMessage });
@@ -95,7 +99,7 @@ export const NewsShareActions = ({ article, compact = false }: NewsShareActionsP
       <div className="flex flex-wrap gap-2" aria-label="Partager l’actualité">
         <button
           type="button"
-          onClick={() => window.open(facebookShareUrl, '_blank', 'noopener,noreferrer')}
+          onClick={() => openTrustedExternalUrl(facebookShareUrl)}
           className={buttonClassName}
           title="Partager sur Facebook"
           aria-label="Partager cette actualité sur Facebook"
@@ -117,82 +121,79 @@ export const NewsShareActions = ({ article, compact = false }: NewsShareActionsP
       </div>
 
       {isEmailDialogOpen ? (
-        <div
-          className="fixed inset-0 z-50 overflow-y-auto bg-brand-900/70 px-4 py-4 sm:py-6"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`news-share-title-${article.id}`}
-          aria-describedby={`news-share-description-${article.id}`}
-        >
-          <div className="mx-auto w-full max-w-lg rounded-xl border border-brand-100 bg-white p-6 shadow-2xl">
-            <header className="space-y-2">
-              <h2 id={`news-share-title-${article.id}`} className="text-2xl font-bold text-brand-900">
-                Partager l’actualité
-              </h2>
-              <p id={`news-share-description-${article.id}`} className="text-sm text-stone-600">
-                Renseignez une adresse e-mail. Le bouton envoyer transmettra l’actualité par e-mail.
-              </p>
-            </header>
+        <Dialog open={isEmailDialogOpen} onClose={closeDialog} className="relative z-50">
+          <DialogBackdrop className="fixed inset-0 bg-brand-900/70" />
+          <div className="fixed inset-0 flex items-center justify-center px-4 py-6">
+            <DialogPanel className="w-full max-w-lg rounded-xl border border-brand-100 bg-white p-6 shadow-2xl">
+              <header className="space-y-2">
+                <DialogTitle className="text-2xl font-bold text-brand-900">
+                  Partager l’actualité
+                </DialogTitle>
+                <DialogDescription className="text-sm text-stone-600">
+                  Renseignez une adresse e-mail. Le bouton envoyer transmettra l’actualité par e-mail.
+                </DialogDescription>
+              </header>
 
-            <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4" aria-busy={isSubmitting}>
-              <div className="space-y-2">
-                <label
-                  htmlFor={`news-share-email-${article.id}`}
-                  className="block text-sm font-medium text-stone-800"
-                >
-                  Adresse e-mail du destinataire
-                </label>
-                <input
-                  id={`news-share-email-${article.id}`}
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  value={shareEmail}
-                  onChange={(event) => {
-                    setShareEmail(event.target.value);
-                    setShareFeedback(null);
-                  }}
-                  aria-invalid={shareFeedback?.type === 'error'}
-                  aria-describedby={`news-share-hint-${article.id} news-share-feedback-${article.id}`}
-                  placeholder="ami@exemple.com"
-                  className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
-                  required
-                  disabled={isSubmitting}
-                />
-                <p id={`news-share-hint-${article.id}`} className="text-sm text-stone-600">
-                  Le message sera prérempli avec le titre de l’actualité et son lien direct.
-                </p>
-                <p
-                  id={`news-share-feedback-${article.id}`}
-                  role={shareFeedback?.type === 'error' ? 'alert' : 'status'}
-                  aria-live={shareFeedback?.type === 'error' ? 'assertive' : 'polite'}
-                  aria-atomic="true"
-                  className={`text-sm ${shareFeedback?.type === 'error' ? 'text-red-700' : 'text-emerald-800'}`}
-                >
-                  {shareFeedback?.message ?? ''}
-                </p>
-              </div>
+              <form onSubmit={handleEmailSubmit} className="mt-6 space-y-4" aria-busy={isSubmitting}>
+                <div className="space-y-2">
+                  <label
+                    htmlFor={`news-share-email-${article.id}`}
+                    className="block text-sm font-medium text-stone-800"
+                  >
+                    Adresse e-mail du destinataire
+                  </label>
+                  <input
+                    id={`news-share-email-${article.id}`}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={shareEmail}
+                    onChange={(event) => {
+                      setShareEmail(event.target.value);
+                      setShareFeedback(null);
+                    }}
+                    aria-invalid={shareFeedback?.type === 'error'}
+                    aria-describedby={`news-share-hint-${article.id} news-share-feedback-${article.id}`}
+                    placeholder="ami@exemple.com"
+                    className="w-full rounded-lg border border-brand-100 px-4 py-3 text-base text-brand-900 shadow-sm outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+                    required
+                    disabled={isSubmitting}
+                  />
+                  <p id={`news-share-hint-${article.id}`} className="text-sm text-stone-600">
+                    Le message sera prérempli avec le titre de l’actualité et son lien direct.
+                  </p>
+                  <p
+                    id={`news-share-feedback-${article.id}`}
+                    role={shareFeedback?.type === 'error' ? 'alert' : 'status'}
+                    aria-live={shareFeedback?.type === 'error' ? 'assertive' : 'polite'}
+                    aria-atomic="true"
+                    className={`text-sm ${shareFeedback?.type === 'error' ? 'text-red-700' : 'text-emerald-800'}`}
+                  >
+                    {shareFeedback?.message ?? ''}
+                  </p>
+                </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={closeDialog}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center justify-center rounded-lg border border-brand-100 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100"
-                >
-                  {isSubmitting ? 'Envoi en cours...' : 'Envoyer par e-mail'}
-                </button>
-              </div>
-            </form>
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={closeDialog}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center rounded-lg border border-brand-100 px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-brand-50 focus:outline-none focus:ring-4 focus:ring-brand-100"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100"
+                  >
+                    {isSubmitting ? 'Envoi en cours...' : 'Envoyer par e-mail'}
+                  </button>
+                </div>
+              </form>
+            </DialogPanel>
           </div>
-        </div>
+        </Dialog>
       ) : null}
     </>
   );

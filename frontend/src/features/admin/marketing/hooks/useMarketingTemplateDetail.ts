@@ -6,7 +6,7 @@ import {
   fetchMarketingTemplate,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
 
 export const useMarketingTemplateDetail = () => {
   const { templateId } = useParams();

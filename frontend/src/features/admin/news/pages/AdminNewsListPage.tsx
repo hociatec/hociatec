@@ -9,7 +9,7 @@ import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
+import { adminNewsQueryKeys } from '@/features/admin/news/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminNewsListPage = () => {

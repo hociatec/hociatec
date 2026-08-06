@@ -9,7 +9,7 @@ import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
-import { newsQueryKeys } from '@/shared/lib/queryKeys';
+import { newsQueryKeys } from '@/features/news/queryKeys';
 
 export const NewsListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();

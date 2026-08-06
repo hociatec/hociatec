@@ -1,7 +1,12 @@
-import { isAxiosError } from 'axios';
+import { AxiosHeaders, isAxiosError } from 'axios';
+
+import { FRONTEND_REQUEST_ID_HEADER_NAME } from './http/headers';
 
 export type AppErrorKind =
   | 'network'
+  | 'offline'
+  | 'timeout'
+  | 'maintenance'
   | 'authentication'
   | 'authorization'
   | 'validation'
@@ -120,6 +125,7 @@ const resolveErrorKind = (status: number): AppErrorKind => {
     409: 'conflict',
     422: 'validation',
     429: 'rate_limit',
+    503: 'maintenance',
   };
 
   return exactKinds[status] ?? (status >= 500 ? 'server' : 'unknown');
@@ -129,9 +135,12 @@ const defaultMessages: Record<AppErrorKind, string> = {
   authentication: 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.',
   authorization: 'Vous devez être connecté avec les droits nécessaires pour accéder à cette ressource.',
   conflict: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
+  maintenance: 'Le service est temporairement en maintenance. Réessayez dans quelques instants.',
   network: 'Le service est momentanément indisponible. Vérifiez que le serveur API est démarré, puis réessayez.',
+  offline: 'Vous semblez hors ligne. Vérifiez votre connexion puis réessayez.',
   rate_limit: 'Trop de tentatives. Patientez quelques instants avant de réessayer.',
   server: 'Le service rencontre un problème temporaire. Veuillez réessayer dans quelques instants.',
+  timeout: 'La requête a expiré. Vérifiez votre connexion puis réessayez.',
   unknown: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
   validation: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
 };
@@ -141,6 +150,19 @@ const resolveDefaultMessage = (kind: AppErrorKind, status: number, fallback: str
   if (kind === 'conflict' || kind === 'unknown' || kind === 'validation') return fallback;
 
   return defaultMessages[kind];
+};
+
+const isHeadersRecord = (value: unknown): value is Record<string, string | number | boolean | null> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+const getFrontendRequestId = (headers: unknown) => {
+  const normalizedHeaders =
+    headers instanceof AxiosHeaders || typeof headers === 'string' || isHeadersRecord(headers)
+      ? new AxiosHeaders(headers)
+      : new AxiosHeaders();
+  const value = normalizedHeaders.get(FRONTEND_REQUEST_ID_HEADER_NAME);
+
+  return typeof value === 'string' ? value : undefined;
 };
 
 export const normalizeHttpError = (
@@ -165,12 +187,23 @@ export const normalizeHttpError = (
   }
 
   if (!error.response) {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return {
+        kind: 'offline',
+        message: defaultMessages.offline,
+      };
+    }
+
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      return {
+        kind: 'timeout',
+        message: defaultMessages.timeout,
+      };
+    }
+
     return {
       kind: 'network',
-      message:
-        error.code === 'ECONNABORTED'
-          ? 'La requête a expiré. Vérifiez votre connexion puis réessayez.'
-          : 'Le service est momentanément indisponible. Vérifiez que le serveur API est démarré, puis réessayez.',
+      message: defaultMessages.network,
     };
   }
 
@@ -197,7 +230,7 @@ export const normalizeHttpError = (
     code: typeof code === 'string' ? code : undefined,
     message: safeMessage(typeof message === 'string' ? message : undefined, defaultMessage),
     fields: normalizeFields(fields),
-    requestId: typeof requestId === 'string' ? requestId : undefined,
+    requestId: typeof requestId === 'string' ? requestId : getFrontendRequestId(error.config?.headers),
     retryAfterSeconds: retryAfterSeconds(error.response.headers?.['retry-after']),
     status,
   };

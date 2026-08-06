@@ -127,6 +127,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     links: [
       { to: '/admin/operations', label: 'Opérations' },
       { to: '/admin/backups', label: 'Sauvegardes et maintenance' },
+      { to: '/admin/ui-catalog', label: 'Catalogue UI' },
     ],
   },
 ];

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { tradeInQueryKeys } from '@/shared/lib/queryKeys';
+import { tradeInQueryKeys } from '@/features/tradeIns/queryKeys';
 import { fetchTradeInMetadata } from './api';
 import type { TradeInMetadataDto } from './types';
 

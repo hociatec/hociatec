@@ -8,6 +8,7 @@ import type { QuoteDto, QuoteInput } from '@/features/quotes/types/quoteTypes';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
+import { downloadBlob } from '@/shared/lib/downloadFile';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import {
   createDefaultQuoteValidity,
@@ -173,14 +174,7 @@ export const useCreateQuote = () => {
 
       const pdf = await generateMyQuotePdf(quote.id);
       const fileName = `${quote.number ?? 'devis'}.pdf`;
-      const blobUrl = window.URL.createObjectURL(pdf);
-      const link = window.document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      window.document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(blobUrl);
+      downloadBlob(pdf, fileName);
     } catch (e) {
       const messageText = await getHttpErrorMessageAsync(
         e,

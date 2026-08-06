@@ -12,6 +12,12 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
 import { logger } from '@/shared/lib/logger';
+import {
+  readLocalStorage,
+  removeLocalStorage,
+  writeLocalStorage,
+  writeSessionStorage,
+} from '@/shared/lib/http/storage';
 import { isSafeInternalRedirectPath } from '@/shared/lib/redirects';
 
 import './LoginPage.css';
@@ -52,17 +58,17 @@ const getAuthenticatedRedirect = (state: LocationState | null) => {
 
 const readRememberedEmail = (): string | null => {
   try {
-    const raw = window.localStorage.getItem(REMEMBERED_EMAIL_KEY);
+    const raw = readLocalStorage(REMEMBERED_EMAIL_KEY);
     if (!raw) return null;
 
     const payload = JSON.parse(raw) as Partial<RememberedEmailPayload>;
     if (typeof payload.email !== 'string' || typeof payload.expiresAt !== 'number') {
-      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      removeLocalStorage(REMEMBERED_EMAIL_KEY);
       return null;
     }
 
     if (payload.expiresAt <= Date.now()) {
-      window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      removeLocalStorage(REMEMBERED_EMAIL_KEY);
       return null;
     }
 
@@ -74,23 +80,13 @@ const readRememberedEmail = (): string | null => {
 };
 
 const writeRememberedEmail = (email: string) => {
-  try {
-    window.localStorage.setItem(
-      REMEMBERED_EMAIL_KEY,
-      JSON.stringify({ email, expiresAt: Date.now() + REMEMBERED_EMAIL_TTL_MS }),
-    );
-  } catch (error) {
-    logger.warn('Unable to store remembered login email.', { error });
-  }
+  writeLocalStorage(
+    REMEMBERED_EMAIL_KEY,
+    JSON.stringify({ email, expiresAt: Date.now() + REMEMBERED_EMAIL_TTL_MS }),
+  );
 };
 
-const clearRememberedEmail = () => {
-  try {
-    window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-  } catch (error) {
-    logger.warn('Unable to clear remembered login email.', { error });
-  }
-};
+const clearRememberedEmail = () => removeLocalStorage(REMEMBERED_EMAIL_KEY);
 
 export const LoginPage = () => {
   useDocumentTitle('Connexion');
@@ -179,16 +175,12 @@ export const LoginPage = () => {
       } catch (error) {
         logger.warn('Unable to display login success toast.', { error });
       }
-      try {
-        window.sessionStorage.setItem(
-          'hociatec.a11y.route-announcement',
-          redirectTo === DEFAULT_AUTHENTICATED_PATH
-            ? 'Connexion réussie. Vous êtes dans votre espace.'
-            : 'Connexion réussie. Page demandée chargée.',
-        );
-      } catch (error) {
-        logger.warn('Unable to write route announcement.', { error });
-      }
+      writeSessionStorage(
+        'hociatec.a11y.route-announcement',
+        redirectTo === DEFAULT_AUTHENTICATED_PATH
+          ? 'Connexion réussie. Vous êtes dans votre espace.'
+          : 'Connexion réussie. Page demandée chargée.',
+      );
       navigate(redirectTo, { replace: true, state: redirectState });
     } catch (loginError) {
       setIsSubmitting(false);

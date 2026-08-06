@@ -16,7 +16,7 @@ import {
 } from '@/features/orders/publicApi';
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 import { normalizeHttpError } from '@/shared/lib/httpClient';
-import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
+import { adminOrderQueryKeys } from '@/features/admin/orders/queryKeys';
 
 const toDateInputValue = formatApiDateForDateInput;
 

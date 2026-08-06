@@ -11,5 +11,6 @@ export const useRequireAdmin = () => {
   return {
     isAdmin,
     loading,
+    unavailable: status === 'unavailable',
   };
 };

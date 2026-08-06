@@ -11,7 +11,7 @@ import { SelectFilter } from '@/shared/components/filters/SelectFilter';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
-import { adminCustomerQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';

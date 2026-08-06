@@ -6,7 +6,7 @@ import {
   fetchAccountNotificationsReadState,
   type AccountNotificationsReadStateDto,
 } from '@/shared/api/accountNotifications';
-import { accountQueryKeys } from '@/shared/lib/queryKeys';
+import { accountQueryKeys } from '@/features/account/queryKeys';
 import { emptyReadState } from './constants';
 
 export const useNotificationReadState = () => {

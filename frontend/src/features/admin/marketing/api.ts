@@ -124,14 +124,6 @@ export const deleteMarketingTemplate = async (templateId: number) => {
   return { data: data.data, message: data.message };
 };
 
-export const fetchMarketingCampaigns = async (): Promise<MarketingCampaign[]> => {
-  const { data } = await httpClient.get<{ data: { items: MarketingCampaign[] } }>(
-    '/api/admin/marketing/campaigns',
-    { params: { page: 1, perPage: 100 } },
-  );
-  return data.data.items;
-};
-
 export const fetchMarketingCampaignsPage = async (
   page = 1,
   perPage = 10,

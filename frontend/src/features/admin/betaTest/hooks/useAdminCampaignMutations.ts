@@ -11,7 +11,7 @@ import {
 import { emptyCampaignForm, type CampaignFormState } from '../lib/campaignForms';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
 
 export const useAdminCampaignMutations = ({
   addForm,

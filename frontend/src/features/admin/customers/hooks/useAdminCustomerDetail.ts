@@ -15,7 +15,7 @@ import {
   type EmailTemplatePreset,
   type OrderFilter,
 } from '@/features/admin/customers/components/customerDetailShared';
-import { adminCustomerQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 
 export const useAdminCustomerDetail = (customerId: number) => {
   const navigate = useNavigate();

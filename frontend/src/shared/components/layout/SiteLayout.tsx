@@ -13,7 +13,7 @@ export const SiteLayout = ({ children, headerVariant = 'transparent' }: SiteLayo
       Aller au contenu principal
     </a>
     <SiteHeader variant={headerVariant} />
-    <div id="main-content" className="site-layout__content" tabIndex={-1}>
+    <div id="main-content" className="site-layout__content" data-page-focus-target tabIndex={-1}>
       {children}
     </div>
     <SiteFooter />

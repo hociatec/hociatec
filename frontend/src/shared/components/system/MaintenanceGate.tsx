@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router';
 
 import { fetchSystemStatus } from '@/shared/api/systemStatus';
-import { systemQueryKeys } from '@/shared/lib/queryKeys';
+import { systemQueryKeys } from '@/shared/system/queryKeys';
 
 const ADMIN_ALLOWED_PREFIXES = ['/admin', '/login'];
 

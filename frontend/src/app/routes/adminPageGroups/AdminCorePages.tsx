@@ -16,3 +16,7 @@ export const AdminBackupsPage = lazyPage(
   () => import('@/features/admin/backups/pages/AdminBackupsPage'),
   'AdminBackupsPage',
 );
+export const AdminUiCatalogPage = lazyPage(
+  () => import('@/features/admin/system/pages/AdminUiCatalogPage'),
+  'AdminUiCatalogPage',
+);

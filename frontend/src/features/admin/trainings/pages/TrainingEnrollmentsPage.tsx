@@ -13,7 +13,7 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
-import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { useState } from 'react';
 import type { PaginatedResult } from '@/shared/types/api';

@@ -14,7 +14,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
-import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 

@@ -4,7 +4,7 @@ import { deleteAdminQuoteService, fetchAdminQuoteServicesPage } from '@/features
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
-import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 export const formatServiceDuration = (service: QuoteServiceDto) =>
   !service.durationValue || !service.durationUnit

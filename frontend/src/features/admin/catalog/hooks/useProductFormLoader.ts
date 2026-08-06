@@ -13,7 +13,7 @@ import {
 import { emptyProductForm, type ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 import { buildProductFormState } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 
 type UseProductFormLoaderParams = {
   isEdit: boolean;

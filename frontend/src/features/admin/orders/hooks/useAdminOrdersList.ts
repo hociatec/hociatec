@@ -10,7 +10,7 @@ import {
   type OrderStatus,
   type OrderStatusFilter,
 } from '../lib/adminOrderList';
-import { adminOrderQueryKeys } from '@/shared/lib/queryKeys';
+import { adminOrderQueryKeys } from '@/features/admin/orders/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminOrdersList = () => {

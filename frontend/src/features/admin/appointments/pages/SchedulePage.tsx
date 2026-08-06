@@ -8,7 +8,7 @@ import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { WorkingDayConfigurationCard } from '@/features/admin/appointments/components/WorkingDayConfigurationCard';
-import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { adminAppointmentQueryKeys } from '@/features/admin/appointments/queryKeys';
 
 const normalizeDays = (days: WorkingDay[]): WorkingDay[] =>
   [...days]

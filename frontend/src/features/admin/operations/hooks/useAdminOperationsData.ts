@@ -10,7 +10,7 @@ import {
   fetchSupportRequests,
 } from '@/features/admin/operations/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminOperationsQueryKeys } from '@/shared/lib/queryKeys';
+import { adminOperationsQueryKeys } from '@/features/admin/operations/queryKeys';
 import type { PaginationMeta } from '@/shared/types/api';
 
 const emptyMeta = (page: number): PaginationMeta => ({ page, perPage: 10, total: 0, totalPages: 1 });

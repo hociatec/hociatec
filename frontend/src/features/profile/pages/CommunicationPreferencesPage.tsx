@@ -12,7 +12,7 @@ import {
   type CommunicationPreferenceChoice,
   type CommunicationPreferencesPayload,
 } from '@/features/profile/api/communicationPreferencesApi';
-import { profileQueryKeys } from '@/shared/lib/queryKeys';
+import { profileQueryKeys } from '@/features/profile/queryKeys';
 
 const togglePreference = (preferences: string[], value: string, checked: boolean) =>
   checked

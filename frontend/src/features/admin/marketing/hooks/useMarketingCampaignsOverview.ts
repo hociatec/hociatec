@@ -6,7 +6,7 @@ import {
   fetchMarketingTemplates,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
 
 export const useMarketingCampaignsOverview = () => {
   const [campaignPage, setCampaignPage] = useState(1);

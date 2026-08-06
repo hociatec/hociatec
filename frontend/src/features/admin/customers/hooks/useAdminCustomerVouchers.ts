@@ -11,7 +11,7 @@ import {
 import { deleteVoucher } from '@/features/admin/vouchers/api';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminCustomerQueryKeys, adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCustomerQueryKeys, adminVoucherQueryKeys } from '@/features/admin/customers/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export type VoucherFormState = {

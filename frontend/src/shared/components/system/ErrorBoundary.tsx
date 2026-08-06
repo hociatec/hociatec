@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router';
 import { ErrorState } from '@/shared/components/ui/page-state';
 import { BUILD_INFO } from '@/shared/config/appConfig';
 import { reportError } from '@/shared/lib/observability';
+import { createRandomId } from '@/shared/lib/random';
 
 interface ErrorBoundaryProps extends PropsWithChildren {
   resetKey: string;
@@ -14,8 +15,7 @@ interface ErrorBoundaryState {
   errorId: string | null;
 }
 
-const createErrorId = () =>
-  `front_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+const createErrorId = () => createRandomId('front');
 
 const isAdminPath = (path: string) => path.startsWith('/admin');
 

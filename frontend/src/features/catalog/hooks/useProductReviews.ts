@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { fetchProductReviews, type CatalogProduct, type ProductPublicReview } from '../api';
-import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 
 const REVIEWS_PER_PAGE = 5;
 

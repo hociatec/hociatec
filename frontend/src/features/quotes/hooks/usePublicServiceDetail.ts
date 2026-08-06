@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 import { fetchPublicQuoteService } from '../api/quotesApi';
-import { quoteQueryKeys } from '@/shared/lib/queryKeys';
+import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const usePublicServiceDetail = () => {
   const { serviceId: rawServiceId } = useParams<{ serviceId: string }>();

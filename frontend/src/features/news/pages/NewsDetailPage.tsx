@@ -10,7 +10,7 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
-import { newsQueryKeys } from '@/shared/lib/queryKeys';
+import { newsQueryKeys } from '@/features/news/queryKeys';
 
 const formatDate = (value: string | null) => (value ? formatOptionalFrenchDate(value) : 'Date non définie');
 

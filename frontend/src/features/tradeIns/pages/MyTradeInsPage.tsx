@@ -9,7 +9,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { downloadMyTradeInReceipt, fetchMyTradeIns, respondToTradeIn } from '../api';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import type { TradeInDto } from '../types';
-import { tradeInQueryKeys } from '@/shared/lib/queryKeys';
+import { tradeInQueryKeys } from '@/features/tradeIns/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 

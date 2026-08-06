@@ -11,7 +11,7 @@ import {
   fetchMyOrders,
   type OrderDto,
 } from '../api';
-import { orderQueryKeys } from '@/shared/lib/queryKeys';
+import { orderQueryKeys } from '@/features/orders/queryKeys';
 import { mapOrderDtoToViewModel, type OrderViewModel } from '@/features/orders/models/orderModel';
 import type { LoadState } from '@/shared/types/loadState';
 import type { OrderId } from '@/shared/types/ids';

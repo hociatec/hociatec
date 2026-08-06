@@ -7,7 +7,7 @@ import {
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
-import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
 
 export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   const confirm = useConfirm();

@@ -6,6 +6,7 @@ import { OrderInvoiceCard } from '@/features/orders/components/OrderInvoiceCard'
 import { OrderItemsReviewTable } from '@/features/orders/components/OrderItemsReviewTable';
 import { OrderDetailSummary } from '@/features/orders/components/OrderDetailSummary';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { toSafeHttpsUrl } from '@/shared/lib/externalUrls';
 
 export const OrderDetailPage = () => {
   useDocumentTitle('Détail de la commande');
@@ -28,6 +29,8 @@ export const OrderDetailPage = () => {
     retry,
     updateReviewForm,
   } = useOrderDetail();
+  const trackingUrl = toSafeHttpsUrl(order?.delivery?.trackingUrl);
+
   return (
     <SiteLayout>
       <div className="container mx-auto px-4 py-8">
@@ -89,10 +92,10 @@ export const OrderDetailPage = () => {
                     <span className="font-medium text-brand-900">Livrée le</span> :{' '}
                     {formatOptionalFrenchDate(order.delivery.deliveredAt)}
                   </div>
-                  {order.delivery.trackingUrl ? (
+                  {trackingUrl ? (
                     <div className="mt-3">
                       <a
-                        href={order.delivery.trackingUrl}
+                        href={trackingUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"

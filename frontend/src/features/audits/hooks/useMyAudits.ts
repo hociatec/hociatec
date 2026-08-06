@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyAudits, type AuditListItemDto } from '../api/auditsApi';
-import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import { auditQueryKeys } from '@/features/audits/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useMyAudits = () => {

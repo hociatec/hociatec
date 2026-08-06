@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { RegisterPayload } from '@/features/auth/api/authApi';
 import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/publicApi';
-import { betaQueryKeys } from '@/shared/lib/queryKeys';
+import { betaQueryKeys } from '@/features/betaTest/queryKeys';
 
 type FormState = RegisterPayload;
 type FieldChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;

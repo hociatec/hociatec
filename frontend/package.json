@@ -16,6 +16,7 @@
         "lint": "eslint src scripts --quiet",
         "lint:css": "stylelint \"src/**/*.css\"",
         "test": "vitest run",
+        "test:a11y": "vitest run a11y",
         "test:e2e": "playwright test",
         "test:e2e:smoke": "playwright test e2e/public-smoke.playwright.ts --grep-invert @visual",
         "test:e2e:smoke:prod": "PLAYWRIGHT_BASE_URL=https://hociatec.fr playwright test e2e/public-smoke.playwright.ts --grep-invert @visual --project=chromium",
@@ -28,7 +29,7 @@
         "check:maintainability": "node scripts/check-maintainability.mjs",
         "check:production-safeguards": "node scripts/check-production-safeguards.mjs",
         "check:bundle-budget": "npm run build && node scripts/check-bundle-budget.mjs",
-        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm run check:maintainability && npm run check:production-safeguards && npm run check:bundle-budget && npm audit --omit=dev",
+        "quality": "npm run typecheck && npm run lint && npm run lint:css && npm run test && npm run test:a11y && npm run validate:env && npm run check:api-contract && npm run check:cycles && npm run check:architecture && npm run check:maintainability && npm run check:production-safeguards && npm run check:bundle-budget && npm audit --omit=dev",
         "lint:debt": "eslint src scripts"
     },
     "devDependencies": {

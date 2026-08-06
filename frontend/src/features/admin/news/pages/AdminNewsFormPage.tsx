@@ -11,7 +11,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminNewsQueryKeys } from '@/shared/lib/queryKeys';
+import { adminNewsQueryKeys } from '@/features/admin/news/queryKeys';
 
 const slugify = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

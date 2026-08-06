@@ -50,6 +50,7 @@ describe('httpClient network conventions', () => {
 
     expect(capturedHeaders[0]?.get('x-cart-token')).toBe('cart-token-1');
     expect(capturedHeaders[0]?.get('x-csrf-token')).toBe('csrf-token-1');
+    expect(capturedHeaders[0]?.get('x-frontend-request-id')).toBe('front_req_request-id-1');
     expect(capturedHeaders[0]?.get('idempotency-key')).toBe('request-id-1');
   });
 

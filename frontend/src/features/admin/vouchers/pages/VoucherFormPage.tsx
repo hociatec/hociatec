@@ -22,7 +22,8 @@ import {
   VoucherFormFields,
   type VoucherFormState,
 } from '@/features/admin/vouchers/components/VoucherFormFields';
-import { adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
+import { adminVoucherQueryKeys } from '@/features/admin/customers/queryKeys';
+import { createRandomCodeSuffix } from '@/shared/lib/random';
 
 const emptyForm: VoucherFormState = {
   name: '',
@@ -44,7 +45,7 @@ const generateCode = (name: string) => {
       .replace(/[^A-Z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 16) || 'BON';
-  return `${base}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  return `${base}-${createRandomCodeSuffix(2)}`;
 };
 
 export const VoucherFormPage = () => {

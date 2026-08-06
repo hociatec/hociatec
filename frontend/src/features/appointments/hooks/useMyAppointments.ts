@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cancelAppointment, fetchMyAppointments } from '../api/appointmentsApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { appointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { appointmentQueryKeys } from '@/features/appointments/queryKeys';
 
 export const useMyAppointments = () => {
   const [cancellingId, setCancellingId] = useState<number | null>(null);

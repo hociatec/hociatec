@@ -12,7 +12,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from '@/shared/components/ui/dialog';
-import { adminBetaQueryKeys, betaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys, betaQueryKeys } from '@/features/betaTest/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 type BetaBugReportDialogProps = {

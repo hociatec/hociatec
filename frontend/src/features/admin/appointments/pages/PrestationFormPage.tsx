@@ -14,7 +14,7 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
-import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { adminAppointmentQueryKeys } from '@/features/admin/appointments/queryKeys';
 
 type PrestationFormState = {
   name: string;

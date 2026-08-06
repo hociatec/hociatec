@@ -7,7 +7,7 @@ import { type ProductFormState, type VariantRowState } from '@/features/admin/ca
 import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
 import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { useConfirm } from '@/shared/components/ui/confirm';
 
 type UseProductFormActionsParams = {

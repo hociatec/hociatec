@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPublicQuoteServices } from '../api/quotesApi';
 import type { QuoteServiceDto } from '../types/quoteTypes';
-import { quoteQueryKeys } from '@/shared/lib/queryKeys';
+import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const usePublicQuoteServices = () => {
   const query = useQuery<QuoteServiceDto[], Error>({

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { fetchNewsArticles, type NewsArticleDto } from '@/features/news/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { homeQueryKeys } from '@/shared/lib/queryKeys';
+import { homeQueryKeys } from '@/features/home/queryKeys';
 
 const HOMEPAGE_NEWS_LIMIT = 3;
 
@@ -18,6 +18,8 @@ export const useHomeLatestNews = () => {
 
       return items.slice(0, HOMEPAGE_NEWS_LIMIT);
     },
+    staleTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   return {

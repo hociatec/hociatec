@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('idle');
   const isMountedRef = useRef(true);
+  const skipLocalLoginEventsUntil = useRef(0);
   const queryClient = useQueryClient();
 
   useEffect(
@@ -124,6 +125,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   useEffect(
     () =>
       subscribeAuthSessionEvents((event) => {
+        if (event === 'login' && Date.now() < skipLocalLoginEventsUntil.current) {
+          return;
+        }
+
         if (event === 'logout' || event === 'account_deleted') {
           clearLocalSessionState();
           return;
@@ -143,6 +148,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         const response = await loginUser(credentials);
 
         await loadUser();
+        skipLocalLoginEventsUntil.current = Date.now() + 1000;
         publishAuthSessionEvent('login');
 
         // Best-effort fetch to trigger potential cart merge server-side and persist token

@@ -40,3 +40,22 @@ export const removeSessionStorage = (key: string) => {
     logger.warn('Unable to remove sessionStorage item.', { error });
   }
 };
+
+export const readSessionStorage = (key: string) => {
+  if (!hasSessionStorage) return null;
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch (error) {
+    logger.warn('Unable to read sessionStorage.', { error });
+    return null;
+  }
+};
+
+export const writeSessionStorage = (key: string, value: string) => {
+  if (!hasSessionStorage) return;
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch (error) {
+    logger.warn('Unable to write sessionStorage item.', { error });
+  }
+};

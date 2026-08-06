@@ -10,7 +10,7 @@ import {
   type CategoryWithProducts,
 } from '@/features/catalog/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const emptyFacets: CatalogSearchFacets = {

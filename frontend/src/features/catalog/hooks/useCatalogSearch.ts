@@ -11,7 +11,7 @@ import {
   normalizeCatalogSort,
   parseCatalogNumber,
 } from '../lib/catalogSearch';
-import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 interface UseCatalogSearchOptions {

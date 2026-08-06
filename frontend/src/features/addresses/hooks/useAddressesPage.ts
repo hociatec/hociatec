@@ -16,7 +16,7 @@ import {
   type AddressFormState,
 } from '@/features/addresses/types/address';
 import { useToast } from '@/shared/components/ui/toast';
-import { addressQueryKeys } from '@/shared/lib/queryKeys';
+import { addressQueryKeys } from '@/features/addresses/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAddressesPage = () => {

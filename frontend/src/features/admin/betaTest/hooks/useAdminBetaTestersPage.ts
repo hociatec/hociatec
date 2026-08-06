@@ -10,7 +10,7 @@ import {
 } from '../api';
 import { fetchBetaProfileChoices, formatBetaList, type BetaProfileChoices } from '@/features/betaTest/publicApi';
 import { useConfirm } from '@/shared/components/ui/confirm';
-import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export const useAdminBetaTestersPage = () => {

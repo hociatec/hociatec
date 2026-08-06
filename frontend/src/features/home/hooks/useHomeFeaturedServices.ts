@@ -4,7 +4,7 @@ import { fetchPublicQuoteServices } from '@/features/quotes/publicApi';
 import { selectFeaturedServices } from '@/features/quotes/publicApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { homeQueryKeys } from '@/shared/lib/queryKeys';
+import { homeQueryKeys } from '@/features/home/queryKeys';
 
 const HOMEPAGE_SERVICE_LIMIT = 6;
 

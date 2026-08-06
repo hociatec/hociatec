@@ -4,7 +4,7 @@ import { deletePromotion, fetchPromotionAudiences, fetchPromotions } from '../ap
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminPromotionQueryKeys } from '@/shared/lib/queryKeys';
+import { adminPromotionQueryKeys } from '@/features/admin/promotions/queryKeys';
 
 export const usePromotionsList = () => {
   const confirm = useConfirm();

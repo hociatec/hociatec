@@ -1,4 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
+import { idempotencyRequestConfig } from '@/shared/lib/idempotency';
 import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
@@ -9,7 +10,7 @@ type CheckoutResponseDto = CheckoutRedirectDto | { order: OrderDto } | OrderDto;
 export const checkoutOrder = async (addressId: number): Promise<OrderDto | CheckoutRedirectDto> => {
   const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>('/api/orders/checkout', {
     addressId,
-  });
+  }, idempotencyRequestConfig('checkout.cart', { addressId }));
 
   if (isApiOk(data)) {
     const payload = data.data;
@@ -31,6 +32,7 @@ export const checkoutExistingOrder = async (
   const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>(
     `/api/orders/${orderId}/checkout`,
     addressId ? { addressId } : {},
+    idempotencyRequestConfig('checkout.order', { addressId: addressId ?? null, orderId }),
   );
 
   if (isApiOk(data)) {
@@ -99,6 +101,8 @@ export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
 export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
   const { data } = await httpClient.post<ApiResponse<{ order: OrderDto }>>(
     `/api/orders/${orderId}/cancel`,
+    {},
+    idempotencyRequestConfig('order.cancel', { orderId }),
   );
   if (isApiOk(data)) {
     return parseOrder(data.data.order);

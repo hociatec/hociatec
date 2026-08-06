@@ -32,6 +32,8 @@ export const PublicPageShell = ({
       )}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
+      data-page-focus-target
+      tabIndex={-1}
     >
       <header className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

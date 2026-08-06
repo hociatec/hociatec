@@ -9,6 +9,12 @@ module.exports = {
       },
     ],
     'at-rule-empty-line-before': null,
+    'declaration-no-important': [
+      true,
+      {
+        severity: 'warning',
+      },
+    ],
     'color-function-notation': null,
     'color-function-alias-notation': null,
     'alpha-value-notation': null,

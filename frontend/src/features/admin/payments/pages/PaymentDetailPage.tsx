@@ -6,7 +6,7 @@ import { PaymentDetailContent } from '@/features/admin/payments/components/Payme
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminPaymentQueryKeys } from '@/shared/lib/queryKeys';
+import { adminPaymentQueryKeys } from '@/features/admin/payments/queryKeys';
 
 export const PaymentDetailPage = () => {
   const params = useParams();

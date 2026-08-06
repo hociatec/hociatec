@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchPublicCategories, type CatalogCategory } from '../api';
-import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 
 type MenuState = 'idle' | 'loading' | 'ready' | 'error';
 

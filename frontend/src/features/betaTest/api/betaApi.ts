@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
+import { toSafeAttachmentUrl } from '@/shared/lib/externalUrls';
 import { isApiOk, type ApiResponse } from '@/shared/types/api';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 
@@ -23,7 +24,7 @@ export interface BetaProfileDto {
   betaConsent?: boolean;
 }
 const unwrap = <T>(response: ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
-export const resolveBetaAttachmentUrl = (url:string) => new URL(url, API_BASE_URL).toString();
+export const resolveBetaAttachmentUrl = (url:string) => toSafeAttachmentUrl(url, API_BASE_URL);
 export const fetchBetaProfileChoices = async () => unwrap((await httpClient.get<ApiResponse<{choices: BetaProfileChoices}>>('/api/public/beta/profile-options')).data).choices;
 export const fetchMyBetaProfile = async () => unwrap((await httpClient.get<ApiResponse<{profile: BetaProfileDto | null}>>('/api/beta/profile')).data).profile;
 export const fetchBetaCampaigns = async () => unwrap((await httpClient.get<ApiResponse<{items:BetaCampaign[]}>>('/api/beta/campaigns')).data).items;

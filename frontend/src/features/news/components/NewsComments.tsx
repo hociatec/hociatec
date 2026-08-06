@@ -19,7 +19,7 @@ import {
   notifyMutationSuccess,
   notifyValidationError,
 } from '@/shared/lib/notificationConventions';
-import { newsQueryKeys } from '@/shared/lib/queryKeys';
+import { newsQueryKeys } from '@/features/news/queryKeys';
 
 export const NewsComments = ({ slug }: { slug: string }) => {
   const { user } = useAuth();

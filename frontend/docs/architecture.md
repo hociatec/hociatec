@@ -38,6 +38,7 @@ Ce document fixe les conventions attendues pour faire evoluer le frontend React 
 
 - Les permissions reelles restent verifiees cote backend.
 - Le frontend ne stocke pas de secret, jeton sensible ou donnee confidentielle dans `localStorage` ou `sessionStorage`.
+- L'option "Se souvenir de mon email" conserve uniquement l'adresse email dans `localStorage`, via le wrapper de stockage partage, avec une expiration applicative de 30 jours. Aucun mot de passe, jeton ou secret n'est conserve avec cette option.
 - Les pages privees utilisent des metadonnees `noindex`.
 - Les liens externes ouverts dans un nouvel onglet utilisent `rel="noopener noreferrer"`.
 - Les exports CSV doivent passer par le helper de telechargement qui neutralise les formules.

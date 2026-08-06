@@ -9,7 +9,7 @@ import {
   updateLowStockThreshold, updateRefund, updateSupportRequest,
 } from '@/features/admin/operations/api';
 import type { BulkForm, RefundForm, ShippingForms, StockForm, SupportForm, SupportReplies } from '@/features/admin/operations/components/operationsTypes';
-import { adminOperationsQueryKeys } from '@/shared/lib/queryKeys';
+import { adminOperationsQueryKeys } from '@/features/admin/operations/queryKeys';
 
 const emptySupportForm: SupportForm = { customerId: '', orderId: '', subject: '', reason: 'other', message: '', internalNotes: '' };
 const emptyRefundForm: RefundForm = { orderId: '', amountCents: '', reason: '', internalNotes: '' };

@@ -13,7 +13,7 @@ import {
   type OrderDto,
 } from '@/features/orders/api';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
-import { orderQueryKeys } from '@/shared/lib/queryKeys';
+import { orderQueryKeys } from '@/features/orders/queryKeys';
 import {
   canCancelOrderStatus,
   canDownloadInvoiceForOrderStatus,

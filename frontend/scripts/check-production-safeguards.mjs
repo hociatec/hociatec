@@ -1,10 +1,18 @@
 /* global console, process, URL */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
+const projectRoot = new URL('..', import.meta.url).pathname;
 const sourceRoot = new URL('../src', import.meta.url).pathname;
 const allowedLocationAssignFile = 'shared/lib/redirects.ts';
+const allowedDownloadFile = 'shared/lib/downloadFile.ts';
+const allowedRandomFile = 'shared/lib/random.ts';
+const allowedExternalUrlFile = 'shared/lib/externalUrls.ts';
+const allowedStorageFiles = new Set([
+  'shared/lib/http/storage.ts',
+  'shared/lib/authSessionEvents.ts',
+]);
 const files = [];
 
 const walk = (directory) => {
@@ -49,6 +57,23 @@ walk(sourceRoot);
 
 const violations = [];
 
+const requiredSecurityHeaderFiles = [
+  join(projectRoot, 'public/_headers'),
+  join(projectRoot, '../deploy/nginx/frontend-security-headers.conf'),
+];
+
+for (const headerFile of requiredSecurityHeaderFiles) {
+  if (!existsSync(headerFile)) {
+    violations.push(`${relative(projectRoot, headerFile)}: fichier d'en-tetes de securite introuvable`);
+    continue;
+  }
+
+  const content = readFileSync(headerFile, 'utf8');
+  if (!/Content-Security-Policy\b/.test(content)) {
+    violations.push(`${relative(projectRoot, headerFile)}: CSP manquante`);
+  }
+}
+
 for (const file of files) {
   const content = readFileSync(file, 'utf8');
   const location = relative(sourceRoot, file);
@@ -61,6 +86,29 @@ for (const file of files) {
 
   if (/\baxios\.create\s*\(/.test(content) && location !== 'shared/lib/httpClient.ts') {
     violations.push(`${location}: client HTTP parallele interdit, utiliser shared/lib/httpClient`);
+  }
+
+  if (/\bMath\.random\s*\(/.test(content) && location !== allowedRandomFile) {
+    violations.push(`${location}: Math.random interdit, utiliser shared/lib/random`);
+  }
+
+  if (/\bnew\s+MutationObserver\s*\(/.test(content)) {
+    violations.push(`${location}: MutationObserver global interdit pour l'accessibilite, utiliser des composants declaratifs`);
+  }
+
+  if (
+    /\b(?:window\.)?(?:localStorage|sessionStorage)\.(?:getItem|setItem|removeItem)\s*\(/.test(content) &&
+    !allowedStorageFiles.has(location)
+  ) {
+    violations.push(`${location}: acces storage direct interdit, utiliser shared/lib/http/storage`);
+  }
+
+  if (/\bdocument\.createElement\s*\(\s*['"]a['"]\s*\)/.test(content) && location !== allowedDownloadFile) {
+    violations.push(`${location}: telechargement ou object URL direct interdit, centraliser dans shared/lib/downloadFile`);
+  }
+
+  if (/\bwindow\.open\s*\(/.test(content) && location !== allowedExternalUrlFile) {
+    violations.push(`${location}: ouverture externe directe interdite, utiliser shared/lib/externalUrls`);
   }
 
   if (/\blocation\.assign\s*\(/.test(content) && location !== allowedLocationAssignFile) {

@@ -18,7 +18,7 @@ import type {
 } from '@/features/account/types/dashboard';
 import { useToast } from '@/shared/components/ui/toast';
 import { formatOptionalEuroCents } from '@/shared/lib/formatters';
-import { accountQueryKeys } from '@/shared/lib/queryKeys';
+import { accountQueryKeys } from '@/features/account/queryKeys';
 
 export const useClientDashboard = () => {
   const toast = useToast();

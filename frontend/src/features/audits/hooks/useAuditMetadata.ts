@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchAuditMetadata, type AuditMetadataDto } from '../api/auditsApi';
-import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import { auditQueryKeys } from '@/features/audits/queryKeys';
 
 export const useAuditMetadata = () => {
   const query = useQuery<AuditMetadataDto>({

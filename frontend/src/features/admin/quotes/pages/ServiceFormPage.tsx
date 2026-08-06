@@ -15,7 +15,7 @@ import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { ServiceFormFields, type ServiceFormState } from '@/features/admin/quotes/components/ServiceFormFields';
-import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
 
 type ServicePayload = {
   title: string;

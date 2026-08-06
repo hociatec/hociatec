@@ -7,7 +7,7 @@ import {
   type TrainingDto,
 } from '@/features/trainings/api/trainingsApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { trainingQueryKeys } from '@/shared/lib/queryKeys';
+import { trainingQueryKeys } from '@/features/trainings/queryKeys';
 
 export const usePublicTrainingsCatalogData = () => {
   const query = useQuery<{ trainings: TrainingDto[]; categories: TrainingCategoryDto[] }, Error>({

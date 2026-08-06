@@ -90,6 +90,12 @@ describe('route guards', () => {
     expect(screen.getByText('Vérification de la session...')).toBeTruthy();
   });
 
+  it('shows an explicit session unavailable state instead of redirecting to login', () => {
+    renderWithAuth('unavailable', null);
+
+    expect(screen.getByText('Impossible de vérifier votre session pour le moment.')).toBeTruthy();
+  });
+
   it('rejects admin access after the permission is revoked during the session', () => {
     const { rerender } = render(
       <AuthContext.Provider

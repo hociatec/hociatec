@@ -17,11 +17,6 @@ export const fetchAdminTrainings = async (): Promise<TrainingDto[]> => {
   return unwrapTrainingData(res.data).items;
 };
 
-export const fetchAdminTrainingsPage = async (page = 1, perPage = 10): Promise<PaginatedResult<TrainingDto>> => {
-  const res = await httpClient.get<ApiResponse<{ items: TrainingDto[]; meta: PaginationMeta }>>(TRAINING_API_ROUTES.adminTrainings, { params: { page, perPage } });
-  return unwrapTrainingData(res.data);
-};
-
 export const fetchAdminTrainingCategories = async (): Promise<TrainingCategoryDto[]> => {
   const res = await httpClient.get<ApiResponse<{ items: TrainingCategoryDto[] }>>(
     TRAINING_API_ROUTES.adminCategories,

@@ -11,7 +11,7 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { useToast } from '@/shared/components/ui/toast';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { adminVoucherQueryKeys } from '@/shared/lib/queryKeys';
+import { adminVoucherQueryKeys } from '@/features/admin/customers/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 

@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog';
 import { SITE_URL } from '@/shared/config/seoConfig';
+import { openMailtoClient } from '@/shared/lib/externalUrls';
 import { getCatalogProductDisplayName } from '@/features/catalog/utils/productDisplay';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,10 +47,6 @@ export const ProductShareDialog = ({ product, open, onClose }: ProductShareDialo
     onClose();
   };
 
-  const openMailClientFallback = (recipientEmail: string) => {
-    window.location.href = `mailto:${encodeURIComponent(recipientEmail)}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedEmail = shareEmail.trim();
@@ -78,7 +75,7 @@ export const ProductShareDialog = ({ product, open, onClose }: ProductShareDialo
         error instanceof Error ? error.message : "Impossible d'envoyer le produit par e-mail.";
 
       if (error instanceof CatalogApiError && error.statusCode === 503) {
-        openMailClientFallback(normalizedEmail);
+        openMailtoClient(normalizedEmail, mailtoSubject, mailtoBody);
         const fallbackMessage =
           'Le service e-mail est indisponible. Votre messagerie a été ouverte avec le produit prérempli.';
         setShareFeedback({ type: 'info', message: fallbackMessage });

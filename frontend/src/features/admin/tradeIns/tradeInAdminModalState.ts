@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 
 import { formatApiDateForDateInput, formatEuroInputFromCents } from '@/shared/lib/formatters';
+import { createRandomCodeSuffix } from '@/shared/lib/random';
 import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/publicApi';
 
 export type TradeInModalState = {
@@ -29,7 +30,7 @@ export const initialTradeInModalState: TradeInModalState = {
 
 export const generateTradeInTransactionReference = (): string => {
   const date = formatApiDateForDateInput(new Date()).replaceAll('-', '');
-  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const suffix = createRandomCodeSuffix(3);
 
   return `TRX-${date}-${suffix}`;
 };

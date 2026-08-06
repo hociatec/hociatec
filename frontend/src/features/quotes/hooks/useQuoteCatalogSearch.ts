@@ -5,7 +5,7 @@ import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/pub
 import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
 import { useDebounce } from '@/shared/hooks/useDebounce';
-import { quoteQueryKeys } from '@/shared/lib/queryKeys';
+import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const useQuoteCatalogSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');

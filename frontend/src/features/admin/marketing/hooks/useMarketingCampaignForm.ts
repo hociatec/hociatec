@@ -17,7 +17,7 @@ import {
   type CampaignFormState,
 } from '@/features/admin/marketing/types/campaignForm';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminMarketingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
 
 export const useMarketingCampaignForm = () => {
   const [searchParams, setSearchParams] = useSearchParams();

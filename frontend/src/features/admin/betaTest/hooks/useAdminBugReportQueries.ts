@@ -7,7 +7,7 @@ import {
   fetchBugReportActivity,
   fetchBugReportComments,
 } from '../api';
-import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
 
 type BugReportFilters = {
   page: number;

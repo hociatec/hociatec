@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchMyVouchers, type MyVoucherDto } from '../api/vouchersApi';
-import { voucherQueryKeys } from '@/shared/lib/queryKeys';
+import { voucherQueryKeys } from '@/features/vouchers/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useVouchers = () => {

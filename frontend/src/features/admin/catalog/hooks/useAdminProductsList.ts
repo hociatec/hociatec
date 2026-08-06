@@ -10,7 +10,7 @@ import {
 import { groupCatalogProducts } from '@/features/catalog/adminApi';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
-import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 const PRODUCTS_PER_PAGE = 10;

@@ -13,7 +13,7 @@ import {
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 
 type CategoryFormState = {
   name: string;

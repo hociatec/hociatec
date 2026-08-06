@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publicApi';
-import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import { auditQueryKeys } from '@/features/audits/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const AUDIT_TYPES = [

@@ -13,7 +13,7 @@ import { downloadBlob } from '@/shared/lib/downloadFile';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const useAdminQuoteDetail = () => {
   const { quoteId } = useParams();

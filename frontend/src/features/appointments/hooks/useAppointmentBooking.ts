@@ -8,7 +8,7 @@ import { bookAppointment, fetchAvailability, fetchPrestations } from '../api/app
 import type { AvailabilitySlot, Prestation } from '../types/appointments';
 import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
-import { appointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { appointmentQueryKeys } from '@/features/appointments/queryKeys';
 
 const ymd = (date: Date) => format(startOfDay(date), 'yyyy-MM-dd');
 type BookingState = { bookingConfirm?: { prestationId: number; slot: AvailabilitySlot } };

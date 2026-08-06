@@ -14,7 +14,7 @@ import { AdminListState, AdminTableShell } from '@/shared/components/admin/Admin
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';

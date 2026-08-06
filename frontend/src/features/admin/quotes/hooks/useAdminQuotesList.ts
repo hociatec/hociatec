@@ -12,7 +12,7 @@ import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/publicApi';
-import { adminQuoteQueryKeys } from '@/shared/lib/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { PaginatedResult } from '@/shared/types/api';
 

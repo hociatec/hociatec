@@ -11,7 +11,7 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { adminAppointmentQueryKeys } from '@/shared/lib/queryKeys';
+import { adminAppointmentQueryKeys } from '@/features/admin/appointments/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 

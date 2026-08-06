@@ -10,7 +10,7 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { SearchFilter } from '@/shared/components/filters/SearchFilter';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state';
-import { adminCatalogQueryKeys } from '@/shared/lib/queryKeys';
+import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 

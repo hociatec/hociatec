@@ -8,7 +8,7 @@ import {
   type AuditItemDto,
 } from '../api/auditsApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
-import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import { auditQueryKeys } from '@/features/audits/queryKeys';
 
 export const useMyAuditDetail = () => {
   const { auditId } = useParams();

@@ -8,7 +8,7 @@ import {
   type BackupStatusDto,
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { adminBackupQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBackupQueryKeys } from '@/features/admin/backups/queryKeys';
 
 export const useAdminBackups = () => {
   const queryClient = useQueryClient();

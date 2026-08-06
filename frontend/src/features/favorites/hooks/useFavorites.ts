@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { favoriteQueryKeys } from '@/shared/lib/queryKeys';
+import { favoriteQueryKeys } from '@/features/favorites/queryKeys';
 import { fetchFavoritesPage, removeFavorite, type FavoriteDto } from '../api/favoritesApi';
 import type { PaginatedResult } from '@/shared/types/api';
 

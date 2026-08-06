@@ -1,3 +1,5 @@
+import { writeLocalStorage } from './http/storage';
+
 export type AuthSessionEvent = 'login' | 'logout' | 'profile_updated' | 'account_deleted';
 
 const CHANNEL_NAME = 'hociatec.auth.session';
@@ -23,11 +25,7 @@ export const publishAuthSessionEvent = (event: AuthSessionEvent) => {
   getChannel()?.postMessage(event);
   window.dispatchEvent(new CustomEvent<AuthSessionEvent>(DOM_EVENT_NAME, { detail: event }));
 
-  try {
-    window.localStorage.setItem(STORAGE_KEY, payload);
-  } catch {
-    // BroadcastChannel is the primary channel when available.
-  }
+  writeLocalStorage(STORAGE_KEY, payload);
 };
 
 export const subscribeAuthSessionEvents = (listener: (event: AuthSessionEvent) => void) => {

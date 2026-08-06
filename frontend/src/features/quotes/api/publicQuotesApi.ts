@@ -1,4 +1,5 @@
 import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
+import { idempotencyRequestConfig } from '@/shared/lib/idempotency';
 import type { ApiResponse } from '@/shared/types/api';
 import type { QuoteDto, QuoteInput, QuoteServiceDto } from '../types/quoteTypes';
 import { unwrapQuoteApiResult, unwrapQuoteApiData } from './quoteApiShared';
@@ -10,7 +11,13 @@ type RequestOptions = {
 
 export const createPublicQuote = async (payload: QuoteInput) => {
   const result = unwrapQuoteApiResult(
-    (await httpClient.post<ApiResponse<QuoteDto>>('/api/public/quotes', payload)).data,
+    (
+      await httpClient.post<ApiResponse<QuoteDto>>(
+        '/api/public/quotes',
+        payload,
+        idempotencyRequestConfig('quote.public.create', payload),
+      )
+    ).data,
   );
 
   return { ...result, data: parseQuote(result.data) };

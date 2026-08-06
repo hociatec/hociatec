@@ -10,8 +10,10 @@ import {
   isCsrfFailureResponse,
   shouldAttachCsrfToken,
 } from './http/csrf';
+import { FRONTEND_REQUEST_ID_HEADER_NAME, IDEMPOTENCY_HEADER_NAME } from './http/headers';
 import { getPersistedCartToken } from './http/tokens';
 import { reportError } from './observability';
+import { createRandomId } from './random';
 
 export {
   ApiResponseError,
@@ -39,7 +41,6 @@ export const requestSignalConfig = (signal?: AbortSignal): AxiosRequestConfig =>
   signal ? { signal } : {};
 
 const refreshAuthSession = createAuthSessionRefresher(httpClient);
-export const IDEMPOTENCY_HEADER_NAME = 'Idempotency-Key';
 const FRONTEND_VERSION_HEADER_NAME = 'X-Frontend-Version';
 const FRONTEND_COMMIT_HEADER_NAME = 'X-Frontend-Commit';
 const FRONTEND_ENV_HEADER_NAME = 'X-Frontend-Env';
@@ -55,7 +56,7 @@ const createIdempotencyKey = () => {
     return globalThis.crypto.randomUUID();
   }
 
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  return createRandomId('idempotency');
 };
 
 httpClient.interceptors.request.use(async (config) => {
@@ -72,6 +73,10 @@ httpClient.interceptors.request.use(async (config) => {
 
   if (!headers.has(FRONTEND_ENV_HEADER_NAME)) {
     headers.set(FRONTEND_ENV_HEADER_NAME, BUILD_INFO.environment);
+  }
+
+  if (!headers.has(FRONTEND_REQUEST_ID_HEADER_NAME)) {
+    headers.set(FRONTEND_REQUEST_ID_HEADER_NAME, createRandomId('front_req'));
   }
 
   const cartToken = getPersistedCartToken();
@@ -125,8 +130,14 @@ httpClient.interceptors.response.use(
 
     if (error.response?.status !== 401) {
       if (!error.response || error.response.status >= 500) {
+        const requestHeaders =
+          originalRequest.headers instanceof AxiosHeaders
+            ? originalRequest.headers
+            : new AxiosHeaders(originalRequest.headers);
+
         reportError(error, {
           category: 'network',
+          frontendRequestId: requestHeaders.get(FRONTEND_REQUEST_ID_HEADER_NAME),
           message: 'HTTP request failed.',
           method: originalRequest.method,
           status: error.response?.status,

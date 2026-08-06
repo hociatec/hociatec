@@ -5,7 +5,7 @@ import type { QuoteDto } from '../types/quoteTypes';
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { useToast } from '@/shared/components/ui/toast';
-import { quoteQueryKeys } from '@/shared/lib/queryKeys';
+import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const useMyQuotes = () => {
   const [page, setPage] = useState(1);

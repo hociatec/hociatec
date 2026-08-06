@@ -9,7 +9,7 @@ import {
 } from '../api';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
 import type { BugReportStatus } from '@/shared/contracts/statuses';
 
 export const useAdminBugReportMutations = ({

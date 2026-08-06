@@ -11,7 +11,7 @@ import {
   type AuditListItemDto,
 } from '@/features/audits/publicApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
-import { auditQueryKeys } from '@/shared/lib/queryKeys';
+import { auditQueryKeys } from '@/features/audits/queryKeys';
 
 export const useAdminAuditDetail = () => {
   const { auditId } = useParams();

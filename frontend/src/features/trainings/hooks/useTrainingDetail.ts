@@ -5,7 +5,7 @@ import { enrollTrainingSession, fetchPublicTraining, type TrainingSessionDto } f
 import { useAuth } from '@/features/auth/publicApi';
 import { isWeekendDate } from '../lib/trainingDetail';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
-import { trainingQueryKeys } from '@/shared/lib/queryKeys';
+import { trainingQueryKeys } from '@/features/trainings/queryKeys';
 
 export const useTrainingDetail = () => {
   const { slug = '' } = useParams();

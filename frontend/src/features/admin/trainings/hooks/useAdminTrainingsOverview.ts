@@ -14,7 +14,7 @@ import {
   type TrainingEnrollmentDto,
   type TrainingSessionDto,
 } from '@/features/trainings/publicApi';
-import { adminTrainingQueryKeys } from '@/shared/lib/queryKeys';
+import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 
 export const useAdminTrainingsOverview = () => {
   const confirm = useConfirm();

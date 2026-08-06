@@ -16,6 +16,7 @@ import {
   AdminDashboardPage,
   AdminLayout,
   AdminOperationsPage,
+  AdminUiCatalogPage,
 } from './adminPageGroups/AdminCorePages';
 import {
   AdminCustomerDetailPage,
@@ -88,6 +89,7 @@ export const adminRoutes: AppRouteDefinition = {
     { index: true, element: <AdminDashboardPage /> },
     { path: 'operations', element: <AdminOperationsPage /> },
     { path: 'backups', element: <AdminBackupsPage /> },
+    { path: 'ui-catalog', element: <AdminUiCatalogPage /> },
     {
       path: 'trainings',
       children: [

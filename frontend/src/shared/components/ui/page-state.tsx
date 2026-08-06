@@ -2,6 +2,7 @@ import type { HTMLAttributes, PropsWithChildren, ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { cn } from '@/lib/utils';
+import { Alert } from './Alert';
 
 type PageStateVariant = 'neutral' | 'error' | 'success';
 
@@ -24,6 +25,11 @@ interface StableContentProps extends HTMLAttributes<HTMLDivElement> {
   hasContent: boolean;
   loading: boolean;
   loadingLabel?: ReactNode;
+}
+
+interface FeedbackMessageProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  variant?: 'error' | 'success' | 'info' | 'warning';
 }
 
 const variantClass: Record<PageStateVariant, string> = {
@@ -113,22 +119,18 @@ export const ErrorState = ({
 export const FeedbackMessage = ({
   children,
   className,
-  role,
   variant = 'error',
+  role,
   ...props
-}: PageStateProps) => (
-  <div
-    className={cn(
-      'register-form__alert',
-      variant === 'success' && 'register-form__alert--success',
-      variant === 'error' && 'register-form__alert--error',
-      className,
-    )}
+}: FeedbackMessageProps) => (
+  <Alert
+    className={cn('register-form__alert', className)}
     role={role ?? (variant === 'error' ? 'alert' : 'status')}
+    variant={variant}
     {...props}
   >
     {children}
-  </div>
+  </Alert>
 );
 
 export const PrimaryLink = ({ className, ...props }: React.ComponentProps<typeof Link>) => (

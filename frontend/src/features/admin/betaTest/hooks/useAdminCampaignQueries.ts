@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchAdminCampaigns, fetchBugReportComments } from '../api';
-import { adminBetaQueryKeys } from '@/shared/lib/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
 
 export const useAdminCampaignQueries = ({
   selectedReportId,

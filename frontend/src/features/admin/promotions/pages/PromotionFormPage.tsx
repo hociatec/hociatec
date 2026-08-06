@@ -15,7 +15,7 @@ import {
   parseEuroInputToCents,
 } from '@/shared/lib/formatters';
 import type { PromotionFormState } from '@/features/admin/promotions/types/promotionFormTypes';
-import { adminPromotionQueryKeys } from '@/shared/lib/queryKeys';
+import { adminPromotionQueryKeys } from '@/features/admin/promotions/queryKeys';
 
 const emptyForm: PromotionFormState = { name: '', slug: '', description: '', discountType: 'percent', discountValue: '', audienceKey: 'all_users', minimumCartTotalEuros: '0', registeredDays: '30', minimumOrders: '3', inactiveDays: '90', isActive: true, startsAt: '', endsAt: '' };
 

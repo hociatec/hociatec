@@ -5,7 +5,7 @@ import { acceptMyQuote, fetchMyQuote, generateMyQuotePdf, refuseMyQuote } from '
 import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/httpClient';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { useToast } from '@/shared/components/ui/toast';
-import { quoteQueryKeys } from '@/shared/lib/queryKeys';
+import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const useMyQuoteDetail = () => {
   const { quoteId } = useParams();

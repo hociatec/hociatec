@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { fetchPublicProduct, fetchPublicProducts, type CatalogProduct, type CatalogSort } from '../api';
 import { buildVariantGroupKey } from '../utils/productPageDisplay';
-import { catalogQueryKeys } from '@/shared/lib/queryKeys';
+import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
 export const useProductPageData = (slug?: string) => {

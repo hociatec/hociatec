@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 import { fetchMyTrainingEnrollments, type TrainingEnrollmentDto } from '../api/trainingsApi';
-import { trainingQueryKeys } from '@/shared/lib/queryKeys';
+import { trainingQueryKeys } from '@/features/trainings/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useMyTrainingEnrollments = () => {

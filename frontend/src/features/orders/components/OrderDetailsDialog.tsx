@@ -12,7 +12,7 @@ import {
 } from '@/features/orders/models/orderModel';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
-import { orderQueryKeys } from '@/shared/lib/queryKeys';
+import { orderQueryKeys } from '@/features/orders/queryKeys';
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 
 type OrderDetailsDialogProps = {

@@ -25,7 +25,7 @@ import {
 import { useToast } from '@/shared/components/ui/toast';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatFrenchNumber } from '@/shared/lib/formatters';
-import { adminLoyaltyQueryKeys } from '@/shared/lib/queryKeys';
+import { adminLoyaltyQueryKeys } from '@/features/admin/loyalty/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 const pointsToEuroCents = (points: number) => Math.floor(Math.max(0, points) / 100) * 100;

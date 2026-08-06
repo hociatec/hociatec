@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { fetchAdminPaymentMetadata, fetchAdminPayments, type AdminPaymentDto } from '@/features/orders/publicApi';
 import type { OrderStatusOptionDto } from '@/features/orders/publicApi';
-import { adminPaymentQueryKeys } from '@/shared/lib/queryKeys';
+import { adminPaymentQueryKeys } from '@/features/admin/payments/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export type AdminPaymentStatus = 'all' | 'open' | 'paid' | 'expired' | 'failed';
