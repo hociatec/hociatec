@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Mapper;
 
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
+
 final class QuoteValueNormalizer
 {
     private function __construct()
@@ -28,11 +30,10 @@ final class QuoteValueNormalizer
             return null;
         }
 
-        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $normalized);
-        if (false === $date) {
-            throw new \InvalidArgumentException('Format de date invalide. Utilisez YYYY-MM-DD.');
-        }
-
-        return $date->setTime(0, 0);
+        return DateTimeParser::fromFormatOrThrow(
+            'Y-m-d',
+            $normalized,
+            'Format de date invalide. Utilisez YYYY-MM-DD.'
+        )->setTime(0, 0);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Domain\Entity;
 
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -160,8 +161,14 @@ class WorkingDayConfiguration
         $intervals = [];
 
         foreach ($this->breaks as $break) {
-            $start = \DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['start']));
-            $end = \DateTimeImmutable::createFromFormat('Y-m-d H:i', sprintf('%s %s', $date->format('Y-m-d'), $break['end']));
+            $start = DateTimeParser::fromFormat(
+                'Y-m-d H:i',
+                sprintf('%s %s', $date->format('Y-m-d'), $break['start'])
+            );
+            $end = DateTimeParser::fromFormat(
+                'Y-m-d H:i',
+                sprintf('%s %s', $date->format('Y-m-d'), $break['end'])
+            );
 
             if (!$start || !$end) {
                 continue;

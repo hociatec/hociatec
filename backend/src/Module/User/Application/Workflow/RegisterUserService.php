@@ -15,6 +15,7 @@ use App\Module\User\Application\Port\UserPasswordHasher;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class RegisterUserService
@@ -35,12 +36,8 @@ class RegisterUserService
             throw UserAlreadyExistsException::forEmail($input->email);
         }
 
-        $birthDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $input->birthDate);
-        $dateErrors = \DateTimeImmutable::getLastErrors();
-        if (
-            !$birthDate instanceof \DateTimeImmutable
-            || (false !== $dateErrors && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
-        ) {
+        $birthDate = DateTimeParser::fromFormat('!Y-m-d', $input->birthDate);
+        if (!$birthDate instanceof \DateTimeImmutable) {
             throw InvalidBirthDateException::invalid();
         }
 

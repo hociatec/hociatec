@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Application\DTO;
 
 use App\Shared\Domain\Normalization\EmailNormalizer;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -79,12 +80,8 @@ class UpdateProfileInput
 
     public function validateBirthDate(ExecutionContextInterface $context): void
     {
-        $birthDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $this->birthDate);
-        $dateErrors = \DateTimeImmutable::getLastErrors();
-        if (
-            !$birthDate instanceof \DateTimeImmutable
-            || (false !== $dateErrors && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
-        ) {
+        $birthDate = DateTimeParser::fromFormat('!Y-m-d', $this->birthDate);
+        if (!$birthDate instanceof \DateTimeImmutable) {
             $context->buildViolation('La date de naissance est invalide.')
                 ->atPath('birthDate')
                 ->addViolation();

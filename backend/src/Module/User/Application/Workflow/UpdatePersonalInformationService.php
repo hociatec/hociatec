@@ -7,6 +7,7 @@ namespace App\Module\User\Application\Workflow;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final class UpdatePersonalInformationService
 {
@@ -22,12 +23,8 @@ final class UpdatePersonalInformationService
 
     private function parseBirthDate(string $birthDate): \DateTimeImmutable
     {
-        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $birthDate);
-        $dateErrors = \DateTimeImmutable::getLastErrors();
-        if (
-            !$date instanceof \DateTimeImmutable
-            || (false !== $dateErrors && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0))
-        ) {
+        $date = DateTimeParser::fromFormat('!Y-m-d', $birthDate);
+        if (!$date instanceof \DateTimeImmutable) {
             throw InvalidBirthDateException::invalid();
         }
 

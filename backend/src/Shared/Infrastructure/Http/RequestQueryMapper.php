@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Symfony\Component\HttpFoundation\Request;
 
 final class RequestQueryMapper
@@ -96,8 +97,8 @@ final class RequestQueryMapper
             return null;
         }
 
-        $fromIso = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $value);
-        if (false !== $fromIso) {
+        $fromIso = DateTimeParser::fromFormat(\DateTimeImmutable::ATOM, $value);
+        if (null !== $fromIso) {
             return $fromIso;
         }
 

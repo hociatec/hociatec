@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\BetaTest\DTO;
 
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreateBetaCampaignInput
@@ -50,8 +51,6 @@ final readonly class CreateBetaCampaignInput
             return null;
         }
 
-        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', trim($value));
-
-        return $date instanceof \DateTimeImmutable ? $date : null;
+        return DateTimeParser::fromFormat('!Y-m-d', trim($value));
     }
 }

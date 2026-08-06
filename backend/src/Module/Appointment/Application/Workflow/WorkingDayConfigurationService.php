@@ -9,6 +9,7 @@ use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final class WorkingDayConfigurationService
 {
@@ -68,10 +69,10 @@ final class WorkingDayConfigurationService
 
             if ($isWorkingDay) {
                 $startTime = null !== $item->startTime
-                    ? \DateTimeImmutable::createFromFormat('H:i', $item->startTime)
+                    ? DateTimeParser::fromFormat('H:i', $item->startTime)
                     : null;
                 $endTime = null !== $item->endTime
-                    ? \DateTimeImmutable::createFromFormat('H:i', $item->endTime)
+                    ? DateTimeParser::fromFormat('H:i', $item->endTime)
                     : null;
 
                 if (false === $startTime || false === $endTime || null === $startTime || null === $endTime) {
@@ -111,8 +112,8 @@ final class WorkingDayConfigurationService
             $isWeekday = $dayOfWeek <= 4;
 
             if ($isWeekday) {
-                $startTime = \DateTimeImmutable::createFromFormat('H:i', '09:00') ?: null;
-                $endTime = \DateTimeImmutable::createFromFormat('H:i', '19:00') ?: null;
+                $startTime = DateTimeParser::fromFormat('H:i', '09:00');
+                $endTime = DateTimeParser::fromFormat('H:i', '19:00');
                 $breaks = [
                     ['start' => '12:00', 'end' => '13:00'],
                 ];

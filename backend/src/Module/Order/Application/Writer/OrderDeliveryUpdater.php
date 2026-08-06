@@ -10,6 +10,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\DeliveryStatus;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\UnitOfWork;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final readonly class OrderDeliveryUpdater
 {
@@ -117,9 +118,8 @@ final readonly class OrderDeliveryUpdater
             return null;
         }
 
-        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $normalized);
-        $errors = \DateTimeImmutable::getLastErrors();
-        if (!$date instanceof \DateTimeImmutable || (false !== $errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+        $date = DateTimeParser::fromFormat('!Y-m-d', $normalized);
+        if (!$date instanceof \DateTimeImmutable) {
             throw new \InvalidArgumentException('Date estimée invalide.');
         }
 

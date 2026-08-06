@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Pdf;
 
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
+
 final readonly class PdfHtmlFormatter
 {
     public function money(int $amountCents): string
@@ -17,7 +19,7 @@ final readonly class PdfHtmlFormatter
             return '-';
         }
 
-        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
+        $date = DateTimeParser::fromFormat('Y-m-d', $value);
         if ($date instanceof \DateTimeImmutable) {
             return $date->format('d/m/Y');
         }
