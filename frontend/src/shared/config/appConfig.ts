@@ -1,3 +1,5 @@
+import { parseNonNegativeDecimal } from '@/shared/lib/parsers';
+
 export const PROJECT_TITLE = 'hociatec';
 
 export type AppEnv = 'development' | 'staging' | 'production' | 'test';
@@ -47,7 +49,7 @@ const parseBoolean = (value: string | undefined, fallback: boolean) => {
 
 const parseSampleRate = (value: string | undefined, fallback: number) => {
   if (value === undefined || value.trim() === '') return fallback;
-  const parsed = Number(value);
+  const parsed = parseNonNegativeDecimal(value, Number.NaN);
 
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
     throw new Error('Les taux observabilité doivent être compris entre 0 et 1.');

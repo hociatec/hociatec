@@ -7,6 +7,7 @@ export const quoteQueryKeys = {
 };
 
 export const adminQuoteQueryKeys = {
+  base: () => ['admin', 'quotes'] as const,
   metadata: () => ['admin', 'quotes', 'metadata'] as const,
   list: (search: string, status: string) => ['admin', 'quotes', { search, status }] as const,
   detail: (id: number | null) => ['admin', 'quotes', 'detail', id] as const,

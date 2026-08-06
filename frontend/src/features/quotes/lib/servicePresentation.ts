@@ -1,4 +1,5 @@
 import type { QuoteServiceDto } from '../types/quoteTypes';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 type ServiceIllustration = {
   imageUrl: string;
@@ -129,12 +130,7 @@ const SERVICE_ILLUSTRATIONS: Array<{
   },
 ];
 
-const normalizeTitle = (value: string | null | undefined) =>
-  (value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
+const normalizeTitle = (value: string | null | undefined) => normalizeSearchText(value).trim();
 
 const findDefaultFeaturedRank = (service: QuoteServiceDto) => {
   const normalizedTitle = normalizeTitle(service.title);

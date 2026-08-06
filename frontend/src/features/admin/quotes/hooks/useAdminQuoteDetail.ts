@@ -14,19 +14,20 @@ import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/http
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useAdminQuoteDetail = () => {
   const { quoteId } = useParams();
-  const id = Number(quoteId);
+  const id = parseNullablePositiveInteger(quoteId);
   const navigate = useNavigate();
   const prompt = usePrompt();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [actionKey, setActionKey] = useState<string | null>(null);
   const quoteQuery = useQuery<QuoteDto, Error>({
-    queryKey: adminQuoteQueryKeys.detail(Number.isFinite(id) ? id : null),
-    queryFn: () => fetchAdminQuote(id),
-    enabled: Number.isFinite(id) && id > 0,
+    queryKey: adminQuoteQueryKeys.detail(id),
+    queryFn: () => fetchAdminQuote(id || 0),
+    enabled: id !== null,
   });
   const quote = quoteQuery.data ?? null;
   const refresh = async () => {
@@ -110,7 +111,7 @@ export const useAdminQuoteDetail = () => {
     quote,
     loading: quoteQuery.isLoading,
     error:
-      !Number.isFinite(id) || id <= 0
+      id === null
         ? 'Devis introuvable.'
         : quoteQuery.error
           ? getHttpErrorMessage(quoteQuery.error, 'Impossible de charger le devis.')

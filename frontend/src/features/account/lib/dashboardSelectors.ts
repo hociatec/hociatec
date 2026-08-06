@@ -1,5 +1,6 @@
 import type { DashboardAction, DashboardData } from '@/features/account/types/dashboard';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 export const selectQuoteToAnswer = (data: DashboardData) =>
   data.quotes.find(
@@ -65,7 +66,7 @@ export const selectDashboardActions = (
 };
 
 export const normalizeConversionPoints = (value: string) =>
-  Math.floor((Number.parseInt(value, 10) || 0) / 100) * 100;
+  Math.floor((parseNonNegativeInteger(value, 0) / 100)) * 100;
 
 export const getDefaultConvertPoints = (points: number) => {
   if (points <= 0) return '0';

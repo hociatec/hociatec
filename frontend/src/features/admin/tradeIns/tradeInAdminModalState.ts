@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 
 import { formatApiDateForDateInput, formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { createRandomCodeSuffix } from '@/shared/lib/random';
+import { parseNullableNonNegativeDecimal } from '@/shared/lib/parsers';
 import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/publicApi';
 
 export type TradeInModalState = {
@@ -38,7 +39,7 @@ export const generateTradeInTransactionReference = (): string => {
 export const toTradeInMoneyInput = formatEuroInputFromCents;
 
 export const toTradeInRoundedCents = (value: string) =>
-  Math.round(Number(value.replace(',', '.')) * 100);
+  Math.round((parseNullableNonNegativeDecimal(value, 0) ?? 0) * 100);
 
 export const createTradeInModalState = (detail: TradeInDto): TradeInModalState => ({
   selected: detail,

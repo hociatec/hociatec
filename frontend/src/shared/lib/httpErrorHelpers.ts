@@ -1,6 +1,8 @@
 import { AxiosHeaders } from 'axios';
 
 import { FRONTEND_REQUEST_ID_HEADER_NAME } from './http/headers';
+import { parseNonNegativeInteger } from './parsers';
+import { clampAtLeast } from './number';
 
 export type AppErrorKind =
   | 'network'
@@ -32,12 +34,12 @@ export const safeMessage = (message: string | undefined, fallback: string) => {
 
 export const retryAfterSeconds = (value: unknown) => {
   if (typeof value !== 'string' || value.trim() === '') return undefined;
-  const numeric = Number.parseInt(value, 10);
-  if (Number.isFinite(numeric)) return Math.max(0, numeric);
+  const numeric = parseNonNegativeInteger(value, Number.NaN);
+  if (Number.isFinite(numeric)) return numeric;
   const date = Date.parse(value);
   if (Number.isNaN(date)) return undefined;
 
-  return Math.max(0, Math.ceil((date - Date.now()) / 1000));
+  return clampAtLeast(Math.ceil((date - Date.now()) / 1000), 0);
 };
 
 export const normalizeFields = (fields: unknown) =>

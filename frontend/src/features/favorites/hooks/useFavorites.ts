@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { favoriteQueryKeys } from '@/features/favorites/queryKeys';
 import { fetchFavoritesPage, removeFavorite, type FavoriteDto } from '../api/favoritesApi';
 import type { PaginatedResult } from '@/shared/types/api';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export const useFavorites = () => {
   const queryClient = useQueryClient();
@@ -22,7 +23,7 @@ export const useFavorites = () => {
           ? {
               ...current,
               items: current.items.filter((favorite) => favorite.product.id !== productId),
-              meta: { ...current.meta, total: Math.max(0, current.meta.total - 1) },
+              meta: { ...current.meta, total: clampAtLeast(current.meta.total - 1, 0) },
             }
           : current,
       );

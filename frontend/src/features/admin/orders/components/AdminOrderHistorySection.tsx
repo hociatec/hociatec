@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import type { OrderEventDto } from '@/features/orders/publicApi';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 type AdminOrderHistorySectionProps = {
   events: OrderEventDto[];
@@ -12,8 +13,8 @@ const EVENTS_PER_PAGE = 10;
 
 export const AdminOrderHistorySection = ({ events }: AdminOrderHistorySectionProps) => {
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(events.length / EVENTS_PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
+  const totalPages = clampAtLeast(Math.ceil(events.length / EVENTS_PER_PAGE), 1);
+  const currentPage = clampWithin(page, 1, totalPages);
   const visibleEvents = useMemo(() => {
     const start = (currentPage - 1) * EVENTS_PER_PAGE;
 

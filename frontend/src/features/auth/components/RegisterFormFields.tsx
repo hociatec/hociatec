@@ -1,5 +1,6 @@
 import { type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 import type { RegisterPayload } from '@/features/auth/publicApi';
 import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/publicApi';
@@ -46,4 +47,34 @@ const normalizeCheckboxSelection = (name: keyof FormState, value: string, checke
 
 const CheckboxGroup = ({ name, label, options, form, setForm, required = false }: { name: keyof FormState; label: string; options: readonly { value: string; label: string }[]; form: FormState; setForm: Dispatch<SetStateAction<FormState>>; required?: boolean }) => <div className="register-form__checkbox-group"><h4 className="register-form__checkbox-title">{label}</h4><div>{options.map(({ value, label: text }) => { const current = Array.isArray(form[name]) ? form[name] as string[] : []; return <label key={value}><input type="checkbox" name={name} value={value} checked={current.includes(value)} onChange={(event) => setForm((previous) => ({ ...previous, [name]: normalizeCheckboxSelection(name, value, event.target.checked, current) }))} required={required && current.length === 0} aria-label={text} /><span aria-hidden="true">{text}</span></label>; })}</div></div>;
 
-const PasswordField = ({ label, name, value, visible, onChange, onToggle, helpId, error }: { label: string; name: 'password' | 'confirmPassword'; value: string; visible: boolean; onChange: FieldChange; onToggle: () => void; helpId: string; error: string | null }) => <label className="register-form__field"><span>{label}</span><div className="register-form__password-wrapper"><input name={name} type={visible ? 'text' : 'password'} autoComplete="new-password" value={value} onChange={onChange} aria-describedby={helpId} aria-invalid={error ? true : undefined} minLength={8} maxLength={4096} required /><button type="button" className="register-form__password-toggle" onClick={onToggle} aria-label={visible ? `Masquer ${label.toLowerCase()}` : `Afficher ${label.toLowerCase()}`}>{visible ? 'Masquer' : 'Afficher'}</button></div></label>;
+const PasswordField = ({ label, name, value, visible, onChange, onToggle, helpId, error }: { label: string; name: 'password' | 'confirmPassword'; value: string; visible: boolean; onChange: FieldChange; onToggle: () => void; helpId: string; error: string | null }) => {
+  const lowerCaseLabel = normalizeSearchText(label).trim();
+
+  return (
+    <label className="register-form__field">
+      <span>{label}</span>
+      <div className="register-form__password-wrapper">
+        <input
+          name={name}
+          type={visible ? 'text' : 'password'}
+          autoComplete="new-password"
+          value={value}
+          onChange={onChange}
+          aria-describedby={helpId}
+          aria-invalid={error ? true : undefined}
+          minLength={8}
+          maxLength={4096}
+          required
+        />
+        <button
+          type="button"
+          className="register-form__password-toggle"
+          onClick={onToggle}
+          aria-label={visible ? `Masquer ${lowerCaseLabel}` : `Afficher ${lowerCaseLabel}`}
+        >
+          {visible ? 'Masquer' : 'Afficher'}
+        </button>
+      </div>
+    </label>
+  );
+};

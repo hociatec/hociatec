@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
+import { parseNonNegativeDecimal } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
 import type { CatalogProduct } from '@/features/catalog/adminApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
@@ -54,16 +56,16 @@ export const useAdminQuoteItems = ({
         products.some(
           (product) => product.id === item.productId && product.sellingType === 'rental',
         );
-      const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-      const line = Math.max(
-        0,
+      const months = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
+      const line = clampAtLeast(
         item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0),
+        0,
       );
       ht += line;
       vat += Math.round(line * (item.vatRate / 100));
     }
 
-    ht = Math.max(0, ht - (quote.discountCents ?? 0));
+    ht = clampAtLeast(ht - (quote.discountCents ?? 0), 0);
     return { ht, vat, ttc: ht + vat + (quote.shippingCents ?? 0) };
   }, [products, quote]);
 
@@ -96,7 +98,7 @@ export const useAdminQuoteItems = ({
             unit: service.unit ?? null,
             quantity: 1,
             unitPriceCents: service.priceCents,
-            vatRate: Number(service.vatRate ?? 0),
+            vatRate: parseNonNegativeDecimal(service.vatRate, 0),
             discountCents: 0,
           },
         ],

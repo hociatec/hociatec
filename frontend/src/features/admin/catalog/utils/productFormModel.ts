@@ -2,11 +2,13 @@ import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/featu
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { ProductFormState, VariantRowState } from './productFormConfig';
+import { parseNonNegativeDecimal, parseNonNegativeInteger } from '@/shared/lib/parsers';
 import {
   buildVariantIdentityKey,
   extractNumericValue,
   formatVariantConflictLabel,
   parseProductPrice,
+  normalizeTextValue,
 } from './productFormUtils';
 
 export const buildProductFormState = (product: CatalogProduct): ProductFormState => ({
@@ -61,15 +63,15 @@ export const buildProductPayload = ({
   galleryToRemove,
 }: BuildProductPayloadInput): ProductPayloadResult => {
   const priceValue = parseProductPrice(form.price);
-  const stockValue = Number.parseInt(form.stock, 10);
+  const stockValue = parseNonNegativeInteger(form.stock);
   const releaseYearValue =
-    form.releaseYear.trim() === '' ? null : Number.parseInt(form.releaseYear.trim(), 10);
-  const categoryId = Number.parseInt(form.categoryId, 10);
+    form.releaseYear.trim() === '' ? null : parseNonNegativeInteger(form.releaseYear, Number.NaN);
+  const categoryId = parseNonNegativeInteger(form.categoryId);
   const variantPayload = variantRows
     .map((row) => {
-      const stock = Number.parseInt(row.stock, 10);
+      const stock = parseNonNegativeInteger(row.stock);
       const storageCapacity =
-        row.storageCapacity.trim() === '' ? null : Number.parseInt(row.storageCapacity.trim(), 10);
+        row.storageCapacity.trim() === '' ? null : parseNonNegativeInteger(row.storageCapacity);
       return {
         color: row.color.trim() || null,
         storageCapacity:
@@ -80,9 +82,13 @@ export const buildProductPayload = ({
       };
     })
     .filter((row) => row.color !== null || row.storageCapacity !== null);
+  const discountValue =
+    form.discountEnabled && form.discountValue.trim() !== ''
+      ? parseNonNegativeDecimal(form.discountValue, Number.NaN)
+      : undefined;
 
-  if (Number.isNaN(priceValue) || priceValue < 0) return { error: 'Le prix indiqué est invalide.' };
-  if (Number.isNaN(stockValue) || stockValue < 0)
+  if (Number.isNaN(priceValue)) return { error: 'Le prix indiqué est invalide.' };
+  if (Number.isNaN(stockValue))
     return { error: 'Le stock doit être un entier positif.' };
   if (
     releaseYearValue !== null &&
@@ -91,19 +97,30 @@ export const buildProductPayload = ({
     return { error: 'L’année du modèle doit être comprise entre 2000 et 2100.' };
   }
   if (Number.isNaN(categoryId)) return { error: 'Merci de sélectionner une catégorie.' };
-  if (variantPayload.some((row) => Number.isNaN(row.stock) || row.stock < 0)) {
+  if (form.discountEnabled && form.discountValue.trim() !== '' && Number.isNaN(discountValue)) {
+    return { error: 'La remise doit être un nombre valide.' };
+  }
+  if (
+    form.discountEnabled &&
+    form.discountType === 'percent' &&
+    discountValue !== undefined &&
+    discountValue > 100
+  ) {
+    return { error: 'La remise en pourcentage doit être comprise entre 0 et 100.' };
+  }
+  if (variantPayload.some((row) => Number.isNaN(row.stock))) {
     return { error: 'Le stock des variantes doit être un entier positif.' };
   }
 
   const selectedBrand =
     form.brand.trim() === ''
       ? null
-      : (brands.find((brand) => brand.name.toLowerCase() === form.brand.trim().toLowerCase()) ??
+      : (brands.find((brand) => normalizeTextValue(brand.name) === normalizeTextValue(form.brand)) ??
         null);
   const storageCapacityValue =
-    form.storageCapacity.trim() === '' ? null : Number.parseInt(form.storageCapacity.trim(), 10);
+    form.storageCapacity.trim() === '' ? null : parseNonNegativeInteger(form.storageCapacity);
   const memoryRamValue =
-    form.memoryRam.trim() === '' ? null : Number.parseInt(form.memoryRam.trim(), 10);
+    form.memoryRam.trim() === '' ? null : parseNonNegativeInteger(form.memoryRam);
 
   if (selectedBrand === null)
     return { error: 'La marque est obligatoire. Recherchez puis cochez une marque existante.' };
@@ -176,10 +193,7 @@ export const buildProductPayload = ({
       gallery: galleryPayload,
       discountEnabled: form.discountEnabled,
       discountType: form.discountEnabled ? form.discountType : undefined,
-      discountValue:
-        form.discountEnabled && form.discountValue.trim() !== ''
-          ? Number(form.discountValue.replace(',', '.'))
-          : undefined,
+      discountValue: form.discountEnabled ? discountValue : undefined,
       discountStartsAt:
         form.discountEnabled && form.discountStartsAt ? form.discountStartsAt : undefined,
       discountEndsAt: form.discountEnabled && form.discountEndsAt ? form.discountEndsAt : undefined,

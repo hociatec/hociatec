@@ -131,7 +131,7 @@ export const AdminAuditDetailPage = () => {
     downloadSummary,
     refresh,
   } = useAdminAuditDetail();
-  const displayTitle = audit?.number ? `Audit ${audit.number}` : `Détail ${auditTitle.toLowerCase()}`;
+  const displayTitle = audit?.number ? `Audit ${audit.number}` : `Détail ${auditTitle}`;
 
   if (!loading && !isValidId) {
     return (

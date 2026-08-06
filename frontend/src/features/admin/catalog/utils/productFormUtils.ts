@@ -1,10 +1,8 @@
-export const slugify = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+import { slugify as localSlugify } from '@/shared/lib/slugify';
+import { parseNonNegativeDecimal } from '@/shared/lib/parsers';
+import { normalizeSearchText } from '@/shared/lib/searchText';
+
+export const slugify = (value: string) => localSlugify(value);
 
 export const extractNumericValue = (value: string | null | undefined) => {
   if (!value) {
@@ -19,7 +17,10 @@ export const extractNumericValue = (value: string | null | undefined) => {
 export const buildVariantIdentityKey = (
   color: string | null | undefined,
   storageCapacity: string | null | undefined,
-) => `${(color ?? '').trim().toLowerCase()}|${(storageCapacity ?? '').trim().toLowerCase()}`;
+) => `${normalizeTextValue(color)}|${normalizeTextValue(storageCapacity)}`;
+
+export const normalizeTextValue = (value: string | null | undefined) =>
+  normalizeSearchText(value).trim();
 
 export const formatVariantConflictLabel = (
   color: string | null | undefined,
@@ -44,6 +45,5 @@ export const formatVariantDetails = (product: {
 };
 
 export const parseProductPrice = (value: string) => {
-  const parsed = Number(value.replace(',', '.'));
-  return Number.isNaN(parsed) ? -1 : parsed;
+  return parseNonNegativeDecimal(value, Number.NaN);
 };

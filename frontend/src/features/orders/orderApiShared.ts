@@ -1,15 +1,7 @@
 import type { OrderDto } from './orderTypes';
+import { slugify } from '@/shared/lib/slugify';
 
 export { downloadBlob } from '@/shared/lib/downloadFile';
-
-const normalizeFilenamePart = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
 
 export const buildOrderInvoiceFilename = (
   order: Pick<OrderDto, 'number' | 'createdAt' | 'shipping' | 'customerDisplayName'>,
@@ -18,10 +10,10 @@ export const buildOrderInvoiceFilename = (
   const datePart = Number.isNaN(date.getTime())
     ? 'date-inconnue'
     : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const clientName = normalizeFilenamePart(
+  const clientName = slugify(
     order.customerDisplayName || order.shipping?.name || 'client',
   );
-  const orderNumber = normalizeFilenamePart(order.number || 'commande');
+  const orderNumber = slugify(order.number || 'commande');
 
   return `facture-${datePart}-${clientName}-${orderNumber}`;
 };

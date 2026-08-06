@@ -14,6 +14,8 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 type BrandFormState = {
   name: string;
@@ -25,8 +27,10 @@ const emptyForm: BrandFormState = {
 
 export const BrandFormPage = () => {
   const { brandId } = useParams();
-  const isEdit = Boolean(brandId);
+  const parsedBrandId = parseNullablePositiveInteger(brandId);
+  const isEdit = parsedBrandId !== null;
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(600);
   const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une marque' : 'Admin - Nouvelle marque');
@@ -35,13 +39,13 @@ export const BrandFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const brandQuery = useQuery<CatalogBrand, Error>({
-    queryKey: adminCatalogQueryKeys.brand(brandId ? Number(brandId) : null),
-    queryFn: () => fetchAdminBrand(Number(brandId)),
+    queryKey: adminCatalogQueryKeys.brand(isEdit ? parsedBrandId : null),
+    queryFn: () => fetchAdminBrand(parsedBrandId),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertBrandPayload) =>
-      isEdit ? updateBrand(Number(brandId), payload) : createBrand(payload),
+      isEdit ? updateBrand(parsedBrandId, payload) : createBrand(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.brands() });
       setMessage(
@@ -49,9 +53,7 @@ export const BrandFormPage = () => {
           (isEdit ? 'La marque a bien été mise à jour.' : 'La marque a bien été créée.'),
       );
       if (!isEdit) setForm(emptyForm);
-      setTimeout(() => {
-        navigate('/admin/catalog/brands');
-      }, 600);
+      navigateWithDelay('/admin/catalog/brands');
     },
     onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la marque.")),
   });

@@ -9,11 +9,13 @@ import { useProductBrandSelection } from './useProductBrandSelection';
 import { useProductFormFields } from './useProductFormFields';
 import { useProductFormLoader } from './useProductFormLoader';
 import { useProductFormActions } from './useProductFormActions';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
-  const isEdit = Boolean(productId);
-  const currentProductId = productId ? Number(productId) : null;
+  const parsedProductId = parseNullablePositiveInteger(productId);
+  const isEdit = parsedProductId !== null;
+  const currentProductId = parsedProductId;
 
   const [form, setForm] = useState<ProductFormState>(emptyProductForm);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,6 @@ export const useProductFormController = () => {
 
   const actions = useProductFormActions({
     isEdit,
-    productId,
     form,
     brands,
     variantRows,

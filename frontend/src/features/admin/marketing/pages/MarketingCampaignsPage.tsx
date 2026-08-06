@@ -17,6 +17,7 @@ import {
   formatFrenchDateTime,
   formatOptionalFrenchDate,
 } from '@/shared/lib/formatters';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 const formatCampaignCriteria = (campaign: MarketingCampaign) => {
   const criteria = campaign.criteria ?? {};
@@ -33,7 +34,9 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
     case 'recent_customers':
       return `commande sous ${criteria.recentDays ?? 30} jours`;
     case 'high_value_customers':
-      return formatEuroCents(Number(criteria.minimumTotalCents ?? 50000) || 50000);
+      return formatEuroCents(
+        parseNonNegativeInteger(String(criteria.minimumTotalCents ?? 50000), 50000),
+      );
     case 'customers_with_pending_reviews':
       return `${criteria.minimumPendingReviews ?? 2} avis en attente`;
     default:

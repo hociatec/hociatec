@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 
 import { readSessionStorage, removeSessionStorage } from '@/shared/lib/http/storage';
+import { useTimeout } from '@/shared/hooks/useTimeout';
 
 const MAX_ANNOUNCEMENT_LENGTH = 180;
 
@@ -15,6 +16,7 @@ export const AccessibilityAnnouncer = () => {
   const previousPathRef = useRef<string | null>(null);
   const previousAnnouncementRef = useRef('');
   const [routeAnnouncement, setRouteAnnouncement] = useState('');
+  const { schedule } = useTimeout();
 
   useEffect(() => {
     const path = `${location.pathname}${location.search}${location.hash}`;
@@ -29,7 +31,7 @@ export const AccessibilityAnnouncer = () => {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
+    schedule(() => {
       const announcement = readSessionStorage(ROUTE_ANNOUNCEMENT_KEY) ?? '';
       removeSessionStorage(ROUTE_ANNOUNCEMENT_KEY);
 
@@ -41,8 +43,6 @@ export const AccessibilityAnnouncer = () => {
         setRouteAnnouncement('');
       }
     }, 120);
-
-    return () => window.clearTimeout(timeoutId);
   }, [location.hash, location.pathname, location.search]);
 
   return (

@@ -14,6 +14,7 @@ import {
 } from '@/shared/components/ui/dialog';
 import { adminBetaQueryKeys, betaQueryKeys } from '@/features/betaTest/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 type BetaBugReportDialogProps = {
   open: boolean;
@@ -50,8 +51,8 @@ export const BetaBugReportDialog = ({ open, onClose, campaignId, campaignName }:
       const rawMessage = err instanceof Error ? err.message : 'Impossible d’envoyer le rapport.';
       const isNotFound =
         rawMessage.includes('404')
-        || rawMessage.toLowerCase().includes('introuvable')
-        || rawMessage.toLowerCase().includes('profil');
+        || normalizeSearchText(rawMessage).includes('introuvable')
+        || normalizeSearchText(rawMessage).includes('profil');
       const message = isNotFound
         ? 'Vous devez activer votre profil bêta-testeur pour pouvoir soumettre des rapports.'
         : rawMessage;

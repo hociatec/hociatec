@@ -7,6 +7,7 @@ import { useMyAppointments } from '../hooks/useMyAppointments';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 const PAST_APPOINTMENTS_PER_PAGE = 5;
 
@@ -69,7 +70,7 @@ export const MyAppointmentsPage = () => {
     </ul>
   );
 
-  const totalPastPages = Math.max(1, Math.ceil(past.length / PAST_APPOINTMENTS_PER_PAGE));
+  const totalPastPages = clampAtLeast(Math.ceil(past.length / PAST_APPOINTMENTS_PER_PAGE), 1);
   const paginatedPast = past.slice(
     (pastPage - 1) * PAST_APPOINTMENTS_PER_PAGE,
     pastPage * PAST_APPOINTMENTS_PER_PAGE,
@@ -114,7 +115,7 @@ export const MyAppointmentsPage = () => {
                           type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={pastPage === 1}
-                          onClick={() => setPastPage((page) => Math.max(1, page - 1))}
+                          onClick={() => setPastPage((page) => clampAtLeast(page - 1, 1))}
                         >
                           Précédent
                         </button>
@@ -125,7 +126,7 @@ export const MyAppointmentsPage = () => {
                           type="button"
                           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={pastPage === totalPastPages}
-                          onClick={() => setPastPage((page) => Math.min(totalPastPages, page + 1))}
+                          onClick={() => setPastPage((page) => clampWithin(page + 1, 1, totalPastPages))}
                         >
                           Suivant
                         </button>

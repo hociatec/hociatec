@@ -9,10 +9,10 @@ import { buildProductPayload } from '@/features/admin/catalog/utils/productFormM
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { useConfirm } from '@/shared/components/ui/confirm';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 
 type UseProductFormActionsParams = {
   isEdit: boolean;
-  productId?: string | undefined;
   form: ProductFormState;
   brands: CatalogBrand[];
   variantRows: VariantRowState[];
@@ -28,7 +28,6 @@ type UseProductFormActionsParams = {
 
 export const useProductFormActions = ({
   isEdit,
-  productId,
   form,
   brands,
   variantRows,
@@ -43,6 +42,7 @@ export const useProductFormActions = ({
 }: UseProductFormActionsParams) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const navigateWithDelay = useDelayedNavigation(800);
   const confirm = useConfirm();
   const deleteVariantMutation = useMutation({
     mutationFn: deleteProduct,
@@ -65,14 +65,16 @@ export const useProductFormActions = ({
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertProductPayload) =>
-      isEdit && productId ? updateProduct(Number(productId), payload) : createProduct(payload),
+      isEdit && currentProductId
+        ? updateProduct(currentProductId, payload)
+        : createProduct(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.products() });
       onMessage(isEdit ? 'Produit mis à jour.' : 'Produit créé.');
       if (!isEdit) {
         resetForm();
       }
-      setTimeout(() => navigate('/admin/catalog/products'), 800);
+      navigateWithDelay('/admin/catalog/products');
     },
     onError: (error) => onError(getHttpErrorMessage(error, "Impossible d'enregistrer le produit.")),
   });

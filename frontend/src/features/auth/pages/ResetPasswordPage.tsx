@@ -1,9 +1,10 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { useState } from 'react';
 
 import { resetPassword } from '../api/authApi';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 import { PRIVATE_ROBOTS_CONTENT, SITE_URL } from '@/shared/config/seoConfig';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
@@ -31,7 +32,7 @@ export const ResetPasswordPage = () => {
   });
 
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation();
   const toast = useToast();
   const [form, setForm] = useState<FormState>({
     password: '',
@@ -93,7 +94,7 @@ export const ResetPasswordPage = () => {
       } catch (error) {
         logger.warn('Unable to display password reset success toast.', { error });
       }
-      window.setTimeout(() => navigate('/login', { replace: true }), 1200);
+      navigateWithDelay('/login', { replace: true }, 1200);
     } catch (submissionError) {
       const nextError =
         submissionError instanceof Error

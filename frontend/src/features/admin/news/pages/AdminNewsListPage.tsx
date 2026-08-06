@@ -29,7 +29,7 @@ export const AdminNewsListPage = () => {
     mutationFn: deleteAdminNewsArticle,
     onSuccess: () => {
       setMessage('Actualité supprimée.');
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
+      void queryClient.invalidateQueries({ queryKey: adminNewsQueryKeys.base() });
     },
   });
   const sendEmailMutation = useMutation({

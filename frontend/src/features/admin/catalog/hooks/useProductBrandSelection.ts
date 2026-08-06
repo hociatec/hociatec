@@ -2,6 +2,7 @@ import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 
 import type { CatalogBrand } from '@/features/catalog/adminApi';
 import type { ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 export const useProductBrandSelection = (
   brands: CatalogBrand[],
@@ -10,13 +11,14 @@ export const useProductBrandSelection = (
 ) => {
   const [brandQuery, setBrandQuery] = useState('');
   const filteredBrands = useMemo(() => {
-    const search = brandQuery.trim().toLowerCase();
+    const search = normalizeSearchText(brandQuery);
     if (search === '') {
+      const selectedBrandName = normalizeSearchText(form.brand);
       return form.brand
-        ? brands.filter((brand) => brand.name.toLowerCase() === form.brand.trim().toLowerCase())
+        ? brands.filter((brand) => normalizeSearchText(brand.name) === selectedBrandName)
         : [];
     }
-    return brands.filter((brand) => brand.name.toLowerCase().includes(search)).slice(0, 8);
+    return brands.filter((brand) => normalizeSearchText(brand.name).includes(search)).slice(0, 8);
   }, [brandQuery, brands, form.brand]);
 
   const handleBrandQueryChange = (value: string) => {
@@ -24,8 +26,12 @@ export const useProductBrandSelection = (
     setForm((previous) => {
       const selectedBrand = previous.brand.trim() === ''
         ? null
-        : brands.find((brand) => brand.name.toLowerCase() === previous.brand.trim().toLowerCase()) ?? null;
-      if (selectedBrand && selectedBrand.name.toLowerCase() === value.trim().toLowerCase()) return previous;
+        : brands.find(
+            (brand) =>
+              normalizeSearchText(brand.name) === normalizeSearchText(previous.brand) &&
+              normalizeSearchText(brand.name) === normalizeSearchText(value),
+          ) ?? null;
+      if (selectedBrand) return previous;
       return { ...previous, brand: '' };
     });
   };

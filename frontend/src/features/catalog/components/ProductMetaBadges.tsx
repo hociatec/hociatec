@@ -1,6 +1,7 @@
 import '../pages/CatalogPages.css';
 
 import clsx from 'clsx';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 type ProductMetaVariant = 'card' | 'detail';
 
@@ -26,7 +27,7 @@ export const ProductMetaBadges = ({
 }: ProductMetaBadgesProps) => {
   const sellingTypeClass =
     sellingType === 'rental' ? 'product-meta__item--rental' : 'product-meta__item--sale';
-  const accessibleLabel = `${categoryName} (${sellingTypeLabel.toLowerCase()})`;
+  const accessibleLabel = `${categoryName} (${normalizeSearchText(sellingTypeLabel)})`;
 
   return (
     <div className={clsx('product-meta', variantClassName[variant], className)}>

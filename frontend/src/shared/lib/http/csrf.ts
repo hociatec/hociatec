@@ -2,6 +2,7 @@ import axios, { AxiosHeaders } from 'axios';
 
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { getRequestPath } from './requestPaths';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 export const CSRF_HEADER_NAME = 'X-CSRF-Token';
 const CSRF_TOKEN_PATH = '/api/csrf-token';
@@ -23,7 +24,8 @@ export const clearCsrfToken = () => {
   csrfTokenRequest = null;
 };
 
-const isUnsafeMethod = (method?: string) => UNSAFE_METHODS.has((method ?? 'get').toLowerCase());
+const isUnsafeMethod = (method?: string) =>
+  UNSAFE_METHODS.has(method ? normalizeSearchText(method).trim() : 'get');
 
 const isCsrfTokenRequest = (url?: string) => {
   if (!url) return false;
@@ -77,8 +79,9 @@ export const isCsrfFailureResponse = (status?: number, data?: unknown) => {
   if (status !== 403 || typeof data !== 'object' || data === null) return false;
 
   const payload = data as { code?: unknown; message?: unknown };
-  const code = typeof payload.code === 'string' ? payload.code.toLowerCase() : '';
-  const message = typeof payload.message === 'string' ? payload.message.toLowerCase() : '';
+  const code = typeof payload.code === 'string' ? normalizeSearchText(payload.code).trim() : '';
+  const message =
+    typeof payload.message === 'string' ? normalizeSearchText(payload.message).trim() : '';
 
   return code.includes('csrf') || message.includes('csrf');
 };

@@ -9,10 +9,11 @@ import { CustomerEmailComposer } from '@/features/admin/customers/components/Cus
 import { CustomerOrdersSection } from '@/features/admin/customers/components/CustomerOrdersSection';
 import { CustomerQuickActions } from '@/features/admin/customers/components/CustomerQuickActions';
 import { CustomerSummaryCards } from '@/features/admin/customers/components/CustomerSummaryCards';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const AdminCustomerDetailPage = () => {
   const params = useParams();
-  const customerId = Number(params.customerId);
+  const customerId = parseNullablePositiveInteger(params.customerId) ?? 0;
   const detail = useAdminCustomerDetail(customerId);
   const { customer, addresses, orders, status, error, orderFilter, adminNotes, adminTagsInput,
     saveState, saveMessage, emailOpen, emailForm, emailSending, emailOnlyView, latestOrder,

@@ -2,6 +2,7 @@ import axios, { type AxiosResponseHeaders } from 'axios';
 
 import { clearCartToken, httpClient, persistCartToken } from '@/shared/lib/httpClient';
 import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 import type { Cart } from '../types/cart';
 import { parseCart } from '../cartValidation';
@@ -24,7 +25,7 @@ interface CartPayload {
   cart: Cart;
 }
 
-const toNormalizedMessage = (message: string) => message.toLowerCase();
+const toNormalizedMessage = (message: string) => normalizeSearchText(message);
 
 const inferNotFoundCode = (message: string): CartErrorCode => {
   const normalized = toNormalizedMessage(message);

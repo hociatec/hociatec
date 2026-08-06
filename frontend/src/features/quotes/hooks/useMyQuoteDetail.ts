@@ -6,18 +6,19 @@ import { getHttpErrorMessage, getHttpErrorMessageAsync } from '@/shared/lib/http
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { useToast } from '@/shared/components/ui/toast';
 import { quoteQueryKeys } from '@/features/quotes/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMyQuoteDetail = () => {
   const { quoteId } = useParams();
-  const id = Number(quoteId);
+  const id = parseNullablePositiveInteger(quoteId);
   const [downloading, setDownloading] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<'accept' | 'refuse' | null>(null);
   const toast = useToast();
   const queryClient = useQueryClient();
   const quoteQuery = useQuery({
-    queryKey: quoteQueryKeys.mineDetail(Number.isFinite(id) && id > 0 ? id : null),
-    queryFn: () => fetchMyQuote(id),
-    enabled: Number.isFinite(id) && id > 0,
+    queryKey: quoteQueryKeys.mineDetail(id),
+    queryFn: () => fetchMyQuote(id || 0),
+    enabled: id !== null,
   });
   const quote = quoteQuery.data ?? null;
   const statusMutation = useMutation({
@@ -60,7 +61,7 @@ export const useMyQuoteDetail = () => {
   return {
     quote,
     loading: quoteQuery.isLoading,
-    error: !Number.isFinite(id) || id <= 0
+    error: id === null
       ? 'Devis introuvable.'
       : quoteQuery.error
         ? getHttpErrorMessage(quoteQuery.error, 'Impossible de charger ce devis.')

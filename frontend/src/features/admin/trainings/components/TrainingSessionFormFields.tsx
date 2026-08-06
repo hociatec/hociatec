@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { TrainingDto, TrainingFormat } from '@/features/trainings/publicApi';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 export type TrainingSessionFormState = {
   trainingId: number;
@@ -30,9 +31,14 @@ export const TrainingSessionFormFields = ({
   <>
     <label className="register-form__field">
       <span>Formation</span>
-      <select
+        <select
         value={form.trainingId}
-        onChange={(event) => setForm((prev) => ({ ...prev, trainingId: Number(event.target.value) }))}
+        onChange={(event) =>
+          setForm((prev) => ({
+            ...prev,
+            trainingId: parseNonNegativeInteger(event.target.value, 0),
+          }))
+        }
       >
         <option value={0}>Choisir...</option>
         {trainings.map((training) => (
@@ -129,14 +135,16 @@ export const TrainingSessionFormFields = ({
         />
       </label>
     )}
-    <label className="register-form__field">
-      <span>Nombre maximum de participants par créneau</span>
-      <input
-        type="number"
-        min={1}
-        value={form.capacity}
-        onChange={(event) => setForm((prev) => ({ ...prev, capacity: Number(event.target.value) }))}
-      />
-    </label>
+      <label className="register-form__field">
+        <span>Nombre maximum de participants par créneau</span>
+        <input
+          type="number"
+          min={1}
+          value={form.capacity}
+          onChange={(event) =>
+            setForm((prev) => ({ ...prev, capacity: parseNonNegativeInteger(event.target.value, 0) }))
+          }
+        />
+      </label>
   </>
 );

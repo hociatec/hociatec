@@ -21,7 +21,7 @@ export const ServiceDetailPage = () => {
     description:
       service?.description?.trim() ||
       'Découvrez le détail du service, sa durée estimée et sa base tarifaire.',
-    canonicalUrl: Number.isFinite(serviceId)
+    canonicalUrl: serviceId !== null
       ? `${SITE_URL}/services/${serviceId}`
       : `${SITE_URL}/services`,
   });

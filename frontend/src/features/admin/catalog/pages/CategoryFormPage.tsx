@@ -14,6 +14,9 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
+import { slugify } from '@/shared/lib/slugify';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 type CategoryFormState = {
   name: string;
@@ -29,18 +32,12 @@ const emptyForm: CategoryFormState = {
   isVisible: true,
 };
 
-const slugify = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
 export const CategoryFormPage = () => {
   const { categoryId } = useParams();
-  const isEdit = Boolean(categoryId);
+  const parsedCategoryId = parseNullablePositiveInteger(categoryId);
+  const isEdit = parsedCategoryId !== null;
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(600);
   const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une catégorie' : 'Admin - Nouvelle catégorie');
@@ -49,13 +46,13 @@ export const CategoryFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const categoryQuery = useQuery<CatalogCategory, Error>({
-    queryKey: adminCatalogQueryKeys.category(categoryId ? Number(categoryId) : null),
-    queryFn: () => fetchAdminCategory(Number(categoryId)),
+    queryKey: adminCatalogQueryKeys.category(isEdit ? parsedCategoryId : null),
+    queryFn: () => fetchAdminCategory(parsedCategoryId),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertCategoryPayload) =>
-      isEdit ? updateCategory(Number(categoryId), payload) : createCategory(payload),
+      isEdit ? updateCategory(parsedCategoryId, payload) : createCategory(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminCatalogQueryKeys.categories() });
       setMessage(
@@ -63,9 +60,7 @@ export const CategoryFormPage = () => {
           (isEdit ? 'La catégorie a bien été mise à jour.' : 'La catégorie a bien été créée.'),
       );
       if (!isEdit) setForm(emptyForm);
-      setTimeout(() => {
-        navigate('/admin/catalog/categories');
-      }, 600);
+      navigateWithDelay('/admin/catalog/categories');
     },
     onError: (err) =>
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la catégorie.")),

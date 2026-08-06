@@ -1,4 +1,5 @@
 import type { Cart, CartActionOptions } from '@/features/cart/types/cart';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export const isProductInCart = (
   cart: Cart | null,
@@ -20,7 +21,7 @@ export const isProductInCart = (
       return true;
     }
 
-    const currentMonths = Math.max(1, item.rentalMonths ?? 1);
-    return currentMonths === Math.max(1, wantedMonths);
+    const currentMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
+    return currentMonths === clampAtLeast(wantedMonths, 1);
   });
 };

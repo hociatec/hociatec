@@ -18,6 +18,8 @@ import {
   formatEuroInputFromCents,
   parseEuroInputToCents,
 } from '@/shared/lib/formatters';
+import { parseNonNegativeInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { slugify } from '@/shared/lib/slugify';
 import {
   VoucherFormFields,
   type VoucherFormState,
@@ -37,21 +39,14 @@ const emptyForm: VoucherFormState = {
 };
 
 const generateCode = (name: string) => {
-  const base =
-    (name.trim() || 'BON')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 16) || 'BON';
+  const base = ((name.trim() ? slugify(name).toUpperCase() : 'BON').slice(0, 16) || 'BON');
   return `${base}-${createRandomCodeSuffix(2)}`;
 };
 
 export const VoucherFormPage = () => {
   const { voucherId } = useParams();
-  const editingId = voucherId ? Number(voucherId) : null;
-  const isEdit = Number.isFinite(editingId);
+  const editingId = parseNullablePositiveInteger(voucherId);
+  const isEdit = editingId !== null;
   useDocumentTitle(isEdit ? 'Admin - Modifier un bon' : 'Admin - Nouveau bon');
   const navigate = useNavigate();
   const toast = useToast();
@@ -60,8 +55,8 @@ export const VoucherFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const voucherQuery = useQuery({
     queryKey: adminVoucherQueryKeys.detail(editingId),
-    queryFn: () => fetchVoucher(editingId ?? 0),
-    enabled: isEdit && editingId !== null,
+    queryFn: () => fetchVoucher(editingId),
+    enabled: isEdit,
   });
 
   useEffect(() => {
@@ -91,7 +86,7 @@ export const VoucherFormPage = () => {
       discountValue:
         form.discountType === 'fixed_cents'
           ? parseEuroInputToCents(form.discountValue)
-          : Number.parseInt(form.discountValue, 10) || 0,
+          : parseNonNegativeInteger(form.discountValue, 0),
       isActive: form.isActive,
       startsAt: form.startsAt || null,
       endsAt: form.endsAt || null,

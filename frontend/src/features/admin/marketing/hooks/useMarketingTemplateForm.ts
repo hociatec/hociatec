@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 import {
   createMarketingTemplate,
   fetchMarketingSegments,
@@ -10,6 +11,7 @@ import {
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const defaultMarketingTemplateForm: MarketingTemplatePayload = {
   name: '',
@@ -24,8 +26,10 @@ export const useMarketingTemplateForm = () => {
   const { templateId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(500);
   const queryClient = useQueryClient();
-  const isEdit = Boolean(templateId);
+  const parsedTemplateId = parseNullablePositiveInteger(templateId);
+  const isEdit = parsedTemplateId !== null;
   const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
   const [form, setForm] = useState<MarketingTemplatePayload>(defaultMarketingTemplateForm);
   const [error, setError] = useState<string | null>(null);
@@ -36,14 +40,14 @@ export const useMarketingTemplateForm = () => {
     queryFn: () => fetchMarketingSegments(segmentType),
   });
   const templateQuery = useQuery({
-    queryKey: adminMarketingQueryKeys.template(templateId ? Number(templateId) : null),
-    queryFn: () => fetchMarketingTemplate(Number(templateId)),
-    enabled: isEdit && Boolean(templateId),
+    queryKey: adminMarketingQueryKeys.template(isEdit ? parsedTemplateId : null),
+    queryFn: () => fetchMarketingTemplate(parsedTemplateId || 0),
+    enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: MarketingTemplatePayload) =>
-      isEdit && templateId
-        ? updateMarketingTemplate(Number(templateId), payload)
+      isEdit
+        ? updateMarketingTemplate(parsedTemplateId, payload)
         : createMarketingTemplate(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminMarketingQueryKeys.templates() });
@@ -53,12 +57,8 @@ export const useMarketingTemplateForm = () => {
             ? 'Le modèle d’e-mail a bien été mis à jour.'
             : 'Le modèle d’e-mail a bien été créé.'),
       );
-      window.setTimeout(
-        () =>
-          navigate(
-            isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates',
-          ),
-        500,
+      navigateWithDelay(
+        isTransactionalView ? '/admin/transactional-emails' : '/admin/marketing/templates',
       );
     },
     onError: (e) => setError(getHttpErrorMessage(e, 'Enregistrement impossible.')),

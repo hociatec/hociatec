@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Clock3 } from 'lucide-react';
 
 import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -41,7 +42,7 @@ export const ServicesCatalogPage = () => {
     canonicalUrl: `${SITE_URL}/services`,
   });
 
-  const totalPages = Math.max(1, Math.ceil(services.length / SERVICES_PER_PAGE));
+  const totalPages = clampAtLeast(Math.ceil(services.length / SERVICES_PER_PAGE), 1);
   const paginatedServices = useMemo(() => {
     const startIndex = (page - 1) * SERVICES_PER_PAGE;
     return services.slice(startIndex, startIndex + SERVICES_PER_PAGE);
@@ -137,7 +138,7 @@ export const ServicesCatalogPage = () => {
                     type="button"
                     className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={page <= 1}
-                    onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    onClick={() => setPage((current) => clampAtLeast(current - 1, 1))}
                   >
                     Précédent
                   </button>
@@ -168,7 +169,7 @@ export const ServicesCatalogPage = () => {
                     type="button"
                     className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={page >= totalPages}
-                    onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                    onClick={() => setPage((current) => clampWithin(current + 1, 1, totalPages))}
                   >
                     Suivant
                   </button>

@@ -1,6 +1,8 @@
 import { formatQuotePrice, type QuoteItem } from '@/features/quotes/publicApi';
 import type { CatalogProduct } from '@/features/catalog/adminApi';
 import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/formatters';
+import { parseNonNegativeInteger, parseNullablePositiveInteger, parseNullableNonNegativeDecimal } from '@/shared/lib/parsers';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 type AdminQuoteItemRowProps = {
   item: QuoteItem;
@@ -11,10 +13,7 @@ type AdminQuoteItemRowProps = {
 };
 
 const parseRate = (value: string) => {
-  const normalized = value.replace(',', '.');
-  const rate = Number.parseFloat(normalized);
-
-  return Number.isFinite(rate) ? Math.max(0, rate) : 0;
+  return parseNullableNonNegativeDecimal(value, 0) ?? 0;
 };
 
 export const AdminQuoteItemRow = ({
@@ -30,10 +29,10 @@ export const AdminQuoteItemRow = ({
       (product) => product.id === item.productId && product.sellingType === 'rental',
     );
   const isCustom = item.type === 'custom';
-  const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-  const line = Math.max(
-    0,
+  const months = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
+  const line = clampAtLeast(
     item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0),
+    0,
   );
 
   return (
@@ -78,7 +77,7 @@ export const AdminQuoteItemRow = ({
                   onRemoveItem(index);
                   return;
                 }
-                onUpdateItem(index, { quantity: Math.min(9999, next) });
+                onUpdateItem(index, { quantity: clampWithin(next, 0, 9999) });
               }}
               aria-label="Diminuer la quantité"
             >
@@ -91,12 +90,12 @@ export const AdminQuoteItemRow = ({
               max={9999}
               value={item.quantity}
               onChange={(event) => {
-                const value = Number.parseInt(event.target.value, 10);
+                const value = parseNonNegativeInteger(event.target.value, 0);
                 if (Number.isNaN(value) || value <= 0) {
                   onRemoveItem(index);
                   return;
                 }
-                onUpdateItem(index, { quantity: Math.min(9999, value) });
+                onUpdateItem(index, { quantity: clampWithin(value, 0, 9999) });
               }}
               className="quote-stepper-input"
             />
@@ -104,7 +103,7 @@ export const AdminQuoteItemRow = ({
               type="button"
               className="catalog-admin-actions__edit"
               onClick={() =>
-                onUpdateItem(index, { quantity: Math.min(9999, (item.quantity ?? 1) + 1) })
+                onUpdateItem(index, { quantity: clampWithin((item.quantity ?? 1) + 1, 0, 9999) })
               }
               aria-label="Augmenter la quantité"
             >
@@ -120,7 +119,7 @@ export const AdminQuoteItemRow = ({
                 className="catalog-admin-actions__edit"
                 onClick={() =>
                   onUpdateItem(index, {
-                    rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1),
+                    rentalMonths: clampAtLeast((item.rentalMonths ?? 1) - 1, 1),
                   })
                 }
                 aria-label="Diminuer le nombre de mois"
@@ -132,11 +131,11 @@ export const AdminQuoteItemRow = ({
                 min={1}
                 step={1}
                 max={120}
-                value={Math.max(1, item.rentalMonths ?? 1)}
+                value={clampAtLeast(item.rentalMonths ?? 1, 1)}
                 onChange={(event) => {
-                  const value = Number.parseInt(event.target.value, 10);
+                  const value = parseNullablePositiveInteger(event.target.value) ?? 1;
                   onUpdateItem(index, {
-                    rentalMonths: Number.isNaN(value) ? 1 : Math.max(1, Math.min(120, value)),
+                    rentalMonths: clampWithin(value, 1, 120),
                   });
                 }}
                 className="quote-stepper-input"
@@ -146,7 +145,7 @@ export const AdminQuoteItemRow = ({
                 className="catalog-admin-actions__edit"
                 onClick={() =>
                   onUpdateItem(index, {
-                    rentalMonths: Math.min(120, (item.rentalMonths ?? 1) + 1),
+                    rentalMonths: clampWithin((item.rentalMonths ?? 1) + 1, 1, 120),
                   })
                 }
                 aria-label="Augmenter le nombre de mois"

@@ -18,6 +18,7 @@ import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 const emptyForm = {
   id: null as number | null,
@@ -159,12 +160,15 @@ export const TrainingCategoriesPage = () => {
             />
           </label>
           <label className="register-form__field">
-            <span>Ordre d’affichage</span>
+                <span>Ordre d’affichage</span>
             <input
               type="number"
               value={form.position}
               onChange={(event) =>
-                setForm((prev) => ({ ...prev, position: Number(event.target.value) }))
+                setForm((prev) => ({
+                  ...prev,
+                  position: parseNonNegativeInteger(event.target.value, 0),
+                }))
               }
             />
           </label>

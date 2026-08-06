@@ -1,6 +1,7 @@
 import { MessageSquare } from 'lucide-react';
 
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 import type { BugReportComment, PaginationMeta } from '../../../api/betaApi';
 
 interface BetaReportConversationProps {
@@ -74,7 +75,7 @@ export const BetaReportConversation = ({
         <button
           type="button"
           disabled={commentPage <= 1}
-          onClick={() => onCommentPageChange((page) => Math.max(1, page - 1))}
+          onClick={() => onCommentPageChange((page) => clampAtLeast(page - 1, 1))}
           className="rounded-lg border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
         >
           Messages précédents
@@ -83,7 +84,7 @@ export const BetaReportConversation = ({
         <button
           type="button"
           disabled={commentPage >= commentsMeta.totalPages}
-          onClick={() => onCommentPageChange((page) => Math.min(commentsMeta.totalPages, page + 1))}
+          onClick={() => onCommentPageChange((page) => clampWithin(page + 1, 1, commentsMeta.totalPages))}
           className="rounded-lg border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
         >
           Messages suivants

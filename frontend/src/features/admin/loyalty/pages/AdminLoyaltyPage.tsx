@@ -28,8 +28,10 @@ import { formatEuroCents, formatFrenchNumber } from '@/shared/lib/formatters';
 import { adminLoyaltyQueryKeys } from '@/features/admin/loyalty/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
-const pointsToEuroCents = (points: number) => Math.floor(Math.max(0, points) / 100) * 100;
+const pointsToEuroCents = (points: number) => Math.floor(clampAtLeast(points, 0) / 100) * 100;
 
 type LoyaltyBalanceDialogProps = {
   customer: AdminLoyaltyCustomerDto | null;
@@ -48,7 +50,7 @@ const LoyaltyBalanceDialog = ({
   onDraftPointsChange,
   onSubmit,
 }: LoyaltyBalanceDialogProps) => {
-  const parsedPoints = Math.max(0, Number.parseInt(draftPoints, 10) || 0);
+  const parsedPoints = parseNonNegativeInteger(draftPoints, 0);
 
   return (
     <Dialog open={customer !== null} onClose={onClose} className="relative z-50">
@@ -222,7 +224,7 @@ export const AdminLoyaltyPage = () => {
       return;
     }
 
-    const points = Math.max(0, Number.parseInt(draftPoints, 10) || 0);
+    const points = parseNonNegativeInteger(draftPoints, 0);
     updateMutation.mutate({ customerId: selectedCustomer.id, points });
   };
 

@@ -10,6 +10,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export const useCartPageController = () => {
   const {
@@ -59,7 +60,7 @@ export const useCartPageController = () => {
   const handleDecrease = useCallback(
     (item: CartLine) => {
       const isRental = item.product.sellingType === 'rental';
-      const rentalReference = isRental ? Math.max(1, item.rentalMonths ?? 1) : undefined;
+      const rentalReference = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : undefined;
 
       if (item.quantity <= 1) {
         void removeItem(
@@ -89,7 +90,7 @@ export const useCartPageController = () => {
   const handleIncrease = useCallback(
     (item: CartLine) => {
       const isRental = item.product.sellingType === 'rental';
-      const rentalReference = isRental ? Math.max(1, item.rentalMonths ?? 1) : undefined;
+      const rentalReference = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : undefined;
 
       void setItemQuantity(
         item.product.id,
@@ -108,8 +109,8 @@ export const useCartPageController = () => {
     (item: CartLine, nextValue: number) => {
       if (item.product.sellingType !== 'rental') return;
 
-      const currentMonths = Math.max(1, item.rentalMonths ?? 1);
-      const normalized = Math.max(1, Number.isNaN(nextValue) ? 1 : nextValue);
+      const currentMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
+      const normalized = clampAtLeast(Number.isNaN(nextValue) ? 1 : nextValue, 1);
       if (normalized === currentMonths) return;
 
       void setItemQuantity(item.product.id, item.quantity, {
@@ -157,7 +158,7 @@ export const useCartPageController = () => {
   const handleRemoveItem = useCallback(
     (item: CartLine) => {
       const isRental = item.product.sellingType === 'rental';
-      const rentalMonths = Math.max(1, item.rentalMonths ?? 1);
+      const rentalMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
       void removeItem(
         item.product.id,
         isRental ? { currentRentalMonths: rentalMonths } : undefined,

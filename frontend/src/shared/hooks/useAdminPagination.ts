@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
+
 export const ADMIN_PAGE_SIZE = 10;
 
 export const useAdminPagination = <T,>(items: T[], resetKey?: string) => {
   const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(items.length / ADMIN_PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
+  const totalPages = clampAtLeast(Math.ceil(items.length / ADMIN_PAGE_SIZE), 1);
+  const currentPage = clampWithin(page, 1, totalPages);
 
   useEffect(() => {
     setPage(1);

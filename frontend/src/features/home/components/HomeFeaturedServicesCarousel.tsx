@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { HomeFeaturedServiceCard } from '@/features/home/homeContent';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
+import { useInterval } from '@/shared/hooks/useInterval';
 
 const SLIDE_INTERVAL_MS = 5200;
 
@@ -12,21 +13,17 @@ export const HomeFeaturedServicesCarousel = ({ services }: { services: QuoteServ
   const trackRef = useRef<HTMLDivElement | null>(null);
   const canSlide = services.length > 1;
 
-  useEffect(() => {
-    if (!canSlide || isPaused) {
-      return;
-    }
+  const shouldAutoPlay = canSlide && !isPaused;
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const intervalDelay = shouldAutoPlay && !prefersReducedMotion ? SLIDE_INTERVAL_MS : null;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
+  useInterval(
+    () => {
       setActiveIndex((current) => (current + 1) % services.length);
-    }, SLIDE_INTERVAL_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [canSlide, isPaused, services.length]);
+    },
+    intervalDelay,
+  );
 
   useEffect(() => {
     const track = trackRef.current;

@@ -15,6 +15,7 @@ import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 import { adminVoucherQueryKeys } from '@/features/admin/vouchers/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { parseNullableNonNegativeDecimal, parseNonNegativeInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export type VoucherFormState = {
   name: string;
@@ -45,11 +46,8 @@ const buildPayload = (form: VoucherFormState): CustomerVoucherPayload => omitUnd
   discountType: form.discountType,
   discountValue:
     form.discountType === 'fixed_cents'
-      ? Math.max(
-          0,
-          Math.round((Number.parseFloat(form.discountValue.replace(',', '.')) || 0) * 100),
-        )
-      : Math.max(0, Number.parseInt(form.discountValue, 10) || 0),
+      ? Math.round((parseNullableNonNegativeDecimal(form.discountValue, 0) ?? 0) * 100)
+      : parseNonNegativeInteger(form.discountValue, 0),
   isActive: form.isActive,
   startsAt: form.startsAt || null,
   endsAt: form.endsAt || null,
@@ -58,16 +56,16 @@ const buildPayload = (form: VoucherFormState): CustomerVoucherPayload => omitUnd
 
 export const useAdminCustomerVouchers = () => {
   const { customerId: rawCustomerId } = useParams();
-  const customerId = Number(rawCustomerId);
+  const customerId = parseNullablePositiveInteger(rawCustomerId);
   const confirm = useConfirm();
   const toast = useToast();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<VoucherFormState>(emptyVoucherForm);
   const [error, setError] = useState<string | null>(null);
   const customerQuery = useQuery({
-    queryKey: adminCustomerQueryKeys.vouchers(Number.isFinite(customerId) ? customerId : null),
-    queryFn: () => fetchAdminCustomerById(customerId),
-    enabled: Number.isFinite(customerId) && customerId > 0,
+    queryKey: adminCustomerQueryKeys.vouchers(customerId),
+    queryFn: () => fetchAdminCustomerById(customerId || 0),
+    enabled: customerId !== null,
   });
   const customer: AdminCustomerDetailDto | null = customerQuery.data?.customer ?? null;
   const vouchers: AdminCustomerVoucherDto[] = customerQuery.data?.vouchers ?? [];

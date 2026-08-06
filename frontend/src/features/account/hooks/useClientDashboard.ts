@@ -20,6 +20,7 @@ import { useToast } from '@/shared/components/ui/toast';
 import { formatOptionalEuroCents } from '@/shared/lib/formatters';
 import { accountQueryKeys } from '@/features/account/queryKeys';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 export const useClientDashboard = () => {
   const toast = useToast();
@@ -54,7 +55,7 @@ export const useClientDashboard = () => {
       setConvertPoints('0');
       return;
     }
-    const currentPoints = Number.parseInt(convertPoints, 10) || 0;
+    const currentPoints = parseNonNegativeInteger(convertPoints, 0);
     if (currentPoints <= 0 || currentPoints > data.loyalty.points)
       setConvertPoints(getDefaultConvertPoints(data.loyalty.points));
   }, [convertPoints, data.loyalty.points]);

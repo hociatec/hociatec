@@ -1,5 +1,8 @@
 import type { TrainingCategoryDto, TrainingDto } from '../api/trainingsApi';
 
+import { parseNullableNonNegativeInteger } from '@/shared/lib/parsers';
+import { normalizeSearchText } from '@/shared/lib/searchText';
+
 export const TRAINING_CATALOG_ALL = 'all';
 export const TRAINING_CATALOG_PER_PAGE = 10;
 export type TrainingSort =
@@ -9,18 +12,11 @@ export const formatTrainingDuration = (minutes: number) => {
   const rest = minutes % 60;
   return hours > 0 ? `${hours}h${rest ? String(rest).padStart(2, '0') : ''}` : `${minutes} min`;
 };
-export const toNullableNumber = (value: string | null) => {
-  if (!value) return null;
-  const parsed = Number(value);
-  return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
-};
+export const toNullableNumber = (value: string | null) => parseNullableNonNegativeInteger(value);
 export const normalizeTrainingParam = (value: string | null) =>
   value && value.trim() ? value : TRAINING_CATALOG_ALL;
 export const normalizeTrainingSearch = (value: string | null | undefined) =>
-  (value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  normalizeSearchText(value);
 export const normalizeTrainingSort = (value: string | null): TrainingSort => {
   const allowed: TrainingSort[] = [
     'title_asc',

@@ -19,6 +19,7 @@ import {
 import { isCampaignOpenForReports } from '../components/dashboard/betaDashboardUtils';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminBetaQueryKeys, betaQueryKeys } from '@/features/betaTest/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useBetaDashboardController = () => {
   const queryClient = useQueryClient();
@@ -60,7 +61,7 @@ export const useBetaDashboardController = () => {
 
   const reports = reportsResult?.items ?? [];
   const reportsMeta = reportsResult?.meta ?? null;
-  const requestedReportId = Number(searchParams.get('reportId') ?? 0) || null;
+  const requestedReportId = parseNullablePositiveInteger(searchParams.get('reportId'));
   const effectiveSelectedReportId = selectedReportId ?? requestedReportId;
 
   const { data: selectedReport } = useQuery({

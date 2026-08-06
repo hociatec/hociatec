@@ -9,6 +9,7 @@ import {
   severityLabels,
 } from '@/features/betaTest/publicApi';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 interface AdminCampaignDetailDialogProps {
   campaign: AdminCampaignDto | null;
@@ -130,7 +131,7 @@ export const AdminCampaignDetailDialog = ({
                     <button
                       type="button"
                       disabled={reportsPage === 1}
-                      onClick={() => onReportsPageChange((page) => Math.max(1, page - 1))}
+                      onClick={() => onReportsPageChange((page) => clampAtLeast(page - 1, 1))}
                       className="rounded-lg border border-brand-100 px-3 py-2 font-semibold text-stone-700 transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Précédent
@@ -138,7 +139,9 @@ export const AdminCampaignDetailDialog = ({
                     <button
                       type="button"
                       disabled={reportsPage === reportsPageCount}
-                      onClick={() => onReportsPageChange((page) => Math.min(reportsPageCount, page + 1))}
+                      onClick={() =>
+                        onReportsPageChange((page) => clampWithin(page + 1, 1, reportsPageCount))
+                      }
                       className="rounded-lg border border-brand-100 px-3 py-2 font-semibold text-stone-700 transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Suivant

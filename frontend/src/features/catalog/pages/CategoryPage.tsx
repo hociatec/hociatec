@@ -1,6 +1,5 @@
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
-import type { CatalogSort } from '../api';
 import { CategoryProductGrid } from '../components/CategoryProductGrid';
 import { CategoryFiltersPanel } from '../components/CategoryFiltersPanel';
 import { CategoryPagination } from '../components/CategoryPagination';
@@ -14,29 +13,15 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { parseNullableNonNegativeInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import {
+  ALL_CATALOG_FILTER,
+  formatCatalogResultsSummary,
+  normalizeCatalogFilter,
+  normalizeCatalogSort,
+} from '@/features/catalog/lib/catalogSearch';
 
 import './CatalogPages.css';
-
-const ALL = 'all';
-const catalogSorts: CatalogSort[] = [
-  'relevance',
-  'price_asc',
-  'price_desc',
-  'release_year_desc',
-  'release_year_asc',
-  'name_desc',
-  'stock_desc',
-  'stock_asc',
-  'created_desc',
-];
-const normalizeSort = (value: string | null, fallback: CatalogSort): CatalogSort =>
-  catalogSorts.includes(value as CatalogSort) ? (value as CatalogSort) : fallback;
-
-const toNullableNumber = (value: string | null) => {
-  if (!value) return null;
-  const parsed = Number(value);
-  return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
-};
 
 export const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -45,18 +30,18 @@ export const CategoryPage = () => {
   const navigate = useNavigate();
 
   const search = searchParams.get('q') ?? '';
-  const brand = searchParams.get('brand') ?? ALL;
-  const storageCapacity = searchParams.get('storageCapacity') ?? ALL;
-  const memoryRam = searchParams.get('memoryRam') ?? ALL;
-  const color = searchParams.get('color') ?? ALL;
-  const sort = normalizeSort(
+  const brand = normalizeCatalogFilter(searchParams.get('brand'));
+  const storageCapacity = normalizeCatalogFilter(searchParams.get('storageCapacity'));
+  const memoryRam = normalizeCatalogFilter(searchParams.get('memoryRam'));
+  const color = normalizeCatalogFilter(searchParams.get('color'));
+  const sort = normalizeCatalogSort(
     searchParams.get('sort'),
     search.trim() ? 'relevance' : 'release_year_desc',
   );
-  const minPrice = toNullableNumber(searchParams.get('minPrice'));
-  const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
+  const minPrice = parseNullableNonNegativeInteger(searchParams.get('minPrice'));
+  const maxPrice = parseNullableNonNegativeInteger(searchParams.get('maxPrice'));
   const inStock = searchParams.get('inStock') === '1';
-  const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
+  const page = parseNullablePositiveInteger(searchParams.get('page')) ?? 1;
   const perPage = 12;
   const { data, products, meta, facets, loading, error, refresh } = useCategoryData({
     slug,
@@ -72,9 +57,7 @@ export const CategoryPage = () => {
     perPage,
     sort,
   });
-  const resultsSummary = search.trim()
-    ? `${meta.total} solution${meta.total > 1 ? 's' : ''} pour « ${search.trim()} »`
-    : `${meta.total} solution${meta.total > 1 ? 's' : ''} disponible${meta.total > 1 ? 's' : ''}`;
+  const resultsSummary = formatCatalogResultsSummary(meta.total, search, 'solution');
 
   const canonicalUrl = slug ? `${SITE_URL}/catalogue/${slug}` : undefined;
   const collectionSchema = data
@@ -108,7 +91,7 @@ export const CategoryPage = () => {
 
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams);
-    if (value === null || value === '' || value === ALL) next.delete(key);
+    if (value === null || value === '' || value === ALL_CATALOG_FILTER) next.delete(key);
     else next.set(key, value);
     if (key !== 'page') next.delete('page');
     setSearchParams(next, { replace: true });

@@ -1,6 +1,7 @@
 import type { AdminBugReportDto, BugReportCommentDto, PaginationMeta } from '../../api';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 interface AdminCampaignReportMessagesDialogProps {
   comments: BugReportCommentDto[];
@@ -94,7 +95,7 @@ export const AdminCampaignReportMessagesDialog = ({
               <button
                 type="button"
                 disabled={commentsPage <= 1}
-                onClick={() => onCommentsPageChange((page) => Math.max(1, page - 1))}
+                onClick={() => onCommentsPageChange((page) => clampAtLeast(page - 1, 1))}
                 className="rounded-lg border border-brand-100 px-3 py-2 font-semibold transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Messages précédents
@@ -103,7 +104,9 @@ export const AdminCampaignReportMessagesDialog = ({
               <button
                 type="button"
                 disabled={commentsPage >= commentsMeta.totalPages}
-                onClick={() => onCommentsPageChange((page) => Math.min(commentsMeta.totalPages, page + 1))}
+                onClick={() =>
+                  onCommentsPageChange((page) => clampWithin(page + 1, 1, commentsMeta.totalPages))
+                }
                 className="rounded-lg border border-brand-100 px-3 py-2 font-semibold transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Messages suivants

@@ -4,17 +4,22 @@ import { useParams } from 'react-router';
 import { fetchMyTrainingEnrollments, type TrainingEnrollmentDto } from '../api/trainingsApi';
 import { trainingQueryKeys } from '@/features/trainings/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMyTrainingEnrollments = () => {
-  const { enrollmentId } = useParams();
+  const { enrollmentId: rawEnrollmentId } = useParams();
   const [page, setPage] = useState(1);
+  const enrollmentId = parseNullablePositiveInteger(rawEnrollmentId);
   const query = useQuery<PaginatedResult<TrainingEnrollmentDto>, Error>({
     queryKey: [...trainingQueryKeys.myEnrollments(), { page }],
     queryFn: () => fetchMyTrainingEnrollments(page, 10),
   });
   const items = query.data?.items ?? [];
   const enrollment = useMemo(
-    () => items.find((item) => item.id === Number(enrollmentId)) ?? null,
+    () =>
+      enrollmentId !== null
+        ? items.find((item) => item.id === enrollmentId) ?? null
+        : null,
     [items, enrollmentId],
   );
   return {

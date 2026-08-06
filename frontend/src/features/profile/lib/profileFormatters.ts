@@ -6,7 +6,9 @@ export type ProfileFeedback = {
 
 export const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-export const normalizeEmail = (email: string) => email.trim().toLowerCase();
+import { normalizeSearchText } from '@/shared/lib/searchText';
+
+export const normalizeEmail = (email: string) => normalizeSearchText(email).trim();
 
 export const formatRole = (role: string) => {
   switch (role) {

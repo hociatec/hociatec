@@ -4,6 +4,8 @@ import { useSearchParams } from 'react-router';
 import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
 import type { TrainingFormat } from '@/features/trainings/api/trainingTypes';
 import { formatEuroCentsRange } from '@/shared/lib/formatters';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 import {
   filterAndSortTrainings,
   getActiveTrainingCategories,
@@ -25,7 +27,7 @@ export const useTrainingCatalogController = () => {
   const maxPrice = toNullableNumber(searchParams.get('maxPrice'));
   const minDuration = toNullableNumber(searchParams.get('minDuration'));
   const maxDuration = toNullableNumber(searchParams.get('maxDuration'));
-  const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
+  const page = parseNullablePositiveInteger(searchParams.get('page')) ?? 1;
 
   const availableCategories = useMemo(() => getActiveTrainingCategories(categories, trainings), [categories, trainings]);
   const categoryOptions = useMemo(() => [
@@ -62,8 +64,8 @@ export const useTrainingCatalogController = () => {
     setSearchParams(next, { replace: true });
   };
   const resetFilters = () => setSearchParams(new URLSearchParams(), { replace: true });
-  const totalPages = Math.max(1, Math.ceil(filteredTrainings.length / PER_PAGE));
-  const currentPage = Math.min(page, totalPages);
+  const totalPages = clampAtLeast(Math.ceil(filteredTrainings.length / PER_PAGE), 1);
+  const currentPage = clampWithin(page, 1, totalPages);
   const paginatedTrainings = filteredTrainings.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
   const resultSummary = query ? `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} pour "${query}"` : `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} affichée${filteredTrainings.length > 1 ? 's' : ''}`;
   const priceValues = trainings.map((training) => training.priceCents);

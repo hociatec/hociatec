@@ -22,6 +22,8 @@ import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { logger } from '@/shared/lib/logger';
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 const toQuoteFormState = (quote: QuoteDto): AdminQuoteFormState => ({
   ...quote,
@@ -57,7 +59,7 @@ export const useAdminQuoteFormController = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isNew = params.quoteId === 'new' || !params.quoteId;
-  const quoteId = isNew ? null : Number(params.quoteId);
+  const quoteId = isNew ? null : parseNullablePositiveInteger(params.quoteId);
   const [quote, setQuote] = useState<AdminQuoteFormState | null>(null);
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false);
   const [rentalCandidate, setRentalCandidate] = useState<CatalogProduct | null>(null);
@@ -70,7 +72,7 @@ export const useAdminQuoteFormController = () => {
       const [services, products, loadedQuote] = await Promise.all([
         fetchAdminQuoteServices(),
         fetchAdminProducts(),
-        isNew ? Promise.resolve(null) : fetchAdminQuote(Number(params.quoteId)),
+        isNew || quoteId === null ? Promise.resolve(null) : fetchAdminQuote(quoteId),
       ]);
       return { services, products, loadedQuote };
     },
@@ -78,17 +80,17 @@ export const useAdminQuoteFormController = () => {
   const services: QuoteServiceDto[] = formOptionsQuery.data?.services ?? [];
   const products: CatalogProduct[] = formOptionsQuery.data?.products ?? [];
 
-  const trimmedSearchQuery = searchQuery.trim().toLowerCase();
+  const trimmedSearchQuery = normalizeSearchText(searchQuery);
   const filteredServices = useMemo(() => {
     if (trimmedSearchQuery === '') return [];
     return services
-      .filter((service) => service.title.toLowerCase().includes(trimmedSearchQuery))
+      .filter((service) => normalizeSearchText(service.title).includes(trimmedSearchQuery))
       .slice(0, 20);
   }, [services, trimmedSearchQuery]);
   const filteredProducts = useMemo(() => {
     if (trimmedSearchQuery === '') return [];
     return products
-      .filter((product) => product.name.toLowerCase().includes(trimmedSearchQuery))
+      .filter((product) => normalizeSearchText(product.name).includes(trimmedSearchQuery))
       .slice(0, 20);
   }, [products, trimmedSearchQuery]);
 
@@ -113,11 +115,13 @@ export const useAdminQuoteFormController = () => {
   const saveMutation = useMutation({
     mutationFn: (currentQuote: AdminQuoteFormState) => {
       const payload = adaptQuoteForSave(currentQuote) as QuoteInput;
-      return isNew ? createAdminQuote(payload) : updateAdminQuote(Number(params.quoteId), payload);
+      return isNew || quoteId === null
+        ? createAdminQuote(payload)
+        : updateAdminQuote(quoteId, payload);
     },
     onSuccess: (saved) => {
       if (isNew) navigate(`/admin/quotes/${saved.id}/edit`, { replace: true });
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
+      void queryClient.invalidateQueries({ queryKey: adminQuoteQueryKeys.base() });
       setQuote(toQuoteFormState(saved));
       const emailNotificationSent = saved.emailNotificationSent === true;
       const emailNotificationError =

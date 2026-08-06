@@ -1,8 +1,10 @@
+import { normalizeSearchText } from '@/shared/lib/searchText';
+
 export type FeatureFlagName = 'betaProgram';
 
 const parseFeatureFlag = (value: string | undefined, defaultValue: boolean) => {
-  if (value === undefined || value.trim() === '') return defaultValue;
-  const normalized = value.trim().toLowerCase();
+  const normalized = value === undefined ? '' : normalizeSearchText(value).trim();
+  if (normalized === '') return defaultValue;
   if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
   if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
 

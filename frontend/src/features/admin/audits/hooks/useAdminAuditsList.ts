@@ -4,6 +4,7 @@ import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publi
 import { auditQueryKeys } from '@/features/audits/publicApi';
 import type { PaginatedResult } from '@/shared/types/api';
 import { useDebounce } from '@/shared/hooks/useDebounce';
+import { shouldRefetchWhenVisible } from '@/shared/lib/browserVisibility';
 
 export const AUDIT_TYPES = [
   'all',
@@ -67,7 +68,9 @@ export const useAdminAuditsList = () => {
         type: debouncedFilterType,
       }),
     refetchInterval: (currentQuery) => {
-      if (document.hidden || currentQuery.state.error) {
+      if (
+        !shouldRefetchWhenVisible(!!currentQuery.state.error)
+      ) {
         return false;
       }
 

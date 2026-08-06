@@ -1,3 +1,5 @@
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
+
 type QuoteQuantityControlProps = {
   productName: string;
   quantity: number;
@@ -22,14 +24,14 @@ export const QuoteQuantityControl = ({
     >
       -
     </button>
-    <input
-      type="number"
-      min={0}
-      className="w-16 text-center border rounded py-1"
-      aria-label={`Quantité de ${productName}`}
-      value={quantity}
-      onChange={(event) => {
-        const nextQuantity = Number.parseInt(event.target.value, 10);
+      <input
+        type="number"
+        min={0}
+        className="w-16 text-center border rounded py-1"
+        aria-label={`Quantité de ${productName}`}
+        value={quantity}
+        onChange={(event) => {
+        const nextQuantity = parseNonNegativeInteger(event.target.value, 0);
         onChange(nextQuantity);
       }}
     />

@@ -11,6 +11,8 @@ import React, {
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router';
 
+import { useInterval } from '@/shared/hooks/useInterval';
+
 type ToastVariant = 'success' | 'error' | 'info';
 
 interface ToastOptions {
@@ -142,27 +144,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [clearToastTimeout, scheduleRemoval, toasts],
   );
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return undefined;
-    }
-
-    const interval = window.setInterval(() => {
+  useInterval(
+    () => {
       const now = Date.now();
       setToasts((list) => list.filter((t) => t.expiresAt > now));
-    }, 1000);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (typeof window === 'undefined') return;
-      timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
-      timeoutsRef.current.clear();
     },
-    [],
+    typeof window === 'undefined' ? null : 1000,
   );
+
+  useEffect(() => () => clearAllToasts(), [clearAllToasts]);
 
   useLayoutEffect(() => {
     clearAllToasts();

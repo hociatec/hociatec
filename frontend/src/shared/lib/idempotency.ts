@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 
 import { IDEMPOTENCY_HEADER_NAME } from './http/headers';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 const normalizeValue = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(normalizeValue);
@@ -27,7 +28,7 @@ const hashString = (value: string) => {
 };
 
 export const createBusinessIdempotencyKey = (scope: string, payload: unknown) => {
-  const normalizedScope = scope.replace(/[^a-z0-9_.:-]/gi, '-').toLowerCase();
+  const normalizedScope = normalizeSearchText(scope).replace(/[^a-z0-9_.:-]/gi, '-');
   const payloadHash = hashString(JSON.stringify(normalizeValue(payload)));
 
   return `${normalizedScope}:${payloadHash}`;

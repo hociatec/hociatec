@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchMyAudits, type AuditListItemDto } from '../api/auditsApi';
 import { auditQueryKeys } from '@/features/audits/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
+import { shouldRefetchWhenVisible } from '@/shared/lib/browserVisibility';
 
 export const useMyAudits = () => {
   const [page, setPage] = useState(1);
@@ -10,7 +11,7 @@ export const useMyAudits = () => {
     queryKey: [...auditQueryKeys.mine(), { page }],
     queryFn: () => fetchMyAudits(page, 10),
     refetchInterval: (currentQuery) => {
-      if (document.hidden || currentQuery.state.error) {
+      if (!shouldRefetchWhenVisible(!!currentQuery.state.error)) {
         return false;
       }
 

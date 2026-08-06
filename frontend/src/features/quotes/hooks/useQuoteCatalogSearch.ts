@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
 import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
@@ -24,7 +25,12 @@ export const useQuoteCatalogSearch = () => {
   const products = debouncedQuery.length >= 2 ? (productsQuery.data ?? []) : [];
 
   const filteredServices = useMemo(
-    () => allServices.filter((service) => service.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).slice(0, 20),
+    () => {
+      const term = normalizeSearchText(searchQuery);
+      return allServices
+        .filter((service) => normalizeSearchText(service.title).includes(term))
+        .slice(0, 20);
+    },
     [allServices, searchQuery],
   );
 

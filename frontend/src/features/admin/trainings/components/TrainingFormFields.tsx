@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { TrainingCategoryDto, TrainingFormat } from '@/features/trainings/publicApi';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export type TrainingFormState = {
   title: string;
@@ -79,7 +80,10 @@ export const TrainingFormFields = ({
           min={1}
           value={form.durationMinutes}
           onChange={(event) =>
-            setForm((prev) => ({ ...prev, durationMinutes: Number(event.target.value) }))
+            setForm((prev) => ({
+              ...prev,
+              durationMinutes: parseNullablePositiveInteger(event.target.value) ?? 1,
+            }))
           }
         />
       </label>

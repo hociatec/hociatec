@@ -16,11 +16,10 @@ import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
+import { normalizePhoneLink } from '@/features/admin/customers/components/customerDetailShared';
 import type { PaginatedResult } from '@/shared/types/api';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';
-
-const normalizePhoneLink = (phoneNumber: string) => phoneNumber.replace(/[^+\d]/g, '');
 
 export const AdminCustomersListPage = () => {
   const [search, setSearch] = useState('');

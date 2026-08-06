@@ -4,6 +4,7 @@ import {
   formatFrenchNumber,
   formatOptionalEuroCents,
 } from '@/shared/lib/formatters';
+import { clampAtLeast } from '@/shared/lib/number';
 import { DashboardPanel } from './DashboardPanel';
 
 export const DashboardVoucherCard = ({
@@ -35,7 +36,7 @@ export const DashboardVoucherCard = ({
         <progress
           className="client-dashboard__chart-progress"
           value={loyalty.points}
-          max={Math.max(1000, loyalty.points)}
+          max={clampAtLeast(loyalty.points, 1000)}
         />
       </div>
       <div className="client-dashboard__chart">
@@ -46,7 +47,7 @@ export const DashboardVoucherCard = ({
         <progress
           className="client-dashboard__chart-progress"
           value={loyalty.euroCents / 100}
-          max={Math.max(50, loyalty.euroCents / 100)}
+          max={clampAtLeast(loyalty.euroCents / 100, 50)}
         />
       </div>
     </div>

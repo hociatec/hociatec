@@ -5,6 +5,7 @@ import {
   type CatalogCategory,
 } from '@/features/catalog/adminApi';
 import type { ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
@@ -149,7 +150,7 @@ export const ProductGeneralSection = ({
           </p>
         ) : (
           filteredBrands.map((brand) => {
-            const checked = form.brand.toLowerCase() === brand.name.toLowerCase();
+            const checked = normalizeSearchText(form.brand) === normalizeSearchText(brand.name);
 
             return (
               <label

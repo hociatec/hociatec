@@ -11,16 +11,11 @@ import {
 } from '@/features/trainings/publicApi';
 import { searchQueryKeys } from '@/features/search/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
-
-const normalize = (value: string | null | undefined) =>
-  (value ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 const matches = (query: string, fields: Array<string | null | undefined>) => {
-  const normalizedQuery = normalize(query);
-  return !normalizedQuery || fields.some((field) => normalize(field).includes(normalizedQuery));
+  const normalizedQuery = normalizeSearchText(query);
+  return !normalizedQuery || fields.some((field) => normalizeSearchText(field).includes(normalizedQuery));
 };
 
 interface GlobalSearchState {

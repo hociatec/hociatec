@@ -9,10 +9,11 @@ import {
   emptyCatalogMeta,
   normalizeCatalogFilter,
   normalizeCatalogSort,
-  parseCatalogNumber,
 } from '../lib/catalogSearch';
+import { parseNullableNonNegativeInteger } from '@/shared/lib/parsers';
 import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { clampAtLeast } from '@/shared/lib/number';
 
 interface UseCatalogSearchOptions {
   category?: string;
@@ -35,9 +36,9 @@ export const useCatalogSearch = ({
     searchParams.get('sort'),
     query.trim() ? 'relevance' : 'release_year_desc',
   );
-  const minPrice = parseCatalogNumber(searchParams.get('minPrice'));
-  const maxPrice = parseCatalogNumber(searchParams.get('maxPrice'));
-  const page = Math.max(1, parseCatalogNumber(searchParams.get('page')) ?? 1);
+  const minPrice = parseNullableNonNegativeInteger(searchParams.get('minPrice'));
+  const maxPrice = parseNullableNonNegativeInteger(searchParams.get('maxPrice'));
+  const page = clampAtLeast(parseNullableNonNegativeInteger(searchParams.get('page')) ?? 1, 1);
   const inStock = searchParams.get('inStock') === '1';
   const searchPayload = useMemo(
     () => omitUndefinedProperties({

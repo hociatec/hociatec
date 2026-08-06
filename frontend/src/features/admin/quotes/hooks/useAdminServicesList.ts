@@ -6,6 +6,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
 import type { PaginatedResult } from '@/shared/types/api';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 export const formatServiceDuration = (service: QuoteServiceDto) =>
   !service.durationValue || !service.durationUnit
     ? '—'
@@ -32,8 +33,8 @@ export const useAdminServicesList = () => {
     onError: (e) => setError(getHttpErrorMessage(e, 'Suppression impossible.')),
   });
   const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return services.filter((service) => !term || service.title.toLowerCase().includes(term));
+    const term = normalizeSearchText(search);
+    return services.filter((service) => !term || normalizeSearchText(service.title).includes(term));
   }, [services, search]);
   useEffect(() => {
     setPage(1);

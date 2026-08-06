@@ -19,6 +19,8 @@ import {
   canDownloadInvoiceForOrderStatus,
   canPayOrderStatus,
 } from '@/features/orders/models/orderModel';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export type ReviewFormState = {
   score: number;
@@ -33,7 +35,7 @@ export const useOrderDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const id = Number(orderId);
+  const id = parseNullablePositiveInteger(orderId);
 
   const [reviewForms, setReviewForms] = useState<Record<number, ReviewFormState>>({});
   const [justConfirmed, setJustConfirmed] = useState(false);
@@ -46,9 +48,9 @@ export const useOrderDetail = () => {
   };
 
   const orderQuery = useQuery<OrderDto, Error>({
-    queryKey: orderQueryKeys.detail(Number.isFinite(id) && id > 0 ? id : null),
-    queryFn: () => fetchOrderById(id),
-    enabled: Number.isFinite(id) && id > 0,
+    queryKey: orderQueryKeys.detail(id),
+    queryFn: () => fetchOrderById(id || 0),
+    enabled: id !== null,
   });
   const order = orderQuery.data ?? null;
   const updateOrderCache = (updated: OrderDto) => {
@@ -131,7 +133,7 @@ export const useOrderDetail = () => {
         const updatedItems = order.items.map((it) =>
           it.orderItemId === orderItemId ? { ...it, canReview: false, review } : it,
         );
-        const nextPending = Math.max(0, (order.pendingReviewsCount ?? 0) - 1);
+        const nextPending = clampAtLeast((order.pendingReviewsCount ?? 0) - 1, 0);
         return {
           ...order,
           items: updatedItems,

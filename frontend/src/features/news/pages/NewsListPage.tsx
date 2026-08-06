@@ -10,10 +10,11 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { newsQueryKeys } from '@/features/news/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const NewsListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') ?? 1) || 1);
+  const page = parseNullablePositiveInteger(searchParams.get('page')) ?? 1;
   const q = searchParams.get('q')?.trim() ?? '';
   const articlesQuery = useQuery({
     queryKey: newsQueryKeys.articlesPage(page, q),

@@ -1,5 +1,6 @@
 import type { BackupStatusDto } from '../api';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 type BackupSettingsFormProps = {
   status: BackupStatusDto | null;
@@ -50,7 +51,9 @@ export const BackupSettingsForm = ({
         Fréquence
         <select
           value={intervalHours}
-          onChange={(event) => setIntervalHours(Number(event.target.value))}
+          onChange={(event) =>
+            setIntervalHours(parseNonNegativeInteger(event.target.value, 6))
+          }
           className="rounded-xl border border-brand-700 bg-brand-900 px-4 py-3 text-white"
         >
           <option value={6}>Toutes les 6 heures</option>
@@ -68,7 +71,7 @@ export const BackupSettingsForm = ({
           min={1}
           max={90}
           value={retentionCount}
-          onChange={(event) => setRetentionCount(Number(event.target.value))}
+          onChange={(event) => setRetentionCount(parseNonNegativeInteger(event.target.value, 1))}
           className="rounded-xl border border-brand-700 bg-brand-900 px-4 py-3 text-white"
         />
       </label>

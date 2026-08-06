@@ -5,6 +5,7 @@ import { DialogTitle } from '@/shared/components/ui/dialog';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { activityLabel, bugReportBadgeClassName, terminalStates } from './adminBugReportUi';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const AdminBugReportMainDetails = ({
   duplicateOfId,
@@ -52,8 +53,9 @@ export const AdminBugReportMainDetails = ({
       className="rounded-2xl border border-stone-200 bg-stone-50 p-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!duplicateOfId) return;
-        onDuplicateSubmit({ id: report.id, duplicateOfId: Number(duplicateOfId), reason: duplicateReason });
+        const duplicateOfIdNumber = parseNullablePositiveInteger(duplicateOfId);
+        if (duplicateOfIdNumber === null) return;
+        onDuplicateSubmit({ id: report.id, duplicateOfId: duplicateOfIdNumber, reason: duplicateReason });
       }}
     >
       <h2 className="font-semibold text-stone-900">Rattacher comme doublon</h2>

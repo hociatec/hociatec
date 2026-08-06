@@ -10,6 +10,7 @@ import {
 } from '@/features/admin/operations/api';
 import type { BulkForm, RefundForm, ShippingForms, StockForm, SupportForm, SupportReplies } from '@/features/admin/operations/components/operationsTypes';
 import { adminOperationsQueryKeys } from '@/features/admin/operations/queryKeys';
+import { parseNullableInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 const emptySupportForm: SupportForm = { customerId: '', orderId: '', subject: '', reason: 'other', message: '', internalNotes: '' };
 const emptyRefundForm: RefundForm = { orderId: '', amountCents: '', reason: '', internalNotes: '' };
@@ -68,11 +69,95 @@ export const useAdminOperationsActions = (refresh: () => Promise<void>) => {
   const runAction = useCallback((action: () => Promise<string | void>, successMessage: string, fallback: string) => {
     actionMutation.mutate({ action, successMessage, fallback });
   }, [actionMutation]);
-  const submitSupport = useCallback(() => runAction(async () => { await createSupportRequest({ customerId: Number(supportForm.customerId), orderId: supportForm.orderId ? Number(supportForm.orderId) : null, subject: supportForm.subject || 'Demande SAV', reason: supportForm.reason, message: supportForm.message, internalNotes: supportForm.internalNotes }); setSupportForm(emptySupportForm); }, 'Demande SAV créée.', 'Erreur SAV.'), [runAction, supportForm]);
-  const submitRefund = useCallback(() => runAction(async () => { await createRefund({ orderId: Number(refundForm.orderId), amountCents: Number(refundForm.amountCents), reason: refundForm.reason, internalNotes: refundForm.internalNotes }); setRefundForm(emptyRefundForm); }, 'Suivi de remboursement créé.', 'Erreur remboursement.'), [refundForm, runAction]);
-  const submitStock = useCallback(() => runAction(async () => { await createStockMovement({ productId: Number(stockForm.productId), delta: Number(stockForm.delta), reason: stockForm.reason, note: stockForm.note }); setStockForm(emptyStockForm); }, 'Stock ajusté.', 'Erreur stock.'), [runAction, stockForm]);
+  const submitSupport = useCallback(() =>
+    runAction(
+      async () => {
+        const customerId = parseNullablePositiveInteger(supportForm.customerId);
+        if (customerId === null) {
+          setActionMessage('ID client invalide.');
+          return;
+        }
+
+        const orderId = supportForm.orderId ? parseNullablePositiveInteger(supportForm.orderId) : null;
+        if (supportForm.orderId && orderId === null) {
+          setActionMessage('ID de commande invalide.');
+          return;
+        }
+
+        await createSupportRequest({
+          customerId,
+          orderId,
+          subject: supportForm.subject || 'Demande SAV',
+          reason: supportForm.reason,
+          message: supportForm.message,
+          internalNotes: supportForm.internalNotes,
+        });
+        setSupportForm(emptySupportForm);
+      },
+      'Demande SAV créée.',
+      'Erreur SAV.',
+    ),
+    [runAction, supportForm]
+  );
+  const submitRefund = useCallback(() =>
+    runAction(
+      async () => {
+        const orderId = parseNullablePositiveInteger(refundForm.orderId);
+        const amountCents = parseNullablePositiveInteger(refundForm.amountCents);
+
+        if (orderId === null || amountCents === null) {
+          setActionMessage('Commande et montant requis.');
+          return;
+        }
+
+        await createRefund({
+          orderId,
+          amountCents,
+          reason: refundForm.reason,
+          internalNotes: refundForm.internalNotes,
+        });
+        setRefundForm(emptyRefundForm);
+      },
+      'Suivi de remboursement créé.',
+      'Erreur remboursement.',
+    ),
+    [runAction, refundForm],
+  );
+  const submitStock = useCallback(() =>
+    runAction(
+      async () => {
+        const productId = parseNullablePositiveInteger(stockForm.productId);
+        const delta = parseNullableInteger(stockForm.delta);
+
+        if (productId === null || delta === null) {
+          setActionMessage('Produit et variation requis.');
+          return;
+        }
+
+        await createStockMovement({
+          productId,
+          delta,
+          reason: stockForm.reason,
+          note: stockForm.note,
+        });
+        setStockForm(emptyStockForm);
+      },
+      'Stock ajusté.',
+      'Erreur stock.',
+    ),
+    [runAction, stockForm],
+  );
   const submitBulk = useCallback(() => {
-    const ids = bulkForm.orderIds.split(',').map((value) => Number(value.trim())).filter((value) => Number.isFinite(value) && value > 0);
+    const ids = bulkForm.orderIds
+      .split(',')
+      .map((value) => parseNullablePositiveInteger(value.trim()))
+      .filter((id): id is number => id !== null);
+
+    if (ids.length === 0) {
+      setActionMessage('Aucune commande valide détectée.');
+      return;
+    }
+
     runAction(async () => { await bulkUpdateOrderStatus(ids, bulkForm.status); setBulkForm(emptyBulkForm); }, `${ids.length} commande(s) mise(s) à jour.`, 'Erreur action groupée.');
   }, [bulkForm, runAction]);
   const submitQuoteConversion = useCallback(() => {
@@ -84,7 +169,21 @@ export const useAdminOperationsActions = (refresh: () => Promise<void>) => {
   const submitShipOrder = useCallback((orderId: number) => { const payload = shippingForms[orderId] ?? emptyShippingForm; runAction(async () => { await shipFulfillmentOrder(orderId, payload); setShippingForms((current) => ({ ...current, [orderId]: emptyShippingForm })); }, 'Commande marquée comme expédiée.', 'Erreur expédition.'); }, [runAction, shippingForms]);
   const submitSupportReply = useCallback((supportId: number) => { const payload = supportReplies[supportId] ?? { subject: `Réponse SAV #${supportId}`, message: '' }; runAction(async () => { await replySupportRequest(supportId, { ...payload, status: 'waiting_customer' }); setSupportReplies((current) => ({ ...current, [supportId]: { subject: '', message: '' } })); }, 'Réponse SAV envoyée au client.', 'Erreur réponse SAV.'); }, [runAction, supportReplies]);
   const submitStripeRefund = useCallback((refundId: number) => { runAction(async () => { const refund = await processStripeRefund(refundId, { confirmation: refundConfirmations[refundId] ?? '' }); setRefundConfirmations((current) => ({ ...current, [refundId]: '' })); return `Remboursement Stripe traité : ${refund.stripeRefundId ?? 'référence Stripe créée'}.`; }, 'Remboursement Stripe traité.', 'Erreur remboursement Stripe.'); }, [refundConfirmations, runAction]);
-  const submitStockThreshold = useCallback((productId: number) => { runAction(async () => { await updateLowStockThreshold(productId, Number(stockThresholds[productId])); }, 'Seuil de stock faible mis à jour.', 'Erreur seuil stock.'); }, [runAction, stockThresholds]);
+  const submitStockThreshold = useCallback((productId: number) => {
+    const threshold = parseNullableInteger(stockThresholds[productId] ?? '');
+    if (threshold === null) {
+      setActionMessage('Seuil de stock invalide.');
+      return;
+    }
+
+    runAction(
+      async () => {
+        await updateLowStockThreshold(productId, threshold);
+      },
+      'Seuil de stock faible mis à jour.',
+      'Erreur seuil stock.',
+    );
+  }, [runAction, stockThresholds]);
   const updateRefundStatus = useCallback((refundId: number, nextStatus: string) => { runAction(async () => { await updateRefund(refundId, { status: nextStatus }); }, 'Statut remboursement mis à jour.', 'Erreur statut remboursement.'); }, [runAction]);
   const updateSupportStatus = useCallback((supportId: number, nextStatus: string) => { runAction(async () => { await updateSupportRequest(supportId, { status: nextStatus }); }, 'Statut SAV mis à jour.', 'Erreur statut SAV.'); }, [runAction]);
 

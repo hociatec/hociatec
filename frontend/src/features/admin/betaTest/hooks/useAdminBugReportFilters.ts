@@ -3,9 +3,11 @@ import { useSearchParams } from 'react-router';
 
 import type { AdminBugReportDto } from '../api';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useAdminBugReportFilters = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const initialReportId = parseNullablePositiveInteger(searchParams.get('reportId'));
   const [page, setPage] = useState(1);
   const [commentPage, setCommentPage] = useState(1);
   const [activityPage, setActivityPage] = useState(1);
@@ -14,7 +16,7 @@ export const useAdminBugReportFilters = () => {
   const [search, setSearch] = useState('');
   const [assignedFilter, setAssignedFilter] = useState('');
   const [selectedReportId, setSelectedReportId] = useState<number | null>(
-    Number(searchParams.get('reportId') ?? 0) || null,
+    initialReportId,
   );
 
   const filters = omitUndefinedProperties({

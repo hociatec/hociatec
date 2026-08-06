@@ -1,4 +1,5 @@
 import type { OrderDto } from '@/features/orders/publicApi';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'delivered' | 'cancelled';
 export type OrderSortKey = 'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'customer_asc';
@@ -20,12 +21,13 @@ export const filterAndSortAdminOrders = (
   search: string,
   sort: OrderSortKey,
 ) => {
-  const term = search.trim().toLowerCase();
+  const term = normalizeSearchText(search);
   return orders
     .filter(
       (order) =>
         !term ||
-        [
+        normalizeSearchText(
+          [
           order.number,
           getOrderCustomerLabel(order),
           order.invoice?.billingEmail,
@@ -35,9 +37,8 @@ export const filterAndSortAdminOrders = (
           order.shipping?.city,
         ]
           .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(term),
+            .join(' '),
+        ).includes(term),
     )
     .sort((left, right) => {
       if (sort === 'amount_desc') return right.totalPriceCents - left.totalPriceCents;

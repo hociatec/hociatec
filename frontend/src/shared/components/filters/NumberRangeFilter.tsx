@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { parseNullableNonNegativeDecimal } from '@/shared/lib/parsers';
 
 interface NumberRangeFilterProps {
   min?: number | null;
@@ -18,9 +19,7 @@ export const NumberRangeFilter = ({
 
   const parse = (v: string) => {
     if (v === '') return null;
-    const parsed = Number(v);
-    if (Number.isNaN(parsed)) return null;
-    return Math.max(0, parsed);
+    return parseNullableNonNegativeDecimal(v);
   };
 
   return (

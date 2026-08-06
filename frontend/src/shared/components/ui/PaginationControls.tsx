@@ -1,3 +1,5 @@
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
+
 interface PaginationControlsProps {
   className?: string | undefined;
   page: number;
@@ -22,7 +24,7 @@ export const PaginationControls = ({
       <button
         type="button"
         disabled={page <= 1}
-        onClick={() => onPageChange((value) => Math.max(1, value - 1))}
+        onClick={() => onPageChange((value) => clampAtLeast(value - 1, 1))}
         className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-semibold disabled:opacity-50"
       >
         Page précédente
@@ -34,7 +36,7 @@ export const PaginationControls = ({
       <button
         type="button"
         disabled={page >= totalPages}
-        onClick={() => onPageChange((value) => Math.min(totalPages, value + 1))}
+        onClick={() => onPageChange((value) => clampWithin(value + 1, 1, totalPages))}
         className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-semibold disabled:opacity-50"
       >
         Page suivante

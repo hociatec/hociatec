@@ -3,6 +3,7 @@ import { formatEuroInputFromCents, parseEuroInputToCents } from '@/shared/lib/fo
 import type { TradeInInput } from '../../types';
 import { tradeInFieldClassName } from '../../lib/tradeInForm';
 import { Check, Field, SectionHeading } from './TradeInFormParts';
+import { parseNonNegativeInteger } from '@/shared/lib/parsers';
 
 interface TradeInDeviceFieldsProps {
   categories: [string, string][];
@@ -57,7 +58,7 @@ export const TradeInDeviceFields = ({
         label="Année d’achat"
         type="number"
         value={String(form.purchaseYear)}
-        onChange={(value) => onChange('purchaseYear', Number(value))}
+        onChange={(value) => onChange('purchaseYear', parseNonNegativeInteger(value, 0))}
         min="1980"
         max={String(new Date().getFullYear())}
         required

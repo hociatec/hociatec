@@ -14,11 +14,13 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 import {
   TrainingSessionFormFields,
   type TrainingSessionFormState,
 } from '@/features/admin/trainings/components/TrainingSessionFormFields';
 import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 const emptyForm: TrainingSessionFormState = {
   trainingId: 0,
@@ -36,8 +38,10 @@ const emptyForm: TrainingSessionFormState = {
 
 export const TrainingSessionFormPage = () => {
   const { sessionId } = useParams();
-  const isEdit = Boolean(sessionId);
+  const parsedSessionId = parseNullablePositiveInteger(sessionId);
+  const isEdit = parsedSessionId !== null;
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(600);
   const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une session' : 'Admin - Nouvelle session');
@@ -46,7 +50,7 @@ export const TrainingSessionFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const formQuery = useQuery({
-    queryKey: adminTrainingQueryKeys.sessionForm(sessionId ? Number(sessionId) : null),
+    queryKey: adminTrainingQueryKeys.sessionForm(isEdit ? parsedSessionId : null),
     queryFn: async () => {
       const [trainings, sessions] = await Promise.all([
         fetchAdminTrainings(),
@@ -59,8 +63,8 @@ export const TrainingSessionFormPage = () => {
 
   useEffect(() => {
     if (!formQuery.data) return;
-    if (isEdit && sessionId) {
-      const session = formQuery.data.sessions.find((item) => item.id === Number(sessionId));
+    if (isEdit) {
+      const session = formQuery.data.sessions.find((item) => item.id === parsedSessionId);
 
           if (!session) {
             setError('Session introuvable.');
@@ -81,7 +85,7 @@ export const TrainingSessionFormPage = () => {
             status: session.status,
           });
         }
-  }, [formQuery.data, isEdit, sessionId]);
+  }, [formQuery.data, isEdit, parsedSessionId]);
 
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -93,13 +97,13 @@ export const TrainingSessionFormPage = () => {
           location: form.format === 'onsite' ? form.location.trim() || null : null,
           meetingUrl: form.format === 'remote' ? form.meetingUrl.trim() || null : null,
         },
-        sessionId ? Number(sessionId) : undefined,
+        isEdit ? parsedSessionId : undefined,
       ),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
       setMessage(response.message ?? (isEdit ? 'La session a bien été mise à jour.' : 'La session a bien été créée.'));
-      setTimeout(() => navigate('/admin/trainings/sessions'), 600);
+      navigateWithDelay('/admin/trainings/sessions');
     },
     onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la session.")),
   });

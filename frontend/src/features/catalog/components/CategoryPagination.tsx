@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 type CategoryPaginationProps = {
   page: number;
@@ -8,8 +9,8 @@ type CategoryPaginationProps = {
 
 export const CategoryPagination = ({ page, totalPages, updatePage }: CategoryPaginationProps) => {
   const pageNumbers = useMemo(() => {
-    const start = Math.max(1, page - 2);
-    const end = Math.min(totalPages, page + 2);
+    const start = clampAtLeast(page - 2, 1);
+    const end = clampWithin(page + 2, 1, totalPages);
     return Array.from({ length: end - start + 1 }, (_, index) => start + index);
   }, [page, totalPages]);
 

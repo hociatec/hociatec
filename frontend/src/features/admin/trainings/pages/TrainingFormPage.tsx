@@ -14,11 +14,13 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
+import { parseNonNegativeDecimal, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import {
   TrainingFormFields,
   type TrainingFormState,
 } from '@/features/admin/trainings/components/TrainingFormFields';
 import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 
 const emptyForm: TrainingFormState = {
   title: '',
@@ -35,16 +37,17 @@ const emptyForm: TrainingFormState = {
 };
 
 const parseEuroToCents = (value: string) => {
-  const normalizedValue = value.replace(',', '.').trim();
-  const amount = Number(normalizedValue);
+  const amount = parseNonNegativeDecimal(value, Number.NaN);
 
   return Number.isFinite(amount) ? Math.round(amount * 100) : Number.NaN;
 };
 
 export const TrainingFormPage = () => {
   const { trainingId } = useParams();
-  const isEdit = Boolean(trainingId);
+  const parsedTrainingId = parseNullablePositiveInteger(trainingId);
+  const isEdit = parsedTrainingId !== null;
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(600);
   const queryClient = useQueryClient();
 
   useDocumentTitle(isEdit ? 'Admin - Modifier une formation' : 'Admin - Nouvelle formation');
@@ -53,11 +56,11 @@ export const TrainingFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const formQuery = useQuery({
-    queryKey: adminTrainingQueryKeys.trainingForm(trainingId ? Number(trainingId) : null),
+    queryKey: adminTrainingQueryKeys.trainingForm(isEdit ? parsedTrainingId : null),
     queryFn: async () => {
       const [categories, training] = await Promise.all([
         fetchAdminTrainingCategories(),
-        isEdit && trainingId ? fetchAdminTraining(Number(trainingId)) : Promise.resolve(null),
+        isEdit ? fetchAdminTraining(parsedTrainingId) : Promise.resolve(null),
       ]);
       return { categories, training };
     },
@@ -116,13 +119,13 @@ export const TrainingFormPage = () => {
             .map((line) => line.trim())
             .filter(Boolean),
         },
-        trainingId ? Number(trainingId) : undefined,
+        isEdit ? parsedTrainingId : undefined,
       ),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.trainings() });
       setMessage(response.message ?? (isEdit ? 'La formation a bien été mise à jour.' : 'La formation a bien été créée.'));
-      setTimeout(() => navigate('/admin/trainings'), 600);
+      navigateWithDelay('/admin/trainings');
     },
     onError: (err) => setError(getHttpErrorMessage(err, "Impossible d'enregistrer la formation.")),
   });
@@ -142,7 +145,7 @@ export const TrainingFormPage = () => {
 
     const priceCents = parseEuroToCents(form.priceEuros);
 
-    if (!Number.isFinite(priceCents) || priceCents < 0) {
+    if (Number.isNaN(priceCents)) {
       setError('Le prix doit être un montant en euros valide.');
       return;
     }

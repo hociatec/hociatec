@@ -2,6 +2,8 @@ import { Link } from 'react-router';
 
 import type { CartItem } from '@/features/cart/types/cart';
 import { formatCartPrice } from '@/features/cart/utils/cartDisplay';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
 interface CartPageHeaderProps {
   hasItems: boolean;
@@ -115,7 +117,7 @@ export const CartItemsList = ({
     {items.map((item) => {
       const pending = isProductPending(item.product.id);
       const isRental = item.product.sellingType === 'rental';
-      const rentalMonths = Math.max(1, item.rentalMonths ?? 1);
+      const rentalMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
 
       return (
         <li key={item.id ?? item.product.id} className="cart-page__item">
@@ -195,7 +197,7 @@ export const CartItemsList = ({
                     className="cart-page__rental-input"
                     value={rentalMonths}
                     onChange={(event) =>
-                      onUpdateRentalMonths(item, Number.parseInt(event.target.value, 10))
+                      onUpdateRentalMonths(item, parseNullablePositiveInteger(event.target.value) ?? 1)
                     }
                     disabled={pending}
                   />

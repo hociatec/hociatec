@@ -5,6 +5,7 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminPromotionQueryKeys } from '@/features/admin/promotions/queryKeys';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 export const usePromotionsList = () => {
   const confirm = useConfirm();
@@ -40,12 +41,12 @@ export const usePromotionsList = () => {
     },
   });
   const filteredPromotions = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const term = normalizeSearchText(query);
     return promotions.filter(
       (promotion) =>
         (!term ||
-          promotion.name.toLowerCase().includes(term) ||
-          promotion.slug.toLowerCase().includes(term)) &&
+          normalizeSearchText(promotion.name).includes(term) ||
+          normalizeSearchText(promotion.slug).includes(term)) &&
         (statusFilter === 'all' ||
           (statusFilter === 'active' && promotion.isActive) ||
           (statusFilter === 'inactive' && !promotion.isActive)),

@@ -18,6 +18,7 @@ import {
 } from '@/features/admin/marketing/types/campaignForm';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMarketingCampaignForm = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,11 +50,12 @@ export const useMarketingCampaignForm = () => {
     },
     onError: (reason) => setError(getHttpErrorMessage(reason, 'Prévisualisation impossible.')),
   });
+  const templateId = form.templateId ? parseNullablePositiveInteger(form.templateId) : null;
   const sendMutation = useMutation({
     mutationFn: () =>
       sendMarketingCampaign({
         name: form.name.trim(),
-        templateId: form.templateId ? Number(form.templateId) : null,
+        templateId,
         segmentKey: form.segmentKey,
         criteria,
         subject: form.subject,

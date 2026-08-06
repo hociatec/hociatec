@@ -10,10 +10,15 @@ import {
   updateAdminQuoteService,
   type QuoteMetadataOption,
 } from '@/features/quotes/publicApi';
+import { normalizeServiceBillingMode } from '@/features/quotes/publicApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
+import {
+  parseNonNegativeDecimal,
+  parseNullablePositiveInteger,
+} from '@/shared/lib/parsers';
 import { ServiceFormFields, type ServiceFormState } from '@/features/admin/quotes/components/ServiceFormFields';
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
 
@@ -50,20 +55,9 @@ const fallbackBillingModeOptions: QuoteMetadataOption[] = [
   { value: 'prix fixe', label: 'Prix fixe' },
 ];
 
-const normalizeBillingMode = (value?: string | null) => {
-  const normalized = value?.trim().toLowerCase();
-
-  if (!normalized) {
-    return 'prix fixe';
-  }
-
-  return normalized === 'heure' ? 'horaire' : normalized;
-};
-
 export const ServiceFormPage = () => {
   const params = useParams<{ serviceId?: string }>();
-  const parsedServiceId = params.serviceId ? Number.parseInt(params.serviceId, 10) : NaN;
-  const serviceId = Number.isNaN(parsedServiceId) ? null : parsedServiceId;
+  const serviceId = parseNullablePositiveInteger(params.serviceId);
   const isEdit = serviceId !== null;
   useDocumentTitle(isEdit ? 'Admin - Modifier un service' : 'Admin - Nouveau service');
   const navigate = useNavigate();
@@ -78,7 +72,7 @@ export const ServiceFormPage = () => {
   });
   const serviceQuery = useQuery({
     queryKey: adminQuoteQueryKeys.service(serviceId),
-    queryFn: () => fetchAdminQuoteService(serviceId ?? 0),
+    queryFn: () => fetchAdminQuoteService(serviceId!),
     enabled: isEdit && serviceId !== null,
   });
   const billingModeOptions: QuoteMetadataOption[] =
@@ -92,7 +86,7 @@ export const ServiceFormPage = () => {
         setForm({
           title: svc?.title ?? '',
           description: svc?.description ?? '',
-          unit: normalizeBillingMode(svc?.unit),
+          unit: normalizeServiceBillingMode(svc?.unit),
           isFeaturedHome: svc?.isFeaturedHome ?? false,
           imageUrl: svc?.imageUrl ?? '',
           imageAlt: svc?.imageAlt ?? '',
@@ -105,15 +99,6 @@ export const ServiceFormPage = () => {
         });
   }, [serviceQuery.data]);
 
-  const parseNumberField = (value: string): number => {
-    const normalized = value.replace(',', '.').trim();
-    if (normalized === '') {
-      return Number.NaN;
-    }
-    const parsed = Number.parseFloat(normalized);
-    return Number.isFinite(parsed) ? parsed : Number.NaN;
-  };
-
   const buildPayload = (): ServicePayload | null => {
     const title = form.title.trim();
     if (!title) {
@@ -121,31 +106,28 @@ export const ServiceFormPage = () => {
       return null;
     }
 
-    const price = parseNumberField(form.price);
-    if (Number.isNaN(price) || price < 0) {
+    const price = parseNonNegativeDecimal(form.price, Number.NaN);
+    if (Number.isNaN(price)) {
       setError('Veuillez renseigner un prix HT valide.');
       return null;
     }
 
-    const vatRate = form.vatRate.trim() === '' ? 0 : parseNumberField(form.vatRate);
-    if (Number.isNaN(vatRate) || vatRate < 0) {
+    const vatRate = parseNonNegativeDecimal(form.vatRate, 0);
+    if (Number.isNaN(vatRate)) {
       setError('Veuillez renseigner un taux de TVA valide.');
       return null;
     }
 
     const description = form.description.trim();
-    const unit = normalizeBillingMode(form.unit);
+    const unit = normalizeServiceBillingMode(form.unit);
     const durationValue = form.durationValue.trim();
+    const parsedDurationValue =
+      durationValue === '' ? '' : parseNullablePositiveInteger(durationValue);
 
-    if (durationValue !== '') {
-      const parsedDurationValue = Number.parseInt(durationValue, 10);
-      if (!Number.isFinite(parsedDurationValue) || parsedDurationValue <= 0) {
-        setError('Veuillez renseigner une durée estimée valide.');
-        return null;
-      }
+    if (durationValue !== '' && parsedDurationValue === null) {
+      setError('Veuillez renseigner une durée estimée valide.');
+      return null;
     }
-
-    const parsedDurationValue = durationValue === '' ? '' : Number.parseInt(durationValue, 10);
     const parsedDurationUnit: ServicePayload['durationUnit'] =
       durationValue === '' ? '' : form.durationUnit;
 

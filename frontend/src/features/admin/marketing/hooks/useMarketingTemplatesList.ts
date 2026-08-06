@@ -8,6 +8,7 @@ import {
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   const confirm = useConfirm();
@@ -47,12 +48,12 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
     setPage(1);
   }, [query, scenarioFilter, usageFilter, statusFilter]);
   const filteredTemplates = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const term = normalizeSearchText(query);
     return templates.filter(
       (template) =>
         (!term ||
           [template.name, template.slug, template.subjectTemplate].some((value) =>
-            value.toLowerCase().includes(term),
+            normalizeSearchText(value).includes(term),
           )) &&
         (scenarioFilter === 'all' || template.scenarioKey === scenarioFilter) &&
         (usageFilter === 'all' ||

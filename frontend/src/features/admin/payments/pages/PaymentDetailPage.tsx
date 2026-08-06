@@ -7,20 +7,21 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminPaymentQueryKeys } from '@/features/admin/payments/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const PaymentDetailPage = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const paymentId = Number(params.paymentId);
+  const paymentId = parseNullablePositiveInteger(params.paymentId);
   const paymentQuery = useQuery({
-    queryKey: adminPaymentQueryKeys.detail(Number.isFinite(paymentId) && paymentId > 0 ? paymentId : null),
-    queryFn: () => fetchAdminPaymentById(paymentId),
-    enabled: Number.isFinite(paymentId) && paymentId > 0,
+    queryKey: adminPaymentQueryKeys.detail(paymentId),
+    queryFn: () => fetchAdminPaymentById(paymentId || 0),
+    enabled: paymentId !== null,
   });
   const payment = paymentQuery.data?.payment ?? null;
   const liveStripe = paymentQuery.data?.liveStripe ?? null;
   const error =
-    !Number.isFinite(paymentId) || paymentId <= 0
+    paymentId === null
       ? 'Paiement invalide.'
       : paymentQuery.error instanceof Error
         ? paymentQuery.error.message || 'Impossible de charger le paiement.'

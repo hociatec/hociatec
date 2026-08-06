@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 
@@ -17,12 +17,14 @@ import {
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
 import { normalizeHttpError } from '@/shared/lib/httpClient';
 import { adminOrderQueryKeys } from '@/features/admin/orders/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 const toDateInputValue = formatApiDateForDateInput;
 
 export const useAdminOrderDetail = () => {
   const params = useParams();
-  const orderId = Number(params.orderId);
+  const orderId = parseNullablePositiveInteger(params.orderId);
+  const isValidOrderId = orderId !== null;
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -39,14 +41,14 @@ export const useAdminOrderDetail = () => {
     events: OrderEventDto[];
     processing: OrderProcessingDto;
   }, Error>({
-    queryKey: adminOrderQueryKeys.detail(Number.isFinite(orderId) && orderId > 0 ? orderId : null),
-    queryFn: () => fetchAdminOrderById(orderId),
-    enabled: Number.isFinite(orderId) && orderId > 0,
+    queryKey: adminOrderQueryKeys.detail(orderId),
+    queryFn: () => fetchAdminOrderById(orderId || 0),
+    enabled: isValidOrderId,
   });
   const order = detailQuery.data?.order ?? null;
   const events = detailQuery.data?.events ?? [];
   const processing = detailQuery.data?.processing ?? null;
-  const status = !Number.isFinite(orderId) || orderId <= 0
+  const status = !isValidOrderId
     ? 'error'
     : detailQuery.isLoading
       ? 'loading'
@@ -67,7 +69,7 @@ export const useAdminOrderDetail = () => {
   }, [detailQuery.data]);
 
   useEffect(() => {
-    if (!Number.isFinite(orderId) || orderId <= 0) {
+    if (!isValidOrderId) {
       setError('Commande invalide.');
       return;
     }
@@ -75,12 +77,17 @@ export const useAdminOrderDetail = () => {
     setError(detailQuery.error?.message ?? null);
   }, [detailQuery.error, orderId]);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     await detailQuery.refetch();
-  };
+  }, [detailQuery.refetch]);
 
-  const invalidateDetail = () =>
-    queryClient.invalidateQueries({ queryKey: adminOrderQueryKeys.detail(orderId) });
+  const invalidateDetail = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: adminOrderQueryKeys.detail(isValidOrderId ? orderId : null),
+      }),
+    [queryClient, isValidOrderId, orderId],
+  );
   const invoiceMutation = useMutation({
     mutationFn: retryAdminOrderInvoice,
     onSuccess: () => void invalidateDetail(),
@@ -97,7 +104,7 @@ export const useAdminOrderDetail = () => {
   });
 
   const canDownloadInvoice = order ? !['pending', 'cancelled'].includes(order.status) : false;
-  const runAction = async (
+  const runAction = useCallback(async (
     action: () => Promise<unknown>,
     successMessage: string,
     fallback: string,
@@ -110,32 +117,38 @@ export const useAdminOrderDetail = () => {
     } catch (e) {
       setError(e instanceof Error ? e.message : fallback);
     }
-  };
-  const regenerateInvoice = () =>
+  }, [setActionMessage, setError]);
+  const regenerateInvoice = useCallback(() =>
     order
       ? runAction(
           () => invoiceMutation.mutateAsync(order.id),
           'Facture regénérée.',
           'Impossible de regénérer la facture.',
         )
-      : Promise.resolve();
-  const resendOrderEmail = () =>
+      : Promise.resolve(),
+    [order, runAction, invoiceMutation],
+  );
+  const resendOrderEmail = useCallback(() =>
     order
       ? runAction(
           () => resendMutation.mutateAsync({ id: order.id, scenario: 'order_created' }),
           'Email de commande renvoyé.',
           'Impossible de renvoyer l’email.',
         )
-      : Promise.resolve();
-  const resendStatusEmail = () =>
+      : Promise.resolve(),
+    [order, runAction, resendMutation],
+  );
+  const resendStatusEmail = useCallback(() =>
     order
       ? runAction(
           () => resendMutation.mutateAsync({ id: order.id, scenario: 'current_status' }),
           'Email de statut renvoyé.',
           'Impossible de renvoyer l’email.',
         )
-      : Promise.resolve();
-  const saveDelivery = async () => {
+      : Promise.resolve(),
+    [order, runAction, resendMutation],
+  );
+  const saveDelivery = useCallback(async () => {
     if (!order) return;
     try {
       await deliveryMutation.mutateAsync({ id: order.id, payload: deliveryForm });
@@ -149,11 +162,21 @@ export const useAdminOrderDetail = () => {
           : normalized.message,
       );
     }
-  };
-  const downloadInvoicePdf = () =>
-    order ? downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order)) : Promise.resolve();
-  const downloadInvoiceXml = () =>
-    order ? downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order)) : Promise.resolve();
+  }, [deliveryMutation, deliveryForm, order, setActionMessage, setError]);
+  const downloadInvoicePdf = useCallback(
+    () =>
+      order
+        ? downloadOrderInvoicePdf(order.id, buildOrderInvoiceFilename(order))
+        : Promise.resolve(),
+    [order],
+  );
+  const downloadInvoiceXml = useCallback(
+    () =>
+      order
+        ? downloadOrderInvoiceXml(order.id, buildOrderInvoiceFilename(order))
+        : Promise.resolve(),
+    [order],
+  );
 
   return {
     actionMessage,

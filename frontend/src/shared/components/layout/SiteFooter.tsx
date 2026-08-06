@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import { Clock3, Facebook, Instagram, Linkedin, Mail, MapPin, Music2, Twitter } from 'lucide-react';
 import { CONTACT_EMAIL } from '@/shared/config/seoConfig';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 
 const legalLinks = [
   { to: '/legal/cgu', label: 'CGU' },
@@ -32,8 +33,8 @@ export const SiteFooter = () => {
     weekday: 'long',
     timeZone: 'Europe/Paris',
   })
-    .format(new Date())
-    .toLowerCase();
+    .format(new Date());
+  const currentDay = normalizeSearchText(currentDayKey);
 
   return (
     <footer className="site-footer">
@@ -108,7 +109,7 @@ export const SiteFooter = () => {
               {openingHours.map((entry) => (
                 <div
                   key={entry.key}
-                  className={`site-footer__hours-row${entry.key === currentDayKey ? ' is-current' : ''}`}
+                  className={`site-footer__hours-row${entry.key === currentDay ? ' is-current' : ''}`}
                 >
                   <span>{entry.label}</span>
                   <strong>{entry.hours}</strong>

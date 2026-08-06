@@ -1,3 +1,5 @@
+import { parseNullableNonNegativeDecimal } from './parsers';
+
 const currencyFormatters = new Map<string, Intl.NumberFormat>();
 const FRANCE_TIME_ZONE = 'Europe/Paris';
 
@@ -32,8 +34,8 @@ export const formatEuroInputFromCents = (valueInCents?: number | null) =>
   typeof valueInCents === 'number' ? (valueInCents / 100).toFixed(2) : '';
 
 export const parseEuroInputToCents = (value: string) => {
-  const parsed = Number.parseFloat(value.replace(',', '.'));
-  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed * 100)) : 0;
+  const parsed = parseNullableNonNegativeDecimal(value, 0);
+  return Math.round(parsed * 100);
 };
 
 export const formatSchemaPriceCents = (valueInCents: number) => (valueInCents / 100).toFixed(2);

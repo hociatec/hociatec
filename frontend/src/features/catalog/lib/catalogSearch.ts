@@ -1,5 +1,7 @@
 import type { CatalogSearchFacets, CatalogSearchMeta, CatalogSort } from '../apiTypes';
 
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
+
 export const ALL_CATALOG_FILTER = 'all';
 export const CATALOG_PAGE_SIZE = 10;
 
@@ -17,12 +19,6 @@ export const catalogSorts: CatalogSort[] = [
 
 export const normalizeCatalogSort = (value: string | null, fallback: CatalogSort): CatalogSort =>
   catalogSorts.includes(value as CatalogSort) ? (value as CatalogSort) : fallback;
-
-export const parseCatalogNumber = (value: string | null): number | null => {
-  if (!value) return null;
-  const parsed = Number(value);
-  return Number.isNaN(parsed) || parsed < 0 ? null : parsed;
-};
 
 export const normalizeCatalogFilter = (value: string | null): string =>
   value && value.trim() !== '' ? value : ALL_CATALOG_FILTER;
@@ -44,8 +40,8 @@ export const emptyCatalogMeta: CatalogSearchMeta = {
 };
 
 export const getCatalogPageNumbers = (meta: CatalogSearchMeta) => {
-  const start = Math.max(1, meta.page - 2);
-  const end = Math.min(meta.totalPages, meta.page + 2);
+  const start = clampAtLeast(meta.page - 2, 1);
+  const end = clampWithin(meta.page + 2, 1, meta.totalPages);
   return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 };
 

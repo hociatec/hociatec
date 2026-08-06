@@ -12,13 +12,12 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { parseNullableNonNegativeInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 const PRODUCTS_PER_PAGE = 10;
-const parseNumber = (value: string | null) => {
-  if (null === value || '' === value) return null;
-  const parsed = Number(value);
 
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+const toNullablePrice = (value: string | null): number | null => {
+  return parseNullableNonNegativeInteger(value);
 };
 
 export const useAdminProductsList = () => {
@@ -38,15 +37,15 @@ export const useAdminProductsList = () => {
     (searchParams.get('sellingType') as 'all' | 'sale' | 'rental' | null) ?? 'all',
   );
   const [minPriceValue, setMinPriceValue] = useState<number | null>(
-    parseNumber(searchParams.get('minPrice')),
+    toNullablePrice(searchParams.get('minPrice')),
   );
   const [maxPriceValue, setMaxPriceValue] = useState<number | null>(
-    parseNumber(searchParams.get('maxPrice')),
+    toNullablePrice(searchParams.get('maxPrice')),
   );
   const [sortValue, setSortValue] = useState(
     searchParams.get('sort') ?? 'created_desc',
   );
-  const [page, setPageValue] = useState(Math.max(1, Number(searchParams.get('page') ?? 1)));
+  const [page, setPageValue] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
 
   const productParams = useMemo(
     () => omitUndefinedProperties({

@@ -1,6 +1,7 @@
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 import type { QuoteDraft } from '@/features/quotes/hooks/useCreateQuote';
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { clampAtLeast } from '@/shared/lib/number';
 import { QuoteQuantityControl } from './QuoteQuantityControl';
 
 type QuoteProductResultsProps = {
@@ -117,7 +118,7 @@ const ProductAction = ({
     );
   }
 
-  const currentQuantity = Math.max(1, form.items[selectedIndex]?.quantity ?? 1);
+  const currentQuantity = clampAtLeast(form.items[selectedIndex]?.quantity ?? 1, 1);
 
   return (
     <QuoteQuantityControl

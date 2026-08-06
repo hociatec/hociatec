@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 import {
@@ -9,18 +9,22 @@ import {
 } from '../api/auditsApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { auditQueryKeys } from '@/features/audits/queryKeys';
+import { shouldRefetchWhenVisible } from '@/shared/lib/browserVisibility';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMyAuditDetail = () => {
   const { auditId } = useParams();
-  const id = Number(auditId);
+  const id = parseNullablePositiveInteger(auditId);
+  const isValidId = id !== null;
   const detailQuery = useQuery({
-    queryKey: auditQueryKeys.mineDetail(Number.isFinite(id) && id > 0 ? id : null),
-    queryFn: () => fetchMyAudit(id),
-    enabled: Number.isFinite(id) && id > 0,
+    queryKey: auditQueryKeys.mineDetail(isValidId ? id : null),
+    queryFn: () => fetchMyAudit(id!),
+    enabled: isValidId,
     refetchInterval: (currentQuery) =>
-      document.hidden || currentQuery.state.error || currentQuery.state.data?.status === 'done'
-        ? false
-        : 10_000,
+      shouldRefetchWhenVisible(!!currentQuery.state.error) &&
+      currentQuery.state.data?.status !== 'done'
+        ? 10_000
+        : false,
     refetchIntervalInBackground: false,
   });
   const data = detailQuery.data ?? null;
@@ -33,16 +37,16 @@ export const useMyAuditDetail = () => {
         return groups;
       }, {});
   }, [data]);
-  const downloadReport = async () => {
+  const downloadReport = useCallback(async () => {
     if (!data) return;
     const blob = await clientDownloadAuditPdf(data.id);
     downloadBlob(blob, `${data.number}-rapport.pdf`);
-  };
-  const downloadSummary = async () => {
+  }, [data]);
+  const downloadSummary = useCallback(async () => {
     if (!data) return;
     const blob = await clientDownloadAuditSummaryPdf(data.id);
     downloadBlob(blob, `${data.number}-synthese.pdf`);
-  };
+  }, [data]);
   return {
     data,
     loading: detailQuery.isLoading,

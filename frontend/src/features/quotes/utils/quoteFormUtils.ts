@@ -3,6 +3,7 @@ import {
   formatDateInputForDisplay,
   formatEuroCents,
 } from '@/shared/lib/formatters';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export type QuoteItem = {
   id?: number;
@@ -39,16 +40,16 @@ export const calculateQuoteTotals = ({
   let vat = 0;
 
   for (const item of items) {
-    const months = item.sellingType === 'rental' ? Math.max(1, item.rentalMonths ?? 1) : 1;
-    const line = Math.max(
-      0,
+    const months = item.sellingType === 'rental' ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
+    const line = clampAtLeast(
       (item.unitPriceCents ?? 0) * (item.quantity ?? 1) * months - (item.discountCents ?? 0),
+      0,
     );
     ht += line;
     vat += Math.round(line * ((item.vatRate ?? 0) / 100));
   }
 
-  const netHt = Math.max(0, ht - discountCents);
+  const netHt = clampAtLeast(ht - discountCents, 0);
   return { ht: netHt, vat, ttc: netHt + vat + shippingCents };
 };
 
@@ -82,7 +83,7 @@ export const adaptQuoteForSave = <T extends QuoteDraftForSave | null | undefined
         return rest;
       }
 
-      const months = Math.max(1, item.rentalMonths);
+      const months = clampAtLeast(item.rentalMonths ?? 1, 1);
       const baseDescription = item.description?.trim();
       const { rentalMonths: _rentalMonths, ...rest } = item;
 
@@ -93,7 +94,7 @@ export const adaptQuoteForSave = <T extends QuoteDraftForSave | null | undefined
             ? `${baseDescription} - Durée: ${months} mois`
             : `Durée: ${months} mois`,
         unit: item.unit ?? 'mois',
-        quantity: Math.max(1, item.quantity ?? 1) * months,
+        quantity: clampAtLeast(item.quantity ?? 1, 1) * months,
       };
     }),
   };

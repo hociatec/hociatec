@@ -51,7 +51,7 @@ export const useAdminQuotesList = () => {
   const deleteMutation = useMutation({
     mutationFn: deleteAdminQuote,
     onSuccess: (response) => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
+      void queryClient.invalidateQueries({ queryKey: adminQuoteQueryKeys.base() });
       setMessage(response.message ?? 'Le devis a bien été supprimé.');
       toast.show(response.message ?? 'Le devis a bien été supprimé.', { variant: 'success' });
     },
@@ -64,7 +64,7 @@ export const useAdminQuotesList = () => {
   const duplicateMutation = useMutation({
     mutationFn: duplicateAdminQuote,
     onSuccess: (response) => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] });
+      void queryClient.invalidateQueries({ queryKey: adminQuoteQueryKeys.base() });
       setMessage(response.message ?? 'Le devis a bien été dupliqué.');
     },
     onError: (e) => {

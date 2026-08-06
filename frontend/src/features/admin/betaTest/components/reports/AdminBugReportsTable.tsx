@@ -4,6 +4,7 @@ import type { AdminBugReportDashboardDto, AdminBugReportDto } from '../../api';
 import { bugReportStatusLabels, formatBetaLabel, formatDate, severityLabels } from '@/features/betaTest/publicApi';
 import { bugReportBadgeClassName } from './adminBugReportUi';
 import { BUG_REPORT_STATUSES, isContractValue, type BugReportStatus } from '@/shared/contracts/statuses';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 interface AdminBugReportsTableProps {
   dashboard: AdminBugReportDashboardDto | undefined;
@@ -61,7 +62,16 @@ export const AdminBugReportsTable = ({
               </select>
             </td>
             <td className="p-4">
-              <select className="rounded-lg border border-stone-300 bg-white p-2 text-xs" value={report.assignedTo?.id ?? ''} onChange={(event) => onAssign(report.id, event.target.value ? Number(event.target.value) : null)}>
+              <select
+                className="rounded-lg border border-stone-300 bg-white p-2 text-xs"
+                value={report.assignedTo?.id ?? ''}
+                onChange={(event) => {
+                  const nextAssignedTo = event.target.value
+                    ? parseNullablePositiveInteger(event.target.value)
+                    : null;
+                  onAssign(report.id, nextAssignedTo);
+                }}
+              >
                 <option value="">Non assigné</option>
                 {dashboard?.admins.map((admin) => <option key={admin.id} value={admin.id}>{admin.name}</option>)}
               </select>

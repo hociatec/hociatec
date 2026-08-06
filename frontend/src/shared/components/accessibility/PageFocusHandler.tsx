@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 
+import { useTimeout } from '@/shared/hooks/useTimeout';
+
 const focusPageTarget = () => {
   const target = document.querySelector<HTMLElement>(
     '[data-page-focus-target], main h1, [role="main"] h1, main, [role="main"]',
@@ -12,6 +14,7 @@ const focusPageTarget = () => {
 export const PageFocusHandler = () => {
   const location = useLocation();
   const previousPathRef = useRef<string | null>(null);
+  const { schedule } = useTimeout();
 
   useEffect(() => {
     const path = `${location.pathname}${location.search}${location.hash}`;
@@ -21,9 +24,7 @@ export const PageFocusHandler = () => {
     previousPathRef.current = path;
     if (isInitialRoute) return;
 
-    const timeoutId = window.setTimeout(focusPageTarget, 120);
-
-    return () => window.clearTimeout(timeoutId);
+    schedule(focusPageTarget, 120);
   }, [location.hash, location.pathname, location.search]);
 
   return null;

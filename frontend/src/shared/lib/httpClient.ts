@@ -1,6 +1,7 @@
 import axios, { AxiosHeaders, isAxiosError, type AxiosRequestConfig } from 'axios';
 
 import { API_BASE_URL, BUILD_INFO } from '../config/appConfig';
+import { normalizeSearchText } from '@/shared/lib/searchText';
 import { createApiResponseError } from './httpErrors';
 import { createAuthSessionRefresher, isAuthRefreshRequest, type RetriableRequestConfig } from './http/authRefresh';
 import {
@@ -46,7 +47,7 @@ const FRONTEND_COMMIT_HEADER_NAME = 'X-Frontend-Commit';
 const FRONTEND_ENV_HEADER_NAME = 'X-Frontend-Env';
 
 export const shouldAttachIdempotencyKey = (method?: string) => {
-  const normalizedMethod = method?.toLowerCase() ?? 'get';
+  const normalizedMethod = method ? normalizeSearchText(method).trim() : 'get';
 
   return ['post', 'put', 'patch', 'delete'].includes(normalizedMethod);
 };

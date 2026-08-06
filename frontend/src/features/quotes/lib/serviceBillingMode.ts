@@ -1,3 +1,5 @@
+import { normalizeSearchText } from '@/shared/lib/searchText';
+
 const SERVICE_BILLING_MODE_LABELS: Record<string, string> = {
   'prix fixe': 'Prix fixe',
   heure: 'Horaire',
@@ -9,12 +11,21 @@ const SERVICE_BILLING_MODE_LABELS: Record<string, string> = {
   maintenance: 'Maintenance',
 };
 
-export const formatServiceBillingMode = (value?: string | null) => {
-  const normalized = value?.trim().toLowerCase();
+export const normalizeServiceBillingMode = (value?: string | null) => {
+  const normalized = normalizeSearchText(value);
 
   if (!normalized) {
-    return 'Prix fixe';
+    return 'prix fixe';
   }
 
+  if (normalized === 'heure') {
+    return 'horaire';
+  }
+
+  return normalized;
+};
+
+export const formatServiceBillingMode = (value?: string | null) => {
+  const normalized = normalizeServiceBillingMode(value);
   return SERVICE_BILLING_MODE_LABELS[normalized] ?? value?.trim() ?? 'Prix fixe';
 };

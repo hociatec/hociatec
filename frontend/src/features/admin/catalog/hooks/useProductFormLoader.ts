@@ -14,6 +14,7 @@ import { emptyProductForm, type ProductFormState } from '@/features/admin/catalo
 import { buildProductFormState } from '@/features/admin/catalog/utils/productFormModel';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 type UseProductFormLoaderParams = {
   isEdit: boolean;
@@ -39,17 +40,21 @@ export const useProductFormLoader = ({
   const [groupVariants, setGroupVariants] = useState<CatalogProduct[]>([]);
   const [currentVariantPosition, setCurrentVariantPosition] = useState(1);
   const [loadedBrandQuery, setLoadedBrandQuery] = useState('');
+  const parsedProductId = parseNullablePositiveInteger(productId);
+  const hasValidProductId = isEdit && parsedProductId !== null;
+  const safeProductId = parsedProductId ?? 0;
   const loaderQuery = useQuery({
-    queryKey: adminCatalogQueryKeys.productForm(isEdit && productId ? Number(productId) : null),
+    queryKey: adminCatalogQueryKeys.productForm(hasValidProductId ? safeProductId : null),
     queryFn: async () => {
       const [categoryList, brandList, product, adminProducts] = await Promise.all([
         fetchAdminCategories(),
         fetchAdminBrands(),
-        isEdit && productId ? fetchAdminProduct(Number(productId)) : Promise.resolve(null),
+        hasValidProductId ? fetchAdminProduct(safeProductId) : Promise.resolve(null),
         isEdit ? fetchAdminProducts() : Promise.resolve([]),
       ]);
       return { categoryList, brandList, product, adminProducts };
     },
+    enabled: hasValidProductId || !isEdit,
   });
 
   useEffect(() => {

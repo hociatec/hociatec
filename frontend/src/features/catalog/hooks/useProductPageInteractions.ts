@@ -5,6 +5,8 @@ import type { CatalogProduct } from '@/features/catalog/api';
 import { useProductFavorite } from '@/features/catalog/hooks/useProductFavorite';
 import { buildProductSlides, buildProductVariantOptions, formatProductDate, groupProductVariants } from '@/features/catalog/utils/productPageDisplay';
 import { useToast } from '@/shared/components/ui/toast';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampWithin } from '@/shared/lib/number';
 
 export const useProductPageInteractions = (product: CatalogProduct | null, colorVariants: CatalogProduct[], productDisplayName: string | null) => {
   const navigate = useNavigate();
@@ -19,7 +21,9 @@ export const useProductPageInteractions = (product: CatalogProduct | null, color
   useEffect(() => {
     const signature = visibleSlides.map((slide) => slide.url).join('|');
     if (signature === previousSlidesSignatureRef.current) {
-      setActiveSlide((previous) => visibleSlides.length === 0 ? 0 : Math.min(previous, visibleSlides.length - 1));
+      setActiveSlide((previous) =>
+        visibleSlides.length === 0 ? 0 : clampWithin(previous, 0, visibleSlides.length - 1),
+      );
       return;
     }
     previousSlidesSignatureRef.current = signature;
@@ -35,7 +39,9 @@ export const useProductPageInteractions = (product: CatalogProduct | null, color
   const favoriteButtonDisabled = favorite.favoriteAction === 'saving' || favorite.favoriteStatus === 'loading';
 
   const handleVariantChange = (variantId: string) => {
-    const target = colorVariants.find((variant) => variant.id === Number(variantId));
+    const parsedVariantId = parseNullablePositiveInteger(variantId);
+    if (parsedVariantId === null) return;
+    const target = colorVariants.find((variant) => variant.id === parsedVariantId);
     if (target && target.id !== product?.id) void navigate(`/catalogue/produits/${target.slug}`);
   };
   const handleAddFavorite = () => {

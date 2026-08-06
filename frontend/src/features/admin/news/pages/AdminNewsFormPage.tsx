@@ -12,14 +12,13 @@ import { PageContainer } from '@/shared/components/layout/PageContainer';
 import { FeedbackMessage } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminNewsQueryKeys } from '@/features/admin/news/queryKeys';
-
-const slugify = (value: string) =>
-  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+import { slugify } from '@/shared/lib/slugify';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const AdminNewsFormPage = () => {
   const { newsId } = useParams();
-  const id = newsId ? Number(newsId) : null;
-  const isEdit = Number.isFinite(id);
+  const id = parseNullablePositiveInteger(newsId);
+  const isEdit = id !== null;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   useDocumentTitle(isEdit ? 'Admin - Modifier une actualité' : 'Admin - Nouvelle actualité');
@@ -35,8 +34,8 @@ export const AdminNewsFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const articleQuery = useQuery({
     queryKey: adminNewsQueryKeys.detail(isEdit ? id : null),
-    queryFn: () => fetchAdminNewsArticle(id ?? 0),
-    enabled: isEdit && Boolean(id),
+    queryFn: () => fetchAdminNewsArticle(id || 0),
+    enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (nextPayload: NewsArticlePayload) =>
@@ -44,7 +43,7 @@ export const AdminNewsFormPage = () => {
         ? updateAdminNewsArticle(id, nextPayload)
         : createAdminNewsArticle(nextPayload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['admin', 'news'] });
+      void queryClient.invalidateQueries({ queryKey: adminNewsQueryKeys.list('') });
       navigate('/admin/news');
     },
     onError: (reason) =>

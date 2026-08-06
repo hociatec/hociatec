@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { AdminCampaignDto } from '../api';
 import { emptyCampaignForm, type CampaignFormState } from '../lib/campaignForms';
 import { formatApiDateForDateInput } from '@/shared/lib/formatters';
+import { clampAtLeast } from '@/shared/lib/number';
 
 export const ADMIN_CAMPAIGN_REPORTS_PER_PAGE = 6;
 
@@ -50,9 +51,9 @@ export const useAdminCampaignDialogState = () => {
   };
 
   const selectedCampaignReports = selectedCampaign?.reports ?? [];
-  const reportsPageCount = Math.max(
-    1,
+  const reportsPageCount = clampAtLeast(
     Math.ceil(selectedCampaignReports.length / ADMIN_CAMPAIGN_REPORTS_PER_PAGE),
+    1,
   );
   const visibleCampaignReports = selectedCampaignReports.slice(
     (reportsPage - 1) * ADMIN_CAMPAIGN_REPORTS_PER_PAGE,

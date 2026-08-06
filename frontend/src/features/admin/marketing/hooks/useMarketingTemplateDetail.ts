@@ -7,25 +7,27 @@ import {
 } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMarketingTemplateDetail = () => {
   const { templateId } = useParams();
   const location = useLocation();
+  const parsedTemplateId = parseNullablePositiveInteger(templateId);
   const isTransactionalView = location.pathname.startsWith('/admin/transactional-emails');
   const segmentType = isTransactionalView ? 'transactional' : 'templates';
   const detailQuery = useQuery({
     queryKey: adminMarketingQueryKeys.templateDetail(
-      templateId ? Number(templateId) : null,
+      parsedTemplateId !== null ? parsedTemplateId : null,
       segmentType,
     ),
     queryFn: async () => {
       const [template, segments] = await Promise.all([
-        fetchMarketingTemplate(Number(templateId)),
+        fetchMarketingTemplate(parsedTemplateId || 0),
         fetchMarketingSegments(segmentType),
       ]);
       return { template, segments };
     },
-    enabled: Boolean(templateId),
+    enabled: parsedTemplateId !== null,
   });
   return useMemo(
     () => ({

@@ -1,5 +1,6 @@
 import type { BugReportCommentDto, PaginationMeta } from '../../api';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
+import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 export const AdminBugReportDiscussion = ({
   commentPage,
@@ -34,9 +35,23 @@ export const AdminBugReportDiscussion = ({
     </div>
     {commentsMeta && commentsMeta.totalPages > 1 && (
       <div className="flex items-center justify-between border-t border-stone-200 bg-white p-3 text-sm">
-        <button type="button" disabled={commentPage <= 1} onClick={() => onCommentPageChange((value) => Math.max(1, value - 1))} className="rounded border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50">Précédents</button>
+        <button
+          type="button"
+          disabled={commentPage <= 1}
+          onClick={() => onCommentPageChange((value) => clampAtLeast(value - 1, 1))}
+          className="rounded border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
+        >
+          Précédents
+        </button>
         <span>Page {commentsMeta.page} sur {commentsMeta.totalPages}</span>
-        <button type="button" disabled={commentPage >= commentsMeta.totalPages} onClick={() => onCommentPageChange((value) => Math.min(commentsMeta.totalPages, value + 1))} className="rounded border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50">Suivants</button>
+        <button
+          type="button"
+          disabled={commentPage >= commentsMeta.totalPages}
+          onClick={() => onCommentPageChange((value) => clampWithin(value + 1, 1, commentsMeta.totalPages))}
+          className="rounded border border-stone-200 px-3 py-2 font-semibold disabled:opacity-50"
+        >
+          Suivants
+        </button>
       </div>
     )}
     <form onSubmit={(event) => { event.preventDefault(); if (newCommentText.trim()) onPostComment(); }} className="flex gap-2 border-t border-stone-200 p-4">

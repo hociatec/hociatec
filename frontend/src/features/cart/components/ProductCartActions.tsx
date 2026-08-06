@@ -5,6 +5,8 @@ import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 import { useCart } from '../hooks/useCart';
 import { useToast } from '@/shared/components/ui/toast';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
 interface ProductCartActionsProps {
   product: CatalogProduct;
@@ -18,7 +20,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
   const isPending = isProductPending(product.id);
   const isRentalProduct = product.sellingType === 'rental';
   const [rentalMonths, setRentalMonths] = useState<number>(() => (isRentalProduct ? 1 : 0));
-  const normalizedRentalMonths = isRentalProduct ? Math.max(1, rentalMonths || 1) : undefined;
+  const normalizedRentalMonths = isRentalProduct ? clampAtLeast(rentalMonths || 1, 1) : undefined;
 
   const matchingItem = useMemo(() => {
     if (!cart) {
@@ -33,7 +35,8 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       cart.items.find(
         (item) =>
           item.product.id === product.id &&
-          Math.max(1, item.rentalMonths ?? 1) === Math.max(1, normalizedRentalMonths ?? 1),
+          clampAtLeast(item.rentalMonths ?? 1, 1) ===
+            clampAtLeast(normalizedRentalMonths ?? 1, 1),
       ) ?? null
     );
   }, [cart, product.id, isRentalProduct, normalizedRentalMonths]);
@@ -96,7 +99,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
     event.preventDefault();
 
     const effectiveRentalMonths = isRentalProduct
-      ? Math.max(1, normalizedRentalMonths ?? 1)
+      ? clampAtLeast(normalizedRentalMonths ?? 1, 1)
       : undefined;
 
     if (isInCart) {
@@ -112,7 +115,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       {isInCart && (
         <span className="catalog-cart-quantity" aria-live="polite">
           {isRentalProduct
-            ? `Dans le panier (${Math.max(1, normalizedRentalMonths ?? 1)} mois) : ${currentQuantity}`
+            ? `Dans le panier (${clampAtLeast(normalizedRentalMonths ?? 1, 1)} mois) : ${currentQuantity}`
             : `Dans le panier : ${currentQuantity}`}
         </span>
       )}
@@ -124,12 +127,7 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
             min={1}
             value={rentalMonths}
             onChange={(event) => {
-              const value = Number.parseInt(event.target.value, 10);
-              if (Number.isNaN(value) || value < 1) {
-                setRentalMonths(1);
-              } else {
-                setRentalMonths(value);
-              }
+              setRentalMonths(parseNullablePositiveInteger(event.target.value) ?? 1);
             }}
           />
         </label>

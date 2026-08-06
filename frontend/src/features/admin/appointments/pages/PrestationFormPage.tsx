@@ -15,6 +15,12 @@ import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { adminAppointmentQueryKeys } from '@/features/admin/appointments/queryKeys';
+import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
+import {
+  parseNonNegativeDecimal,
+  parseNonNegativeInteger,
+  parseNullablePositiveInteger,
+} from '@/shared/lib/parsers';
 
 type PrestationFormState = {
   name: string;
@@ -30,8 +36,10 @@ const emptyForm: PrestationFormState = {
 
 export const PrestationFormPage = () => {
   const { prestationId } = useParams();
-  const isEdit = Boolean(prestationId);
+  const parsedPrestationId = parseNullablePositiveInteger(prestationId);
+  const isEdit = parsedPrestationId !== null;
   const navigate = useNavigate();
+  const navigateWithDelay = useDelayedNavigation(600);
   const queryClient = useQueryClient();
 
   useDocumentTitle(
@@ -44,13 +52,13 @@ export const PrestationFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const prestationQuery = useQuery<Prestation, Error>({
-    queryKey: adminAppointmentQueryKeys.prestation(prestationId ? Number(prestationId) : null),
-    queryFn: () => fetchAdminPrestation(Number(prestationId)),
+    queryKey: adminAppointmentQueryKeys.prestation(isEdit ? parsedPrestationId : null),
+    queryFn: () => fetchAdminPrestation(parsedPrestationId!),
     enabled: isEdit,
   });
   const saveMutation = useMutation({
     mutationFn: (payload: UpsertPrestationPayload) =>
-      isEdit ? updatePrestation(Number(prestationId), payload) : createPrestation(payload),
+      isEdit ? updatePrestation(parsedPrestationId, payload) : createPrestation(payload),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminAppointmentQueryKeys.prestations() });
       setMessage(
@@ -58,9 +66,7 @@ export const PrestationFormPage = () => {
           (isEdit ? 'La prestation a bien été mise à jour.' : 'La prestation a bien été créée.'),
       );
       if (!isEdit) setForm(emptyForm);
-      setTimeout(() => {
-        navigate('/admin/appointments/motifs');
-      }, 600);
+      navigateWithDelay('/admin/appointments/motifs');
     },
     onError: (err) =>
       setError(getHttpErrorMessage(err, "Impossible d'enregistrer la prestation")),
@@ -85,8 +91,8 @@ export const PrestationFormPage = () => {
 
   const parseForm = (): UpsertPrestationPayload => ({
     name: form.name.trim(),
-    durationMinutes: Number.parseInt(form.durationMinutes, 10) || 0,
-    price: form.price.replace(',', '.'),
+    durationMinutes: parseNonNegativeInteger(form.durationMinutes, 0),
+    price: parseNonNegativeDecimal(form.price, Number.NaN),
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -94,8 +100,8 @@ export const PrestationFormPage = () => {
 
     const payload = parseForm();
 
-    if (!payload.name || payload.durationMinutes <= 0) {
-      setError('Veuillez renseigner un nom et une durée valides.');
+    if (!payload.name || payload.durationMinutes <= 0 || Number.isNaN(payload.price)) {
+      setError('Veuillez renseigner un nom, une durée et un prix valides.');
       return;
     }
 

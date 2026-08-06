@@ -1,4 +1,6 @@
 import { formatQuotePrice, type QuoteItem } from '@/features/quotes/utils/quoteFormUtils';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { clampAtLeast } from '@/shared/lib/number';
 
 import './QuoteComponents.css';
 
@@ -25,10 +27,10 @@ export const PublicQuoteSelectionList = ({
     <div className="quote-selection-list">
       {items.map((item, index) => {
         const isRental = item.type === 'product' && Boolean(item.rentalMonths);
-        const months = isRental ? Math.max(1, item.rentalMonths ?? 1) : 1;
-        const line = Math.max(
-          0,
+        const months = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
+        const line = clampAtLeast(
           (item.unitPriceCents ?? 0) * (item.quantity ?? 1) * months - (item.discountCents ?? 0),
+          0,
         );
 
         return (
@@ -70,7 +72,7 @@ export const PublicQuoteSelectionList = ({
                     aria-label="Diminuer la quantité"
                     className="quote-selection-stepper__button"
                     onClick={() =>
-                      onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) - 1) })
+                      onUpdateItem(index, { quantity: clampAtLeast((item.quantity ?? 1) - 1, 1) })
                     }
                   >
                     -
@@ -81,9 +83,9 @@ export const PublicQuoteSelectionList = ({
                     className="quote-selection-stepper__input"
                     value={item.quantity ?? 1}
                     onChange={(event) => {
-                      const value = Number.parseInt(event.target.value, 10);
+                      const value = parseNullablePositiveInteger(event.target.value) ?? 1;
                       onUpdateItem(index, {
-                        quantity: Number.isNaN(value) ? 1 : Math.max(1, value),
+                        quantity: clampAtLeast(value, 1),
                       });
                     }}
                   />
@@ -92,7 +94,7 @@ export const PublicQuoteSelectionList = ({
                     aria-label="Augmenter la quantité"
                     className="quote-selection-stepper__button"
                     onClick={() =>
-                      onUpdateItem(index, { quantity: Math.max(1, (item.quantity ?? 1) + 1) })
+                      onUpdateItem(index, { quantity: clampAtLeast((item.quantity ?? 1) + 1, 1) })
                     }
                   >
                     +
@@ -108,7 +110,7 @@ export const PublicQuoteSelectionList = ({
                       className="quote-selection-stepper__button"
                       onClick={() =>
                         onUpdateItem(index, {
-                          rentalMonths: Math.max(1, (item.rentalMonths ?? 1) - 1),
+                          rentalMonths: clampAtLeast((item.rentalMonths ?? 1) - 1, 1),
                         })
                       }
                     >
@@ -118,11 +120,11 @@ export const PublicQuoteSelectionList = ({
                       type="number"
                       min={1}
                       className="quote-selection-stepper__input"
-                      value={Math.max(1, item.rentalMonths ?? 1)}
+                      value={clampAtLeast(item.rentalMonths ?? 1, 1)}
                       onChange={(event) => {
-                        const value = Number.parseInt(event.target.value, 10);
+                        const value = parseNullablePositiveInteger(event.target.value) ?? 1;
                         onUpdateItem(index, {
-                          rentalMonths: Number.isNaN(value) ? 1 : Math.max(1, value),
+                          rentalMonths: clampAtLeast(value, 1),
                         });
                       }}
                     />
@@ -133,7 +135,7 @@ export const PublicQuoteSelectionList = ({
                       className="quote-selection-stepper__button"
                       onClick={() =>
                         onUpdateItem(index, {
-                          rentalMonths: Math.max(1, (item.rentalMonths ?? 1) + 1),
+                          rentalMonths: clampAtLeast((item.rentalMonths ?? 1) + 1, 1),
                         })
                       }
                     >

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useTimeout } from '@/shared/hooks/useTimeout';
 
 type BlockingModalProps = {
   onClose?: () => void;
@@ -18,6 +19,7 @@ export const BlockingModal = ({
 }: BlockingModalProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { schedule, clear: clearFocusTimeout } = useTimeout();
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -45,7 +47,7 @@ export const BlockingModal = ({
       (focusableElement ?? panelRef.current)?.focus({ preventScroll: true });
     };
     const animationFrame = window.requestAnimationFrame(focusModal);
-    const timeout = window.setTimeout(focusModal, 0);
+    schedule(focusModal, 0);
 
     const keepFocusInside = (event: FocusEvent) => {
       if (!modalElement || !event.target || modalElement.contains(event.target as Node)) return;
@@ -56,7 +58,7 @@ export const BlockingModal = ({
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(timeout);
+      clearFocusTimeout();
       document.removeEventListener('focusin', keepFocusInside);
       document.body.style.overflow = previousOverflow;
       previousInertStates.forEach(({ element, ariaHidden, inert }) => {
