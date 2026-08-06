@@ -4,6 +4,7 @@ import { DashboardStatusNotice } from '@/features/account/components/dashboard/D
 import { useClientDashboard } from '@/features/account/hooks/useClientDashboard';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 
 import '@/features/account/ClientDashboardPage.css';
 import '@/app/styles/features/account.css';
@@ -13,6 +14,8 @@ export const ClientDashboardPage = () => {
   const { user } = useAuth();
   const controller = useClientDashboard();
   const firstName = user?.firstName?.trim() || 'Bonjour';
+  const isLoading = controller.state === 'loading' || controller.loading;
+  const hasError = controller.state === 'error' || controller.hasError;
 
   return (
     <SiteLayout headerVariant="light">
@@ -30,7 +33,13 @@ export const ClientDashboardPage = () => {
           </div>
         </header>
 
-        <DashboardStatusNotice state={controller.state} />
+        {isLoading && <LoadingState>Chargement de votre espace...</LoadingState>}
+        {hasError && (
+          <ErrorState onAction={() => void controller.refresh()} actionLabel="Réessayer">
+            {controller.error ?? 'Votre espace client est indisponible.'}
+          </ErrorState>
+        )}
+        {!isLoading && <DashboardStatusNotice state={controller.state} />}
         <DashboardWorkspace
           conversionEuroCents={controller.conversionEuroCents}
           conversionPoints={controller.conversionPoints}

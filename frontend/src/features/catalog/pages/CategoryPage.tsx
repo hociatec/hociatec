@@ -11,7 +11,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useCatalogMenu } from '@/features/catalog/hooks/useCatalogMenu';
 import { useCategoryData } from '@/features/catalog/hooks/useCategoryData';
 import { SITE_URL } from '@/shared/config/seoConfig';
-import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 
@@ -58,7 +58,7 @@ export const CategoryPage = () => {
   const inStock = searchParams.get('inStock') === '1';
   const page = Math.max(1, toNullableNumber(searchParams.get('page')) ?? 1);
   const perPage = 12;
-  const { data, products, meta, facets, loading, error } = useCategoryData({
+  const { data, products, meta, facets, loading, error, refresh } = useCategoryData({
     slug,
     search,
     brand,
@@ -162,7 +162,11 @@ export const CategoryPage = () => {
           )}
 
           {loading && <LoadingState>Chargement des produits de cette catégorie...</LoadingState>}
-          {error && <FeedbackMessage>{error}</FeedbackMessage>}
+          {error && (
+            <ErrorState onAction={() => void refresh()}>
+              {error}
+            </ErrorState>
+          )}
 
           {!loading && !error && data && (
             <>

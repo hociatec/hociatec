@@ -17,13 +17,14 @@ import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 export const useAdminAuditDetail = () => {
   const { auditId } = useParams();
   const id = Number(auditId);
+  const isValidId = Number.isFinite(id) && id > 0;
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const pendingTimers = useRef<Record<number, ReturnType<typeof setTimeout> | undefined>>({});
   const auditQuery = useQuery<Awaited<ReturnType<typeof adminFetchAudit>>, Error>({
-    queryKey: auditQueryKeys.adminDetail(Number.isFinite(id) ? id : null),
+    queryKey: auditQueryKeys.adminDetail(isValidId ? id : null),
     queryFn: () => adminFetchAudit(id),
-    enabled: Number.isFinite(id) && id > 0,
+    enabled: isValidId,
     refetchInterval: (currentQuery) =>
       !document.hidden &&
       !currentQuery.state.error &&
@@ -37,7 +38,7 @@ export const useAdminAuditDetail = () => {
     updater: SetStateAction<Awaited<ReturnType<typeof adminFetchAudit>> | null>,
   ) => {
     queryClient.setQueryData<Awaited<ReturnType<typeof adminFetchAudit>> | null>(
-      auditQueryKeys.adminDetail(Number.isFinite(id) ? id : null),
+      auditQueryKeys.adminDetail(isValidId ? id : null),
       (current = null) => (typeof updater === 'function' ? updater(current) : updater),
     );
   };
@@ -83,7 +84,7 @@ export const useAdminAuditDetail = () => {
               ),
             }
           : current,
-          );
+      );
     } catch (e) {
       setError(getHttpErrorMessage(e, 'Impossible de mettre à jour le point.'));
     }
@@ -100,8 +101,8 @@ export const useAdminAuditDetail = () => {
           }
         : current,
     );
-      const previous = pendingTimers.current[item.id];
-      if (previous) clearTimeout(previous);
+    const previous = pendingTimers.current[item.id];
+    if (previous) clearTimeout(previous);
     pendingTimers.current[item.id] = setTimeout(() => {
       void adminUpdateAuditItem(audit.id, item.id, { comment }).catch((e) =>
         setError(getHttpErrorMessage(e, 'Impossible d’enregistrer le commentaire.')),
@@ -118,6 +119,7 @@ export const useAdminAuditDetail = () => {
   };
   return {
     audit,
+    isValidId,
     loading: auditQuery.isLoading,
     error: error ?? auditQuery.error?.message ?? null,
     grouped,
@@ -126,5 +128,6 @@ export const useAdminAuditDetail = () => {
     scheduleCommentUpdate,
     downloadReport,
     downloadSummary,
+    refresh: auditQuery.refetch,
   };
 };

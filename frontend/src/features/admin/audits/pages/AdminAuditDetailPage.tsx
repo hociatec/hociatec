@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
-import { LoadingState } from '@/shared/components/ui/page-state';
+import { ErrorState, LoadingState, NotFoundState } from '@/shared/components/ui/page-state';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import type { AuditEventDto, AuditItemDto, AuditListItemDto } from '@/features/audits/publicApi';
@@ -113,11 +113,14 @@ const AuditEventsList = ({ events }: { events: AuditEventDto[] }) => {
 };
 
 export const AdminAuditDetailPage = () => {
-  useDocumentTitle('Admin - Audit');
+  const { auditId } = useParams();
+  const auditTitle = auditId ? `Audit ${auditId}` : 'Audit';
+  useDocumentTitle(`Admin - ${auditTitle}`);
   const navigate = useNavigate();
   const { statuses } = useAuditMetadata();
   const {
     audit,
+    isValidId,
     loading,
     error,
     grouped,
@@ -126,12 +129,29 @@ export const AdminAuditDetailPage = () => {
     scheduleCommentUpdate,
     downloadReport,
     downloadSummary,
+    refresh,
   } = useAdminAuditDetail();
+  const displayTitle = audit?.number ? `Audit ${audit.number}` : `Détail ${auditTitle.toLowerCase()}`;
+
+  if (!loading && !isValidId) {
+    return (
+      <PageContainer size="admin" title="Audit introuvable">
+        <NotFoundState>Cette fiche audit est introuvable.</NotFoundState>
+      </PageContainer>
+    );
+  }
 
   return (
-    <PageContainer size="admin" title={`Audit ${audit?.number ?? ''}`}>
+    <PageContainer size="admin" title={displayTitle}>
       {loading && <LoadingState>Chargement...</LoadingState>}
-      {error && <div className="text-red-600">{error}</div>}
+      {error && (
+        <ErrorState
+          onAction={() => void refresh()}
+          actionLabel="Réessayer"
+        >
+          {error}
+        </ErrorState>
+      )}
       {audit && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -202,6 +222,9 @@ export const AdminAuditDetailPage = () => {
           </div>
           {Array.isArray(audit.events) && audit.events.length > 0 && <AuditEventsList events={audit.events} />}
         </div>
+      )}
+      {!loading && !error && !audit && (
+        <NotFoundState>Le détail de cet audit n’est pas disponible pour le moment.</NotFoundState>
       )}
     </PageContainer>
   );

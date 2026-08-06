@@ -66,6 +66,7 @@ export const CatalogSearchPage = () => {
             meta={catalog.meta}
             loading={catalog.loading}
             error={catalog.error}
+            onRetry={() => void catalog.refresh()}
             loadingMessage="Recherche des produits disponibles..."
             emptyMessage="Aucun produit ne correspond à ces critères. Retirez un filtre ou élargissez votre recherche pour afficher plus de résultats."
             onPageChange={(page) => catalog.updateParam('page', String(page))}

@@ -2,7 +2,7 @@ import type { CatalogProduct, CatalogSearchMeta } from '../apiTypes';
 import { getCatalogPageNumbers } from '../lib/catalogSearch';
 import { ProductActionToolbar } from './ProductActionToolbar';
 import { ProductCard } from './ProductCard';
-import { FeedbackMessage, LoadingState } from '@/shared/components/ui/page-state';
+import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
 
 interface CatalogProductResultsProps {
   products: CatalogProduct[];
@@ -11,6 +11,7 @@ interface CatalogProductResultsProps {
   error: string | null;
   emptyMessage: string;
   loadingMessage: string;
+  onRetry?: () => void;
   onPageChange: (page: number) => void;
 }
 export const CatalogProductResults = ({
@@ -20,11 +21,12 @@ export const CatalogProductResults = ({
   error,
   emptyMessage,
   loadingMessage,
+  onRetry,
   onPageChange,
 }: CatalogProductResultsProps) => (
   <>
     {loading && <LoadingState>{loadingMessage}</LoadingState>}
-    {error && <FeedbackMessage>{error}</FeedbackMessage>}
+    {error && <ErrorState onAction={onRetry}>{error}</ErrorState>}
     {!loading && !error && (
       <>
         <section className="catalog-grid catalog-grid--products">

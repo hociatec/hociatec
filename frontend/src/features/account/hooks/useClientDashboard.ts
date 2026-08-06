@@ -19,6 +19,7 @@ import type {
 import { useToast } from '@/shared/components/ui/toast';
 import { formatOptionalEuroCents } from '@/shared/lib/formatters';
 import { accountQueryKeys } from '@/features/account/queryKeys';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const useClientDashboard = () => {
   const toast = useToast();
@@ -35,9 +36,15 @@ export const useClientDashboard = () => {
     pendingReviews: [],
     loyalty: emptyLoyalty,
   };
+  const errorMessage =
+    dashboardQuery.error
+      ? getHttpErrorMessage(dashboardQuery.error, 'Impossible de charger votre espace client.')
+      : dashboardQuery.data?.hasError
+        ? 'Certaines informations n’ont pas pu être chargées. Les accès rapides restent disponibles.'
+        : null;
   const state: DashboardLoadState = dashboardQuery.isLoading
     ? 'loading'
-    : dashboardQuery.data?.hasError
+    : errorMessage
       ? 'error'
       : 'success';
   const loadedAtMs = dashboardQuery.dataUpdatedAt;
@@ -94,11 +101,15 @@ export const useClientDashboard = () => {
     conversionPoints,
     conversionState,
     convertPoints,
+    error: errorMessage,
     dashboardActions,
+    hasError: Boolean(errorMessage),
     hasConvertiblePoints: data.loyalty.points > 0,
+    loading: dashboardQuery.isLoading,
     loyalty: data.loyalty,
     setConvertPoints,
     state,
+    refresh: dashboardQuery.refetch,
     handleConvert,
   };
 };

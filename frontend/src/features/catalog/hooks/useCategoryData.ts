@@ -109,5 +109,7 @@ export const useCategoryData = ({
     facets: productsQuery.data?.facets ?? emptyFacets,
     loading: categoryQuery.isLoading || productsQuery.isLoading,
     error: categoryError ?? productsError,
+    refresh: () =>
+      Promise.all([categoryQuery.refetch(), productsQuery.refetch()]).then(() => undefined),
   };
 };

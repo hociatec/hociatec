@@ -22,7 +22,7 @@ export const DashboardPanel = ({
 export const DashboardStatusNotice = ({ state }: { state: 'loading' | 'success' | 'error' }) => {
   if (state === 'loading')
     return (
-      <div className="sr-only" role="status" aria-live="polite">
+      <div className="client-dashboard__notice" role="status" aria-live="polite">
         Chargement de votre espace...
       </div>
     );

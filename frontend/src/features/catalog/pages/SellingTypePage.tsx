@@ -64,6 +64,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
             meta={catalog.meta}
             loading={catalog.loading}
             error={catalog.error}
+            onRetry={() => void catalog.refresh()}
             loadingMessage="Chargement des produits disponibles..."
             emptyMessage="Aucun produit ne correspond à ces filtres. Retirez un critère ou consultez les autres catégories du catalogue."
             onPageChange={(page) => catalog.updateParam('page', String(page))}
