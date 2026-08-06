@@ -7,11 +7,13 @@ namespace App\Tests\Unit\Module\TradeIn\Entity;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
+use App\Module\TradeIn\Domain\ValueObject\TradeInCatalogReference;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
+use App\Module\TradeIn\Domain\ValueObject\TradeInTechnicalIdentity;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -132,7 +134,7 @@ final class TradeInRequestDetailedTest extends TestCase
             null,
             new TradeInApplicant('Ada', 'Lovelace', 'ada@example.com', '0102030405'),
             new TradeInProductSnapshot(
-                new TradeInProductIdentity('smartphones', 'iPhone', null, null, null, null, null),
+                new TradeInProductIdentity('smartphones', 'iPhone'),
                 new TradeInPurchase(-1, 2023),
                 new TradeInProductCondition('A', true, true, false, 'Bon etat'),
             ),
@@ -148,7 +150,7 @@ final class TradeInRequestDetailedTest extends TestCase
             $user,
             new TradeInApplicant('Ada', 'Lovelace', 'ada@example.com', '0102030405'),
             new TradeInProductSnapshot(
-                new TradeInProductIdentity('smartphones', 'iPhone', 'Apple', '13', 'SN-1', 10, 'iPhone 13'),
+                new TradeInProductIdentity('smartphones', 'iPhone', new TradeInTechnicalIdentity('Apple', '13', 'SN-1'), new TradeInCatalogReference(10, 'iPhone 13')),
                 new TradeInPurchase(100, 2023),
                 new TradeInProductCondition('A', true, true, false, 'Bon etat'),
             ),

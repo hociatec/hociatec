@@ -24,4 +24,3 @@ final class Version20251117192000 extends AbstractMigration
         $this->addSql('ALTER TABLE cart_items DROP rental_months');
     }
 }
-

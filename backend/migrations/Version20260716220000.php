@@ -21,20 +21,20 @@ final class Version20260716220000 extends AbstractMigration
 
         $sql = [];
         if (!$table->hasColumn('stripe_payment_status')) {
-            $sql[] = "ADD stripe_payment_status VARCHAR(40) DEFAULT NULL";
+            $sql[] = 'ADD stripe_payment_status VARCHAR(40) DEFAULT NULL';
         }
         if (!$table->hasColumn('last_stripe_event_type')) {
-            $sql[] = "ADD last_stripe_event_type VARCHAR(80) DEFAULT NULL";
+            $sql[] = 'ADD last_stripe_event_type VARCHAR(80) DEFAULT NULL';
         }
         if (!$table->hasColumn('failure_code')) {
-            $sql[] = "ADD failure_code VARCHAR(120) DEFAULT NULL";
+            $sql[] = 'ADD failure_code VARCHAR(120) DEFAULT NULL';
         }
         if (!$table->hasColumn('failure_message')) {
-            $sql[] = "ADD failure_message LONGTEXT DEFAULT NULL";
+            $sql[] = 'ADD failure_message LONGTEXT DEFAULT NULL';
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE order_checkout_sessions ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE order_checkout_sessions '.implode(', ', $sql));
         }
     }
 
@@ -57,8 +57,8 @@ final class Version20260716220000 extends AbstractMigration
             $sql[] = 'DROP failure_message';
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE order_checkout_sessions ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE order_checkout_sessions '.implode(', ', $sql));
         }
     }
 }

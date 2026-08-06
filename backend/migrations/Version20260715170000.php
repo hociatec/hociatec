@@ -27,8 +27,8 @@ final class Version20260715170000 extends AbstractMigration
             $sql[] = 'ADD converted_order_id INT DEFAULT NULL';
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE cart_sessions ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE cart_sessions '.implode(', ', $sql));
         }
     }
 
@@ -45,8 +45,8 @@ final class Version20260715170000 extends AbstractMigration
             $sql[] = 'DROP converted_order_id';
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE cart_sessions ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE cart_sessions '.implode(', ', $sql));
         }
     }
 }

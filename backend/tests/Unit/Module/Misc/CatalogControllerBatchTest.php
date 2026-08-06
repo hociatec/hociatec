@@ -6,20 +6,20 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Admin\UI\Catalog\Controller\ListBrandsController;
 use App\Module\Admin\UI\Catalog\Controller\ShowProductController;
-use App\Module\Catalog\UI\Controller\PublicApi\ListCategoriesController;
-use App\Module\Catalog\UI\Controller\PublicApi\ShowCategoryController;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
+use App\Module\Catalog\Application\Workflow\BrandService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
+use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
+use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Catalog\Application\Workflow\BrandService;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
-use App\Module\Catalog\Application\Workflow\CategoryService;
-use App\Module\Catalog\Application\Workflow\ProductQueryService;
+use App\Module\Catalog\UI\Controller\PublicApi\ListCategoriesController;
+use App\Module\Catalog\UI\Controller\PublicApi\ShowCategoryController;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,7 +62,7 @@ final class CatalogControllerBatchTest extends TestCase
         $categories->method('existsWithName')->willReturn(false);
         $categories->method('existsWithSlug')->willReturn(false);
 
-        $categoryService = new CategoryService(
+        $categoryService = new CategoryCatalogWorkflow(
             $categories,
             new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),

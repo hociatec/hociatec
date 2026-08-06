@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Support\Service;
 
-use App\Module\Admin\UI\Operations\Controller\SupportOperationsController;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Workflow\SupportOperationsService;
+use App\Module\Admin\UI\Operations\Controller\SupportOperationsController;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\Order\Infrastructure\Repository\OrderEventRepository;
@@ -21,9 +20,9 @@ use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
 use App\Module\Support\Domain\Entity\SupportRequest;
 use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
+use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;

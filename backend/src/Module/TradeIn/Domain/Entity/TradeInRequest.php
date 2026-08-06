@@ -10,7 +10,6 @@ use App\Module\TradeIn\Domain\ValueObject\TradeInClosure;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPrivateDocument;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
-use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -31,9 +30,12 @@ class TradeInRequest
     #[ORM\Column(length: 30, unique: true)]
     private string $reference;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: 'App\Module\User\Domain\Entity\User')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?User $user;
+    private ?object $user;
+
+    #[ORM\Column(name: 'requester_user_id', type: 'integer', nullable: true)]
+    private ?int $userId = null;
 
     #[ORM\Column(length: 80)]
     private string $firstName;
@@ -154,7 +156,7 @@ class TradeInRequest
 
     public function __construct(
         string $reference,
-        ?User $user,
+        ?object $user,
         TradeInApplicant $applicant,
         TradeInProductSnapshot $product,
         TradeInEstimate $estimate,
@@ -162,6 +164,7 @@ class TradeInRequest
     ) {
         $this->reference = $reference;
         $this->user = $user;
+        $this->userId = $this->extractUserId($user);
         $this->firstName = $applicant->firstName;
         $this->lastName = $applicant->lastName;
         $this->email = $applicant->email;
@@ -192,5 +195,16 @@ class TradeInRequest
     private function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function extractUserId(?object $user): ?int
+    {
+        if (null === $user || !method_exists($user, 'getId')) {
+            return null;
+        }
+
+        $id = $user->getId();
+
+        return is_int($id) ? $id : null;
     }
 }

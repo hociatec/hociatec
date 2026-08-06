@@ -25,11 +25,11 @@ final class Version20260724023000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $emailIndex = $this->findUniqueEmailIndex();
-        if ($emailIndex !== null && strcasecmp($emailIndex->getName(), self::CANONICAL_INDEX_NAME) === 0) {
+        if (null !== $emailIndex && 0 === strcasecmp($emailIndex->getName(), self::CANONICAL_INDEX_NAME)) {
             return;
         }
 
-        if ($emailIndex !== null) {
+        if (null !== $emailIndex) {
             $this->addSql(sprintf(
                 'DROP INDEX %s ON users',
                 $this->connection->quoteIdentifier($emailIndex->getName()),
@@ -42,7 +42,7 @@ final class Version20260724023000 extends AbstractMigration
     public function down(Schema $schema): void
     {
         $emailIndex = $this->findUniqueEmailIndex();
-        if ($emailIndex === null || strcasecmp($emailIndex->getName(), self::CANONICAL_INDEX_NAME) !== 0) {
+        if (null === $emailIndex || 0 !== strcasecmp($emailIndex->getName(), self::CANONICAL_INDEX_NAME)) {
             return;
         }
 

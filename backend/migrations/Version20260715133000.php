@@ -35,8 +35,8 @@ final class Version20260715133000 extends AbstractMigration
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'invoice_pdf_path', 'ADD invoice_pdf_path VARCHAR(255) DEFAULT NULL');
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'invoice_xml_path', 'ADD invoice_xml_path VARCHAR(255) DEFAULT NULL');
 
-        if ($orderColumnSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderColumnSql));
+        if ([] !== $orderColumnSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderColumnSql));
         }
 
         if (!$ordersTable->hasIndex('UNIQ_ORDERS_INVOICE_NUMBER')) {
@@ -49,8 +49,8 @@ final class Version20260715133000 extends AbstractMigration
         $this->addColumnSqlIfMissing($orderItemsTable, $orderItemColumnSql, 'line_vat_cents', 'ADD line_vat_cents INT NOT NULL DEFAULT 0');
         $this->addColumnSqlIfMissing($orderItemsTable, $orderItemColumnSql, 'line_total_cents', 'ADD line_total_cents INT NOT NULL DEFAULT 0');
 
-        if ($orderItemColumnSql !== []) {
-            $this->addSql('ALTER TABLE order_items ' . implode(', ', $orderItemColumnSql));
+        if ([] !== $orderItemColumnSql) {
+            $this->addSql('ALTER TABLE order_items '.implode(', ', $orderItemColumnSql));
         }
 
         $this->addSql("UPDATE orders
@@ -61,11 +61,11 @@ final class Version20260715133000 extends AbstractMigration
                 invoiced_at = COALESCE(invoiced_at, created_at)
             WHERE invoice_status = 'issued'");
 
-        $this->addSql("UPDATE order_items
+        $this->addSql('UPDATE order_items
             SET line_total_cents = CASE WHEN line_total_cents = 0 THEN unit_price_cents * quantity ELSE line_total_cents END,
                 line_subtotal_cents = CASE WHEN line_subtotal_cents = 0 THEN ROUND((unit_price_cents * quantity) / 1.2) ELSE line_subtotal_cents END,
                 line_vat_cents = CASE WHEN line_vat_cents = 0 THEN (unit_price_cents * quantity) - ROUND((unit_price_cents * quantity) / 1.2) ELSE line_vat_cents END
-            WHERE line_total_cents = 0 OR line_subtotal_cents = 0 OR line_vat_cents = 0");
+            WHERE line_total_cents = 0 OR line_subtotal_cents = 0 OR line_vat_cents = 0');
     }
 
     public function down(Schema $schema): void
@@ -93,8 +93,8 @@ final class Version20260715133000 extends AbstractMigration
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'invoice_pdf_path');
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'invoice_xml_path');
 
-        if ($orderDropSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderDropSql));
+        if ([] !== $orderDropSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderDropSql));
         }
 
         $orderItemDropSql = [];
@@ -103,8 +103,8 @@ final class Version20260715133000 extends AbstractMigration
         $this->dropColumnSqlIfExists($orderItemsTable, $orderItemDropSql, 'line_vat_cents');
         $this->dropColumnSqlIfExists($orderItemsTable, $orderItemDropSql, 'line_total_cents');
 
-        if ($orderItemDropSql !== []) {
-            $this->addSql('ALTER TABLE order_items ' . implode(', ', $orderItemDropSql));
+        if ([] !== $orderItemDropSql) {
+            $this->addSql('ALTER TABLE order_items '.implode(', ', $orderItemDropSql));
         }
     }
 
@@ -124,7 +124,7 @@ final class Version20260715133000 extends AbstractMigration
     private function dropColumnSqlIfExists(\Doctrine\DBAL\Schema\Table $table, array &$sql, string $columnName): void
     {
         if ($table->hasColumn($columnName)) {
-            $sql[] = 'DROP ' . $columnName;
+            $sql[] = 'DROP '.$columnName;
         }
     }
 }

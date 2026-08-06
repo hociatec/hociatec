@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
+use App\Module\Catalog\Application\Workflow\ProductShareEmailService;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Application\Workflow\ProductShareEmailService;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Workflow\CommunicationPreferences;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
+use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -117,7 +117,7 @@ final class AlignedEmailServicesTest extends TestCase
     public function testTradeInNotificationEmailServiceUsesMailerAndLogsFailures(): void
     {
         $user = $this->persistUser([CommunicationPreferences::NOTIFICATION, CommunicationPreferences::EMAIL]);
-        $request = TradeInRequest::fromLegacySubmittedScalars(
+        $request = TradeInRequestFactory::submitted(
             'TR-1',
             $user,
             'Ada',

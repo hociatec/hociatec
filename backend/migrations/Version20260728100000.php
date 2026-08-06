@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Auto-generated Migration: Create beta_bug_report_comments table
+ * Auto-generated Migration: Create beta_bug_report_comments table.
  */
 final class Version20260728100000 extends AbstractMigration
 {

@@ -25,4 +25,3 @@ final class Version20251029133000 extends AbstractMigration
         $this->addSql('ALTER TABLE catalog_products DROP selling_type');
     }
 }
-

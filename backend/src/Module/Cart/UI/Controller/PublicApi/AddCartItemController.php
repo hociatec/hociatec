@@ -6,7 +6,7 @@ namespace App\Module\Cart\UI\Controller\PublicApi;
 
 use App\Module\Cart\Application\DTO\AddCartItemInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
-use App\Module\Cart\Application\Workflow\CartService;
+use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class AddCartItemController extends AbstractController
 {
     public function __construct(
-        private readonly CartService $cartService,
+        private readonly CartSessionWorkflow $cartService,
         private readonly ProductRepositoryPort $productRepository,
         private readonly CartFormatter $cartFormatter,
         private readonly DtoValidator $validator,

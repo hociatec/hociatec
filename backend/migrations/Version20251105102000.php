@@ -27,4 +27,3 @@ final class Version20251105102000 extends AbstractMigration
         $this->addSql('DROP INDEX idx_audit_requests_status ON audit_requests');
     }
 }
-

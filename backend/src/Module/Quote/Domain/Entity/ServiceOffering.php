@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
@@ -66,9 +67,9 @@ class ServiceOffering
 
     public function __construct(string $title, int $priceCents, int $vatRateBps)
     {
-        $this->title = $title;
-        $this->priceCents = $priceCents;
-        $this->vatRateBps = $vatRateBps;
+        $this->setTitle($title);
+        $this->setPriceCents($priceCents);
+        $this->setVatRateBps($vatRateBps);
 
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -223,7 +224,7 @@ class ServiceOffering
 
     public function setPriceCents(int $priceCents): self
     {
-        $this->priceCents = $priceCents;
+        $this->priceCents = Money::fromCents($priceCents)->cents();
 
         return $this;
     }
@@ -235,6 +236,10 @@ class ServiceOffering
 
     public function setVatRateBps(int $vatRateBps): self
     {
+        if ($vatRateBps < 0) {
+            throw new \InvalidArgumentException('Le taux de TVA ne peut pas être négatif.');
+        }
+
         $this->vatRateBps = $vatRateBps;
 
         return $this;

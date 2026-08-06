@@ -6,12 +6,12 @@ namespace App\Tests\Unit\Module\Audit\Controller;
 
 use App\Module\Admin\UI\Audit\Controller\UpdateAuditStatusController;
 use App\Module\Admin\UI\Audit\Controller\UpdateChecklistItemController;
+use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
-use App\Module\Audit\Application\Workflow\AuditEventLogger;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;

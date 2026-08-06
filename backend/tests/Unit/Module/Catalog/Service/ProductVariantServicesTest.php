@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
-use App\Module\Catalog\Domain\Entity\Brand;
-use App\Module\Catalog\Domain\Entity\Category;
-use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Catalog\Application\Calculator\ProductCatalogRules;
 use App\Module\Catalog\Application\DTO\ProductVariantCopyData;
 use App\Module\Catalog\Application\Factory\ProductVariantBatchCreator;
 use App\Module\Catalog\Application\Workflow\ProductVariantService;
+use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;

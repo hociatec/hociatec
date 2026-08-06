@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Domain\Entity;
 
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
+use App\Module\TradeIn\Domain\ValueObject\TradeInCatalogReference;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
-use App\Module\User\Domain\Entity\User;
+use App\Module\TradeIn\Domain\ValueObject\TradeInTechnicalIdentity;
 
 trait TradeInRequestProductAccessorsTrait
 {
@@ -24,14 +25,14 @@ trait TradeInRequestProductAccessorsTrait
         return $this->reference;
     }
 
-    public function getUser(): ?User
+    public function getUser(): ?object
     {
         return $this->user;
     }
 
     public function getUserId(): ?int
     {
-        return $this->user?->getId();
+        return $this->userId ?? $this->extractUserId($this->user);
     }
 
     public function getFirstName(): string
@@ -132,7 +133,7 @@ trait TradeInRequestProductAccessorsTrait
     public function productSnapshot(): TradeInProductSnapshot
     {
         return new TradeInProductSnapshot(
-            new TradeInProductIdentity($this->category, $this->productName, $this->brand, $this->model, $this->serialNumber, $this->catalogProductId, $this->catalogProductName),
+            new TradeInProductIdentity($this->category, $this->productName, new TradeInTechnicalIdentity($this->brand, $this->model, $this->serialNumber), new TradeInCatalogReference($this->catalogProductId, $this->catalogProductName)),
             new TradeInPurchase($this->purchasePriceCents, $this->purchaseYear),
             new TradeInProductCondition($this->conditionGrade, $this->functional, $this->hasAccessories, $this->hasProofOfPurchase, $this->description),
         );

@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\News;
 
-use App\Module\News\UI\Controller\PublicApi\CreateNewsCommentController;
-use App\Module\News\UI\Controller\PublicApi\ListNewsArticlesController;
-use App\Module\News\UI\Controller\PublicApi\ListNewsCommentsController;
-use App\Module\News\UI\Controller\PublicApi\ShowNewsArticleController;
+use App\Module\News\Application\Projection\NewsFormatter;
+use App\Module\News\Application\Workflow\NewsArticleViewTracker;
+use App\Module\News\Application\Writer\NewsCommentWriter;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsArticleView;
 use App\Module\News\Domain\Entity\NewsComment;
 use App\Module\News\Infrastructure\Repository\NewsArticleRepository;
 use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
 use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
-use App\Module\News\Application\Workflow\NewsArticleViewTracker;
-use App\Module\News\Application\Writer\NewsCommentWriter;
-use App\Module\News\Application\Projection\NewsFormatter;
+use App\Module\News\UI\Controller\PublicApi\CreateNewsCommentController;
+use App\Module\News\UI\Controller\PublicApi\ListNewsArticlesController;
+use App\Module\News\UI\Controller\PublicApi\ListNewsCommentsController;
+use App\Module\News\UI\Controller\PublicApi\ShowNewsArticleController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;

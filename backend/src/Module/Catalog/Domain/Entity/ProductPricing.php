@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -17,7 +18,7 @@ final class ProductPricing
 
     public function __construct(int $priceCents)
     {
-        $this->priceCents = $priceCents;
+        $this->changePrice($priceCents);
     }
 
     public function priceCents(): int
@@ -27,7 +28,7 @@ final class ProductPricing
 
     public function changePrice(int $priceCents): void
     {
-        $this->priceCents = $priceCents;
+        $this->priceCents = Money::fromCents($priceCents)->cents();
     }
 
     public function sellingType(): string

@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Notification\Service;
 
+use App\Module\Appointment\Application\Handler\ChangeAppointmentStatusHandler;
+use App\Module\Appointment\Application\Workflow\AppointmentService;
+use App\Module\Appointment\Application\Workflow\AppointmentStatusWorkflow;
+use App\Module\Appointment\Application\Workflow\AvailabilityService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Workflow\AppointmentStatusWorkflow;
-use App\Module\Appointment\Application\Handler\ChangeAppointmentStatusHandler;
-use App\Module\Appointment\Application\Workflow\AppointmentService;
-use App\Module\Appointment\Application\Workflow\AvailabilityService;
+use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
-use App\Module\Audit\Application\Projection\AuditMetadataFormatter;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Provider\AppointmentNotificationProvider;
 use App\Module\Notification\Application\Provider\AuditNotificationProvider;

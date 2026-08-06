@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Admin\Application\Operations\Workflow\RefundOperationsService;
@@ -20,8 +19,8 @@ use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Application\TransactionManager;
 use App\Shared\Application\LockMode;
+use App\Shared\Application\TransactionManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

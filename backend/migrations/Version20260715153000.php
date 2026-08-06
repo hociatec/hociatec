@@ -26,8 +26,8 @@ final class Version20260715153000 extends AbstractMigration
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'status_delivered_email_sent_at', "ADD status_delivered_email_sent_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)'");
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'status_cancelled_email_sent_at', "ADD status_cancelled_email_sent_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)'");
 
-        if ($orderColumnSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderColumnSql));
+        if ([] !== $orderColumnSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderColumnSql));
         }
     }
 
@@ -43,8 +43,8 @@ final class Version20260715153000 extends AbstractMigration
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'status_delivered_email_sent_at');
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'status_cancelled_email_sent_at');
 
-        if ($orderDropSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderDropSql));
+        if ([] !== $orderDropSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderDropSql));
         }
     }
 
@@ -64,7 +64,7 @@ final class Version20260715153000 extends AbstractMigration
     private function dropColumnSqlIfExists(\Doctrine\DBAL\Schema\Table $table, array &$sql, string $columnName): void
     {
         if ($table->hasColumn($columnName)) {
-            $sql[] = 'DROP ' . $columnName;
+            $sql[] = 'DROP '.$columnName;
         }
     }
 }

@@ -16,11 +16,11 @@ final class Version20260630103000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE catalog_products ADD brand VARCHAR(80) DEFAULT NULL, ADD release_year SMALLINT DEFAULT NULL");
+        $this->addSql('ALTER TABLE catalog_products ADD brand VARCHAR(80) DEFAULT NULL, ADD release_year SMALLINT DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE catalog_products DROP brand, DROP release_year");
+        $this->addSql('ALTER TABLE catalog_products DROP brand, DROP release_year');
     }
 }

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Currency;
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
 final class CheckoutPricingSnapshot
 {
-    #[ORM\Column(length: 3, enumType: CheckoutCurrency::class)]
-    private CheckoutCurrency $currencyCode = CheckoutCurrency::EUR;
+    #[ORM\Column(length: 3, enumType: Currency::class)]
+    private Currency $currencyCode = Currency::EUR;
 
     #[ORM\Column(type: 'integer')]
     private int $subtotalPriceCents = 0;
@@ -34,7 +36,7 @@ final class CheckoutPricingSnapshot
 
     public function changeCurrencyCode(string $currencyCode): void
     {
-        $this->currencyCode = CheckoutCurrency::fromCode($currencyCode);
+        $this->currencyCode = Currency::fromCode($currencyCode);
     }
 
     public function subtotalPriceCents(): int
@@ -44,11 +46,7 @@ final class CheckoutPricingSnapshot
 
     public function changeSubtotalPriceCents(int $amount): void
     {
-        if ($amount < 0) {
-            throw new \InvalidArgumentException('Le sous-total ne peut pas etre negatif.');
-        }
-
-        $this->subtotalPriceCents = $amount;
+        $this->subtotalPriceCents = Money::fromCents($amount, $this->currencyCode)->cents();
     }
 
     public function discountAmountCents(): int
@@ -58,11 +56,7 @@ final class CheckoutPricingSnapshot
 
     public function changeDiscountAmountCents(int $amount): void
     {
-        if ($amount < 0) {
-            throw new \InvalidArgumentException('La remise ne peut pas etre negative.');
-        }
-
-        $this->discountAmountCents = $amount;
+        $this->discountAmountCents = Money::fromCents($amount, $this->currencyCode)->cents();
     }
 
     public function totalPriceCents(): int
@@ -72,11 +66,7 @@ final class CheckoutPricingSnapshot
 
     public function changeTotalPriceCents(int $amount): void
     {
-        if ($amount < 0) {
-            throw new \InvalidArgumentException('Le total ne peut pas etre negatif.');
-        }
-
-        $this->totalPriceCents = $amount;
+        $this->totalPriceCents = Money::fromCents($amount, $this->currencyCode)->cents();
     }
 
     public function replaceAmounts(int $subtotalPriceCents, int $discountAmountCents, int $totalPriceCents, string $currencyCode): void

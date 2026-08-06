@@ -54,7 +54,7 @@ final class Version20260806190000 extends AbstractMigration
                 continue;
             }
 
-            if ($foreignKey->getForeignTableName() === 'orders' && $foreignKey->getColumns() === ['order_id']) {
+            if ('orders' === $foreignKey->getForeignTableName() && $foreignKey->getColumns() === ['order_id']) {
                 $keys[] = $foreignKey->getName();
             }
         }
@@ -73,6 +73,6 @@ final class Version20260806190000 extends AbstractMigration
 
     private function hasSupportOrderForeignKey(): bool
     {
-        return $this->supportOrderForeignKeyName() !== null;
+        return null !== $this->supportOrderForeignKeyName();
     }
 }

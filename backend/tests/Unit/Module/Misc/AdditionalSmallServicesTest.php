@@ -6,27 +6,22 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
-use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
+use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
-use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
-use Doctrine\ORM\Tools\SchemaTool;
 
 final class AdditionalSmallServicesTest extends TestCase
 {

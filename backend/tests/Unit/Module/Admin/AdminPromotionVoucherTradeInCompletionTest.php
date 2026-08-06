@@ -22,43 +22,44 @@ use App\Module\Admin\UI\Voucher\Controller\DeleteVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\GetVoucherController;
 use App\Module\Admin\UI\Voucher\Controller\ListVouchersController;
 use App\Module\Admin\UI\Voucher\Controller\UpdateVoucherController;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Promotion\Application\Handler\CreatePromotionHandler;
 use App\Module\Promotion\Application\Handler\DeletePromotionHandler;
-use App\Module\Promotion\Application\Writer\PromotionDataApplier;
-use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
+use App\Module\Promotion\Application\Writer\PromotionDataApplier;
+use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
+use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
+use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
+use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
+use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
+use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
+use App\Module\TradeIn\Application\Workflow\TradeInStoreCreditVoucherIssuer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
-use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
-use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
-use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
-use App\Module\TradeIn\Application\Workflow\TradeInStoreCreditVoucherIssuer;
-use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
-use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
-use App\Module\TradeIn\Application\Workflow\TradeInService;
-use App\Module\User\Domain\Entity\User;
 use App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer;
-use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
+use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
+use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
-use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -208,7 +209,7 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
 
         $delete = new DeleteTradeInController($repository, new \App\Module\Admin\Application\TradeIn\Handler\DeleteTradeInRequestHandler(
             $repository,
-            new \App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence($em),
+            new TradeInPersistence($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete((int) $submitted->getId())->getStatusCode());
@@ -246,12 +247,12 @@ final class AdminPromotionVoucherTradeInCompletionTest extends TestCase
 
     private function tradeIn(?User $user, string $reference): TradeInRequest
     {
-        return TradeInRequest::fromLegacySubmittedScalars($reference, $user, 'Ada', 'Lovelace', 'ada@example.test', '0102030405', 'smartphone', 'iPhone', 100000, 2025, 'Apple', '15', 'SN', 'bon', true, true, true, 'Bon etat', null, null, 10000, 12000, new \DateTimeImmutable('2026-07-01T10:00:00+00:00'));
+        return TradeInRequestFactory::submitted($reference, $user, 'Ada', 'Lovelace', 'ada@example.test', '0102030405', 'smartphone', 'iPhone', 100000, 2025, 'Apple', '15', 'SN', 'bon', true, true, true, 'Bon etat', null, null, 10000, 12000, new \DateTimeImmutable('2026-07-01T10:00:00+00:00'));
     }
 
-    private function tradeInService(EntityManager $em): TradeInService
+    private function tradeInService(EntityManager $em): TradeInRequestWorkflow
     {
-        return new TradeInService(
+        return new TradeInRequestWorkflow(
             new TradeInPersistence($em),
             new TradeInEstimator(),
             new TradeInNumberGenerator(),

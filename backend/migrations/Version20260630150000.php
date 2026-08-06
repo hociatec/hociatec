@@ -16,7 +16,7 @@ final class Version20260630150000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE catalog_products ADD variant_group VARCHAR(120) DEFAULT NULL");
+        $this->addSql('ALTER TABLE catalog_products ADD variant_group VARCHAR(120) DEFAULT NULL');
         $this->addSql("UPDATE catalog_products SET variant_group = 'iPhone 11' WHERE slug LIKE 'iphone-11-%'");
         $this->addSql("UPDATE catalog_products SET variant_group = 'iPhone 11 Pro' WHERE slug LIKE 'iphone-11-pro-%' AND slug NOT LIKE 'iphone-11-pro-max-%'");
         $this->addSql("UPDATE catalog_products SET variant_group = 'iPhone 11 Pro Max' WHERE slug LIKE 'iphone-11-pro-max-%'");
@@ -42,6 +42,6 @@ final class Version20260630150000 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE catalog_products DROP variant_group");
+        $this->addSql('ALTER TABLE catalog_products DROP variant_group');
     }
 }

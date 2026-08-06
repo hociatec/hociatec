@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Service;
 
+use App\Module\Training\Application\Projection\TrainingFormatter;
+use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
@@ -11,8 +13,6 @@ use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
 use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
-use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

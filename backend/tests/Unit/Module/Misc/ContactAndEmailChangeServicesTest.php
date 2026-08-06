@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
-use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\User\Application\Workflow\ChangeProfileEmailService;
 use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
+use App\Module\User\Application\Workflow\ChangeProfileEmailService;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -39,6 +39,7 @@ final class ContactAndEmailChangeServicesTest extends TestCase
         $service->change($user, 9, 'new@example.com', 'secret');
         self::assertSame('new@example.com', $user->getEmail());
     }
+
     private function user(): User
     {
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Voucher\Controller;
 
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\UI\Controller\ListMyVouchersController;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
+use App\Module\Voucher\UI\Controller\ListMyVouchersController;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;

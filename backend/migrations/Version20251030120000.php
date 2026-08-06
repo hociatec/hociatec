@@ -30,4 +30,3 @@ final class Version20251030120000 extends AbstractMigration
         $this->addSql('ALTER TABLE users DROP verification_token_expires_at');
     }
 }
-

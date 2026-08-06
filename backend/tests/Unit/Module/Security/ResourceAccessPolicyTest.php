@@ -17,6 +17,7 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\User\Domain\Entity\User;
+use App\Tests\Support\TradeInRequestFactory;
 use PHPUnit\Framework\TestCase;
 
 final class ResourceAccessPolicyTest extends TestCase
@@ -141,7 +142,7 @@ final class ResourceAccessPolicyTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return TradeInRequest::fromLegacySubmittedScalars(
+        return TradeInRequestFactory::submitted(
             'TR-IDOR',
             $user,
             'Ada',

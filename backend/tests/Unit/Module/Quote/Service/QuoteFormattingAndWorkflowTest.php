@@ -8,14 +8,14 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\DTO\QuoteItemAddition;
+use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
-use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -147,7 +147,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
             ->method('persist')
             ->with(self::callback(static function (object $entity): bool {
                 self::assertInstanceOf(QuoteItem::class, $entity);
-                /** @var QuoteItem $entity */
+                /* @var QuoteItem $entity */
                 self::assertSame('Audit mensuel', $entity->getName());
                 self::assertSame(12000, $entity->getUnitPriceCents());
                 self::assertSame('Pack support', $entity->getDescription());

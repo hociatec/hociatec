@@ -34,9 +34,8 @@ final class Version20251030000100 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // re-add columns as nullable for rollback
-        $this->addSql("ALTER TABLE users ADD address VARCHAR(255) DEFAULT NULL");
-        $this->addSql("ALTER TABLE users ADD postal_code VARCHAR(20) DEFAULT NULL");
-        $this->addSql("ALTER TABLE users ADD city VARCHAR(100) DEFAULT NULL");
+        $this->addSql('ALTER TABLE users ADD address VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE users ADD postal_code VARCHAR(20) DEFAULT NULL');
+        $this->addSql('ALTER TABLE users ADD city VARCHAR(100) DEFAULT NULL');
     }
 }
-

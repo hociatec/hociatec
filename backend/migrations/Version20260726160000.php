@@ -9,7 +9,10 @@ use Doctrine\Migrations\AbstractMigration;
 
 final class Version20260726160000 extends AbstractMigration
 {
-    public function getDescription(): string { return 'Create trade-in requests with customer estimates and admin offers.'; }
+    public function getDescription(): string
+    {
+        return 'Create trade-in requests with customer estimates and admin offers.';
+    }
 
     public function up(Schema $schema): void
     {
@@ -17,5 +20,8 @@ final class Version20260726160000 extends AbstractMigration
         $this->addSql('ALTER TABLE trade_in_requests ADD CONSTRAINT FK_TRADE_IN_USER FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL');
     }
 
-    public function down(Schema $schema): void { $this->addSql('DROP TABLE trade_in_requests'); }
+    public function down(Schema $schema): void
+    {
+        $this->addSql('DROP TABLE trade_in_requests');
+    }
 }

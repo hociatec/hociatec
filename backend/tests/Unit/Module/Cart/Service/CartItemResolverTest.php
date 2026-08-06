@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Service;
 
+use App\Module\Cart\Application\Provider\CartItemResolver;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Application\Provider\CartItemResolver;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use PHPUnit\Framework\TestCase;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Application\Factory\InvoiceDownloadNameBuilder;
+use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

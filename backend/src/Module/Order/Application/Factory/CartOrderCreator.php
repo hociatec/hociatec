@@ -121,9 +121,7 @@ final readonly class CartOrderCreator
             ->setInvoicedAt(new \DateTimeImmutable())
             ->setCurrencyCode('EUR')
             ->setElectronicFormat('UBL-2.1')
-            ->setSubtotalPriceCents((int) $summary['subtotalPriceCents'])
-            ->setDiscountAmountCents((int) $summary['discountAmountCents'])
-            ->setTotalPriceCents((int) $summary['totalPriceCents'])
+            ->replacePaymentAmounts((int) $summary['subtotalPriceCents'], (int) $summary['discountAmountCents'], (int) $summary['totalPriceCents'])
             ->setAppliedPromotionName($summary['appliedVoucher']['name'] ?? ($summary['appliedPromotion']['name'] ?? null))
             ->setAppliedPromotionSlug($summary['appliedVoucher']['code'] ?? ($summary['appliedPromotion']['slug'] ?? null));
     }

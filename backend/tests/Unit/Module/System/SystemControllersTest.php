@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\System;
 
-use App\Module\System\UI\Controller\HealthController;
-use App\Module\System\UI\Controller\MetricsController;
-use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
+use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
+use App\Module\System\UI\Controller\HealthController;
+use App\Module\System\UI\Controller\MetricsController;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
 use Doctrine\DBAL\Result;

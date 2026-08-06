@@ -10,12 +10,12 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Promotion\Application\Calculator\CartSubtotalCalculator;
 use App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator;
-use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Provider\PromotionAudienceProvider;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

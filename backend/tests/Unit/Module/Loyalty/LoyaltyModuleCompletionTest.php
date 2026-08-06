@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Loyalty;
 
+use App\Module\Loyalty\Application\Workflow\LoyaltyService;
+use App\Module\Loyalty\Infrastructure\EventSubscriber\LoyaltyOrderSubscriber;
 use App\Module\Loyalty\UI\Controller\AdminLoyaltyController;
 use App\Module\Loyalty\UI\Controller\MyLoyaltyController;
-use App\Module\Loyalty\Infrastructure\EventSubscriber\LoyaltyOrderSubscriber;
-use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;

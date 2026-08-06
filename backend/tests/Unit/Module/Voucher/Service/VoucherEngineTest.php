@@ -9,9 +9,9 @@ use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\User\Domain\Entity\User;
+use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
-use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 

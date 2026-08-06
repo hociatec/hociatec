@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\UI\Controller;
 
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use App\Module\TradeIn\Application\Workflow\TradeInService;
+use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\User\Domain\Entity\User;
@@ -22,7 +22,7 @@ final class RespondToTradeInOfferController extends AbstractController
 {
     public function __construct(
         private readonly TradeInRequestRepositoryPort $requests,
-        private readonly TradeInService $service,
+        private readonly TradeInRequestWorkflow $service,
         private readonly TradeInAccessPolicy $accessPolicy,
     ) {
     }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Order\Service;
 
+use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
-use App\Module\Order\Application\Provider\OrderIssueInspector;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 

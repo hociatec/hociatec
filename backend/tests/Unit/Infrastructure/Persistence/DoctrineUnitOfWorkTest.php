@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Persistence;
 
-use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 

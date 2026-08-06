@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Notification\Service;
 
-use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
-use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -33,10 +33,16 @@ final class UserCommunicationNotifierTest extends TestCase
         $messages = [];
         $bus = new class($messages) implements MessageBusInterface {
             public array $messages = [];
-            public function __construct(array &$messages) { $this->messages = &$messages; }
+
+            public function __construct(array &$messages)
+            {
+                $this->messages = &$messages;
+            }
+
             public function dispatch(object $message, array $stamps = []): Envelope
             {
                 $this->messages[] = $message;
+
                 return new Envelope($message, $stamps);
             }
         };

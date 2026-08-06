@@ -46,7 +46,7 @@ final class VoucherRepositoryTest extends TestCase
         $this->entityManager->flush();
 
         self::assertCount(1, $repository->findActiveForDate(new \DateTimeImmutable('2026-07-29T00:00:00+00:00')));
-        self::assertSame('ACTIVE', $repository->findOneByCode(' active ') ?->getCode());
+        self::assertSame('ACTIVE', $repository->findOneByCode(' active ')?->getCode());
         self::assertNull($repository->findOneByCode('   '));
         self::assertCount(2, $repository->findByRecipientUserId(42));
     }

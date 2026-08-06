@@ -13,6 +13,10 @@ use Symfony\Component\Mailer\MailerInterface;
 
 final class OrderNotificationEmailService
 {
+    use OrderCreatedEmailNotifierTrait;
+    use OrderInvoiceEmailNotifierTrait;
+    use OrderStatusEmailNotifierTrait;
+
     public function __construct(
         private readonly OrderPersistencePort $persistence,
         private readonly OrderNotificationContentProvider $contentProvider,
@@ -21,112 +25,6 @@ final class OrderNotificationEmailService
         private readonly UserCommunicationNotifier $userNotifications,
         private readonly string $mailerFrom,
     ) {
-    }
-
-    public function sendOrderCreatedIfNeeded(Order $order): bool
-    {
-        return $this->sendOrderCreated($order, false);
-    }
-
-    public function sendInvoiceIssuedIfNeeded(Order $order): bool
-    {
-        return $this->sendInvoiceIssued($order, false);
-    }
-
-    public function sendStatusChangedIfNeeded(Order $order, string $oldStatus, string $newStatus): bool
-    {
-        return $this->sendStatusChanged($order, $oldStatus, $newStatus, false);
-    }
-
-    public function resendOrderCreated(Order $order): bool
-    {
-        return $this->sendOrderCreated($order, true);
-    }
-
-    public function resendInvoiceIssued(Order $order): bool
-    {
-        return $this->sendInvoiceIssued($order, true);
-    }
-
-    public function resendStatusChanged(Order $order, string $oldStatus, string $newStatus): bool
-    {
-        return $this->sendStatusChanged($order, $oldStatus, $newStatus, true);
-    }
-
-    private function sendOrderCreated(Order $order, bool $force): bool
-    {
-        if (!$force && null !== $order->getOrderCreatedEmailSentAt()) {
-            return false;
-        }
-
-        $this->notifyAccount($order, 'order_created');
-        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
-            return false;
-        }
-
-        $this->sendScenario($order, 'order_created');
-        $order->setOrderCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->commit();
-        $this->events->log($order, null, 'email_sent', $force ? 'Email client renvoyé: commande enregistrée.' : 'Email client envoyé: commande enregistrée.');
-
-        return true;
-    }
-
-    private function sendInvoiceIssued(Order $order, bool $force): bool
-    {
-        if (
-            (!$force && null !== $order->getInvoiceEmailSentAt())
-            || null === $order->getInvoicePdfPath()
-            || null === $order->getInvoiceXmlPath()
-        ) {
-            return false;
-        }
-
-        $this->notifyAccount($order, 'order_invoice_issued');
-        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
-            return false;
-        }
-
-        $this->sendScenario($order, 'order_invoice_issued');
-        $order->setInvoiceEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->commit();
-        $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', $force ? 'Email client renvoyé: facture disponible.' : 'Email client envoyé: facture disponible.');
-
-        return true;
-    }
-
-    private function sendStatusChanged(Order $order, string $oldStatus, string $newStatus, bool $force): bool
-    {
-        $scenarioKey = match ($newStatus) {
-            Order::STATUS_DELIVERED => 'order_status_delivered',
-            Order::STATUS_CANCELLED => 'order_status_cancelled',
-            default => null,
-        };
-
-        if (null === $scenarioKey || (!$force && $this->hasStatusNotificationAlreadyBeenSent($order, $newStatus))) {
-            return false;
-        }
-
-        $this->notifyAccount($order, $scenarioKey, $newStatus);
-        if (!$this->userNotifications->shouldSendEmail($order->getUser())) {
-            return false;
-        }
-
-        $this->sendScenario($order, $scenarioKey, [
-            'previous_order_status' => $oldStatus,
-            'previous_order_status_label' => $this->formatStatus($oldStatus),
-        ]);
-
-        $sentAt = new \DateTimeImmutable();
-        match ($newStatus) {
-            Order::STATUS_DELIVERED => $order->setStatusDeliveredEmailSentAt($sentAt),
-            Order::STATUS_CANCELLED => $order->setStatusCancelledEmailSentAt($sentAt),
-        };
-
-        $this->persistence->commit();
-        $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', ($force ? 'Email client renvoyé: statut ' : 'Email client envoyé: statut ').$this->formatStatus($newStatus).'.');
-
-        return true;
     }
 
     private function notifyAccount(Order $order, string $scenarioKey, ?string $status = null): void

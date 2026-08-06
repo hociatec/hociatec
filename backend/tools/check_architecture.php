@@ -95,6 +95,10 @@ foreach ($iterator as $file) {
         $violations[] = sprintf('%s: %d lignes (maximum global: 500)', $relativePath, $lineCount);
     }
 
+    if (str_contains($relativePath, '/Domain/Entity/') && str_ends_with($relativePath, 'Trait.php') && $lineCount > 250) {
+        $violations[] = sprintf('%s: %d lignes (maximum trait entité: 250)', $relativePath, $lineCount);
+    }
+
     foreach (methodLineCounts($content) as $method) {
         if ($method['lines'] > 70) {
             $violations[] = sprintf('%s:%d %s: %d lignes (maximum méthode: 70)', $relativePath, $method['start'], $method['name'], $method['lines']);
@@ -171,6 +175,19 @@ foreach ($iterator as $file) {
         $parameterCount = countConstructorParameters($constructor[1]);
         if ($parameterCount >= 8) {
             $violations[] = sprintf('%s: %d paramètres de constructeur (maximum global: 7)', $relativePath, $parameterCount);
+        }
+    }
+
+    if (str_contains($relativePath, '/Domain/Entity/') && str_contains($content, '#[ORM\\Pre')) {
+        foreach (methodLineCounts($content) as $method) {
+            $pattern = sprintf('/#\[ORM\\\\Pre(?:Persist|Update)\][\s\S]*?function\s+%s\s*\([^)]*\)\s*:\s*void\s*\{(?P<body>[\s\S]*?)\n    \}/', preg_quote($method['name'], '/'));
+            if (1 !== preg_match($pattern, $content, $lifecycleMethod)) {
+                continue;
+            }
+
+            if (1 === preg_match('/\$this->(?!createdAt|updatedAt)[A-Za-z_][A-Za-z0-9_]*/', $lifecycleMethod['body'], $property)) {
+                $violations[] = sprintf('%s:%d %s: callback Doctrine réservé aux dates techniques, accès interdit à %s', $relativePath, $method['start'], $method['name'], $property[0]);
+            }
         }
     }
 

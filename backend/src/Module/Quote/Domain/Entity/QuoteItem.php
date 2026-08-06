@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -60,7 +61,7 @@ class QuoteItem
     public function __construct(string $name, int $unitPriceCents)
     {
         $this->name = $name;
-        $this->unitPriceCents = $unitPriceCents;
+        $this->setUnitPriceCents($unitPriceCents);
     }
 
     public function getId(): ?int
@@ -175,11 +176,7 @@ class QuoteItem
 
     public function setUnitPriceCents(int $cents): self
     {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('Le prix unitaire ne peut pas être négatif.');
-        }
-
-        $this->unitPriceCents = $cents;
+        $this->unitPriceCents = Money::fromCents($cents)->cents();
 
         return $this;
     }
@@ -207,11 +204,7 @@ class QuoteItem
 
     public function setDiscountCents(int $cents): self
     {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('La remise ne peut pas être négative.');
-        }
-
-        $this->discountCents = $cents;
+        $this->discountCents = Money::fromCents($cents)->cents();
 
         return $this;
     }

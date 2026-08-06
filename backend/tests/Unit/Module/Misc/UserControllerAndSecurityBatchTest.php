@@ -8,19 +8,19 @@ use App\Module\Auth\Infrastructure\Security\UserChecker;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
-use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
+use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
-use App\Module\User\UI\Controller\Address\DeleteAddressController;
-use App\Module\User\UI\Controller\Address\ListMyAddressesController;
-use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
+use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\UI\Controller\Address\DeleteAddressController;
+use App\Module\User\UI\Controller\Address\ListMyAddressesController;
+use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
 use App\Shared\Infrastructure\Http\CsrfTokenController;
 use App\Shared\Infrastructure\Http\CsrfTokenService;
 use PHPUnit\Framework\TestCase;
@@ -67,8 +67,15 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $addresses = $this->createMock(ShippingAddressRepository::class);
         $addresses->expects(self::once())->method('findAllForUser')->with($user)->willReturn([$address]);
         $listController = new class($addresses, $user) extends ListMyAddressesController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user) { parent::__construct($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter()); }
-            public function getUser(): ?User { return $this->user; }
+            public function __construct(ShippingAddressRepository $addresses, private User $user)
+            {
+                parent::__construct($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
+            }
+
+            public function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         $listPayload = json_decode((string) $listController()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(7, $listPayload['data']['items'][0]['id']);
@@ -81,8 +88,15 @@ final class UserControllerAndSecurityBatchTest extends TestCase
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $deleteController = new class($deleteRepo, $deleteWriter, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
-            public function getUser(): ?User { return $this->user; }
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
+            {
+                parent::__construct($addresses, $writer);
+            }
+
+            public function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteController(7)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteController(7)->getStatusCode());
@@ -95,8 +109,15 @@ final class UserControllerAndSecurityBatchTest extends TestCase
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
         $defaultController = new class($defaultRepo, $defaultWriter, $user) extends SetDefaultAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user) { parent::__construct($addresses, $writer); }
-            public function getUser(): ?User { return $this->user; }
+            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
+            {
+                parent::__construct($addresses, $writer);
+            }
+
+            public function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $defaultController(7)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $defaultController(7)->getStatusCode());
@@ -113,8 +134,15 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $favorites = $this->createMock(FavoriteService::class);
         $favorites->expects(self::once())->method('removeProduct')->with($user, $product);
         $favoriteController = new class($products, $favorites, $user) extends RemoveFavoriteController {
-            public function __construct(ProductRepository $products, FavoriteService $favorites, private User $user) { parent::__construct($products, $favorites); }
-            public function getUser(): ?User { return $this->user; }
+            public function __construct(ProductRepository $products, FavoriteService $favorites, private User $user)
+            {
+                parent::__construct($products, $favorites);
+            }
+
+            public function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(Response::HTTP_OK, $favoriteController(5)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $favoriteController(5)->getStatusCode());
@@ -129,8 +157,15 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
         $quoteController = new class($quotes, $workflow, $user) extends DeleteMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user) { parent::__construct($quotes, $workflow, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy()); }
-            public function getUser(): ?User { return $this->user; }
+            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user)
+            {
+                parent::__construct($quotes, $workflow, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+            }
+
+            public function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(Response::HTTP_NOT_FOUND, $quoteController(9)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $quoteController(9)->getStatusCode());

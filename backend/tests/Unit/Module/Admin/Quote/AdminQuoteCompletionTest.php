@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Admin\Quote;
 
+use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
+use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
+use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Admin\UI\Quote\Controller\AddProductItemController;
 use App\Module\Admin\UI\Quote\Controller\CreateQuoteController;
 use App\Module\Admin\UI\Quote\Controller\CreateServiceController;
@@ -20,35 +23,29 @@ use App\Module\Admin\UI\Quote\Controller\ShowQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteController;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
-use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
-use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\ServiceOffering as ServiceOffering;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Outbox\Application\Outbox;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
-use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
-use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
-use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
-use App\Shared\Infrastructure\Pdf\AccessiblePdfRenderer;
-use App\Shared\Infrastructure\Pdf\PdfHtmlFormatter;
-use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Module\Outbox\Application\Outbox;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -177,7 +174,7 @@ final class AdminQuoteCompletionTest extends TestCase
 
         $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler(
             $serviceRepository,
-            new \App\Module\Quote\Infrastructure\Persistence\QuotePersistence($em),
+            new QuotePersistence($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());
@@ -188,15 +185,7 @@ final class AdminQuoteCompletionTest extends TestCase
         $persistence = new QuotePersistence($em);
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
 
-        return new class(
-            $persistence,
-            new QuoteNumberGenerator(new QuoteRepository($this->registry($em))),
-            new QuoteCalculator(),
-            new \App\Module\Quote\Application\Mapper\QuoteHydrator(
-                $persistence,
-                new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository),
-            ),
-        ) extends QuoteService {
+        return new class($persistence, new QuoteNumberGenerator(new QuoteRepository($this->registry($em))), new QuoteCalculator(), new \App\Module\Quote\Application\Mapper\QuoteHydrator($persistence, new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository))) extends QuoteService {
             public function createFromPayload(\App\Module\Quote\Application\DTO\QuotePayload $payload): Quote
             {
                 throw new \RuntimeException('quote down');

@@ -6,33 +6,33 @@ namespace App\Tests\Unit\Module\User\Service;
 
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Workflow\CommunicationPreferences;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\DTO\UpdateProfileInput;
-use App\Module\User\Domain\Entity\ShippingAddress;
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use App\Module\User\Application\Outbox\SendActivationEmailHandler;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\AccountActivationEmailService;
 use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Application\Workflow\ChangeProfileEmailService;
 use App\Module\User\Application\Workflow\ChangeProfilePasswordService;
-use App\Module\User\Application\Mapper\ProfileCurrentPasswordVerifier;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdatePersonalInformationService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Persistence\UserPersistence;
-use App\Module\User\Application\Projection\UserProfileFormatter;
-use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\Driver\Exception as DriverException;
@@ -145,7 +145,7 @@ final class UserRemainingServicesTest extends TestCase
 
         $service = new UpdateProfileService(
             $userRepository,
-            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -172,7 +172,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository2->method('save')->willThrowException($this->uniqueConstraint('uniq_users_email'));
         $service2 = new UpdateProfileService(
             $userRepository2,
-            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository2, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -191,7 +191,7 @@ final class UserRemainingServicesTest extends TestCase
         $userRepository3->method('save')->willThrowException($nonEmail);
         $service3 = new UpdateProfileService(
             $userRepository3,
-            new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository3, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
@@ -576,7 +576,6 @@ final class UserRemainingServicesTest extends TestCase
         $reflection = new \ReflectionObject($entity);
         $reflection->getProperty('id')->setValue($entity, $id);
     }
-
 
     private function uniqueConstraint(string $message): UniqueConstraintViolationException
     {

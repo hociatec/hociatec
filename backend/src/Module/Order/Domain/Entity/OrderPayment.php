@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -34,11 +35,7 @@ final class OrderPayment
 
     public function setTotalPriceCents(int $cents): self
     {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('Le total de paiement ne peut pas être négatif.');
-        }
-
-        $this->totalPriceCents = $cents;
+        $this->totalPriceCents = Money::fromCents($cents)->cents();
 
         return $this;
     }
@@ -50,11 +47,7 @@ final class OrderPayment
 
     public function setSubtotalPriceCents(int $cents): self
     {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('Le sous-total de paiement ne peut pas être négatif.');
-        }
-
-        $this->subtotalPriceCents = $cents;
+        $this->subtotalPriceCents = Money::fromCents($cents)->cents();
 
         return $this;
     }
@@ -66,11 +59,7 @@ final class OrderPayment
 
     public function setDiscountAmountCents(int $cents): self
     {
-        if ($cents < 0) {
-            throw new \InvalidArgumentException('La remise de paiement ne peut pas être négative.');
-        }
-
-        $this->discountAmountCents = $cents;
+        $this->discountAmountCents = Money::fromCents($cents)->cents();
 
         return $this;
     }

@@ -13,9 +13,7 @@ trait OrderPaymentTrait
 
     public function setTotalPriceCents(int $cents): self
     {
-        $this->payment->setTotalPriceCents($cents);
-
-        return $this;
+        return $this->replacePaymentAmounts($this->payment->getSubtotalPriceCents(), $this->payment->getDiscountAmountCents(), $cents);
     }
 
     public function getSubtotalPriceCents(): int
@@ -25,9 +23,7 @@ trait OrderPaymentTrait
 
     public function setSubtotalPriceCents(int $cents): self
     {
-        $this->payment->setSubtotalPriceCents($cents);
-
-        return $this;
+        return $this->replacePaymentAmounts($cents, $this->payment->getDiscountAmountCents(), $this->payment->getTotalPriceCents());
     }
 
     public function getDiscountAmountCents(): int
@@ -37,7 +33,26 @@ trait OrderPaymentTrait
 
     public function setDiscountAmountCents(int $cents): self
     {
-        $this->payment->setDiscountAmountCents($cents);
+        return $this->applyPaymentPromotion($this->payment->getAppliedPromotionName(), $this->payment->getAppliedPromotionSlug(), $cents, $this->payment->getTotalPriceCents());
+    }
+
+    public function replacePaymentAmounts(int $subtotalPriceCents, int $discountAmountCents, int $totalPriceCents): self
+    {
+        $this->payment
+            ->setSubtotalPriceCents($subtotalPriceCents)
+            ->setDiscountAmountCents($discountAmountCents)
+            ->setTotalPriceCents($totalPriceCents);
+
+        return $this;
+    }
+
+    public function applyPaymentPromotion(?string $name, ?string $slug, int $discountAmountCents, int $totalPriceCents): self
+    {
+        $this->payment
+            ->setAppliedPromotionName($name)
+            ->setAppliedPromotionSlug($slug)
+            ->setDiscountAmountCents($discountAmountCents)
+            ->setTotalPriceCents($totalPriceCents);
 
         return $this;
     }
@@ -61,9 +76,7 @@ trait OrderPaymentTrait
 
     public function setAppliedPromotionName(?string $name): self
     {
-        $this->payment->setAppliedPromotionName($name);
-
-        return $this;
+        return $this->applyPaymentPromotion($name, $this->payment->getAppliedPromotionSlug(), $this->payment->getDiscountAmountCents(), $this->payment->getTotalPriceCents());
     }
 
     public function getAppliedPromotionSlug(): ?string
@@ -73,8 +86,6 @@ trait OrderPaymentTrait
 
     public function setAppliedPromotionSlug(?string $slug): self
     {
-        $this->payment->setAppliedPromotionSlug($slug);
-
-        return $this;
+        return $this->applyPaymentPromotion($this->payment->getAppliedPromotionName(), $slug, $this->payment->getDiscountAmountCents(), $this->payment->getTotalPriceCents());
     }
 }

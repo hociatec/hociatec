@@ -9,7 +9,6 @@ use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\Order\Application\Message\OrderStatusChangedMessage;
 use App\Module\Order\Infrastructure\MessageHandler\SyncOrderExternalHandler;
-use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,9 +29,19 @@ final class SmallServiceTailBatchTest extends TestCase
         $checker->checkPostAuth($verified);
 
         $foreignUser = new class implements UserInterface {
-            public function getRoles(): array { return []; }
-            public function eraseCredentials(): void {}
-            public function getUserIdentifier(): string { return 'x'; }
+            public function getRoles(): array
+            {
+                return [];
+            }
+
+            public function eraseCredentials(): void
+            {
+            }
+
+            public function getUserIdentifier(): string
+            {
+                return 'x';
+            }
         };
         $checker->checkPreAuth($foreignUser);
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Service;
 
-use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Workflow\QuoteEmailDeliveryService;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;

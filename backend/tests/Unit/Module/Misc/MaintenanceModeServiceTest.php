@@ -47,7 +47,7 @@ final class MaintenanceModeServiceTest extends TestCase
         self::assertTrue($service->isEnabled());
         self::assertSame('Intervention planifiée', $service->getStatus()['message']);
 
-        file_put_contents($this->projectDir.'/var/maintenance.json', "{bad");
+        file_put_contents($this->projectDir.'/var/maintenance.json', '{bad');
         self::assertSame([
             'enabled' => false,
             'message' => 'Le site est temporairement en maintenance. Merci de revenir dans quelques minutes.',

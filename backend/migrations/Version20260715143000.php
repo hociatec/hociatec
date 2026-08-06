@@ -25,8 +25,8 @@ final class Version20260715143000 extends AbstractMigration
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'billing_company_vat_number', 'ADD billing_company_vat_number VARCHAR(32) DEFAULT NULL');
         $this->addColumnSqlIfMissing($ordersTable, $orderColumnSql, 'purchase_order_number', 'ADD purchase_order_number VARCHAR(80) DEFAULT NULL');
 
-        if ($orderColumnSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderColumnSql));
+        if ([] !== $orderColumnSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderColumnSql));
         }
 
         $addressColumnSql = [];
@@ -35,8 +35,8 @@ final class Version20260715143000 extends AbstractMigration
         $this->addColumnSqlIfMissing($addressesTable, $addressColumnSql, 'company_vat_number', 'ADD company_vat_number VARCHAR(32) DEFAULT NULL');
         $this->addColumnSqlIfMissing($addressesTable, $addressColumnSql, 'purchase_order_number', 'ADD purchase_order_number VARCHAR(80) DEFAULT NULL');
 
-        if ($addressColumnSql !== []) {
-            $this->addSql('ALTER TABLE user_shipping_addresses ' . implode(', ', $addressColumnSql));
+        if ([] !== $addressColumnSql) {
+            $this->addSql('ALTER TABLE user_shipping_addresses '.implode(', ', $addressColumnSql));
         }
     }
 
@@ -51,8 +51,8 @@ final class Version20260715143000 extends AbstractMigration
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'billing_company_vat_number');
         $this->dropColumnSqlIfExists($ordersTable, $orderDropSql, 'purchase_order_number');
 
-        if ($orderDropSql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $orderDropSql));
+        if ([] !== $orderDropSql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $orderDropSql));
         }
 
         $addressDropSql = [];
@@ -61,8 +61,8 @@ final class Version20260715143000 extends AbstractMigration
         $this->dropColumnSqlIfExists($addressesTable, $addressDropSql, 'company_vat_number');
         $this->dropColumnSqlIfExists($addressesTable, $addressDropSql, 'purchase_order_number');
 
-        if ($addressDropSql !== []) {
-            $this->addSql('ALTER TABLE user_shipping_addresses ' . implode(', ', $addressDropSql));
+        if ([] !== $addressDropSql) {
+            $this->addSql('ALTER TABLE user_shipping_addresses '.implode(', ', $addressDropSql));
         }
     }
 
@@ -82,7 +82,7 @@ final class Version20260715143000 extends AbstractMigration
     private function dropColumnSqlIfExists(\Doctrine\DBAL\Schema\Table $table, array &$sql, string $columnName): void
     {
         if ($table->hasColumn($columnName)) {
-            $sql[] = 'DROP ' . $columnName;
+            $sql[] = 'DROP '.$columnName;
         }
     }
 }

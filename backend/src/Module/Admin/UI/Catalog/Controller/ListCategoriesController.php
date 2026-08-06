@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Application\Workflow\CategoryService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ListCategoriesController extends AbstractController
 {
     public function __construct(
-        private readonly CategoryService $categoryService,
+        private readonly CategoryCatalogWorkflow $categoryService,
         private readonly CatalogFormatter $catalogFormatter,
     ) {
     }

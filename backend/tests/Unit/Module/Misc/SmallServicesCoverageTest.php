@@ -6,26 +6,25 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Favorite\Domain\Entity\Favorite;
-use App\Module\Favorite\Infrastructure\Repository\FavoriteRepository;
-use App\Module\Favorite\Infrastructure\Persistence\FavoritePersistence;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\Infrastructure\Persistence\FavoritePersistence;
+use App\Module\Favorite\Infrastructure\Repository\FavoriteRepository;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
+use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
-use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
-use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
-use App\Module\TradeIn\Domain\Entity\TradeInRequest;
-use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Projection\TradeInMetadataFormatter;
+use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
-use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\User\Domain\Entity\User;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class SmallServicesCoverageTest extends TestCase
@@ -145,7 +144,7 @@ final class SmallServicesCoverageTest extends TestCase
 
     public function testTradeInMetadataAndFormatterExposeOptionsAndPayload(): void
     {
-        $request = TradeInRequest::fromLegacySubmittedScalars(
+        $request = TradeInRequestFactory::submitted(
             'TR-1',
             $this->user(),
             'Ada',

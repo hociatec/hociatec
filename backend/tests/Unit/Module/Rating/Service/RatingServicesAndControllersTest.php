@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Rating\Service;
 
-use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Catalog\Domain\Entity\Brand;
+use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Comment\Domain\Entity\ProductComment;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
+use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Rating\UI\Controller\CreateProductReviewController;
-use App\Module\Rating\UI\Controller\ListProductReviewsController;
-use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\Rating\Application\Exception\ProductReviewException;
-use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\Rating\Application\Workflow\ProductRatingService;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
+use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
+use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
+use App\Module\Rating\UI\Controller\CreateProductReviewController;
+use App\Module\Rating\UI\Controller\ListProductReviewsController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -278,5 +278,4 @@ final class RatingServicesAndControllersTest extends TestCase
     {
         return json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
     }
-
 }

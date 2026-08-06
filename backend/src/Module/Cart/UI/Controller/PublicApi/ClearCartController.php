@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Cart\UI\Controller\PublicApi;
 
 use App\Module\Cart\Application\Projection\CartFormatter;
-use App\Module\Cart\Application\Workflow\CartService;
+use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ClearCartController extends AbstractController
 {
     public function __construct(
-        private readonly CartService $cartService,
+        private readonly CartSessionWorkflow $cartService,
         private readonly CartFormatter $cartFormatter,
     ) {
     }

@@ -16,12 +16,11 @@ final class Version20251105091500 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE audit_checklist_items ADD level VARCHAR(10) DEFAULT NULL");
+        $this->addSql('ALTER TABLE audit_checklist_items ADD level VARCHAR(10) DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE audit_checklist_items DROP level");
+        $this->addSql('ALTER TABLE audit_checklist_items DROP level');
     }
 }
-

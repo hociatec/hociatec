@@ -16,7 +16,7 @@ final class Version20260715200000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE users ADD admin_notes LONGTEXT DEFAULT NULL, ADD admin_tags JSON NOT NULL");
+        $this->addSql('ALTER TABLE users ADD admin_notes LONGTEXT DEFAULT NULL, ADD admin_tags JSON NOT NULL');
         $this->addSql("UPDATE users SET admin_tags = '[]' WHERE admin_tags IS NULL");
     }
 

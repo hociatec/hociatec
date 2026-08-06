@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
 use App\Module\Admin\Application\Marketing\Handler\DeleteEmailTemplateHandler;
+use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;

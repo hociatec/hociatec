@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Domain\Entity;
 
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Shared\Domain\ValueObject\Money;
 
 trait TradeInRequestLifecycleAccessorsTrait
 {
@@ -52,7 +53,7 @@ trait TradeInRequestLifecycleAccessorsTrait
             throw new \InvalidArgumentException('Le montant de l’offre ne peut pas être négatif.');
         }
 
-        $this->offerCents = $offerCents;
+        $this->offerCents = null !== $offerCents ? Money::fromCents($offerCents)->cents() : null;
         $this->offerExpiresAt = $expiresAt;
         $this->touch();
 

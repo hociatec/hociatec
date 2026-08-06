@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -52,7 +53,10 @@ class OrderItem
     {
         $this->productName = $productName;
         $this->productSku = $productSku;
-        $this->unitPriceCents = $unitPriceCents;
+        $this->unitPriceCents = Money::fromCents($unitPriceCents)->cents();
+        if ($quantity < 1) {
+            throw new \InvalidArgumentException('La quantité doit être supérieure ou égale à 1.');
+        }
         $this->quantity = $quantity;
     }
 
@@ -128,11 +132,7 @@ class OrderItem
 
     public function setLineSubtotalCents(int $lineSubtotalCents): self
     {
-        if ($lineSubtotalCents < 0) {
-            throw new \InvalidArgumentException('Le sous-total de ligne ne peut pas être négatif.');
-        }
-
-        $this->lineSubtotalCents = $lineSubtotalCents;
+        $this->lineSubtotalCents = Money::fromCents($lineSubtotalCents)->cents();
 
         return $this;
     }
@@ -144,11 +144,7 @@ class OrderItem
 
     public function setLineVatCents(int $lineVatCents): self
     {
-        if ($lineVatCents < 0) {
-            throw new \InvalidArgumentException('La TVA de ligne ne peut pas être négative.');
-        }
-
-        $this->lineVatCents = $lineVatCents;
+        $this->lineVatCents = Money::fromCents($lineVatCents)->cents();
 
         return $this;
     }
@@ -160,13 +156,17 @@ class OrderItem
 
     public function setLineTotalCents(int $lineTotalCents): self
     {
-        if ($lineTotalCents < 0) {
-            throw new \InvalidArgumentException('Le total de ligne ne peut pas être négatif.');
-        }
-
-        $this->lineTotalCents = $lineTotalCents;
+        $this->lineTotalCents = Money::fromCents($lineTotalCents)->cents();
 
         return $this;
+    }
+
+    public function replaceLineTotals(int $lineSubtotalCents, int $lineVatCents, int $lineTotalCents): self
+    {
+        return $this
+            ->setLineSubtotalCents($lineSubtotalCents)
+            ->setLineVatCents($lineVatCents)
+            ->setLineTotalCents($lineTotalCents);
     }
 
     public function getLinePriceCents(): int

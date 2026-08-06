@@ -11,18 +11,18 @@ use App\Module\Admin\UI\Catalog\Controller\ShowBrandController;
 use App\Module\Admin\UI\Catalog\Controller\ShowCategoryController;
 use App\Module\Admin\UI\Promotion\Controller\DeletePromotionController;
 use App\Module\Admin\UI\Promotion\Controller\ListPromotionAudiencesController;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Workflow\BrandService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
-use App\Module\Catalog\Application\Workflow\BrandService;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
-use App\Module\Catalog\Application\Workflow\CategoryService;
-use App\Module\Promotion\Domain\Entity\Promotion;
-use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\Promotion\Application\Calculator\PromotionEngine;
 use App\Module\Promotion\Application\Handler\DeletePromotionHandler;
+use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -94,7 +94,7 @@ final class AdminControllerBatchTest extends TestCase
         $listEntityManager = $this->createMock(EntityManagerInterface::class);
         $listEntityManager->expects(self::once())->method('remove')->with($freeCategory);
         $listEntityManager->expects(self::once())->method('flush');
-        $categoryService = new CategoryService($listRepo, new CatalogPersistence($listEntityManager), Validation::createValidator());
+        $categoryService = new CategoryCatalogWorkflow($listRepo, new CatalogPersistence($listEntityManager), Validation::createValidator());
 
         $missingDeleteCategoryRepo = $this->createMock(CategoryRepository::class);
         $missingDeleteCategoryRepo->expects(self::once())->method('find')->with(404)->willReturn(null);
@@ -109,7 +109,7 @@ final class AdminControllerBatchTest extends TestCase
 
         $listRepo2 = $this->createMock(CategoryRepository::class);
         $listRepo2->expects(self::once())->method('findAllForAdmin')->willReturn([$category]);
-        $listService = new CategoryService($listRepo2, new CatalogPersistence($this->createMock(EntityManagerInterface::class)), Validation::createValidator());
+        $listService = new CategoryCatalogWorkflow($listRepo2, new CatalogPersistence($this->createMock(EntityManagerInterface::class)), Validation::createValidator());
         $list = new ListCategoriesController($listService, $catalogFormatter);
         $payload = json_decode((string) $list()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('phones', $payload['data']['items'][0]['slug']);

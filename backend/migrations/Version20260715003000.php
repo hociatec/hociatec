@@ -59,7 +59,7 @@ final class Version20260715003000 extends AbstractMigration
         }
 
         $templatesCount = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM marketing_email_templates');
-        if ($templatesCount === 0) {
+        if (0 === $templatesCount) {
             $this->addSql(<<<'SQL'
 INSERT INTO marketing_email_templates
     (name, slug, scenario_key, subject_template, html_body, text_body, is_active, created_at, updated_at)

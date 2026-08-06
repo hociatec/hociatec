@@ -61,4 +61,3 @@ final class Version20251029121500 extends AbstractMigration
         $this->addSql('DROP TABLE cart_sessions');
     }
 }
-

@@ -110,7 +110,7 @@ final class MarketingAudienceProviderTest extends TestCase
     }
 
     /**
-     * @param list<User> $result
+     * @param list<User>                   $result
      * @param list<array<int, mixed>>|null $calls
      */
     private function queryBuilderReturning(array $result, ?array &$calls = null): QueryBuilder

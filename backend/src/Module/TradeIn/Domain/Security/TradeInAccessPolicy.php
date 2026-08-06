@@ -22,15 +22,12 @@ final readonly class TradeInAccessPolicy
 
     private function isOwner(User $user, TradeInRequest $request): bool
     {
-        $owner = $request->getUser();
-        if (null === $owner) {
-            return false;
+        $userId = $user->getId();
+        $ownerId = $request->getUserId();
+        if (null !== $userId && null !== $ownerId) {
+            return $ownerId === $userId;
         }
 
-        $userId = $user->getId();
-        $ownerId = $owner->getId();
-        $sameUser = null !== $userId && null !== $ownerId ? $ownerId === $userId : $owner === $user;
-
-        return $sameUser;
+        return $request->getUser() === $user;
     }
 }

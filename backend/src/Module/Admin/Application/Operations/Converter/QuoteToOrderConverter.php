@@ -112,9 +112,7 @@ final readonly class QuoteToOrderConverter
             ->setBillingCompany($quote->getCustomerCompany())
             ->setBillingEmail($quote->getCustomerEmail())
             ->setBillingAddress($quote->getCustomerAddress())
-            ->setSubtotalPriceCents((int) $totals['totalHt'])
-            ->setDiscountAmountCents($quote->getGlobalDiscountCents())
-            ->setTotalPriceCents((int) $totals['totalTtc']);
+            ->replacePaymentAmounts((int) $totals['totalHt'], $quote->getGlobalDiscountCents(), (int) $totals['totalTtc']);
 
         foreach ($quote->getItems() as $quoteItem) {
             $product = null !== $quoteItem->getProductId() ? $this->products->findProduct($quoteItem->getProductId()) : null;

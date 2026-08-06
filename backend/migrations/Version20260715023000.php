@@ -97,7 +97,7 @@ VALUES
 SQL);
         } else {
             $seedCount = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM promotions');
-            if ($seedCount === 0) {
+            if (0 === $seedCount) {
                 $this->addSql(<<<'SQL'
 INSERT INTO promotions
     (name, slug, description, discount_type, discount_value, audience_key, criteria, is_active, starts_at, ends_at, created_at, updated_at)

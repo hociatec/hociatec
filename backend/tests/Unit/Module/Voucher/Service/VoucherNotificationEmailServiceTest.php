@@ -6,13 +6,13 @@ namespace App\Tests\Unit\Module\Voucher\Service;
 
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Workflow\CommunicationPreferences;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Module\Voucher\Application\Workflow\VoucherNotificationEmailService;
+use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;

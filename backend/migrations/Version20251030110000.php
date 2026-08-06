@@ -34,10 +34,10 @@ final class Version20251030110000 extends AbstractMigration
             PRIMARY KEY(id)
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB");
 
-        $this->addSql("ALTER TABLE orders ADD CONSTRAINT FK_ORDERS_USER FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE RESTRICT");
+        $this->addSql('ALTER TABLE orders ADD CONSTRAINT FK_ORDERS_USER FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE RESTRICT');
 
         // order_items table
-        $this->addSql("CREATE TABLE order_items (
+        $this->addSql('CREATE TABLE order_items (
             id INT AUTO_INCREMENT NOT NULL,
             order_id INT NOT NULL,
             product_id INT DEFAULT NULL,
@@ -48,10 +48,10 @@ final class Version20251030110000 extends AbstractMigration
             INDEX IDX_ORDER_ITEMS_ORDER (order_id),
             INDEX IDX_ORDER_ITEMS_PRODUCT (product_id),
             PRIMARY KEY(id)
-        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB");
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
 
-        $this->addSql("ALTER TABLE order_items ADD CONSTRAINT FK_ORDER_ITEMS_ORDER FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE");
-        $this->addSql("ALTER TABLE order_items ADD CONSTRAINT FK_ORDER_ITEMS_PRODUCT FOREIGN KEY (product_id) REFERENCES catalog_products (id) ON DELETE SET NULL");
+        $this->addSql('ALTER TABLE order_items ADD CONSTRAINT FK_ORDER_ITEMS_ORDER FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE');
+        $this->addSql('ALTER TABLE order_items ADD CONSTRAINT FK_ORDER_ITEMS_PRODUCT FOREIGN KEY (product_id) REFERENCES catalog_products (id) ON DELETE SET NULL');
     }
 
     public function down(Schema $schema): void
@@ -63,4 +63,3 @@ final class Version20251030110000 extends AbstractMigration
         $this->addSql('DROP TABLE orders');
     }
 }
-

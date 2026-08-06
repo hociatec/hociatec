@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Application\DTO;
 
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
+use App\Module\TradeIn\Domain\ValueObject\TradeInCatalogReference;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
 use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
+use App\Module\TradeIn\Domain\ValueObject\TradeInTechnicalIdentity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class TradeInInput
@@ -119,11 +121,8 @@ final readonly class TradeInInput
             new TradeInProductIdentity(
                 $this->category,
                 $this->productName,
-                $this->brand,
-                $this->model,
-                $this->serialNumber,
-                $catalogProductId ?? $this->catalogProductId,
-                $catalogProductName,
+                new TradeInTechnicalIdentity($this->brand, $this->model, $this->serialNumber),
+                new TradeInCatalogReference($catalogProductId ?? $this->catalogProductId, $catalogProductName),
             ),
             new TradeInPurchase($this->purchasePriceCents, $this->purchaseYear),
             new TradeInProductCondition(

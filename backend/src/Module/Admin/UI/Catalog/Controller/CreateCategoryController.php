@@ -6,7 +6,7 @@ namespace App\Module\Admin\UI\Catalog\Controller;
 
 use App\Module\Admin\Application\Catalog\DTO\CategoryInput;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Catalog\Application\Workflow\CategoryService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -23,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CreateCategoryController extends AbstractController
 {
     public function __construct(
-        private readonly CategoryService $categoryService,
+        private readonly CategoryCatalogWorkflow $categoryService,
         private readonly DtoValidator $validator,
         private readonly CatalogFormatter $catalogFormatter,
     ) {

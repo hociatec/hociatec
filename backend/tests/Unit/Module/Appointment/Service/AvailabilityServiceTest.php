@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Appointment\Service;
 
+use App\Module\Appointment\Application\Workflow\AvailabilityService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
-use App\Module\Appointment\Application\Workflow\AvailabilityService;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -81,7 +81,7 @@ final class AvailabilityServiceTest extends TestCase
 
     /**
      * @param list<WorkingDayConfiguration> $workingDays
-     * @param list<Appointment> $appointments
+     * @param list<Appointment>             $appointments
      *
      * @return array{workingDays: WorkingDayConfigurationRepository, appointments: AppointmentRepository}
      */

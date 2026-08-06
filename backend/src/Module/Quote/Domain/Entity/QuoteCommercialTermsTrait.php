@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Domain\Entity;
 
+use App\Shared\Domain\ValueObject\Money;
+
 trait QuoteCommercialTermsTrait
 {
     public function getGlobalDiscountCents(): int
@@ -28,16 +30,8 @@ trait QuoteCommercialTermsTrait
 
     public function applyCommercialTerms(int $globalDiscountCents, int $shippingCents): self
     {
-        if ($globalDiscountCents < 0) {
-            throw new \InvalidArgumentException('La remise globale ne peut pas être négative.');
-        }
-
-        if ($shippingCents < 0) {
-            throw new \InvalidArgumentException('Les frais de livraison ne peuvent pas être négatifs.');
-        }
-
-        $this->globalDiscountCents = $globalDiscountCents;
-        $this->shippingCents = $shippingCents;
+        $this->globalDiscountCents = Money::fromCents($globalDiscountCents)->cents();
+        $this->shippingCents = Money::fromCents($shippingCents)->cents();
 
         return $this;
     }

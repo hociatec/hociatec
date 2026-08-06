@@ -4,27 +4,26 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
-use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
 use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
+use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
+use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Infrastructure\Persistence\RefreshTokenPersistence;
+use App\Module\BetaTest\Domain\Entity\BetaCampaign;
+use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Infrastructure\Repository\CartItemRepository;
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\BetaTest\Domain\Entity\BetaCampaign;
-use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use App\Module\Catalog\Infrastructure\Repository\StockMovementRepository;
 use App\Module\Comment\Domain\Entity\ProductComment;
@@ -33,34 +32,34 @@ use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\News\Domain\Entity\NewsArticleView;
 use App\Module\News\Domain\Entity\NewsArticle;
+use App\Module\News\Domain\Entity\NewsArticleView;
 use App\Module\News\Infrastructure\Repository\NewsArticleViewRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
+use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
+use App\Module\Order\Infrastructure\Persistence\StripeWebhookEventPersistence;
 use App\Module\Order\Infrastructure\Repository\OrderItemRepository;
 use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 use App\Module\Order\Infrastructure\Repository\StripeWebhookEventRepository;
-use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
-use App\Module\Order\Infrastructure\Persistence\StripeWebhookEventPersistence;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Infrastructure\Repository\QuoteItemRepository;
 use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
 use App\Module\Support\Domain\Entity\SupportRequest;
 use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
-use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
+use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\Training\Domain\Entity\TrainingRoadmapItem;
 use App\Module\Training\Infrastructure\Repository\TrainingRoadmapItemRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use App\Shared\Application\LockMode;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -140,7 +139,6 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
             ->willReturnOnConsecutiveCalls($template, $template);
         self::assertSame($template, $emailTemplateRepository->findOneBySlug('welcome'));
         self::assertSame($template, $emailTemplateRepository->findActiveOneByScenarioKey('account_created'));
-
     }
 
     public function testFinalRepositoriesExecuteLookupMethodsAgainstSqlite(): void
@@ -279,7 +277,7 @@ final class RepositoryAndPersistenceBatchTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return TradeInRequest::fromLegacySubmittedScalars(
+        return TradeInRequestFactory::submitted(
             'TR-1',
             $user,
             'Ada',

@@ -4,30 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Controller;
 
-use App\Module\User\UI\Controller\Address\CreateAddressController;
-use App\Module\User\UI\Controller\Address\UpdateAddressController;
-use App\Module\User\UI\Controller\DeleteAccountController;
-use App\Module\User\UI\Controller\RegisterController;
-use App\Module\User\UI\Http\RegistrationRateLimiter;
-use App\Module\User\UI\Controller\UpdateProfileController;
-use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
+use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
-use App\Module\User\Application\DTO\RegisterUserInput;
-use App\Module\User\Application\DTO\UpdateProfileInput;
-use App\Module\User\Domain\Entity\ShippingAddress;
-use App\Module\User\Domain\Entity\User;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
-use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\DeleteAccountService;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
+use App\Module\User\Domain\Entity\ShippingAddress;
+use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Persistence\UserPersistence;
-use App\Module\User\Application\Projection\UserProfileFormatter;
+use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\UI\Controller\Address\CreateAddressController;
+use App\Module\User\UI\Controller\Address\UpdateAddressController;
+use App\Module\User\UI\Controller\DeleteAccountController;
+use App\Module\User\UI\Controller\RegisterController;
+use App\Module\User\UI\Controller\UpdateProfileController;
+use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -70,7 +68,11 @@ final class UserRemainingControllersTest extends TestCase
             {
                 parent::__construct($writer, $validator, $formatter);
             }
-            protected function getUser(): ?User { return $this->user; }
+
+            protected function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
 
         $createdA = json_decode((string) $create(Request::create('/', 'POST', [], [], [], [], json_encode([
@@ -95,7 +97,11 @@ final class UserRemainingControllersTest extends TestCase
             {
                 parent::__construct($addresses, $writer, $validator, $formatter);
             }
-            protected function getUser(): ?User { return $this->user; }
+
+            protected function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(404, $update(99, Request::create('/', 'PUT', [], [], [], [], '{}'))->getStatusCode());
         $updated = json_decode((string) $update(10, Request::create('/', 'PUT', [], [], [], [], json_encode([
@@ -140,7 +146,10 @@ final class UserRemainingControllersTest extends TestCase
         });
 
         $controllerUnauth = new class($service, $validator, $profiles) extends UpdateProfileController {
-            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface { return null; }
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
+            {
+                return null;
+            }
         };
         self::assertSame(401, $controllerUnauth(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
 
@@ -149,7 +158,11 @@ final class UserRemainingControllersTest extends TestCase
             {
                 parent::__construct($u, $v, $p);
             }
-            protected function getUser(): ?User { return $this->user; }
+
+            protected function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
 
         $payload = json_decode((string) $controller(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(), JSON_THROW_ON_ERROR)))->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -207,7 +220,11 @@ final class UserRemainingControllersTest extends TestCase
                     $transactions,
                 ), $logger);
             }
-            protected function getUser(): ?User { return $this->user; }
+
+            protected function getUser(): ?User
+            {
+                return $this->user;
+            }
         };
         self::assertSame(200, $delete()->getStatusCode());
         self::assertSame(409, $delete()->getStatusCode());
@@ -242,6 +259,7 @@ final class UserRemainingControllersTest extends TestCase
         $registerService->method('register')->willReturnCallback(function () use ($createdUser) {
             static $calls = 0;
             ++$calls;
+
             return match ($calls) {
                 1 => throw new UserAlreadyExistsException('dup'),
                 2 => throw InvalidBirthDateException::invalid(),

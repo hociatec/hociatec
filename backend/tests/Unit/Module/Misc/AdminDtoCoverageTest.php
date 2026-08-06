@@ -15,7 +15,6 @@ use App\Module\Admin\Application\Operations\DTO\SupportUpdateInput;
 use App\Module\Admin\Application\Operations\DTO\UpdateLowStockThresholdInput;
 use App\Module\Admin\Application\Order\DTO\OrderEmailScenarioInput;
 use App\Module\Admin\Application\Order\DTO\OrderStatusInput;
-use App\Module\TradeIn\Application\DTO\TradeInClosureInput;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInStatusInput;
 use App\Module\Admin\Application\User\DTO\CustomerAdminProfileInput;
@@ -24,6 +23,7 @@ use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\Support\Domain\Enum\SupportStatus;
+use App\Module\TradeIn\Application\DTO\TradeInClosureInput;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use PHPUnit\Framework\TestCase;
 

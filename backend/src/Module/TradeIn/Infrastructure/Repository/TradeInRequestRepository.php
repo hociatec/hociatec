@@ -32,9 +32,10 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
     /** @return list<TradeInRequest> */
     public function findByUser(User $user, int $limit = 20, int $offset = 0): array
     {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.user = :user')
-            ->setParameter('user', $user)
+        $qb = $this->createQueryBuilder('r');
+        $this->filterByUserIdentity($qb, $user);
+
+        return $qb
             ->orderBy('r.createdAt', 'DESC')
             ->setFirstResult(max(0, $offset))
             ->setMaxResults(max(1, min(100, $limit)))
@@ -44,10 +45,10 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
 
     public function countByUser(User $user): int
     {
-        return (int) $this->createQueryBuilder('r')
-            ->select('COUNT(r.id)')
-            ->andWhere('r.user = :user')
-            ->setParameter('user', $user)
+        $qb = $this->createQueryBuilder('r')->select('COUNT(r.id)');
+        $this->filterByUserIdentity($qb, $user);
+
+        return (int) $qb
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -80,6 +81,21 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
         }
 
         return $qb;
+    }
+
+    private function filterByUserIdentity(\Doctrine\ORM\QueryBuilder $qb, User $user): void
+    {
+        $userId = $user->getId();
+        if (null !== $userId) {
+            $qb
+                ->andWhere('r.userId = :userId OR r.user = :user')
+                ->setParameter('userId', $userId)
+                ->setParameter('user', $user);
+
+            return;
+        }
+
+        $qb->andWhere('r.user = :user')->setParameter('user', $user);
     }
 
     public function delete(TradeInRequest $request): void

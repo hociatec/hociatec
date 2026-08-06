@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Admin\Catalog\Service;
 
 use App\Module\Admin\Application\Catalog\DTO\ProductWriteData;
-use App\Module\Admin\UI\Catalog\Mapper\ProductDiscountRequestMapper;
 use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
-use App\Module\Admin\UI\Catalog\Mapper\ProductGalleryRequestMapper;
 use App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser;
+use App\Module\Admin\UI\Catalog\Mapper\ProductDiscountRequestMapper;
+use App\Module\Admin\UI\Catalog\Mapper\ProductGalleryRequestMapper;
 use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
 use App\Module\Catalog\Application\DTO\ProductGalleryWriteData;

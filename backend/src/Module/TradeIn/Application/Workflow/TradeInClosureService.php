@@ -17,7 +17,7 @@ final readonly class TradeInClosureService
 {
     public function __construct(
         private TradeInPersistencePort $persistence,
-        private TradeInService $tradeIns,
+        private TradeInRequestWorkflow $tradeIns,
         private TransactionManager $transactions,
         private TradeInPrivateFileStoragePort $files,
         private TradeInReceiptRenderer $receiptRenderer,

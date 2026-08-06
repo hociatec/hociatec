@@ -42,8 +42,8 @@ final class Version20260716223000 extends AbstractMigration
             $sql[] = "ADD delivery_delivered_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)'";
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $sql));
         }
     }
 
@@ -75,8 +75,8 @@ final class Version20260716223000 extends AbstractMigration
             $sql[] = 'DROP delivery_delivered_at';
         }
 
-        if ($sql !== []) {
-            $this->addSql('ALTER TABLE orders ' . implode(', ', $sql));
+        if ([] !== $sql) {
+            $this->addSql('ALTER TABLE orders '.implode(', ', $sql));
         }
     }
 }

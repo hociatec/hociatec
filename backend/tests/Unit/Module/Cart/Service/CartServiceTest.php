@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Cart\Service;
 
+use App\Module\Cart\Application\Provider\CartItemResolver;
+use App\Module\Cart\Application\Provider\CartSessionProvider;
+use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
-use App\Module\Cart\Application\Provider\CartItemResolver;
-use App\Module\Cart\Application\Workflow\CartService;
-use App\Module\Cart\Application\Provider\CartSessionProvider;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -136,13 +136,13 @@ final class CartServiceTest extends TestCase
         }
     }
 
-    private function service(): CartService
+    private function service(): CartSessionWorkflow
     {
         $entityManager = $this->entityManager();
         $persistence = new DoctrineUnitOfWork($entityManager);
         $provider = new CartSessionProvider($this->cartRepository($entityManager), $persistence);
 
-        return new CartService($provider, new CartItemResolver(), $persistence, new ProductRepository($this->registry($entityManager)));
+        return new CartSessionWorkflow($provider, new CartItemResolver(), $persistence, new ProductRepository($this->registry($entityManager)));
     }
 
     private function reloadCart(CartSession $cart): CartSession

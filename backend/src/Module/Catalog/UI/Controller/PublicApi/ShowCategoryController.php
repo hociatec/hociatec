@@ -6,7 +6,7 @@ namespace App\Module\Catalog\UI\Controller\PublicApi;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
-use App\Module\Catalog\Application\Workflow\CategoryService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ShowCategoryController extends AbstractController
 {
     public function __construct(
-        private readonly CategoryService $categoryService,
+        private readonly CategoryCatalogWorkflow $categoryService,
         private readonly ProductQueryService $productService,
         private readonly CatalogFormatter $catalogFormatter,
     ) {

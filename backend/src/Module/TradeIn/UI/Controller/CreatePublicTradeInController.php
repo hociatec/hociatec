@@ -7,7 +7,7 @@ namespace App\Module\TradeIn\UI\Controller;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
-use App\Module\TradeIn\Application\Workflow\TradeInService;
+use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -24,7 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CreatePublicTradeInController extends AbstractController
 {
     public function __construct(
-        private readonly TradeInService $service,
+        private readonly TradeInRequestWorkflow $service,
         private readonly DtoValidator $validator,
         private readonly ProductRepositoryPort $products,
         private readonly TradeInFormatter $formatter,

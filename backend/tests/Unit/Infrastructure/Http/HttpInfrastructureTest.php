@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Http;
 
+use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiExceptionSubscriber;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
-use App\Shared\Infrastructure\Http\RateLimitSubscriber;
-use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\CsrfProtectionSubscriber;
 use App\Shared\Infrastructure\Http\CsrfTokenService;
+use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RateLimitSubscriber;
 use App\Shared\Infrastructure\Http\RequestIdProcessor;
 use App\Shared\Infrastructure\Http\RequestIdSubscriber;
 use App\Shared\Infrastructure\Http\SecurityHeadersSubscriber;
@@ -18,11 +19,11 @@ use Monolog\Level;
 use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use App\Module\User\Domain\Entity\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -30,9 +31,8 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 final class HttpInfrastructureTest extends TestCase
 {

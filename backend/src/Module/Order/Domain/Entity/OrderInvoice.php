@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Domain\Entity;
 
 use App\Module\Order\Domain\Enum\InvoiceStatus;
+use App\Shared\Domain\ValueObject\Currency;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Embeddable]
@@ -19,8 +20,8 @@ final class OrderInvoice
     #[ORM\Column(name: 'invoiced_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $invoicedAt = null;
 
-    #[ORM\Column(length: 3, options: ['default' => 'EUR'])]
-    private string $currencyCode = 'EUR';
+    #[ORM\Column(length: 3, enumType: Currency::class, options: ['default' => Currency::EUR->value])]
+    private Currency $currencyCode = Currency::EUR;
 
     #[ORM\Column(length: 40, options: ['default' => 'UBL-2.1'])]
     private string $electronicFormat = 'UBL-2.1';
@@ -69,12 +70,12 @@ final class OrderInvoice
 
     public function getCurrencyCode(): string
     {
-        return $this->currencyCode;
+        return $this->currencyCode->value;
     }
 
     public function setCurrencyCode(string $currencyCode): self
     {
-        $this->currencyCode = $currencyCode;
+        $this->currencyCode = Currency::fromCode($currencyCode);
 
         return $this;
     }

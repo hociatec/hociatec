@@ -6,6 +6,8 @@ namespace App\Module\Order\Domain\Entity;
 
 use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Domain\ValueObject\Currency;
+use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -34,8 +36,8 @@ class RefundRequest
     #[ORM\Column(type: 'integer')]
     private int $amountCents;
 
-    #[ORM\Column(length: 3)]
-    private string $currencyCode = 'EUR';
+    #[ORM\Column(length: 3, enumType: Currency::class)]
+    private Currency $currencyCode = Currency::EUR;
 
     #[ORM\Column(length: 40, enumType: RefundStatus::class)]
     private RefundStatus $status = RefundStatus::REQUESTED;
@@ -61,12 +63,8 @@ class RefundRequest
 
     public function __construct(Order $order, int $amountCents, ?User $actor = null)
     {
-        if ($amountCents < 0) {
-            throw new \InvalidArgumentException('Le montant du remboursement ne peut pas être négatif.');
-        }
-
         $this->order = $order;
-        $this->amountCents = $amountCents;
+        $this->amountCents = Money::fromCents($amountCents)->cents();
         $this->actor = $actor;
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -102,23 +100,19 @@ class RefundRequest
 
     public function setAmountCents(int $amountCents): self
     {
-        if ($amountCents < 0) {
-            throw new \InvalidArgumentException('Le montant du remboursement ne peut pas être négatif.');
-        }
-
-        $this->amountCents = $amountCents;
+        $this->amountCents = Money::fromCents($amountCents, $this->currencyCode)->cents();
 
         return $this;
     }
 
     public function getCurrencyCode(): string
     {
-        return $this->currencyCode;
+        return $this->currencyCode->value;
     }
 
     public function setCurrencyCode(string $currencyCode): self
     {
-        $this->currencyCode = strtoupper(substr($currencyCode, 0, 3));
+        $this->currencyCode = Currency::fromCode(substr($currencyCode, 0, 3));
 
         return $this;
     }

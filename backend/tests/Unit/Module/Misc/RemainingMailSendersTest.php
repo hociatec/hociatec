@@ -4,32 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
+use App\Module\Auth\Application\Outbox\SendPasswordResetEmailHandler;
+use App\Module\Auth\Application\Workflow\PasswordResetEmailService;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
-use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
-use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
-use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
+use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
-use App\Module\Notification\Application\Workflow\CommunicationPreferences;
-use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Auth\Application\Outbox\SendPasswordResetEmailHandler;
-use App\Module\Auth\Application\Workflow\PasswordResetEmailService;
-use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Module\Outbox\Application\Outbox;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
+use App\Module\User\Domain\Entity\User;
+use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -38,10 +34,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class RemainingMailSendersTest extends TestCase
 {

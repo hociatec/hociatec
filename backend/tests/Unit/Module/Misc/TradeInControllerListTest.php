@@ -9,6 +9,7 @@ use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -28,7 +29,7 @@ final class TradeInControllerListTest extends TestCase
         $otherUser = new User('grace@example.com', 'Grace', 'Hopper', new \DateTimeImmutable('1985-01-01'), '0607080910', 'female');
         $otherUser->setPassword('hashed');
         $this->setId($otherUser, 13);
-        $otherRequest = TradeInRequest::fromLegacySubmittedScalars(
+        $otherRequest = TradeInRequestFactory::submitted(
             'TR-2',
             $otherUser,
             'Grace',
@@ -111,7 +112,7 @@ final class TradeInControllerListTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return TradeInRequest::fromLegacySubmittedScalars(
+        return TradeInRequestFactory::submitted(
             'TR-1',
             $user,
             'Ada',

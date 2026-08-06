@@ -49,9 +49,7 @@ final class OrderInvoiceCalculator
             $lineVat = max(0, $lineTotalTtc - $lineSubtotalHt);
 
             $item
-                ->setLineSubtotalCents($lineSubtotalHt)
-                ->setLineVatCents($lineVat)
-                ->setLineTotalCents($lineTotalTtc);
+                ->replaceLineTotals($lineSubtotalHt, $lineVat, $lineTotalTtc);
         }
     }
 

@@ -13,6 +13,7 @@ use App\Module\BetaTest\Infrastructure\Repository\BugReportActivityRepository;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
@@ -113,7 +114,7 @@ final class BetaAndTradeInSmallBatchTest extends TestCase
 
     private function tradeInRequest(User $user): TradeInRequest
     {
-        return TradeInRequest::fromLegacySubmittedScalars(
+        return TradeInRequestFactory::submitted(
             'TR-1',
             $user,
             'Ada',

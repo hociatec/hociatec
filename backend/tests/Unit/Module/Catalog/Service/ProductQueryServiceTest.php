@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Catalog\Service;
 
-use App\Module\Admin\UI\Catalog\Mapper\ProductAdminListQueryMapper;
 use App\Module\Admin\UI\Catalog\Controller\ListProductsController;
+use App\Module\Admin\UI\Catalog\Mapper\ProductAdminListQueryMapper;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Query\ProductAdminCriteria;
 use App\Module\Catalog\Application\Query\ProductCatalogCriteria;

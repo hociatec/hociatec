@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Contact;
 
-use App\Module\Contact\UI\Controller\ContactController;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
 use App\Module\Contact\Application\Workflow\ContactFormSubmissionService;
-use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
+use App\Module\Contact\UI\Controller\ContactController;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;

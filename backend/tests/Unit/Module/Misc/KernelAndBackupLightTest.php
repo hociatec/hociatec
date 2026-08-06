@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Kernel;
-use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
 use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;
+use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
 use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
 use App\Module\System\UI\Controller\MetricsController;
 use Doctrine\DBAL\Connection;

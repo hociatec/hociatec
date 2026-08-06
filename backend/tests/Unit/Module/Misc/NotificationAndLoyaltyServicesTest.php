@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
+use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
-use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
-use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
+use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
 use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Provider\AccountNotificationProvider;
 use App\Module\Notification\Application\Workflow\AccountNotificationReadStateService;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
-use App\Module\Notification\Application\Notification\ComputedAccountNotificationProviderInterface;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Persistence\UserPersistence;
-use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
-use App\Module\Loyalty\Application\Workflow\LoyaltyService;
+use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
@@ -29,7 +29,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class NotificationAndLoyaltyServicesTest extends TestCase

@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
-use App\Module\Favorite\UI\Controller\ListFavoritesController;
-use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
-use App\Module\Order\UI\Controller\CancelMyOrderController;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\UI\Controller\ListFavoritesController;
+use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
-use App\Module\Order\Application\Workflow\OrderWorkflowService;
-use App\Module\Quote\UI\Controller\PublicApi\ListServicesController;
+use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Order\UI\Controller\CancelMyOrderController;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Quote\UI\Controller\PublicApi\ListServicesController;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;

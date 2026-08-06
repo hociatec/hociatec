@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Cart\Application\Workflow\CartService;
+use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Order\Application\DTO\CartCheckoutResult;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
@@ -20,7 +20,7 @@ final readonly class CartCheckoutService
     public function __construct(
         private StripeCheckoutService $stripe,
         private OrderRepositoryPort $orders,
-        private CartService $carts,
+        private CartSessionWorkflow $carts,
         private ShippingAddressRepositoryPort $addresses,
     ) {
     }

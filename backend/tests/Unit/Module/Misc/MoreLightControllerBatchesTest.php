@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
-use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
-use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
-use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
-use App\Module\Rating\UI\Controller\ListPendingReviewsController;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
+use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
 use App\Module\Rating\Application\Provider\PendingReviewResolver;
-use App\Module\Training\UI\Controller\Admin\DeleteTrainingCategoryController;
+use App\Module\Rating\UI\Controller\ListPendingReviewsController;
+use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
-use App\Module\Training\Application\Writer\TrainingWriter;
+use App\Module\Training\UI\Controller\Admin\DeleteTrainingCategoryController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;

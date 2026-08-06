@@ -72,4 +72,3 @@ final class Version20251029123000 extends AbstractMigration
         $this->addSql('DROP TABLE quotes');
     }
 }
-

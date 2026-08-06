@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\News\Service;
 
 use App\Module\News\Application\DTO\NewsArticleInput;
-use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Application\Writer\NewsArticleWriter;
+use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -36,10 +36,16 @@ final class NewsArticleWriterTest extends TestCase
         $messages = [];
         $bus = new class($messages) implements MessageBusInterface {
             public array $messages = [];
-            public function __construct(array &$messages) { $this->messages = &$messages; }
+
+            public function __construct(array &$messages)
+            {
+                $this->messages = &$messages;
+            }
+
             public function dispatch(object $message, array $stamps = []): Envelope
             {
                 $this->messages[] = $message;
+
                 return new Envelope($message, $stamps);
             }
         };

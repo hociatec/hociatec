@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Service;
 
+use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingSession;
-use App\Module\Training\Application\Mapper\TrainingSlotValidator;
 use PHPUnit\Framework\TestCase;
 
 final class TrainingSlotValidatorTest extends TestCase

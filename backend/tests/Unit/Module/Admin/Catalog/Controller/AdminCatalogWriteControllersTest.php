@@ -8,15 +8,15 @@ use App\Module\Admin\UI\Catalog\Controller\CreateBrandController;
 use App\Module\Admin\UI\Catalog\Controller\CreateCategoryController;
 use App\Module\Admin\UI\Catalog\Controller\UpdateBrandController;
 use App\Module\Admin\UI\Catalog\Controller\UpdateCategoryController;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Application\Workflow\BrandService;
+use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
+use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
-use App\Module\Catalog\Application\Workflow\BrandService;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
-use App\Module\Catalog\Application\Workflow\CategoryService;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -62,7 +62,7 @@ final class AdminCatalogWriteControllersTest extends TestCase
         $repository->method('existsWithName')->willReturnCallback(static fn (string $name): bool => 'Duplicate' === $name);
         $repository->method('existsWithSlug')->willReturnCallback(static fn (string $slug): bool => 'used' === $slug);
         $repository->method('find')->willReturnCallback(static fn (int $id): ?Category => 7 === $id ? $category : null);
-        $service = new CategoryService($repository, $this->persistence(), Validation::createValidator());
+        $service = new CategoryCatalogWorkflow($repository, $this->persistence(), Validation::createValidator());
         $validator = $this->validator();
 
         $catalogFormatter = new CatalogFormatter();
