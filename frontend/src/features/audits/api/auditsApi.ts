@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
 import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 
 export type AuditType = 'performance' | 'security' | 'ux' | 'seo' | 'technical' | 'accessibility';
@@ -56,8 +56,7 @@ export async function createAuditRequest(input: {
   objectives?: string;
 }): Promise<ApiMutationResult<{ id: number; number: string }>> {
   const res = await httpClient.post<ApiResponse<{ id: number; number: string }>>('/api/audits', input);
-  if (!isApiOk(res.data)) throw new Error('Réponse API invalide.');
-  return { data: res.data.data, message: res.data.message };
+  return { data: unwrapApiData(res.data, 'Réponse API invalide.'), message: res.data.message };
 }
 
 export async function fetchAuditMetadata(): Promise<AuditMetadataDto> {
@@ -69,8 +68,7 @@ export async function fetchMyAudits(page = 1, perPage = 10): Promise<PaginatedRe
   const res = await httpClient.get<ApiResponse<{ items: AuditListItemDto[]; meta: PaginationMeta }>>('/api/audits', {
     params: { page, perPage },
   });
-  if (!isApiOk(res.data)) throw new Error(res.data.message || 'Impossible de charger vos audits.');
-  return res.data.data;
+  return unwrapApiData(res.data, 'Impossible de charger vos audits.');
 }
 
 export async function fetchMyAudit(
@@ -105,8 +103,7 @@ export async function adminFetchAudits(
       type: filters.type && filters.type !== 'all' ? filters.type : undefined,
     },
   });
-  if (!isApiOk(res.data)) throw new Error(res.data.message || 'Impossible de charger les audits.');
-  return res.data.data;
+  return unwrapApiData(res.data, 'Impossible de charger les audits.');
 }
 
 export async function adminFetchAudit(

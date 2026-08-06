@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { createApiError, unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiResponse } from '@/shared/types/api';
 
 export interface SupportRequestDto {
   id: number;
@@ -101,15 +101,14 @@ export interface OperationsOverviewDto {
 }
 
 export const unwrap = <T>(data: ApiResponse<T>, fallback: string): T => {
-  if (isApiOk(data)) return data.data as T;
-  throw new Error(extractApiErrorMessage(data, fallback));
+  return unwrapApiData(data, fallback);
 };
 
 export const rethrowApiError = (error: unknown, fallback: string): never => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as ApiResponse<unknown> | undefined;
     if (data) {
-      throw new Error(extractApiErrorMessage(data, fallback));
+      throw createApiError(data, fallback);
     }
   }
 

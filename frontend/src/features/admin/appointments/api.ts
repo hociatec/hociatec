@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 import type { Prestation, WorkingDay } from '@/features/appointments/publicApi';
 
@@ -16,8 +16,7 @@ export const fetchAdminPrestationsPage = async (
   if (data.status === 'success') {
     return { items: data.data.items, meta: data.data.meta };
   }
-
-  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des prestations'));
+  return unwrapApiData(data, 'Erreur lors du chargement des prestations');
 };
 
 export const fetchAdminPrestation = async (id: number) => {
@@ -25,11 +24,7 @@ export const fetchAdminPrestation = async (id: number) => {
     `/api/admin/appointments/prestations/${id}`,
   );
 
-  if (data.status === 'success') {
-    return data.data;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Prestation introuvable'));
+  return unwrapApiData(data, 'Prestation introuvable');
 };
 
 export interface UpsertPrestationPayload {
@@ -44,11 +39,8 @@ export const createPrestation = async (payload: UpsertPrestationPayload) => {
     payload,
   );
 
-  if (isApiOk(data)) {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<Prestation>;
-  }
-
-  throw new Error(data.message || 'Impossible de créer la prestation');
+  const payload = unwrapApiData(data, 'Impossible de créer la prestation');
+  return { data: payload, message: data.message };
 };
 
 export const updatePrestation = async (id: number, payload: UpsertPrestationPayload) => {
@@ -57,11 +49,8 @@ export const updatePrestation = async (id: number, payload: UpsertPrestationPayl
     payload,
   );
 
-  if (data.status === 'success') {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<Prestation>;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour la prestation'));
+  const payload = unwrapApiData(data, 'Impossible de mettre à jour la prestation');
+  return { data: payload, message: data.message };
 };
 
 export const deletePrestation = async (id: number) => {
@@ -69,11 +58,8 @@ export const deletePrestation = async (id: number) => {
     `/api/admin/appointments/prestations/${id}`,
   );
 
-  if (data.status === 'success') {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de supprimer la prestation'));
+  const payload = unwrapApiData(data, 'Impossible de supprimer la prestation');
+  return { data: payload, message: data.message };
 };
 
 export const fetchConfiguration = async () => {
@@ -81,11 +67,7 @@ export const fetchConfiguration = async () => {
     '/api/admin/appointments/configuration',
   );
 
-  if (data.status === 'success') {
-    return data.data.days;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement de la configuration'));
+  return unwrapApiData(data, 'Erreur lors du chargement de la configuration').days;
 };
 
 export const updateConfiguration = async (days: WorkingDay[]) => {
@@ -94,9 +76,5 @@ export const updateConfiguration = async (days: WorkingDay[]) => {
     { days },
   );
 
-  if (data.status === 'success') {
-    return data.data.days;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour la configuration'));
+  return unwrapApiData(data, 'Impossible de mettre à jour la configuration').days;
 };

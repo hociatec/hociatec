@@ -1,10 +1,16 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type {
+  ApiMutationResult,
+  ApiResponse,
+  PaginatedResult,
+  PaginationMeta,
+} from '@/shared/types/api';
 import type { TradeInDto, TradeInInput, TradeInMetadataDto, TradeInStatus } from './types';
 
 export async function fetchTradeInMetadata(): Promise<TradeInMetadataDto> {
-  const response = await httpClient.get('/api/public/trade-ins/metadata');
-  return response.data.data;
+  const response = await httpClient.get<ApiResponse<TradeInMetadataDto>>('/api/public/trade-ins/metadata');
+  return unwrapApiData(response.data, 'Impossible de charger les métadonnées des reprises.');
 }
 
 export async function createTradeIn(input: TradeInInput, authenticated: boolean): Promise<{ item: TradeInDto; message?: string }> {
@@ -16,20 +22,27 @@ export async function createTradeIn(input: TradeInInput, authenticated: boolean)
       form.append(key, String(value));
     }
   });
-  const response = await httpClient.post(`/api${authenticated ? '' : '/public'}/trade-ins`, form);
-  return { item: response.data.data, message: response.data.message };
+  const response = await httpClient.post<ApiResponse<{ item: TradeInDto }>>(
+    `/api${authenticated ? '' : '/public'}/trade-ins`,
+    form,
+  );
+  const payload = unwrapApiData(response.data, 'Impossible de créer la reprise.');
+  return { item: payload.item, message: response.data.message };
 }
 
 export async function fetchMyTradeIns(page = 1, perPage = 10): Promise<PaginatedResult<TradeInDto>> {
-  const response = await httpClient.get<ApiResponse<{ items: TradeInDto[]; meta: PaginationMeta }>>('/api/trade-ins/me', {
-    params: { page, perPage },
-  });
-  if (!isApiOk(response.data)) throw new Error(response.data.message || 'Impossible de charger vos reprises.');
-  return response.data.data;
+  const response = await httpClient.get<ApiResponse<{ items: TradeInDto[]; meta: PaginationMeta }>>(
+    '/api/trade-ins/me',
+    { params: { page, perPage } },
+  );
+  return unwrapApiData(response.data, 'Impossible de charger vos reprises.');
 }
 
 export async function respondToTradeIn(id: number, action: 'accept' | 'decline'): Promise<void> {
-  await httpClient.post(`/api/trade-ins/${id}/respond/${action}`);
+  const response = await httpClient.post<ApiResponse<Record<string, unknown>>>(
+    `/api/trade-ins/${id}/respond/${action}`,
+  );
+  unwrapApiData(response.data, 'Impossible de répondre à la reprise.');
 }
 
 export async function adminFetchTradeIns(
@@ -40,27 +53,36 @@ export async function adminFetchTradeIns(
   const response = await httpClient.get<ApiResponse<{ items: TradeInDto[]; meta: PaginationMeta }>>('/api/admin/trade-ins', {
     params: { page, perPage, ...(status ? { status } : {}) },
   });
-  if (!isApiOk(response.data)) throw new Error(response.data.message || 'Impossible de charger les reprises.');
-  return response.data.data;
+  return unwrapApiData(response.data, 'Impossible de charger les reprises.');
 }
 
 export async function adminFetchTradeIn(id: number): Promise<TradeInDto> {
-  const response = await httpClient.get(`/api/admin/trade-ins/${id}`);
-  return response.data.data.item;
+  const response = await httpClient.get<ApiResponse<{ item: TradeInDto }>>(`/api/admin/trade-ins/${id}`);
+  return unwrapApiData(response.data, 'Reprise introuvable.').item;
 }
 
 export async function adminSetTradeInOffer(id: number, offerCents: number, adminNote: string): Promise<void> {
-  await httpClient.put(`/api/admin/trade-ins/${id}/offer`, { offerCents, adminNote });
+  const response = await httpClient.put<ApiResponse<Record<string, unknown>>>(
+    `/api/admin/trade-ins/${id}/offer`,
+    { offerCents, adminNote },
+  );
+  unwrapApiData(response.data, 'Impossible de proposer une offre.');
 }
 
 export async function adminSetTradeInStatus(id: number, status: TradeInStatus): Promise<void> {
-  await httpClient.put(`/api/admin/trade-ins/${id}/status`, { status });
+  const response = await httpClient.put<ApiResponse<Record<string, unknown>>>(
+    `/api/admin/trade-ins/${id}/status`,
+    { status },
+  );
+  unwrapApiData(response.data, 'Impossible de changer le statut.');
 }
 
 export async function adminDeleteTradeIn(id: number): Promise<ApiMutationResult<unknown>> {
   const response = await httpClient.delete<ApiResponse<unknown>>(`/api/admin/trade-ins/${id}`);
-  if (!isApiOk(response.data)) throw new Error('Réponse API invalide.');
-  return { data: response.data.data, message: response.data.message };
+  return {
+    data: unwrapApiData(response.data, 'Impossible de supprimer la reprise.'),
+    message: response.data.message,
+  };
 }
 
 export async function adminDownloadTradeInDocument(id: number, document: 'rib' | 'receipt'): Promise<Blob> {
@@ -73,6 +95,8 @@ export async function downloadMyTradeInReceipt(id: number): Promise<Blob> {
 
 export async function adminCloseTradeIn(id: number, payload: { finalOfferCents: number; paymentMethod: string; paymentStatus: string; transactionReference?: string; note?: string }): Promise<ApiMutationResult<unknown>> {
   const response = await httpClient.post<ApiResponse<unknown>>(`/api/admin/trade-ins/${id}/close`, payload);
-  if (!isApiOk(response.data)) throw new Error('Réponse API invalide.');
-  return { data: response.data.data, message: response.data.message };
+  return {
+    data: unwrapApiData(response.data, 'Impossible de clôturer la reprise.'),
+    message: response.data.message,
+  };
 }

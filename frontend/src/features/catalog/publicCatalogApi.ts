@@ -1,8 +1,8 @@
 import { isAxiosError } from 'axios';
 
 import { getHttpErrorMessage, httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
-import { extractErrorMessage } from './apiShared';
+import { extractApiErrorMessage, unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiResponse } from '@/shared/types/api';
 import type {
   CatalogCategory,
   CatalogProduct,
@@ -72,11 +72,8 @@ export const fetchPublicCategories = async () => {
       '/api/public/catalog/categories',
     );
 
-    if (data.status === 'success') {
-      return data.data.items.map(parseCatalogCategory);
-    }
-
-    throw new Error(extractErrorMessage(data, 'Impossible de charger les catégories.'));
+    const payload = unwrapApiData(data, 'Impossible de charger les catégories.');
+    return payload.items.map(parseCatalogCategory);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Impossible de charger les catégories.'));
   }
@@ -88,12 +85,9 @@ export const fetchPublicCategory = async (slug: string, options: RequestOptions 
       `/api/public/catalog/categories/${slug}`,
       requestSignalConfig(options.signal),
     );
+    const payload = unwrapApiData(data, 'Catégorie introuvable.');
 
-    if (data.status === 'success') {
-      return parseCategoryWithProducts(data.data);
-    }
-
-    throw new Error(extractErrorMessage(data, 'Catégorie introuvable.'));
+    return parseCategoryWithProducts(payload);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Catégorie introuvable.'));
   }
@@ -105,12 +99,9 @@ export const fetchPublicProduct = async (slug: string, options: RequestOptions =
       `/api/public/catalog/products/${slug}`,
       requestSignalConfig(options.signal),
     );
+    const payload = unwrapApiData(data, 'Produit introuvable.');
 
-    if (data.status === 'success') {
-      return parseCatalogProduct(data.data);
-    }
-
-    throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
+    return parseCatalogProduct(payload);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Produit introuvable.'));
   }
@@ -122,20 +113,12 @@ export const shareProductByEmail = async (slug: string, payload: ShareProductEma
       ApiResponse<{ sent: boolean; to: string; message: string }>
     >(`/api/public/catalog/products/${slug}/share`, payload);
 
-    if (data.status === 'success') {
-      return data.data;
-    }
-
-    throw new CatalogApiError(
-      extractErrorMessage(data, "Impossible d'envoyer le produit par e-mail."),
-    );
+    return unwrapApiData(data, "Impossible d'envoyer le produit par e-mail.");
   } catch (error) {
     if (isAxiosError(error)) {
       const response = error.response?.data as ApiResponse<unknown> | undefined;
       throw new CatalogApiError(
-        response
-          ? extractErrorMessage(response, "Impossible d'envoyer le produit par e-mail.")
-          : "Impossible d'envoyer le produit par e-mail.",
+        response ? extractApiErrorMessage(response, "Impossible d'envoyer le produit par e-mail.") : "Impossible d'envoyer le produit par e-mail.",
         error.response?.status,
       );
     }
@@ -149,7 +132,7 @@ export const fetchProductReviews = async (
   params: { page?: number; perPage?: number } = {},
 ) => {
   try {
-    const { data } = await httpClient.get<
+  const { data } = await httpClient.get<
       ApiResponse<{
         items: ProductPublicReview[];
         meta: { page: number; perPage: number; total: number; average: number };
@@ -161,11 +144,7 @@ export const fetchProductReviews = async (
       },
     });
 
-    if (isApiOk(data)) {
-      return data.data;
-    }
-
-    throw new Error(extractErrorMessage(data, 'Impossible de charger les avis.'));
+    return unwrapApiData(data, 'Impossible de charger les avis.');
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Impossible de charger les avis.'));
   }
@@ -181,12 +160,9 @@ export const fetchPublicProducts = async (
       '/api/public/catalog/products',
       { params: queryParams, ...requestSignalConfig(params.signal) },
     );
+    const payload = unwrapApiData(data, 'Impossible de charger les produits.');
 
-    if (data.status === 'success') {
-      return parseCatalogProductsPayload(data.data).items;
-    }
-
-    throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
+    return parseCatalogProductsPayload(payload).items;
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Impossible de charger les produits.'));
   }
@@ -201,12 +177,9 @@ export const searchPublicProducts = async (
     const { data } = await httpClient.get<
       ApiResponse<{ items: CatalogProduct[]; meta: CatalogSearchMeta; facets: CatalogSearchFacets }>
     >('/api/public/catalog/products', { params: queryParams, ...requestSignalConfig(params.signal) });
+    const payload = unwrapApiData(data, 'Impossible de charger les produits.');
 
-    if (data.status === 'success') {
-      return parseCatalogSearchPayload(data.data);
-    }
-
-    throw new Error(extractErrorMessage(data, 'Impossible de charger les produits.'));
+    return parseCatalogSearchPayload(payload);
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Impossible de charger les produits.'));
   }

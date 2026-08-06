@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 
 export interface FavoriteDto {
@@ -18,11 +18,8 @@ export const fetchFavorites = async (): Promise<FavoriteDto[]> => {
     params: { page: 1, perPage: 50 },
   });
 
-  if (isApiOk(data)) {
-    return data.data.items;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger vos favoris.'));
+  const payload = unwrapApiData(data, 'Impossible de charger vos favoris.');
+  return payload.items;
 };
 
 export const fetchFavoritesPage = async (
@@ -34,11 +31,8 @@ export const fetchFavoritesPage = async (
     { params: { page, perPage } },
   );
 
-  if (isApiOk(data)) {
-    return { items: data.data.items, meta: data.data.meta };
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger vos favoris.'));
+  const payload = unwrapApiData(data, 'Impossible de charger vos favoris.');
+  return { items: payload.items, meta: payload.meta };
 };
 
 export const addFavorite = async (productId: number): Promise<FavoriteResponse> => {
@@ -46,15 +40,11 @@ export const addFavorite = async (productId: number): Promise<FavoriteResponse> 
     `/api/favorites/${productId}`,
   );
 
-  if (isApiOk(data)) {
-    const payload = data.data;
-    return {
-      favorite: payload.favorite,
-      alreadyFavorite: Boolean(payload.alreadyFavorite),
-    };
-  }
-
-  throw new Error(extractApiErrorMessage(data, "Impossible d'ajouter ce produit aux favoris."));
+  const payload = unwrapApiData(data, "Impossible d'ajouter ce produit aux favoris.");
+  return {
+    favorite: payload.favorite,
+    alreadyFavorite: Boolean(payload.alreadyFavorite),
+  };
 };
 
 export const removeFavorite = async (productId: number): Promise<void> => {
@@ -62,9 +52,5 @@ export const removeFavorite = async (productId: number): Promise<void> => {
     `/api/favorites/${productId}`,
   );
 
-  if (isApiOk(data)) {
-    return;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de retirer ce produit des favoris.'));
+  unwrapApiData(data, 'Impossible de retirer ce produit des favoris.');
 };

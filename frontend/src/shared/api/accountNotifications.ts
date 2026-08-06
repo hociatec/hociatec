@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiResponse } from '@/shared/types/api';
 
 export interface AccountNotificationsReadStateDto {
   seenSignature: string;
@@ -22,13 +22,7 @@ export const fetchAccountNotifications = async (): Promise<StoredAccountNotifica
     '/api/account-notifications/me',
   );
 
-  if (isApiOk(data)) {
-    return data.data.items;
-  }
-
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de charger les notifications'),
-  );
+  return unwrapApiData(data, 'Impossible de charger les notifications').items;
 };
 
 export const fetchAccountNotificationsReadState =
@@ -37,13 +31,7 @@ export const fetchAccountNotificationsReadState =
       ApiResponse<{ readState: AccountNotificationsReadStateDto }>
     >('/api/account-notifications/me/read-state');
 
-    if (isApiOk(data)) {
-      return data.data.readState;
-    }
-
-    throw new Error(
-      extractApiErrorMessage(data, 'Impossible de charger les notifications lues'),
-    );
+    return unwrapApiData(data, 'Impossible de charger les notifications lues').readState;
   };
 
 export const markAccountNotificationsSeen = async (
@@ -53,13 +41,7 @@ export const markAccountNotificationsSeen = async (
     ApiResponse<{ readState: AccountNotificationsReadStateDto }>
   >('/api/account-notifications/me/read-state', { seenKeys });
 
-  if (isApiOk(data)) {
-    return data.data.readState;
-  }
-
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de marquer les notifications comme lues'),
-  );
+  return unwrapApiData(data, 'Impossible de marquer les notifications comme lues').readState;
 };
 
 export const dismissAccountNotification = async (
@@ -69,13 +51,7 @@ export const dismissAccountNotification = async (
     ApiResponse<{ readState: AccountNotificationsReadStateDto }>
   >('/api/account-notifications/me/read-state', { dismissedKey });
 
-  if (isApiOk(data)) {
-    return data.data.readState;
-  }
-
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de supprimer la notification'),
-  );
+  return unwrapApiData(data, 'Impossible de supprimer la notification').readState;
 };
 
 export const dismissAccountNotifications = async (
@@ -85,11 +61,5 @@ export const dismissAccountNotifications = async (
     ApiResponse<{ readState: AccountNotificationsReadStateDto }>
   >('/api/account-notifications/me/read-state', { dismissedKeys });
 
-  if (isApiOk(data)) {
-    return data.data.readState;
-  }
-
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de supprimer les notifications'),
-  );
+  return unwrapApiData(data, 'Impossible de supprimer les notifications').readState;
 };

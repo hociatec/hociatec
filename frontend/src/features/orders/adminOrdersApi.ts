@@ -1,14 +1,13 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { OrderStatus, OrderStatusFilter } from '@/shared/contracts/statuses';
 import type { AdminOrderMetadataDto, OrderDto, OrderEventDto, OrderProcessingDto } from './orderTypes';
 import { parseOrder, parseOrderEvent, parseOrderProcessing } from './orderValidation';
 
 export const fetchAdminOrderMetadata = async (): Promise<AdminOrderMetadataDto> => {
   const { data } = await httpClient.get<ApiResponse<AdminOrderMetadataDto>>('/api/admin/orders/metadata');
-  if (isApiOk(data)) return data.data;
-  throw new Error(extractApiErrorMessage(data, data.message));
+  return unwrapApiData(data, data.message ?? 'Réponse API invalide.');
 };
 
 export const fetchAdminOrders = async (
@@ -38,10 +37,8 @@ export const fetchAdminOrders = async (
   const { data } = await httpClient.get<ApiResponse<{ items: OrderDto[]; meta: PaginationMeta }>>(
     `/api/admin/orders${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
-  if (isApiOk(data)) {
-    return { items: data.data.items.map(parseOrder), meta: data.data.meta };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les commandes'));
+  const payload = unwrapApiData(data, 'Impossible de charger les commandes');
+  return { items: payload.items.map(parseOrder), meta: payload.meta };
 };
 
 export const fetchAdminOrderById = async (
@@ -54,14 +51,12 @@ export const fetchAdminOrderById = async (
       processing: OrderProcessingDto;
     }>
   >(`/api/admin/orders/${orderId}`);
-  if (isApiOk(data)) {
-    return {
-      order: parseOrder(data.data.order),
-      events: data.data.events.map(parseOrderEvent),
-      processing: parseOrderProcessing(data.data.processing),
-    };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger la commande'));
+  const payload = unwrapApiData(data, 'Impossible de charger la commande');
+  return {
+    order: parseOrder(payload.order),
+    events: payload.events.map(parseOrderEvent),
+    processing: parseOrderProcessing(payload.processing),
+  };
 };
 
 export const updateAdminOrderStatus = async (
@@ -72,10 +67,8 @@ export const updateAdminOrderStatus = async (
     `/api/admin/orders/${orderId}/status`,
     { status },
   );
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour le statut'));
+  const payload = unwrapApiData(data, 'Impossible de mettre à jour le statut');
+  return parseOrder(payload.order);
 };
 
 export const updateAdminOrderDelivery = async (
@@ -92,22 +85,16 @@ export const updateAdminOrderDelivery = async (
     `/api/admin/orders/${orderId}/delivery`,
     payload,
   );
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de mettre à jour la livraison'),
-  );
+  const payload = unwrapApiData(data, 'Impossible de mettre à jour la livraison');
+  return parseOrder(payload.order);
 };
 
 export const retryAdminOrderInvoice = async (orderId: number): Promise<OrderDto> => {
   const { data } = await httpClient.post<ApiResponse<{ order: OrderDto }>>(
     `/api/admin/orders/${orderId}/retry-invoice`,
   );
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de regénérer la facture'));
+  const payload = unwrapApiData(data, 'Impossible de regénérer la facture');
+  return parseOrder(payload.order);
 };
 
 export const resendAdminOrderEmail = async (
@@ -118,8 +105,6 @@ export const resendAdminOrderEmail = async (
     `/api/admin/orders/${orderId}/resend-email`,
     { scenario },
   );
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de renvoyer l’email'));
+  const payload = unwrapApiData(data, 'Impossible de renvoyer l’email');
+  return parseOrder(payload.order);
 };

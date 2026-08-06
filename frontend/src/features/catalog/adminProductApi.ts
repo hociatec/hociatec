@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { isApiOk, type ApiMutationResult, type ApiResponse } from '@/shared/types/api';
-import { extractErrorMessage } from './apiShared';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiMutationResult, ApiResponse } from '@/shared/types/api';
 import type { CatalogProduct, CatalogSort, UpsertProductPayload } from './apiTypes';
 import { parseCatalogProduct, parseCatalogSearchMeta } from './catalogValidation';
 
@@ -29,26 +29,16 @@ export const fetchAdminProducts = async () => {
     '/api/admin/catalog/products',
   );
 
-  if (data.status === 'success') {
-    return data.data.items.map(parseCatalogProduct);
-  }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
+  return unwrapApiData(data, 'Impossible de récupérer les produits.').items.map(parseCatalogProduct);
 };
 
 export const fetchAdminProductsPage = async (params: AdminProductsPageParams) => {
   const { data } = await httpClient.get<
     ApiResponse<{ items: CatalogProduct[]; meta: AdminProductsPageMeta }>
   >('/api/admin/catalog/products', { params });
+  const payload = unwrapApiData(data, 'Impossible de récupérer les produits.');
 
-  if (data.status === 'success') {
-    return {
-      items: data.data.items.map(parseCatalogProduct),
-      meta: parseCatalogSearchMeta(data.data.meta),
-    };
-  }
-
-  throw new Error(extractErrorMessage(data, 'Impossible de récupérer les produits.'));
+  return { items: payload.items.map(parseCatalogProduct), meta: parseCatalogSearchMeta(payload.meta) };
 };
 
 export const fetchAdminProduct = async (id: number) => {
@@ -56,11 +46,7 @@ export const fetchAdminProduct = async (id: number) => {
     `/api/admin/catalog/products/${id}`,
   );
 
-  if (data.status === 'success') {
-    return parseCatalogProduct(data.data);
-  }
-
-  throw new Error(extractErrorMessage(data, 'Produit introuvable.'));
+  return parseCatalogProduct(unwrapApiData(data, 'Produit introuvable.'));
 };
 
 const buildProductFormData = (payload: UpsertProductPayload) => {
@@ -168,12 +154,9 @@ export const createProduct = async (payload: UpsertProductPayload) => {
     '/api/admin/catalog/products',
     formData,
   );
+  const responseData = unwrapApiData(data, 'Creation du produit impossible.');
 
-  if (isApiOk(data)) {
-    return parseCatalogProduct(data.data);
-  }
-
-  throw new Error(extractErrorMessage(data, 'Creation du produit impossible.'));
+  return parseCatalogProduct(responseData);
 };
 
 export const updateProduct = async (id: number, payload: UpsertProductPayload) => {
@@ -184,22 +167,19 @@ export const updateProduct = async (id: number, payload: UpsertProductPayload) =
     `/api/admin/catalog/products/${id}`,
     formData,
   );
+  const responseData = unwrapApiData(data, 'Mise à jour du produit impossible.');
 
-  if (data.status === 'success') {
-    return parseCatalogProduct(data.data);
-  }
-
-  throw new Error(extractErrorMessage(data, 'Mise à jour du produit impossible.'));
+  return parseCatalogProduct(responseData);
 };
 
 export const deleteProduct = async (id: number) => {
   const { data } = await httpClient.delete<ApiResponse<{ id: number }>>(
     `/api/admin/catalog/products/${id}`,
   );
+  const responseData = unwrapApiData(data, 'Suppression du produit impossible.');
 
-  if (data.status === 'success') {
-    return { data: data.data, message: data.message } satisfies ApiMutationResult<{ id: number }>;
-  }
-
-  throw new Error(extractErrorMessage(data, 'Suppression du produit impossible.'));
+  return {
+    data: responseData,
+    message: data.message,
+  } satisfies ApiMutationResult<{ id: number }>;
 };

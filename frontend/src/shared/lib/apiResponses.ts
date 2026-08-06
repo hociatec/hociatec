@@ -1,4 +1,4 @@
-import { type ApiResponse } from '@/shared/types/api';
+import { isApiOk, type ApiResponse } from '@/shared/types/api';
 
 export const extractApiErrorMessage = (response: ApiResponse<unknown>, fallback: string) =>
   response.status === 'error' ? response.message : fallback;
@@ -13,4 +13,12 @@ export const createApiError = (response: ApiResponse<unknown>, fallback: string)
     error.details = response.details.map((detail) => String(detail));
   }
   return error;
+};
+
+export const unwrapApiData = <T>(response: ApiResponse<T>, fallback: string): T => {
+  if (isApiOk(response)) {
+    return response.data;
+  }
+
+  throw createApiError(response, fallback);
 };

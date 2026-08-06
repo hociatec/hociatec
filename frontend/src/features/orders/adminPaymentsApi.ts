@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import type {
   AdminPaymentDetailDto,
   AdminPaymentDto,
@@ -11,8 +11,7 @@ import { parseAdminPayment, parseAdminPaymentDetail, parseAdminPaymentLiveStripe
 
 export const fetchAdminPaymentMetadata = async (): Promise<{ statuses: OrderStatusOptionDto[] }> => {
   const { data } = await httpClient.get<ApiResponse<{ statuses: OrderStatusOptionDto[] }>>('/api/admin/payments/metadata');
-  if (isApiOk(data)) return data.data;
-  throw new Error(extractApiErrorMessage(data, data.message));
+  return unwrapApiData(data, data.message ?? 'Réponse API invalide.');
 };
 
 export const fetchAdminPayments = async (
@@ -34,10 +33,8 @@ export const fetchAdminPayments = async (
   const { data } = await httpClient.get<ApiResponse<{ items: AdminPaymentDto[]; meta: PaginationMeta }>>(
     `/api/admin/payments${query.toString() !== '' ? `?${query.toString()}` : ''}`,
   );
-  if (isApiOk(data)) {
-    return { items: data.data.items.map(parseAdminPayment), meta: data.data.meta };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les paiements'));
+  const payload = unwrapApiData(data, 'Impossible de charger les paiements');
+  return { items: payload.items.map(parseAdminPayment), meta: payload.meta };
 };
 
 export const fetchAdminPaymentById = async (
@@ -49,11 +46,9 @@ export const fetchAdminPaymentById = async (
       liveStripe: AdminPaymentLiveStripeDto | null;
     }>
   >(`/api/admin/payments/${paymentId}`);
-  if (isApiOk(data)) {
-    return {
-      payment: parseAdminPaymentDetail(data.data.payment),
-      liveStripe: parseAdminPaymentLiveStripe(data.data.liveStripe),
-    };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger le paiement'));
+  const payload = unwrapApiData(data, 'Impossible de charger le paiement');
+  return {
+    payment: parseAdminPaymentDetail(payload.payment),
+    liveStripe: parseAdminPaymentLiveStripe(payload.liveStripe),
+  };
 };

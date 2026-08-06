@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { createApiError, unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { AdminPaymentDto, OrderDto } from '@/features/orders/publicApi';
 
 export interface AdminCustomerSummaryDto {
@@ -140,11 +140,7 @@ export interface AdminDashboardDto {
 
 export const fetchAdminDashboard = async (): Promise<AdminDashboardDto> => {
   const { data } = await httpClient.get<ApiResponse<AdminDashboardDto>>('/api/admin/dashboard');
-  if (isApiOk(data)) {
-    return data.data as AdminDashboardDto;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger le dashboard'));
+  return unwrapApiData(data, 'Impossible de charger le dashboard') as AdminDashboardDto;
 };
 
 export const fetchAdminCustomers = async (
@@ -169,11 +165,8 @@ export const fetchAdminCustomers = async (
   const { data } = await httpClient.get<ApiResponse<{ items: AdminCustomerSummaryDto[]; meta: PaginationMeta }>>(
     `/api/admin/customers?${query.toString()}`,
   );
-  if (isApiOk(data)) {
-    return { items: data.data.items, meta: data.data.meta };
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les clients'));
+  const payload = unwrapApiData(data, 'Impossible de charger les clients');
+  return { items: payload.items, meta: payload.meta };
 };
 
 export const fetchAdminCustomerById = async (
@@ -193,16 +186,13 @@ export const fetchAdminCustomerById = async (
     }>
   >(`/api/admin/customers/${customerId}`);
 
-  if (isApiOk(data)) {
-    return {
-      customer: data.data.customer,
-      addresses: data.data.addresses,
-      orders: data.data.orders,
-      vouchers: data.data.vouchers,
-    };
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger le client'));
+  const payload = unwrapApiData(data, 'Impossible de charger le client');
+  return {
+    customer: payload.customer,
+    addresses: payload.addresses,
+    orders: payload.orders,
+    vouchers: payload.vouchers,
+  };
 };
 
 export const updateAdminCustomerAdminProfile = async (
@@ -218,14 +208,11 @@ export const updateAdminCustomerAdminProfile = async (
     }>
   >(`/api/admin/customers/${customerId}/admin-profile`, payload);
 
-  if (isApiOk(data)) {
-    return {
-      adminNotes: data.data?.customer?.adminNotes ?? null,
-      adminTags: data.data.customer.adminTags,
-    };
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de mettre à jour le suivi interne'));
+  const payload = unwrapApiData(data, 'Impossible de mettre à jour le suivi interne');
+  return {
+    adminNotes: payload?.customer?.adminNotes ?? null,
+    adminTags: payload.customer.adminTags,
+  };
 };
 
 export const createCustomerVoucher = async (
@@ -239,14 +226,11 @@ export const createCustomerVoucher = async (
     }>
   >(`/api/admin/customers/${customerId}/vouchers`, payload);
 
-  if (isApiOk(data)) {
-    return {
-      voucher: data.data?.voucher as AdminCustomerVoucherDto,
-      emailSent: Boolean(data.data?.emailSent),
-    };
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de créer le bon de réduction'));
+  const payload = unwrapApiData(data, 'Impossible de créer le bon de réduction');
+  return {
+    voucher: payload?.voucher as AdminCustomerVoucherDto,
+    emailSent: Boolean(payload?.emailSent),
+  };
 };
 
 export const sendCustomerEmail = async (
@@ -259,17 +243,13 @@ export const sendCustomerEmail = async (
       payload,
     );
 
-  if (isApiOk(data)) {
-      return { message: data.message ?? undefined };
-    }
-
-    const message = extractApiErrorMessage(data, 'Impossible d’envoyer l’email');
-    throw new Error(message);
+    unwrapApiData(data, 'Impossible d’envoyer l’email');
+    return { message: data.message ?? undefined };
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as ApiResponse<unknown> | undefined;
       if (data) {
-        throw new Error(extractApiErrorMessage(data, 'Impossible d’envoyer l’email'));
+        throw createApiError(data, 'Impossible d’envoyer l’email');
       }
     }
 

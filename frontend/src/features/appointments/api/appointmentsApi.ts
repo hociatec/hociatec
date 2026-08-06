@@ -1,6 +1,6 @@
 import { getHttpErrorMessage, httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiResponse } from '@/shared/types/api';
 
 import type {
   AppointmentItem,
@@ -15,11 +15,8 @@ export const fetchPrestations = async () => {
       '/api/public/appointments/prestations',
     );
 
-    if (data.status === 'success') {
-      return data.data.items;
-    }
-
-    throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des prestations'));
+    const payload = unwrapApiData(data, 'Erreur lors du chargement des prestations');
+    return payload.items;
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des prestations'));
   }
@@ -40,11 +37,8 @@ export const fetchAvailability = async ({
       { params: { start, end, prestationId } },
     );
 
-    if (data.status === 'success') {
-      return data.data.slots;
-    }
-
-    throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement des créneaux'));
+    const payload = unwrapApiData(data, 'Erreur lors du chargement des créneaux');
+    return payload.slots;
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Erreur lors du chargement des créneaux'));
   }
@@ -57,11 +51,7 @@ export const bookAppointment = async (payload: AppointmentPayload) => {
       payload,
     );
 
-    if (isApiOk(data)) {
-      return data.data;
-    }
-
-    throw new Error(data.message || 'Impossible de créer le rendez-vous');
+    return unwrapApiData(data, 'Impossible de créer le rendez-vous');
   } catch (error) {
     throw new Error(getHttpErrorMessage(error, 'Impossible de créer le rendez-vous'));
   }
@@ -73,11 +63,7 @@ export const fetchMyAppointments = async () => {
       '/api/appointments/me',
     );
 
-  if (data.status === 'success') {
-    return data.data;
-  }
-
-  throw new Error(extractApiErrorMessage(data, 'Erreur lors du chargement de mes rendez-vous'));
+  return unwrapApiData(data, 'Erreur lors du chargement de mes rendez-vous');
 };
 
 export const cancelAppointment = async (id: number) => {
@@ -86,9 +72,6 @@ export const cancelAppointment = async (id: number) => {
     { status: 'cancelled' },
   );
 
-  if (isApiOk(data)) {
-    return data.data.appointment;
-  }
-
-  throw new Error(extractApiErrorMessage(data, "Erreur lors de l'annulation du rendez-vous"));
+  const payload = unwrapApiData(data, "Erreur lors de l'annulation du rendez-vous");
+  return payload.appointment;
 };

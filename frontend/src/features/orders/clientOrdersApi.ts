@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { idempotencyRequestConfig } from '@/shared/lib/idempotency';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import { downloadBlob } from './orderApiShared';
 import type { CheckoutRedirectDto, OrderDto, PendingReviewDto, ProductReviewDto } from './orderTypes';
 import { parseCheckoutRedirect, parseOrder, parsePendingReview } from './orderValidation';
@@ -12,17 +12,12 @@ export const checkoutOrder = async (addressId: number): Promise<OrderDto | Check
   const { data } = await httpClient.post<ApiResponse<CheckoutResponseDto>>('/api/orders/checkout', {
     addressId,
   }, idempotencyRequestConfig('checkout.cart', { addressId }));
-
-  if (isApiOk(data)) {
-    const payload = data.data;
-    if ('mode' in payload && payload.mode === 'redirect') {
-      return parseCheckoutRedirect(payload);
-    }
-
-    return parseOrder('order' in payload ? payload.order : payload);
+  const payload = unwrapApiData(data, 'Échec de validation de la commande');
+  if ('mode' in payload && payload.mode === 'redirect') {
+    return parseCheckoutRedirect(payload);
   }
 
-  throw new Error(extractApiErrorMessage(data, 'Échec de validation de la commande'));
+  return parseOrder('order' in payload ? payload.order : payload);
 };
 
 export const checkoutExistingOrder = async (
@@ -34,17 +29,11 @@ export const checkoutExistingOrder = async (
     addressId ? { addressId } : {},
     idempotencyRequestConfig('checkout.order', { addressId: addressId ?? null, orderId }),
   );
-
-  if (isApiOk(data)) {
-    const payload = data.data;
-    if ('mode' in payload && payload.mode === 'redirect') {
-      return parseCheckoutRedirect(payload);
-    }
-
-    return parseOrder('order' in payload ? payload.order : payload);
+  const payload = unwrapApiData(data, 'Impossible de lancer le règlement');
+  if ('mode' in payload && payload.mode === 'redirect') {
+    return parseCheckoutRedirect(payload);
   }
-
-  throw new Error(extractApiErrorMessage(data, 'Impossible de lancer le règlement'));
+  return parseOrder('order' in payload ? payload.order : payload);
 };
 
 export const fetchCheckoutSessionStatus = async (
@@ -63,13 +52,11 @@ export const fetchCheckoutSessionStatus = async (
       order?: OrderDto | null;
     }>
   >(`/api/orders/checkout/sessions/${encodeURIComponent(stripeSessionId)}`);
-  if (isApiOk(data)) {
-    return {
-      ...data.data,
-      order: data.data.order ? parseOrder(data.data.order) : null,
-    };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de vérifier le paiement'));
+  const payload = unwrapApiData(data, 'Impossible de vérifier le paiement');
+  return {
+    ...payload,
+    order: payload.order ? parseOrder(payload.order) : null,
+  };
 };
 
 export const fetchMyOrders = async (
@@ -80,18 +67,14 @@ export const fetchMyOrders = async (
     '/api/orders/me',
     { params: { page, perPage } },
   );
-  if (isApiOk(data)) {
-    return { items: data.data.items.map(parseOrder), meta: data.data.meta };
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les commandes'));
+  const payload = unwrapApiData(data, 'Impossible de charger les commandes');
+  return { items: payload.items.map(parseOrder), meta: payload.meta };
 };
 
 export const fetchOrderById = async (orderId: number): Promise<OrderDto> => {
   const { data } = await httpClient.get<ApiResponse<{ order: OrderDto }>>(`/api/orders/${orderId}`);
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(extractApiErrorMessage(data, 'Commande introuvable'));
+  const payload = unwrapApiData(data, 'Commande introuvable');
+  return parseOrder(payload.order);
 };
 
 export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
@@ -100,10 +83,8 @@ export const cancelMyOrder = async (orderId: number): Promise<OrderDto> => {
     {},
     idempotencyRequestConfig('order.cancel', { orderId }),
   );
-  if (isApiOk(data)) {
-    return parseOrder(data.data.order);
-  }
-  throw new Error(extractApiErrorMessage(data, "Impossible d'annuler la commande"));
+  const payload = unwrapApiData(data, "Impossible d'annuler la commande");
+  return parseOrder(payload.order);
 };
 
 export const downloadOrderInvoicePdf = async (orderId: number, filenameBase: string) => {
@@ -130,11 +111,7 @@ export const submitOrderItemReview = async (
     payload,
   );
 
-  if (isApiOk(data)) {
-    return data.data.review;
-  }
-
-  throw new Error(extractApiErrorMessage(data, "Impossible d'enregistrer l'avis"));
+  return unwrapApiData(data, "Impossible d'enregistrer l'avis").review;
 };
 
 export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
@@ -142,11 +119,5 @@ export const fetchPendingReviews = async (): Promise<PendingReviewDto[]> => {
     '/api/orders/me/pending-reviews',
   );
 
-  if (isApiOk(data)) {
-    return data.data.items.map(parsePendingReview);
-  }
-
-  throw new Error(
-    extractApiErrorMessage(data, 'Impossible de charger les avis en attente'),
-  );
+  return unwrapApiData(data, 'Impossible de charger les avis en attente').items.map(parsePendingReview);
 };

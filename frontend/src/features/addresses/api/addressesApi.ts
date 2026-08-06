@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
 export interface AddressDto {
   id: number;
@@ -23,10 +23,7 @@ export const fetchMyAddresses = async (
     '/api/addresses/me',
     { params: { page, perPage } },
   );
-  if (isApiOk(data)) {
-    return data.data;
-  }
-  throw new Error(extractApiErrorMessage(data, 'Impossible de charger les adresses'));
+  return unwrapApiData(data, 'Impossible de charger les adresses');
 };
 
 export const createAddress = async (
@@ -36,10 +33,8 @@ export const createAddress = async (
     '/api/addresses',
     payload,
   );
-  if (isApiOk(data)) {
-    return data.data.address;
-  }
-  throw new Error(extractApiErrorMessage(data, "Impossible de créer l'adresse"));
+  const payload = unwrapApiData(data, "Impossible de créer l'adresse");
+  return payload.address;
 };
 
 export const updateAddress = async (
@@ -50,26 +45,20 @@ export const updateAddress = async (
     `/api/addresses/${id}`,
     payload,
   );
-  if (isApiOk(data)) {
-    return data.data.address;
-  }
-  throw new Error(extractApiErrorMessage(data, "Impossible de mettre à jour l'adresse"));
+  const payload = unwrapApiData(data, "Impossible de mettre à jour l'adresse");
+  return payload.address;
 };
 
 export const deleteAddress = async (id: number): Promise<void> => {
   const { data } = await httpClient.delete<ApiResponse<{ message: string }>>(
     `/api/addresses/${id}`,
   );
-  if (isApiOk(data)) return;
-  throw new Error(extractApiErrorMessage(data, "Impossible de supprimer l'adresse"));
+  unwrapApiData(data, "Impossible de supprimer l'adresse");
 };
 
 export const setDefaultAddress = async (id: number): Promise<void> => {
   const { data } = await httpClient.put<ApiResponse<{ message: string }>>(
     `/api/addresses/${id}/default`,
   );
-  if (isApiOk(data)) return;
-  throw new Error(
-    extractApiErrorMessage(data, "Impossible de définir l'adresse par défaut"),
-  );
+  unwrapApiData(data, "Impossible de définir l'adresse par défaut");
 };

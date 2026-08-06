@@ -1,6 +1,6 @@
 import { httpClient } from '@/shared/lib/httpClient';
-import { extractApiErrorMessage } from '@/shared/lib/apiResponses';
-import { isApiOk, type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
+import type { ApiMutationResult, ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 
 export type VoucherDto = {
   id: number;
@@ -33,8 +33,7 @@ export const fetchVouchers = async (page = 1, perPage = 10): Promise<PaginatedRe
   const { data } = await httpClient.get<ApiResponse<{ items: VoucherDto[]; meta: PaginationMeta }>>('/api/admin/vouchers', {
     params: { page, perPage },
   });
-  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
-  return data.data;
+  return unwrapApiData(data, 'Réponse API invalide.');
 };
 
 export const fetchVoucher = async (voucherId: number): Promise<VoucherDto> => {
@@ -49,8 +48,8 @@ export const createVoucher = async (payload: VoucherPayload): Promise<ApiMutatio
     '/api/admin/vouchers',
     payload,
   );
-  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
-  return { data: data.data.voucher, message: data.message };
+  const payloadData = unwrapApiData(data, 'Réponse API invalide.');
+  return { data: payloadData.voucher, message: data.message };
 };
 
 export const updateVoucher = async (
@@ -61,12 +60,12 @@ export const updateVoucher = async (
     `/api/admin/vouchers/${voucherId}`,
     payload,
   );
-  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
-  return { data: data.data.voucher, message: data.message };
+  const payloadData = unwrapApiData(data, 'Réponse API invalide.');
+  return { data: payloadData.voucher, message: data.message };
 };
 
 export const deleteVoucher = async (voucherId: number): Promise<ApiMutationResult<{ deleted: boolean }>> => {
   const { data } = await httpClient.delete<ApiResponse<{ deleted: boolean }>>(`/api/admin/vouchers/${voucherId}`);
-  if (!isApiOk(data)) throw new Error(extractApiErrorMessage(data, 'Réponse API invalide.'));
-  return { data: data.data, message: data.message };
+  const payloadData = unwrapApiData(data, 'Réponse API invalide.');
+  return { data: payloadData, message: data.message };
 };

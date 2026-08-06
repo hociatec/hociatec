@@ -1,8 +1,9 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { API_BASE_URL } from '@/shared/config/appConfig';
 import { downloadCsvBlob } from '@/shared/lib/downloadFile';
+import { unwrapApiData } from '@/shared/lib/apiResponses';
 import { toSafeAttachmentUrl } from '@/shared/lib/externalUrls';
-import { isApiOk, type ApiResponse } from '@/shared/types/api';
+import type { ApiResponse } from '@/shared/types/api';
 import type { BetaCampaignStatus, BugReportStatus } from '@/shared/contracts/statuses';
 export interface AdminBetaTesterDto { id:number; userId:number; firstName:string; lastName:string; email:string; status:string; accessibilityNeed:string; availability:string[]; devices:string[]; browsers:string[]; testingTypes:string[]; assistiveTools:string[]; motivation:string; testingExperience:string[]; bugDescriptionAbility:string[]; technicalKnowledge:string[]; createdAt:string; }
 export interface PaginationMeta { page:number; perPage:number; total:number; totalPages:number; }
@@ -11,7 +12,8 @@ export interface AdminBugReportDto { id:number; title:string; description:string
 export interface AdminCampaignDto { id:number; name:string; description:string; status:BetaCampaignStatus; startsAt?:string|null; endsAt?:string|null; createdAt:string; enrolledCount?:number; reportCount?:number; reports?:AdminBugReportDto[]; }
 export interface AdminBugReportActivityDto { id:number; action:string; fromValue?:string|null; toValue?:string|null; message?:string|null; createdAt:string; actor?:BetaAdminUserDto|null; }
 export interface AdminBugReportDashboardDto { stats:{openReports:number;criticalOrHigh:number;awaitingAdminReply:number;awaitingUserReply:number;recentFixed:number;activeCampaigns:number}; admins:BetaAdminUserDto[]; }
-const unwrap = <T>(response:ApiResponse<T>) => { if (!isApiOk(response)) throw new Error(response.message); return response.data; };
+const unwrap = <T>(response: ApiResponse<T>) =>
+  unwrapApiData(response, response.message || 'Réponse API invalide.');
 export const resolveBetaAttachmentUrl = (url:string) => toSafeAttachmentUrl(url, API_BASE_URL);
 export const fetchAdminBetaTesters = async (params:{page?:number;perPage?:number;search?:string;status?:string}={}) => unwrap((await httpClient.get<ApiResponse<{items:AdminBetaTesterDto[];meta:PaginationMeta}>>('/api/admin/beta-testers', { params: { perPage: 10, ...params } })).data);
 export const fetchAdminCampaigns = async (page = 1, perPage = 10) => unwrap((await httpClient.get<ApiResponse<{items:AdminCampaignDto[];meta:PaginationMeta}>>('/api/admin/beta-campaigns', { params: { page, perPage } })).data);
