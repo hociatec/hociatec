@@ -33,7 +33,8 @@ const INTERNAL_ERROR_PATTERN =
 const EXPECTED_500_API_PATTERNS = [] as const;
 
 const isExpectedApiFailure = (entry: string) => {
-  const [path] = entry.split(' ');
+  const match = entry.match(/^(\d{3})\s+(.*)$/);
+  const path = match?.[2] ?? '';
   return EXPECTED_500_API_PATTERNS.some((expected) => path.includes(expected));
 };
 
@@ -42,7 +43,11 @@ const getUnexpectedApiFailures = (apiFailures: string[]) =>
 
 const isExpectedConsoleError = (message: string, route: string) => {
   if (route.startsWith('/activation/')) {
-    return /status code 400/i.test(message) || /Request failed with status code 400/i.test(message);
+    return (
+      /status code 400/i.test(message) ||
+      /Request failed with status code 400/i.test(message) ||
+      /Failed to load resource: the server responded with a status of 400/i.test(message)
+    );
   }
 
   return /ResizeObserver loop/i.test(message);
