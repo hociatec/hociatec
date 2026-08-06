@@ -96,7 +96,16 @@ final class RequestQueryMapper
             return null;
         }
 
-        return \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $value) ?: new \DateTimeImmutable($value);
+        $fromIso = \DateTimeImmutable::createFromFormat(\DateTimeImmutable::ATOM, $value);
+        if (false !== $fromIso) {
+            return $fromIso;
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Exception) {
+            return null;
+        }
     }
 
     /**

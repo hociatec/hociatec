@@ -55,11 +55,14 @@ final readonly class MetricsController
     private function isAllowed(Request $request): bool
     {
         $clientIp = $request->getClientIp();
-        if (in_array($clientIp, ['127.0.0.1', '::1'], true)) {
+        if (in_array((string) $clientIp, ['127.0.0.1', '::1'], true)) {
             return true;
         }
 
-        return '' !== $this->metricsToken
-            && hash_equals($this->metricsToken, (string) $request->headers->get('X-Metrics-Token', ''));
+        if ('' === $this->metricsToken) {
+            return false;
+        }
+
+        return hash_equals($this->metricsToken, (string) $request->headers->get('X-Metrics-Token', ''));
     }
 }
