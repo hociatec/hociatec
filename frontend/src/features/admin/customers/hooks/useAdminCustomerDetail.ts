@@ -16,6 +16,7 @@ import {
   type OrderFilter,
 } from '@/features/admin/customers/components/customerDetailShared';
 import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const useAdminCustomerDetail = (customerId: number) => {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export const useAdminCustomerDetail = (customerId: number) => {
     },
     onError: (e) => {
       setSaveState('error');
-      setSaveMessage(e instanceof Error ? e.message : 'Impossible d’enregistrer le suivi interne.');
+      setSaveMessage(getHttpErrorMessage(e, 'Impossible d’enregistrer le suivi interne.'));
     },
   });
   const sendEmailMutation = useMutation({
@@ -74,9 +75,7 @@ export const useAdminCustomerDetail = (customerId: number) => {
         variant: 'success',
       }),
     onError: (e) =>
-      toast.show(e instanceof Error ? e.message : 'Impossible d’envoyer l’email.', {
-        variant: 'error',
-      }),
+      toast.show(getHttpErrorMessage(e, 'Impossible d’envoyer l’email.'), { variant: 'error' }),
   });
 
   useEffect(() => {

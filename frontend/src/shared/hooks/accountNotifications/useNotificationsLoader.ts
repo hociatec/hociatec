@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 
 import { fetchAccountNotifications } from '@/shared/api/accountNotifications';
 import type { AccountNotificationItem } from '@/shared/types/accountNotifications';
-import { accountQueryKeys } from '@/features/account/queryKeys';
+import { accountNotificationsQueryKeys } from './queryKeys';
 
 export const useNotificationsLoader = () => {
   const notificationsQuery = useQuery<AccountNotificationItem[], Error>({
-    queryKey: accountQueryKeys.notifications(),
+    queryKey: accountNotificationsQueryKeys.notifications(),
     queryFn: fetchAccountNotifications,
   });
 

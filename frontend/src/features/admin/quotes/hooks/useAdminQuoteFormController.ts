@@ -21,7 +21,7 @@ import { useAdminQuoteItems } from './useAdminQuoteItems';
 import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { logger } from '@/shared/lib/logger';
-import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
 
 const toQuoteFormState = (quote: QuoteDto): AdminQuoteFormState => ({
   ...quote,

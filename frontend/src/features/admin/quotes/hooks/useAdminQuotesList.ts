@@ -12,8 +12,9 @@ import { useToast } from '@/shared/components/ui/toast';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { usePrompt } from '@/shared/components/ui/prompt';
 import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/quotes/publicApi';
-import { adminQuoteQueryKeys } from '@/features/quotes/queryKeys';
+import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminQuotesList = () => {
@@ -28,18 +29,19 @@ export const useAdminQuotesList = () => {
   const [fromDate, setFromDate] = useState<string | null>(null);
   const [toDate, setToDate] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search.trim(), 250);
   const metadataQuery = useQuery({
     queryKey: adminQuoteQueryKeys.metadata(),
     queryFn: fetchAdminQuoteMetadata,
   });
   const quotesQuery = useQuery<PaginatedResult<QuoteDto>, Error>({
-    queryKey: [...adminQuoteQueryKeys.list(search, filterStatus), { fromDate, page, toDate }],
+    queryKey: [...adminQuoteQueryKeys.list(debouncedSearch, filterStatus), { fromDate, page, toDate }],
     queryFn: () =>
       fetchAdminQuotes(omitUndefinedProperties({
         from: fromDate || undefined,
         page,
         perPage: 10,
-        q: search.trim() || undefined,
+        q: debouncedSearch || undefined,
         status: filterStatus,
         to: toDate || undefined,
       })),
@@ -75,7 +77,7 @@ export const useAdminQuotesList = () => {
     mutationFn: ({ id, to }: { id: number; to: string }) => sendAdminQuoteEmail(id, to),
     onSuccess: (response, { id }) => {
       queryClient.setQueryData<PaginatedResult<QuoteDto>>(
-        [...adminQuoteQueryKeys.list(search, filterStatus), { fromDate, page, toDate }],
+        [...adminQuoteQueryKeys.list(debouncedSearch, filterStatus), { fromDate, page, toDate }],
         (current) =>
           current
             ? {
@@ -106,7 +108,7 @@ export const useAdminQuotesList = () => {
   });
   useEffect(() => {
     setPage(1);
-  }, [filterStatus, fromDate, search, toDate]);
+  }, [filterStatus, fromDate, debouncedSearch, toDate]);
   const handleDelete = async (id: number) => {
     const quote = quotes.find((item) => item.id === id);
     if (

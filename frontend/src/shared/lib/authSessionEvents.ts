@@ -50,7 +50,6 @@ export const subscribeAuthSessionEvents = (listener: (event: AuthSessionEvent) =
         listener(payload.event);
       }
     } catch {
-      // Ignore malformed cross-tab notifications.
     }
   };
 

@@ -11,7 +11,8 @@ import {
   type AuditListItemDto,
 } from '@/features/audits/publicApi';
 import { downloadBlob } from '@/shared/lib/downloadFile';
-import { auditQueryKeys } from '@/features/audits/queryKeys';
+import { auditQueryKeys } from '@/features/audits/publicApi';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export const useAdminAuditDetail = () => {
   const { auditId } = useParams();
@@ -63,7 +64,7 @@ export const useAdminAuditDetail = () => {
       await adminUpdateAuditStatus(audit.id, next);
       setAudit((current) => (current ? { ...current, status: next } : current));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de mettre à jour le statut.');
+      setError(getHttpErrorMessage(e, 'Impossible de mettre à jour le statut.'));
     }
   };
   const updateItem = async (
@@ -82,9 +83,9 @@ export const useAdminAuditDetail = () => {
               ),
             }
           : current,
-      );
+          );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible de mettre à jour le point.');
+      setError(getHttpErrorMessage(e, 'Impossible de mettre à jour le point.'));
     }
   };
   const scheduleCommentUpdate = (item: AuditItemDto, comment: string) => {
@@ -99,11 +100,11 @@ export const useAdminAuditDetail = () => {
           }
         : current,
     );
-    const previous = pendingTimers.current[item.id];
-    if (previous) clearTimeout(previous);
+      const previous = pendingTimers.current[item.id];
+      if (previous) clearTimeout(previous);
     pendingTimers.current[item.id] = setTimeout(() => {
       void adminUpdateAuditItem(audit.id, item.id, { comment }).catch((e) =>
-        setError(e instanceof Error ? e.message : 'Impossible d’enregistrer le commentaire.'),
+        setError(getHttpErrorMessage(e, 'Impossible d’enregistrer le commentaire.')),
       );
     }, 400);
   };

@@ -36,7 +36,6 @@ export const useNotificationActions = ({
       try {
         setReadState(await markAccountNotificationsSeen(nextKeys));
       } catch {
-        // L'état optimiste reste affiché; le serveur sera resynchronisé à la prochaine ouverture.
       }
     },
     [readStateLoading, seenKeys, setReadState],

@@ -16,7 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchMyBetaProfile } from '@/features/betaTest/publicApi';
 import { useAuth } from '@/features/auth/publicApi';
 import { DashboardAuditCard } from './DashboardAuditCard';
-import { betaQueryKeys } from '@/features/betaTest/queryKeys';
+import { betaQueryKeys } from '@/features/betaTest/publicApi';
 import { isFeatureEnabled } from '@/shared/config/featureFlags';
 
 interface DashboardDestination {

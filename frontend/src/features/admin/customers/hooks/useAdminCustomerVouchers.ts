@@ -14,6 +14,7 @@ import { useToast } from '@/shared/components/ui/toast';
 import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 import { adminVoucherQueryKeys } from '@/features/admin/vouchers/queryKeys';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 export type VoucherFormState = {
   name: string;
@@ -93,7 +94,7 @@ export const useAdminCustomerVouchers = () => {
       );
     },
     onError: (e) =>
-      toast.show(e instanceof Error ? e.message : 'Impossible de créer le bon de réduction.', {
+      toast.show(getHttpErrorMessage(e, 'Impossible de créer le bon de réduction.'), {
         variant: 'error',
       }),
   });
@@ -116,7 +117,7 @@ export const useAdminCustomerVouchers = () => {
       });
     },
     onError: (e) =>
-      toast.show(e instanceof Error ? e.message : 'Impossible de supprimer le bon.', {
+      toast.show(getHttpErrorMessage(e, 'Impossible de supprimer le bon.'), {
         variant: 'error',
       }),
   });

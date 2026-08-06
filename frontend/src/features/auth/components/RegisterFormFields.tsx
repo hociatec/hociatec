@@ -1,9 +1,9 @@
 import { type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import type { RegisterPayload } from '@/features/auth/api/authApi';
+import type { RegisterPayload } from '@/features/auth/publicApi';
 import { fetchBetaProfileChoices, type BetaProfileChoices } from '@/features/betaTest/publicApi';
-import { betaQueryKeys } from '@/features/betaTest/queryKeys';
+import { betaQueryKeys } from '@/features/betaTest/publicApi';
 
 type FormState = RegisterPayload;
 type FieldChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;

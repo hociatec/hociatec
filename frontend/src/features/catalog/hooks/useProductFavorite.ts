@@ -9,7 +9,7 @@ import {
   removeFavorite,
   type FavoriteDto,
 } from '@/features/favorites/publicApi';
-import { favoriteQueryKeys } from '@/features/favorites/queryKeys';
+import { favoriteQueryKeys } from '@/features/favorites/publicApi';
 
 export const useProductFavorite = (product?: CatalogProduct | null) => {
   const { status } = useAuth();

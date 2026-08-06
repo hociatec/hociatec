@@ -9,8 +9,9 @@ import {
 } from '../api';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/publicApi';
 import type { BugReportStatus } from '@/shared/contracts/statuses';
+import { notifyMutationError } from '@/shared/lib/notificationConventions';
 
 export const useAdminBugReportMutations = ({
   newCommentText,
@@ -48,7 +49,7 @@ export const useAdminBugReportMutations = ({
       refreshSelectedReport();
       toast.show('État mis à jour.', { variant: 'success' });
     },
-    onError: (err) => toast.show(err instanceof Error ? err.message : 'Mise à jour impossible.', { variant: 'error' }),
+    onError: (err) => notifyMutationError(toast, err, 'Mise à jour impossible.'),
   });
 
   const assignMutation = useMutation({
@@ -58,7 +59,7 @@ export const useAdminBugReportMutations = ({
       refreshSelectedReport();
       toast.show('Responsable mis à jour.', { variant: 'success' });
     },
-    onError: (err) => toast.show(err instanceof Error ? err.message : 'Assignation impossible.', { variant: 'error' }),
+    onError: (err) => notifyMutationError(toast, err, 'Assignation impossible.'),
   });
 
   const duplicateMutation = useMutation({
@@ -69,7 +70,7 @@ export const useAdminBugReportMutations = ({
       refreshSelectedReport();
       toast.show('Doublon enregistré.', { variant: 'success' });
     },
-    onError: (err) => toast.show(err instanceof Error ? err.message : 'Rattachement impossible.', { variant: 'error' }),
+    onError: (err) => notifyMutationError(toast, err, 'Rattachement impossible.'),
   });
 
   const deleteMutation = useMutation({
@@ -79,7 +80,7 @@ export const useAdminBugReportMutations = ({
       onCloseModal();
       toast.show('Signalement supprimé.', { variant: 'success' });
     },
-    onError: (err) => toast.show(err instanceof Error ? err.message : 'Suppression impossible.', { variant: 'error' }),
+    onError: (err) => notifyMutationError(toast, err, 'Suppression impossible.'),
   });
 
   const postCommentMutation = useMutation({
@@ -93,7 +94,7 @@ export const useAdminBugReportMutations = ({
       refreshReports();
       toast.show('Message envoyé.', { variant: 'success' });
     },
-    onError: (err) => toast.show(err instanceof Error ? err.message : 'Erreur lors de l’envoi du message.', { variant: 'error' }),
+    onError: (err) => notifyMutationError(toast, err, 'Erreur lors de l’envoi du message.'),
   });
 
   const handleDelete = async (id: number) => {

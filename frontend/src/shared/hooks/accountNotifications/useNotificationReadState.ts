@@ -6,19 +6,19 @@ import {
   fetchAccountNotificationsReadState,
   type AccountNotificationsReadStateDto,
 } from '@/shared/api/accountNotifications';
-import { accountQueryKeys } from '@/features/account/queryKeys';
+import { accountNotificationsQueryKeys } from './queryKeys';
 import { emptyReadState } from './constants';
 
 export const useNotificationReadState = () => {
   const queryClient = useQueryClient();
   const readStateQuery = useQuery<AccountNotificationsReadStateDto, Error>({
-    queryKey: accountQueryKeys.notificationsReadState(),
+    queryKey: accountNotificationsQueryKeys.notificationsReadState(),
     queryFn: fetchAccountNotificationsReadState,
   });
   const readState = readStateQuery.data ?? emptyReadState;
   const setReadState: Dispatch<SetStateAction<AccountNotificationsReadStateDto>> = (nextState) => {
     queryClient.setQueryData<AccountNotificationsReadStateDto>(
-      accountQueryKeys.notificationsReadState(),
+      accountNotificationsQueryKeys.notificationsReadState(),
       (current = emptyReadState) =>
         typeof nextState === 'function' ? nextState(current) : nextState,
     );

@@ -11,7 +11,8 @@ import {
 import { emptyCampaignForm, type CampaignFormState } from '../lib/campaignForms';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
-import { adminBetaQueryKeys } from '@/features/betaTest/queryKeys';
+import { adminBetaQueryKeys } from '@/features/betaTest/publicApi';
+import { notifyMutationError } from '@/shared/lib/notificationConventions';
 
 export const useAdminCampaignMutations = ({
   addForm,
@@ -47,9 +48,7 @@ export const useAdminCampaignMutations = ({
       toast.show('La campagne bêta a été créée avec succès.', { variant: 'success' });
       onAddClose(emptyCampaignForm());
     },
-    onError: (err) => {
-      toast.show(err instanceof Error ? err.message : 'Erreur lors de la création.', { variant: 'error' });
-    },
+    onError: (err) => notifyMutationError(toast, err, 'Erreur lors de la création.'),
   });
 
   const updateMutation = useMutation({
@@ -60,9 +59,7 @@ export const useAdminCampaignMutations = ({
       toast.show('La campagne bêta a été mise à jour.', { variant: 'success' });
       onEditClose();
     },
-    onError: (err) => {
-      toast.show(err instanceof Error ? err.message : 'Erreur lors de la modification.', { variant: 'error' });
-    },
+    onError: (err) => notifyMutationError(toast, err, 'Erreur lors de la modification.'),
   });
 
   const deleteMutation = useMutation({
@@ -71,9 +68,7 @@ export const useAdminCampaignMutations = ({
       refreshCampaigns();
       toast.show('La campagne bêta a été supprimée.', { variant: 'success' });
     },
-    onError: (err) => {
-      toast.show(err instanceof Error ? err.message : 'Erreur lors de la suppression.', { variant: 'error' });
-    },
+    onError: (err) => notifyMutationError(toast, err, 'Erreur lors de la suppression.'),
   });
 
   const postCommentMutation = useMutation({
@@ -85,9 +80,7 @@ export const useAdminCampaignMutations = ({
       });
       toast.show('Message envoyé.', { variant: 'success' });
     },
-    onError: (err) => {
-      toast.show(err instanceof Error ? err.message : "Erreur lors de l'envoi du message.", { variant: 'error' });
-    },
+    onError: (err) => notifyMutationError(toast, err, "Erreur lors de l'envoi du message."),
   });
 
   const handleAddSubmit = (event: FormEvent) => {

@@ -19,3 +19,4 @@ export {
   parseCategoryWithProducts,
 } from './catalogValidation';
 export * from './utils/productDisplay';
+export * from './queryKeys';

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminFetchAudits, type AuditListItemDto } from '@/features/audits/publicApi';
-import { auditQueryKeys } from '@/features/audits/queryKeys';
+import { auditQueryKeys } from '@/features/audits/publicApi';
 import type { PaginatedResult } from '@/shared/types/api';
+import { useDebounce } from '@/shared/hooks/useDebounce';
 
 export const AUDIT_TYPES = [
   'all',
@@ -40,19 +41,30 @@ export const useAdminAuditsList = () => {
   const [toDate, setToDate] = useState<string | null>(null);
   const [sort, setSort] = useState<AuditSort>('date_desc');
   const [page, setPage] = useState(1);
+  const debouncedSearch = useDebounce(search.trim(), 250);
+  const debouncedFilterStatus = useDebounce(filterStatus, 150);
+  const debouncedFilterType = useDebounce(filterType, 150);
   const auditsQuery = useQuery<PaginatedResult<AuditListItemDto>, Error>({
     queryKey: [
       ...auditQueryKeys.adminList(),
-      { fromDate, filterStatus, filterType, page, search, sort, toDate },
+      {
+        fromDate,
+        filterStatus: debouncedFilterStatus,
+        filterType: debouncedFilterType,
+        page,
+        search: debouncedSearch,
+        sort,
+        toDate,
+      },
     ],
     queryFn: () =>
       adminFetchAudits(page, 10, {
         from: fromDate,
-        q: search,
+        q: debouncedSearch,
         sort,
-        status: filterStatus,
+        status: debouncedFilterStatus,
         to: toDate,
-        type: filterType,
+        type: debouncedFilterType,
       }),
     refetchInterval: (currentQuery) => {
       if (document.hidden || currentQuery.state.error) {
@@ -69,7 +81,7 @@ export const useAdminAuditsList = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, filterStatus, filterType, fromDate, toDate, sort]);
+  }, [debouncedSearch, debouncedFilterStatus, debouncedFilterType, fromDate, toDate, sort]);
 
   useEffect(() => {
     if (page > pagination.totalPages) {

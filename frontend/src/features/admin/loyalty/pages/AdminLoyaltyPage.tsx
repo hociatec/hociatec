@@ -27,6 +27,7 @@ import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatFrenchNumber } from '@/shared/lib/formatters';
 import { adminLoyaltyQueryKeys } from '@/features/admin/loyalty/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 const pointsToEuroCents = (points: number) => Math.floor(Math.max(0, points) / 100) * 100;
 
@@ -171,7 +172,7 @@ export const AdminLoyaltyPage = () => {
       });
     },
     onError: (error) => {
-      toast.show(error instanceof Error ? error.message : 'Impossible de mettre à jour ce solde.', {
+      toast.show(getHttpErrorMessage(error, 'Impossible de mettre à jour ce solde.'), {
         variant: 'error',
       });
     },
@@ -179,7 +180,7 @@ export const AdminLoyaltyPage = () => {
 
   useEffect(() => {
     if (customersQuery.error) {
-      toast.show(customersQuery.error.message || 'Impossible de charger les soldes fidélité.', {
+      toast.show(getHttpErrorMessage(customersQuery.error, 'Impossible de charger les soldes fidélité.'), {
         variant: 'error',
       });
     }

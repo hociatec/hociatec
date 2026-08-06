@@ -177,7 +177,6 @@ export const getHttpErrorMessageAsync = async (
     const apiMessage = payload.message ?? payload.error ?? payload.data?.message;
     if (typeof apiMessage === 'string' && apiMessage.trim() !== '') return apiMessage.trim();
   } catch {
-    // Le message HTTP standard reste le fallback.
   }
 
   return getHttpErrorMessage(error, fallback);
