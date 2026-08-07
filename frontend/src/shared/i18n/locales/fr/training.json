@@ -1,0 +1,69 @@
+{
+  "pageTitle": "Formations",
+  "catalogMetaTitle": "Formations — Hociatec",
+  "catalogMetaDescription": "Formations Hociatec en présentiel ou distanciel, organisées autour de feuilles de route concrètes.",
+  "catalogEyebrow": "Formations Hociatec",
+  "catalogTitle": "Formations accompagnées",
+  "catalogDescription": "Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route pratique.",
+  "loading": "Chargement des formations...",
+  "empty": "Aucune formation publiée pour le moment.",
+  "detailDefaultTitle": "Formation",
+  "notFound": "Formation introuvable.",
+  "backToCatalog": "Toutes les formations",
+  "fallbackDescription": "Formation accompagnée avec feuille de route.",
+  "roadmapTitle": "Feuille de route",
+  "resultSummary": {
+    "defaultSingular": "1 formation affichée",
+    "defaultPlural": "{count} formations affichées",
+    "querySingular": "1 formation pour « {query} »",
+    "queryPlural": "{count} formations pour « {query} »"
+  },
+  "categories": {
+    "all": "Toutes les catégories"
+  },
+  "formats": {
+    "all": "Tous les formats"
+  },
+  "filters": {
+    "title": "Filtres formations",
+    "categoryLabel": "Catégorie de formation",
+    "formatLabel": "Format de formation",
+    "sortLabel": "Tri des formations",
+    "priceMinLabel": "Prix minimum en euros",
+    "priceMaxLabel": "Prix maximum en euros",
+    "durationMinLabel": "Durée minimum en minutes",
+    "durationMaxLabel": "Durée maximum en minutes",
+    "priceMinPlaceholder": "Prix min",
+    "priceMaxPlaceholder": "Prix max",
+    "durationMinPlaceholder": "Durée min",
+    "durationMaxPlaceholder": "Durée max",
+    "availablePrice": "Prix disponibles : {value}",
+    "availableDuration": "Durées disponibles : {value}",
+    "sortOptions": {
+      "titleAsc": "Titre A à Z",
+      "priceAsc": "Prix croissant",
+      "priceDesc": "Prix décroissant",
+      "durationAsc": "Durée courte à longue",
+      "durationDesc": "Durée longue à courte"
+    }
+  },
+  "grid": {
+    "srHeading": "Résultats des formations",
+    "duration": "Durée",
+    "price": "Tarif",
+    "view": "Voir la formation"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "ariaLabel": "Pagination des formations"
+  },
+  "errors": {
+    "loadFailed": "Impossible de charger les formations."
+  },
+  "actions": {
+    "enrollmentSuccess": "Votre inscription a bien été enregistrée.",
+    "slotMissing": "Choisissez une date et une heure de début.",
+    "weekendOnly": "Cette session est réservable uniquement du lundi au vendredi."
+  }
+}

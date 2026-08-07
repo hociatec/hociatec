@@ -1,0 +1,172 @@
+{
+  "hash": "27dff500",
+  "configHash": "de64e622",
+  "lockfileHash": "6dd6ea67",
+  "browserHash": "33a39432",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "0c4d23b7",
+      "needsInterop": true
+    },
+    "@fullcalendar/core/locales/fr": {
+      "src": "../../../node_modules/@fullcalendar/core/locales/fr.js",
+      "file": "@fullcalendar_core_locales_fr.js",
+      "fileHash": "7b9674bd",
+      "needsInterop": false
+    },
+    "@fullcalendar/daygrid": {
+      "src": "../../../node_modules/@fullcalendar/daygrid/index.js",
+      "file": "@fullcalendar_daygrid.js",
+      "fileHash": "f029bcb5",
+      "needsInterop": false
+    },
+    "@fullcalendar/interaction": {
+      "src": "../../../node_modules/@fullcalendar/interaction/index.js",
+      "file": "@fullcalendar_interaction.js",
+      "fileHash": "318f5227",
+      "needsInterop": false
+    },
+    "@fullcalendar/react": {
+      "src": "../../../node_modules/@fullcalendar/react/dist/index.js",
+      "file": "@fullcalendar_react.js",
+      "fileHash": "92edfcce",
+      "needsInterop": false
+    },
+    "@headlessui/react": {
+      "src": "../../../node_modules/@headlessui/react/dist/headlessui.esm.js",
+      "file": "@headlessui_react.js",
+      "fileHash": "64f72bf3",
+      "needsInterop": false
+    },
+    "@hookform/resolvers/zod": {
+      "src": "../../../node_modules/@hookform/resolvers/zod/dist/zod.mjs",
+      "file": "@hookform_resolvers_zod.js",
+      "fileHash": "11c7491d",
+      "needsInterop": false
+    },
+    "@radix-ui/react-alert-dialog": {
+      "src": "../../../node_modules/@radix-ui/react-alert-dialog/dist/index.mjs",
+      "file": "@radix-ui_react-alert-dialog.js",
+      "fileHash": "37d4b0c7",
+      "needsInterop": false
+    },
+    "@sentry/react": {
+      "src": "../../../node_modules/@sentry/react/build/esm/index.js",
+      "file": "@sentry_react.js",
+      "fileHash": "8bf4a694",
+      "needsInterop": false
+    },
+    "@tanstack/react-query": {
+      "src": "../../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "9dd5b0b3",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "81f9459d",
+      "needsInterop": false
+    },
+    "clsx": {
+      "src": "../../../node_modules/clsx/dist/clsx.mjs",
+      "file": "clsx.js",
+      "fileHash": "fecb7a2f",
+      "needsInterop": false
+    },
+    "date-fns": {
+      "src": "../../../node_modules/date-fns/index.js",
+      "file": "date-fns.js",
+      "fileHash": "3167a523",
+      "needsInterop": false
+    },
+    "date-fns/locale": {
+      "src": "../../../node_modules/date-fns/locale.js",
+      "file": "date-fns_locale.js",
+      "fileHash": "99c0c0d5",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "9154e45e",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "ddc29000",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "5c83c72c",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "7ae4ad3c",
+      "needsInterop": true
+    },
+    "react-hook-form": {
+      "src": "../../../node_modules/react-hook-form/dist/index.esm.mjs",
+      "file": "react-hook-form.js",
+      "fileHash": "384b5f83",
+      "needsInterop": false
+    },
+    "react-router": {
+      "src": "../../../node_modules/react-router/dist/development/index.js",
+      "file": "react-router.js",
+      "fileHash": "68c10165",
+      "needsInterop": false
+    },
+    "tailwind-merge": {
+      "src": "../../../node_modules/tailwind-merge/dist/bundle-mjs.mjs",
+      "file": "tailwind-merge.js",
+      "fileHash": "9dc29126",
+      "needsInterop": false
+    },
+    "web-vitals": {
+      "src": "../../../node_modules/web-vitals/dist/web-vitals.js",
+      "file": "web-vitals.js",
+      "fileHash": "5b13e6ce",
+      "needsInterop": false
+    },
+    "zod": {
+      "src": "../../../node_modules/zod/index.js",
+      "file": "zod.js",
+      "fileHash": "ed9f38f8",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-W37DNFVR": {
+      "file": "chunk-W37DNFVR.js"
+    },
+    "chunk-2IDAEFV7": {
+      "file": "chunk-2IDAEFV7.js"
+    },
+    "chunk-FE7FDHKZ": {
+      "file": "chunk-FE7FDHKZ.js"
+    },
+    "chunk-IO2Y2HYG": {
+      "file": "chunk-IO2Y2HYG.js"
+    },
+    "chunk-YBYOIS3B": {
+      "file": "chunk-YBYOIS3B.js"
+    },
+    "chunk-ZOFRF24K": {
+      "file": "chunk-ZOFRF24K.js"
+    },
+    "chunk-UHBLMLBU": {
+      "file": "chunk-UHBLMLBU.js"
+    },
+    "chunk-PX6F3LHL": {
+      "file": "chunk-PX6F3LHL.js"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "socialTitle": "Réseaux sociaux",
+  "aboutTitle": "À propos",
+  "legalTitle": "Informations légales",
+  "hoursTitle": "Horaires d'ouverture",
+  "emailLabel": "Email :",
+  "franceIntervention": "Interventions partout en France",
+  "idfResponse": "Intervention sous 2 heures en Ile-de-France",
+  "contact": "Contact",
+  "news": "Actualité",
+  "ourStory": "Notre histoire",
+  "aboutLinksAria": "Liens À propos",
+  "legalLinksAria": "Liens légaux",
+  "allRightsReserved": "Tous droits réservés.",
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
+  },
+  "hours": {
+    "standardWeekday": "09h00 - 20h00",
+    "standardSaturday": "09h00 - 17h00",
+    "closed": "Fermé"
+  },
+  "legalLinks": {
+    "cgu": "CGU",
+    "cgv": "CGV",
+    "privacy": "Confidentialité",
+    "legalMentions": "Mentions légales"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "title": "Informatique, réparation et services numériques",
+    "titleWithBrand": "Hociatec — Informatique, réparation et services numériques",
+    "description": "Vente de matériel informatique, réparation d'ordinateurs, maintenance informatique, création de site internet, assistance informatique et formation numérique."
+  },
+  "state": {
+    "loadingServices": "Chargement des services...",
+    "loadingProducts": "Chargement des produits...",
+    "loadingNews": "Chargement des actualités..."
+  },
+  "products": {
+    "overview": "Catalogue sélectionné",
+    "title": "Produits recommandés",
+    "description": "Une sélection courte de matériel utile, lisible et directement actionnable.",
+    "reference": "Référence",
+    "mainSpecs": "Caractéristiques principales"
+  },
+  "services": {
+    "overview": "Interventions et accompagnement",
+    "title": "Services mis en avant",
+    "description": "Des prestations concrètes pour réparer, sécuriser, maintenir ou faire évoluer vos outils.",
+    "billingMode": "Mode de facturation",
+    "priceLabel": "Prix HT",
+    "durationLabel": "Durée",
+    "durationDefault": "Sur étude",
+    "carouselLabel": "Sélection des services mis en avant",
+    "currentSlide": "Diapositive {index} sur {total}",
+    "singleSlide": "Service en vedette",
+    "controlsLabel": "Services mis en avant",
+    "previousButton": "Service précédent",
+    "nextButton": "Service suivant",
+    "jumpTo": "Afficher {title}"
+  },
+  "news": {
+    "overview": "Veille et conseils",
+    "title": "Actualité",
+    "description": "Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.",
+    "allLink": "Toutes les actualités",
+    "readMore": "Lire l'actualité",
+    "dateUnavailable": "Date non définie"
+  },
+  "emptyProducts": {
+    "title": "Aucun produit mis en avant pour le moment",
+    "description": "Les produits recommandés réapparaîtront ici dès que le catalogue sera mis à jour."
+  },
+  "emptyNews": {
+    "title": "Aucune actualité disponible pour le moment",
+    "description": "Les publications Hociatec apparaîtront ici dès leur mise en ligne."
+  },
+  "serviceCard": {
+    "missingDescription": "Plus de détails disponibles dans la fiche du service."
+  }
+}
