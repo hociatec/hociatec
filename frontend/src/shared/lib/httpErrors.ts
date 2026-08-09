@@ -29,6 +29,7 @@ type ResponsePayload = {
   error?: unknown;
   requestId?: unknown;
   code?: unknown;
+  fields?: unknown;
   data?: {
     message?: unknown;
   };

@@ -35,6 +35,12 @@ class PublicAvailabilityController extends AbstractController
             return ApiResponse::error('Parametres requis: start, end, prestationId.', Response::HTTP_BAD_REQUEST);
         }
 
+        $now = new \DateTimeImmutable();
+
+        if ($startAt < $now) {
+            $startAt = $now;
+        }
+
         if ($endAt <= $startAt) {
             return ApiResponse::error('La periode fournie est invalide.', Response::HTTP_BAD_REQUEST);
         }

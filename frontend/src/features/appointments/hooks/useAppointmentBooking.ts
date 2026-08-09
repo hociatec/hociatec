@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router';
-import type { DatesSetArg, CalendarApi } from '@fullcalendar/core';
-import type FullCalendar from '@fullcalendar/react';
-import { format, startOfDay } from 'date-fns';
+import { addDays, addMonths, format, isAfter, isBefore, startOfDay, startOfMonth } from 'date-fns';
 import { bookAppointment, fetchAvailability, fetchPrestations } from '../api/appointmentsApi';
 import type { AvailabilitySlot, Prestation } from '../types/appointments';
 import { useAuth } from '@/features/auth/publicApi';
@@ -11,7 +9,23 @@ import { useToast } from '@/shared/components/ui/toast';
 import { appointmentQueryKeys } from '@/features/appointments/queryKeys';
 
 const ymd = (date: Date) => format(startOfDay(date), 'yyyy-MM-dd');
+
+const formatWithOffset = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssXXX");
 type BookingState = { bookingConfirm?: { prestationId: number; slot: AvailabilitySlot } };
+
+const monthRange = (month: Date) => {
+  const today = startOfDay(new Date());
+  const monthStart = startOfMonth(month);
+  const start = isBefore(monthStart, today) ? today : monthStart;
+  const monthEnd = addMonths(monthStart, 1);
+  const end = isAfter(monthEnd, start) ? monthEnd : addDays(start, 1);
+
+    return {
+    start: formatWithOffset(start),
+    end: formatWithOffset(end),
+  };
+};
+
 export const useAppointmentBooking = () => {
   const { status } = useAuth();
   const navigate = useNavigate();
@@ -21,14 +35,11 @@ export const useAppointmentBooking = () => {
   const [step, setStep] = useState(1);
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [availabilityRange, setAvailabilityRange] = useState<{ start: string; end: string } | null>(
-    null,
-  );
+  const [availabilityRange, setAvailabilityRange] = useState<{ start: string; end: string } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'recap' | 'success'>('recap');
-  const calendarRef = useRef<FullCalendar | null>(null);
   const prestationsQuery = useQuery<Prestation[], Error>({
     queryKey: appointmentQueryKeys.prestations(),
     queryFn: fetchPrestations,
@@ -75,9 +86,16 @@ export const useAppointmentBooking = () => {
     }
   }, [availabilityQuery.error, toast]);
 
-  const handleDatesSet = async (arg: DatesSetArg) => {
-    setAvailabilityRange({ start: arg.start.toISOString(), end: arg.end.toISOString() });
-  };
+  useEffect(() => {
+    if (!selectedPrestation) {
+      setAvailabilityRange(null);
+      setSlots([]);
+      return;
+    }
+
+    setAvailabilityRange(monthRange(new Date()));
+  }, [selectedPrestation]);
+
   const slotsByDay = useMemo(() => {
     const map = new Map<string, AvailabilitySlot[]>();
     slots.forEach((slot) => {
@@ -86,21 +104,15 @@ export const useAppointmentBooking = () => {
     });
     return map;
   }, [slots]);
-  const events = useMemo(
-    () =>
-      Array.from(slotsByDay.keys()).map((day) => ({
-        start: day,
-        display: 'background',
-        backgroundColor: '#c2f0c2',
-      })),
-    [slotsByDay],
-  );
-  const handleDateClick = (info: { date: Date }) => {
-    if (!slotsByDay.get(ymd(info.date))?.length) return;
-    setSelectedDate(info.date);
-    setStep(3);
-  };
   const daySlots = selectedDate ? (slotsByDay.get(ymd(selectedDate)) ?? []) : [];
+  const currentMonth = useMemo(
+    () => (availabilityRange ? startOfMonth(new Date(availabilityRange.start)) : startOfMonth(new Date())),
+    [availabilityRange],
+  );
+  const setMonth = (date: Date) => {
+    const range = monthRange(date);
+    setAvailabilityRange(range);
+  };
   const handleBooking = async () => {
     if (!selectedSlot || !selectedPrestation) return;
     if (status !== 'authenticated') {
@@ -136,7 +148,7 @@ export const useAppointmentBooking = () => {
       setModalOpen(true);
     }
   }, [selectedSlot, step]);
-  const getApi = (): CalendarApi | null => calendarRef.current?.getApi() ?? null;
+
   return {
     status,
     step,
@@ -156,17 +168,15 @@ export const useAppointmentBooking = () => {
     setModalOpen,
     modalMode,
     setModalMode,
-    calendarRef,
     slotsByDay,
-    events,
     daySlots,
-    handleDatesSet,
-    handleDateClick,
+    setVisibleMonth: setMonth,
+    goPrevMonth: () => setMonth(addMonths(currentMonth, -1)),
+    goNextMonth: () => setMonth(addMonths(currentMonth, 1)),
+    goPrevYear: () => setMonth(addMonths(currentMonth, -12)),
+    goNextYear: () => setMonth(addMonths(currentMonth, 12)),
+    goToday: () => setMonth(new Date()),
     handleBooking,
-    goPrevMonth: () => getApi()?.incrementDate({ months: -1 }),
-    goNextMonth: () => getApi()?.incrementDate({ months: 1 }),
-    goPrevYear: () => getApi()?.incrementDate({ years: -1 }),
-    goNextYear: () => getApi()?.incrementDate({ years: 1 }),
-    goToday: () => getApi()?.today(),
+    currentMonth,
   };
 };

@@ -14,30 +14,48 @@
 .modal-container {
   animation: zoomIn 0.25s ease;
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-  max-width: 480px;
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 60px rgba(7, 24, 47, 0.22);
+  max-width: 560px;
   padding: 2rem;
-  text-align: center;
+  text-align: left;
   width: 90%;
 }
 
 .modal-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 1.5rem;
 }
 
 .recap-list {
+  display: grid;
+  gap: 0.85rem;
   list-style: none;
   margin: 1rem 0 1.5rem;
   padding: 0;
-  text-align: left;
 }
 
 .recap-list li {
-  margin: 0.4rem 0;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(243, 248, 255, 0.92));
+  border: 1px solid #d8e1ec;
+  border-radius: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.recap-list strong {
+  color: #66758b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 /* Animations */
@@ -65,20 +83,126 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 1rem;
 }
 
 .calendar-nav button {
-  background: #e8f0fe;
-  border: 1px solid #c0c0c0;
-  border-radius: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #d8e1ec;
+  border-radius: 999px;
   cursor: pointer;
-  padding: 0.4rem 0.8rem;
+  padding: 0.55rem 0.95rem;
   transition: 0.2s;
 }
 .calendar-nav button:hover {
-  background: #d2e3fc;
+  background: #eaf6ff;
+}
+
+.booking-calendar {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(247, 251, 255, 0.95));
+  border: 1px solid #d8e1ec;
+  border-radius: 1.5rem;
+  padding: 1rem;
+}
+
+.booking-calendar__month {
+  color: #07182f;
+  font-size: 1.15rem;
+  margin: 0 0 0.9rem;
+  text-align: left;
+}
+
+.booking-calendar__grid {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.booking-calendar__grid th,
+.booking-calendar__grid td {
+  border: 1px solid #e5edf7;
+  min-width: 44px;
+  padding: 0;
+  text-align: center;
+}
+
+.booking-calendar__day-cell {
+  position: relative;
+}
+
+.booking-calendar__day-cell--outside {
+  border-color: transparent;
+  visibility: hidden;
+}
+
+.booking-calendar__grid th {
+  color: var(--hocia-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.45rem 0.25rem;
+}
+
+.booking-calendar__day {
+  background: #f8fbff;
+  border: 0;
+  color: #07182f;
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 2.8rem;
+  min-width: 100%;
+  padding: 0.45rem;
+  width: 100%;
+}
+
+.booking-calendar__day:hover,
+.booking-calendar__day:focus-visible {
+  background: #eaf6ff;
+  outline: 2px solid #0b64d8;
+  outline-offset: -2px;
+}
+
+.booking-calendar__day--outside {
+  background: #f4f7fb;
+  color: #92a0b7;
+}
+
+.booking-calendar__day--today {
+  border: 2px solid #0b64d8;
+  font-weight: 700;
+}
+
+.booking-calendar__day--selected {
+  background: #0b64d8;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.booking-calendar__day:disabled {
+  background: #fafbfd;
+  color: #9aa8bc;
+  cursor: not-allowed;
+}
+
+.slot-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.slot-list__item {
+  width: 100%;
+  text-align: left;
+}
+
+.booking__calendar-engine {
+  left: -99999px;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
 }
 
 /* Hociatec UI refresh */
@@ -106,18 +230,19 @@
 .register-form__back {
   background: #ffffff;
   border: 1px solid #d8e1ec;
-  border-radius: 8px;
+  border-radius: 1rem;
   color: #07182f;
   font-weight: 700;
 }
 
 .booking__checkbox {
   align-items: flex-start;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(247, 251, 255, 0.95));
   cursor: pointer;
   display: flex;
   gap: 0.75rem;
   line-height: 1.35;
-  padding: 0.85rem 1rem;
+  padding: 1rem 1.1rem;
   width: 100%;
 }
 
@@ -142,6 +267,64 @@
   color: #073b8e;
 }
 
+.slot-card {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(247, 251, 255, 0.95));
+  display: flex;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0.95rem 1rem;
+}
+
+.slot-card span {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.slot-card.active {
+  box-shadow: 0 14px 28px rgba(11, 100, 216, 0.12);
+}
+
+.progress-bar {
+  border: 1px solid #d8e1ec;
+  border-radius: 999px;
+  color: #425066;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.7rem 1rem;
+  text-transform: uppercase;
+}
+
+.register-form-card.form-card-grid {
+  background: transparent;
+  display: grid;
+  gap: 1rem;
+}
+
+.register-form-card.form-card-grid h2 {
+  color: #07182f;
+  font-size: 1.55rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.register-form-card.form-card-grid h2 small {
+  color: #66758b;
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.booking__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
 .modal-actions {
   align-items: center;
 }
@@ -149,7 +332,7 @@
 .register-form__submit,
 .register-form__back {
   align-items: center;
-  border-radius: 10px;
+  border-radius: 999px;
   cursor: pointer;
   display: inline-flex;
   font-size: 0.95rem;
@@ -160,7 +343,7 @@
 }
 
 .register-form__submit {
-  background: linear-gradient(135deg, var(--hocia-blue), var(--hocia-violet));
+  background: linear-gradient(135deg, #07182f, #0b64d8);
   border: 0;
   box-shadow: 0 14px 28px rgba(11, 100, 216, 0.22);
   color: #ffffff;

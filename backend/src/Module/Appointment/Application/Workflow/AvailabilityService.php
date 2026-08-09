@@ -8,7 +8,7 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Shared\Domain\DateTime\DateTimeParser;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final class AvailabilityService
 {
@@ -92,7 +92,16 @@ final class AvailabilityService
         $breaks = $configuration->getBreakIntervalsForDate($date);
         $duration = $prestation->getDurationInterval();
 
-        $period = new \DatePeriod($startTime, $duration, $endTime);
+        if ($endTime <= $startTime) {
+            return [];
+        }
+
+        try {
+            $period = new \DatePeriod($startTime, $duration, $endTime);
+        } catch (\Throwable) {
+            return [];
+        }
+
         $availableSlots = [];
 
         foreach ($period as $slotStart) {

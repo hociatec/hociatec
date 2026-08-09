@@ -29,6 +29,12 @@ final class AppointmentService
 
     public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
     {
+        $now = new \DateTimeImmutable();
+
+        if ($startAt < $now) {
+            throw new InvalidAppointmentSlotException('Ce créneau n\'est plus disponible.');
+        }
+
         try {
             return $this->transactions->transactional(function () use ($user, $prestation, $startAt): Appointment {
                 $dayOfWeek = (int) $startAt->format('N') - 1;

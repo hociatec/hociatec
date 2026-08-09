@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\Domain\Entity;
 
-use App\Shared\Domain\DateTime\DateTimeParser;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]

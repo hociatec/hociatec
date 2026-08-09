@@ -45,23 +45,27 @@ export const AppointmentBookingModal = ({
           </p>
           <ul className="recap-list">
             <li>
-              <strong>Prestation :</strong> {selectedPrestation?.name}
+              <strong>Prestation</strong>
+              <span>{selectedPrestation?.name}</span>
             </li>
             <li>
-              <strong>Date :</strong>{' '}
-              {selectedSlot && format(new Date(selectedSlot.start), 'EEEE dd MMM yyyy', { locale: fr })}
+              <strong>Date</strong>
+              <span>{selectedSlot && format(new Date(selectedSlot.start), 'EEEE dd MMM yyyy', { locale: fr })}</span>
             </li>
             <li>
-              <strong>Heure :</strong>{' '}
-              {selectedSlot && format(new Date(selectedSlot.start), 'HH:mm', { locale: fr })} -{' '}
-              {selectedSlot && format(new Date(selectedSlot.end), 'HH:mm', { locale: fr })}
+              <strong>Heure</strong>
+              <span>
+                {selectedSlot && format(new Date(selectedSlot.start), 'HH:mm', { locale: fr })} -{' '}
+                {selectedSlot && format(new Date(selectedSlot.end), 'HH:mm', { locale: fr })}
+              </span>
             </li>
             <li>
-              <strong>Durée :</strong> {selectedPrestation?.durationMinutes} min
+              <strong>Durée</strong>
+              <span>{selectedPrestation?.durationMinutes} min</span>
             </li>
             <li>
-              <strong>Tarif :</strong>{' '}
-              {selectedPrestation ? formatEuroCents(selectedPrestation.priceCents) : formatEuroCents(0)}
+              <strong>Tarif</strong>
+              <span>{selectedPrestation ? formatEuroCents(selectedPrestation.priceCents) : formatEuroCents(0)}</span>
             </li>
           </ul>
 

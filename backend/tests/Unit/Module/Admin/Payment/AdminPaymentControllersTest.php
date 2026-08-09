@@ -63,6 +63,36 @@ final class AdminPaymentControllersTest extends TestCase
         self::assertSame('Détails Stripe indisponibles.', $detail['data']['liveStripe']['error']);
     }
 
+    public function testStripePaymentDetailsProviderFormatsSessionAndFallbackPaymentIntentBranches(): void
+    {
+        $payment = $this->persistPayment();
+        $provider = new StripePaymentDetailsProvider(new StripeApiClient(''), new AdminPaymentFormatter());
+        $reflection = new \ReflectionObject($provider);
+
+        $formatCheckoutSession = $reflection->getMethod('formatCheckoutSession');
+        $formatCheckoutSession->setAccessible(true);
+        $session = $formatCheckoutSession->invoke($provider, [
+            'id' => 'cs_test_123',
+            'status' => 'complete',
+            'payment_status' => 'paid',
+            'customer_details' => ['email' => 'payer@example.test'],
+            'expires_at' => 1780000000,
+        ], 'pi_test_123');
+
+        self::assertSame('cs_test_123', $session['id']);
+        self::assertSame('Terminée', $session['statusLabel']);
+        self::assertSame('Payé', $session['paymentStatusLabel']);
+        self::assertSame('pi_test_123', $session['paymentIntent']);
+        self::assertSame('payer@example.test', $session['customerEmail']);
+        self::assertSame('2026-05-28T20:26:40+00:00', $session['expiresAt']);
+
+        $fetchPaymentIntent = $reflection->getMethod('fetchPaymentIntent');
+        $fetchPaymentIntent->setAccessible(true);
+        self::assertNull($fetchPaymentIntent->invoke($provider, null));
+        self::assertNull($fetchPaymentIntent->invoke($provider, ''));
+        self::assertSame(['error' => 'Détails Stripe indisponibles.'], $fetchPaymentIntent->invoke($provider, 'pi_test_123'));
+    }
+
     private function persistPayment(): OrderCheckoutSession
     {
         $user = new User('admin-pay@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
