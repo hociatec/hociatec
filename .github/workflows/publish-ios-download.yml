@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 jobs:
-  sync-ipa:
+  publish-ipa:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
@@ -48,20 +48,27 @@ jobs:
           mkdir -p tmp-ios-download
           gh run download "${{ github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
 
-      - name: Publish stable IPA file
+      - name: Publish stable IPA to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p frontend/public/downloads
-          cp tmp-ios-download/*.ipa frontend/public/downloads/hociatec-altstore-latest.ipa
+          RELEASE_TAG="ios-latest"
+          RELEASE_TITLE="iOS latest"
+          RELEASE_NOTES="Dernier build iOS non signe pour AltStore, publie automatiquement."
+          IPA_PATH="$(find tmp-ios-download -maxdepth 2 -name '*.ipa' | head -n 1)"
 
-      - name: Commit updated IPA
-        run: |
-          if git diff --quiet -- frontend/public/downloads/hociatec-altstore-latest.ipa; then
-            echo "Aucune mise a jour IPA a publier."
-            exit 0
+          if [ -z "${IPA_PATH}" ]; then
+            echo "Impossible de trouver le fichier IPA telecharge." >&2
+            exit 1
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/public/downloads/hociatec-altstore-latest.ipa
-          git commit -m "ci: publish latest ios ipa"
-          git push origin HEAD:${{ github.event.workflow_run.head_branch }}
+          cp "${IPA_PATH}" tmp-ios-download/hociatec-altstore-latest.ipa
+
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-latest.ipa --yes >/dev/null 2>&1 || true
+          else
+            gh release create "${RELEASE_TAG}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}" --latest
+          fi
+
+          gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --clobber
+          gh release edit "${RELEASE_TAG}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}" --latest

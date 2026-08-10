@@ -29,7 +29,8 @@ const serviceLinks = [
   { path: '/audits/request', label: 'Demander un audit', Icon: ClipboardCheck },
 ] as const;
 
-const iosIpaDownloadPath = '/downloads/hociatec-altstore-latest.ipa';
+const iosIpaDownloadPath =
+  'https://github.com/hociatec/hociatec/releases/download/ios-latest/hociatec-altstore-latest.ipa';
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
@@ -143,6 +144,8 @@ export const SiteHeaderNavigation = () => {
         href={iosIpaDownloadPath}
         download="hociatec-altstore-latest.ipa"
         className="site-header__cta"
+        rel="noopener noreferrer"
+        target="_blank"
       >
         <Download aria-hidden="true" />
         Télécharger l&apos;app iPhone
