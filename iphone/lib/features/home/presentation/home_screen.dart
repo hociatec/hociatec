@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hociatec_mobile/app/routing/app_router.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
 import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
@@ -25,11 +27,10 @@ class HomeScreen extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: <Color>[
-              Color(0xFFFFFCF7),
-              Color(0xFFF9F3E9),
+              Color(0xFFFFFCF8),
+              Color(0xFFF8F0E4),
               Color(0xFFFFFFFF),
             ],
-            stops: <double>[0, 0.38, 1],
           ),
         ),
         child: RefreshIndicator(
@@ -37,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
             ref.invalidate(featuredServicesProvider);
             ref.invalidate(featuredProductsProvider);
             ref.invalidate(latestNewsProvider);
-            await Future.wait(<Future<void>>[
+            await Future.wait<void>(<Future<void>>[
               ref.read(featuredServicesProvider.future).then((_) {}),
               ref.read(featuredProductsProvider.future).then((_) {}),
               ref.read(latestNewsProvider.future).then((_) {}),
@@ -47,42 +48,50 @@ class HomeScreen extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: <Widget>[
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     <Widget>[
+                      const _WelcomeHero(),
+                      const SizedBox(height: 24),
+                      const _QuickEntryRow(),
+                      const SizedBox(height: 36),
                       _SectionBlock(
-                        eyebrow: 'Interventions et accompagnement',
-                        title: 'Services mis en avant',
+                        eyebrow: 'Prestations en avant',
+                        title: 'Nos interventions du moment',
                         subtitle:
-                            'Des prestations concrètes pour réparer, sécuriser, maintenir ou faire évoluer vos outils.',
+                            'Réparation, accompagnement et support pour garder un service rapide sur mobile, poste et réseau.',
                         child: servicesAsync.when(
-                          data: (services) => _ServicesCarousel(services: services),
-                          error: (error, stackTrace) => _SectionError(message: error.toString()),
+                          data: (services) =>
+                              _ServicesCarousel(services: services),
+                          error: (error, stackTrace) =>
+                              _SectionError(message: error.toString()),
                           loading: () => const _SectionLoading(),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 36),
                       _SectionBlock(
-                        eyebrow: 'Catalogue sélectionné',
-                        title: 'Produits recommandés',
+                        eyebrow: 'Selection catalogue',
+                        title: 'Des produits prêts a partir',
                         subtitle:
-                            'Une sélection courte de matériel utile, lisible et directement actionnable.',
+                            'Retrouvez une sélection utile pour la vente, la location, la reprise et la formation.',
                         child: productsAsync.when(
                           data: (products) => _ProductsGrid(products: products),
-                          error: (error, stackTrace) => _SectionError(message: error.toString()),
+                          error: (error, stackTrace) =>
+                              _SectionError(message: error.toString()),
                           loading: () => const _SectionLoading(),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 36),
                       _SectionBlock(
-                        eyebrow: 'Veille et conseils',
-                        title: 'Actualité',
+                        eyebrow: 'Conseils et actualites',
+                        title: 'Rester informe',
                         subtitle:
-                            'Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.',
+                            'Les dernières informations utiles pour mieux choisir, protéger et faire évoluer vos équipements.',
                         child: newsAsync.when(
                           data: (articles) => _NewsColumn(articles: articles),
-                          error: (error, stackTrace) => _SectionError(message: error.toString()),
+                          error: (error, stackTrace) =>
+                              _SectionError(message: error.toString()),
                           loading: () => const _SectionLoading(),
                         ),
                       ),
@@ -92,6 +101,207 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeHero extends StatelessWidget {
+  const _WelcomeHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            Color(0xFF183B5B),
+            Color(0xFF295C79),
+            Color(0xFFCE7B36)
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x261A2E40),
+            blurRadius: 28,
+            offset: Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'Bienvenue sur l application Hociatec',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            'Votre espace mobile pour vendre, louer, reprendre et planifier vos services.',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Accédez rapidement au catalogue, aux prestations, a la recherche et au contact depuis une seule navigation.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.88),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: <Widget>[
+              FilledButton.icon(
+                onPressed: () => context.go(AppTab.catalog.path),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF173751),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                ),
+                icon: const Icon(Icons.grid_view_rounded),
+                label: const Text('Voir le catalogue'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.go(AppTab.services.path),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white70),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                ),
+                icon: const Icon(Icons.design_services_outlined),
+                label: const Text('Nos prestations'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickEntryRow extends StatelessWidget {
+  const _QuickEntryRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: <Widget>[
+        _QuickEntryCard(
+          icon: Icons.sell_outlined,
+          title: 'Catalogue',
+          description:
+              'Vente, location, reprise et formation regroupées dans un seul onglet.',
+          destination: AppTab.catalog,
+        ),
+        SizedBox(height: 12),
+        _QuickEntryCard(
+          icon: Icons.calendar_month_outlined,
+          title: 'Prestations',
+          description:
+              'Prenez rendez-vous, créez un devis ou demandez un audit.',
+          destination: AppTab.services,
+        ),
+        SizedBox(height: 12),
+        _QuickEntryCard(
+          icon: Icons.mail_outline,
+          title: 'Contact',
+          description:
+              'Passez par le formulaire dans A propos pour nous écrire rapidement.',
+          destination: AppTab.about,
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickEntryCard extends StatelessWidget {
+  const _QuickEntryCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.destination,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final AppTab destination;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: () => context.go(destination.path),
+      child: Ink(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFE4D8CA)),
+        ),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFF173751).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: const Color(0xFF173751)),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF5C544D),
+                      height: 1.45,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+          ],
         ),
       ),
     );
@@ -151,7 +361,8 @@ class _ServicesCarouselState extends State<_ServicesCarousel> {
   @override
   Widget build(BuildContext context) {
     if (widget.services.isEmpty) {
-      return const _SectionEmpty(message: 'Aucun service mis en avant pour le moment.');
+      return const _SectionEmpty(
+          message: 'Aucune prestation mise en avant pour le moment.');
     }
 
     return Column(
@@ -210,7 +421,8 @@ class _ProductsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) {
-      return const _SectionEmpty(message: 'Aucun produit mis en avant pour le moment.');
+      return const _SectionEmpty(
+          message: 'Aucun produit mis en avant pour le moment.');
     }
 
     return LayoutBuilder(
@@ -227,7 +439,8 @@ class _ProductsGrid extends StatelessWidget {
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
-          itemBuilder: (context, index) => HomeProductCard(product: products[index]),
+          itemBuilder: (context, index) =>
+              HomeProductCard(product: products[index]),
         );
       },
     );
@@ -244,7 +457,8 @@ class _NewsColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (articles.isEmpty) {
-      return const _SectionEmpty(message: 'Aucune actualité disponible pour le moment.');
+      return const _SectionEmpty(
+          message: 'Aucune actualite disponible pour le moment.');
     }
 
     return Column(

@@ -19,12 +19,6 @@ enum AppTab {
     icon: Icons.home_outlined,
     selectedIcon: Icons.home,
   ),
-  search(
-    label: 'Recherche',
-    path: '/recherche',
-    icon: Icons.search_outlined,
-    selectedIcon: Icons.search,
-  ),
   catalog(
     label: 'Catalogue',
     path: '/catalogue',
@@ -36,6 +30,12 @@ enum AppTab {
     path: '/prestations',
     icon: Icons.design_services_outlined,
     selectedIcon: Icons.design_services,
+  ),
+  search(
+    label: 'Recherche',
+    path: '/recherche',
+    icon: Icons.search_outlined,
+    selectedIcon: Icons.search,
   ),
   about(
     label: 'A propos',
@@ -79,16 +79,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: AppTab.search.path,
-                name: AppTab.search.name,
-                pageBuilder: (context, state) =>
-                    const NoTransitionPage<void>(child: SearchScreen()),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
                 path: AppTab.catalog.path,
                 name: AppTab.catalog.name,
                 pageBuilder: (context, state) =>
@@ -103,6 +93,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: AppTab.services.name,
                 pageBuilder: (context, state) =>
                     const NoTransitionPage<void>(child: ServicesScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppTab.search.path,
+                name: AppTab.search.name,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage<void>(child: SearchScreen()),
               ),
             ],
           ),
