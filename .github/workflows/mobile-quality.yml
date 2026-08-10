@@ -107,10 +107,3 @@ jobs:
           name: hociatec-ios-unsigned-ipa-v${{ steps.app_meta.outputs.app_version }}-b${{ steps.app_meta.outputs.app_build }}
           path: iphone/build/ios/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}
           if-no-files-found: error
-
-      - name: Upload unsigned archive artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: hociatec-ios-unsigned-archive
-          path: iphone/build/ios/archive/Runner.xcarchive
-          if-no-files-found: error
