@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/appointments/data/appointment_repository.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
@@ -23,6 +25,7 @@ class _AppointmentRequestScreenState
   @override
   Widget build(BuildContext context) {
     final prestationsAsync = ref.watch(publicAppointmentPrestationsProvider);
+    final userAsync = ref.watch(currentAuthUserProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Prendre rendez-vous')),
@@ -30,14 +33,42 @@ class _AppointmentRequestScreenState
         padding: const EdgeInsets.all(20),
         children: <Widget>[
           Text(
-            'Reservation de rendez-vous',
+            'Réservation de rendez-vous',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 10),
           const Text(
-            'Les creneaux sont charges depuis l API publique. La creation finale du rendez-vous passe par l API client et necessite une connexion.',
+            'Les créneaux sont chargés depuis l’API publique. La création finale du rendez-vous nécessite une connexion.',
+          ),
+          const SizedBox(height: 16),
+          userAsync.when(
+            data: (user) {
+              if (user != null) {
+                return const SizedBox.shrink();
+              }
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'Connexion requise pour confirmer le rendez-vous.',
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: () => context.push('/connexion'),
+                        child: const Text('Se connecter'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            error: (_, __) => const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
           ),
           const SizedBox(height: 20),
           prestationsAsync.when(
@@ -64,7 +95,9 @@ class _AppointmentRequestScreenState
             ),
             error: (error, stackTrace) => Text(
               resolveApiErrorMessage(
-                  error, 'Impossible de charger les prestations.'),
+                error,
+                'Impossible de charger les prestations.',
+              ),
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
           ),
@@ -80,7 +113,7 @@ class _AppointmentRequestScreenState
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: ChoiceChip(
-                    label: Text('${formatIsoDate(slot.start)} a $label'),
+                    label: Text('${formatIsoDate(slot.start)} à $label'),
                     selected: _selectedSlot == slot,
                     onSelected: (_) => setState(() => _selectedSlot = slot),
                   ),
@@ -91,17 +124,19 @@ class _AppointmentRequestScreenState
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child:
-                  Text('Aucun creneau disponible sur les 14 prochains jours.'),
+                  Text('Aucun créneau disponible sur les 14 prochains jours.'),
             ),
           const SizedBox(height: 20),
           FilledButton(
-            onPressed: _selectedPrestation == null ||
+            onPressed: userAsync.valueOrNull == null ||
+                    _selectedPrestation == null ||
                     _selectedSlot == null ||
                     _submitting
                 ? null
                 : _submit,
             child: Text(
-                _submitting ? 'Reservation...' : 'Confirmer le rendez-vous'),
+              _submitting ? 'Réservation...' : 'Confirmer le rendez-vous',
+            ),
           ),
         ],
       ),
@@ -136,7 +171,9 @@ class _AppointmentRequestScreenState
         SnackBar(
           content: Text(
             resolveApiErrorMessage(
-                error, 'Impossible de charger les creneaux.'),
+              error,
+              'Impossible de charger les créneaux.',
+            ),
           ),
         ),
       );
@@ -150,6 +187,17 @@ class _AppointmentRequestScreenState
   Future<void> _submit() async {
     final prestation = _selectedPrestation;
     final slot = _selectedSlot;
+    final user = ref.read(currentAuthUserProvider).valueOrNull;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connectez-vous avant de réserver un rendez-vous.'),
+        ),
+      );
+      return;
+    }
+
     if (prestation == null || slot == null) {
       return;
     }
@@ -176,7 +224,7 @@ class _AppointmentRequestScreenState
           content: Text(
             resolveApiErrorMessage(
               error,
-              'Impossible de reserver ce rendez-vous.',
+              'Impossible de réserver ce rendez-vous.',
             ),
           ),
         ),

@@ -63,6 +63,29 @@ class AccountScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
+              Text(
+                'Aller a',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              const Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: <Widget>[
+                  _AccountLink(label: 'Commandes', path: '/compte/commandes'),
+                  _AccountLink(label: 'Devis', path: '/compte/devis'),
+                  _AccountLink(
+                      label: 'Rendez-vous', path: '/compte/rendez-vous'),
+                  _AccountLink(label: 'Audits', path: '/compte/audits'),
+                  _AccountLink(label: 'Formations', path: '/compte/formations'),
+                  _AccountLink(label: 'Bons', path: '/compte/bons'),
+                  _AccountLink(label: 'Reprises', path: '/compte/reprises'),
+                  _AccountLink(label: 'Favoris', path: '/compte/favoris'),
+                ],
+              ),
+              const SizedBox(height: 24),
               _AccountSection<List<AppointmentItem>>(
                 title: 'Mes rendez-vous',
                 provider: myUpcomingAppointmentsProvider,
@@ -140,6 +163,24 @@ class AccountScreen extends ConsumerWidget {
         error: (error, stackTrace) => Center(child: Text(error.toString())),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
+    );
+  }
+}
+
+class _AccountLink extends StatelessWidget {
+  const _AccountLink({
+    required this.label,
+    required this.path,
+  });
+
+  final String label;
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      label: Text(label),
+      onPressed: () => context.push(path),
     );
   }
 }

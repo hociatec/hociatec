@@ -20,7 +20,7 @@ class SearchScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Recherchez rapidement un produit, une prestation ou une information utile dans l application.',
+            'Recherchez rapidement un produit, une prestation ou une information utile dans l’application.',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: const Color(0xFF5B544E),
               height: 1.45,
@@ -56,7 +56,7 @@ class SearchScreen extends StatelessWidget {
           const _SearchSuggestionCard(
             title: 'Contact',
             description:
-                'Le formulaire de contact est disponible dans A propos.',
+                'Le formulaire de contact est disponible dans Contact.',
             icon: Icons.mail_outline,
           ),
         ],

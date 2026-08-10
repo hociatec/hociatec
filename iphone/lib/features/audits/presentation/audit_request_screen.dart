@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/audits/data/audit_repository.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 
 class AuditRequestScreen extends ConsumerStatefulWidget {
@@ -27,6 +29,7 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final typesAsync = ref.watch(auditTypesProvider);
+    final userAsync = ref.watch(currentAuthUserProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Demander un audit')),
@@ -36,20 +39,48 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
           padding: const EdgeInsets.all(20),
           children: <Widget>[
             Text(
-              'Demande d audit',
+              'Demande d’audit',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 10),
             const Text(
-              'La demande est envoyee a l API audit. Comme pour le rendez-vous, cet endpoint exige un compte client connecte.',
+              'La demande est envoyée à l’API audit et nécessite une connexion client active.',
+            ),
+            const SizedBox(height: 16),
+            userAsync.when(
+              data: (user) {
+                if (user != null) {
+                  return const SizedBox.shrink();
+                }
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text(
+                          'Connexion requise pour envoyer la demande d’audit.',
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: () => context.push('/connexion'),
+                          child: const Text('Se connecter'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              error: (_, __) => const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
             ),
             const SizedBox(height: 20),
             typesAsync.when(
               data: (types) => DropdownButtonFormField<String>(
                 initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Type d audit'),
+                decoration: const InputDecoration(labelText: 'Type d’audit'),
                 items: types
                     .map(
                       (item) => DropdownMenuItem<String>(
@@ -65,7 +96,9 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
               ),
               error: (error, stackTrace) => Text(
                 resolveApiErrorMessage(
-                    error, 'Impossible de charger les types d audit.'),
+                  error,
+                  'Impossible de charger les types d’audit.',
+                ),
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
             ),
@@ -73,7 +106,7 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
             TextFormField(
               controller: _urlController,
               keyboardType: TextInputType.url,
-              decoration: const InputDecoration(labelText: 'URL a auditer'),
+              decoration: const InputDecoration(labelText: 'URL à auditer'),
               validator: (value) {
                 final text = value?.trim() ?? '';
                 if (text.isEmpty || !text.startsWith('http')) {
@@ -94,7 +127,8 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
             ),
             const SizedBox(height: 18),
             FilledButton(
-              onPressed: _submitting ? null : _submit,
+              onPressed:
+                  userAsync.valueOrNull == null || _submitting ? null : _submit,
               child: Text(_submitting ? 'Envoi...' : 'Envoyer la demande'),
             ),
           ],
@@ -104,6 +138,16 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
   }
 
   Future<void> _submit() async {
+    final user = ref.read(currentAuthUserProvider).valueOrNull;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Connectez-vous avant d’envoyer une demande d’audit.'),
+        ),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate() || _type == null) {
       return;
     }
@@ -132,7 +176,9 @@ class _AuditRequestScreenState extends ConsumerState<AuditRequestScreen> {
         SnackBar(
           content: Text(
             resolveApiErrorMessage(
-                error, 'Impossible d envoyer la demande d audit.'),
+              error,
+              'Impossible d’envoyer la demande d’audit.',
+            ),
           ),
         ),
       );

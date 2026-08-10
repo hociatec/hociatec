@@ -4,22 +4,31 @@ import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
 import 'package:hociatec_mobile/features/account/presentation/account_screen.dart';
 import 'package:hociatec_mobile/features/appointments/presentation/appointment_request_screen.dart';
+import 'package:hociatec_mobile/features/appointments/presentation/my_appointments_screen.dart';
 import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
+import 'package:hociatec_mobile/features/audits/presentation/my_audits_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/login_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/register_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_listing_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
+import 'package:hociatec_mobile/features/contact/presentation/contact_screen.dart';
+import 'package:hociatec_mobile/features/favorites/presentation/favorites_screen.dart';
 import 'package:hociatec_mobile/features/home/presentation/home_screen.dart';
 import 'package:hociatec_mobile/features/news/presentation/news_detail_screen.dart';
 import 'package:hociatec_mobile/features/news/presentation/news_screen.dart';
+import 'package:hociatec_mobile/features/orders/presentation/orders_screen.dart';
+import 'package:hociatec_mobile/features/quotes/presentation/my_quotes_screen.dart';
 import 'package:hociatec_mobile/features/quotes/presentation/quote_request_screen.dart';
 import 'package:hociatec_mobile/features/search/presentation/search_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/service_detail_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/services_screen.dart';
+import 'package:hociatec_mobile/features/trade_ins/presentation/my_trade_ins_screen.dart';
 import 'package:hociatec_mobile/features/trade_ins/presentation/trade_in_request_screen.dart';
+import 'package:hociatec_mobile/features/trainings/presentation/my_trainings_screen.dart';
 import 'package:hociatec_mobile/features/trainings/presentation/training_catalog_screen.dart';
+import 'package:hociatec_mobile/features/vouchers/presentation/vouchers_screen.dart';
 import 'package:hociatec_mobile/shared/presentation/navigation/app_shell.dart';
 
 enum AppTab {
@@ -48,7 +57,7 @@ enum AppTab {
     selectedIcon: Icons.search,
   ),
   about(
-    label: 'A propos',
+    label: 'À propos',
     path: '/a-propos',
     icon: Icons.info_outline,
     selectedIcon: Icons.info,
@@ -191,8 +200,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
+        path: '/contact',
+        builder: (context, state) => const ContactScreen(),
+      ),
+      GoRoute(
         path: '/compte',
         builder: (context, state) => const AccountScreen(),
+      ),
+      GoRoute(
+        path: '/compte/commandes',
+        builder: (context, state) => const OrdersScreen(),
+      ),
+      GoRoute(
+        path: '/compte/devis',
+        builder: (context, state) => const MyQuotesScreen(),
+      ),
+      GoRoute(
+        path: '/compte/rendez-vous',
+        builder: (context, state) => const MyAppointmentsScreen(),
+      ),
+      GoRoute(
+        path: '/compte/audits',
+        builder: (context, state) => const MyAuditsScreen(),
+      ),
+      GoRoute(
+        path: '/compte/formations',
+        builder: (context, state) => const MyTrainingsScreen(),
+      ),
+      GoRoute(
+        path: '/compte/bons',
+        builder: (context, state) => const VouchersScreen(),
+      ),
+      GoRoute(
+        path: '/compte/reprises',
+        builder: (context, state) => const MyTradeInsScreen(),
+      ),
+      GoRoute(
+        path: '/compte/favoris',
+        builder: (context, state) => const FavoritesScreen(),
       ),
       GoRoute(
         path: '/actualites/:slug',

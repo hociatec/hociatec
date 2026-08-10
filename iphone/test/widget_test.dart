@@ -1,10 +1,19 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hociatec_mobile/app/app.dart';
+import 'package:hociatec_mobile/core/network/api_client.dart';
+import 'package:hociatec_mobile/features/appointments/data/appointment_repository.dart';
+import 'package:hociatec_mobile/features/appointments/presentation/appointment_request_screen.dart';
+import 'package:hociatec_mobile/features/audits/data/audit_repository.dart';
+import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/features/auth/data/auth_session_store.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
+import 'package:hociatec_mobile/features/contact/data/contact_repository.dart';
+import 'package:hociatec_mobile/features/contact/presentation/contact_screen.dart';
 import 'package:hociatec_mobile/features/news/data/news_repository.dart';
 import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
@@ -72,6 +81,37 @@ final _fakeNews = <NewsArticle>[
   ),
 ];
 
+final _fakePrestations = <AppointmentPrestation>[
+  const AppointmentPrestation(
+    id: 1,
+    name: 'Diagnostic atelier',
+    durationMinutes: 60,
+    priceCents: 6900,
+  ),
+];
+
+final _fakeAuditTypes = <AuditTypeOption>[
+  const AuditTypeOption(value: 'performance', label: 'Performance'),
+  const AuditTypeOption(value: 'security', label: 'Sécurité'),
+];
+
+class _FakeContactRepository extends ContactRepository {
+  _FakeContactRepository() : super(ApiClient(Dio()));
+
+  int submitCount = 0;
+
+  @override
+  Future<String> submit({
+    required String name,
+    required String email,
+    required String subject,
+    required String message,
+  }) async {
+    submitCount += 1;
+    return 'Votre message a bien été envoyé.';
+  }
+}
+
 void main() {
   Finder navigationTab(String label) {
     return find.descendant(
@@ -94,7 +134,7 @@ void main() {
     preferences = await SharedPreferences.getInstance();
   });
 
-  testWidgets('renders the four bottom navigation tabs', (tester) async {
+  testWidgets('renders the bottom navigation tabs', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -115,7 +155,7 @@ void main() {
     expect(navigationTab('Recherche'), findsOneWidget);
     expect(navigationTab('Catalogue'), findsOneWidget);
     expect(navigationTab('Prestations'), findsOneWidget);
-    expect(navigationTab('A propos'), findsOneWidget);
+    expect(navigationTab('À propos'), findsOneWidget);
   });
 
   testWidgets('switches between tabs', (tester) async {
@@ -135,8 +175,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Bienvenue sur l application Hociatec'), findsOneWidget);
-    expect(find.text('Voir le catalogue'), findsOneWidget);
+    expect(find.text('Bienvenue sur l’application Hociatec'), findsOneWidget);
+    expect(find.text('Nous contacter'), findsOneWidget);
 
     await tester.tap(navigationTab('Catalogue'));
     await tester.pumpAndSettle();
@@ -152,9 +192,164 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text(
-        'Recherchez rapidement un produit, une prestation ou une information utile dans l application.',
+        'Recherchez rapidement un produit, une prestation ou une information utile dans l’application.',
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('opens contact from home screen', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authSessionStoreProvider.overrideWithValue(
+            AuthSessionStore(preferences),
+          ),
+          currentAuthUserProvider.overrideWith((ref) async => null),
+          featuredServicesProvider.overrideWith((ref) async => _fakeServices),
+          allServicesProvider.overrideWith((ref) async => _fakeServices),
+          featuredProductsProvider.overrideWith((ref) async => _fakeProducts),
+          latestNewsProvider.overrideWith((ref) async => _fakeNews),
+        ],
+        child: const HociatecMobileApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Contact').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Formulaire'), findsOneWidget);
+    expect(find.text('Envoyer la demande'), findsOneWidget);
+  });
+
+  testWidgets('about screen no longer embeds the contact form', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authSessionStoreProvider.overrideWithValue(
+            AuthSessionStore(preferences),
+          ),
+          currentAuthUserProvider.overrideWith((ref) async => null),
+          featuredServicesProvider.overrideWith((ref) async => _fakeServices),
+          allServicesProvider.overrideWith((ref) async => _fakeServices),
+          featuredProductsProvider.overrideWith((ref) async => _fakeProducts),
+          latestNewsProvider.overrideWith((ref) async => _fakeNews),
+        ],
+        child: const HociatecMobileApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(navigationTab('À propos'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ouvrir le contact'), findsOneWidget);
+    expect(find.text('Formulaire'), findsNothing);
+    expect(find.text('Envoyer la demande'), findsNothing);
+  });
+
+  testWidgets('appointment request requires login and blocks submit', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentAuthUserProvider.overrideWith((ref) async => null),
+          allServicesProvider.overrideWith((ref) async => _fakeServices),
+          publicAppointmentPrestationsProvider.overrideWith(
+            (ref) async => _fakePrestations,
+          ),
+        ],
+        child: const MaterialApp(
+          home: AppointmentRequestScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Connexion requise pour confirmer le rendez-vous.'),
+      findsOneWidget,
+    );
+
+    final button = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Confirmer le rendez-vous'),
+    );
+    expect(button.onPressed, isNull);
+  });
+
+  testWidgets('audit request requires login and blocks submit', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentAuthUserProvider.overrideWith((ref) async => null),
+          allServicesProvider.overrideWith((ref) async => _fakeServices),
+          auditTypesProvider.overrideWith((ref) async => _fakeAuditTypes),
+        ],
+        child: const MaterialApp(
+          home: AuditRequestScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Connexion requise pour envoyer la demande d’audit.'),
+      findsOneWidget,
+    );
+
+    final button = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Envoyer la demande'),
+    );
+    expect(button.onPressed, isNull);
+  });
+
+  testWidgets('contact form submits and clears fields', (tester) async {
+    final fakeRepository = _FakeContactRepository();
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          contactRepositoryProvider.overrideWithValue(fakeRepository),
+        ],
+        child: const MaterialApp(
+          home: ContactScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Nom'), 'Camille');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Email'),
+      'camille@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Sujet'),
+      'Demande de devis',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Message'),
+      'Bonjour, je souhaite obtenir plus d informations.',
+    );
+
+    final submitButton =
+        find.widgetWithText(FilledButton, 'Envoyer la demande');
+    await tester.ensureVisible(submitButton);
+    await tester.tap(submitButton);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(fakeRepository.submitCount, 1);
+    expect(find.text('Votre message a bien été envoyé.'), findsOneWidget);
+    expect(find.text('Camille'), findsNothing);
+    expect(find.text('camille@example.com'), findsNothing);
   });
 }
