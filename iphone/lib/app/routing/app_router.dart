@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
 import 'package:hociatec_mobile/features/home/presentation/home_screen.dart';
 import 'package:hociatec_mobile/features/search/presentation/search_screen.dart';
@@ -31,6 +32,12 @@ enum AppTab {
     path: '/prestations',
     icon: Icons.design_services_outlined,
     selectedIcon: Icons.design_services,
+  ),
+  about(
+    label: 'A propos',
+    path: '/a-propos',
+    icon: Icons.info_outline,
+    selectedIcon: Icons.info,
   );
 
   const AppTab({
@@ -92,6 +99,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: AppTab.services.name,
                 pageBuilder: (context, state) =>
                     const NoTransitionPage<void>(child: ServicesScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: AppTab.about.path,
+                name: AppTab.about.name,
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage<void>(child: AboutScreen()),
               ),
             ],
           ),
