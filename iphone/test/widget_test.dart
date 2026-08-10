@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hociatec_mobile/app/app.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_session_store.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
 import 'package:hociatec_mobile/features/news/data/news_repository.dart';
@@ -9,6 +10,7 @@ import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
 import 'package:hociatec_mobile/features/services/domain/service_offering.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final _fakeServices = <ServiceOffering>[
   const ServiceOffering(
@@ -78,7 +80,9 @@ void main() {
     );
   }
 
-  setUpAll(() {
+  late SharedPreferences preferences;
+
+  setUpAll(() async {
     PackageInfo.setMockInitialValues(
       appName: 'Hociatec',
       packageName: 'fr.hociatec.hociatecMobile',
@@ -86,12 +90,17 @@ void main() {
       buildNumber: '1',
       buildSignature: '',
     );
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    preferences = await SharedPreferences.getInstance();
   });
 
   testWidgets('renders the four bottom navigation tabs', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authSessionStoreProvider.overrideWithValue(
+            AuthSessionStore(preferences),
+          ),
           featuredServicesProvider.overrideWith((ref) async => _fakeServices),
           allServicesProvider.overrideWith((ref) async => _fakeServices),
           featuredProductsProvider.overrideWith((ref) async => _fakeProducts),
@@ -113,6 +122,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authSessionStoreProvider.overrideWithValue(
+            AuthSessionStore(preferences),
+          ),
           featuredServicesProvider.overrideWith((ref) async => _fakeServices),
           allServicesProvider.overrideWith((ref) async => _fakeServices),
           featuredProductsProvider.overrideWith((ref) async => _fakeProducts),
@@ -123,19 +135,26 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Services mis en avant'), findsOneWidget);
-    expect(find.text('Diagnostic reseau'), findsOneWidget);
+    expect(find.text('Bienvenue sur l application Hociatec'), findsOneWidget);
+    expect(find.text('Voir le catalogue'), findsOneWidget);
 
     await tester.tap(navigationTab('Catalogue'));
     await tester.pumpAndSettle();
-    expect(find.text('iPhone 13 Reconditionne'), findsOneWidget);
+    expect(find.text('Catalogue Hociatec'), findsOneWidget);
+    expect(find.text('Vente'), findsOneWidget);
 
     await tester.tap(navigationTab('Prestations'));
     await tester.pumpAndSettle();
-    expect(find.text('Diagnostic reseau'), findsOneWidget);
+    expect(find.text('Nos services'), findsOneWidget);
+    expect(find.text('Prendre rendez-vous'), findsOneWidget);
 
     await tester.tap(navigationTab('Recherche'));
     await tester.pumpAndSettle();
-    expect(find.text('Fondation de l\'écran de recherche prête à être développée.'), findsOneWidget);
+    expect(
+      find.text(
+        'Recherchez rapidement un produit, une prestation ou une information utile dans l application.',
+      ),
+      findsOneWidget,
+    );
   });
 }
