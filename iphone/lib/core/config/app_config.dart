@@ -9,7 +9,7 @@ class AppConfig {
     return const AppConfig(
       apiBaseUrl: String.fromEnvironment(
         'API_BASE_URL',
-        defaultValue: 'http://localhost:8000',
+        defaultValue: 'https://api.hociatec.fr',
       ),
       connectTimeout: Duration(
         milliseconds: int.fromEnvironment(

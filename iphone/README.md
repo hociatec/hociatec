@@ -34,8 +34,12 @@ lib/
 flutter pub get
 flutter analyze
 flutter test
+flutter run
 flutter run --dart-define=API_BASE_URL=http://localhost:8000
 ```
+
+Par defaut, l'application mobile pointe vers `https://api.hociatec.fr`.
+Utiliser `--dart-define=API_BASE_URL=...` uniquement pour forcer un environnement local ou de preproduction.
 
 ## iOS sans signature
 
