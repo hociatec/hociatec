@@ -315,7 +315,6 @@ test.describe('authenticated client journeys', () => {
 
   test('client can cancel an upcoming appointment from account page', async ({ page }) => {
     await page.goto('/appointments/me', { waitUntil: 'networkidle' });
-    const cancelButtons = page.getByRole('button', { name: /Annuler le rendez-vous/i });
     const readAppointmentsMeta = () =>
       page.evaluate(async () => {
         const response = await fetch('/api/appointments/me', {
@@ -831,7 +830,7 @@ test.describe('authenticated client journeys', () => {
     const adminContext = await browser.newContext({ storageState: ADMIN_STORAGE_STATE });
     const adminPage = await adminContext.newPage();
 
-    let trainingSlug = '';
+    let trainingSlug: string;
 
     try {
       await adminPage.goto('/admin/trainings/new', { waitUntil: 'networkidle' });
