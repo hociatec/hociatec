@@ -30,7 +30,7 @@ const serviceLinks = [
 ] as const;
 
 const iosIpaDownloadPath =
-  'https://github.com/hociatec/hociatec/releases/download/ios-latest/hociatec-altstore-latest.ipa';
+  'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa';
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();

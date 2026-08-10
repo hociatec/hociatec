@@ -20,10 +20,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
-
       - name: Resolve IPA artifact name
         id: artifact
         env:
@@ -48,9 +44,10 @@ jobs:
           mkdir -p tmp-ios-download
           gh run download "${{ github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
 
-      - name: Publish stable IPA to GitHub Release
+      - name: Publish stable IPA to public GitHub Release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
+          TARGET_REPOSITORY: hociatec/hociatec-downloads
         run: |
           RELEASE_TAG="ios-latest"
           RELEASE_TITLE="iOS latest"
@@ -64,11 +61,10 @@ jobs:
 
           cp "${IPA_PATH}" tmp-ios-download/hociatec-altstore-latest.ipa
 
-          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-            gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-latest.ipa --yes >/dev/null 2>&1 || true
+          if gh release view "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" >/dev/null 2>&1; then
+            gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --yes >/dev/null 2>&1 || true
           else
-            gh release create "${RELEASE_TAG}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}" --latest
+            gh release create "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
           fi
 
-          gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --clobber
-          gh release edit "${RELEASE_TAG}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}" --latest
+          gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --clobber
