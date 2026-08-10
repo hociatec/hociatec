@@ -6,6 +6,7 @@ import 'package:hociatec_mobile/features/audits/data/audit_repository.dart';
 import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/features/quotes/data/quote_repository.dart';
 import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
+import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class AccountScreen extends ConsumerWidget {
@@ -161,7 +162,17 @@ class AccountScreen extends ConsumerWidget {
             ],
           );
         },
-        error: (error, stackTrace) => Center(child: Text(error.toString())),
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: StatusMessageCard(
+              message: resolveApiErrorMessage(
+                error,
+                'Impossible de verifier votre session.',
+              ),
+            ),
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );
@@ -213,7 +224,12 @@ class _AccountSection<T> extends ConsumerWidget {
         const SizedBox(height: 12),
         asyncValue.when(
           data: builder,
-          error: (error, stackTrace) => _EmptyState(message: error.toString()),
+          error: (error, stackTrace) => _EmptyState(
+            message: resolveApiErrorMessage(
+              error,
+              'Impossible de charger cette section.',
+            ),
+          ),
           loading: () => const Center(child: CircularProgressIndicator()),
         ),
       ],

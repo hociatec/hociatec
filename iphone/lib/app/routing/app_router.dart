@@ -7,6 +7,7 @@ import 'package:hociatec_mobile/features/appointments/presentation/appointment_r
 import 'package:hociatec_mobile/features/appointments/presentation/my_appointments_screen.dart';
 import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
 import 'package:hociatec_mobile/features/audits/presentation/my_audits_screen.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_session_store.dart';
 import 'package:hociatec_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/login_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/register_screen.dart';
@@ -77,8 +78,23 @@ enum AppTab {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final authSessionStore = ref.watch(authSessionStoreProvider);
+
   return GoRouter(
     initialLocation: AppTab.home.path,
+    redirect: (context, state) {
+      final authCookies = authSessionStore.readCookies();
+      final hasSession =
+          authCookies.hasAccessToken || authCookies.hasRefreshToken;
+      final requiresAuth = state.matchedLocation == '/compte' ||
+          state.matchedLocation.startsWith('/compte/');
+
+      if (requiresAuth && !hasSession) {
+        return '/connexion';
+      }
+
+      return null;
+    },
     routes: <RouteBase>[
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hociatec_mobile/features/trainings/data/training_repository.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
+import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class TrainingCatalogScreen extends ConsumerWidget {
@@ -18,8 +20,10 @@ class TrainingCatalogScreen extends ConsumerWidget {
             return const Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text(
-                    'Aucune formation publique disponible pour le moment.'),
+                child: StatusMessageCard(
+                  message:
+                      'Aucune formation publique disponible pour le moment.',
+                ),
               ),
             );
           }
@@ -81,7 +85,17 @@ class TrainingCatalogScreen extends ConsumerWidget {
             },
           );
         },
-        error: (error, stackTrace) => Center(child: Text(error.toString())),
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: StatusMessageCard(
+              message: resolveApiErrorMessage(
+                error,
+                'Impossible de charger les formations.',
+              ),
+            ),
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );

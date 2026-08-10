@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/widgets/product_action_toolbar.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/cards/card_media.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
+import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
@@ -21,11 +24,14 @@ class ProductDetailScreen extends ConsumerWidget {
       body: productAsync.when(
         data: (product) {
           final specs = <MapEntry<String, String>>[
-            if ((product.brand ?? '').isNotEmpty) MapEntry('Marque', product.brand!),
-            if ((product.memoryRam ?? '').isNotEmpty) MapEntry('Memoire', product.memoryRam!),
+            if ((product.brand ?? '').isNotEmpty)
+              MapEntry('Marque', product.brand!),
+            if ((product.memoryRam ?? '').isNotEmpty)
+              MapEntry('Memoire', product.memoryRam!),
             if ((product.storageCapacity ?? '').isNotEmpty)
               MapEntry('Stockage', product.storageCapacity!),
-            if ((product.color ?? '').isNotEmpty) MapEntry('Couleur', product.color!),
+            if ((product.color ?? '').isNotEmpty)
+              MapEntry('Couleur', product.color!),
             MapEntry('Reference', product.sku),
             MapEntry('Categorie', product.category.name),
             MapEntry('Type', product.sellingTypeLabel),
@@ -42,6 +48,10 @@ class ProductDetailScreen extends ConsumerWidget {
                     child: Image.network(
                       product.imageUrl,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const CardMediaPlaceholder(
+                        icon: Icons.devices_outlined,
+                      ),
                     ),
                   ),
                 ),
@@ -83,9 +93,10 @@ class ProductDetailScreen extends ConsumerWidget {
                     children: <Widget>[
                       Text(
                         'Caracteristiques',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 16),
                       for (final spec in specs) ...<Widget>[
@@ -105,9 +116,10 @@ class ProductDetailScreen extends ConsumerWidget {
                     children: <Widget>[
                       Text(
                         'Description',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -137,7 +149,17 @@ class ProductDetailScreen extends ConsumerWidget {
             ],
           );
         },
-        error: (error, stackTrace) => Center(child: Text(error.toString())),
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: StatusMessageCard(
+              message: resolveApiErrorMessage(
+                error,
+                'Impossible de charger cette fiche produit.',
+              ),
+            ),
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );

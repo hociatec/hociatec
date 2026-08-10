@@ -159,8 +159,9 @@ class _TradeInRequestScreenState extends ConsumerState<TradeInRequestScreen> {
               decoration: const InputDecoration(labelText: 'Annee d achat'),
               validator: (value) {
                 final year = int.tryParse(value?.trim() ?? '');
-                if (year == null || year < 2000 || year > 2026) {
-                  return 'Saisissez une annee valide, au plus tard 2026.';
+                final currentYear = DateTime.now().year;
+                if (year == null || year < 2000 || year > currentYear) {
+                  return 'Saisissez une annee valide, au plus tard $currentYear.';
                 }
                 return null;
               },

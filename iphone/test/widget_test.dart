@@ -176,7 +176,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Bienvenue sur l’application Hociatec'), findsOneWidget);
-    expect(find.text('Rendez-vous'), findsOneWidget);
+    expect(find.text('Prendre rendez-vous'), findsOneWidget);
 
     await tester.tap(navigationTab('Catalogue'));
     await tester.pumpAndSettle();
@@ -216,6 +216,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -500));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Contact').first);
     await tester.pumpAndSettle();
 

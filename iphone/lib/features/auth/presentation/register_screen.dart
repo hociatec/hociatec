@@ -77,6 +77,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(text)) {
                   return 'Utilisez le format YYYY-MM-DD.';
                 }
+                final birthDate = DateTime.tryParse(text);
+                if (birthDate == null) {
+                  return 'Saisissez une date valide.';
+                }
+                final now = DateTime.now();
+                if (birthDate.isAfter(now)) {
+                  return 'La date de naissance ne peut pas etre dans le futur.';
+                }
                 return null;
               },
             ),

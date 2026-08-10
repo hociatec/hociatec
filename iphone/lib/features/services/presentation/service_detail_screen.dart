@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/cards/card_media.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
+import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class ServiceDetailScreen extends ConsumerWidget {
@@ -26,7 +29,14 @@ class ServiceDetailScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(24),
                 child: AspectRatio(
                   aspectRatio: 16 / 10,
-                  child: Image.network(service.imageUrl, fit: BoxFit.cover),
+                  child: Image.network(
+                    service.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const CardMediaPlaceholder(
+                      icon: Icons.design_services_outlined,
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 24),
@@ -72,7 +82,17 @@ class ServiceDetailScreen extends ConsumerWidget {
             ),
           ],
         ),
-        error: (error, stackTrace) => Center(child: Text(error.toString())),
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: StatusMessageCard(
+              message: resolveApiErrorMessage(
+                error,
+                'Impossible de charger cette fiche service.',
+              ),
+            ),
+          ),
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
       ),
     );

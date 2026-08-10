@@ -16,17 +16,7 @@ class HomeScreen extends ConsumerWidget {
     final newsAsync = ref.watch(latestNewsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Accueil'),
-        actions: <Widget>[
-          TextButton.icon(
-            onPressed: () => context.push('/contact'),
-            icon: const Icon(Icons.mail_outline),
-            label: const Text('Contact'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Accueil')),
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
