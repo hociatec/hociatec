@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/features/contact/data/contact_repository.dart';
 import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -61,6 +63,13 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: _AuthSessionCard(),
+              ),
+            ),
+            const SizedBox(height: 20),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -123,7 +132,6 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -311,5 +319,89 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
         ),
       );
     }
+  }
+}
+
+class _AuthSessionCard extends ConsumerWidget {
+  const _AuthSessionCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentAuthUserProvider);
+
+    return userAsync.when(
+      data: (user) {
+        if (user == null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Connexion',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Aucune session active. Connectez-vous pour reserver un rendez-vous et demander un audit.',
+              ),
+              const SizedBox(height: 18),
+              FilledButton(
+                onPressed: () => context.push('/connexion'),
+                child: const Text('Se connecter'),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Session active',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text('${user.displayName}\n${user.email}'),
+            const SizedBox(height: 18),
+            OutlinedButton(
+              onPressed: () async {
+                await ref.read(authRepositoryProvider).logout();
+                ref.invalidate(currentAuthUserProvider);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Session deconnectee.')),
+                  );
+                }
+              },
+              child: const Text('Se deconnecter'),
+            ),
+          ],
+        );
+      },
+      error: (error, stackTrace) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Connexion',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            resolveApiErrorMessage(error, 'Impossible de verifier la session.'),
+          ),
+          const SizedBox(height: 18),
+          FilledButton(
+            onPressed: () => context.push('/connexion'),
+            child: const Text('Se connecter'),
+          ),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+    );
   }
 }

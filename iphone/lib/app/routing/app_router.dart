@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
 import 'package:hociatec_mobile/features/appointments/presentation/appointment_request_screen.dart';
 import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
+import 'package:hociatec_mobile/features/auth/presentation/login_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_listing_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
@@ -173,6 +174,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/actualites',
         builder: (context, state) => const NewsScreen(),
+      ),
+      GoRoute(
+        path: '/connexion',
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/actualites/:slug',
