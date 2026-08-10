@@ -346,9 +346,19 @@ class _AuthSessionCard extends ConsumerWidget {
                 'Aucune session active. Connectez-vous pour reserver un rendez-vous et demander un audit.',
               ),
               const SizedBox(height: 18),
-              FilledButton(
-                onPressed: () => context.push('/connexion'),
-                child: const Text('Se connecter'),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: <Widget>[
+                  FilledButton(
+                    onPressed: () => context.push('/connexion'),
+                    child: const Text('Se connecter'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () => context.push('/compte'),
+                    child: const Text('Mon compte'),
+                  ),
+                ],
               ),
             ],
           );
@@ -366,17 +376,27 @@ class _AuthSessionCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Text('${user.displayName}\n${user.email}'),
             const SizedBox(height: 18),
-            OutlinedButton(
-              onPressed: () async {
-                await ref.read(authRepositoryProvider).logout();
-                ref.invalidate(currentAuthUserProvider);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Session deconnectee.')),
-                  );
-                }
-              },
-              child: const Text('Se deconnecter'),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: <Widget>[
+                FilledButton(
+                  onPressed: () => context.push('/compte'),
+                  child: const Text('Mon compte'),
+                ),
+                OutlinedButton(
+                  onPressed: () async {
+                    await ref.read(authRepositoryProvider).logout();
+                    ref.invalidate(currentAuthUserProvider);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Session deconnectee.')),
+                      );
+                    }
+                  },
+                  child: const Text('Se deconnecter'),
+                ),
+              ],
             ),
           ],
         );
@@ -395,9 +415,19 @@ class _AuthSessionCard extends ConsumerWidget {
             resolveApiErrorMessage(error, 'Impossible de verifier la session.'),
           ),
           const SizedBox(height: 18),
-          FilledButton(
-            onPressed: () => context.push('/connexion'),
-            child: const Text('Se connecter'),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: <Widget>[
+              FilledButton(
+                onPressed: () => context.push('/connexion'),
+                child: const Text('Se connecter'),
+              ),
+              OutlinedButton(
+                onPressed: () => context.push('/compte'),
+                child: const Text('Mon compte'),
+              ),
+            ],
           ),
         ],
       ),

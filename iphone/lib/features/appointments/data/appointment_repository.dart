@@ -42,6 +42,35 @@ class AppointmentSlot {
   final String end;
 }
 
+class AppointmentItem {
+  const AppointmentItem({
+    required this.id,
+    required this.startAt,
+    required this.endAt,
+    required this.status,
+    required this.prestation,
+  });
+
+  factory AppointmentItem.fromJson(Map<String, dynamic> json) {
+    return AppointmentItem(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      startAt: (json['startAt'] as String?)?.trim() ?? '',
+      endAt: (json['endAt'] as String?)?.trim() ?? '',
+      status: (json['status'] as String?)?.trim() ?? '',
+      prestation: AppointmentPrestation.fromJson(
+        (json['prestation'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{},
+      ),
+    );
+  }
+
+  final int id;
+  final String startAt;
+  final String endAt;
+  final String status;
+  final AppointmentPrestation prestation;
+}
+
 class AppointmentRepository {
   const AppointmentRepository(this._client);
 
@@ -107,6 +136,27 @@ class AppointmentRepository {
     return (response.data?['message'] as String?)?.trim() ??
         'Votre rendez-vous a bien ete cree.';
   }
+
+  Future<List<AppointmentItem>> fetchMyUpcomingAppointments() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      '/api/appointments/me',
+    );
+
+    final payload = unwrapApiDataMap(
+      response.data,
+      'Impossible de charger vos rendez-vous.',
+    );
+
+    final items = payload['upcoming'];
+    if (items is! List) {
+      throw const ApiException('Impossible de charger vos rendez-vous.');
+    }
+
+    return items
+        .whereType<Map>()
+        .map((item) => AppointmentItem.fromJson(item.cast<String, dynamic>()))
+        .toList(growable: false);
+  }
 }
 
 final appointmentRepositoryProvider = Provider<AppointmentRepository>((ref) {
@@ -116,4 +166,9 @@ final appointmentRepositoryProvider = Provider<AppointmentRepository>((ref) {
 final publicAppointmentPrestationsProvider =
     FutureProvider<List<AppointmentPrestation>>((ref) {
   return ref.watch(appointmentRepositoryProvider).fetchPrestations();
+});
+
+final myUpcomingAppointmentsProvider =
+    FutureProvider<List<AppointmentItem>>((ref) {
+  return ref.watch(appointmentRepositoryProvider).fetchMyUpcomingAppointments();
 });
