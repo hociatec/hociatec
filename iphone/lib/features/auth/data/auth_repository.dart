@@ -54,6 +54,54 @@ class AuthRepository {
         'Connexion reussie.';
   }
 
+  Future<String> register({
+    required String email,
+    required String password,
+    required String confirmPassword,
+    required String firstName,
+    required String lastName,
+    required String birthDate,
+    required String phoneNumber,
+    required String gender,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      '/api/auth/register',
+      data: <String, dynamic>{
+        'email': email,
+        'password': password,
+        'confirmPassword': confirmPassword,
+        'firstName': firstName,
+        'lastName': lastName,
+        'birthDate': birthDate,
+        'phoneNumber': phoneNumber,
+        'gender': gender,
+      },
+    );
+
+    return (response.data?['message'] as String?)?.trim() ??
+        'Compte cree. Verifiez votre email.';
+  }
+
+  Future<String> requestPasswordReset({
+    required String email,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      '/api/auth/password-reset/request',
+      data: <String, dynamic>{'email': email},
+    );
+
+    final data = response.data?['data'];
+    if (data is Map<String, dynamic>) {
+      final message = (data['message'] as String?)?.trim();
+      if (message != null && message.isNotEmpty) {
+        return message;
+      }
+    }
+
+    return (response.data?['message'] as String?)?.trim() ??
+        'Si un compte existe, un email de reinitialisation a ete envoye.';
+  }
+
   Future<void> logout() async {
     try {
       await _client.post<Map<String, dynamic>>('/api/auth/logout');

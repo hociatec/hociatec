@@ -5,7 +5,9 @@ import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
 import 'package:hociatec_mobile/features/account/presentation/account_screen.dart';
 import 'package:hociatec_mobile/features/appointments/presentation/appointment_request_screen.dart';
 import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
+import 'package:hociatec_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:hociatec_mobile/features/auth/presentation/login_screen.dart';
+import 'package:hociatec_mobile/features/auth/presentation/register_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_listing_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
@@ -179,6 +181,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/connexion',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/inscription',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/mot-de-passe-oublie',
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: '/compte',
