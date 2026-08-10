@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
-import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/cards/app_cards.dart';
 
 class CatalogListingScreen extends ConsumerWidget {
   const CatalogListingScreen({
@@ -44,7 +44,7 @@ class CatalogListingScreen extends ConsumerWidget {
               mainAxisSpacing: 14,
             ),
             itemBuilder: (context, index) =>
-                HomeProductCard(product: products[index]),
+                CatalogProductCard(product: products[index]),
           );
         },
         error: (error, stackTrace) => Center(child: Text(error.toString())),

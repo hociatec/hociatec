@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
-import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/cards/app_cards.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
 
 class CatalogScreen extends ConsumerWidget {
   const CatalogScreen({super.key});
@@ -103,7 +104,7 @@ class CatalogScreen extends ConsumerWidget {
                   mainAxisSpacing: 14,
                 ),
                 itemBuilder: (context, index) =>
-                    HomeProductCard(product: products[index]),
+                    CatalogProductCard(product: products[index]),
               );
             },
             error: (error, stackTrace) =>
@@ -191,21 +192,12 @@ class _CatalogStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return StatusMessageCard(
+      message: message,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2D7CA)),
-      ),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-      ),
+      textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
     );
   }
 }

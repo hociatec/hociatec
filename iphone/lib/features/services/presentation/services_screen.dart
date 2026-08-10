@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/cards/app_cards.dart';
 
 class ServicesScreen extends ConsumerWidget {
   const ServicesScreen({super.key});
@@ -88,7 +88,7 @@ class ServicesScreen extends ConsumerWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) =>
-                    HomeServiceCard(service: services[index]),
+                    ServiceOfferingCard(service: services[index]),
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 14),
                 itemCount: services.length,

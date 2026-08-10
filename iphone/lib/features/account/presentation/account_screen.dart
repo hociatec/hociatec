@@ -5,6 +5,7 @@ import 'package:hociatec_mobile/features/appointments/data/appointment_repositor
 import 'package:hociatec_mobile/features/audits/data/audit_repository.dart';
 import 'package:hociatec_mobile/features/auth/data/auth_repository.dart';
 import 'package:hociatec_mobile/features/quotes/data/quote_repository.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/status_message_card.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class AccountScreen extends ConsumerWidget {
@@ -269,18 +270,9 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2D7CA)),
-      ),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-      ),
+    return StatusMessageCard(
+      message: message,
+      textStyle: Theme.of(context).textTheme.bodyMedium,
     );
   }
 }

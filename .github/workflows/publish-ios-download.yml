@@ -67,9 +67,11 @@ jobs:
 
           APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
           APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+          VERSION_RELEASE_TAG="ios-v${APP_VERSION}-b${APP_BUILD}"
+          PUBLIC_IPA_FILENAME="hociatec-altstore-v${APP_VERSION}-b${APP_BUILD}.ipa"
           IPA_SIZE="$(wc -c < "${IPA_PATH}" | tr -d '[:space:]')"
           RELEASE_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa"
+          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/${VERSION_RELEASE_TAG}/${PUBLIC_IPA_FILENAME}"
           SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
           ICON_URL="https://hociatec.fr/logo.png"
 
@@ -111,37 +113,54 @@ jobs:
           }
           EOF
 
-      - name: Publish stable IPA to public GitHub Release
+      - name: Publish versioned IPA to public GitHub Release
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
           TARGET_REPOSITORY: hociatec/hociatec-downloads
         run: |
-          RELEASE_TAG="ios-latest"
-          RELEASE_TITLE="iOS latest"
-          RELEASE_NOTES="Dernier build iOS non signe pour AltStore, publie automatiquement."
+          ARTIFACT_NAME="${{ steps.artifact.outputs.name }}"
           IPA_PATH="$(find tmp-ios-download -maxdepth 2 -name '*.ipa' | head -n 1)"
-          SOURCE_PATH="tmp-ios-download/hociatec-altstore-source.json"
+          APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
+          APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+          RELEASE_TAG="ios-v${APP_VERSION}-b${APP_BUILD}"
+          RELEASE_TITLE="iOS ${APP_VERSION} (${APP_BUILD})"
+          RELEASE_NOTES="Build iOS non signe pour AltStore, publie automatiquement."
+          PUBLIC_IPA_FILENAME="hociatec-altstore-v${APP_VERSION}-b${APP_BUILD}.ipa"
 
           if [ -z "${IPA_PATH}" ]; then
             echo "Impossible de trouver le fichier IPA telecharge." >&2
             exit 1
           fi
 
+          cp "${IPA_PATH}" "tmp-ios-download/${PUBLIC_IPA_FILENAME}"
+
+          if ! gh release view "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
+          fi
+
+          gh release upload "${RELEASE_TAG}" "tmp-ios-download/${PUBLIC_IPA_FILENAME}" --repo "${TARGET_REPOSITORY}" --clobber
+
+      - name: Publish stable AltStore source JSON
+        env:
+          GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
+          TARGET_REPOSITORY: hociatec/hociatec-downloads
+        run: |
+          RELEASE_TAG="ios-latest"
+          RELEASE_TITLE="iOS latest"
+          RELEASE_NOTES="Source AltStore officielle pointant vers le dernier build iOS publie."
+          SOURCE_PATH="tmp-ios-download/hociatec-altstore-source.json"
+
           if [ ! -f "${SOURCE_PATH}" ]; then
             echo "Impossible de trouver le fichier source AltStore genere." >&2
             exit 1
           fi
 
-          cp "${IPA_PATH}" tmp-ios-download/hociatec-altstore-latest.ipa
-
           if gh release view "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" >/dev/null 2>&1; then
-            gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --yes >/dev/null 2>&1 || true
             gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-source.json --repo "${TARGET_REPOSITORY}" --yes >/dev/null 2>&1 || true
           else
             gh release create "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
           fi
 
-          gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --clobber
           gh release upload "${RELEASE_TAG}" "${SOURCE_PATH}" --repo "${TARGET_REPOSITORY}" --clobber
 
       - name: Validate published public AltStore assets
@@ -152,7 +171,9 @@ jobs:
         run: |
           APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
           APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
-          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa"
+          VERSION_RELEASE_TAG="ios-v${APP_VERSION}-b${APP_BUILD}"
+          PUBLIC_IPA_FILENAME="hociatec-altstore-v${APP_VERSION}-b${APP_BUILD}.ipa"
+          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/${VERSION_RELEASE_TAG}/${PUBLIC_IPA_FILENAME}"
           SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
 
           rm -rf tmp-ios-published
@@ -161,7 +182,7 @@ jobs:
           for attempt in 1 2 3 4 5; do
             echo "Verification de la propagation GitHub Release, tentative ${attempt}/5"
 
-            if curl -fsSL "${IPA_URL}" -o tmp-ios-published/hociatec-altstore-latest.ipa \
+            if curl -fsSL "${IPA_URL}" -o "tmp-ios-published/${PUBLIC_IPA_FILENAME}" \
               && curl -fsSL "${SOURCE_URL}" -o tmp-ios-published/hociatec-altstore-source.json; then
               break
             fi
@@ -174,7 +195,7 @@ jobs:
             sleep 15
           done
 
-          ./iphone/tools/validate_altstore_ipa.sh tmp-ios-published/hociatec-altstore-latest.ipa
+          ./iphone/tools/validate_altstore_ipa.sh "tmp-ios-published/${PUBLIC_IPA_FILENAME}"
           ./iphone/tools/validate_altstore_source.sh \
             tmp-ios-published/hociatec-altstore-source.json \
             "${APP_VERSION}" \
