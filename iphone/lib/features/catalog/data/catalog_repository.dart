@@ -51,6 +51,16 @@ class CatalogRepository {
     );
   }
 
+  Future<void> shareProductByEmail({
+    required String slug,
+    required String email,
+  }) async {
+    await _client.post<Map<String, dynamic>>(
+      '/api/public/catalog/products/$slug/share',
+      data: <String, dynamic>{'email': email},
+    );
+  }
+
   Map<String, dynamic> _normalizeProductJson(Map<String, dynamic> item) {
     final normalized = Map<String, dynamic>.from(item);
     normalized['imageUrl'] = resolveAbsoluteUrl(_baseUrl, item['imageUrl'] as String?);
@@ -73,6 +83,11 @@ final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
 
 final featuredProductsProvider = FutureProvider<List<CatalogProduct>>((ref) {
   return ref.watch(catalogRepositoryProvider).fetchFeaturedProducts();
+});
+
+final siteBaseUrlProvider = Provider<String>((ref) {
+  final config = ref.watch(appConfigProvider);
+  return config.siteBaseUrl;
 });
 
 final productDetailProvider =

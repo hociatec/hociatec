@@ -18,7 +18,7 @@ class CatalogScreen extends ConsumerWidget {
           itemCount: products.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.72,
+            childAspectRatio: 0.48,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
           ),

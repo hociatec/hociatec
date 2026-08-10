@@ -1,13 +1,43 @@
+import 'package:intl/intl.dart';
+
 String formatPriceCents(int value, {String? suffix}) {
-  final euros = value ~/ 100;
-  final cents = value.abs() % 100;
-  final formatted = '$euros,${cents.toString().padLeft(2, '0')} EUR';
+  final formatter = NumberFormat.currency(
+    locale: 'fr_FR',
+    symbol: '€',
+    decimalDigits: 2,
+  );
+  final formatted = formatter.format(value / 100);
 
   if (suffix == null || suffix.isEmpty) {
     return formatted;
   }
 
   return '$formatted $suffix';
+}
+
+String formatServiceBillingMode(String? value) {
+  final normalized = value?.trim().toLowerCase() ?? '';
+
+  switch (normalized) {
+    case '':
+    case 'prix fixe':
+      return 'Prix fixe';
+    case 'heure':
+    case 'horaire':
+      return 'Horaire';
+    case 'jour':
+      return 'À la journée';
+    case 'intervention':
+      return 'Par intervention';
+    case 'audit':
+      return 'Audit';
+    case 'installation':
+      return 'Installation';
+    case 'maintenance':
+      return 'Maintenance';
+    default:
+      return value?.trim().isNotEmpty == true ? value!.trim() : 'Prix fixe';
+  }
 }
 
 String extractFirstSentence(String? value, String fallback) {

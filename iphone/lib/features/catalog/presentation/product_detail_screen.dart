@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
+import 'package:hociatec_mobile/features/catalog/presentation/widgets/product_action_toolbar.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
@@ -71,6 +72,8 @@ class ProductDetailScreen extends ConsumerWidget {
                         height: 1.5,
                       ),
                 ),
+              const SizedBox(height: 20),
+              ProductActionToolbar(product: product),
               const SizedBox(height: 24),
               Card(
                 child: Padding(

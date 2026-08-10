@@ -84,10 +84,10 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: 36),
                       _SectionBlock(
                         eyebrow: 'Veille et conseils',
-                        title: 'Actualite',
+                        title: 'Actualité',
                         subtitle:
-                            'Les derniers contenus pour suivre les usages, la securite et les nouveautes Hociatec.',
-                        actionLabel: 'Toutes les actualites',
+                            'Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.',
+                        actionLabel: 'Toutes les actualités',
                         onActionPressed: () => context.push('/actualites'),
                         child: newsAsync.when(
                           data: (articles) => _NewsColumn(articles: articles),
@@ -412,7 +412,7 @@ class _ProductsGrid extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: crossAxisCount == 1 ? 0.86 : 0.76,
+            childAspectRatio: crossAxisCount == 1 ? 0.74 : 0.48,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),

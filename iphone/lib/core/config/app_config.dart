@@ -1,6 +1,7 @@
 class AppConfig {
   const AppConfig({
     required this.apiBaseUrl,
+    required this.siteBaseUrl,
     required this.connectTimeout,
     required this.receiveTimeout,
   });
@@ -10,6 +11,10 @@ class AppConfig {
       apiBaseUrl: String.fromEnvironment(
         'API_BASE_URL',
         defaultValue: 'https://api.hociatec.fr',
+      ),
+      siteBaseUrl: String.fromEnvironment(
+        'SITE_BASE_URL',
+        defaultValue: 'https://hociatec.fr',
       ),
       connectTimeout: Duration(
         milliseconds: int.fromEnvironment(
@@ -27,6 +32,7 @@ class AppConfig {
   }
 
   final String apiBaseUrl;
+  final String siteBaseUrl;
   final Duration connectTimeout;
   final Duration receiveTimeout;
 }

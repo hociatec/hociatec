@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
+import 'package:hociatec_mobile/features/catalog/presentation/widgets/product_action_toolbar.dart';
 import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/domain/service_offering.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
@@ -72,17 +73,17 @@ class HomeServiceCard extends StatelessWidget {
                   const SizedBox(height: 14),
                   _FactLine(
                     label: 'Mode de facturation',
-                    value: service.unit?.isNotEmpty == true ? service.unit! : 'Sur etude',
+                    value: formatServiceBillingMode(service.unit),
                   ),
                   _FactLine(
                     label: 'Prix HT',
                     value: formatPriceCents(service.priceCents),
                   ),
                   _FactLine(
-                    label: 'Duree',
+                    label: 'Durée',
                     value: service.durationLabel?.isNotEmpty == true
                         ? service.durationLabel!
-                        : 'Sur etude',
+                        : 'Sur étude',
                     showDivider: false,
                   ),
                 ],
@@ -163,7 +164,7 @@ class HomeProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _FactLine(label: 'Reference', value: product.sku),
+                    _FactLine(label: 'Référence', value: product.sku),
                     _FactLine(
                       label: 'Type',
                       value: '${product.category.name} (${product.sellingTypeLabel})',
@@ -207,6 +208,11 @@ class HomeProductCard extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 14),
+                    ProductActionToolbar(
+                      product: product,
+                      compact: true,
                     ),
                   ],
                 ),
@@ -313,7 +319,7 @@ class HomeNewsCard extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFDDD1C2)),
                 ),
                 child: Text(
-                  'Lire l actualite',
+                  'Lire l’actualité',
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: const Color(0xFF9D5624),
                     fontWeight: FontWeight.w900,
