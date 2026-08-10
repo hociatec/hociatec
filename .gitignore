@@ -28,3 +28,6 @@ backend/config/jwt/*.key
 *.backup
 backend/var/
 frontend/frontend.log
+
+# Local iOS download artifacts are published via GitHub Releases, not from the repo.
+frontend/public/downloads/*.ipa
