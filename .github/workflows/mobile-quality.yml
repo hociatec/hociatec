@@ -74,9 +74,24 @@ jobs:
       - name: Build unsigned IPA
         run: flutter build ipa --release --no-codesign
 
+      - name: Package unsigned IPA for AltStore
+        run: |
+          rm -rf build/ios/ipa-export
+          mkdir -p build/ios/ipa-export/Payload
+          cp -R build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa-export/Payload/
+          cd build/ios/ipa-export
+          ditto -c -k --sequesterRsrc --keepParent Payload hociatec-mobile-unsigned-altstore.ipa
+
       - name: List iOS build outputs
         run: |
-          find build/ios -maxdepth 3 -type f | sort
+          find build/ios -maxdepth 4 -type f | sort
+
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: hociatec-ios-unsigned-ipa
+          path: iphone/build/ios/ipa-export/hociatec-mobile-unsigned-altstore.ipa
+          if-no-files-found: error
 
       - name: Upload unsigned archive artifact
         uses: actions/upload-artifact@v6
