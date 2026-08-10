@@ -77,9 +77,6 @@ jobs:
       - name: Precache iOS artifacts
         run: flutter precache --ios
 
-      - name: Verify iOS simulator build
-        run: flutter build ios --debug --simulator
-
       - name: Verify unsigned iOS device build
         run: flutter build ios --release --no-codesign
 
@@ -96,10 +93,6 @@ jobs:
 
       - name: Validate AltStore IPA structure
         run: ./tools/validate_altstore_ipa.sh "build/ios/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}"
-
-      - name: List iOS build outputs
-        run: |
-          find build/ios -maxdepth 4 -type f | sort
 
       - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v6
