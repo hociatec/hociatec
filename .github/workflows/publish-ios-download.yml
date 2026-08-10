@@ -1,6 +1,11 @@
 name: Publish iOS download
 
 on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Mobile quality run ID to publish
+        required: false
   workflow_run:
     workflows:
       - Mobile quality
@@ -26,7 +31,7 @@ jobs:
         id: artifact
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ID: ${{ inputs.run_id || github.event.workflow_run.id }}
           REPOSITORY: ${{ github.repository }}
         run: |
           ARTIFACT_NAME="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.expired == false and (.name | startswith("hociatec-ios-unsigned-ipa-v"))) | .name' | head -n 1)"
@@ -44,7 +49,7 @@ jobs:
         run: |
           rm -rf tmp-ios-download
           mkdir -p tmp-ios-download
-          gh run download "${{ github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
+          gh run download "${{ inputs.run_id || github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
 
       - name: Publish stable IPA to public GitHub Release
         env:
