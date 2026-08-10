@@ -143,3 +143,39 @@ jobs:
 
           gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --clobber
           gh release upload "${RELEASE_TAG}" "${SOURCE_PATH}" --repo "${TARGET_REPOSITORY}" --clobber
+
+      - name: Validate published public AltStore assets
+        env:
+          GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
+          TARGET_REPOSITORY: hociatec/hociatec-downloads
+          ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+        run: |
+          APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
+          APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa"
+          SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
+
+          rm -rf tmp-ios-published
+          mkdir -p tmp-ios-published
+
+          for attempt in 1 2 3 4 5; do
+            echo "Verification de la propagation GitHub Release, tentative ${attempt}/5"
+
+            if curl -fsSL "${IPA_URL}" -o tmp-ios-published/hociatec-altstore-latest.ipa \
+              && curl -fsSL "${SOURCE_URL}" -o tmp-ios-published/hociatec-altstore-source.json; then
+              break
+            fi
+
+            if [ "${attempt}" -eq 5 ]; then
+              echo "Les assets publics AltStore ne sont pas encore disponibles apres 5 tentatives." >&2
+              exit 1
+            fi
+
+            sleep 15
+          done
+
+          ./iphone/tools/validate_altstore_ipa.sh tmp-ios-published/hociatec-altstore-latest.ipa
+          ./iphone/tools/validate_altstore_source.sh \
+            tmp-ios-published/hociatec-altstore-source.json \
+            "${APP_VERSION}" \
+            "${APP_BUILD}"
