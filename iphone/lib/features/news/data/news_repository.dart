@@ -55,6 +55,10 @@ final latestNewsProvider = FutureProvider<List<NewsArticle>>((ref) {
   return ref.watch(newsRepositoryProvider).fetchLatest();
 });
 
+final allNewsProvider = FutureProvider<List<NewsArticle>>((ref) {
+  return ref.watch(newsRepositoryProvider).fetchLatest(perPage: 12);
+});
+
 final newsDetailProvider = FutureProvider.family<NewsArticle, String>((ref, slug) {
   return ref.watch(newsRepositoryProvider).fetchBySlug(slug);
 });

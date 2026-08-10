@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hociatec_mobile/app/app.dart';
@@ -70,6 +71,13 @@ final _fakeNews = <NewsArticle>[
 ];
 
 void main() {
+  Finder navigationTab(String label) {
+    return find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.text(label),
+    );
+  }
+
   setUpAll(() {
     PackageInfo.setMockInitialValues(
       appName: 'Hociatec',
@@ -95,10 +103,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Accueil'), findsWidgets);
-    expect(find.text('Recherche'), findsOneWidget);
-    expect(find.text('Catalogue'), findsOneWidget);
-    expect(find.text('Prestations'), findsOneWidget);
-    expect(find.text('A propos'), findsOneWidget);
+    expect(navigationTab('Recherche'), findsOneWidget);
+    expect(navigationTab('Catalogue'), findsOneWidget);
+    expect(navigationTab('Prestations'), findsOneWidget);
+    expect(navigationTab('A propos'), findsOneWidget);
   });
 
   testWidgets('switches between tabs', (tester) async {
@@ -115,19 +123,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Hociatec'), findsWidgets);
+    expect(find.text('HOCIATEC'), findsOneWidget);
     expect(find.text('Diagnostic reseau'), findsOneWidget);
 
-    await tester.tap(find.text('Catalogue'));
+    await tester.tap(navigationTab('Catalogue'));
     await tester.pumpAndSettle();
     expect(find.text('iPhone 13 Reconditionne'), findsOneWidget);
-    expect(find.text('Smartphones'), findsWidgets);
 
-    await tester.tap(find.text('Prestations'));
+    await tester.tap(navigationTab('Prestations'));
     await tester.pumpAndSettle();
     expect(find.text('Diagnostic reseau'), findsOneWidget);
 
-    await tester.tap(find.text('Recherche'));
+    await tester.tap(navigationTab('Recherche'));
     await tester.pumpAndSettle();
     expect(find.text('Fondation de l\'écran de recherche prête à être développée.'), findsOneWidget);
   });

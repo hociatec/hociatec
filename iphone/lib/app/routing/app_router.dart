@@ -6,6 +6,7 @@ import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dar
 import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
 import 'package:hociatec_mobile/features/home/presentation/home_screen.dart';
 import 'package:hociatec_mobile/features/news/presentation/news_detail_screen.dart';
+import 'package:hociatec_mobile/features/news/presentation/news_screen.dart';
 import 'package:hociatec_mobile/features/search/presentation/search_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/service_detail_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/services_screen.dart';
@@ -128,6 +129,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ServiceDetailScreen(
           id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
+      ),
+      GoRoute(
+        path: '/actualites',
+        builder: (context, state) => const NewsScreen(),
       ),
       GoRoute(
         path: '/actualites/:slug',

@@ -5,65 +5,6 @@ import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/domain/service_offering.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
-class HomeSectionHeader extends StatelessWidget {
-  const HomeSectionHeader({
-    required this.eyebrow,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-    super.key,
-  });
-
-  final String eyebrow;
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                eyebrow.toUpperCase(),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (trailing != null) ...<Widget>[
-          const SizedBox(width: 12),
-          trailing!,
-        ],
-      ],
-    );
-  }
-}
-
 class HomeServiceCard extends StatelessWidget {
   const HomeServiceCard({
     required this.service,
@@ -81,69 +22,73 @@ class HomeServiceCard extends StatelessWidget {
     );
 
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       onTap: () => context.push('/prestations/${service.id}'),
       child: Ink(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFD6D0C9)),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x14342718),
+              blurRadius: 26,
+              offset: Offset(0, 10),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              if (service.imageUrl.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 10,
-                    child: Image.network(
-                      service.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const _MediaFallback(
-                        icon: Icons.design_services_outlined,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                const _MediaFallback(icon: Icons.design_services_outlined),
-              const SizedBox(height: 16),
-              Text(
-                service.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                description,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _CardMedia(
+              imageUrl: service.imageUrl,
+              icon: Icons.design_services_outlined,
+              background: const Color(0xFFF7F5F2),
+              height: 180,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _FactChip(
-                    icon: Icons.euro_outlined,
-                    label: formatPriceCents(service.priceCents),
-                  ),
-                  if (service.durationLabel != null && service.durationLabel!.isNotEmpty)
-                    _FactChip(
-                      icon: Icons.schedule_outlined,
-                      label: service.durationLabel!,
+                  Text(
+                    service.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF171C24),
+                      height: 1.25,
                     ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF61574F),
+                      height: 1.55,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _FactLine(
+                    label: 'Mode de facturation',
+                    value: service.unit?.isNotEmpty == true ? service.unit! : 'Sur etude',
+                  ),
+                  _FactLine(
+                    label: 'Prix HT',
+                    value: formatPriceCents(service.priceCents),
+                  ),
+                  _FactLine(
+                    label: 'Duree',
+                    value: service.durationLabel?.isNotEmpty == true
+                        ? service.durationLabel!
+                        : 'Sur etude',
+                    showDivider: false,
+                  ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -169,74 +114,105 @@ class HomeProductCard extends StatelessWidget {
     ].join(' • ');
 
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       onTap: () => context.push('/catalogue/produits/${product.slug}'),
       child: Ink(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              if (product.imageUrl.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: AspectRatio(
-                    aspectRatio: 4 / 3,
-                    child: Image.network(
-                      product.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const _MediaFallback(icon: Icons.devices_outlined),
-                    ),
-                  ),
-                )
-              else
-                const _MediaFallback(icon: Icons.devices_outlined),
-              const SizedBox(height: 14),
-              Text(
-                product.displayName,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                product.category.name,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (specs.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 8),
-                Text(
-                  specs,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const Spacer(),
-              const SizedBox(height: 12),
-              Text(
-                formatPriceCents(
-                  product.effectivePriceCents,
-                  suffix: product.priceUnitLabel,
-                ),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[Color(0xFFFFFFFF), Color(0xFFFFFAF4)],
           ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFDDD1C2)),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x122C1F10),
+              blurRadius: 34,
+              offset: Offset(0, 16),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _CardMedia(
+              imageUrl: product.imageUrl,
+              icon: Icons.devices_outlined,
+              background: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xFFFFF8EF), Color(0xFFF4FBFD)],
+              ),
+              height: 168,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      product.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFF171C24),
+                        height: 1.24,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _FactLine(label: 'Reference', value: product.sku),
+                    _FactLine(
+                      label: 'Type',
+                      value: '${product.category.name} (${product.sellingTypeLabel})',
+                    ),
+                    if (specs.isNotEmpty)
+                      _FactLine(
+                        label: 'Configuration',
+                        value: specs,
+                        showDivider: false,
+                      )
+                    else
+                      const SizedBox(height: 4),
+                    if ((product.shortDescription ?? '').isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 10),
+                      Text(
+                        product.shortDescription!,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF61574F),
+                          height: 1.55,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.only(top: 10),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE4DCD2)),
+                        ),
+                      ),
+                      child: Text(
+                        formatPriceCents(
+                          product.effectivePriceCents,
+                          suffix: product.priceUnitLabel,
+                        ),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: const Color(0xFF9D5624),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -256,15 +232,27 @@ class HomeNewsCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       onTap: () => context.push('/actualites/${article.slug}'),
       child: Ink(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[Color(0xFFFFFFFF), Color(0xFFFFF9F0)],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFDDD1C2)),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: Color(0x142C1F10),
+              blurRadius: 30,
+              offset: Offset(0, 18),
+            ),
+          ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -274,35 +262,62 @@ class HomeNewsCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     formatIsoDate(article.publishedAt ?? article.createdAt),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: const Color(0xFF73675B),
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   if ((article.category ?? '').isNotEmpty)
-                    Text(
-                      article.category!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.secondary,
-                        fontWeight: FontWeight.w700,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0x1FF39A20),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        article.category!.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFF9D5624),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 article.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: const Color(0xFF171C24),
+                  fontWeight: FontWeight.w900,
+                  height: 1.24,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 article.excerpt,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.45,
+                  color: const Color(0xFF61574F),
+                  height: 1.65,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: const Color(0xFFDDD1C2)),
+                ),
+                child: Text(
+                  'Lire l actualite',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: const Color(0xFF9D5624),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
@@ -313,8 +328,50 @@ class HomeNewsCard extends StatelessWidget {
   }
 }
 
-class _MediaFallback extends StatelessWidget {
-  const _MediaFallback({
+class _CardMedia extends StatelessWidget {
+  const _CardMedia({
+    required this.imageUrl,
+    required this.icon,
+    required this.background,
+    required this.height,
+  });
+
+  final String imageUrl;
+  final IconData icon;
+  final Object background;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final decoration = BoxDecoration(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+      border: const Border(
+        bottom: BorderSide(color: Color(0xFFDED8D1)),
+      ),
+      color: background is Color ? background as Color : null,
+      gradient: background is Gradient ? background as Gradient : null,
+    );
+
+    return Container(
+      decoration: decoration,
+      padding: const EdgeInsets.all(18),
+      child: SizedBox(
+        height: height,
+        width: double.infinity,
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => _MediaPlaceholder(icon: icon),
+              )
+            : _MediaPlaceholder(icon: icon),
+      ),
+    );
+  }
+}
+
+class _MediaPlaceholder extends StatelessWidget {
+  const _MediaPlaceholder({
     required this.icon,
   });
 
@@ -324,44 +381,65 @@ class _MediaFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[Color(0x26F39A20), Color(0x2100A8B5)],
+        ),
       ),
       child: Center(
         child: Icon(
           icon,
-          size: 34,
-          color: Theme.of(context).colorScheme.primary,
+          size: 40,
+          color: const Color(0xFF9D5624),
         ),
       ),
     );
   }
 }
 
-class _FactChip extends StatelessWidget {
-  const _FactChip({
-    required this.icon,
+class _FactLine extends StatelessWidget {
+  const _FactLine({
     required this.label,
+    required this.value,
+    this.showDivider = true,
   });
 
-  final IconData icon;
   final String label;
+  final String value;
+  final bool showDivider;
 
   @override
   Widget build(BuildContext context) {
+    final border = showDivider
+        ? const Border(
+            bottom: BorderSide(color: Color(0xFFEBE6DF)),
+          )
+        : null;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, size: 16),
-          const SizedBox(width: 6),
-          Text(label),
-        ],
+      width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 8, top: 2),
+      decoration: BoxDecoration(border: border),
+      child: RichText(
+        text: TextSpan(
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: const Color(0xFF1F2330),
+                height: 1.5,
+                fontWeight: FontWeight.w700,
+              ),
+          children: <InlineSpan>[
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(
+                color: Color(0xFF63584F),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            TextSpan(text: value),
+          ],
+        ),
       ),
     );
   }
