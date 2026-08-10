@@ -16,6 +16,7 @@ final readonly class ProductVariantCopyData
     public ?string $color;
     public ?string $storageCapacity;
     public int $stock;
+    public int $priceCents;
     public int $position;
 
     public function __construct(mixed ...$values)
@@ -29,6 +30,7 @@ final readonly class ProductVariantCopyData
         $this->color = $data['color'];
         $this->storageCapacity = $data['storageCapacity'];
         $this->stock = (int) $data['stock'];
+        $this->priceCents = (int) $data['priceCents'];
         $this->position = (int) $data['position'];
     }
 
@@ -39,9 +41,10 @@ final readonly class ProductVariantCopyData
      */
     private function mapValues(array $values): array
     {
-        $keys = ['template', 'baseName', 'baseSku', 'baseSlug', 'variantGroup', 'color', 'storageCapacity', 'stock', 'position'];
+        $keys = ['template', 'baseName', 'baseSku', 'baseSlug', 'variantGroup', 'color', 'storageCapacity', 'stock', 'priceCents', 'position'];
         $defaults = array_fill_keys($keys, null);
         $defaults['stock'] = 0;
+        $defaults['priceCents'] = 0;
         $defaults['position'] = 0;
         foreach ($values as $index => $value) {
             if (!is_int($index)) {

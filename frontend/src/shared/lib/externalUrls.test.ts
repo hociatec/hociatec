@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+// @vitest-environment jsdom
+import { describe, expect, it } from 'vitest';
 
-import { openMailtoClient, toSafeAttachmentUrl, toSafeHttpsUrl } from './externalUrls';
+import { toSafeAttachmentUrl, toSafeHttpsUrl, toSafeMailtoUrl } from './externalUrls';
 
 describe('external URL safety', () => {
   it('accepts HTTPS URLs and relative resource URLs', () => {
@@ -16,22 +17,19 @@ describe('external URL safety', () => {
     expect(toSafeHttpsUrl('not a url', '')).toBeNull();
   });
 
-  it('builds a safe mailto URL and opens the client', () => {
-    const setLocation = vi.spyOn(window.location, 'href', 'set');
+  it('builds a safe mailto URL', () => {
+    const calledWith = toSafeMailtoUrl(
+      'Jean.Dupont+test@exemple.fr',
+      'Bonjour',
+      'Lien : https://hociatec.fr',
+    );
 
-    openMailtoClient('Jean.Dupont+test@exemple.fr', 'Bonjour', 'Lien : https://hociatec.fr');
-
-    expect(setLocation).toHaveBeenCalledTimes(1);
-    const calledWith = setLocation.mock.calls[0]![0] as string;
     expect(calledWith).toContain('mailto:Jean.Dupont%2Btest%40exemple.fr');
     expect(calledWith).toContain('subject=Bonjour');
     expect(calledWith).toContain('body=Lien%20%3A%20https%3A%2F%2Fhociatec.fr');
   });
 
-  it('does nothing when recipient is empty', () => {
-    const setLocation = vi.spyOn(window.location, 'href', 'set');
-
-    openMailtoClient('   ', 'Bonjour', 'Test');
-    expect(setLocation).not.toHaveBeenCalled();
+  it('returns null when recipient is empty', () => {
+    expect(toSafeMailtoUrl('   ', 'Bonjour', 'Test')).toBeNull();
   });
 });

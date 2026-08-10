@@ -134,13 +134,22 @@ final class TradeInModuleCompletionTest extends TestCase
         $user = $this->user();
         $foreign = $this->user([], 'foreign@example.com');
         $request = $this->tradeInRequest($foreign);
+        $ownedWithoutReceipt = $this->tradeInRequest($user, 'TR-NO-RECEIPT');
         $em->persist($user);
         $em->persist($foreign);
         $em->persist($request);
+        $em->persist($ownedWithoutReceipt);
         $em->flush();
 
         $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $download->setContainer($this->controllerContainer($user));
+
+        try {
+            $download((int) $ownedWithoutReceipt->getId());
+            self::fail('Expected missing receipt exception.');
+        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $exception) {
+            self::assertSame('Justificatif indisponible.', $exception->getMessage());
+        }
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
         $download((int) $request->getId());

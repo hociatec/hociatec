@@ -18,8 +18,12 @@ final class LibreTranslateClient
     /** @var array<string, string> */
     private array $cache = [];
 
-    public function __construct(private readonly HttpClientInterface $httpClient)
-    {
+    public function __construct(
+        private readonly HttpClientInterface $httpClient,
+        private readonly ?string $primaryEndpoint = null,
+        private readonly ?string $fallbackEndpoint = null,
+        private readonly ?string $apiKey = null,
+    ) {
     }
 
     public function translate(string $text, string $sourceLanguage, string $targetLanguage): string
@@ -46,15 +50,17 @@ final class LibreTranslateClient
             return $this->cache[$cacheKey];
         }
 
-        $primaryEndpoint = $this->readEnv('LIBRETRANSLATE_ENDPOINT');
-        $fallbackEndpoint = $this->readEnv('LIBRETRANSLATE_FALLBACK_ENDPOINT');
-        $apiKey = $this->readEnv('LIBRETRANSLATE_API_KEY');
-
-        $endpoints = $this->collectEndpoints($primaryEndpoint, $fallbackEndpoint);
+        $endpoints = $this->collectEndpoints((string) $this->primaryEndpoint, (string) $this->fallbackEndpoint);
 
         $translated = null;
         foreach ($endpoints as $endpoint) {
-            $translated = $this->requestTranslation($endpoint, $text, $sourceLanguage, $targetLanguage, $apiKey);
+            $translated = $this->requestTranslation(
+                $endpoint,
+                $text,
+                $sourceLanguage,
+                $targetLanguage,
+                trim((string) $this->apiKey),
+            );
             if (null !== $translated) {
                 break;
             }
@@ -88,6 +94,7 @@ final class LibreTranslateClient
         ), static fn (string $value): bool => '' !== $value));
 
         $unique = array_values(array_unique($normalized));
+
         return [] !== $unique ? $unique : self::DEFAULT_ENDPOINTS;
     }
 
@@ -100,21 +107,6 @@ final class LibreTranslateClient
         $translated = $this->translate($text, $sourceLanguage, $targetLanguage);
 
         return '' === trim($translated) ? null : trim($translated);
-    }
-
-    private function readEnv(string $name): string
-    {
-        if (isset($_ENV[$name]) && is_string($_ENV[$name])) {
-            return trim($_ENV[$name]);
-        }
-
-        $serverValue = $_SERVER[$name] ?? null;
-        if (is_string($serverValue)) {
-            return trim($serverValue);
-        }
-
-        $envValue = getenv($name);
-        return is_string($envValue) ? trim($envValue) : '';
     }
 
     private function requestTranslation(
@@ -148,9 +140,6 @@ final class LibreTranslateClient
             }
 
             $data = $response->toArray(false);
-            if (!is_array($data)) {
-                return null;
-            }
 
             if (isset($data['translations'])
                 && is_array($data['translations'])
@@ -170,7 +159,7 @@ final class LibreTranslateClient
             }
 
             return null === $translatedText ? null : trim($translatedText);
-        } catch (TransportExceptionInterface | \Throwable) {
+        } catch (\Throwable) {
             return null;
         }
     }

@@ -73,13 +73,6 @@
   margin: 0;
 }
 
-.home-product-card__sku {
-  color: var(--hocia-muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .home-product-card__description {
   -webkit-box-orient: vertical;
   color: var(--hocia-ink-soft);
@@ -89,6 +82,27 @@
   margin-top: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.home-product-card__facts {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.home-product-card__fact {
+  border-bottom: 1px solid rgba(235, 230, 223, 0.95);
+  color: var(--hocia-ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0 0 0.45rem;
+}
+
+.home-product-card__fact-label {
+  color: #63584f;
+  font-weight: 700;
+  margin-right: 0.18rem;
 }
 
 .home-product-card__media {

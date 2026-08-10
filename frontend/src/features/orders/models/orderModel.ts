@@ -27,6 +27,14 @@ export type OrderViewModel = Order & {
 
 export const canPayOrderStatus = (status: OrderStatus) => status === 'pending';
 
+const FOURTEEN_DAYS_IN_MS = 14 * 24 * 60 * 60 * 1000;
+
+export const canCancelOrder = (order: Pick<OrderDto, 'status' | 'createdAt' | 'delivery' | 'invoice'>) =>
+  order.status === 'pending' &&
+  order.delivery?.status === 'preparing' &&
+  order.invoice?.status === 'issued' &&
+  Date.now() - new Date(order.createdAt).getTime() <= FOURTEEN_DAYS_IN_MS;
+
 export const canCancelOrderStatus = (status: OrderStatus) => status === 'pending';
 
 export const canDownloadInvoiceForOrderStatus = (status: OrderStatus) =>
@@ -53,9 +61,12 @@ export const mapOrderToViewModel = (order: Order): OrderViewModel => ({
       ? `${order.pendingReviewsCount} produit${order.pendingReviewsCount > 1 ? 's' : ''}`
       : 'Aucun',
   canPay: canPayOrderStatus(order.status),
-  canCancel: canCancelOrderStatus(order.status),
+  canCancel: false,
   canDownloadInvoice: canDownloadInvoiceForOrderStatus(order.status),
 });
 
 export const mapOrderDtoToViewModel = (order: OrderDto): OrderViewModel =>
-  mapOrderToViewModel(mapOrderDtoToOrder(order));
+  ({
+    ...mapOrderToViewModel(mapOrderDtoToOrder(order)),
+    canCancel: canCancelOrder(order),
+  });

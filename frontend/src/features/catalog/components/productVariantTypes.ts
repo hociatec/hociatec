@@ -6,8 +6,8 @@ export interface ProductVariantOption {
   storage: string | null;
   color: string | null;
   priceLabel: string;
-  stockLabel: string;
   isAvailable: boolean;
+  position: number;
 }
 
 export interface ProductVariantGroup {

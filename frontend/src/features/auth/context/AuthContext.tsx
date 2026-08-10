@@ -67,8 +67,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const queryClient = useQueryClient();
 
   useEffect(
-    () => () => {
-      isMountedRef.current = false;
+    () => {
+      isMountedRef.current = true;
+
+      return () => {
+        isMountedRef.current = false;
+      };
     },
     [],
   );

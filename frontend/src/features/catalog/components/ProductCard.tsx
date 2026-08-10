@@ -6,8 +6,8 @@ import { Image as ImageIcon } from 'lucide-react';
 
 import { formatEuroCents } from '@/shared/lib/formatters';
 import type { CatalogProduct } from '../api';
-import { ProductMetaBadges } from './ProductMetaBadges';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
+import { resolveDisplayPriceCents } from '../utils/productPageDisplay';
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -29,6 +29,8 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   ]
     .filter((value): value is string => Boolean(value))
     .join(' • ');
+  const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
+  const productPrice = resolveDisplayPriceCents(product);
 
   return (
     <article className="catalog-product-card">
@@ -52,32 +54,35 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
       </div>
       <div className="catalog-product-card__content">
         <header className="catalog-product-card__header">
-          <span className="catalog-product-card__sku">{product.sku}</span>
           <h3 className="catalog-product-card__title">
             <Link to={productLink} prefetch="intent" className="catalog-product-card__title-link">
               {productDisplayName}
             </Link>
           </h3>
         </header>
-        <ProductMetaBadges sellingType={product.sellingType} sellingTypeLabel={product.sellingTypeLabel} categoryName={product.category.name} />
-        {compactSpecs.length > 0 && (
-          <p
-            className="catalog-product-card__spec-summary"
-            aria-label="Caractéristiques principales"
-          >
-            {compactSpecs}
+        <div className="catalog-product-card__facts" aria-label={`Informations clés pour ${productDisplayName}`}>
+          <p className="catalog-product-card__fact">
+            <span className="catalog-product-card__fact-label">Référence:</span> {product.sku}
           </p>
-        )}
+          <p className="catalog-product-card__fact">
+            <span className="catalog-product-card__fact-label">Type:</span> {sellingContext}
+          </p>
+          {compactSpecs.length > 0 && (
+            <p className="catalog-product-card__fact">
+              <span className="catalog-product-card__fact-label">Configuration:</span> {compactSpecs}
+            </p>
+          )}
+        </div>
         {(product.variantsCount ?? 1) > 1 && (
           <div className="catalog-product-card__variant-summary">
             {availableStorages.length > 0 && (
               <p className="catalog-product-card__variant-line">
-                <strong>Stockages :</strong> {availableStorages.join(', ')}
+                <span className="catalog-product-card__fact-label">Stockages:</span> {availableStorages.join(', ')}
               </p>
             )}
             {availableColors.length > 0 && (
               <p className="catalog-product-card__variant-line">
-                <strong>Coloris :</strong> {availableColors.join(', ')}
+                <span className="catalog-product-card__fact-label">Coloris:</span> {availableColors.join(', ')}
               </p>
             )}
           </div>
@@ -88,7 +93,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
         <footer className="catalog-product-card__footer">
           <div className="catalog-product-card__footer-main">
             <span className="catalog-product-card__price">
-              {formatEuroCents(product.priceCents)}
+              {formatEuroCents(productPrice)}
               {product.priceUnitLabel ?? ''}
             </span>
           </div>

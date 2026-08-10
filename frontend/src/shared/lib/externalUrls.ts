@@ -1,3 +1,5 @@
+import { redirectToTrustedUrl } from './redirects';
+
 const TRUSTED_WINDOW_OPEN_HOSTS = new Set(['www.facebook.com']);
 
 export const toSafeHttpsUrl = (rawUrl: string | null | undefined, baseUrl?: string) => {
@@ -39,7 +41,7 @@ export const openMailtoClient = (recipientEmail: string, subject: string, body: 
   const safeMailto = toSafeMailtoUrl(recipientEmail, subject, body);
   if (!safeMailto) return;
 
-  window.location.href = safeMailto;
+  redirectToTrustedUrl(safeMailto);
 };
 
 export const openTrustedExternalUrl = (rawUrl: string) => {

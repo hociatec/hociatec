@@ -66,6 +66,24 @@ class ProductRepository extends ServiceEntityRepository implements ProductCatalo
             ->getResult();
     }
 
+    public function findPublishedByVariantGroupOrdered(string $variantGroup): array
+    {
+        return $this->createQueryBuilder('p')
+            ->addSelect('c', 'b')
+            ->join('p.category', 'c')
+            ->leftJoin('p.brandReference', 'b')
+            ->andWhere('p.publication.isPublished = :published')
+            ->andWhere('c.isVisible = :visible')
+            ->andWhere('p.characteristics.variantGroup = :variantGroup')
+            ->setParameter('published', true)
+            ->setParameter('visible', true)
+            ->setParameter('variantGroup', $variantGroup)
+            ->orderBy('p.characteristics.variantPosition', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countByBrand(Brand $brand): int
     {
         return (int) $this->createQueryBuilder('p')

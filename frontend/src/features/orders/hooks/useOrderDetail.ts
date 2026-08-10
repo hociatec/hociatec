@@ -15,7 +15,7 @@ import {
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { orderQueryKeys } from '@/features/orders/queryKeys';
 import {
-  canCancelOrderStatus,
+  canCancelOrder,
   canDownloadInvoiceForOrderStatus,
   canPayOrderStatus,
 } from '@/features/orders/models/orderModel';
@@ -94,7 +94,7 @@ export const useOrderDetail = () => {
     orderQuery.error?.message ??
     (payMutation.error instanceof Error ? payMutation.error.message : null);
   const canPay = order ? canPayOrderStatus(order.status) : false;
-  const canCancel = order ? canCancelOrderStatus(order.status) : false;
+  const canCancel = order ? canCancelOrder(order) : false;
   const canDownloadInvoice = order ? canDownloadInvoiceForOrderStatus(order.status) : false;
 
   const getReviewForm = (orderItemId: number): ReviewFormState =>

@@ -24,7 +24,7 @@ final readonly class ProductVariantFactory
             $this->buildVariantSlug($data->baseSlug ?? $data->baseName, $data->color, $data->storageCapacity, $data->position),
             $this->buildVariantSku($data->baseSku, $data->color, $data->storageCapacity, $data->position),
             $data->template->getDescription(),
-            $data->template->getPriceCents(),
+            $data->priceCents,
             $data->stock,
             $data->template->getCategory(),
         );

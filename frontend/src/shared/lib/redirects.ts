@@ -11,6 +11,10 @@ export const isSafeInternalRedirectPath = (path?: string | null): path is string
 
 export const isTrustedRedirectUrl = (rawUrl: string): boolean => {
   try {
+    if (rawUrl.startsWith('mailto:')) {
+      return true;
+    }
+
     const currentOrigin = typeof window === 'undefined' ? undefined : window.location.origin;
     const url = currentOrigin ? new URL(rawUrl, currentOrigin) : new URL(rawUrl);
 
@@ -26,6 +30,11 @@ export const isTrustedRedirectUrl = (rawUrl: string): boolean => {
 export const redirectToTrustedUrl = (rawUrl: string): void => {
   if (!isTrustedRedirectUrl(rawUrl)) {
     throw new Error('URL de redirection non autorisée.');
+  }
+
+  if (rawUrl.startsWith('mailto:')) {
+    window.location.assign(rawUrl);
+    return;
   }
 
   window.location.assign(new URL(rawUrl, window.location.origin).toString());

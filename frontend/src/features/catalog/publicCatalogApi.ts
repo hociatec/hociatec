@@ -107,6 +107,20 @@ export const fetchPublicProduct = async (slug: string, options: RequestOptions =
   }
 };
 
+export const fetchPublicProductVariants = async (slug: string, options: RequestOptions = {}) => {
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
+      `/api/public/catalog/products/${slug}/variants`,
+      requestSignalConfig(options.signal),
+    );
+    const payload = unwrapApiData(data, 'Impossible de charger les variantes du produit.');
+
+    return parseCatalogProductsPayload(payload).items;
+  } catch (error) {
+    throw new Error(getHttpErrorMessage(error, 'Impossible de charger les variantes du produit.'));
+  }
+};
+
 export const shareProductByEmail = async (slug: string, payload: ShareProductEmailPayload) => {
   try {
     const { data } = await httpClient.post<

@@ -70,6 +70,7 @@ export const buildProductPayload = ({
   const variantPayload = variantRows
     .map((row) => {
       const stock = parseNonNegativeInteger(row.stock);
+      const price = row.price.trim() === '' ? priceValue : parseProductPrice(row.price);
       const storageCapacity =
         row.storageCapacity.trim() === '' ? null : parseNonNegativeInteger(row.storageCapacity);
       return {
@@ -79,6 +80,7 @@ export const buildProductPayload = ({
             ? `${storageCapacity} Go`
             : null,
         stock,
+        price,
       };
     })
     .filter((row) => row.color !== null || row.storageCapacity !== null);
@@ -110,6 +112,9 @@ export const buildProductPayload = ({
   }
   if (variantPayload.some((row) => Number.isNaN(row.stock))) {
     return { error: 'Le stock des variantes doit être un entier positif.' };
+  }
+  if (variantPayload.some((row) => Number.isNaN(row.price))) {
+    return { error: 'Le prix des variantes doit être un nombre valide.' };
   }
 
   const selectedBrand =

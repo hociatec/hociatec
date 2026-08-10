@@ -4,6 +4,21 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 
 export const formatProductPrice = formatEuroCents;
 export const formatProductDate = formatFrenchDate;
+export const resolveDisplayPriceCents = (
+  product: Pick<
+    CatalogProduct,
+    'effectivePriceCents' | 'priceCents' | 'variantsCount' | 'minVariantEffectivePriceCents' | 'minVariantPriceCents'
+  >,
+) => {
+  if ((product.variantsCount ?? 1) > 1) {
+    return product.minVariantEffectivePriceCents ??
+      product.minVariantPriceCents ??
+      product.effectivePriceCents ??
+      product.priceCents;
+  }
+
+  return product.effectivePriceCents ?? product.priceCents;
+};
 
 export const buildVariantGroupKey = (product: CatalogProduct) =>
   product.variantGroup?.trim() ||
@@ -45,13 +60,13 @@ export const buildProductVariantOptions = (variants: CatalogProduct[]) =>
         subtitle: storage ? `Stockage : ${storage}` : 'Version disponible',
         storage,
         color,
-        priceLabel: `${formatProductPrice(variant.priceCents)}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
-        stockLabel: variant.stock > 0 ? `${variant.stock} exemplaire${variant.stock > 1 ? 's' : ''} en stock` : 'Indisponible',
+        priceLabel: `${formatProductPrice(resolveDisplayPriceCents(variant))}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
         isAvailable: variant.stock > 0,
+        position: variant.variantPosition ?? Number.MAX_SAFE_INTEGER,
       };
     });
 
-export const groupProductVariants = <T extends { storage: string | null; title: string }>(
+export const groupProductVariants = <T extends { id: number; storage: string | null; position: number }>(
   variants: T[],
 ) => {
   const groups = new Map<string, T[]>();
@@ -63,7 +78,7 @@ export const groupProductVariants = <T extends { storage: string | null; title: 
   );
   return Array.from(groups.entries()).map(([storage, items]) => ({
     storage,
-    items: items.sort((left, right) => left.title.localeCompare(right.title, 'fr')),
+    items: items.sort((left, right) => left.position - right.position || left.id - right.id),
   }));
 };
 
@@ -84,7 +99,7 @@ export const buildProductStructuredData = (
 ) => {
   const productUrl = toAbsoluteUrl(canonicalUrl) ?? canonicalUrl;
   const imageUrl = toAbsoluteUrl(product.imageUrl);
-  const priceCents = product.effectivePriceCents ?? product.priceCents;
+  const priceCents = resolveDisplayPriceCents(product);
   const schemas: Record<string, unknown>[] = [
     {
       '@context': 'https://schema.org',

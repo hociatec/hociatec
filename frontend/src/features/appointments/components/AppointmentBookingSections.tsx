@@ -116,6 +116,7 @@ export const AppointmentStepTwo = ({
 }: AppointmentStepTwoProps) => {
   const selectedDateValue = selectedDate ? safeFormat(selectedDate, 'yyyy-MM-dd', '') : '';
   const currentMonthStart = isValid(currentMonth) ? startOfMonth(currentMonth) : startOfMonth(new Date());
+  const currentMonthTime = currentMonthStart.getTime();
   const today = startOfDay(new Date());
   const monthLabel = safeFormat(currentMonthStart, 'MMMM yyyy');
   const availableDaysSet = useMemo(() => new Set(availableDays), [availableDays]);
@@ -125,7 +126,7 @@ export const AppointmentStepTwo = ({
         const parsed = toDate(day);
         return parsed !== null && isSameMonth(parsed, currentMonthStart);
       }),
-    [availableDays, currentMonthStart],
+    [availableDays, currentMonthTime],
   );
 
   const calendarDays = useMemo(() => {
@@ -138,14 +139,14 @@ export const AppointmentStepTwo = ({
     }
 
     return days;
-  }, [currentMonthStart]);
+  }, [currentMonthTime]);
 
   const weekDayHeaders = useMemo(() => {
     const start = startOfWeek(currentMonthStart, { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, index) =>
       format(addDays(start, index), 'EEEEEE', { locale: fr }),
     );
-  }, [currentMonthStart]);
+  }, [currentMonthTime]);
 
   return (
     <div className="register-form-card form-card-grid">

@@ -26,7 +26,7 @@ const makeProduct = (overrides: Partial<CatalogProduct>): CatalogProduct =>
   }) as CatalogProduct;
 
 describe('getCatalogProductDisplayName', () => {
-  it('removes duplicated trailing variant fragments before appending current attributes', () => {
+  it('returns only the product model name for display', () => {
     expect(
       getCatalogProductDisplayName(
         makeProduct({
@@ -34,7 +34,7 @@ describe('getCatalogProductDisplayName', () => {
           storageCapacity: '256 Go',
         }),
       ),
-    ).toBe('iPhone 15 (Bleu) (256 Go)');
+    ).toBe('iPhone 15');
   });
 
   it('returns the normalized base name when no display attributes are available', () => {

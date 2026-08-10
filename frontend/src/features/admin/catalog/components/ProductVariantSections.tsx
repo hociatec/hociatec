@@ -69,7 +69,7 @@ export const ProductExtraVariantsSection = ({
       <div className="catalog-form-section__header">
         <h2 className="catalog-form-section__title">Variantes supplémentaires</h2>
         <p className="catalog-form-section__description">
-          Ajoutez des variantes avec leur couleur, leur stockage et leur stock propre.
+          Ajoutez des variantes avec leur couleur, leur stockage, leur stock et leur prix propre.
         </p>
       </div>
 
@@ -121,6 +121,18 @@ export const ProductExtraVariantsSection = ({
                     min="0"
                     value={row.stock}
                     onChange={(event) => onUpdate(index, 'stock', event.target.value)}
+                  />
+                </label>
+                <label htmlFor={`variant-price-${index}`}>
+                  Prix
+                  <input
+                    id={`variant-price-${index}`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={row.price}
+                    onChange={(event) => onUpdate(index, 'price', event.target.value)}
+                    placeholder="699.00"
                   />
                 </label>
               </div>

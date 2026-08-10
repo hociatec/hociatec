@@ -35,7 +35,7 @@ final class VichUploadTransactionCompensationSubscriberTest extends TestCase
             public ?string $imageName = 'asset.jpg';
         };
         $mapping = $this->mapping($directory, 'nested');
-        self::assertSame($directory.'/nested/asset.jpg', $pathFor->invoke($subscriber, $object, $mapping));
+        self::assertSame($directory.'/asset.jpg', $pathFor->invoke($subscriber, $object, $mapping));
 
         $emptyObject = new class {
             public ?string $imageName = '';
@@ -150,6 +150,63 @@ final class VichUploadTransactionCompensationSubscriberTest extends TestCase
         self::assertSame('Removed upload created before database rollback.', $logger->warnings[0]['message']);
     }
 
+    public function testBackupBeforeRemoveLogsWarningWhenInitialBackupCopyFails(): void
+    {
+        $directory = $this->temporaryDirectory();
+        $path = $directory.'/unreadable-image.jpg';
+        file_put_contents($path, 'binary');
+        chmod($path, 0000);
+
+        $registry = new InMemoryTransactionSideEffectRegistry(new NullLogger());
+        $logger = new CollectingWarningLogger();
+        $subscriber = new VichUploadTransactionCompensationSubscriber($registry, $logger);
+        $object = new class {
+            public ?string $imageName = 'unreadable-image.jpg';
+        };
+
+        set_error_handler(static fn (): bool => true);
+        try {
+            $registry->begin();
+            $subscriber->backupBeforeRemove(new Event($object, $this->mapping($directory)));
+            $registry->rollback();
+        } finally {
+            restore_error_handler();
+            chmod($path, 0600);
+        }
+
+        self::assertCount(1, $logger->warnings);
+        self::assertSame('Unable to backup upload before transactional remove.', $logger->warnings[0]['message']);
+    }
+
+    public function testRollbackFailureIsReportedByTransactionRegistryWhenUploadCannotBeRemoved(): void
+    {
+        $directory = $this->temporaryDirectory();
+        $path = $directory.'/stuck-image.jpg';
+        file_put_contents($path, 'payload');
+        chmod($directory, 0500);
+
+        $registryLogger = new CollectingLevelLogger();
+        $registry = new InMemoryTransactionSideEffectRegistry($registryLogger);
+        $subscriber = new VichUploadTransactionCompensationSubscriber($registry, new CollectingWarningLogger());
+        $object = new class {
+            public ?string $imageName = 'stuck-image.jpg';
+        };
+
+        set_error_handler(static fn (): bool => true);
+        try {
+            $registry->begin();
+            $subscriber->removeUploadedFileOnRollback(new Event($object, $this->mapping($directory)));
+            $registry->rollback();
+        } finally {
+            restore_error_handler();
+            chmod($directory, 0700);
+        }
+
+        self::assertFileExists($path);
+        self::assertCount(1, $registryLogger->errors);
+        self::assertSame('Transaction side effect compensation failed.', $registryLogger->errors[0]['message']);
+    }
+
     private function mapping(string $directory, string $uploadDir = ''): PropertyMapping
     {
         $mapping = new PropertyMapping('imageFile', 'imageName');
@@ -184,6 +241,25 @@ final class CollectingWarningLogger extends AbstractLogger
         }
 
         $this->warnings[] = [
+            'level' => (string) $level,
+            'message' => (string) $message,
+            'context' => $context,
+        ];
+    }
+}
+
+final class CollectingLevelLogger extends AbstractLogger
+{
+    /** @var list<array{level:string,message:string,context:array<string,mixed>}> */
+    public array $errors = [];
+
+    public function log($level, \Stringable|string $message, array $context = []): void
+    {
+        if ('error' !== $level) {
+            return;
+        }
+
+        $this->errors[] = [
             'level' => (string) $level,
             'message' => (string) $message,
             'context' => $context,

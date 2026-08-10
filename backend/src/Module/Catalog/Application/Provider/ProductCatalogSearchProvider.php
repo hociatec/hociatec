@@ -16,6 +16,7 @@ final readonly class ProductCatalogSearchProvider
         private ProductQueryService $products,
         private CatalogCacheVersion $cacheVersion,
         private ProductCatalogListProjectionFormatter $formatter,
+        private ProductCatalogModelAggregator $models,
         private CatalogResultCache $cache,
     ) {
     }
@@ -35,8 +36,11 @@ final readonly class ProductCatalogSearchProvider
         $result = $this->cache->get($cacheKey, function () use ($criteria): array {
             $catalogCriteria = $criteria->criteria();
             $filterCriteria = $catalogCriteria->withoutSortAndPagination();
-            $items = $this->products->listPublishedProjection($catalogCriteria);
-            $total = $this->products->countPublished($filterCriteria);
+            $groupedItems = $this->models->aggregate(
+                $this->products->listPublishedProjection($catalogCriteria->withoutPagination())
+            );
+            $total = count($groupedItems);
+            $items = array_slice($groupedItems, $criteria->offset(), $criteria->perPage);
 
             return [
                 'items' => array_map(
@@ -49,7 +53,9 @@ final readonly class ProductCatalogSearchProvider
                     'total' => $total,
                     'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
                 ],
-                'facets' => $this->products->collectPublishedFacets($filterCriteria),
+                'facets' => $this->models->collectFacets(
+                    $this->products->listPublishedProjection($filterCriteria)
+                ),
             ];
         });
 

@@ -11,6 +11,42 @@ use Psr\Log\AbstractLogger;
 
 final class PdfInfrastructureTest extends TestCase
 {
+    public function testAccessiblePdfRendererLogsErrorWhenProcessFailsOrProducesNoPdf(): void
+    {
+        $projectDir = sys_get_temp_dir().'/hociatec-pdf-log-'.bin2hex(random_bytes(4));
+        mkdir($projectDir.'/bin', 0777, true);
+        file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
+        $python = $projectDir.'/fail-python'.('Windows' === PHP_OS_FAMILY ? '.bat' : '.sh');
+        file_put_contents($python, 'Windows' === PHP_OS_FAMILY ? <<<'BAT'
+@echo off
+if "%~1"=="-c" exit /B 0
+echo boom 1>&2
+exit /B 1
+BAT
+            : <<<'SH'
+#!/bin/sh
+if [ "$1" = "-c" ]; then
+  exit 0
+fi
+echo boom 1>&2
+exit 1
+SH);
+        chmod($python, 0755);
+
+        $logger = new PdfCollectingLogger();
+        $renderer = new AccessiblePdfRenderer($projectDir, $python, '', '', $logger);
+
+        try {
+            $renderer->render('<h1>x</h1>', 'invoice', 'lecture impossible');
+            self::fail('Expected PDF generation failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('La génération PDF accessible a échoué.', $exception->getMessage());
+        }
+
+        self::assertNotSame([], $logger->errors);
+        self::assertSame('PDF generation failed.', $logger->errors[0]['message']);
+    }
+
     public function testAccessiblePdfRendererRendersWithFakePythonRuntime(): void
     {
         $projectDir = sys_get_temp_dir().'/hociatec-pdf-'.bin2hex(random_bytes(4));
@@ -179,25 +215,31 @@ SH);
         self::assertSame([], $logger->warnings);
     }
 
-    public function testAccessiblePdfRendererLogsDebugWhenImportCheckCannotRunProcess(): void
+    public function testAccessiblePdfRendererLogsCleanupWarningWhenUnlinkFails(): void
     {
-        $projectDir = sys_get_temp_dir().'/hociatec-pdf-debug-'.bin2hex(random_bytes(4));
-        mkdir($projectDir.'/bin', 0777, true);
-        file_put_contents($projectDir.'/bin/render_accessible_pdf.py', "# fake\n");
-
-        $python = $projectDir.'/non-executable-python.sh';
-        file_put_contents($python, "#!/bin/sh\nexit 0\n");
-        chmod($python, 0644);
+        $directory = sys_get_temp_dir().'/hociatec-pdf-unlink-'.bin2hex(random_bytes(4));
+        mkdir($directory, 0777, true);
+        $path = $directory.'/locked.pdf';
+        file_put_contents($path, 'x');
+        chmod($directory, 0500);
 
         $logger = new PdfCollectingLogger();
-        $renderer = new AccessiblePdfRenderer($projectDir, $python, '', '', $logger);
-        $method = (new \ReflectionObject($renderer))->getMethod('canImportWeasyPrint');
+        $renderer = new AccessiblePdfRenderer('/tmp', '/missing-python', '', '', $logger);
+        $reflection = new \ReflectionObject($renderer);
+        $method = $reflection->getMethod('removeTemporaryFile');
         $method->setAccessible(true);
+        set_error_handler(static fn (): bool => true);
+        try {
+            $method->invoke($renderer, $path);
+        } finally {
+            restore_error_handler();
+        }
 
-        self::assertFalse($method->invoke($renderer, $python));
-        self::assertCount(1, $logger->debugs);
-        self::assertSame('WeasyPrint import check failed.', $logger->debugs[0]['message']);
+        self::assertCount(1, $logger->warnings);
+        self::assertSame('Temporary PDF file cleanup failed.', $logger->warnings[0]['message']);
+        self::assertFileExists($path);
     }
+
 }
 
 final class PdfCollectingLogger extends AbstractLogger
@@ -205,7 +247,7 @@ final class PdfCollectingLogger extends AbstractLogger
     /** @var list<array{level:string,message:string,context:array<string,mixed>}> */
     public array $warnings = [];
     /** @var list<array{level:string,message:string,context:array<string,mixed>}> */
-    public array $debugs = [];
+    public array $errors = [];
 
     public function log($level, \Stringable|string $message, array $context = []): void
     {
@@ -219,8 +261,8 @@ final class PdfCollectingLogger extends AbstractLogger
             return;
         }
 
-        if ('debug' === $level) {
-            $this->debugs[] = [
+        if ('error' === $level) {
+            $this->errors[] = [
                 'level' => (string) $level,
                 'message' => (string) $message,
                 'context' => $context,

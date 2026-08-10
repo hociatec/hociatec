@@ -106,6 +106,10 @@ httpClient.interceptors.response.use(
     return response;
   },
   async (error: unknown) => {
+    if (axios.isCancel(error)) {
+      throw error;
+    }
+
     if (!isAxiosError(error) || !error.config) {
       reportError(error, { category: 'network', message: 'Unhandled HTTP client error.' });
       throw error;

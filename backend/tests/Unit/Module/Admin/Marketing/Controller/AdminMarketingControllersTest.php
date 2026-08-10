@@ -8,6 +8,8 @@ use App\Module\Admin\Application\Marketing\Handler\CreateEmailTemplateHandler;
 use App\Module\Admin\Application\Marketing\Handler\DeleteEmailTemplateHandler;
 use App\Module\Admin\Application\Marketing\Handler\UpdateEmailTemplateHandler;
 use App\Module\Admin\Application\Marketing\Writer\EmailTemplateWriter;
+use App\Module\Admin\UI\Marketing\Controller\PreviewAudienceController;
+use App\Module\Admin\UI\Marketing\Controller\SendCampaignController;
 use App\Module\Admin\UI\Marketing\Controller\CreateTemplateController;
 use App\Module\Admin\UI\Marketing\Controller\DeleteTemplateController;
 use App\Module\Admin\UI\Marketing\Controller\GetTemplateController;
@@ -16,21 +18,34 @@ use App\Module\Admin\UI\Marketing\Controller\ListSegmentsController;
 use App\Module\Admin\UI\Marketing\Controller\ListTemplatesController;
 use App\Module\Admin\UI\Marketing\Controller\UpdateTemplateController;
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
+use App\Module\Marketing\Application\Notification\MarketingCampaignSender;
+use App\Module\Marketing\Application\Outbox\PrepareMarketingCampaignHandler;
+use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
+use App\Module\Marketing\Application\Port\MarketingAudienceQuery;
+use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Security\EmailTemplatePreviewSanitizer;
+use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Marketing\UI\Http\EmailCampaignResponseFormatter;
 use App\Module\Marketing\UI\Http\EmailTemplateResponseFormatter;
+use App\Module\Outbox\Application\Outbox;
+use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Validator\Validation;
 
 final class AdminMarketingControllersTest extends TestCase
@@ -93,6 +108,24 @@ final class AdminMarketingControllersTest extends TestCase
 
         $update = new UpdateTemplateController($templates, $writer, $validator, $requestMapper, $templateFormatter);
         self::assertSame(404, $update(999, $this->jsonRequest([]))->getStatusCode());
+        self::assertSame(400, $update(10, $this->jsonRequest([
+            'name' => 'Updated',
+            'slug' => 'duplicate',
+            'scenarioKey' => $scenarioKey,
+            'subjectTemplate' => 'Subject duplicate',
+            'htmlBody' => '<p>Updated</p>',
+            'textBody' => null,
+            'isActive' => true,
+        ], 'PUT'))->getStatusCode());
+        self::assertSame(400, $update(10, $this->jsonRequest([
+            'name' => 'Updated',
+            'slug' => 'updated',
+            'scenarioKey' => 'missing',
+            'subjectTemplate' => 'Subject invalid scenario',
+            'htmlBody' => '<p>Updated</p>',
+            'textBody' => null,
+            'isActive' => true,
+        ], 'PUT'))->getStatusCode());
         $updated = $update(10, $this->jsonRequest([
             'name' => 'Updated',
             'slug' => 'updated',
@@ -143,6 +176,16 @@ final class AdminMarketingControllersTest extends TestCase
             self::assertNotSame([], $payload['data']['items']);
         }
 
+        $requestMapper = new MarketingRequestMapper();
+        self::assertSame(
+            'vip',
+            $requestMapper->audience($this->jsonRequest(['segmentKey' => 'vip', 'criteria' => []]))->segmentKey
+        );
+        self::assertSame(
+            'Campaign',
+            $requestMapper->campaign($this->jsonRequest(['name' => 'Campaign', 'segmentKey' => 'all_customers', 'subject' => 'Subject', 'htmlBody' => '<p>Hello</p>']))->name
+        );
+
         $template = new EmailTemplate('Digest', 'digest', 'newsletter', 'Subject', '<p>Hello</p>', null);
         $this->setId($template, 7);
         $campaign = new EmailCampaign('Campaign', 'all_customers', ['vip' => true], 'Subject', '<p>Hello</p>', null, 3, 'admin@example.test', $template);
@@ -156,6 +199,85 @@ final class AdminMarketingControllersTest extends TestCase
         self::assertSame('Campaign', $payload['data']['items'][0]['name']);
         self::assertSame('Digest', $payload['data']['items'][0]['template']['name']);
         self::assertSame(12, $payload['data']['meta']['total']);
+    }
+
+    public function testPreviewAndSendCampaignControllersCoverAudienceAndActorBranches(): void
+    {
+        $scenarioProvider = new EmailTemplateScenarioProvider();
+        $recipient = new User('vip@example.test', 'Grace', 'Hopper', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $actor = new User('manager@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $this->setId($recipient, 21);
+        $this->setId($actor, 22);
+
+        $audiences = new class($recipient) implements MarketingAudienceQuery {
+            public function __construct(private readonly User $recipient)
+            {
+            }
+
+            public function resolveRecipients(string $segmentKey, array $criteria, ?int $limit = null, int $offset = 0): array
+            {
+                return [$this->recipient];
+            }
+
+            public function resolveRecipientsAfterId(string $segmentKey, array $criteria, int $lastUserId, int $limit): array
+            {
+                return [];
+            }
+        };
+        $service = new MarketingCampaignService(
+            new MarketingAudienceProvider($audiences, $scenarioProvider),
+            new MarketingCampaignSender(
+                new class implements UnitOfWork {
+                    public function persist(object $entity): void
+                    {
+                        (new \ReflectionObject($entity))->getProperty('id')->setValue($entity, 77);
+                    }
+                    public function remove(object $entity): void {}
+                    public function commit(): void {}
+                },
+                new class implements TransactionManager {
+                    public function transactional(\Closure $operation): mixed
+                    {
+                        return $operation();
+                    }
+                },
+                new Outbox($this->createMock(UnitOfWork::class)),
+            ),
+        );
+
+        $preview = new PreviewAudienceController($service, $this->validator(), new MarketingRequestMapper());
+        $previewPayload = $this->payload($preview($this->jsonRequest([
+            'segmentKey' => 'all_verified_users',
+            'criteria' => [],
+        ])));
+        self::assertSame(1, $previewPayload['data']['preview']['count']);
+        self::assertSame('vip@example.test', $previewPayload['data']['preview']['recipients'][0]['email']);
+        self::assertArrayHasKey('all_verified_users', $previewPayload['data']['segments']);
+
+        $template = new EmailTemplate('Digest', 'digest', 'newsletter', 'Subject', '<p>Hello</p>', 'Hello');
+        $this->setId($template, 7);
+        $templates = $this->createMock(EmailTemplateRepositoryPort::class);
+        $templates->method('find')->willReturn($template);
+        $templates->method('findBy')->willReturn([]);
+        $templates->method('count')->willReturn(0);
+        $templates->method('findOneBySlug')->willReturn(null);
+        $templates->method('findActiveOneByScenarioKey')->willReturn(null);
+
+        $send = new SendCampaignController($service, $templates, $this->validator(), new MarketingRequestMapper(), new EmailCampaignResponseFormatter());
+        $send->setContainer($this->controllerContainer($actor));
+        $sendResponse = $send($this->jsonRequest([
+            'name' => 'Back to school',
+            'segmentKey' => 'all_verified_users',
+            'criteria' => ['vip' => true],
+            'subject' => 'Nouvelle campagne',
+            'htmlBody' => '<p>Hello</p>',
+            'textBody' => 'Hello',
+            'templateId' => 7,
+        ]));
+        self::assertSame(Response::HTTP_CREATED, $sendResponse->getStatusCode());
+        $sendPayload = $this->payload($sendResponse);
+        self::assertSame(77, $sendPayload['data']['campaign']['id']);
+        self::assertSame('Back to school', $sendPayload['data']['campaign']['name']);
     }
 
     private function validator(): DtoValidator
@@ -179,5 +301,17 @@ final class AdminMarketingControllersTest extends TestCase
     {
         $reflection = new \ReflectionObject($entity);
         $reflection->getProperty('id')->setValue($entity, $id);
+    }
+
+    private function controllerContainer(?User $user): Container
+    {
+        $tokenStorage = new TokenStorage();
+        if (null !== $user) {
+            $tokenStorage->setToken(new UsernamePasswordToken(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user), 'main', $user->getRoles()));
+        }
+        $container = new Container();
+        $container->set('security.token_storage', $tokenStorage);
+
+        return $container;
     }
 }

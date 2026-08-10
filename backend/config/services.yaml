@@ -31,6 +31,9 @@ services:
         exclude:
             - '../src/DataFixtures/'
 
+    App\DataFixtures\:
+        resource: '../src/DataFixtures/'
+
     App\Shared\Infrastructure\Http\RequestIdProcessor:
         tags: ['monolog.processor']
 

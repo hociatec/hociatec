@@ -6,7 +6,7 @@ import { fetchOrderById, type OrderDto } from '@/features/orders/api';
 import { OrderDetailSummary } from '@/features/orders/components/OrderDetailSummary';
 import { OrderInvoiceCard } from '@/features/orders/components/OrderInvoiceCard';
 import {
-  canCancelOrderStatus,
+  canCancelOrder,
   canDownloadInvoiceForOrderStatus,
   canPayOrderStatus,
 } from '@/features/orders/models/orderModel';
@@ -85,7 +85,7 @@ export const OrderDetailsDialog = ({
                     order={order}
                     onPay={() => onPayOrder(order.id)}
                     onCancel={() => onCancelOrder(order.id)}
-                    canCancel={canCancelOrderStatus(order.status)}
+                    canCancel={canCancelOrder(order)}
                     canPay={canPayOrderStatus(order.status)}
                     cancelling={cancellingOrderId === order.id}
                     paying={payingOrderId === order.id}

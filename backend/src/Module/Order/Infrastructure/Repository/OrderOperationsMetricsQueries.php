@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Infrastructure\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Enum\OrderStatus;
 
 trait OrderOperationsMetricsQueries
 {
@@ -42,7 +43,11 @@ trait OrderOperationsMetricsQueries
         ];
 
         foreach ($rows as $row) {
-            $status = (string) ($row['status'] ?? '');
+            $status = $row['status'] ?? '';
+            if ($status instanceof OrderStatus) {
+                $status = $status->value;
+            }
+            $status = (string) $status;
             if ('' === $status) {
                 continue;
             }

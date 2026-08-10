@@ -75,6 +75,25 @@ final class TradeInPrivateFileStorageTest extends TestCase
         $storage->read('var/private/trade-ins/missing.pdf');
     }
 
+    public function testItRejectsInvalidReceiptPayloadAndInvalidRibObject(): void
+    {
+        $storage = new TradeInPrivateFileStorage($this->temporaryProjectDir());
+
+        try {
+            $storage->storeReceipt('not-a-pdf');
+            self::fail('Expected invalid receipt exception.');
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame('Le justificatif généré n’est pas un PDF valide.', $exception->getMessage());
+        }
+
+        try {
+            $storage->storeRib(new \stdClass());
+            self::fail('Expected invalid RIB object exception.');
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame('Le RIB PDF est invalide.', $exception->getMessage());
+        }
+    }
+
     public function testItRejectsPathTraversalOutsidePrivateDirectory(): void
     {
         $projectDir = $this->temporaryProjectDir();
@@ -87,6 +106,24 @@ final class TradeInPrivateFileStorageTest extends TestCase
         $this->expectExceptionMessage('Document privé introuvable.');
 
         $storage->read('var/private/trade-ins/../outside.pdf');
+    }
+
+    public function testPrivateHelpersResolveDocumentPathAndSecureStoredFiles(): void
+    {
+        $projectDir = $this->temporaryProjectDir();
+        $storage = new TradeInPrivateFileStorage($projectDir);
+        $relativePath = $storage->storeReceipt('%PDF-helper');
+        $absolutePath = $projectDir.'/'.$relativePath;
+
+        $reflection = new \ReflectionObject($storage);
+        $resolve = $reflection->getMethod('resolvePrivateDocumentPath');
+        $resolve->setAccessible(true);
+        $secure = $reflection->getMethod('securePrivateFile');
+        $secure->setAccessible(true);
+
+        self::assertSame($absolutePath, $resolve->invoke($storage, $relativePath));
+        $secure->invoke($storage, $absolutePath);
+        self::assertSame('600', substr(sprintf('%o', fileperms($absolutePath)), -3));
     }
 
     private function temporaryProjectDir(): string

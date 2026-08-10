@@ -104,7 +104,7 @@ final class RequestQueryMapper
 
         try {
             return new \DateTimeImmutable($value);
-        } catch (\Exception) {
+        } catch (\DateMalformedStringException) {
             return null;
         }
     }

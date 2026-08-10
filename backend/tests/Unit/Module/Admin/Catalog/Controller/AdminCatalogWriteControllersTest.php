@@ -13,6 +13,7 @@ use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
@@ -52,6 +53,15 @@ final class AdminCatalogWriteControllersTest extends TestCase
         $updated = $update(5, $this->jsonRequest(['name' => 'Updated'], 'PUT'));
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('Updated', $this->payload($updated)['data']['name']);
+
+        $failingPersistence = new class implements CatalogPersistencePort {
+            public function save(object $entity): void {}
+            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function delete(object $entity): void {}
+        };
+        $failingService = new BrandService($repository, $this->createMock(ProductRepository::class), $failingPersistence);
+        self::assertSame(500, (new CreateBrandController($failingService, $validator, $catalogFormatter))($this->jsonRequest(['name' => 'Failure']))->getStatusCode());
+        self::assertSame(500, (new UpdateBrandController($repository, $failingService, $validator, $catalogFormatter))(5, $this->jsonRequest(['name' => 'Failure'], 'PUT'))->getStatusCode());
     }
 
     public function testCategoryCreateAndUpdateControllersCoverPayloadBusinessAndSuccessBranches(): void
@@ -83,6 +93,18 @@ final class AdminCatalogWriteControllersTest extends TestCase
         $update = new UpdateCategoryController($repository, $service, $validator, $catalogFormatter);
         self::assertSame(404, $update(404, $this->jsonRequest([], 'PUT'))->getStatusCode());
         self::assertSame(400, $update(7, Request::create('/', 'PUT', server: [], content: '{bad'))->getStatusCode());
+        self::assertSame(422, $update(7, $this->jsonRequest([
+            'name' => 'Duplicate',
+            'slug' => 'updated-category',
+            'description' => null,
+            'isVisible' => true,
+        ], 'PUT'))->getStatusCode());
+        self::assertSame(422, $update(7, $this->jsonRequest([
+            'name' => 'Updated Category',
+            'slug' => 'used',
+            'description' => null,
+            'isVisible' => true,
+        ], 'PUT'))->getStatusCode());
         $updated = $update(7, $this->jsonRequest([
             'name' => 'Updated Category',
             'slug' => '',
@@ -91,6 +113,15 @@ final class AdminCatalogWriteControllersTest extends TestCase
         ], 'PUT'));
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('updated-category', $this->payload($updated)['data']['slug']);
+
+        $failingPersistence = new class implements CatalogPersistencePort {
+            public function save(object $entity): void {}
+            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function delete(object $entity): void {}
+        };
+        $failingService = new CategoryCatalogWorkflow($repository, $failingPersistence);
+        self::assertSame(500, (new CreateCategoryController($failingService, $validator, $catalogFormatter))($this->jsonRequest(['name' => 'Failure']))->getStatusCode());
+        self::assertSame(500, (new UpdateCategoryController($repository, $failingService, $validator, $catalogFormatter))(7, $this->jsonRequest(['name' => 'Failure'], 'PUT'))->getStatusCode());
     }
 
     private function persistence(): CatalogPersistence

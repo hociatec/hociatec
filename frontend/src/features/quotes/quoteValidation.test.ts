@@ -73,4 +73,22 @@ describe('parseQuoteService', () => {
       vatRate: 20,
     })).toThrow(ApiContractError);
   });
+
+  it('normalizes relative service illustration urls returned by the API', () => {
+    expect(parseQuoteService({
+      id: 1,
+      title: 'Intervention',
+      description: null,
+      unit: null,
+      isFeaturedHome: false,
+      imageUrl: '/uploads/services/intervention.jpg',
+      durationValue: 2,
+      durationUnit: 'hour',
+      durationLabel: '2 heures',
+      priceCents: 10000,
+      vatRate: 20,
+    })).toMatchObject({
+      imageUrl: expect.stringContaining('/uploads/services/intervention.jpg'),
+    });
+  });
 });

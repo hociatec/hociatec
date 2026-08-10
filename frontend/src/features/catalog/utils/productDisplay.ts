@@ -13,14 +13,5 @@ const stripTrailingVariantParts = (name: string) => {
 };
 
 export const getCatalogProductDisplayName = (product: CatalogProduct) => {
-  const baseName = stripTrailingVariantParts(product.name);
-  const attributes = [product.color, product.storageCapacity]
-    .map((value) => value?.trim())
-    .filter((value): value is string => Boolean(value));
-
-  if (attributes.length === 0) {
-    return baseName;
-  }
-
-  return `${baseName} ${attributes.map((value) => `(${value})`).join(' ')}`;
+  return stripTrailingVariantParts(product.modelName?.trim() || product.name);
 };

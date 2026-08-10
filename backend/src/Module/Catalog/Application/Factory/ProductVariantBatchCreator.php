@@ -30,7 +30,7 @@ final readonly class ProductVariantBatchCreator
         array $definitions,
     ): void {
         foreach ($definitions as $index => $definition) {
-            $values = $this->normalizeDefinition($definition, $defaultStock);
+            $values = $this->normalizeDefinition($definition, $defaultStock, $product->getPriceCents());
             if (null === $values) {
                 continue;
             }
@@ -63,7 +63,7 @@ final readonly class ProductVariantBatchCreator
 
         $position = count($this->products->findByVariantGroupOrdered($variantGroup)) + 1;
         foreach ($definitions as $definition) {
-            $values = $this->normalizeDefinition($definition, $defaultStock);
+            $values = $this->normalizeDefinition($definition, $defaultStock, $product->getPriceCents());
             if (null === $values) {
                 continue;
             }
@@ -74,15 +74,18 @@ final readonly class ProductVariantBatchCreator
     }
 
     /**
-     * @return array{color: ?string, storage: ?string, stock: int}|null
+     * @return array{color: ?string, storage: ?string, stock: int, priceCents: int}|null
      */
-    private function normalizeDefinition(mixed $definition, int $defaultStock): ?array
+    private function normalizeDefinition(mixed $definition, int $defaultStock, int $defaultPriceCents): ?array
     {
         if (!is_array($definition)) {
             return null;
         }
 
         $stock = isset($definition['stock']) ? (int) $definition['stock'] : $defaultStock;
+        $priceCents = array_key_exists('priceCents', $definition) && null !== $definition['priceCents']
+            ? (int) $definition['priceCents']
+            : $defaultPriceCents;
         $color = isset($definition['color']) && is_string($definition['color'])
             ? trim($definition['color'])
             : null;
@@ -90,7 +93,11 @@ final readonly class ProductVariantBatchCreator
             ? trim($definition['storageCapacity'])
             : null;
 
-        if ($stock < 0 || ((null === $color || '' === $color) && (null === $storage || '' === $storage))) {
+        if (
+            $stock < 0
+            || $priceCents < 0
+            || ((null === $color || '' === $color) && (null === $storage || '' === $storage))
+        ) {
             return null;
         }
 
@@ -98,11 +105,12 @@ final readonly class ProductVariantBatchCreator
             'color' => '' !== $color ? $color : null,
             'storage' => '' !== $storage ? $storage : null,
             'stock' => $stock,
+            'priceCents' => $priceCents,
         ];
     }
 
     /**
-     * @param array{color: ?string, storage: ?string, stock: int} $values
+     * @param array{color: ?string, storage: ?string, stock: int, priceCents: int} $values
      */
     private function persistCopy(
         Product $product,
@@ -122,6 +130,7 @@ final readonly class ProductVariantBatchCreator
             color: $values['color'],
             storageCapacity: $values['storage'],
             stock: $values['stock'],
+            priceCents: $values['priceCents'],
             position: $position,
         ));
         $this->persistence->persist($copy);

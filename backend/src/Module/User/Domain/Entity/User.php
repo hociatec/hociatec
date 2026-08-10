@@ -6,12 +6,13 @@ namespace App\Module\User\Domain\Entity;
 
 use App\Module\User\Domain\Security\SecurityUserIdentity;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'UNIQ_USERS_EMAIL', columns: ['email'])]
 #[ORM\HasLifecycleCallbacks]
-class User implements SecurityUserIdentity
+class User implements SecurityUserIdentity, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

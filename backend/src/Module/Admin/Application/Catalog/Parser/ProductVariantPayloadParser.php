@@ -9,7 +9,7 @@ use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
 final class ProductVariantPayloadParser
 {
     /**
-     * @return list<array{color: ?string, storageCapacity: ?string, stock: int}>
+     * @return list<array{color: ?string, storageCapacity: ?string, stock: int, priceCents: int|null}>
      */
     public function parse(mixed $value): array
     {
@@ -28,10 +28,23 @@ final class ProductVariantPayloadParser
                 continue;
             }
 
+            $stock = isset($row['stock']) ? (int) $row['stock'] : 0;
+            if ($stock < 0) {
+                throw new \InvalidArgumentException('Le stock des variantes doit être positif.');
+            }
+
+            $priceCents = array_key_exists('price', $row)
+                ? ProductFormValueNormalizer::priceToCents($row['price'])
+                : null;
+            if (null !== $priceCents && $priceCents < 0) {
+                throw new \InvalidArgumentException('Le prix des variantes est invalide.');
+            }
+
             $variants[] = [
                 'color' => ProductFormValueNormalizer::optionalString($row['color'] ?? null),
                 'storageCapacity' => ProductFormValueNormalizer::optionalString($row['storageCapacity'] ?? null),
-                'stock' => isset($row['stock']) ? (int) $row['stock'] : 0,
+                'stock' => $stock,
+                'priceCents' => $priceCents,
             ];
         }
 

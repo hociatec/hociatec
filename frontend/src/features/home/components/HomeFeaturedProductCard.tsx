@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { Image as ImageIcon } from 'lucide-react';
 
-import type { CatalogProduct } from '@/features/catalog/publicApi';
-import { getCatalogProductDisplayName } from '@/features/catalog/publicApi';
-import { ProductActionToolbar, ProductMetaBadges } from '@/features/catalog/uiApi';
+import {
+  getCatalogProductDisplayName,
+  resolveDisplayPriceCents,
+  type CatalogProduct,
+} from '@/features/catalog/publicApi';
+import { ProductActionToolbar } from '@/features/catalog/uiApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const HomeFeaturedProductCard = ({
@@ -18,12 +21,14 @@ export const HomeFeaturedProductCard = ({
   const productDisplayName = getCatalogProductDisplayName(product);
   const compactSpecs = [
     product.brand?.trim(),
-    product.storageCapacity?.trim(),
     product.memoryRam?.trim(),
-    product.color?.trim(),
+    (product.variantsCount ?? 1) > 1 ? null : product.storageCapacity?.trim(),
+    (product.variantsCount ?? 1) > 1 ? null : product.color?.trim(),
   ]
     .filter(Boolean)
     .join(' • ');
+  const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
+  const productPrice = resolveDisplayPriceCents(product);
 
   const productLink = `/catalogue/produits/${product.slug}`;
 
@@ -54,22 +59,19 @@ export const HomeFeaturedProductCard = ({
               {productDisplayName}
             </Link>
           </h3>
-          <p className="home-product-card__sku">
-            Référence: <span className="font-semibold">{product.sku}</span>
-          </p>
-          <ProductMetaBadges
-            sellingType={product.sellingType}
-            sellingTypeLabel={product.sellingTypeLabel}
-            categoryName={product.category.name}
-          />
-          {compactSpecs.length > 0 && (
-            <p
-              className="catalog-product-card__spec-summary"
-              aria-label="Caractéristiques principales"
-            >
-              {compactSpecs}
+          <div className="home-product-card__facts" aria-label={`Informations clés pour ${productDisplayName}`}>
+            <p className="home-product-card__fact">
+              <span className="home-product-card__fact-label">Référence:</span> {product.sku}
             </p>
-          )}
+            <p className="home-product-card__fact">
+              <span className="home-product-card__fact-label">Type:</span> {sellingContext}
+            </p>
+            {compactSpecs.length > 0 && (
+              <p className="home-product-card__fact">
+                <span className="home-product-card__fact-label">Configuration:</span> {compactSpecs}
+              </p>
+            )}
+          </div>
         </header>
 
         {product.shortDescription && (
@@ -78,7 +80,7 @@ export const HomeFeaturedProductCard = ({
 
         <div className="home-product-card__footer">
           <div className="home-product-card__footer-main">
-            <span className="home-product-card__price">{formatEuroCents(product.priceCents)}</span>
+            <span className="home-product-card__price">{formatEuroCents(productPrice)}</span>
           </div>
           <div className="home-product-card__actions-container">
             <ProductActionToolbar product={product} />

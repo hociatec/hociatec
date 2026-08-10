@@ -6,7 +6,10 @@ export const useProductVariantRows = () => {
   const [variantRows, setVariantRows] = useState<VariantRowState[]>([]);
 
   const addVariantRow = useCallback(() => {
-    setVariantRows((previous) => [...previous, { color: '', storageCapacity: '', stock: '0' }]);
+    setVariantRows((previous) => [
+      ...previous,
+      { color: '', storageCapacity: '', stock: '0', price: '0' },
+    ]);
   }, []);
 
   const updateVariantRow = useCallback(

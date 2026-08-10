@@ -140,7 +140,7 @@ final class AppointmentServicesTest extends TestCase
     {
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $prestation = new Prestation('Diagnostic', 60, 9000);
-        $startAt = new \DateTimeImmutable('2026-08-10T09:00:00+00:00');
+        $startAt = new \DateTimeImmutable('2026-08-17T09:00:00+00:00');
 
         $workingDays = $this->createMock(WorkingDayConfigurationRepository::class);
         $workingDays->method('findAllOrdered')->willReturn([
@@ -176,7 +176,7 @@ final class AppointmentServicesTest extends TestCase
         $this->entityManager->expects(self::once())->method('flush');
 
         $appointment = $service->book($user, $prestation, $startAt);
-        self::assertSame('2026-08-10T10:00:00+00:00', $appointment->getEndAt()->format(DATE_ATOM));
+        self::assertSame('2026-08-17T10:00:00+00:00', $appointment->getEndAt()->format(DATE_ATOM));
     }
 
     public function testAppointmentServiceRejectsUnavailableSlot(): void
@@ -198,18 +198,20 @@ final class AppointmentServicesTest extends TestCase
         $service->book(
             new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female'),
             new Prestation('Diagnostic', 60, 9000),
-            new \DateTimeImmutable('2026-08-10T09:00:00+00:00'),
+            new \DateTimeImmutable('2026-08-17T09:00:00+00:00'),
         );
     }
 
     public function testAppointmentServiceSplitsFutureAndPastAppointments(): void
     {
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
-        $future = new Appointment($user, new Prestation('Future', 60, 9000), new \DateTimeImmutable('2026-08-10T09:00:00+00:00'));
+        $future = new Appointment($user, new Prestation('Future', 60, 9000), new \DateTimeImmutable('2026-08-17T09:00:00+00:00'));
         $past = new Appointment($user, new Prestation('Past', 60, 9000), new \DateTimeImmutable('2026-07-01T09:00:00+00:00'));
+        $cancelledFuture = (new Appointment($user, new Prestation('Cancelled future', 60, 9000), new \DateTimeImmutable('2026-08-18T09:00:00+00:00')))
+            ->cancel();
 
         $appointments = $this->createMock(AppointmentRepository::class);
-        $appointments->expects(self::once())->method('findForUser')->with($user)->willReturn([$future, $past]);
+        $appointments->expects(self::once())->method('findForUser')->with($user)->willReturn([$cancelledFuture, $future, $past]);
 
         $service = new AppointmentService(
             $appointments,
@@ -225,7 +227,7 @@ final class AppointmentServicesTest extends TestCase
 
         $result = $service->getAppointmentsForUser($user);
         self::assertSame([$future], $result['upcoming']);
-        self::assertSame([$past], $result['past']);
+        self::assertSame([$cancelledFuture, $past], $result['past']);
     }
 
     public function testAppointmentServiceCancelsAndDelegatesStatusChanges(): void
@@ -481,7 +483,7 @@ final class AppointmentServicesTest extends TestCase
 
     private function createFutureAppointment(): Appointment
     {
-        return $this->createAppointmentAt(new \DateTimeImmutable('2026-08-10T09:00:00+00:00'));
+        return $this->createAppointmentAt(new \DateTimeImmutable('2026-08-17T09:00:00+00:00'));
     }
 
     private function createAppointmentAt(\DateTimeImmutable $startAt): Appointment

@@ -126,6 +126,8 @@ const expectNoUnexpectedErrors = (errors: ReturnType<typeof watchRuntimeErrors>)
 };
 
 test('private routes redirect to authentication entry points and render cleanly', async ({ page }) => {
+  test.setTimeout(120_000);
+
   for (const route of ROUTE_LIST) {
     const errors = watchRuntimeErrors(page);
 

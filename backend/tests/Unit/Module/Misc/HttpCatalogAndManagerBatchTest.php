@@ -14,6 +14,7 @@ use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
 use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
+use App\Module\Catalog\Application\Provider\ProductCatalogModelAggregator;
 use App\Module\Catalog\Application\Provider\ProductCatalogSearchProvider;
 use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
@@ -91,7 +92,7 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $this->setId($product, 12);
 
         $products = $this->createMock(ProductRepository::class);
-        $products->expects(self::once())
+        $products->expects(self::exactly(2))
             ->method('findPublishedListProjection')
             ->with(self::callback(static fn (ProductCatalogCriteria $criteria): bool => 'phones' === $criteria->categorySlug
                 && 'iphone' === $criteria->search
@@ -104,9 +105,10 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
                 && 1050 === $criteria->minPriceCents
                 && 2000 === $criteria->maxPriceCents
                 && true === $criteria->inStockOnly
-                && 'price_desc' === $criteria->sort
-                && 48 === $criteria->limit
-                && 0 === $criteria->offset))
+                && (
+                    ('price_desc' === $criteria->sort && null === $criteria->limit && null === $criteria->offset)
+                    || (null === $criteria->sort && null === $criteria->limit && null === $criteria->offset)
+                )))
             ->willReturn([[
                 'id' => 12,
                 'name' => 'iPhone',
@@ -145,32 +147,13 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
                 'categoryName' => 'Phones',
                 'categorySlug' => 'phones',
             ]]);
-        $products->expects(self::once())
-            ->method('countPublished')
-            ->with(self::callback(static fn (ProductCatalogCriteria $criteria): bool => 'phones' === $criteria->categorySlug
-                && 'iphone' === $criteria->search
-                && true === $criteria->onlyFeatured
-                && 'rental' === $criteria->sellingType
-                && 'apple' === $criteria->brand
-                && '256 Go' === $criteria->storageCapacity
-                && '8 Go' === $criteria->memoryRam
-                && 'Noir' === $criteria->color
-                && 1050 === $criteria->minPriceCents
-                && 2000 === $criteria->maxPriceCents
-                && true === $criteria->inStockOnly
-                && null === $criteria->sort
-                && null === $criteria->limit
-                && null === $criteria->offset))
-            ->willReturn(49);
-        $products->expects(self::once())
-            ->method('collectPublishedFacets')
-            ->with(self::isInstanceOf(ProductCatalogCriteria::class))
-            ->willReturn(['brands' => ['Apple']]);
+        $products->expects(self::never())->method('countPublished');
+        $products->expects(self::never())->method('collectPublishedFacets');
 
         $cache = new ArrayAdapter();
         $controller = new ListProductsController(
             new ProductSearchRequestMapper(),
-            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), new ProductCatalogListProjectionFormatter(), new SymfonyCatalogResultCache($cache)),
+            new ProductCatalogSearchProvider(new ProductQueryService($products), new CatalogCacheVersion($cache, new NullLogger()), new ProductCatalogListProjectionFormatter(), new ProductCatalogModelAggregator(), new SymfonyCatalogResultCache($cache)),
         );
 
         $request = new Request([
@@ -193,12 +176,19 @@ final class HttpCatalogAndManagerBatchTest extends TestCase
         $payload = json_decode((string) $controller($request)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(1, $payload['data']['meta']['page']);
         self::assertSame(48, $payload['data']['meta']['perPage']);
-        self::assertSame(49, $payload['data']['meta']['total']);
-        self::assertSame(2, $payload['data']['meta']['totalPages']);
+        self::assertSame(1, $payload['data']['meta']['total']);
+        self::assertSame(1, $payload['data']['meta']['totalPages']);
         self::assertSame('Location', $payload['data']['items'][0]['sellingTypeLabel']);
         self::assertSame('Apple', $payload['data']['items'][0]['brand']);
         self::assertSame('/uploads/products/iphone.jpg', $payload['data']['items'][0]['imageUrl']);
-        self::assertSame(['brands' => ['Apple']], $payload['data']['facets']);
+        self::assertSame([
+            'brands' => [['value' => 'Apple', 'count' => 1, 'extra' => null]],
+            'categories' => [['value' => 'Phones', 'count' => 1, 'extra' => 'phones']],
+            'storageCapacities' => [['value' => '256 Go', 'count' => 1, 'extra' => null]],
+            'memoryRams' => [['value' => '8 Go', 'count' => 1, 'extra' => null]],
+            'colors' => [['value' => 'Noir', 'count' => 1, 'extra' => null]],
+            'price' => ['min' => 199900, 'max' => 199900],
+        ], $payload['data']['facets']);
 
         $criteria = (new ProductSearchRequestMapper())->map(new Request([
             'page' => '-4',

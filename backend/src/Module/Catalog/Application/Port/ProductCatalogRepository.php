@@ -26,6 +26,9 @@ interface ProductCatalogRepository
     /** @return list<Product> */
     public function findByVariantGroupOrdered(string $variantGroup): array;
 
+    /** @return list<Product> */
+    public function findPublishedByVariantGroupOrdered(string $variantGroup): array;
+
     public function countByBrand(Brand $brand): int;
 
     public function clearBrand(Brand $brand): void;

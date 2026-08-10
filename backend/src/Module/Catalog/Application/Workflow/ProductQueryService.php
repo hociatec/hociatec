@@ -61,4 +61,20 @@ final readonly class ProductQueryService
     {
         return $this->products->findOnePublishedBySlug($slug);
     }
+
+    /**
+     * @return list<Product>
+     */
+    public function findPublishedVariantsByProduct(Product $product): array
+    {
+        $variantGroup = trim((string) ($product->getVariantGroup() ?? ''));
+
+        if ('' === $variantGroup) {
+            return [$product];
+        }
+
+        $variants = $this->products->findPublishedByVariantGroupOrdered($variantGroup);
+
+        return [] !== $variants ? $variants : [$product];
+    }
 }

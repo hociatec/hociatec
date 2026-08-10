@@ -1,0 +1,82 @@
+name: Mobile quality
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'iphone/**'
+      - '.github/workflows/mobile-quality.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'iphone/**'
+      - '.github/workflows/mobile-quality.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iphone
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Widget tests
+        run: flutter test
+
+  ios-build:
+    runs-on: macos-latest
+    needs: quality
+    defaults:
+      run:
+        working-directory: iphone
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Precache iOS artifacts
+        run: flutter precache --ios
+
+      - name: Verify iOS simulator build
+        run: flutter build ios --debug --simulator
+
+      - name: Verify unsigned iOS device build
+        run: flutter build ios --release --no-codesign
+
+      - name: Build unsigned IPA
+        run: flutter build ipa --release --no-codesign
+
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hociatec-ios-unsigned-ipa
+          path: iphone/build/ios/ipa/*.ipa
+          if-no-files-found: error

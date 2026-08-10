@@ -70,7 +70,7 @@ final class AppointmentService
         $past = [];
 
         foreach ($appointments as $appointment) {
-            if ($appointment->getStartAt() >= $now) {
+            if ($this->isUpcomingAppointment($appointment, $now)) {
                 $future[] = $appointment;
             } else {
                 $past[] = $appointment;
@@ -124,5 +124,10 @@ final class AppointmentService
     public function changeStatus(Appointment $appointment, string $targetStatus): void
     {
         $this->changeAppointmentStatus->change($appointment, $targetStatus);
+    }
+
+    private function isUpcomingAppointment(Appointment $appointment, \DateTimeImmutable $now): bool
+    {
+        return $appointment->getStartAt() >= $now && !$appointment->isCancelled();
     }
 }

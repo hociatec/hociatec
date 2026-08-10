@@ -28,6 +28,7 @@ export type VariantRowState = {
   color: string;
   storageCapacity: string;
   stock: string;
+  price: string;
 };
 
 export const emptyProductForm: ProductFormState = {

@@ -77,6 +77,24 @@ final readonly class ProductCatalogCriteria
         );
     }
 
+    public function withoutPagination(): self
+    {
+        return new self(
+            categorySlug: $this->categorySlug,
+            search: $this->search,
+            onlyFeatured: $this->onlyFeatured,
+            sellingType: $this->sellingType,
+            brand: $this->brand,
+            storageCapacity: $this->storageCapacity,
+            memoryRam: $this->memoryRam,
+            color: $this->color,
+            minPriceCents: $this->minPriceCents,
+            maxPriceCents: $this->maxPriceCents,
+            inStockOnly: $this->inStockOnly,
+            sort: $this->sort,
+        );
+    }
+
     /** @return array<string, mixed> */
     public function cacheKeyPayload(): array
     {

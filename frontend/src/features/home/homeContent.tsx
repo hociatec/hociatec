@@ -1,11 +1,13 @@
 import { Link } from 'react-router';
-import { ArrowRight, Clock3 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
+import { resolvePublicAssetUrl } from '@/shared/lib/publicAssetUrl';
 import type { NewsArticleDto } from '@/features/news/publicApi';
 import { formatServiceBillingMode } from '@/features/quotes/publicApi';
 import { resolveServiceIllustration } from '@/features/quotes/publicApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
+import '@/app/styles/home.css';
 
 const formatNewsDate = (value: string | null) =>
   value ? formatOptionalFrenchDate(value) : 'Date non définie';
@@ -20,6 +22,8 @@ const getFirstSentence = (value?: string | null) => {
 
   return sentence.trim();
 };
+
+const SERVICE_ILLUSTRATION_FALLBACK = resolvePublicAssetUrl('/service-illustrations/service-generique.svg');
 
 export const HomeProductsHeading = () => (
   <div className="home-section-heading home-section-heading--center">
@@ -77,10 +81,12 @@ export const HomeNewsCard = ({ article }: { article: NewsArticleDto }) => (
 
 export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto }) => {
   const illustration = resolveServiceIllustration(service);
+  const billingMode = formatServiceBillingMode(service.unit);
+  const durationLabel = service.durationLabel || 'Sur étude';
 
   return (
     <article className="home-service-card home-service-card--featured">
-      <Link to={`/services/${service.id}`} prefetch="intent" className="home-service-card__media">
+      <div className="home-service-card__media" aria-hidden="true">
         {illustration ? (
           <img
             src={illustration.imageUrl}
@@ -89,35 +95,35 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
             height={260}
             loading="lazy"
             decoding="async"
+            onError={(event) => {
+              const image = event.currentTarget;
+              if (!image.src.endsWith(SERVICE_ILLUSTRATION_FALLBACK)) {
+                image.src = SERVICE_ILLUSTRATION_FALLBACK;
+              }
+            }}
           />
         ) : (
           <div className="home-service-card__media-fallback" aria-hidden="true" />
         )}
-      </Link>
+      </div>
       <div className="home-service-card__body">
         <h3 className="home-service-card__title">
           <Link to={`/services/${service.id}`} prefetch="intent">
             {service.title}
           </Link>
         </h3>
-        <dl className="home-service-card__facts">
-          <div>
-            <dt>Mode de facturation</dt>
-            <dd>{formatServiceBillingMode(service.unit)}</dd>
-          </div>
-          <div>
-            <dt>Prix HT</dt>
-            <dd>{formatEuroCents(service.priceCents)}</dd>
-          </div>
-          <div>
-            <dt>Durée</dt>
-            <dd>
-              <Clock3 aria-hidden="true" />
-              <span>{service.durationLabel || 'Sur étude'}</span>
-            </dd>
-          </div>
-        </dl>
         <p className="home-service-card__description">{getFirstSentence(service.description)}</p>
+        <div className="home-service-card__facts" aria-label={`Informations clés pour ${service.title}`}>
+          <p className="home-service-card__fact">
+            <span className="home-service-card__fact-label">Mode de facturation:</span> {billingMode}
+          </p>
+          <p className="home-service-card__fact">
+            <span className="home-service-card__fact-label">Prix HT:</span> {formatEuroCents(service.priceCents)}
+          </p>
+          <p className="home-service-card__fact">
+            <span className="home-service-card__fact-label">Durée:</span> {durationLabel}
+          </p>
+        </div>
       </div>
     </article>
   );

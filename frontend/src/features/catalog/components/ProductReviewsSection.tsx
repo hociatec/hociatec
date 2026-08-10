@@ -29,8 +29,11 @@ export const ProductReviewsSection = ({
           <p className="muted">Ce que disent les clients ayant commandé ce produit.</p>
         </div>
         <div className="catalog-review-badge catalog-review-badge--summary">
-          <RatingStars value={summaryAverage} />
-          <div>
+          <span className="sr-only">
+            Note moyenne de {summaryAverage.toFixed(1)} sur 5, basée sur {summaryCount} avis.
+          </span>
+          <RatingStars value={summaryAverage} decorative />
+          <div aria-hidden="true">
             <strong>{summaryAverage.toFixed(1)} / 5</strong>
             <span className="muted">
               {summaryCount} avis{summaryCount > 1 ? 's' : ''}
@@ -47,8 +50,12 @@ export const ProductReviewsSection = ({
         {reviews.map((review) => (
           <li key={review.id} className="catalog-review">
             <div className="catalog-review__header">
-              <RatingStars value={review.score} />
-              <div>
+              <span className="sr-only">
+                Avis de {review.author.displayName}, note de {review.score} sur 5, publié le{' '}
+                {formatOptionalFrenchDate(review.createdAt)}.
+              </span>
+              <RatingStars value={review.score} decorative />
+              <div aria-hidden="true">
                 <strong>{review.author.displayName}</strong>
                 <span className="muted">{formatOptionalFrenchDate(review.createdAt)}</span>
               </div>

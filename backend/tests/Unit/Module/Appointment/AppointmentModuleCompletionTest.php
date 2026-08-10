@@ -68,8 +68,8 @@ final class AppointmentModuleCompletionTest extends TestCase
     {
         [$user, $prestation] = $this->seedSchedule();
         $old = new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-03T09:00:00+00:00'));
-        $future = new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-10T09:00:00+00:00'));
-        $cancelled = (new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-10T10:00:00+00:00')))->cancel();
+        $future = new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-17T09:00:00+00:00'));
+        $cancelled = (new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-17T10:00:00+00:00')))->cancel();
         foreach ([$old, $future, $cancelled] as $appointment) {
             $this->entityManager()->persist($appointment);
         }
@@ -85,11 +85,15 @@ final class AppointmentModuleCompletionTest extends TestCase
         }
         self::assertCount(7, $this->workingDays()->findAllOrdered());
         self::assertSame([$future], $this->appointments()->findBetween(
-            new \DateTimeImmutable('2026-08-10T08:00:00+00:00'),
-            new \DateTimeImmutable('2026-08-10T11:00:00+00:00'),
+            new \DateTimeImmutable('2026-08-17T08:00:00+00:00'),
+            new \DateTimeImmutable('2026-08-17T11:00:00+00:00'),
         ));
         self::assertSame([$cancelled, $future, $old], $this->appointments()->findForUser($user));
         self::assertSame([$cancelled], $this->appointments()->findForUser($user, Appointment::STATUS_CANCELLED));
+        self::assertSame([$future], $this->appointments()->findUpcomingForUser($user, new \DateTimeImmutable('2026-08-17T08:30:00+00:00')));
+        self::assertSame([$cancelled, $old], $this->appointments()->findPastForUser($user, new \DateTimeImmutable('2026-08-17T08:30:00+00:00')));
+        self::assertSame(1, $this->appointments()->countUpcomingForUser($user, new \DateTimeImmutable('2026-08-17T08:30:00+00:00')));
+        self::assertSame(2, $this->appointments()->countPastForUser($user, new \DateTimeImmutable('2026-08-17T08:30:00+00:00')));
 
         $this->prestations()->remove($prestation);
         $this->entityManager()->flush();
@@ -102,17 +106,17 @@ final class AppointmentModuleCompletionTest extends TestCase
         $controller = new PublicAvailabilityController($this->availability(), $this->prestations());
 
         self::assertSame(400, $controller(Request::create('/'))->getStatusCode());
-        self::assertSame(400, $controller(Request::create('/?start=2026-08-10T11:00:00%2B00:00&end=2026-08-10T10:00:00%2B00:00&prestationId=1'))->getStatusCode());
-        self::assertSame(404, $controller(Request::create('/?start=2026-08-10T08:00:00%2B00:00&end=2026-08-10T12:00:00%2B00:00&prestationId=999'))->getStatusCode());
+        self::assertSame(400, $controller(Request::create('/?start=2026-08-17T11:00:00%2B00:00&end=2026-08-17T10:00:00%2B00:00&prestationId=1'))->getStatusCode());
+        self::assertSame(404, $controller(Request::create('/?start=2026-08-17T08:00:00%2B00:00&end=2026-08-17T12:00:00%2B00:00&prestationId=999'))->getStatusCode());
 
         $response = $controller(Request::create(sprintf(
-            '/?start=2026-08-10T08:00:00%%2B00:00&end=2026-08-10T12:00:00%%2B00:00&prestationId=%d',
+            '/?start=2026-08-17T08:00:00%%2B00:00&end=2026-08-17T12:00:00%%2B00:00&prestationId=%d',
             $prestation->getId(),
         )));
         $payload = $this->payload($response);
 
         self::assertSame(200, $response->getStatusCode());
-        self::assertSame('2026-08-10T09:00:00+00:00', $payload['data']['slots'][0]['start']);
+        self::assertSame('2026-08-17T09:00:00+00:00', $payload['data']['slots'][0]['start']);
     }
 
     public function testClientControllersCreateListAndUpdateStatuses(): void
@@ -124,10 +128,10 @@ final class AppointmentModuleCompletionTest extends TestCase
         $create = new CreateAppointmentController($service, $formatter, $this->prestations(), $this->validator());
         $create->setContainer($this->container($user));
         self::assertSame(400, $create(Request::create('/', 'POST', server: [], content: '{bad'))->getStatusCode());
-        self::assertSame(404, $create($this->jsonRequest(['prestationId' => 999, 'startAt' => '2026-08-10T09:00:00+00:00']))->getStatusCode());
+        self::assertSame(404, $create($this->jsonRequest(['prestationId' => 999, 'startAt' => '2026-08-17T09:00:00+00:00']))->getStatusCode());
         self::assertSame(422, $create($this->jsonRequest(['prestationId' => $prestation->getId(), 'startAt' => 'not-a-date']))->getStatusCode());
 
-        $created = $create($this->jsonRequest(['prestationId' => $prestation->getId(), 'startAt' => '2026-08-10T09:00:00+00:00']));
+        $created = $create($this->jsonRequest(['prestationId' => $prestation->getId(), 'startAt' => '2026-08-17T09:00:00+00:00']));
         self::assertSame(201, $created->getStatusCode());
         $appointmentId = (int) $this->payload($created)['data']['id'];
 
@@ -156,7 +160,7 @@ final class AppointmentModuleCompletionTest extends TestCase
     public function testAdminAppointmentControllersCoverPrestationsConfigurationAndAppointments(): void
     {
         [$user, $prestation] = $this->seedSchedule();
-        $appointment = new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-10T09:00:00+00:00'));
+        $appointment = new Appointment($user, $prestation, new \DateTimeImmutable('2026-08-17T09:00:00+00:00'));
         $this->entityManager()->persist($appointment);
         $this->entityManager()->flush();
 

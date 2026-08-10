@@ -1,4 +1,4 @@
-import { formatProductPrice } from '../utils/productPageDisplay';
+import { formatProductPrice, resolveDisplayPriceCents } from '../utils/productPageDisplay';
 import type { CatalogProduct } from '../api';
 
 interface ProductInfoHighlightProps {
@@ -7,9 +7,7 @@ interface ProductInfoHighlightProps {
 }
 
 const ProductInfoRow = ({ label, value }: { label: string; value: string }) => (
-  <p>
-    <span>{label} :</span> <strong>{value}</strong>
-  </p>
+  <p>{`${label}: ${value}.`}</p>
 );
 
 export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighlightProps) => (
@@ -19,7 +17,7 @@ export const ProductInfoHighlight = ({ product, productDates }: ProductInfoHighl
       <div className="catalog-highlight-card__info-list">
         <ProductInfoRow
           label="Prix public"
-          value={`${formatProductPrice(product.priceCents)}${product.priceUnitLabel ?? ''}`}
+          value={`${formatProductPrice(resolveDisplayPriceCents(product))}${product.priceUnitLabel ?? ''}`}
         />
         <ProductInfoRow label="Référence" value={product.sku} />
         <ProductInfoRow label="Marque" value={product.brand ?? '-'} />

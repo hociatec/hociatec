@@ -39,4 +39,14 @@ describe('parseCatalogProduct', () => {
   it('rejects invalid enum values from the API', () => {
     expect(() => parseCatalogProduct(makeProduct({ sellingType: 'lease' }))).toThrow(ApiContractError);
   });
+
+  it('normalizes relative media urls returned by the API', () => {
+    expect(parseCatalogProduct(makeProduct({
+      imageUrl: '/uploads/products/produit.jpg',
+      gallery: [{ position: 0, url: '/uploads/products/produit.jpg', alt: 'Produit', isPrimary: true }],
+    }))).toMatchObject({
+      imageUrl: expect.stringContaining('/uploads/products/produit.jpg'),
+      gallery: [{ position: 0, url: expect.stringContaining('/uploads/products/produit.jpg'), alt: 'Produit', isPrimary: true }],
+    });
+  });
 });

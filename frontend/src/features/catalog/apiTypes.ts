@@ -32,6 +32,7 @@ export interface CatalogProductGalleryMeta {
 export interface CatalogProduct {
   id: number;
   name: string;
+  modelName?: string | null;
   slug: string;
   sku: string;
   shortDescription: string | null;
@@ -48,6 +49,10 @@ export interface CatalogProduct {
   totalStock?: number;
   variantColors?: string[];
   variantStorages?: string[];
+  minVariantPriceCents?: number;
+  maxVariantPriceCents?: number;
+  minVariantEffectivePriceCents?: number;
+  maxVariantEffectivePriceCents?: number;
   releaseYear?: number | null;
   storageCapacity?: string | null;
   memoryRam?: string | null;
@@ -188,6 +193,7 @@ export interface UpsertProductPayload {
     color?: string | null;
     storageCapacity?: string | null;
     stock: number;
+    price?: number | null;
   }>;
   discountEnabled?: boolean;
   discountType?: 'percent' | 'fixed';

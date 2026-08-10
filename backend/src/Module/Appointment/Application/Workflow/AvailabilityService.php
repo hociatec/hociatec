@@ -8,7 +8,6 @@ use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final class AvailabilityService
 {
@@ -96,11 +95,7 @@ final class AvailabilityService
             return [];
         }
 
-        try {
-            $period = new \DatePeriod($startTime, $duration, $endTime);
-        } catch (\Throwable) {
-            return [];
-        }
+        $period = new \DatePeriod($startTime, $duration, $endTime);
 
         $availableSlots = [];
 
@@ -163,9 +158,11 @@ final class AvailabilityService
             return null;
         }
 
-        return DateTimeParser::fromFormat(
+        $combined = \DateTimeImmutable::createFromFormat(
             'Y-m-d H:i:s',
             sprintf('%s %s', $date->format('Y-m-d'), $time->format('H:i:s'))
         );
+
+        return $combined instanceof \DateTimeImmutable ? $combined : null;
     }
 }

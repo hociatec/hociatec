@@ -64,21 +64,39 @@ final class AdminNewsControllersTest extends TestCase
 
         $create = new CreateAdminNewsArticleController($writer, $formatter);
         self::assertSame(400, $create($this->jsonRequest(['title' => '', 'slug' => '', 'excerpt' => '', 'content' => '']))->getStatusCode());
+        self::assertSame(400, $create($this->jsonRequest($this->articlePayload('Created', 'created', true) + ['publishedAt' => '2026-99-99T10:00:00+00:00']))->getStatusCode());
         $created = $create($this->jsonRequest($this->articlePayload('Created', 'created', true)));
         self::assertSame(201, $created->getStatusCode());
         self::assertSame('Created', $this->payload($created)['data']['article']['title']);
+        self::assertSame(500, (new CreateAdminNewsArticleController($this->failingWriter(), $formatter))($this->jsonRequest($this->articlePayload('Fail', 'fail', true)))->getStatusCode());
 
         $update = new UpdateAdminNewsArticleController($this->articles(), $writer, $formatter);
         self::assertSame(404, $update(999, $this->jsonRequest([]))->getStatusCode());
+        self::assertSame(400, $update((int) $article->getId(), $this->jsonRequest($this->articlePayload('Updated', 'updated', true) + ['publishedAt' => '2026-99-99T10:00:00+00:00'], 'PUT'))->getStatusCode());
         $updated = $update((int) $article->getId(), $this->jsonRequest($this->articlePayload('Updated', 'updated', false), 'PUT'));
         self::assertSame(200, $updated->getStatusCode());
         self::assertFalse($this->payload($updated)['data']['article']['isPublished']);
+        self::assertSame(500, (new UpdateAdminNewsArticleController($this->articles(), $this->failingWriter(), $formatter))((int) $article->getId(), $this->jsonRequest($this->articlePayload('Fail update', 'fail-update', true), 'PUT'))->getStatusCode());
 
         $send = new SendAdminNewsArticleEmailController($this->articles(), $writer);
         self::assertSame(404, $send(999)->getStatusCode());
-        self::assertSame(400, $send((int) $article->getId())->getStatusCode());
         $published = $this->persistArticle('Published', 'published', true);
         self::assertSame(200, $send((int) $published->getId())->getStatusCode());
+        $unpublished = $this->persistArticle('Draft', 'draft', false);
+        $sendUnpublished = new SendAdminNewsArticleEmailController(
+            new class($unpublished) implements \App\Module\News\Application\Port\NewsArticleRepositoryPort {
+                public function __construct(private readonly NewsArticle $article) {}
+                public function find(mixed $id, \App\Shared\Application\LockMode|\Doctrine\DBAL\LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?NewsArticle { return 123 === $id ? $this->article : null; }
+                public function findPublished(?string $search, int $limit, int $offset): array { return []; }
+                public function countPublished(?string $search): int { return 0; }
+                public function findForAdmin(?string $search, int $limit, int $offset): array { return []; }
+                public function countForAdmin(?string $search): int { return 0; }
+                public function findPublishedBySlug(string $slug): ?NewsArticle { return null; }
+            },
+            $writer,
+        );
+        self::assertSame(400, $sendUnpublished(123)->getStatusCode());
+        self::assertSame(500, (new SendAdminNewsArticleEmailController($this->articles(), $this->failingSendWriter()))((int) $published->getId())->getStatusCode());
 
         self::assertSame(404, (new DeleteAdminNewsCommentController($this->comments(), $writer))(999)->getStatusCode());
         self::assertSame(200, (new DeleteAdminNewsCommentController($this->comments(), $writer))((int) $comment->getId())->getStatusCode());
@@ -108,6 +126,30 @@ final class AdminNewsControllersTest extends TestCase
         $bus->method('dispatch')->willReturnCallback(static fn (object $message): null => null);
 
         return new NewsArticleWriter(new DoctrineUnitOfWork($this->entityManager()), $users, $bus);
+    }
+
+    private function failingWriter(): NewsArticleWriter
+    {
+        $persistence = $this->createMock(\App\Shared\Application\UnitOfWork::class);
+        $persistence->method('persist')->willThrowException(new \RuntimeException('db down'));
+        $persistence->method('commit')->willThrowException(new \RuntimeException('db down'));
+
+        $users = $this->createMock(UserRepository::class);
+        $users->method('findNewsEmailSubscribers')->willReturn([]);
+        $bus = $this->createMock(AsyncMessageDispatcher::class);
+
+        return new NewsArticleWriter($persistence, $users, $bus);
+    }
+
+    private function failingSendWriter(): NewsArticleWriter
+    {
+        $persistence = $this->createMock(\App\Shared\Application\UnitOfWork::class);
+        $users = $this->createMock(UserRepository::class);
+        $users->method('findNewsEmailSubscribers')->willReturn([$this->persistUser('send-fail@example.test')]);
+        $bus = $this->createMock(AsyncMessageDispatcher::class);
+        $bus->method('dispatch')->willThrowException(new \RuntimeException('queue down'));
+
+        return new NewsArticleWriter($persistence, $users, $bus);
     }
 
     private function persistUser(string $email = 'news-admin@example.test'): User

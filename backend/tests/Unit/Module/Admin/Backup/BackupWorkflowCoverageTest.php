@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Admin\Backup;
 
 use App\Module\Admin\Application\Backup\Handler\RunBackupHandler;
+use App\Module\Admin\Application\Backup\Handler\RunDueBackupsHandler;
 use App\Module\Admin\Application\Backup\Port\DatabaseBackupDumper;
 use App\Module\Admin\Application\Backup\Provider\BackupStatusProvider;
 use App\Module\Admin\Application\Backup\State\BackupStateStore;
@@ -154,10 +155,6 @@ final class BackupWorkflowCoverageTest extends TestCase
         self::assertSame('abc123', stream_get_contents($stream));
         fclose($stream);
 
-        $source = $projectDir.'/var/backups/missing.sql.gz';
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Impossible de lire la sauvegarde à chiffrer.');
-        $service->encryptFile($source, $projectDir.'/var/backups/target.enc');
     }
 
     public function testDatabaseBackupDumperPrivateConfigurationParsesMysqlUrl(): void
@@ -180,6 +177,130 @@ final class BackupWorkflowCoverageTest extends TestCase
         $path = sys_get_temp_dir().'/hociatec-backup-partial-'.bin2hex(random_bytes(4));
         $removePartialFile->invoke($dumper, $path);
         self::assertFileDoesNotExist($path);
+    }
+
+    public function testDatabaseBackupDumperAvailabilityAndDumpFailureUseRealMysqldumpBinary(): void
+    {
+        $projectDir = $this->projectDir();
+        $targetPath = $projectDir.'/var/backups/database.sql.gz';
+        $dumper = new InfrastructureDatabaseBackupDumper($projectDir, 'mysql://user:pass@127.0.0.1:9/app');
+
+        self::assertTrue($dumper->isAvailable());
+
+        try {
+            $dumper->dump($targetPath);
+            self::fail('Expected mysqldump connection failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertStringContainsString('Can\'t connect to MySQL server', $exception->getMessage());
+        }
+
+        self::assertFileDoesNotExist($targetPath);
+        self::assertFileDoesNotExist($targetPath.'.part');
+    }
+
+    public function testRunDueBackupsHandlerTriggersOnlyWhenBackupIsDue(): void
+    {
+        $projectDir = $this->projectDir();
+        $states = new BackupStateStore($projectDir);
+
+        $database = new class implements DatabaseBackupDumper {
+            public int $runs = 0;
+
+            public function dump(string $targetPath): void
+            {
+                ++$this->runs;
+                file_put_contents($targetPath, 'plain-backup');
+            }
+
+            public function isAvailable(): bool
+            {
+                return true;
+            }
+        };
+        $handler = new RunBackupHandler(
+            $states,
+            new BackupFileStorage($projectDir),
+            new BackupEncryptionService($this->keyFile($projectDir)),
+            $database,
+            new BackupStatusProvider($projectDir, new MaintenanceModeService($projectDir), $states, new BackupFileStorage($projectDir), $database),
+        );
+        $runDue = new RunDueBackupsHandler($states, $handler);
+
+        $states->write(['settings' => ['enabled' => true, 'intervalHours' => 24, 'retentionCount' => 2], 'history' => []]);
+        self::assertIsArray($runDue->runDue());
+        self::assertSame(1, $database->runs);
+
+        $states->write([
+            'settings' => ['enabled' => true, 'intervalHours' => 24, 'retentionCount' => 2],
+            'history' => [],
+            'lastSuccessfulRunAt' => (new \DateTimeImmutable('-1 hour'))->format(\DateTimeInterface::ATOM),
+        ]);
+        self::assertNull($runDue->runDue());
+        self::assertSame(1, $database->runs);
+    }
+
+    public function testBackupEncryptionServiceEncryptsFileAndStateStoreTrimsAndDeduplicatesHistory(): void
+    {
+        $projectDir = $this->projectDir();
+        $source = $projectDir.'/var/backups/source.sql.gz';
+        $target = $projectDir.'/var/backups/source.sql.gz.enc';
+        file_put_contents($source, 'plain backup payload');
+
+        (new BackupEncryptionService($this->keyFile($projectDir)))->encryptFile($source, $target);
+
+        self::assertFileExists($target);
+        self::assertFileDoesNotExist($target.'.tmp');
+        self::assertSame('640', substr(sprintf('%o', fileperms($target)), -3));
+        self::assertStringStartsWith("HOCIATEC-BACKUP-V1\n", (string) file_get_contents($target));
+
+        $states = new BackupStateStore($projectDir);
+        $state = ['settings' => $states->settings([]), 'history' => []];
+        for ($i = 0; $i < 85; ++$i) {
+            $state = $states->recordRun(['id' => 'run-'.$i, 'status' => 'success'], $state);
+        }
+
+        self::assertCount(80, $state['history']);
+        self::assertSame('run-84', $state['history'][0]['id']);
+        self::assertSame('run-5', $state['history'][79]['id']);
+
+        $deduplicated = $states->recordRun(['id' => 'run-42', 'status' => 'replayed'], $state);
+        self::assertSame('run-42', $deduplicated['history'][0]['id']);
+        self::assertSame('replayed', $deduplicated['history'][0]['status']);
+        self::assertCount(80, $deduplicated['history']);
+    }
+
+    public function testBackupStateStoreHandlesInvalidJsonAndOutputScheduleVariants(): void
+    {
+        $projectDir = $this->projectDir();
+        file_put_contents($projectDir.'/var/backups/backup-state.json', '{invalid');
+        $states = new BackupStateStore($projectDir);
+
+        self::assertSame(['settings' => $states->settings([]), 'history' => []], $states->read());
+
+        $disabled = $states->outputSettings($states->settings(['enabled' => false]), []);
+        self::assertFalse($disabled['enabled']);
+        self::assertNull($disabled['nextRunAt']);
+
+        $enabled = $states->outputSettings(
+            $states->settings(['enabled' => true, 'intervalHours' => 12, 'retentionCount' => 2]),
+            ['lastSuccessfulRunAt' => '2026-08-01T10:00:00+00:00'],
+        );
+        self::assertSame('2026-08-01T22:00:00+00:00', $enabled['nextRunAt']);
+    }
+
+    public function testBackupEncryptionServiceRejectsUnreadableSourceFile(): void
+    {
+        $projectDir = $this->projectDir();
+        $service = new BackupEncryptionService($this->keyFile($projectDir));
+        set_error_handler(static fn (): bool => true);
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Impossible de lire la sauvegarde à chiffrer.');
+
+            $service->encryptFile($projectDir.'/var/backups/missing.sql.gz', $projectDir.'/var/backups/missing.sql.gz.enc');
+        } finally {
+            restore_error_handler();
+        }
     }
 
     private function projectDir(): string

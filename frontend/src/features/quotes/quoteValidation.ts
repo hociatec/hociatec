@@ -9,6 +9,7 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/contractValidation';
+import { resolveApiAssetUrl } from '@/shared/lib/apiAssetUrl';
 import { isContractValue, QUOTE_STATUSES } from '@/shared/contracts/statuses';
 import type {
   AdminQuoteEmailDto,
@@ -124,7 +125,7 @@ export const parseQuoteService = (value: unknown): QuoteServiceDto => {
     description: optionalString(service.description) ?? null,
     unit: optionalString(service.unit) ?? null,
     isFeaturedHome: requireBoolean(service.isFeaturedHome),
-    imageUrl: optionalString(service.imageUrl) ?? null,
+    imageUrl: resolveApiAssetUrl(optionalString(service.imageUrl) ?? null),
     imageAlt: optionalString(service.imageAlt) ?? null,
     durationValue: optionalNumber(service.durationValue) ?? null,
     durationUnit: durationUnit === undefined ? null : durationUnit as QuoteServiceDto['durationUnit'],

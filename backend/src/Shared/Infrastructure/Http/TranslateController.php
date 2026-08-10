@@ -36,9 +36,10 @@ final class TranslateController extends AbstractController
 
         try {
             $translated = $this->translator->translate($text, $source, $target);
-            return new JsonResponse(['translatedText' => $translated]);
-        } catch (\Throwable) {
-            return new JsonResponse(['translatedText' => $text]);
+        } catch (\InvalidArgumentException) {
+            $translated = $text;
         }
+
+        return new JsonResponse(['translatedText' => $translated]);
     }
 }

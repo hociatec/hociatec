@@ -18,6 +18,7 @@
         "test": "vitest run",
         "test:a11y": "vitest run a11y",
         "test:e2e": "playwright test",
+        "test:e2e:coverage": "playwright test e2e/auth-flow.playwright.ts e2e/client-coverage.playwright.ts e2e/admin-coverage.playwright.ts",
         "test:e2e:smoke": "playwright test e2e/public-smoke.playwright.ts --grep-invert @visual",
         "test:e2e:smoke:prod": "PLAYWRIGHT_BASE_URL=https://hociatec.fr playwright test e2e/public-smoke.playwright.ts --grep-invert @visual --project=chromium",
         "test:visual": "playwright test --grep @visual",

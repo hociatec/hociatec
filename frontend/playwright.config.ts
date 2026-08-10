@@ -33,12 +33,20 @@ export default defineConfig({
     }),
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*auth\.setup\.playwright\.ts/,
+    },
+    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      testIgnore: /.*auth\.setup\.playwright\.ts/,
     },
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
+      dependencies: ['setup'],
+      testIgnore: /.*auth\.setup\.playwright\.ts/,
     },
   ],
 });

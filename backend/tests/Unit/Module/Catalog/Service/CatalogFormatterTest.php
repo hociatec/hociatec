@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Catalog\Service;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
+use App\Module\Catalog\Application\Provider\ProductCatalogModelAggregator;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -208,6 +209,140 @@ final class CatalogFormatterTest extends TestCase
         self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['imageUrl']);
         self::assertSame('https://www.apple.com/newsroom/images/product/iphone/standard/Apple_iphone13_colors_09142021_big.jpg.large.jpg', $formatted['gallery'][0]['url']);
         self::assertSame('/uploads/products/side.jpg', $formatted['gallery'][1]['url']);
+    }
+
+    public function testCatalogModelAggregatorGroupsVariantsIntoSingleModelSummary(): void
+    {
+        $aggregator = new ProductCatalogModelAggregator();
+
+        $items = $aggregator->aggregate([
+            [
+                'id' => 2,
+                'name' => 'iPhone 17 Pro Max reconditionne (Titane noir) (256 Go)',
+                'slug' => 'iphone-17-pro-max-noir-256',
+                'sku' => 'IPH-17-256-NOIR',
+                'priceCents' => 114900,
+                'discountEnabled' => false,
+                'discountType' => null,
+                'discountValue' => null,
+                'discountStartsAt' => null,
+                'discountEndsAt' => null,
+                'variantGroup' => 'iphone-17-pro-max-reconditionne',
+                'variantPosition' => 2,
+                'color' => 'Titane noir',
+                'storageCapacity' => '256 Go',
+                'memoryRam' => '8 Go',
+                'stock' => 3,
+                'brand' => 'Apple',
+                'category' => ['id' => 10, 'name' => 'Phones', 'slug' => 'phones'],
+            ],
+            [
+                'id' => 1,
+                'name' => 'iPhone 17 Pro Max reconditionne (Titane naturel) (128 Go)',
+                'slug' => 'iphone-17-pro-max-naturel-128',
+                'sku' => 'IPH-17-128-NAT',
+                'priceCents' => 104900,
+                'discountEnabled' => true,
+                'discountType' => 'percent',
+                'discountValue' => 10,
+                'discountStartsAt' => new \DateTimeImmutable('-1 day'),
+                'discountEndsAt' => new \DateTimeImmutable('+1 day'),
+                'variantGroup' => 'iphone-17-pro-max-reconditionne',
+                'variantPosition' => 1,
+                'color' => 'Titane naturel',
+                'storageCapacity' => '128 Go',
+                'memoryRam' => '8 Go',
+                'stock' => 2,
+                'brand' => 'Apple',
+                'category' => ['id' => 10, 'name' => 'Phones', 'slug' => 'phones'],
+            ],
+        ]);
+
+        self::assertCount(1, $items);
+        self::assertSame(1, $items[0]['id']);
+        self::assertSame('iPhone 17 Pro Max reconditionne', $items[0]['modelName']);
+        self::assertSame(2, $items[0]['variantsCount']);
+        self::assertSame(5, $items[0]['totalStock']);
+        self::assertSame(['Titane naturel', 'Titane noir'], $items[0]['variantColors']);
+        self::assertSame(['128 Go', '256 Go'], $items[0]['variantStorages']);
+        self::assertSame(104900, $items[0]['minVariantPriceCents']);
+        self::assertSame(114900, $items[0]['maxVariantPriceCents']);
+        self::assertSame(94410, $items[0]['minVariantEffectivePriceCents']);
+    }
+
+    public function testCatalogModelAggregatorBuildsGroupedFacets(): void
+    {
+        $aggregator = new ProductCatalogModelAggregator();
+
+        $facets = $aggregator->collectFacets([
+            [
+                'id' => 1,
+                'name' => 'Produit A (Noir)',
+                'sku' => 'A-NOIR',
+                'priceCents' => 100000,
+                'discountEnabled' => false,
+                'discountType' => null,
+                'discountValue' => null,
+                'discountStartsAt' => null,
+                'discountEndsAt' => null,
+                'variantGroup' => 'modele-a',
+                'variantPosition' => 1,
+                'color' => 'Noir',
+                'storageCapacity' => '128 Go',
+                'memoryRam' => '8 Go',
+                'stock' => 4,
+                'brand' => 'Apple',
+                'category' => ['id' => 10, 'name' => 'Phones', 'slug' => 'phones'],
+            ],
+            [
+                'id' => 2,
+                'name' => 'Produit A (Bleu)',
+                'sku' => 'A-BLEU',
+                'priceCents' => 110000,
+                'discountEnabled' => false,
+                'discountType' => null,
+                'discountValue' => null,
+                'discountStartsAt' => null,
+                'discountEndsAt' => null,
+                'variantGroup' => 'modele-a',
+                'variantPosition' => 2,
+                'color' => 'Bleu',
+                'storageCapacity' => '256 Go',
+                'memoryRam' => '8 Go',
+                'stock' => 2,
+                'brand' => 'Apple',
+                'category' => ['id' => 10, 'name' => 'Phones', 'slug' => 'phones'],
+            ],
+            [
+                'id' => 3,
+                'name' => 'Produit B',
+                'sku' => 'B-1',
+                'priceCents' => 90000,
+                'discountEnabled' => false,
+                'discountType' => null,
+                'discountValue' => null,
+                'discountStartsAt' => null,
+                'discountEndsAt' => null,
+                'variantGroup' => null,
+                'variantPosition' => 1,
+                'color' => 'Gris',
+                'storageCapacity' => '512 Go',
+                'memoryRam' => '16 Go',
+                'stock' => 1,
+                'brand' => 'Samsung',
+                'category' => ['id' => 20, 'name' => 'Tablets', 'slug' => 'tablets'],
+            ],
+        ]);
+
+        self::assertSame([
+            ['value' => 'Apple', 'count' => 1, 'extra' => null],
+            ['value' => 'Samsung', 'count' => 1, 'extra' => null],
+        ], $facets['brands']);
+        self::assertSame([
+            ['value' => 'Phones', 'count' => 1, 'extra' => 'phones'],
+            ['value' => 'Tablets', 'count' => 1, 'extra' => 'tablets'],
+        ], $facets['categories']);
+        self::assertSame(['min' => 90000, 'max' => 100000], $facets['price']);
     }
 
     private function setEntityId(object $entity, int $id): void

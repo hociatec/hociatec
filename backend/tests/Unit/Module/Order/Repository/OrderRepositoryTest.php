@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Order\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Enum\OrderStatus;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Query;
@@ -57,7 +58,7 @@ final class OrderRepositoryTest extends TestCase
         $repository = $this->repositoryWithBuilders([
             $this->singleResultBuilder(['ordersCount' => '3', 'totalCents' => '9999']),
             $this->arrayResultBuilder([
-                ['status' => Order::STATUS_PENDING, 'count' => '2'],
+                ['status' => OrderStatus::PENDING, 'count' => '2'],
                 ['status' => '', 'count' => '9'],
                 ['status' => Order::STATUS_DELIVERED, 'count' => '1'],
             ]),

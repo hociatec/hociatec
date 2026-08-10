@@ -50,6 +50,33 @@ afterEach(() => {
   cleanup();
 });
 
+class IntersectionObserverStub implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = '';
+  readonly thresholds = [];
+
+  disconnect(): void {}
+  observe(): void {}
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+  unobserve(): void {}
+}
+
+if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
+  Object.defineProperty(window, 'IntersectionObserver', {
+    configurable: true,
+    writable: true,
+    value: IntersectionObserverStub,
+  });
+}
+
+if (typeof globalThis !== 'undefined' && !('IntersectionObserver' in globalThis)) {
+  Object.defineProperty(globalThis, 'IntersectionObserver', {
+    configurable: true,
+    writable: true,
+    value: IntersectionObserverStub,
+  });
+}
+
 describe('profile modal behavior', () => {
   it('keeps the profile information card read-only', () => {
     const onStartEditing = vi.fn();

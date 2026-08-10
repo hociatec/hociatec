@@ -8,6 +8,7 @@ import {
   optionalNumber,
   optionalString,
 } from '@/shared/lib/contractValidation';
+import { resolveApiAssetUrl } from '@/shared/lib/apiAssetUrl';
 import type {
   CatalogBrand,
   CatalogCategory,
@@ -56,7 +57,7 @@ const parseGalleryItem = (value: unknown): CatalogProductGalleryItem => {
 
   return {
     position: requireNumber(item.position),
-    url: requireString(item.url),
+    url: resolveApiAssetUrl(requireString(item.url)) ?? requireString(item.url),
     alt: requireString(item.alt),
     isPrimary: requireBoolean(item.isPrimary),
   };
@@ -102,6 +103,7 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
     ...product,
     id: requireNumber(product.id),
     name: requireString(product.name),
+    modelName: optionalString(product.modelName) ?? null,
     slug: requireString(product.slug),
     sku: requireString(product.sku),
     shortDescription: optionalString(product.shortDescription) ?? null,
@@ -124,6 +126,10 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
       product.variantStorages === undefined
         ? undefined
         : requireArray(product.variantStorages).map((item) => requireString(item)),
+    minVariantPriceCents: optionalNumber(product.minVariantPriceCents) ?? undefined,
+    maxVariantPriceCents: optionalNumber(product.maxVariantPriceCents) ?? undefined,
+    minVariantEffectivePriceCents: optionalNumber(product.minVariantEffectivePriceCents) ?? undefined,
+    maxVariantEffectivePriceCents: optionalNumber(product.maxVariantEffectivePriceCents) ?? undefined,
     releaseYear: optionalNumber(product.releaseYear) ?? null,
     storageCapacity: optionalString(product.storageCapacity) ?? null,
     memoryRam: optionalString(product.memoryRam) ?? null,
@@ -131,7 +137,7 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
     stock: requireNumber(product.stock),
     isPublished: requireBoolean(product.isPublished),
     isFeaturedHome: requireBoolean(product.isFeaturedHome),
-    imageUrl: optionalString(product.imageUrl) ?? null,
+    imageUrl: resolveApiAssetUrl(optionalString(product.imageUrl) ?? null),
     imageAlt: optionalString(product.imageAlt) ?? null,
     gallery: requireArray(product.gallery).map(parseGalleryItem),
     effectivePriceCents: optionalNumber(product.effectivePriceCents) ?? undefined,

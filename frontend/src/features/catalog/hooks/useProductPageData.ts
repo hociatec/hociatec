@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchPublicProduct, fetchPublicProducts, type CatalogProduct, type CatalogSort } from '../api';
-import { buildVariantGroupKey } from '../utils/productPageDisplay';
+import {
+  fetchPublicProduct,
+  fetchPublicProductVariants,
+  fetchPublicProducts,
+  type CatalogProduct,
+} from '../api';
 import { catalogQueryKeys } from '@/features/catalog/queryKeys';
-import { omitUndefinedProperties } from '@/shared/lib/object';
+import { buildVariantGroupKey } from '@/features/catalog/utils/productPageDisplay';
 
 export const useProductPageData = (slug?: string) => {
   const productQuery = useQuery<CatalogProduct, Error>({
@@ -13,25 +17,47 @@ export const useProductPageData = (slug?: string) => {
     enabled: Boolean(slug),
   });
   const product = productQuery.data ?? null;
-  const colorVariantsQuery = useQuery<CatalogProduct[], Error>({
-    queryKey: catalogQueryKeys.publicProductColorVariants(product?.slug ?? null),
+  const variantsQuery = useQuery<CatalogProduct[], Error>({
+    queryKey: catalogQueryKeys.publicProductVariants(product?.slug ?? null),
     queryFn: ({ signal }) =>
-      fetchPublicProducts(omitUndefinedProperties({
-        category: product?.category.slug,
-        sellingType: product?.sellingType,
-        sort: 'release_year_desc' as CatalogSort,
-        perPage: 100,
-        signal,
-      })),
+      fetchPublicProductVariants(product?.slug ?? '', { signal }),
     enabled: Boolean(product),
   });
-  const colorVariants = useMemo(() => {
-    if (!product) return [];
-    const variants = (colorVariantsQuery.data ?? []).filter(
-      (item) => buildVariantGroupKey(item) === buildVariantGroupKey(product),
-    );
-    return variants.length > 0 ? variants : [product];
-  }, [colorVariantsQuery.data, product]);
+  const fallbackVariantsQuery = useQuery<CatalogProduct[], Error>({
+    queryKey: product
+      ? catalogQueryKeys.productVariants(
+          product.category.slug,
+          product.sellingType,
+          buildVariantGroupKey(product),
+        )
+      : ['catalog', 'product-variants-fallback', null],
+    queryFn: async ({ signal }) => {
+      if (!product) return [];
+
+      const products = await fetchPublicProducts({
+        category: product.category.slug,
+        sellingType: product.sellingType,
+        perPage: 100,
+        signal,
+      });
+      const currentGroupKey = buildVariantGroupKey(product);
+
+      return products.filter((item) => buildVariantGroupKey(item) === currentGroupKey);
+    },
+    enabled: Boolean(product),
+  });
+  const colorVariants = useMemo(
+    () => {
+      if (!product) return [];
+      if (variantsQuery.data && variantsQuery.data.length > 1) return variantsQuery.data;
+      if (fallbackVariantsQuery.data && fallbackVariantsQuery.data.length > 1) {
+        return fallbackVariantsQuery.data;
+      }
+      if (variantsQuery.data && variantsQuery.data.length > 0) return variantsQuery.data;
+      return [product];
+    },
+    [fallbackVariantsQuery.data, product, variantsQuery.data],
+  );
 
   return {
     product,

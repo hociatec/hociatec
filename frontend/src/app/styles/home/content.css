@@ -5,6 +5,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.home-products__grid--services {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
 .home-services-carousel {
   display: grid;
   gap: 1.25rem;
@@ -253,5 +257,9 @@
 
   .home-services-carousel__slide {
     flex-basis: 100%;
+  }
+
+  .home-products__grid--services {
+    grid-template-columns: 1fr;
   }
 }

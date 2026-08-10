@@ -83,9 +83,6 @@ export const HomeFeaturedServicesCarousel = ({ services }: { services: QuoteServ
       tabIndex={0}
       aria-label="Sélection des services mis en avant"
     >
-      <span className="sr-only" aria-live="polite">
-        {canSlide ? `Slide ${activeIndex + 1} sur ${services.length}` : 'Service en vedette'}
-      </span>
       <div className="home-services-carousel__viewport">
         <div ref={trackRef} className="home-services-carousel__track">
           {services.map((service, index) => (

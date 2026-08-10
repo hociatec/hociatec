@@ -1,5 +1,6 @@
 import type { QuoteServiceDto } from '../types/quoteTypes';
 import { normalizeSearchText } from '@/shared/lib/searchText';
+import { resolvePublicAssetUrl } from '@/shared/lib/publicAssetUrl';
 
 type ServiceIllustration = {
   imageUrl: string;
@@ -15,44 +16,34 @@ const DEFAULT_FEATURED_SERVICE_TITLES = [
   'informatique professionnelle',
 ] as const;
 
+const buildLocalIllustration = (fileName: string, imageAlt: string): ServiceIllustration => ({
+  imageUrl: resolvePublicAssetUrl(`/service-illustrations/${fileName}`),
+  imageAlt,
+});
+
 const SERVICE_ILLUSTRATIONS: Array<{
   matcher: string[];
   illustration: ServiceIllustration;
 }> = [
   {
     matcher: ['création de site vitrine', 'site vitrine'],
-    illustration: {
-      imageUrl: '/service-illustrations/site-vitrine.svg',
-      imageAlt: 'Illustration de création de site vitrine',
-    },
+    illustration: buildLocalIllustration('site-vitrine.svg', 'Illustration de création de site vitrine'),
   },
   {
     matcher: ['création de boutique e-commerce', 'boutique e-commerce', 'e-commerce'],
-    illustration: {
-      imageUrl: '/service-illustrations/ecommerce.svg',
-      imageAlt: 'Illustration de création de boutique e-commerce',
-    },
+    illustration: buildLocalIllustration('ecommerce.svg', 'Illustration de création de boutique e-commerce'),
   },
   {
     matcher: ['maintenance de site web', 'maintenance site'],
-    illustration: {
-      imageUrl: '/service-illustrations/maintenance-site.svg',
-      imageAlt: 'Illustration de maintenance de site web',
-    },
+    illustration: buildLocalIllustration('maintenance-site.svg', 'Illustration de maintenance de site web'),
   },
   {
     matcher: ['développement d’application web métier', 'application web métier', 'application web'],
-    illustration: {
-      imageUrl: '/service-illustrations/application-metier.svg',
-      imageAlt: 'Illustration de développement d application web métier',
-    },
+    illustration: buildLocalIllustration('application-metier.svg', 'Illustration de développement d application web métier'),
   },
   {
     matcher: ['refonte de site internet', 'refonte site', 'refonte'],
-    illustration: {
-      imageUrl: '/service-illustrations/refonte-site.svg',
-      imageAlt: 'Illustration de refonte de site internet',
-    },
+    illustration: buildLocalIllustration('refonte-site.svg', 'Illustration de refonte de site internet'),
   },
   {
     matcher: [
@@ -60,73 +51,43 @@ const SERVICE_ILLUSTRATIONS: Array<{
       "audit d'accessibilité numérique",
       'accessibilité numérique',
     ],
-    illustration: {
-      imageUrl: '/service-illustrations/audit-accessibilite.svg',
-      imageAlt: 'Illustration d audit d accessibilité numérique',
-    },
+    illustration: buildLocalIllustration('audit-accessibilite.svg', 'Illustration d audit d accessibilité numérique'),
   },
   {
     matcher: ['audit technique web', 'audit de performance web', 'audit seo technique', 'audit web'],
-    illustration: {
-      imageUrl: '/service-illustrations/audit-web.svg',
-      imageAlt: 'Illustration d audit technique web',
-    },
+    illustration: buildLocalIllustration('audit-web.svg', 'Illustration d audit technique web'),
   },
   {
     matcher: ['audit ux et parcours utilisateur', 'audit ux', 'parcours utilisateur'],
-    illustration: {
-      imageUrl: '/service-illustrations/audit-ux.svg',
-      imageAlt: 'Illustration d audit UX et parcours utilisateur',
-    },
+    illustration: buildLocalIllustration('audit-ux.svg', 'Illustration d audit UX et parcours utilisateur'),
   },
   {
     matcher: ['diagnostic et dépannage informatique', 'depannage informatique'],
-    illustration: {
-      imageUrl: '/service-illustrations/depannage.svg',
-      imageAlt: 'Illustration de diagnostic et dépannage informatique',
-    },
+    illustration: buildLocalIllustration('depannage.svg', 'Illustration de diagnostic et dépannage informatique'),
   },
   {
     matcher: ['assistance informatique à distance', 'assistance informatique a distance', 'à distance'],
-    illustration: {
-      imageUrl: '/service-illustrations/assistance-distance.svg',
-      imageAlt: 'Illustration d assistance informatique à distance',
-    },
+    illustration: buildLocalIllustration('assistance-distance.svg', 'Illustration d assistance informatique à distance'),
   },
   {
     matcher: ['installation et configuration de postes', 'configuration de postes'],
-    illustration: {
-      imageUrl: '/service-illustrations/installation-postes.svg',
-      imageAlt: 'Illustration d installation et configuration de postes',
-    },
+    illustration: buildLocalIllustration('installation-postes.svg', 'Illustration d installation et configuration de postes'),
   },
   {
     matcher: ['installation réseau et nas', 'installation reseau et nas', 'nas', 'réseau'],
-    illustration: {
-      imageUrl: '/service-illustrations/reseau-nas.svg',
-      imageAlt: 'Illustration d installation réseau et NAS',
-    },
+    illustration: buildLocalIllustration('reseau-nas.svg', 'Illustration d installation réseau et NAS'),
   },
   {
     matcher: ['formation bureautique et outils numériques', 'formation bureautique'],
-    illustration: {
-      imageUrl: '/service-illustrations/formation-bureautique.svg',
-      imageAlt: 'Illustration de formation bureautique et outils numériques',
-    },
+    illustration: buildLocalIllustration('formation-bureautique.svg', 'Illustration de formation bureautique et outils numériques'),
   },
   {
     matcher: ['formation cybersécurité et bonnes pratiques', 'cybersécurité', 'cybersecurite'],
-    illustration: {
-      imageUrl: '/service-illustrations/formation-cybersecurite.svg',
-      imageAlt: 'Illustration de formation cybersécurité et bonnes pratiques',
-    },
+    illustration: buildLocalIllustration('formation-cybersecurite.svg', 'Illustration de formation cybersécurité et bonnes pratiques'),
   },
   {
     matcher: ['reconditionnement et remise en service de matériel', 'reconditionnement', 'remise en service'],
-    illustration: {
-      imageUrl: '/service-illustrations/reconditionnement.svg',
-      imageAlt: 'Illustration de reconditionnement et remise en service de matériel',
-    },
+    illustration: buildLocalIllustration('reconditionnement.svg', 'Illustration de reconditionnement et remise en service de matériel'),
   },
 ];
 
@@ -173,7 +134,7 @@ export const resolveServiceIllustration = (service: QuoteServiceDto): ServiceIll
   }
 
   return {
-    imageUrl: '/service-illustrations/service-generique.svg',
+    imageUrl: resolvePublicAssetUrl('/service-illustrations/service-generique.svg'),
     imageAlt: `Illustration du service ${service.title}`,
   };
 };

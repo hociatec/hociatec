@@ -13,6 +13,7 @@ dist-stale-*
 dist-ssr
 .ssg
 *.local
+e2e/.auth
 
 # Editor directories and files
 .vscode/*

@@ -1,7 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
-import { Clock3 } from 'lucide-react';
-
 import { usePublicQuoteServices } from '@/features/quotes/hooks/usePublicQuoteServices';
 import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
@@ -10,24 +7,10 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { EmptyState, ErrorState, LoadingState } from '@/shared/components/ui/page-state';
-import { formatEuroCents } from '@/shared/lib/formatters';
-import { formatServiceBillingMode } from '@/features/quotes/lib/serviceBillingMode';
-import { resolveServiceIllustration } from '@/features/quotes/lib/servicePresentation';
+import { HomeFeaturedServiceCard } from '@/features/home/publicApi';
 import '@/app/styles/features/directories.css';
 
 const SERVICES_PER_PAGE = 7;
-const SERVICE_ILLUSTRATION_FALLBACK = '/service-illustrations/service-generique.svg';
-
-const getFirstSentence = (value?: string | null) => {
-  const description = value?.trim();
-  if (!description) {
-    return 'Plus de détails disponibles dans la fiche du service.';
-  }
-
-  const [sentence] = description.match(/[^.!?]+[.!?]?/) ?? [description];
-
-  return sentence.trim();
-};
 
 export const ServicesCatalogPage = () => {
   useDocumentTitle('Services');
@@ -70,63 +53,10 @@ export const ServicesCatalogPage = () => {
             <EmptyState>Aucun service n’est publié pour le moment.</EmptyState>
           ) : (
             <div className="space-y-8">
-              <div className="home-products__grid">
-                {paginatedServices.map((service) => {
-                  const illustration = resolveServiceIllustration(service);
-
-                  return (
-                    <article
-                      key={service.id}
-                      className="home-service-card home-service-card--featured"
-                    >
-                      <Link to={`/services/${service.id}`} className="home-service-card__media">
-                        {illustration ? (
-                          <img
-                            src={illustration.imageUrl}
-                            alt={illustration.imageAlt || service.title}
-                            width={400}
-                            height={260}
-                            loading="lazy"
-                            decoding="async"
-                            onError={(event) => {
-                              const image = event.currentTarget;
-                              if (!image.src.endsWith(SERVICE_ILLUSTRATION_FALLBACK)) {
-                                image.src = SERVICE_ILLUSTRATION_FALLBACK;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="home-service-card__media-fallback" aria-hidden="true" />
-                        )}
-                      </Link>
-                      <div className="home-service-card__body">
-                        <h3 className="home-service-card__title">
-                          <Link to={`/services/${service.id}`}>{service.title}</Link>
-                        </h3>
-                        <dl className="home-service-card__facts">
-                          <div>
-                            <dt>Mode de facturation</dt>
-                            <dd>{formatServiceBillingMode(service.unit)}</dd>
-                          </div>
-                          <div>
-                            <dt>Prix HT</dt>
-                            <dd>{formatEuroCents(service.priceCents)}</dd>
-                          </div>
-                          <div>
-                            <dt>Durée</dt>
-                            <dd>
-                              <Clock3 aria-hidden="true" />
-                              <span>{service.durationLabel || 'Sur étude'}</span>
-                            </dd>
-                          </div>
-                        </dl>
-                        <p className="home-service-card__description">
-                          {getFirstSentence(service.description)}
-                        </p>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="home-products__grid home-products__grid--services">
+                {paginatedServices.map((service) => (
+                  <HomeFeaturedServiceCard key={service.id} service={service} />
+                ))}
               </div>
 
               {totalPages > 1 && (

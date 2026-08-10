@@ -112,9 +112,14 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
         $qb = $this->createQueryBuilder('a')
             ->andWhere('a.user = :user')
             ->setParameter('user', $user)
-            ->setParameter('now', $now);
+            ->setParameter('now', $now)
+            ->setParameter('cancelledStatus', Appointment::STATUS_CANCELLED);
 
-        $qb->andWhere($upcoming ? 'a.startAt >= :now' : 'a.startAt < :now');
+        $qb->andWhere(
+            $upcoming
+                ? '(a.startAt >= :now AND a.status != :cancelledStatus)'
+                : '(a.startAt < :now OR a.status = :cancelledStatus)',
+        );
 
         return $qb;
     }

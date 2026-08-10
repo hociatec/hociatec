@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
 import { ProductDescriptionSection } from '@/features/catalog/components/ProductDescriptionSection';
 import {
@@ -54,7 +54,6 @@ export const ProductPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <div className="catalog-detail-layout">
-        <Link to={product ? `/catalogue/${product.category.slug}` : '/'} className="catalog-page__breadcrumbs">Retour</Link>
         {loading && <LoadingState>Chargement du produit...</LoadingState>}
         {error && <FeedbackMessage>{error}</FeedbackMessage>}
         {!loading && !error && product && (
