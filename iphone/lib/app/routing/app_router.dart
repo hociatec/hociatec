@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
+import 'package:hociatec_mobile/features/appointments/presentation/appointment_request_screen.dart';
+import 'package:hociatec_mobile/features/audits/presentation/audit_request_screen.dart';
+import 'package:hociatec_mobile/features/catalog/presentation/catalog_listing_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
 import 'package:hociatec_mobile/features/home/presentation/home_screen.dart';
 import 'package:hociatec_mobile/features/news/presentation/news_detail_screen.dart';
 import 'package:hociatec_mobile/features/news/presentation/news_screen.dart';
+import 'package:hociatec_mobile/features/quotes/presentation/quote_request_screen.dart';
 import 'package:hociatec_mobile/features/search/presentation/search_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/service_detail_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/services_screen.dart';
+import 'package:hociatec_mobile/features/trade_ins/presentation/trade_in_request_screen.dart';
+import 'package:hociatec_mobile/features/trainings/presentation/training_catalog_screen.dart';
 import 'package:hociatec_mobile/shared/presentation/navigation/app_shell.dart';
 
 enum AppTab {
@@ -125,10 +131,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/catalogue/vente',
+        builder: (context, state) => const CatalogListingScreen(
+          title: 'Vente',
+          sellingType: 'sale',
+        ),
+      ),
+      GoRoute(
+        path: '/catalogue/location',
+        builder: (context, state) => const CatalogListingScreen(
+          title: 'Location',
+          sellingType: 'rental',
+        ),
+      ),
+      GoRoute(
+        path: '/catalogue/reprise',
+        builder: (context, state) => const TradeInRequestScreen(),
+      ),
+      GoRoute(
+        path: '/catalogue/formation',
+        builder: (context, state) => const TrainingCatalogScreen(),
+      ),
+      GoRoute(
         path: '/prestations/:id',
         builder: (context, state) => ServiceDetailScreen(
           id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
+      ),
+      GoRoute(
+        path: '/prestations/rendez-vous',
+        builder: (context, state) => const AppointmentRequestScreen(),
+      ),
+      GoRoute(
+        path: '/prestations/devis',
+        builder: (context, state) => const QuoteRequestScreen(),
+      ),
+      GoRoute(
+        path: '/prestations/audit',
+        builder: (context, state) => const AuditRequestScreen(),
       ),
       GoRoute(
         path: '/actualites',

@@ -51,6 +51,32 @@ class CatalogRepository {
     );
   }
 
+  Future<List<CatalogProduct>> fetchProductsBySellingType(
+    String sellingType, {
+    int perPage = 20,
+  }) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      '/api/public/catalog/products',
+      queryParameters: <String, dynamic>{
+        'sellingType': sellingType,
+        'perPage': perPage,
+      },
+    );
+
+    final payload = unwrapApiDataMap(
+      response.data,
+      'Impossible de charger les produits du catalogue.',
+    );
+
+    return readItemList(
+            payload, 'Impossible de charger les produits du catalogue.')
+        .map((item) => CatalogProduct.fromJson(
+              _normalizeProductJson(item),
+              baseUrl: _baseUrl,
+            ))
+        .toList(growable: false);
+  }
+
   Future<void> shareProductByEmail({
     required String slug,
     required String email,
@@ -63,7 +89,8 @@ class CatalogRepository {
 
   Map<String, dynamic> _normalizeProductJson(Map<String, dynamic> item) {
     final normalized = Map<String, dynamic>.from(item);
-    normalized['imageUrl'] = resolveAbsoluteUrl(_baseUrl, item['imageUrl'] as String?);
+    normalized['imageUrl'] =
+        resolveAbsoluteUrl(_baseUrl, item['imageUrl'] as String?);
     normalized['gallery'] = ((item['gallery'] as List?) ?? const <dynamic>[])
         .whereType<Map>()
         .map((entry) {
@@ -93,4 +120,11 @@ final siteBaseUrlProvider = Provider<String>((ref) {
 final productDetailProvider =
     FutureProvider.family<CatalogProduct, String>((ref, slug) {
   return ref.watch(catalogRepositoryProvider).fetchProduct(slug);
+});
+
+final catalogProductsBySellingTypeProvider =
+    FutureProvider.family<List<CatalogProduct>, String>((ref, sellingType) {
+  return ref
+      .watch(catalogRepositoryProvider)
+      .fetchProductsBySellingType(sellingType);
 });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
 
@@ -52,6 +53,7 @@ class CatalogScreen extends ConsumerWidget {
             title: 'Vente',
             subtitle: 'Commander du matériel prêt à être utilisé.',
             icon: Icons.shopping_bag_outlined,
+            route: '/catalogue/vente',
           ),
           const SizedBox(height: 12),
           const _CatalogActionCard(
@@ -59,6 +61,7 @@ class CatalogScreen extends ConsumerWidget {
             subtitle:
                 'Accéder à des équipements sans immobiliser votre budget.',
             icon: Icons.event_available_outlined,
+            route: '/catalogue/location',
           ),
           const SizedBox(height: 12),
           const _CatalogActionCard(
@@ -66,6 +69,7 @@ class CatalogScreen extends ConsumerWidget {
             subtitle:
                 'Faire estimer vos anciens appareils pour leur donner une seconde vie.',
             icon: Icons.autorenew_rounded,
+            route: '/catalogue/reprise',
           ),
           const SizedBox(height: 12),
           const _CatalogActionCard(
@@ -73,6 +77,7 @@ class CatalogScreen extends ConsumerWidget {
             subtitle:
                 'Monter en compétence sur les usages, outils et bonnes pratiques.',
             icon: Icons.school_outlined,
+            route: '/catalogue/formation',
           ),
           const SizedBox(height: 28),
           Text(
@@ -119,22 +124,20 @@ class _CatalogActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.route,
   });
 
   final String title;
   final String subtitle;
   final IconData icon;
+  final String route;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return FilledButton.tonal(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title disponible dans le catalogue.')),
-        );
-      },
+      onPressed: () => context.push(route),
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.all(18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),

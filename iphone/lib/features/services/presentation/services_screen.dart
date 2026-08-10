@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
 
@@ -50,6 +51,7 @@ class ServicesScreen extends ConsumerWidget {
             title: 'Prendre rendez-vous',
             subtitle:
                 'Planifiez un créneau pour un échange, un diagnostic ou une intervention.',
+            route: '/prestations/rendez-vous',
           ),
           const SizedBox(height: 12),
           const _ServiceActionTile(
@@ -57,6 +59,7 @@ class ServicesScreen extends ConsumerWidget {
             title: 'Creer un devis',
             subtitle:
                 'Préparez une demande de chiffrage pour votre besoin matériel ou service.',
+            route: '/prestations/devis',
           ),
           const SizedBox(height: 12),
           const _ServiceActionTile(
@@ -64,6 +67,7 @@ class ServicesScreen extends ConsumerWidget {
             title: 'Demander un audit',
             subtitle:
                 'Faites analyser votre parc, votre sécurité ou vos usages.',
+            route: '/prestations/audit',
           ),
           const SizedBox(height: 28),
           Text(
@@ -108,11 +112,13 @@ class _ServiceActionTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.route,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final String route;
 
   @override
   Widget build(BuildContext context) {
@@ -121,11 +127,7 @@ class _ServiceActionTile extends StatelessWidget {
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title disponible dans Prestations.')),
-          );
-        },
+        onTap: () => context.push(route),
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Row(

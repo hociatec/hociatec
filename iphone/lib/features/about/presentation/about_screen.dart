@@ -1,31 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hociatec_mobile/features/contact/data/contact_repository.dart';
+import 'package:hociatec_mobile/shared/utils/api_error_message.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const _contactEmail = 'contact@hociatec.fr';
 const _altStoreSourceUri =
     'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
 const _altStoreDeepLink =
     'altstore://source?url=https%3A%2F%2Fgithub.com%2Fhociatec%2Fhociatec-downloads%2Freleases%2Fdownload%2Fios-latest%2Fhociatec-altstore-source.json';
 
-class AboutScreen extends StatefulWidget {
+class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
 
   @override
-  State<AboutScreen> createState() => _AboutScreenState();
+  ConsumerState<AboutScreen> createState() => _AboutScreenState();
 }
 
-class _AboutScreenState extends State<AboutScreen> {
+class _AboutScreenState extends ConsumerState<AboutScreen> {
   late final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _subjectController.dispose();
     _messageController.dispose();
     super.dispose();
   }
@@ -176,6 +181,22 @@ class _AboutScreenState extends State<AboutScreen> {
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
+                        controller: _subjectController,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Sujet',
+                          prefixIcon: Icon(Icons.label_outline),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Veuillez saisir un sujet.';
+                          }
+
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
                         controller: _messageController,
                         minLines: 5,
                         maxLines: 7,
@@ -199,8 +220,10 @@ class _AboutScreenState extends State<AboutScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
-                          onPressed: _submitContactForm,
-                          child: const Text('Envoyer la demande'),
+                          onPressed: _isSubmitting ? null : _submitContactForm,
+                          child: Text(
+                            _isSubmitting ? 'Envoi...' : 'Envoyer la demande',
+                          ),
                         ),
                       ),
                     ],
@@ -219,45 +242,46 @@ class _AboutScreenState extends State<AboutScreen> {
       return;
     }
 
-    final subject =
-        'Contact application iPhone - ${_nameController.text.trim()}';
-    final body = '''
-Nom : ${_nameController.text.trim()}
-Email : ${_emailController.text.trim()}
+    setState(() => _isSubmitting = true);
 
-Message :
-${_messageController.text.trim()}
-''';
+    try {
+      final message = await ref.read(contactRepositoryProvider).submit(
+            name: _nameController.text.trim(),
+            email: _emailController.text.trim(),
+            subject: _subjectController.text.trim(),
+            message: _messageController.text.trim(),
+          );
 
-    final uri = Uri(
-      scheme: 'mailto',
-      path: _contactEmail,
-      queryParameters: <String, String>{
-        'subject': subject,
-        'body': body,
-      },
-    );
+      if (!mounted) {
+        return;
+      }
 
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!mounted) {
-      return;
-    }
-
-    if (!opened) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Impossible d ouvrir le client email sur cet appareil.'),
+        SnackBar(content: Text(message)),
+      );
+      _formKey.currentState!.reset();
+      _nameController.clear();
+      _emailController.clear();
+      _subjectController.clear();
+      _messageController.clear();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            resolveApiErrorMessage(
+                error, 'Impossible d envoyer votre message.'),
+          ),
         ),
       );
-      return;
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Le formulaire a ete prepare dans votre client email.'),
-      ),
-    );
   }
 
   Future<void> _openUpdateLink() async {
