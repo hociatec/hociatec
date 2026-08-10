@@ -83,16 +83,19 @@ jobs:
       - name: Verify unsigned iOS device build
         run: flutter build ios --release --no-codesign
 
-      - name: Build unsigned IPA
-        run: flutter build ipa --release --no-codesign
-
-      - name: Package unsigned IPA for AltStore
+      - name: Package clean unsigned IPA for AltStore
         run: |
           rm -rf build/ios/ipa-export
           mkdir -p build/ios/ipa-export/Payload
-          cp -R build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa-export/Payload/
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa-export/Payload/
+          find build/ios/ipa-export/Payload -name '_CodeSignature' -type d -prune -exec rm -rf {} +
+          find build/ios/ipa-export/Payload -name 'embedded.mobileprovision' -type f -delete
+          find build/ios/ipa-export/Payload -name 'SC_Info' -type d -prune -exec rm -rf {} +
           cd build/ios/ipa-export
           ditto -c -k --sequesterRsrc --keepParent Payload "${{ steps.app_meta.outputs.ipa_filename }}"
+
+      - name: Validate AltStore IPA structure
+        run: ./tools/validate_altstore_ipa.sh "build/ios/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}"
 
       - name: List iOS build outputs
         run: |
