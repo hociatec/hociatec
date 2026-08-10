@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
 import 'package:hociatec_mobile/features/home/presentation/widgets/home_cards.dart';
@@ -46,49 +45,40 @@ class HomeScreen extends ConsumerWidget {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: <Widget>[
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     <Widget>[
-                      const _HomeHero(),
-                      const SizedBox(height: 36),
                       _SectionBlock(
                         eyebrow: 'Interventions et accompagnement',
                         title: 'Services mis en avant',
                         subtitle:
-                            'Des prestations concretes pour reparer, securiser, maintenir ou faire evoluer vos outils.',
-                        actionLabel: 'Tous les services',
-                        onActionPressed: () => context.go('/prestations'),
+                            'Des prestations concrètes pour réparer, sécuriser, maintenir ou faire évoluer vos outils.',
                         child: servicesAsync.when(
                           data: (services) => _ServicesCarousel(services: services),
                           error: (error, stackTrace) => _SectionError(message: error.toString()),
                           loading: () => const _SectionLoading(),
                         ),
                       ),
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 40),
                       _SectionBlock(
-                        eyebrow: 'Catalogue selectionne',
+                        eyebrow: 'Catalogue sélectionné',
                         title: 'Produits recommandés',
                         subtitle:
-                            'Une selection courte de materiel utile, lisible et directement actionnable.',
-                        actionLabel: 'Voir le catalogue',
-                        onActionPressed: () => context.go('/catalogue'),
+                            'Une sélection courte de matériel utile, lisible et directement actionnable.',
                         child: productsAsync.when(
                           data: (products) => _ProductsGrid(products: products),
                           error: (error, stackTrace) => _SectionError(message: error.toString()),
                           loading: () => const _SectionLoading(),
                         ),
                       ),
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 40),
                       _SectionBlock(
                         eyebrow: 'Veille et conseils',
                         title: 'Actualité',
                         subtitle:
                             'Les derniers contenus pour suivre les usages, la sécurité et les nouveautés Hociatec.',
-                        actionLabel: 'Toutes les actualités',
-                        onActionPressed: () => context.push('/actualites'),
                         child: newsAsync.when(
                           data: (articles) => _NewsColumn(articles: articles),
                           error: (error, stackTrace) => _SectionError(message: error.toString()),
@@ -107,134 +97,17 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HomeHero extends StatelessWidget {
-  const _HomeHero();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[
-            Color(0xFF16324F),
-            Color(0xFF1F5673),
-            Color(0xFFB46A3A),
-          ],
-        ),
-        boxShadow: const <BoxShadow>[
-          BoxShadow(
-            color: Color(0x1F2C1F10),
-            blurRadius: 32,
-            offset: Offset(0, 18),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'HOCIATEC',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: const Color(0xFFFFC98C),
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.2,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Accueil mobile inspire du site, branche sur l API reelle.',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                height: 1.1,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Accede rapidement aux services, aux produits et aux actualites sans passer par des ecrans temporaires.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: const Color(0xFFE6EDF3),
-                height: 1.55,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: <Widget>[
-                _HeroActionChip(
-                  label: 'Catalogue',
-                  onPressed: () => context.go('/catalogue'),
-                ),
-                _HeroActionChip(
-                  label: 'Prestations',
-                  onPressed: () => context.go('/prestations'),
-                ),
-                _HeroActionChip(
-                  label: 'Actualites',
-                  onPressed: () => context.push('/actualites'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeroActionChip extends StatelessWidget {
-  const _HeroActionChip({
-    required this.label,
-    required this.onPressed,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton.tonal(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        backgroundColor: const Color(0x1FFFFFFF),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-          side: const BorderSide(color: Color(0x3DFFFFFF)),
-        ),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-}
-
 class _SectionBlock extends StatelessWidget {
   const _SectionBlock({
     required this.eyebrow,
     required this.title,
     required this.subtitle,
-    required this.actionLabel,
-    required this.onActionPressed,
     required this.child,
   });
 
   final String eyebrow;
   final String title;
   final String subtitle;
-  final String actionLabel;
-  final VoidCallback onActionPressed;
   final Widget child;
 
   @override
@@ -248,12 +121,12 @@ class _SectionBlock extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Text(
-                eyebrow.toUpperCase(),
+                eyebrow,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: const Color(0xFF9D5624),
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.4,
+                  letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(height: 8),
@@ -290,20 +163,6 @@ class _SectionBlock extends StatelessWidget {
                     color: const Color(0xFF5D5750),
                     height: 1.65,
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: onActionPressed,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF233246),
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFFDDD1C2)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                ),
-                child: Text(
-                  actionLabel,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
             ],
@@ -346,7 +205,7 @@ class _ServicesCarouselState extends State<_ServicesCarousel> {
     return Column(
       children: <Widget>[
         SizedBox(
-          height: 430,
+          height: 490,
           child: PageView.builder(
             controller: _controller,
             padEnds: false,
@@ -399,7 +258,7 @@ class _ProductsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) {
-      return const _SectionEmpty(message: 'Aucun produit recommande pour le moment.');
+      return const _SectionEmpty(message: 'Aucun produit mis en avant pour le moment.');
     }
 
     return LayoutBuilder(
@@ -433,7 +292,7 @@ class _NewsColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (articles.isEmpty) {
-      return const _SectionEmpty(message: 'Aucune actualite disponible pour le moment.');
+      return const _SectionEmpty(message: 'Aucune actualité disponible pour le moment.');
     }
 
     return Column(

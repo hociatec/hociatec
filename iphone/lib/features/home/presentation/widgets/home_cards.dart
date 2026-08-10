@@ -45,7 +45,7 @@ class HomeServiceCard extends StatelessWidget {
               imageUrl: service.imageUrl,
               icon: Icons.design_services_outlined,
               background: const Color(0xFFF7F5F2),
-              height: 180,
+              height: 132,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
@@ -71,15 +71,15 @@ class HomeServiceCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _FactLine(
+                  _FactParagraph(
                     label: 'Mode de facturation',
                     value: formatServiceBillingMode(service.unit),
                   ),
-                  _FactLine(
+                  _FactParagraph(
                     label: 'Prix HT',
                     value: formatPriceCents(service.priceCents),
                   ),
-                  _FactLine(
+                  _FactParagraph(
                     label: 'Durée',
                     value: service.durationLabel?.isNotEmpty == true
                         ? service.durationLabel!
@@ -164,13 +164,13 @@ class HomeProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _FactLine(label: 'Référence', value: product.sku),
-                    _FactLine(
+                    _FactParagraph(label: 'Référence', value: product.sku),
+                    _FactParagraph(
                       label: 'Type',
                       value: '${product.category.name} (${product.sellingTypeLabel})',
                     ),
                     if (specs.isNotEmpty)
-                      _FactLine(
+                      _FactParagraph(
                         label: 'Configuration',
                         value: specs,
                         showDivider: false,
@@ -310,22 +310,6 @@ class HomeNewsCard extends StatelessWidget {
                   height: 1.65,
                 ),
               ),
-              const SizedBox(height: 18),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFFDDD1C2)),
-                ),
-                child: Text(
-                  'Lire l’actualité',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFF9D5624),
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -405,8 +389,8 @@ class _MediaPlaceholder extends StatelessWidget {
   }
 }
 
-class _FactLine extends StatelessWidget {
-  const _FactLine({
+class _FactParagraph extends StatelessWidget {
+  const _FactParagraph({
     required this.label,
     required this.value,
     this.showDivider = true,
@@ -426,24 +410,30 @@ class _FactLine extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(bottom: 8, top: 2),
+      padding: const EdgeInsets.only(bottom: 10, top: 2),
       decoration: BoxDecoration(border: border),
-      child: RichText(
-        text: TextSpan(
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: const Color(0xFF1F2330),
-                height: 1.5,
-                fontWeight: FontWeight.w700,
-              ),
-          children: <InlineSpan>[
-            TextSpan(
-              text: '$label: ',
-              style: const TextStyle(
-                color: Color(0xFF63584F),
-                fontWeight: FontWeight.w800,
-              ),
+      child: Semantics(
+        container: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '$label:',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFF63584F),
+                    fontWeight: FontWeight.w800,
+                    height: 1.45,
+                  ),
             ),
-            TextSpan(text: value),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFF1F2330),
+                    fontWeight: FontWeight.w700,
+                    height: 1.5,
+                  ),
+            ),
           ],
         ),
       ),

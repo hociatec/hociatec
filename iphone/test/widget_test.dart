@@ -123,7 +123,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('HOCIATEC'), findsOneWidget);
+    expect(find.text('Services mis en avant'), findsOneWidget);
     expect(find.text('Diagnostic reseau'), findsOneWidget);
 
     await tester.tap(navigationTab('Catalogue'));
