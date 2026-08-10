@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hociatec_mobile/features/about/presentation/about_screen.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/catalog_screen.dart';
+import 'package:hociatec_mobile/features/catalog/presentation/product_detail_screen.dart';
 import 'package:hociatec_mobile/features/home/presentation/home_screen.dart';
+import 'package:hociatec_mobile/features/news/presentation/news_detail_screen.dart';
 import 'package:hociatec_mobile/features/search/presentation/search_screen.dart';
+import 'package:hociatec_mobile/features/services/presentation/service_detail_screen.dart';
 import 'package:hociatec_mobile/features/services/presentation/services_screen.dart';
 import 'package:hociatec_mobile/shared/presentation/navigation/app_shell.dart';
 
@@ -113,6 +116,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/catalogue/produits/:slug',
+        builder: (context, state) => ProductDetailScreen(
+          slug: state.pathParameters['slug'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/prestations/:id',
+        builder: (context, state) => ServiceDetailScreen(
+          id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
+      GoRoute(
+        path: '/actualites/:slug',
+        builder: (context, state) => NewsDetailScreen(
+          slug: state.pathParameters['slug'] ?? '',
+        ),
       ),
     ],
   );
