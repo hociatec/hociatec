@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hociatec_mobile/features/cart/application/cart_action_result.dart';
 import 'package:hociatec_mobile/features/cart/application/cart_controller.dart';
-import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
+import 'package:hociatec_mobile/features/catalog/application/product_share_service.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/widgets/product_email_share_sheet.dart';
-import 'package:hociatec_mobile/shared/utils/public_urls.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProductActionToolbar extends ConsumerWidget {
@@ -23,10 +23,11 @@ class ProductActionToolbar extends ConsumerWidget {
     final cartController = ref.read(cartControllerProvider.notifier);
     final pendingProductIds = ref.watch(pendingCartProductIdsProvider);
     final messenger = ScaffoldMessenger.of(context);
-    final siteBaseUrl = ref.watch(siteBaseUrlProvider);
-    final absoluteUrl = productPublicUrl(siteBaseUrl, product.slug);
+    final shareService = ref.watch(productShareServiceProvider);
     final isInCart = cartController.isProductInCart(product.id);
     final isPending = pendingProductIds.contains(product.id);
+    final shareDraft =
+        shareService.buildDraft(product: product, email: 'placeholder@example.com');
 
     return Wrap(
       spacing: 10,
@@ -37,17 +38,11 @@ class ProductActionToolbar extends ConsumerWidget {
               ? null
               : () async {
                   try {
-                    if (isInCart) {
-                      await cartController.removeProduct(product.id);
-                      messenger.showSnackBar(
-                        const SnackBar(content: Text('Produit retire du panier.')),
-                      );
-                    } else {
-                      await cartController.addProduct(product.id);
-                      messenger.showSnackBar(
-                        const SnackBar(content: Text('Produit ajoute au panier.')),
-                      );
-                    }
+                    final result = await cartController.toggleProduct(product.id);
+                    final message = result.kind == CartActionResultKind.removed
+                        ? 'Produit retire du panier.'
+                        : 'Produit ajoute au panier.';
+                    messenger.showSnackBar(SnackBar(content: Text(message)));
                   } catch (_) {
                     messenger.showSnackBar(
                       SnackBar(
@@ -76,7 +71,7 @@ class ProductActionToolbar extends ConsumerWidget {
         OutlinedButton.icon(
           onPressed: () async {
             final opened = await launchUrl(
-              facebookShareUri(absoluteUrl),
+              shareDraft.facebookUri,
               mode: LaunchMode.externalApplication,
             );
             if (!opened && context.mounted) {

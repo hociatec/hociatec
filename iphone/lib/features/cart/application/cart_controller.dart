@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hociatec_mobile/features/cart/application/cart_action_result.dart';
 import 'package:hociatec_mobile/features/cart/data/cart_repository.dart';
 import 'package:hociatec_mobile/features/cart/domain/cart_snapshot.dart';
 
@@ -40,6 +41,16 @@ class CartController extends AsyncNotifier<CartSnapshot?> {
       productId,
       () => ref.read(cartRepositoryProvider).removeItem(productId),
     );
+  }
+
+  Future<CartActionResult> toggleProduct(int productId) async {
+    if (isProductInCart(productId)) {
+      await removeProduct(productId);
+      return const CartActionResult(CartActionResultKind.removed);
+    }
+
+    await addProduct(productId);
+    return const CartActionResult(CartActionResultKind.added);
   }
 
   Future<void> refreshCart() async {

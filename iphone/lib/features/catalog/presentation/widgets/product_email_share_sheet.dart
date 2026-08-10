@@ -1,10 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hociatec_mobile/features/catalog/data/catalog_repository.dart';
+import 'package:hociatec_mobile/features/catalog/application/product_share_service.dart';
 import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
-import 'package:hociatec_mobile/shared/utils/public_urls.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ProductEmailShareSheet extends ConsumerStatefulWidget {
   const ProductEmailShareSheet({
@@ -71,15 +68,9 @@ class _ProductEmailShareSheetState extends ConsumerState<ProductEmailShareSheet>
                   hintText: 'ami@exemple.com',
                 ),
                 validator: (value) {
-                  final normalized = value?.trim() ?? '';
-                  if (normalized.isEmpty) {
-                    return 'Veuillez renseigner une adresse e-mail.';
-                  }
-                  final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-                  if (!emailPattern.hasMatch(normalized)) {
-                    return 'Cette adresse e-mail ne semble pas valide.';
-                  }
-                  return null;
+                  return ref
+                      .read(productShareServiceProvider)
+                      .validateRecipientEmail(value ?? '');
                 },
               ),
               const SizedBox(height: 18),
@@ -114,67 +105,21 @@ class _ProductEmailShareSheetState extends ConsumerState<ProductEmailShareSheet>
 
     final email = _emailController.text.trim();
     final messenger = ScaffoldMessenger.of(context);
-    final siteBaseUrl = ref.read(siteBaseUrlProvider);
-    final absoluteUrl = productPublicUrl(siteBaseUrl, widget.product.slug);
-    final mailto = mailtoUri(
-      email: email,
-      subject: 'Decouvrir : ${widget.product.displayName}',
-      body: [
-        'Bonjour,',
-        '',
-        'Je te partage ce produit : ${widget.product.displayName}',
-        '',
-        'Lien direct : $absoluteUrl',
-        '',
-        widget.product.shortDescription ??
-            'Consulte la fiche produit pour obtenir tous les details.',
-      ].join('\n'),
-    );
+    final shareService = ref.read(productShareServiceProvider);
 
     setState(() => _isSubmitting = true);
 
     try {
-      await ref.read(catalogRepositoryProvider).shareProductByEmail(
-            slug: widget.product.slug,
-            email: email,
-          );
+      final result = await shareService.shareByEmail(
+        product: widget.product,
+        email: email,
+      );
 
       if (!mounted) return;
-      Navigator.of(context).pop();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Le produit a ete envoye par e-mail.')),
-      );
-    } on DioException catch (error) {
-      if (error.response?.statusCode == 503) {
-        final opened = await launchUrl(mailto, mode: LaunchMode.externalApplication);
-        if (!mounted) return;
+      if (result.isSuccess) {
         Navigator.of(context).pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              opened
-                  ? 'Le service e-mail est indisponible. Votre messagerie a ete ouverte.'
-                  : 'Le service e-mail est indisponible et la messagerie n a pas pu etre ouverte.',
-            ),
-          ),
-        );
-        return;
       }
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            (error.response?.data is Map<String, dynamic>)
-                ? (((error.response!.data as Map<String, dynamic>)['message'] as String?) ??
-                    "Impossible d'envoyer le produit par e-mail.")
-                : "Impossible d'envoyer le produit par e-mail.",
-          ),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text("Impossible d'envoyer le produit par e-mail.")),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(result.message)));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
