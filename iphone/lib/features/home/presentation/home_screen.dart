@@ -7,6 +7,7 @@ import 'package:hociatec_mobile/features/news/data/news_repository.dart';
 import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/data/services_repository.dart';
 import 'package:hociatec_mobile/features/services/domain/service_offering.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/section_block_header.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -112,61 +113,12 @@ class _SectionBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Column(
-            children: <Widget>[
-              Text(
-                eyebrow,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: const Color(0xFF9D5624),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF1D2430),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: 84,
-                height: 6,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  gradient: const LinearGradient(
-                    colors: <Color>[
-                      Color(0xFFF39A20),
-                      Color(0xFFB46A3A),
-                      Color(0xFF00A8B5),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF5D5750),
-                    height: 1.65,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        SectionBlockHeader(
+          eyebrow: eyebrow,
+          title: title,
+          subtitle: subtitle,
         ),
         const SizedBox(height: 20),
         child,

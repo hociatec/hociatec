@@ -4,6 +4,7 @@ import 'package:hociatec_mobile/features/catalog/domain/catalog_product.dart';
 import 'package:hociatec_mobile/features/catalog/presentation/widgets/product_action_toolbar.dart';
 import 'package:hociatec_mobile/features/news/domain/news_article.dart';
 import 'package:hociatec_mobile/features/services/domain/service_offering.dart';
+import 'package:hociatec_mobile/shared/presentation/widgets/fact_paragraph.dart';
 import 'package:hociatec_mobile/shared/utils/content_formatters.dart';
 
 class HomeServiceCard extends StatelessWidget {
@@ -71,15 +72,15 @@ class HomeServiceCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  _FactParagraph(
+                  FactParagraph(
                     label: 'Mode de facturation',
                     value: formatServiceBillingMode(service.unit),
                   ),
-                  _FactParagraph(
+                  FactParagraph(
                     label: 'Prix HT',
                     value: formatPriceCents(service.priceCents),
                   ),
-                  _FactParagraph(
+                  FactParagraph(
                     label: 'Durée',
                     value: service.durationLabel?.isNotEmpty == true
                         ? service.durationLabel!
@@ -164,13 +165,13 @@ class HomeProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _FactParagraph(label: 'Référence', value: product.sku),
-                    _FactParagraph(
+                    FactParagraph(label: 'Référence', value: product.sku),
+                    FactParagraph(
                       label: 'Type',
                       value: '${product.category.name} (${product.sellingTypeLabel})',
                     ),
                     if (specs.isNotEmpty)
-                      _FactParagraph(
+                      FactParagraph(
                         label: 'Configuration',
                         value: specs,
                         showDivider: false,
@@ -383,58 +384,6 @@ class _MediaPlaceholder extends StatelessWidget {
           icon,
           size: 40,
           color: const Color(0xFF9D5624),
-        ),
-      ),
-    );
-  }
-}
-
-class _FactParagraph extends StatelessWidget {
-  const _FactParagraph({
-    required this.label,
-    required this.value,
-    this.showDivider = true,
-  });
-
-  final String label;
-  final String value;
-  final bool showDivider;
-
-  @override
-  Widget build(BuildContext context) {
-    final border = showDivider
-        ? const Border(
-            bottom: BorderSide(color: Color(0xFFEBE6DF)),
-          )
-        : null;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.only(bottom: 10, top: 2),
-      decoration: BoxDecoration(border: border),
-      child: Semantics(
-        container: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              '$label:',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF63584F),
-                    fontWeight: FontWeight.w800,
-                    height: 1.45,
-                  ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF1F2330),
-                    fontWeight: FontWeight.w700,
-                    height: 1.5,
-                  ),
-            ),
-          ],
         ),
       ),
     );
