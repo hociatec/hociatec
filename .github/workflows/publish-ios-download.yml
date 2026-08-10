@@ -1,0 +1,67 @@
+name: Publish iOS download
+
+on:
+  workflow_run:
+    workflows:
+      - Mobile quality
+    types:
+      - completed
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sync-ipa:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Resolve IPA artifact name
+        id: artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          ARTIFACT_NAME="$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts" --jq '.artifacts[] | select(.expired == false and (.name | startswith("hociatec-ios-unsigned-ipa-v"))) | .name' | head -n 1)"
+
+          if [ -z "${ARTIFACT_NAME}" ]; then
+            echo "Impossible de trouver l'artefact IPA pour le run ${RUN_ID}." >&2
+            exit 1
+          fi
+
+          echo "name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Download IPA artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf tmp-ios-download
+          mkdir -p tmp-ios-download
+          gh run download "${{ github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
+
+      - name: Publish stable IPA file
+        run: |
+          mkdir -p frontend/public/downloads
+          cp tmp-ios-download/*.ipa frontend/public/downloads/hociatec-altstore-latest.ipa
+
+      - name: Commit updated IPA
+        run: |
+          if git diff --quiet -- frontend/public/downloads/hociatec-altstore-latest.ipa; then
+            echo "Aucune mise a jour IPA a publier."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/downloads/hociatec-altstore-latest.ipa
+          git commit -m "ci: publish latest ios ipa"
+          git push origin HEAD:${{ github.event.workflow_run.head_branch }}

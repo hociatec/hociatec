@@ -5,6 +5,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   ClipboardCheck,
+  Download,
   FileText,
   GraduationCap,
   MonitorCog,
@@ -27,6 +28,8 @@ const serviceLinks = [
   { path: '/devis/nouveau', label: 'Créer un devis', Icon: FileText },
   { path: '/audits/request', label: 'Demander un audit', Icon: ClipboardCheck },
 ] as const;
+
+const iosIpaDownloadPath = '/downloads/hociatec-altstore-latest.ipa';
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
@@ -135,6 +138,15 @@ export const SiteHeaderNavigation = () => {
         <BriefcaseBusiness aria-hidden="true" />
         Contact
       </Link>
+
+      <a
+        href={iosIpaDownloadPath}
+        download="hociatec-altstore-latest.ipa"
+        className="site-header__cta"
+      >
+        <Download aria-hidden="true" />
+        Télécharger l&apos;app iPhone
+      </a>
     </nav>
   );
 };
