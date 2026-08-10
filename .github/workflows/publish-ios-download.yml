@@ -54,6 +54,63 @@ jobs:
           mkdir -p tmp-ios-download
           gh run download "${{ inputs.run_id || github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
 
+      - name: Generate AltStore source JSON
+        env:
+          ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
+        run: |
+          IPA_PATH="$(find tmp-ios-download -maxdepth 2 -name '*.ipa' | head -n 1)"
+
+          if [ -z "${IPA_PATH}" ]; then
+            echo "Impossible de trouver le fichier IPA telecharge." >&2
+            exit 1
+          fi
+
+          APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
+          APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+          IPA_SIZE="$(wc -c < "${IPA_PATH}" | tr -d '[:space:]')"
+          RELEASE_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa"
+          SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
+          ICON_URL="https://hociatec.fr/logo.png"
+
+          cat > tmp-ios-download/hociatec-altstore-source.json <<EOF
+          {
+            "name": "Hociatec",
+            "subtitle": "Application mobile officielle Hociatec",
+            "description": "Source AltStore officielle de l'application mobile Hociatec.",
+            "iconURL": "${ICON_URL}",
+            "website": "https://hociatec.fr",
+            "tintColor": "#16324F",
+            "featuredApps": [
+              "fr.hociatec.hociatecMobile"
+            ],
+            "apps": [
+              {
+                "name": "Hociatec",
+                "bundleIdentifier": "fr.hociatec.hociatecMobile",
+                "developerName": "Hociatec",
+                "subtitle": "Catalogue, prestations et services Hociatec",
+                "localizedDescription": "Application mobile officielle Hociatec. Retrouvez les services, le catalogue et les mises a jour depuis AltStore.",
+                "iconURL": "${ICON_URL}",
+                "tintColor": "#16324F",
+                "category": "business",
+                "versions": [
+                  {
+                    "version": "${APP_VERSION}",
+                    "buildVersion": "${APP_BUILD}",
+                    "date": "${RELEASE_DATE}",
+                    "localizedDescription": "Derniere version publiee automatiquement depuis la CI Hociatec.",
+                    "downloadURL": "${IPA_URL}",
+                    "size": ${IPA_SIZE},
+                    "minOSVersion": "15.0"
+                  }
+                ]
+              }
+            ],
+            "news": []
+          }
+          EOF
+
       - name: Publish stable IPA to public GitHub Release
         env:
           GH_TOKEN: ${{ secrets.DOWNLOADS_REPO_TOKEN }}
@@ -63,9 +120,15 @@ jobs:
           RELEASE_TITLE="iOS latest"
           RELEASE_NOTES="Dernier build iOS non signe pour AltStore, publie automatiquement."
           IPA_PATH="$(find tmp-ios-download -maxdepth 2 -name '*.ipa' | head -n 1)"
+          SOURCE_PATH="tmp-ios-download/hociatec-altstore-source.json"
 
           if [ -z "${IPA_PATH}" ]; then
             echo "Impossible de trouver le fichier IPA telecharge." >&2
+            exit 1
+          fi
+
+          if [ ! -f "${SOURCE_PATH}" ]; then
+            echo "Impossible de trouver le fichier source AltStore genere." >&2
             exit 1
           fi
 
@@ -73,8 +136,10 @@ jobs:
 
           if gh release view "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" >/dev/null 2>&1; then
             gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --yes >/dev/null 2>&1 || true
+            gh release delete-asset "${RELEASE_TAG}" hociatec-altstore-source.json --repo "${TARGET_REPOSITORY}" --yes >/dev/null 2>&1 || true
           else
             gh release create "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
           fi
 
           gh release upload "${RELEASE_TAG}" tmp-ios-download/hociatec-altstore-latest.ipa --repo "${TARGET_REPOSITORY}" --clobber
+          gh release upload "${RELEASE_TAG}" "${SOURCE_PATH}" --repo "${TARGET_REPOSITORY}" --clobber

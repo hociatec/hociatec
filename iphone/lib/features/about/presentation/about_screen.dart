@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const _iosDownloadUri = 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa';
+const _altStoreSourceUri = 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
+const _altStoreDeepLink = 'altstore://source?url=https%3A%2F%2Fgithub.com%2Fhociatec%2Fhociatec-downloads%2Freleases%2Fdownload%2Fios-latest%2Fhociatec-altstore-source.json';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -77,7 +78,7 @@ class _AboutScreenState extends State<AboutScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Accedez directement au dernier lien de telechargement pour mettre a jour l’application via AltStore.',
+                            'Ouvrez la source AltStore officielle pour retrouver l’application et ses prochaines mises a jour.',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.5,
@@ -87,7 +88,7 @@ class _AboutScreenState extends State<AboutScreen> {
                           FilledButton.icon(
                             onPressed: _openUpdateLink,
                             icon: const Icon(Icons.system_update_alt),
-                            label: const Text('Mettre a jour'),
+                            label: const Text('Ouvrir dans AltStore'),
                           ),
                         ],
                       );
@@ -104,12 +105,25 @@ class _AboutScreenState extends State<AboutScreen> {
 
   Future<void> _openUpdateLink() async {
     final messenger = ScaffoldMessenger.of(context);
-    final uri = Uri.parse(_iosDownloadUri);
+    final altStoreUri = Uri.parse(_altStoreDeepLink);
+    final sourceUri = Uri.parse(_altStoreSourceUri);
 
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) && mounted) {
+    final openedAltStore = await launchUrl(
+      altStoreUri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (openedAltStore || !mounted) return;
+
+    final openedSource = await launchUrl(
+      sourceUri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!openedSource && mounted) {
       messenger.showSnackBar(
         const SnackBar(
-          content: Text('Impossible d’ouvrir le lien de mise a jour.'),
+          content: Text('Impossible d’ouvrir AltStore ou la source de mise a jour.'),
         ),
       );
     }

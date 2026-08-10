@@ -31,6 +31,10 @@ const serviceLinks = [
 
 const iosIpaDownloadPath =
   'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa';
+const altStoreSourcePath =
+  'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
+const altStoreAddSourcePath =
+  `altstore://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
@@ -139,6 +143,16 @@ export const SiteHeaderNavigation = () => {
         <BriefcaseBusiness aria-hidden="true" />
         Contact
       </Link>
+
+      <a
+        href={altStoreAddSourcePath}
+        className="site-header__cta"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Download aria-hidden="true" />
+        Ajouter a AltStore
+      </a>
 
       <a
         href={iosIpaDownloadPath}
