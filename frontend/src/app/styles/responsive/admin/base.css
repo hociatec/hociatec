@@ -1,3 +1,4 @@
+/* stylelint-disable declaration-no-important -- admin responsive bridge intentionally overrides utility classes from the legacy admin UI */
 .admin-shell__content .text-white,
 .admin-shell__content .text-slate-100,
 .admin-shell__content .text-slate-200 {
@@ -161,3 +162,4 @@
 .admin-shell__content .hover\:bg-brand-900\/70:hover {
   background-color: var(--hocia-surface-blue) !important;
 }
+/* stylelint-enable declaration-no-important */

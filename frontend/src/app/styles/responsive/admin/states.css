@@ -1,3 +1,4 @@
+/* stylelint-disable declaration-no-important -- admin state utility bridge intentionally overrides legacy utility colors */
 .admin-shell__content .data-\[state\=active\]\:bg-brand-600[data-state='active'] {
   background-color: var(--hocia-orange) !important;
   color: #ffffff !important;
@@ -31,3 +32,4 @@
 .admin-shell__content .text-emerald-300 {
   color: var(--hocia-success) !important;
 }
+/* stylelint-enable declaration-no-important */

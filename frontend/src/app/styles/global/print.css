@@ -1,4 +1,5 @@
 @media print {
+  /* stylelint-disable declaration-no-important -- print reset must override interactive/layout styles globally */
   :root {
     color-scheme: light;
   }
@@ -56,4 +57,5 @@
   h3 {
     break-after: avoid;
   }
+  /* stylelint-enable declaration-no-important */
 }

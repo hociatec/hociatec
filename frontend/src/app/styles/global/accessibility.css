@@ -71,6 +71,7 @@ textarea {
   cursor: not-allowed;
 }
 
+/* stylelint-disable declaration-no-important -- accessibility and reduced-motion safeguards must override component styles */
 :where(input, select, textarea)[aria-invalid='true'] {
   border-color: var(--hocia-danger) !important;
   box-shadow: 0 0 0 3px rgba(184, 51, 47, 0.18) !important;
@@ -106,6 +107,7 @@ textarea {
     transform: none !important;
   }
 }
+/* stylelint-enable declaration-no-important */
 
 .site-layout {
   color: var(--hocia-ink);

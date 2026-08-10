@@ -163,6 +163,8 @@
   border-top: 1px solid var(--hocia-line);
 }
 
+/* stylelint-disable declaration-no-important -- warning state must win over inherited notification text color */
 .site-header__notifications-warning {
   color: var(--hocia-warning) !important;
 }
+/* stylelint-enable declaration-no-important */

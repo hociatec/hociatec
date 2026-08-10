@@ -162,12 +162,14 @@
   color: var(--hocia-orange-dark);
 }
 
+/* stylelint-disable declaration-no-important -- active contact CTA must override shared header link styles */
 .site-header__link--contact-active {
   background: linear-gradient(135deg, var(--hocia-orange), var(--hocia-violet)) !important;
   border-color: transparent !important;
   box-shadow: 0 10px 20px rgba(169, 79, 22, 0.15) !important;
   color: #ffffff !important;
 }
+/* stylelint-enable declaration-no-important */
 
 .site-header__cta,
 .site-header__beta-cta,

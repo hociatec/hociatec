@@ -110,6 +110,7 @@
   opacity: 0.55;
 }
 
+/* stylelint-disable declaration-no-important -- compact CTA variant intentionally overrides shared button sizing */
 .quote-builder__small-button {
   border-radius: 999px !important;
   font-size: 0.85rem !important;
@@ -117,6 +118,7 @@
   padding: 0.45rem 0.9rem !important;
   width: auto !important;
 }
+/* stylelint-enable declaration-no-important */
 
 .quote-builder aside,
 .quote-builder > :last-child section {

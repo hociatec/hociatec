@@ -158,6 +158,7 @@
   border-color: #fca5a5;
 }
 
+/* stylelint-disable declaration-no-important -- checkout summary overrides existing quote component defaults */
 .quote-selection-empty {
   background: var(--hocia-surface-soft) !important;
   border-color: var(--hocia-line) !important;
@@ -195,6 +196,7 @@
 .quote-selection-stepper__input {
   border-color: var(--hocia-line) !important;
 }
+/* stylelint-enable declaration-no-important */
 
 @media (min-width: 640px) {
   .quote-selection-card__controls {

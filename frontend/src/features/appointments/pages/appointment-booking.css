@@ -44,8 +44,8 @@
   border: 1px solid #d8e1ec;
   border-radius: 1rem;
   display: flex;
-  justify-content: space-between;
   gap: 1rem;
+  justify-content: space-between;
   margin: 0;
   padding: 0.85rem 1rem;
 }
@@ -190,19 +190,19 @@
 }
 
 .slot-list__item {
-  width: 100%;
   text-align: left;
+  width: 100%;
 }
 
 .booking__calendar-engine {
+  height: 1px;
   left: -99999px;
+  opacity: 0;
   overflow: hidden;
+  pointer-events: none;
   position: absolute;
   top: 0;
   width: 1px;
-  height: 1px;
-  pointer-events: none;
-  opacity: 0;
 }
 
 /* Hociatec UI refresh */
