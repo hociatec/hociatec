@@ -53,4 +53,12 @@ final class LibreTranslateClientTest extends TestCase
         self::assertSame(2, $primaryCalls);
         self::assertSame(2, $fallbackCalls);
     }
+
+    public function testItRejectsPrivateOrMetadataEndpoints(): void
+    {
+        $client = new LibreTranslateClient(new MockHttpClient(), 'http://127.0.0.1:8080/translate');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $client->translate('Hello', 'en', 'fr');
+    }
 }

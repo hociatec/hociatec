@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Notification;
 
+use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -11,7 +12,9 @@ final class TemplatedEmailFactory
 {
     public static function create(string $mailerFrom, string $senderName, string $toEmail, string $toName, string $subject, string $html, string $text): Email
     {
-        $toName = trim($toName);
+        $toName = EmailHeaderSanitizer::displayName($toName);
+        $senderName = EmailHeaderSanitizer::displayName($senderName);
+        $subject = EmailHeaderSanitizer::subject($subject);
 
         return (new Email())
             ->from(new Address($mailerFrom, $senderName))
@@ -33,7 +36,7 @@ final class TemplatedEmailFactory
         string $text,
     ): Email {
         $email = self::create($mailerFrom, $senderName, $toEmail, $toName, $subject, $html, $text);
-        $email->replyTo(new Address($replyToEmail, $replyToName));
+        $email->replyTo(new Address($replyToEmail, EmailHeaderSanitizer::displayName($replyToName)));
 
         return $email;
     }

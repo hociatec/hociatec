@@ -57,6 +57,22 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
         }
     }
 
+    public function revokeAllActive(): int
+    {
+        $tokens = $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tokens as $token) {
+            $token->revoke();
+        }
+
+        return count($tokens);
+    }
+
     public function purgeExpiredOrRevokedBefore(\DateTimeImmutable $now, \DateTimeImmutable $revokedBefore): int
     {
         return (int) $this->createQueryBuilder('refreshToken')

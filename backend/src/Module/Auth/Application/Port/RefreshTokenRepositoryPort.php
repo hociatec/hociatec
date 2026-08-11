@@ -15,5 +15,7 @@ interface RefreshTokenRepositoryPort
 
     public function revokeAllForUser(User $user): void;
 
+    public function revokeAllActive(): int;
+
     public function revokeActiveTokensOverLimit(User $user, int $limit): int;
 }

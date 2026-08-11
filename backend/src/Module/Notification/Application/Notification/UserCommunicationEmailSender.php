@@ -7,6 +7,7 @@ namespace App\Module\Notification\Application\Notification;
 use App\Module\Notification\Application\Message\UserCommunicationEmailMessage;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Address;
@@ -56,7 +57,7 @@ final readonly class UserCommunicationEmailSender
         $email = (new Email())
             ->from(new Address($this->mailerFrom, 'Hociatec'))
             ->to($user->getEmail())
-            ->subject($title)
+            ->subject(EmailHeaderSanitizer::subject($title))
             ->text($text)
             ->html($html);
 

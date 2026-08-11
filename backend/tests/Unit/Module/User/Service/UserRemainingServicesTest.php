@@ -226,8 +226,9 @@ final class UserRemainingServicesTest extends TestCase
         $logger->expects(self::once())->method('error');
 
         $fallbackMailer = $this->createMock(EmailSender::class);
-        $fallbackMailer->expects(self::exactly(2))->method('send')->willReturnCallback(
+        $fallbackMailer->expects(self::exactly(3))->method('send')->willReturnCallback(
             function (Email $email): void {
+                self::assertStringNotContainsString("\n", $email->getSubject());
                 if ('KO' === $email->getSubject()) {
                     throw new \RuntimeException('smtp down');
                 }
@@ -248,6 +249,7 @@ final class UserRemainingServicesTest extends TestCase
             self::assertSame('Sujet et message sont obligatoires.', $exception->getMessage());
         }
 
+        $service->send($user, "Sujet\r\nInjecte", "Line 1\nLine 2");
         $service->send($user, 'Sujet', "Line 1\nLine 2");
         self::assertTrue($this->notificationRepository($this->entityManager())->countForUser($user) >= 1);
 

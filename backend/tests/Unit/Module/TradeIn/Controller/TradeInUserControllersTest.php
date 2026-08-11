@@ -13,7 +13,11 @@ use App\Module\TradeIn\UI\Controller\DownloadMyTradeInReceiptController;
 use App\Module\TradeIn\UI\Controller\ListMyTradeInsController;
 use App\Module\TradeIn\UI\Controller\RespondToTradeInOfferController;
 use App\Tests\Unit\Module\TradeIn\TradeInIntegrationTestCase;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
 final class TradeInUserControllersTest extends TradeInIntegrationTestCase
 {
@@ -46,14 +50,14 @@ final class TradeInUserControllersTest extends TradeInIntegrationTestCase
         $list->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $list()->getStatusCode());
 
-        $download = new DownloadMyTradeInReceiptController($portal, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
+        $download = new DownloadMyTradeInReceiptController($portal, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), new RateLimitKeyFactory(), $this->limiter(10));
         $download->setContainer($this->controllerContainer($user));
-        self::assertSame(Response::HTTP_OK, $download((int) $request->getId())->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $download((int) $request->getId(), Request::create('/'))->getStatusCode());
 
         $respond = new RespondToTradeInOfferController($portal);
         $respond->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_NOT_FOUND, $respond((int) $foreign->getId(), 'accept')->getStatusCode());
-        self::assertSame(Response::HTTP_CONFLICT, $respond((int) $submitted->getId(), 'accept')->getStatusCode());
+        self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $respond((int) $submitted->getId(), 'accept')->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $respond((int) $request->getId(), 'bogus')->getStatusCode());
         self::assertSame(Response::HTTP_OK, $respond((int) $request->getId(), 'accept')->getStatusCode());
     }
@@ -80,17 +84,24 @@ final class TradeInUserControllersTest extends TradeInIntegrationTestCase
                 new TradeInPrivateFileStorage($this->projectDir()),
             ),
             new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(),
+            new RateLimitKeyFactory(),
+            $this->limiter(10),
         );
         $download->setContainer($this->controllerContainer($user));
 
         try {
-            $download((int) $ownedWithoutReceipt->getId());
+            $download((int) $ownedWithoutReceipt->getId(), Request::create('/'));
             self::fail('Expected missing receipt exception.');
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $exception) {
             self::assertSame('Justificatif indisponible.', $exception->getMessage());
         }
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\NotFoundHttpException::class);
-        $download((int) $request->getId());
+        $download((int) $request->getId(), Request::create('/'));
+    }
+
+    private function limiter(int $limit): RateLimiterFactory
+    {
+        return new RateLimiterFactory(['id' => 'private_file_download', 'policy' => 'fixed_window', 'limit' => $limit, 'interval' => '1 minute'], new InMemoryStorage());
     }
 }

@@ -20,10 +20,14 @@ use App\Module\BetaTest\UI\Controller\ShowBugReportController;
 use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
 use App\Module\BetaTest\Application\Projection\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
 final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCase
 {
@@ -95,17 +99,17 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         $createComment->setContainer($this->container($admin));
         self::assertSame(Response::HTTP_CREATED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"Admin"}'))->getStatusCode());
 
-        $download = new DownloadBugReportAttachmentController($portal);
+        $download = new DownloadBugReportAttachmentController($portal, new AttachmentResponseFactory(), new RateLimitKeyFactory(), $this->limiter(10));
         $download->setContainer($this->container(null));
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $download((int) $report->getId(), 'screen.png')->getStatusCode());
+        self::assertSame(Response::HTTP_UNAUTHORIZED, $download((int) $report->getId(), 'screen.png', Request::create('/'))->getStatusCode());
         $download->setContainer($this->container($user));
-        self::assertSame(Response::HTTP_NOT_FOUND, $download(999, 'screen.png')->getStatusCode());
-        self::assertSame(Response::HTTP_NOT_FOUND, $download((int) $report->getId(), 'missing.png')->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, $download(999, 'screen.png', Request::create('/'))->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, $download((int) $report->getId(), 'missing.png', Request::create('/'))->getStatusCode());
         $download->setContainer($this->container($this->user('download-other@example.com')));
-        self::assertSame(Response::HTTP_FORBIDDEN, $download((int) $report->getId(), 'screen.png')->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $download((int) $report->getId(), 'screen.png', Request::create('/'))->getStatusCode());
         $download->setContainer($this->container($admin));
-        self::assertSame(Response::HTTP_NOT_FOUND, $download((int) $report->getId(), 'ghost.png')->getStatusCode());
-        self::assertSame(Response::HTTP_OK, $download((int) $report->getId(), 'screen.png')->getStatusCode());
+        self::assertSame(Response::HTTP_NOT_FOUND, $download((int) $report->getId(), 'ghost.png', Request::create('/'))->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $download((int) $report->getId(), 'screen.png', Request::create('/'))->getStatusCode());
 
         $reportWriter = new BugReportWriter($persistence, $storage, $activity, $this->users($em), $notifier);
         $create = new CreateBugReportController($this->campaigns($em), $this->profiles($em), $reportWriter);
@@ -147,5 +151,10 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         self::assertNull($storage->path('../bad'));
         $storage->deleteMany([$stored[0], 123]);
         self::assertNull($storage->path($stored[0]));
+    }
+
+    private function limiter(int $limit): RateLimiterFactory
+    {
+        return new RateLimiterFactory(['id' => 'private_file_download', 'policy' => 'fixed_window', 'limit' => $limit, 'interval' => '1 minute'], new InMemoryStorage());
     }
 }

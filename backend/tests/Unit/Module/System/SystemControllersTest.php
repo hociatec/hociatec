@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class SystemControllersTest extends TestCase
 {
-    public function testHealthControllerReportsHealthyAndUnhealthyDatabase(): void
+    public function testHealthControllerReportsHealthyLivenessAndUnhealthyReadiness(): void
     {
         $result = $this->createMock(Result::class);
         $result->expects(self::once())->method('fetchOne')->willReturn(1);
@@ -26,7 +26,14 @@ final class SystemControllersTest extends TestCase
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::once())->method('executeQuery')->with('SELECT 1')->willReturn($result);
 
-        $healthy = (new HealthController($connection))();
+        $controller = new HealthController($connection);
+        $liveness = $controller->liveness();
+        $livenessPayload = json_decode((string) $liveness->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(Response::HTTP_OK, $liveness->getStatusCode());
+        self::assertSame('ok', $livenessPayload['data']['health']);
+        self::assertSame([], $livenessPayload['data']['checks']);
+
+        $healthy = $controller->readiness();
         $healthyPayload = json_decode((string) $healthy->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(Response::HTTP_OK, $healthy->getStatusCode());
         self::assertSame('ok', $healthyPayload['data']['health']);
@@ -35,7 +42,7 @@ final class SystemControllersTest extends TestCase
         $failingConnection = $this->createMock(Connection::class);
         $failingConnection->expects(self::once())->method('executeQuery')->willThrowException(new DbalException('db down'));
 
-        $unhealthy = (new HealthController($failingConnection))();
+        $unhealthy = (new HealthController($failingConnection))->readiness();
         $unhealthyPayload = json_decode((string) $unhealthy->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, $unhealthy->getStatusCode());
         self::assertSame('error', $unhealthyPayload['details']['health']);

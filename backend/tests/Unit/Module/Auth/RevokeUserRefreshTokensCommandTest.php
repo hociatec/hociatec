@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Infrastructure\Command\RevokeUserRefreshTokensCommand;
+use App\Module\Auth\Infrastructure\Command\RevokeAllRefreshTokensCommand;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -51,5 +52,32 @@ final class RevokeUserRefreshTokensCommandTest extends AuthIntegrationTestCase
 
         self::assertSame(Command::FAILURE, $tester->execute(['email' => 'missing@example.test']));
         self::assertStringContainsString('Utilisateur introuvable.', $tester->getDisplay());
+    }
+
+    public function testItCanRevokeAllActiveRefreshTokensGlobally(): void
+    {
+        $em = $this->entityManager();
+        $userA = $this->user('all-a@example.test');
+        $userB = $this->user('all-b@example.test');
+        $em->persist($userA);
+        $em->persist($userB);
+        $em->flush();
+
+        $service = $this->refreshService($em);
+        $tokenA = $service->issueForUser($userA)['refreshToken'];
+        $tokenB = $service->issueForUser($userB)['refreshToken'];
+
+        $tester = new CommandTester(new RevokeAllRefreshTokensCommand(
+            new \App\Module\Auth\Application\Workflow\RefreshTokenRevocationService($this->refreshRepository($em)),
+            new DoctrineUnitOfWork($em),
+        ));
+
+        self::assertSame(Command::INVALID, $tester->execute([]));
+        self::assertStringContainsString('--confirm', $tester->getDisplay());
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['--confirm' => true]));
+        self::assertStringContainsString('révoquées globalement', $tester->getDisplay());
+        self::assertNull($service->rotate($tokenA));
+        self::assertNull($service->rotate($tokenB));
     }
 }

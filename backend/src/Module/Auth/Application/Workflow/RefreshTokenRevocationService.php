@@ -19,6 +19,11 @@ final readonly class RefreshTokenRevocationService
         $this->refreshTokenRepository->revokeAllForUser($user);
     }
 
+    public function revokeAllActive(): int
+    {
+        return $this->refreshTokenRepository->revokeAllActive();
+    }
+
     public function revokeActiveTokensOverLimit(User $user, int $limit): void
     {
         if ($limit <= 0) {

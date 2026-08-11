@@ -212,6 +212,9 @@ php -r 'exit((int) ini_get("upload_max_filesize") <= 8 ? 0 : 1);' \
 php -r 'exit((int) ini_get("post_max_size") <= 10 ? 0 : 1);' \
     && ok "PHP post_max_size is capped to 10M or less" \
     || fail "PHP post_max_size must be capped to 10M or less"
+php -r 'exit(((int) ini_get("expose_php")) === 0 ? 0 : 1);' \
+    && ok "PHP expose_php is disabled" \
+    || fail "PHP expose_php must be disabled"
 forbid_path "$BACKEND_DIR/public/uploads/invoices" "Invoice documents are not stored under public/uploads"
 if [[ -d "$BACKEND_DIR/var/private" ]]; then
     ok "Private document storage directory exists outside public"

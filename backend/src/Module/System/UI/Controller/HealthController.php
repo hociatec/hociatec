@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/health', name: 'api_health', methods: ['GET', 'HEAD'])]
 final class HealthController extends AbstractController
 {
     public function __construct(
@@ -20,7 +19,9 @@ final class HealthController extends AbstractController
     ) {
     }
 
-    public function __invoke(): JsonResponse
+    #[Route('/api/health', name: 'api_health', methods: ['GET', 'HEAD'])]
+    #[Route('/api/health/readiness', name: 'api_health_readiness', methods: ['GET', 'HEAD'])]
+    public function readiness(): JsonResponse
     {
         $checks = [
             'database' => $this->checkDatabase(),
@@ -36,6 +37,19 @@ final class HealthController extends AbstractController
             ? ApiResponse::success($data)
             : ApiResponse::error('Service indisponible.', Response::HTTP_SERVICE_UNAVAILABLE, $data);
 
+        $response->headers->set('Cache-Control', 'no-store, max-age=0');
+
+        return $response;
+    }
+
+    #[Route('/api/health/liveness', name: 'api_health_liveness', methods: ['GET', 'HEAD'])]
+    public function liveness(): JsonResponse
+    {
+        $response = ApiResponse::success([
+            'health' => 'ok',
+            'checks' => [],
+            'time' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+        ]);
         $response->headers->set('Cache-Control', 'no-store, max-age=0');
 
         return $response;

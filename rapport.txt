@@ -1,64 +1,287 @@
-113. 
-Vérifier les réponses contenant des fichiers : Content-Disposition, MIME, filename nettoyé, nosniff et contrôle d’autorisation avant streaming.
-114. 
-Protéger contre les téléchargements massifs de fichiers privés : rate limit/audit lorsque pertinent.
-115. 
-Auditer les URLs externes stockées : si le backend les télécharge ou les appelle, protéger contre SSRF.
-116. 
-Auditer toute fonctionnalité d’import par URL : bloquer localhost, réseaux privés, metadata cloud et schémas non autorisés.
-117. 
-Vérifier les redirections : éviter les open redirects à partir de paramètres utilisateur.
-118. 
-Vérifier les emails générés : échapper correctement les contenus utilisateurs introduits dans les templates HTML.
-119. 
-Éviter l’injection d’en-têtes email : noms, sujets ou reply-to venant de l’utilisateur doivent être validés.
-120. 
-Auditer les commandes système de backup : si DatabaseBackupDumper appelle mysqldump, pg_dump ou équivalent, ne jamais construire une commande shell par concaténation non sécurisée.
-121. 
-Limiter les permissions système du processus PHP : le backend ne doit avoir accès qu’aux répertoires réellement nécessaires.
-122. 
-Faire tourner les workers avec des permissions minimales : idem pour Messenger/outbox/cron.
-123. 
-Vérifier le comportement en disque plein : uploads, logs, backup et outbox doivent échouer proprement.
-124. 
-Vérifier le comportement en DB indisponible : réponse propre au client, logs utiles et absence de fuite d’informations.
-125. 
-Vérifier le comportement quand Stripe/email est indisponible : l’état métier ne doit pas devenir incohérent.
-126. 
-Mettre des health checks distincts : liveness et readiness, sans exposer d’informations sensibles.
-127. 
-Ne pas exposer les versions techniques : PHP, Symfony, serveur web et stack traces ne devraient pas apparaître dans les réponses.
-128. 
-Vérifier APP_ENV=prod et APP_DEBUG=0 en production.
-129. 
-Désactiver les outils/debug routes en production : profiler, toolbar, endpoints techniques ou fixtures.
-130. 
-Ajouter une CI bloquante : lint PHP, PHPStan, tests, security audit, architecture/deptrac et migration validation.
-131. 
-Ajouter une convention de code automatique : PHP-CS-Fixer ou équivalent pour éviter les différences de style inutiles.
-132. 
-Vérifier la version de PHP/Symfony et les dépendances : rester sur des versions supportées et corriger rapidement les CVE.
-133. 
-Vérifier composer.lock dans Git : les versions réellement déployées doivent être reproductibles.
-134. 
-Déployer avec composer install --no-dev --classmap-authoritative ou configuration adaptée : pas de dépendances de développement en production.
-135. 
-Optimiser le container/cache Symfony en prod : warmup du cache avant mise en service.
-136. 
-Prévoir un rollback de déploiement : surtout lorsque code et migrations DB évoluent ensemble.
-137. 
-Documenter la procédure d’incident : compromission JWT, Stripe webhook compromis, fuite de DB ou fichier sensible.
-138. 
-Ajouter une stratégie de révocation globale : pouvoir invalider rapidement toutes les sessions d’un utilisateur ou de tous les utilisateurs en cas d’incident.
-139. 
-Auditer la génération de tokens partout : uniquement random_bytes() ou primitives cryptographiques appropriées, jamais uniqid(), mt_rand() ou équivalent.
-140. 
-Ajouter des tests d’expiration temporelle : access token, refresh token, reset password, vouchers, appointments et autres éléments temporaires.
-141. 
-Revoir les messages d’erreur métier : ne pas exposer d’informations permettant de deviner stock interne, compte existant, permission ou structure du système lorsque ce n’est pas nécessaire.
-142. 
-Documenter les décisions de sécurité importantes : pourquoi SameSite=Lax, pourquoi tel path de cookie, comportement refresh reuse, limites de session, etc.
-143. 
-Revoir périodiquement les 1 100+ fichiers : le projet est suffisamment gros pour nécessiter une vraie politique de réduction du code mort et de maîtrise de la complexité.
-144. 
-Priorité générale : ajouter des garanties plutôt que de nouvelles couches. L’architecture est déjà forte ; les prochains gains doivent surtout venir des tests, du profiling, de l’observabilité, de la sécurité de configuration et de la simplification.
+1. **Exceptions exposées avec `getMessage()`** : ne jamais renvoyer directement le message d’une `RuntimeException` ou d’une exception technique au client. Créer des exceptions métier explicitement exposables, et transformer toutes les autres en message générique côté API.
+
+2. **Vérifier tous les risques IDOR** : auditer chaque route contenant un `{id}` pour confirmer que l’utilisateur a réellement le droit d’accéder à la ressource demandée, pas seulement qu’il est authentifié.
+
+3. **Réduire les abstractions inutiles** : revoir les chaînes du type `Controller → Workflow → Port → Writer → Persistence → Repository` et supprimer les interfaces/couches qui n’apportent ni découplage réel, ni seconde implémentation, ni avantage de test.
+
+4. **Supprimer l’interface `AuthCookieResponseWriter` dupliquée** : vérifier laquelle est réellement utilisée entre `Shared/Infrastructure/Http` et `Module/Auth/UI/Http`, puis supprimer l’autre.
+
+5. **Renommer les méthodes `commit()` qui font seulement un `flush()` Doctrine** : si elles ne font pas réellement un commit SQL, utiliser un nom comme `flush()` pour éviter toute ambiguïté transactionnelle.
+
+6. **Revoir les `commit()/flush()` à l’intérieur des transactions** : éviter les flush multiples inutiles dans `RefreshTokenService` et autres workflows transactionnels, sauf nécessité technique clairement documentée.
+
+7. **Ne pas dépendre du `ApiErrorSanitizerSubscriber` pour sécuriser les erreurs** : le sanitizer doit rester une dernière barrière. Les erreurs internes doivent être rendues non exposables avant d’arriver à cette couche.
+
+8. **Créer une hiérarchie claire d’exceptions API** : par exemple `DomainException`, `ValidationException`, `NotFoundException`, `ForbiddenException`, `ConflictException`, avec code HTTP et message public contrôlé.
+
+9. **Auditer les uploads PDF contre les fichiers malveillants** : `%PDF-` + MIME + taille ne suffisent pas pour garantir qu’un PDF est sûr. Envisager antivirus, analyse du PDF ou sanitization selon le niveau de risque.
+
+10. **Vérifier la rétention des RIB** : définir combien de temps ils sont conservés et les supprimer automatiquement dès qu’ils ne sont plus nécessaires.
+
+11. **Vérifier le chiffrement des documents sensibles au repos** : ne pas seulement compter sur les permissions `0600`. Vérifier chiffrement du disque, stockage objet ou chiffrement applicatif selon l’infrastructure.
+
+12. **Journaliser les accès aux documents sensibles** : tracer quel administrateur a consulté ou téléchargé un RIB, quand et pour quelle ressource.
+
+13. **Auditer les permissions administratives une par une** : vérifier que chaque endpoint admin utilise le rôle métier minimal nécessaire et qu’aucune route sensible ne tombe sur un simple `ROLE_ADMIN` trop large.
+
+14. **Tester la rotation des refresh tokens en concurrence** : ajouter un test avec deux requêtes de refresh simultanées pour confirmer que le verrou pessimiste empêche réellement la double utilisation.
+
+15. **Tester le reuse d’un ancien refresh token** : vérifier précisément le comportement lorsqu’un token déjà rotaté est réutilisé et décider si toutes les sessions associées doivent être révoquées ou non.
+
+16. **Auditer les durées access/refresh token** : vérifier qu’elles sont cohérentes avec le niveau de risque et que les refresh tokens ne vivent pas excessivement longtemps.
+
+17. **Vérifier la révocation lors d’événements sensibles** : changement de mot de passe, désactivation du compte, compromission, modification importante des permissions, etc. doivent pouvoir invalider les sessions existantes.
+
+18. **Auditer la configuration réelle des cookies** : confirmer en production `Secure`, `HttpOnly` lorsque nécessaire, `SameSite`, `Path`, domaine et expiration.
+
+19. **Auditer le CORS** : vérifier les origines autorisées, credentials, headers et méthodes. Éviter absolument un CORS trop permissif avec des cookies d’authentification.
+
+20. **Auditer les `trusted_proxies` Symfony** : indispensable si l’application tourne derrière Cloudflare, Nginx, Traefik, un load balancer ou un reverse proxy, notamment pour les IP utilisées par le rate limiting.
+
+21. **Vérifier les clés de rate limiting** : s’assurer qu’un attaquant ne peut pas facilement contourner les limites en changeant email, route, header ou identifiant.
+
+22. **Tester les rate limits derrière NAT/proxy** : vérifier qu’un réseau d’entreprise ou mobile partagé ne bloque pas injustement tous les utilisateurs derrière la même IP.
+
+23. **Auditer tous les endpoints publics** : formulaire de contact, inscription, password reset, panier, formation, trade-in, etc. pour abus, spam, enumeration et consommation excessive de ressources.
+
+24. **Empêcher l’énumération des comptes** : login, inscription et mot de passe oublié ne doivent pas permettre de déterminer facilement si une adresse email existe.
+
+25. **Auditer les règles du reset password** : expiration courte, token à usage unique, stockage hashé, invalidation après utilisation et révocation appropriée des sessions.
+
+26. **Vérifier la configuration du password hasher** : confirmer l’utilisation d’Argon2id ou d’un algorithme Symfony moderne avec paramètres adaptés à la production.
+
+27. **Auditer les secrets applicatifs** : JWT, Stripe, DB, mailer, APP_SECRET ne doivent jamais être versionnés ni apparaître dans les logs.
+
+28. **Vérifier la rotation des secrets** : définir une procédure pour changer les secrets sans casser inutilement toute la production.
+
+29. **Auditer la validation des DTO entrants** : chaque champ externe doit avoir des contraintes de type, longueur, format, plage numérique et règles métier adaptées.
+
+30. **Limiter les tailles des payloads JSON** : éviter qu’un client puisse envoyer plusieurs dizaines ou centaines de Mo sur un endpoint JSON.
+
+31. **Limiter les longueurs des chaînes utilisateur** : nom, adresse, commentaire, message, référence, description, etc. doivent avoir des limites explicites côté backend.
+
+32. **Revoir les champs libres stockés puis réaffichés** : vérifier le risque XSS côté consommateurs de l’API, surtout pour les descriptions, notes admin, commentaires ou contenu marketing.
+
+33. **Auditer les requêtes Doctrine contre les N+1** : principalement `Order`, `Catalog`, dashboards admin et pages avec relations imbriquées.
+
+34. **Mesurer le nombre de requêtes SQL par endpoint important** : établir un budget et détecter automatiquement les régressions.
+
+35. **Vérifier les index SQL** : foreign keys, colonnes de recherche, statuts, dates, selectors de refresh tokens, outbox, emails et filtres admin doivent être correctement indexés.
+
+36. **Vérifier les contraintes uniques en base** : ne pas faire reposer l’unicité uniquement sur une vérification applicative.
+
+37. **Auditer toutes les opérations `find → check → insert/update`** : rechercher les race conditions et utiliser contrainte DB, transaction ou verrou lorsque nécessaire.
+
+38. **Vérifier les niveaux d’isolation transactionnelle** : particulièrement pour stock, commandes, vouchers, rendez-vous, refresh tokens et opérations concurrentes.
+
+39. **Tester les rollbacks avec effets externes** : confirmer que les fichiers, emails ou messages créés pendant une transaction sont correctement compensés si la transaction échoue.
+
+40. **Revoir le `TransactionSideEffectRegistry`** : documenter clairement quelles opérations doivent y passer et empêcher les développeurs de déclencher des effets externes directement au milieu d’une transaction.
+
+41. **Tester l’Outbox sous concurrence** : plusieurs workers doivent pouvoir fonctionner sans traiter deux fois le même événement.
+
+42. **Tester les événements Outbox bloqués** : confirmer que les événements laissés en `PROCESSING` après crash sont correctement récupérés.
+
+43. **Définir une politique claire de retry Outbox** : nombre maximum de tentatives, backoff, passage en `DEAD`, alertes et reprise manuelle.
+
+44. **Rendre les handlers Outbox idempotents** : un événement retraité accidentellement ne doit pas créer deux emails critiques, deux remboursements ou deux changements métier.
+
+45. **Ajouter une surveillance des événements `DEAD`** : une dead-letter queue sans alerte finit facilement oubliée.
+
+46. **Auditer Stripe de bout en bout** : vérifier signature webhook, idempotence, événements en double, événements reçus dans le désordre et remboursements.
+
+47. **Ne jamais considérer le retour frontend Stripe comme preuve de paiement** : seul un événement Stripe vérifié côté backend doit finaliser un paiement.
+
+48. **Conserver les identifiants Stripe nécessaires à l’idempotence** : `event_id`, `payment_intent`, etc. doivent permettre de détecter un événement déjà traité.
+
+49. **Vérifier les montants Stripe côté serveur** : le montant payé doit toujours être calculé depuis les données backend, jamais accepté depuis le frontend.
+
+50. **Auditer les opérations financières avec `Money`** : supprimer tout calcul monétaire résiduel utilisant des `float`.
+
+51. **Vérifier les conversions de devise** : arrondis, minor units et devises sans centimes doivent être gérés explicitement.
+
+52. **Centraliser davantage les réponses d’erreur HTTP** : éviter que chaque controller construise ses propres variantes de payload d’erreur.
+
+53. **Normaliser les codes d’erreur API** : en plus du texte, retourner un code stable du type `AUTH_INVALID_CREDENTIALS`, `ORDER_NOT_FOUND`, `VALIDATION_ERROR`.
+
+54. **Ajouter un `correlation/request ID`** : permettre de relier une erreur API aux logs serveur correspondants sans exposer les détails techniques.
+
+55. **Auditer les données enregistrées dans les logs** : ne jamais logger tokens, cookies, mots de passe, RIB, Authorization headers ou données Stripe sensibles.
+
+56. **Structurer les logs** : préférer logs JSON avec contexte, niveau, request ID, utilisateur et module plutôt que des messages texte difficiles à exploiter.
+
+57. **Ajouter des métriques techniques** : taux d’erreurs 5xx, latence, DB, queue/outbox, rate limiting, login failures et webhooks Stripe.
+
+58. **Ajouter des alertes sur les erreurs importantes** : hausse des 500, Outbox DEAD, webhook failures, erreurs DB, backups échoués.
+
+59. **Vérifier le système de backup** : restauration réellement testée, pas seulement création du backup.
+
+60. **Tester régulièrement une restauration complète** : un backup non restaurable ne sert à rien.
+
+61. **Vérifier le chiffrement des backups** : clé séparée du backup, permissions minimales et rotation possible.
+
+62. **Définir la rétention des backups** : rotation journalière/hebdomadaire/mensuelle adaptée, sans stockage infini de données personnelles.
+
+63. **Auditer les commandes Symfony sensibles** : backup, maintenance, import/export, utilisateurs, migrations doivent vérifier environnement et erreurs correctement.
+
+64. **Ajouter PHPStan à niveau élevé** : idéalement niveau 8/9 ou `max`, avec une baseline temporaire seulement si nécessaire.
+
+65. **Ajouter `composer audit` en CI** : bloquer ou signaler les dépendances connues comme vulnérables.
+
+66. **Ajouter `composer validate` en CI** : vérifier la cohérence du package Composer.
+
+67. **Ajouter `bin/console lint:container`** : détecter les erreurs de wiring/services avant déploiement.
+
+68. **Ajouter les linters Symfony pertinents** : YAML, Twig, container, etc. selon ce qui existe réellement dans le projet complet.
+
+69. **Ajouter une vraie suite de tests unitaires** : surtout Value Objects, règles métier, services de domaine et workflows complexes.
+
+70. **Ajouter des tests d’intégration DB** : repositories, transactions, locking, contraintes uniques et outbox.
+
+71. **Ajouter des tests fonctionnels HTTP** : auth, permissions, CSRF, cookies, validation, erreurs et ownership.
+
+72. **Ajouter des tests de sécurité** : IDOR, CSRF absent/invalide, rôle insuffisant, token expiré, refresh réutilisé, upload invalide.
+
+73. **Ajouter des tests de concurrence** : stock, voucher, appointment, refresh token et outbox.
+
+74. **Ajouter des tests Stripe webhook** : signature invalide, doublon, événement inconnu, événement hors ordre et retry.
+
+75. **Définir un seuil minimal de couverture utile** : ne pas viser uniquement un pourcentage ; couvrir en priorité les chemins métier critiques.
+
+76. **Analyser les classes et interfaces inutilisées** : avec plus de 1 100 fichiers PHP, supprimer régulièrement le code mort.
+
+77. **Identifier les ports à une seule implémentation sans intérêt architectural** : simplifier lorsqu’ils ne matérialisent pas une vraie frontière.
+
+78. **Documenter les conventions architecturales** : préciser quand créer un `Workflow`, un `Port`, un `Provider`, une `Projection`, un repository, etc.
+
+79. **Empêcher l’architecture de diverger entre modules** : les différents modules doivent appliquer les mêmes conventions lorsqu’ils résolvent le même type de problème.
+
+80. **Revoir les dépendances entre modules** : éviter qu’un module importe directement l’Infrastructure ou l’UI d’un autre module.
+
+81. **Faire respecter les frontières avec un outil** : Deptrac est particulièrement adapté pour vérifier `Domain → Application → Infrastructure → UI`.
+
+82. **Interdire `Infrastructure` dans le domaine** : les classes de domaine ne doivent pas dépendre de Doctrine, Symfony, HTTP, filesystem ou Stripe sauf choix architectural explicitement assumé.
+
+83. **Réduire les constructors trop chargés** : les services nécessitant énormément de dépendances indiquent souvent qu’ils font plusieurs choses.
+
+84. **Rechercher les services trop fins** : à l’inverse, une classe de trois lignes utilisée une seule fois peut être une abstraction inutile.
+
+85. **Uniformiser le naming** : `Service`, `Manager`, `Handler`, `Workflow`, `Provider`, `Writer`, `Processor` doivent chacun avoir une signification claire.
+
+86. **Documenter les transactions métier** : rendre évident où une transaction commence et se termine.
+
+87. **Ne pas laisser les repositories décider implicitement des transactions** : la boundary transactionnelle doit être contrôlée par la couche application.
+
+88. **Revoir les opérations longues dans une transaction DB** : ne pas appeler API externe, envoyer un mail ou manipuler un gros fichier tout en gardant une transaction SQL ouverte.
+
+89. **Auditer les locks pessimistes pour éviter les deadlocks** : ordre de verrouillage stable et transactions aussi courtes que possible.
+
+90. **Mettre des timeouts partout sur les appels externes** : Stripe, SMTP, HTTP, stockage, etc. Aucun appel réseau ne doit pouvoir attendre indéfiniment.
+
+91. **Prévoir retries et circuit breaking pour services externes** : seulement sur opérations idempotentes ou conçues pour cela.
+
+92. **Vérifier la pagination de toutes les listes** : aucun endpoint admin/public ne doit pouvoir charger des dizaines de milliers d’entités en mémoire.
+
+93. **Limiter la valeur maximale de `limit/pageSize`** : ne jamais accepter librement `limit=1000000`.
+
+94. **Auditer les exports volumineux** : utiliser streaming/chunking plutôt que charger tous les résultats en mémoire.
+
+95. **Vérifier les recherches textuelles coûteuses** : `%LIKE%` sur de grosses tables nécessite éventuellement index spécifique ou moteur de recherche.
+
+96. **Vérifier la timezone** : stocker les dates cohérentes, idéalement UTC, et convertir seulement à l’entrée/sortie.
+
+97. **Utiliser des horloges injectables dans le métier** : éviter `new DateTimeImmutable()` partout si cela rend les tests temporels difficiles.
+
+98. **Auditer les statuts métier** : préférer enums/value objects aux strings libres pour les états de commande, paiement, outbox, rendez-vous, etc.
+
+99. **Vérifier les transitions d’état** : empêcher les transitions impossibles, par exemple `CANCELLED → PAID`, au niveau métier et pas seulement dans l’UI.
+
+100. **Ajouter de l’idempotence sur les commandes sensibles** : création commande, paiement, remboursement et opérations déclenchées par retry HTTP doivent pouvoir résister aux doubles appels.
+
+101. **Auditer les suppressions** : décider explicitement entre suppression physique, soft-delete, anonymisation et conservation légale selon chaque donnée.
+
+102. **Mettre en place l’anonymisation RGPD** : notamment comptes clients, commandes anciennes, demandes trade-in et données personnelles.
+
+103. **Vérifier les exports de données personnelles** : si nécessaire au produit, prévoir un mécanisme fiable pour droit d’accès/export.
+
+104. **Vérifier les cascades Doctrine** : éviter les `cascade remove` susceptibles d’effacer des données métier importantes accidentellement.
+
+105. **Auditer les orphanRemoval** : même risque, particulièrement dans les collections complexes.
+
+106. **Vérifier les contraintes DB correspondant aux invariants importants** : `NOT NULL`, `CHECK`, FK, UNIQUE lorsque la base peut elle-même garantir l’invariant.
+
+107. **Ne pas compter uniquement sur Doctrine pour l’intégrité** : la base doit empêcher autant que possible les états impossibles.
+
+108. **Auditer les migrations** : migrations réversibles lorsque réaliste, indexes créés correctement et migrations lourdes compatibles production.
+
+109. **Prévoir les migrations sans downtime** : éviter ajout brutal de colonne non-null avec rewrite massif ou changement incompatible avec l’ancienne version du code.
+
+110. **Vérifier le cache** : ne pas cacher des données sensibles ou utilisateur sous une clé insuffisamment spécifique.
+
+111. **Définir une stratégie d’invalidation du cache** : éviter les données obsolètes après modification.
+
+112. **Auditer les réponses HTTP cacheables** : headers adaptés pour empêcher la mise en cache de données privées.
+
+113. **Vérifier les réponses contenant des fichiers** : `Content-Disposition`, MIME, filename nettoyé, `nosniff` et contrôle d’autorisation avant streaming.
+
+114. **Protéger contre les téléchargements massifs de fichiers privés** : rate limit/audit lorsque pertinent.
+
+115. **Auditer les URLs externes stockées** : si le backend les télécharge ou les appelle, protéger contre SSRF.
+
+116. **Auditer toute fonctionnalité d’import par URL** : bloquer localhost, réseaux privés, metadata cloud et schémas non autorisés.
+
+117. **Vérifier les redirections** : éviter les open redirects à partir de paramètres utilisateur.
+
+118. **Vérifier les emails générés** : échapper correctement les contenus utilisateurs introduits dans les templates HTML.
+
+119. **Éviter l’injection d’en-têtes email** : noms, sujets ou reply-to venant de l’utilisateur doivent être validés.
+
+120. **Auditer les commandes système de backup** : si `DatabaseBackupDumper` appelle `mysqldump`, `pg_dump` ou équivalent, ne jamais construire une commande shell par concaténation non sécurisée.
+
+121. **Limiter les permissions système du processus PHP** : le backend ne doit avoir accès qu’aux répertoires réellement nécessaires.
+
+122. **Faire tourner les workers avec des permissions minimales** : idem pour Messenger/outbox/cron.
+
+123. **Vérifier le comportement en disque plein** : uploads, logs, backup et outbox doivent échouer proprement.
+
+124. **Vérifier le comportement en DB indisponible** : réponse propre au client, logs utiles et absence de fuite d’informations.
+
+125. **Vérifier le comportement quand Stripe/email est indisponible** : l’état métier ne doit pas devenir incohérent.
+
+126. **Mettre des health checks distincts** : liveness et readiness, sans exposer d’informations sensibles.
+
+127. **Ne pas exposer les versions techniques** : PHP, Symfony, serveur web et stack traces ne devraient pas apparaître dans les réponses.
+
+128. **Vérifier `APP_ENV=prod` et `APP_DEBUG=0` en production**.
+
+129. **Désactiver les outils/debug routes en production** : profiler, toolbar, endpoints techniques ou fixtures.
+
+130. **Ajouter une CI bloquante** : lint PHP, PHPStan, tests, security audit, architecture/deptrac et migration validation.
+
+131. **Ajouter une convention de code automatique** : PHP-CS-Fixer ou équivalent pour éviter les différences de style inutiles.
+
+132. **Vérifier la version de PHP/Symfony et les dépendances** : rester sur des versions supportées et corriger rapidement les CVE.
+
+133. **Vérifier `composer.lock` dans Git** : les versions réellement déployées doivent être reproductibles.
+
+134. **Déployer avec `composer install --no-dev --classmap-authoritative` ou configuration adaptée** : pas de dépendances de développement en production.
+
+135. **Optimiser le container/cache Symfony en prod** : warmup du cache avant mise en service.
+
+136. **Prévoir un rollback de déploiement** : surtout lorsque code et migrations DB évoluent ensemble.
+
+137. **Documenter la procédure d’incident** : compromission JWT, Stripe webhook compromis, fuite de DB ou fichier sensible.
+
+138. **Ajouter une stratégie de révocation globale** : pouvoir invalider rapidement toutes les sessions d’un utilisateur ou de tous les utilisateurs en cas d’incident.
+
+139. **Auditer la génération de tokens partout** : uniquement `random_bytes()` ou primitives cryptographiques appropriées, jamais `uniqid()`, `mt_rand()` ou équivalent.
+
+140. **Ajouter des tests d’expiration temporelle** : access token, refresh token, reset password, vouchers, appointments et autres éléments temporaires.
+
+141. **Revoir les messages d’erreur métier** : ne pas exposer d’informations permettant de deviner stock interne, compte existant, permission ou structure du système lorsque ce n’est pas nécessaire.
+
+142. **Documenter les décisions de sécurité importantes** : pourquoi `SameSite=Lax`, pourquoi tel path de cookie, comportement refresh reuse, limites de session, etc.
+
+143. **Revoir périodiquement les 1 100+ fichiers** : le projet est suffisamment gros pour nécessiter une vraie politique de réduction du code mort et de maîtrise de la complexité.
+
+144. **Priorité générale : ajouter des garanties plutôt que de nouvelles couches**. L’architecture est déjà forte ; les prochains gains doivent surtout venir des tests, du profiling, de l’observabilité, de la sécurité de configuration et de la simplification.

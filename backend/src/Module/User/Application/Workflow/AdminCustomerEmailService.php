@@ -8,6 +8,7 @@ use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Support\Application\Port\SupportCustomerMessengerPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -24,7 +25,7 @@ final class AdminCustomerEmailService implements SupportCustomerMessengerPort
 
     public function send(User $user, string $subject, string $message): void
     {
-        $subject = trim($subject);
+        $subject = EmailHeaderSanitizer::subject($subject);
         $message = trim($message);
 
         if ('' === $subject || '' === $message) {
@@ -47,7 +48,7 @@ final class AdminCustomerEmailService implements SupportCustomerMessengerPort
         try {
             $email = (new Email())
                 ->from(new Address($this->mailerFrom, 'Hociatec'))
-                ->to(new Address($user->getEmail(), $user->getFullName()))
+                ->to(new Address($user->getEmail(), EmailHeaderSanitizer::displayName($user->getFullName())))
                 ->subject($subject)
                 ->text($message)
                 ->html(nl2br(htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')));

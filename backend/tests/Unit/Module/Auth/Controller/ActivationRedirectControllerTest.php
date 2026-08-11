@@ -16,4 +16,10 @@ final class ActivationRedirectControllerTest extends TestCase
         self::assertSame(302, $response->getStatusCode());
         self::assertSame('https://front.example.com/activation/__token__', $response->getTargetUrl());
     }
+
+    public function testRejectsUnsafeFrontendRedirectBase(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new ActivationRedirectController('http://127.0.0.1/'))('__token__');
+    }
 }

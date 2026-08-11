@@ -213,6 +213,8 @@ final class RoadmapClosure70To110Test extends TestCase
         self::assertStringContainsString('makeDisposition(', $attachmentFactory);
         self::assertStringContainsString("X-Content-Type-Options', 'nosniff", $attachmentFactory);
         self::assertStringContainsString("Cache-Control', 'no-store, max-age=0", $healthController);
+        self::assertStringContainsString("#[Route('/api/health/liveness'", $healthController);
+        self::assertStringContainsString("#[Route('/api/health/readiness'", $healthController);
         self::assertStringContainsString("'Cache-Control' => 'no-store'", $metricsController);
         self::assertStringContainsString('StreamedResponse', $operationsExport);
         self::assertStringContainsString("Cache-Control', 'no-store, private", $privateCacheSubscriber);

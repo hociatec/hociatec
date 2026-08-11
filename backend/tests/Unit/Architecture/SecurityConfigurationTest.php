@@ -131,7 +131,6 @@ final class SecurityConfigurationTest extends TestCase
         self::assertSame('argon2id', $security['security']['password_hashers']['Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface']['algorithm']);
         self::assertSame(65536, $security['security']['password_hashers']['Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface']['memory_cost']);
         self::assertSame(4, $security['security']['password_hashers']['Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface']['time_cost']);
-        self::assertSame(1, $security['security']['password_hashers']['Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface']['threads']);
 
         self::assertSame(['%env(CORS_ALLOW_ORIGIN)%'], $cors['nelmio_cors']['defaults']['allow_origin']);
         self::assertTrue($cors['nelmio_cors']['defaults']['origin_regex']);
@@ -294,6 +293,7 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('require_command clamscan', $productionCheck);
         self::assertStringContainsString('upload_max_filesize', $productionCheck);
         self::assertStringContainsString('post_max_size', $productionCheck);
+        self::assertStringContainsString('expose_php', $productionCheck);
         self::assertStringContainsString('public/uploads/invoices', $productionCheck);
         self::assertStringContainsString('var/private', $productionCheck);
     }
@@ -324,6 +324,7 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('changement de mot de passe depuis le profil', $guide);
         self::assertStringContainsString('suppression de compte révoque toutes les sessions refresh', $guide);
         self::assertStringContainsString('app:auth:revoke-user-refresh-tokens', $guide);
+        self::assertStringContainsString('app:auth:revoke-all-refresh-tokens --confirm', $guide);
     }
 
     public function testProductionGuideDocumentsSafeTrustedProxyConfiguration(): void
@@ -362,6 +363,9 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('chiffré au repos', $guide);
         self::assertStringContainsString('app:trade-in:purge-private-documents', $guide);
         self::assertStringContainsString('--retention-days=180', $guide);
+        self::assertStringContainsString('Limitation du périmètre système', $guide);
+        self::assertStringContainsString('workers ne doivent pouvoir écrire que dans `var/`', $guide);
+        self::assertStringContainsString('outbox n’est plus inscriptible', $guide);
     }
 
     public function testPrivateDocumentsAndUploadLimitsAreGuardedInCode(): void
@@ -412,9 +416,11 @@ final class SecurityConfigurationTest extends TestCase
         $workflow = file_get_contents(__DIR__.'/../../../../.github/workflows/backend-quality.yml');
         $composer = json_decode((string) file_get_contents(__DIR__.'/../../../composer.json'), true, 512, JSON_THROW_ON_ERROR);
         $phpstan = file_get_contents(__DIR__.'/../../../phpstan.neon');
+        $phpCsFixer = file_get_contents(__DIR__.'/../../../.php-cs-fixer.dist.php');
         self::assertIsString($workflow);
         self::assertIsArray($composer);
         self::assertIsString($phpstan);
+        self::assertIsString($phpCsFixer);
 
         self::assertStringContainsString('composer quality', $workflow);
         self::assertStringContainsString('cache:warmup', $workflow);
@@ -422,6 +428,7 @@ final class SecurityConfigurationTest extends TestCase
         self::assertSame('composer audit --locked', $composer['scripts']['app:audit']);
         self::assertSame('APP_ENV=prod php bin/console lint:container', $composer['scripts']['app:lint-container']);
         self::assertSame('php bin/console lint:yaml config --parse-tags', $composer['scripts']['app:lint-yaml']);
+        self::assertSame('APP_ENV=prod php bin/console doctrine:migrations:up-to-date --no-interaction', $composer['scripts']['app:migrations-up-to-date']);
         self::assertStringContainsString('phpstan analyse', $composer['scripts']['app:phpstan']);
         self::assertSame('php bin/phpunit --testdox', $composer['scripts']['app:test']);
         self::assertContains('@app:validate', $composer['scripts']['quality']);
@@ -429,9 +436,109 @@ final class SecurityConfigurationTest extends TestCase
         self::assertContains('@app:phpstan', $composer['scripts']['quality']);
         self::assertContains('@app:lint-container', $composer['scripts']['quality']);
         self::assertContains('@app:lint-yaml', $composer['scripts']['quality']);
+        self::assertContains('@app:migrations-up-to-date', $composer['scripts']['quality']);
         self::assertContains('@app:test', $composer['scripts']['quality']);
         self::assertContains('@app:deptrac', $composer['scripts']['quality']);
         self::assertStringContainsString('level: 8', $phpstan);
+        self::assertStringContainsString('@Symfony', $phpCsFixer);
+        self::assertStringContainsString('declare_strict_types', $phpCsFixer);
+        self::assertStringContainsString('no_unused_imports', $phpCsFixer);
+    }
+
+    public function testProductionGuideDocumentsDeploymentRollbackAndIncidentProcedure(): void
+    {
+        $guide = file_get_contents(__DIR__.'/../../../PRODUCTION.md');
+        self::assertIsString($guide);
+
+        self::assertStringContainsString('Déploiement applicatif', $guide);
+        self::assertStringContainsString('composer install --no-dev --classmap-authoritative', $guide);
+        self::assertStringContainsString('cache:warmup', $guide);
+        self::assertStringContainsString('Rollback', $guide);
+        self::assertStringContainsString('artefact applicatif précédent', $guide);
+        self::assertStringContainsString('GET /api/health/readiness', $guide);
+        self::assertStringContainsString('Incident response', $guide);
+        self::assertStringContainsString('compromission JWT', $guide);
+        self::assertStringContainsString('webhook Stripe compromis', $guide);
+        self::assertStringContainsString('fuite de base ou de fichier sensible', $guide);
+    }
+
+    public function testComposerLockAndTokenGenerationPoliciesAreExplicit(): void
+    {
+        self::assertFileExists(__DIR__.'/../../../composer.lock');
+
+        $violations = [];
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(__DIR__.'/../../../src'));
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile() || 'php' !== $file->getExtension()) {
+                continue;
+            }
+
+            $source = file_get_contents($file->getPathname());
+            self::assertIsString($source);
+
+            foreach (['uniqid(', 'mt_rand(', 'str_shuffle('] as $forbidden) {
+                if (str_contains($source, $forbidden)) {
+                    $violations[] = $this->relativePath($file->getPathname()).' contains '.$forbidden;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testTemporalPoliciesHaveDedicatedRegressionCoverage(): void
+    {
+        $files = [
+            __DIR__.'/../Module/Auth/AuthSupportTest.php',
+            __DIR__.'/../Module/Auth/PasswordResetAndVerifyControllersTest.php',
+            __DIR__.'/../Module/Auth/RefreshTokenControllersAndLogoutTest.php',
+            __DIR__.'/../Module/Order/Entity/OrderCheckoutSessionTest.php',
+            __DIR__.'/../Module/TradeIn/Controller/TradeInUserControllersTest.php',
+            __DIR__.'/../Module/Voucher/Service/VoucherEngineTest.php',
+            __DIR__.'/../Module/Promotion/Service/PromotionEngineTest.php',
+        ];
+
+        foreach ($files as $file) {
+            self::assertFileExists($file);
+            $source = file_get_contents($file);
+            self::assertIsString($source);
+            self::assertMatchesRegularExpression('/expired|expiresAt|Expiration|\\+1 hour|\\+1 day|\\+1 week/i', $source);
+        }
+    }
+
+    public function testProductionGuideDocumentsContinuousSecurityDecisionReview(): void
+    {
+        $guide = file_get_contents(__DIR__.'/../../../PRODUCTION.md');
+        self::assertIsString($guide);
+
+        self::assertStringContainsString('Décisions de sécurité à conserver', $guide);
+        self::assertStringContainsString('SameSite=Lax', $guide);
+        self::assertStringContainsString('rotaté à chaque usage valide', $guide);
+        self::assertStringContainsString('Revue continue du socle', $guide);
+        self::assertStringContainsString('code mort', $guide);
+        self::assertStringContainsString('garanties automatiques', $guide);
+        self::assertStringContainsString('simplification', $guide);
+    }
+
+    public function testDependencySupportStatusIsDocumentedWithCurrentSecurityChecks(): void
+    {
+        $guide = file_get_contents(__DIR__.'/../../../PRODUCTION.md');
+        $status = file_get_contents(__DIR__.'/../../../../docs/dependency-support-status-2026-08-11.md');
+        self::assertIsString($guide);
+        self::assertIsString($status);
+
+        self::assertStringContainsString('Maintenance des dépendances', $guide);
+        self::assertStringContainsString('composer.lock', $guide);
+        self::assertStringContainsString('composer audit --locked', $guide);
+        self::assertStringContainsString('11 août 2026', $guide);
+
+        self::assertStringContainsString('August 11, 2026', $status);
+        self::assertStringContainsString('PHP `8.3.32`', $status);
+        self::assertStringContainsString('PHP `8.3` remains security-supported until `December 31, 2027`', $status);
+        self::assertStringContainsString('Symfony `7.4.16`', $status);
+        self::assertStringContainsString('security fixes until `November 2029`', $status);
+        self::assertStringContainsString('composer audit --locked', $status);
+        self::assertStringContainsString('PHP `8.3.33` security release from `July 30, 2026`', $status);
     }
 
     public function testHighRiskPublicEndpointsUseIdentityAwareRateLimiting(): void

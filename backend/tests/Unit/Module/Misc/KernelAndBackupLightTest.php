@@ -8,6 +8,7 @@ use App\Kernel;
 use App\Module\Admin\Application\Backup\Workflow\MaintenanceModeService;
 use App\Module\Admin\UI\Backup\Controller\SystemStatusController;
 use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
+use App\Module\System\UI\Controller\HealthController;
 use App\Module\System\UI\Controller\MetricsController;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
@@ -19,6 +20,17 @@ final class KernelAndBackupLightTest extends TestCase
 {
     public function testKernelBootAndSystemStatusController(): void
     {
+        $_SERVER['APP_SECRET'] ??= 'test-secret';
+        $_ENV['APP_SECRET'] ??= 'test-secret';
+        $_SERVER['DATABASE_URL'] ??= 'sqlite:///%kernel.project_dir%/var/test.db';
+        $_ENV['DATABASE_URL'] ??= 'sqlite:///%kernel.project_dir%/var/test.db';
+        $_SERVER['TRUSTED_HOSTS'] ??= '^localhost$';
+        $_ENV['TRUSTED_HOSTS'] ??= '^localhost$';
+        $_SERVER['TRUSTED_PROXIES'] ??= '127.0.0.1';
+        $_ENV['TRUSTED_PROXIES'] ??= '127.0.0.1';
+        $_SERVER['CORS_ALLOW_ORIGIN'] ??= '^https://example\\.test$';
+        $_ENV['CORS_ALLOW_ORIGIN'] ??= '^https://example\\.test$';
+
         $kernel = new Kernel('test', true);
         $kernel->boot();
         self::assertTrue($kernel->getContainer()->has('service_container'));
@@ -57,5 +69,15 @@ final class KernelAndBackupLightTest extends TestCase
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertStringContainsString('hociatec_database_up 0', (string) $response->getContent());
+    }
+
+    public function testHealthControllerLivenessDoesNotTouchDatabase(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects(self::never())->method('executeQuery');
+
+        $response = (new HealthController($connection))->liveness();
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
     }
 }

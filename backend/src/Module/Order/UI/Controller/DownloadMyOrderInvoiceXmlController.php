@@ -12,9 +12,13 @@ use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/orders/{orderId}/invoice/xml', name: 'api_orders_invoice_xml', methods: ['GET'])]
@@ -27,10 +31,13 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
         private readonly InvoiceDownloadNameBuilder $nameBuilder,
         private readonly OrderAccessPolicy $accessPolicy,
         private readonly AttachmentResponseFactory $attachments,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
+        #[Autowire(service: 'limiter.private_file_download')]
+        private readonly RateLimiterFactory $limiter,
     ) {
     }
 
-    public function __invoke(int $orderId): Response
+    public function __invoke(int $orderId, Request $request): Response
     {
         $order = $this->orders->find($orderId);
         if (null === $order) {
@@ -41,6 +48,10 @@ final class DownloadMyOrderInvoiceXmlController extends AbstractController
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$this->accessPolicy->canDownloadInvoice($user, $order)) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
+        }
+        $limit = $this->limiter->create($this->rateLimitKeys->forRequest($request, $user->getEmail().':invoice-xml'))->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error('Trop de téléchargements privés. Veuillez réessayer plus tard.', Response::HTTP_TOO_MANY_REQUESTS);
         }
 
         if (in_array($order->getStatus(), [Order::STATUS_PENDING, Order::STATUS_CANCELLED], true)) {

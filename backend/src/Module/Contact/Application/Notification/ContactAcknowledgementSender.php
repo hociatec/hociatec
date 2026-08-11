@@ -7,6 +7,7 @@ namespace App\Module\Contact\Application\Notification;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -34,8 +35,8 @@ final readonly class ContactAcknowledgementSender
 
         $email = (new Email())
             ->from(new Address($this->mailerFrom, 'Hociatec'))
-            ->to(new Address($input->email, $input->name))
-            ->subject($content['subject'])
+            ->to(new Address($input->email, EmailHeaderSanitizer::displayName($input->name)))
+            ->subject(EmailHeaderSanitizer::subject($content['subject']))
             ->html($content['html'])
             ->text($content['text']);
 

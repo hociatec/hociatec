@@ -103,10 +103,16 @@ final class LibreTranslateClient
             explode(',', $fallbackEndpoint),
         );
 
-        $normalized = array_values(array_filter(array_map(
-            static fn (string $value): string => trim($value),
-            $rawEndpoints,
-        ), static fn (string $value): bool => '' !== $value));
+        $normalized = [];
+        foreach ($rawEndpoints as $value) {
+            $value = trim($value);
+            if ('' === $value) {
+                continue;
+            }
+
+            OutboundUrlGuard::assertAllowedHttpUrl($value);
+            $normalized[] = $value;
+        }
 
         $unique = array_values(array_unique($normalized));
 

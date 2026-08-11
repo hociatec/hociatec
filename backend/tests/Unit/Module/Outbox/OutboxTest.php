@@ -273,6 +273,13 @@ final class OutboxTest extends TestCase
 
         $notifier = new WebhookOutboxAlertNotifier($client, $this->createMock(LoggerInterface::class), 'https://alerts.example/outbox');
         $notifier->notify(new OutboxAlert('critical', 'Outbox blocked.', new OutboxMetrics(1, 120, 0, 1, 0)));
+
+        $blockedClient = $this->createMock(HttpClientInterface::class);
+        $blockedClient->expects(self::never())->method('request');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning');
+        (new WebhookOutboxAlertNotifier($blockedClient, $logger, 'http://127.0.0.1/outbox'))
+            ->notify(new OutboxAlert('warning', 'Blocked.', new OutboxMetrics(1, 60, 0, 0, 0)));
     }
 
     /** @param list<OutboxEvent> $events */
