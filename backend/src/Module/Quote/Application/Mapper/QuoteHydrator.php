@@ -6,14 +6,14 @@ namespace App\Module\Quote\Application\Mapper;
 
 use App\Module\Quote\Application\DTO\QuotePayload;
 use App\Module\Quote\Application\Factory\QuoteItemFactory;
-use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class QuoteHydrator
 {
     public function __construct(
-        private QuotePersistencePort $persistence,
+        private UnitOfWork $persistence,
         private QuoteItemFactory $items,
         private ?\DateTimeImmutable $today = null,
     ) {
@@ -59,12 +59,14 @@ final readonly class QuoteHydrator
         if ($clearItems) {
             foreach ($quote->getItems() as $existing) {
                 $quote->removeItem($existing);
-                $this->persistence->removeItem($existing);
+                $this->persistence->remove($existing);
             }
         }
 
         foreach ($payload->items as $raw) {
-            $this->persistence->addItem($quote, $this->items->fromPayload($raw));
+            $item = $this->items->fromPayload($raw);
+            $quote->addItem($item);
+            $this->persistence->persist($item);
         }
     }
 

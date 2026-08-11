@@ -23,7 +23,6 @@ use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\User\Domain\Entity\User;
@@ -50,7 +49,7 @@ abstract class AdminQuoteIntegrationTestCase extends TestCase
 {
     protected function failingQuoteService(EntityManager $em): QuoteService
     {
-        $persistence = new QuotePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
 
         return new class($persistence, new QuoteNumberGenerator(new QuoteRepository($this->registry($em))), new QuoteCalculator(), new \App\Module\Quote\Application\Mapper\QuoteHydrator($persistence, new \App\Module\Quote\Application\Factory\QuoteItemFactory($productRepository))) extends QuoteService {
@@ -110,7 +109,7 @@ abstract class AdminQuoteIntegrationTestCase extends TestCase
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
         $productRepository->method('find')->willReturn(null);
 
-        $persistence = new QuotePersistence($em);
+        $persistence = new DoctrineUnitOfWork($em);
 
         return new QuoteService(
             $persistence,
@@ -129,7 +128,7 @@ abstract class AdminQuoteIntegrationTestCase extends TestCase
         unset($fail);
 
         return new QuoteEmailService(
-            new QuotePersistence($em),
+            new DoctrineUnitOfWork($em),
             new Outbox(new DoctrineUnitOfWork($em)),
             new UserRepository($this->registry($em)),
             \App\Tests\Support\UserCommunicationNotifierFactory::create(

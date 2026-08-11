@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\TradeIn;
 
 use App\Module\TradeIn\Infrastructure\Command\PurgeTradeInPrivateDocumentsCommand;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class PurgeTradeInPrivateDocumentsCommandTest extends TradeInIntegrationTestCase
@@ -35,7 +35,7 @@ final class PurgeTradeInPrivateDocumentsCommandTest extends TradeInIntegrationTe
         $tester = new CommandTester(new PurgeTradeInPrivateDocumentsCommand(
             new TradeInRequestRepository($this->registry($em)),
             new TradeInPrivateFileStorage($this->projectDir()),
-            new TradeInPersistence($em),
+            new DoctrineUnitOfWork($em),
         ));
         self::assertSame(0, $tester->execute(['--retention-days' => '30', '--limit' => '10']));
 

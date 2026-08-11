@@ -16,8 +16,6 @@ use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
@@ -271,7 +269,7 @@ final class AppointmentServicesTest extends TestCase
         $repository = $this->createMock(PrestationRepository::class);
         $service = new PrestationService(
             $repository,
-            new PrestationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
             Validation::createValidator(),
         );
         $existing = new Prestation('Audit initial', 30, 5000);
@@ -309,7 +307,7 @@ final class AppointmentServicesTest extends TestCase
     {
         $service = new PrestationService(
             $this->createMock(PrestationRepository::class),
-            new PrestationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
             Validation::createValidator(),
         );
 
@@ -346,7 +344,7 @@ final class AppointmentServicesTest extends TestCase
 
         $service = new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
         );
 
         $this->entityManager->expects(self::exactly(7))->method('persist')->with(self::isInstanceOf(WorkingDayConfiguration::class));
@@ -378,7 +376,7 @@ final class AppointmentServicesTest extends TestCase
 
         $service = new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
         );
 
         $this->entityManager->expects(self::never())->method('persist');
@@ -410,7 +408,7 @@ final class AppointmentServicesTest extends TestCase
 
         $service = new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
         );
 
         $this->entityManager->expects(self::once())
@@ -444,7 +442,7 @@ final class AppointmentServicesTest extends TestCase
         $repository->method('findOneByDay')->willReturn(null);
         $service = new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
         );
 
         try {
@@ -468,7 +466,7 @@ final class AppointmentServicesTest extends TestCase
         $repository->method('findOneByDay')->willReturn(null);
         $service = new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($this->entityManager),
+            new DoctrineUnitOfWork($this->entityManager),
         );
 
         try {

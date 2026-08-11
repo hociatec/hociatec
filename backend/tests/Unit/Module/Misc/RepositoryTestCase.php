@@ -29,6 +29,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -119,6 +120,7 @@ abstract class RepositoryTestCase extends TestCase
     protected function repositoryEntityManager(): EntityManager
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $entityManager = new EntityManager($connection, $config);
         $tool = new SchemaTool($entityManager);
@@ -141,6 +143,7 @@ abstract class RepositoryTestCase extends TestCase
     protected function integrityEntityManager(): EntityManager
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $entityManager = new EntityManager($connection, $config);
         $entityManager->getConnection()->executeStatement('PRAGMA foreign_keys = ON');

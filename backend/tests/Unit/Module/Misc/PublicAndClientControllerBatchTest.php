@@ -14,13 +14,13 @@ use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\UI\Controller\CancelMyOrderController;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\Quote\UI\Controller\PublicApi\ListServicesController;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -107,7 +107,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
-        $workflow = new OrderWorkflowService(new OrderPersistence($entityManager));
+        $workflow = new OrderWorkflowService(new DoctrineUnitOfWork($entityManager));
 
         $ratings = $this->createMock(\App\Module\Rating\Application\Port\ProductRatingRepositoryPort::class);
         $portal = new CustomerOrderPortalService(

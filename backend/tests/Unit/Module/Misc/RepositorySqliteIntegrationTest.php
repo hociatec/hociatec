@@ -6,7 +6,6 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Cart\Infrastructure\Repository\CartItemRepository;
 use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
@@ -62,9 +61,6 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
         $entityManager->persist($webhook);
         $entityManager->flush();
         $userId = (int) $user->getId();
-
-        $cartItemRepository = $this->repositoryWithEntityManager(CartItemRepository::class, $entityManager);
-        self::assertSame($cartItem->getId(), $cartItemRepository->findOneByCartAndProduct($cart, $product)?->getId());
 
         $cartSessionRepository = $this->repositoryWithEntityManager(CartSessionRepository::class, $entityManager);
         self::assertSame($cart->getId(), $cartSessionRepository->findOneByToken('cart-token')?->getId());
@@ -122,43 +118,43 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
 
         $commentIndexes = array_change_key_case($schemaManager->listTableIndexes('news_comments'), \CASE_LOWER);
         self::assertArrayHasKey('idx_news_comments_article', $commentIndexes);
-        self::assertSame(['article_id', 'createdAt'], $commentIndexes['idx_news_comments_article']->getColumns());
+        self::assertSame(['article_id', 'created_at'], $commentIndexes['idx_news_comments_article']->getColumns());
 
         $productIndexes = array_change_key_case($schemaManager->listTableIndexes('catalog_products'), \CASE_LOWER);
         self::assertArrayHasKey('idx_catalog_products_publication', $productIndexes);
-        self::assertSame(['isPublished', 'isFeaturedHome', 'createdAt'], $productIndexes['idx_catalog_products_publication']->getColumns());
+        self::assertSame(['is_published', 'is_featured_home', 'created_at'], $productIndexes['idx_catalog_products_publication']->getColumns());
         self::assertArrayHasKey('idx_catalog_products_category_publication', $productIndexes);
-        self::assertSame(['category_id', 'isPublished', 'createdAt'], $productIndexes['idx_catalog_products_category_publication']->getColumns());
+        self::assertSame(['category_id', 'is_published', 'created_at'], $productIndexes['idx_catalog_products_category_publication']->getColumns());
         self::assertArrayHasKey('idx_catalog_products_price_publication', $productIndexes);
-        self::assertSame(['isPublished', 'priceCents'], $productIndexes['idx_catalog_products_price_publication']->getColumns());
+        self::assertSame(['is_published', 'price_cents'], $productIndexes['idx_catalog_products_price_publication']->getColumns());
 
         $orderIndexes = array_change_key_case($schemaManager->listTableIndexes('orders'), \CASE_LOWER);
         self::assertArrayHasKey('idx_orders_status_created', $orderIndexes);
-        self::assertSame(['status', 'createdAt'], $orderIndexes['idx_orders_status_created']->getColumns());
+        self::assertSame(['status', 'created_at'], $orderIndexes['idx_orders_status_created']->getColumns());
         self::assertArrayHasKey('idx_orders_user_created', $orderIndexes);
-        self::assertSame(['user_id', 'createdAt'], $orderIndexes['idx_orders_user_created']->getColumns());
+        self::assertSame(['user_id', 'created_at'], $orderIndexes['idx_orders_user_created']->getColumns());
         self::assertArrayHasKey('idx_orders_invoiced_at', $orderIndexes);
         self::assertSame(['invoiced_at'], $orderIndexes['idx_orders_invoiced_at']->getColumns());
 
         $checkoutIndexes = array_change_key_case($schemaManager->listTableIndexes('order_checkout_sessions'), \CASE_LOWER);
         self::assertArrayHasKey('idx_checkout_user_cart_status', $checkoutIndexes);
-        self::assertSame(['user_id', 'cartToken', 'status'], $checkoutIndexes['idx_checkout_user_cart_status']->getColumns());
+        self::assertSame(['user_id', 'cart_token', 'status'], $checkoutIndexes['idx_checkout_user_cart_status']->getColumns());
         self::assertArrayHasKey('idx_checkout_user_order_status', $checkoutIndexes);
-        self::assertSame(['user_id', 'orderId', 'status'], $checkoutIndexes['idx_checkout_user_order_status']->getColumns());
+        self::assertSame(['user_id', 'order_id', 'status'], $checkoutIndexes['idx_checkout_user_order_status']->getColumns());
         self::assertArrayHasKey('idx_checkout_status_created', $checkoutIndexes);
-        self::assertSame(['status', 'createdAt'], $checkoutIndexes['idx_checkout_status_created']->getColumns());
+        self::assertSame(['status', 'created_at'], $checkoutIndexes['idx_checkout_status_created']->getColumns());
         self::assertArrayHasKey('idx_checkout_customer_email', $checkoutIndexes);
-        self::assertSame(['customerEmail'], $checkoutIndexes['idx_checkout_customer_email']->getColumns());
+        self::assertSame(['customer_email'], $checkoutIndexes['idx_checkout_customer_email']->getColumns());
 
         $tradeInIndexes = array_change_key_case($schemaManager->listTableIndexes('trade_in_requests'), \CASE_LOWER);
         self::assertArrayHasKey('idx_trade_in_status_created', $tradeInIndexes);
-        self::assertSame(['status', 'createdAt'], $tradeInIndexes['idx_trade_in_status_created']->getColumns());
+        self::assertSame(['status', 'created_at'], $tradeInIndexes['idx_trade_in_status_created']->getColumns());
         self::assertArrayHasKey('idx_trade_in_requester_created', $tradeInIndexes);
-        self::assertSame(['requester_user_id', 'createdAt'], $tradeInIndexes['idx_trade_in_requester_created']->getColumns());
+        self::assertSame(['requester_user_id', 'created_at'], $tradeInIndexes['idx_trade_in_requester_created']->getColumns());
         self::assertArrayHasKey('idx_trade_in_email', $tradeInIndexes);
         self::assertSame(['email'], $tradeInIndexes['idx_trade_in_email']->getColumns());
         self::assertArrayHasKey('idx_trade_in_closed_at', $tradeInIndexes);
-        self::assertSame(['closedAt'], $tradeInIndexes['idx_trade_in_closed_at']->getColumns());
+        self::assertSame(['closed_at'], $tradeInIndexes['idx_trade_in_closed_at']->getColumns());
 
         $enrollmentIndexes = array_change_key_case($schemaManager->listTableIndexes('training_enrollments'), \CASE_LOWER);
         foreach ([
@@ -345,7 +341,7 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
         self::assertSame('users', $orderFks[0]->getForeignTableName());
 
         $checkoutColumns = array_change_key_case($schemaManager->listTableColumns('order_checkout_sessions'), \CASE_LOWER);
-        foreach (['user_id', 'token', 'carttoken', 'customeremail', 'status'] as $column) {
+        foreach (['user_id', 'token', 'cart_token', 'customer_email', 'status'] as $column) {
             self::assertTrue($checkoutColumns[$column]->getNotnull(), $column.' should be NOT NULL');
         }
 
@@ -355,7 +351,7 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
         self::assertSame('users', $checkoutFks[0]->getForeignTableName());
 
         $tradeInColumns = array_change_key_case($schemaManager->listTableColumns('trade_in_requests'), \CASE_LOWER);
-        foreach (['reference', 'status', 'createdat'] as $column) {
+        foreach (['reference', 'status', 'created_at'] as $column) {
             self::assertTrue($tradeInColumns[$column]->getNotnull(), $column.' should be NOT NULL');
         }
 
@@ -376,10 +372,10 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
                 'session_id' => 999999,
                 'user_id' => (int) $user->getId(),
                 'status' => TrainingEnrollment::STATUS_PENDING_PAYMENT,
-                'priceCents' => 1500,
+                'price_cents' => 1500,
                 'scheduled_starts_at' => '2026-08-12 09:00:00',
                 'scheduled_ends_at' => '2026-08-12 10:00:00',
-                'createdAt' => '2026-08-11 09:00:00',
+                'created_at' => '2026-08-11 09:00:00',
             ]);
             self::fail('Expected FK violation for missing training session.');
         } catch (ForeignKeyConstraintViolationException) {

@@ -22,7 +22,6 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
-use App\Module\User\Application\Provider\PersonalDataExportProvider;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Application\Workflow\DeleteAccountService;
@@ -425,13 +424,23 @@ final class UserRemainingControllersTest extends TestCase
         $quotes->expects(self::once())->method('findByCustomerEmail')->with('ada@example.com', 1000)->willReturn([]);
 
         $controller = new class(
-            new PersonalDataExportProvider(new UserProfileFormatter($addressRepository), $orders, $tradeIns, $quotes),
+            new UserProfileFormatter($addressRepository),
+            $orders,
+            $tradeIns,
+            $quotes,
             new AttachmentResponseFactory(),
             $user,
         ) extends ExportMyPersonalDataController {
-            public function __construct(PersonalDataExportProvider $exports, AttachmentResponseFactory $attachments, private User $user)
+            public function __construct(
+                UserProfileFormatter $profiles,
+                OrderRepository $orders,
+                TradeInRequestRepositoryPort $tradeIns,
+                QuoteRepositoryPort $quotes,
+                AttachmentResponseFactory $attachments,
+                private User $user,
+            )
             {
-                parent::__construct($exports, $attachments);
+                parent::__construct($profiles, $orders, $tradeIns, $quotes, $attachments);
             }
 
             protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

@@ -6,17 +6,17 @@ namespace App\Module\Quote\Application\Outbox;
 
 use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
-use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Provider\QuoteCreatedEmailContentProvider;
 use App\Module\Quote\Application\Workflow\QuoteEmailDeliveryService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class SendQuoteCreatedEmailHandler implements OutboxEventHandler
 {
     public function __construct(
         private QuoteRepositoryPort $quotes,
-        private QuotePersistencePort $persistence,
+        private UnitOfWork $persistence,
         private QuoteCreatedEmailContentProvider $content,
         private QuoteEmailDeliveryService $delivery,
     ) {

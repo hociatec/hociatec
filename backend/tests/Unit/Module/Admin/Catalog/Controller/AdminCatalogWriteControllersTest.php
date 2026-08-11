@@ -13,12 +13,11 @@ use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
-use App\Module\Catalog\Application\Port\CatalogPersistencePort;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Shared\Application\UnitOfWork;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,11 +54,9 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('Updated', $this->payload($updated)['data']['name']);
 
-        $failingPersistence = new class implements CatalogPersistencePort, UnitOfWork {
-            public function save(object $entity): void {}
+        $failingPersistence = new class implements UnitOfWork {
             public function persist(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
-            public function delete(object $entity): void {}
             public function remove(object $entity): void {}
         };
         $failingService = new BrandService($repository, $this->createMock(ProductRepository::class), $failingPersistence);
@@ -117,11 +114,9 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('updated-category', $this->payload($updated)['data']['slug']);
 
-        $failingPersistence = new class implements CatalogPersistencePort, UnitOfWork {
-            public function save(object $entity): void {}
+        $failingPersistence = new class implements UnitOfWork {
             public function persist(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
-            public function delete(object $entity): void {}
             public function remove(object $entity): void {}
         };
         $failingService = new CategoryCatalogWorkflow($repository, $failingPersistence);
@@ -129,9 +124,9 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame(500, (new UpdateCategoryController($repository, $failingService, $validator, $catalogFormatter))(7, $this->jsonRequest(['name' => 'Failure'], 'PUT'))->getStatusCode());
     }
 
-    private function persistence(): CatalogPersistence
+    private function persistence(): DoctrineUnitOfWork
     {
-        return new CatalogPersistence($this->createMock(EntityManagerInterface::class));
+        return new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class));
     }
 
     private function validator(): DtoValidator

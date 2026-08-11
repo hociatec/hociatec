@@ -6,21 +6,21 @@ namespace App\Module\Quote\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
-use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Domain\ValueObject\DecimalNumber;
 
 final readonly class QuoteWorkflowService
 {
     public function __construct(
-        private QuotePersistencePort $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 
     public function delete(Quote $quote): void
     {
-        $this->persistence->delete($quote);
+        $this->persistence->remove($quote);
         $this->persistence->flush();
     }
 
@@ -56,13 +56,14 @@ final readonly class QuoteWorkflowService
             $item->setDiscountCents($input->discountCents);
         }
 
-        $this->persistence->addItem($quote, $item);
+        $quote->addItem($item);
+        $this->persistence->persist($item);
         $this->persistence->flush();
     }
 
     public function save(Quote $quote): void
     {
-        $this->persistence->save($quote);
+        $this->persistence->persist($quote);
         $this->persistence->flush();
     }
 

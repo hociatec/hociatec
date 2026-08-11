@@ -14,7 +14,6 @@ use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Projection\TradeInMetadataFormatter;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
@@ -70,27 +69,28 @@ final class SmallServicesCoverageTest extends TestCase
         self::assertTrue($service3->isFavorite($user, $product));
     }
 
-    public function testQuotePersistenceTranslatorAndWorkflow(): void
+    public function testQuoteTranslatorAndWorkflow(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $quote = new Quote('Q-1');
         $item = new QuoteItem('Item', 1000);
-        $persistence = new QuotePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $entityManager->expects(self::once())->method('persist')->with($quote);
         $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($quote);
-        $persistence->save($quote);
+        $persistence->persist($quote);
         $persistence->flush();
-        $persistence->delete($quote);
+        $persistence->remove($quote);
 
         $entityManager2 = $this->createMock(EntityManagerInterface::class);
         $entityManager2->expects(self::once())->method('persist')->with($item);
         $entityManager2->expects(self::once())->method('remove')->with($item);
-        $persistence2 = new QuotePersistence($entityManager2);
-        $persistence2->addItem($quote, $item);
+        $persistence2 = new DoctrineUnitOfWork($entityManager2);
+        $quote->addItem($item);
+        $persistence2->persist($item);
         self::assertSame($quote, $item->getQuote());
-        $persistence2->removeItem($item);
+        $persistence2->remove($item);
 
         self::assertSame('envoyé', QuoteStatusTranslator::toLabel(Quote::STATUS_SENT));
         self::assertSame(' accepté ', QuoteStatusTranslator::toLabel(' accepté '));
@@ -117,7 +117,7 @@ final class SmallServicesCoverageTest extends TestCase
             ->expects(self::exactly(2))
             ->method('persist')
             ->with(self::callback(static fn (object $entity): bool => $entity instanceof QuoteItem || $entity instanceof Quote));
-        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager3));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager3));
         $product = $this->product();
         $this->setId($product, 15);
         $product->setSellingType('rental');

@@ -14,7 +14,7 @@ use App\Module\Quote\Application\Factory\QuoteNumberGenerator;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -108,7 +108,7 @@ final class QuoteServiceTest extends TestCase
     public function testUpdateFromPayloadClearsItemsAppliesExplicitDatesAndPersistsFlushOnly(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new QuotePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $productRepository = $this->createMock(ProductRepository::class);
         $numberGenerator = $this->numberGenerator('DEV-2026-9999');
         $service = new QuoteService(
@@ -176,7 +176,7 @@ final class QuoteServiceTest extends TestCase
     public function testDuplicateCopiesQuoteFieldsAndItemsThenDeleteDelegates(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new QuotePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $service = new QuoteService(
             $persistence,
             $this->numberGenerator('DEV-2026-0004'),
@@ -255,7 +255,7 @@ final class QuoteServiceTest extends TestCase
         $productRepository = $this->createMock(ProductRepository::class);
         $productRepository->method('findProduct')->willReturn($product);
 
-        $persistence = new QuotePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         return new QuoteService(
             $persistence,

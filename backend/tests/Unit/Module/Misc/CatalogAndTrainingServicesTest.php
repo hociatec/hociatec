@@ -8,7 +8,6 @@ use App\Module\Catalog\Application\Workflow\BrandService;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
@@ -22,19 +21,19 @@ use Symfony\Component\Validator\Validation;
 
 final class CatalogAndTrainingServicesTest extends TestCase
 {
-    public function testCatalogPersistenceDelegatesToEntityManager(): void
+    public function testUnitOfWorkDelegatesToEntityManagerForCatalogServices(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entity = new \stdClass();
-        $persistence = new CatalogPersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
 
         $entityManager->expects(self::once())->method('persist')->with($entity);
         $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($entity);
 
-        $persistence->save($entity);
+        $persistence->persist($entity);
         $persistence->flush();
-        $persistence->delete($entity);
+        $persistence->remove($entity);
     }
 
     public function testBrandServiceSupportsListCreateUpdateAndDelete(): void
@@ -42,7 +41,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $brandRepository = $this->createMock(BrandRepository::class);
         $productRepository = $this->createMock(ProductRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new CatalogPersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $validator = Validation::createValidator();
         $service = new BrandService($brandRepository, $productRepository, $persistence, $validator);
 
@@ -73,7 +72,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $service = new BrandService(
             $brandRepository,
             $this->createMock(ProductRepository::class),
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 
@@ -89,7 +88,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $service = new BrandService(
             $this->createMock(BrandRepository::class),
             $this->createMock(ProductRepository::class),
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 
@@ -101,7 +100,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
     {
         $repository = $this->createMock(CategoryRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new CatalogPersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $validator = Validation::createValidator();
         $service = new CategoryCatalogWorkflow($repository, $persistence, $validator);
 
@@ -141,7 +140,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $repository = $this->createMock(CategoryRepository::class);
         $service = new CategoryCatalogWorkflow(
             $repository,
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
         $category = new Category('Phones', 'phones');
@@ -172,7 +171,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
 
         $service = new CategoryCatalogWorkflow(
             $repository,
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 
@@ -188,7 +187,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
 
         $service = new CategoryCatalogWorkflow(
             $repository,
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 
@@ -198,7 +197,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
 
         $service = new CategoryCatalogWorkflow(
             $repository,
-            new CatalogPersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             Validation::createValidator(),
         );
 

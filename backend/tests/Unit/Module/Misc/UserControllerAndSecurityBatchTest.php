@@ -14,7 +14,6 @@ use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
 use App\Module\User\Domain\Entity\ShippingAddress;
@@ -26,6 +25,7 @@ use App\Module\User\UI\Controller\Address\ListMyAddressesController;
 use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
 use App\Shared\Infrastructure\Http\CsrfTokenController;
 use App\Shared\Infrastructure\Http\CsrfTokenService;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -162,7 +162,7 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $entityManager->expects(self::once())->method('flush');
-        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager));
         $portal = new CustomerQuotePortalService(
             $quotes,
             new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator()),

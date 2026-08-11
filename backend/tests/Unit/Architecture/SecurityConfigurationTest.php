@@ -645,6 +645,13 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/Order/Application/Workflow/RefundStripeProcessor.php' => ['findForUpdate($refundId)', 'transactional(function () use ($refundId)'],
             'src/Module/Admin/Application/Operations/Workflow/StockOperationsService.php' => ['findForUpdate($productId)', 'transactional(function () use ($productId'],
             'src/Module/Auth/Infrastructure/Repository/RefreshTokenRepository.php' => ['LockMode::PESSIMISTIC_WRITE', 'findOneBySelectorForUpdate'],
+            'src/Module/Catalog/Infrastructure/Repository/ProductRepository.php' => ['findForUpdate(int $id)', 'LockMode::PESSIMISTIC_WRITE'],
+            'src/Module/Order/Infrastructure/Repository/OrderRepository.php' => ['findForUpdate(int $id)', 'LockMode::PESSIMISTIC_WRITE'],
+            'src/Module/Training/Infrastructure/Repository/TrainingSessionRepository.php' => ['findForUpdate(int $id)', 'LockMode::PESSIMISTIC_WRITE'],
+            'src/Module/User/Infrastructure/Repository/UserRepository.php' => ['findForUpdate(int $id)', 'LockMode::PESSIMISTIC_WRITE'],
+            'src/Module/Appointment/Infrastructure/Repository/WorkingDayConfigurationRepository.php' => ['findOneByDayForUpdate', 'LockMode::PESSIMISTIC_WRITE'],
+            'src/Module/Appointment/Application/Workflow/AppointmentService.php' => ['findOneByDayForUpdate($dayOfWeek)', 'transactional(function () use ($user, $prestation, $startAt)'],
+            'src/Module/Voucher/Application/Handler/CreateVoucherHandler.php' => ['UniqueConstraintViolationException', 'Ce code existe déjà.'],
             'src/Module/Order/Domain/Entity/StripeWebhookEvent.php' => ['unique: true'],
             'src/Module/Outbox/Domain/Entity/OutboxEvent.php' => ['uniq_outbox_event_key', 'idx_outbox_pending'],
         ];
@@ -662,6 +669,27 @@ final class SecurityConfigurationTest extends TestCase
         }
 
         self::assertSame([], $violations);
+    }
+
+    public function testMySqlIsolationAndLockingStrategyIsDocumentedForCriticalWritePaths(): void
+    {
+        $guide = file_get_contents(__DIR__.'/../../../../docs/backend-transaction-conventions.md');
+        self::assertIsString($guide);
+
+        foreach ([
+            'MySQL/InnoDB',
+            'does not override the database isolation level',
+            'PESSIMISTIC_WRITE',
+            'unique constraints plus duplicate-key handling',
+            'RefreshTokenRepository::findOneBySelectorForUpdate()',
+            'ProductRepository::findForUpdate()',
+            'WorkingDayConfigurationRepository::findOneByDayForUpdate()',
+            'TrainingSessionRepository::findForUpdate()',
+            'UserRepository::findForUpdate()',
+            'voucher codes is the final authority',
+        ] as $needle) {
+            self::assertStringContainsString($needle, $guide);
+        }
     }
 
     public function testBackupRestoreRetentionEncryptionAndSafeCommandExecutionAreDocumentedAndCovered(): void

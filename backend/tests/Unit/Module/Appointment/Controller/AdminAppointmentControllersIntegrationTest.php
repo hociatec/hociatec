@@ -16,8 +16,7 @@ use App\Module\Appointment\Application\Mapper\WorkingDayPayloadMapper;
 use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\Appointment;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Tests\Unit\Module\Appointment\AppointmentIntegrationTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -59,7 +58,7 @@ final class AdminAppointmentControllersIntegrationTest extends AppointmentIntegr
         $adminAppointments = new AdminListAppointmentsController($this->appointments());
         self::assertSame(200, $adminAppointments(Request::create('/?page=1&perPage=5'))->getStatusCode());
 
-        $configurationService = new WorkingDayConfigurationService($this->workingDays(), new WorkingDayConfigurationPersistence($this->entityManager()));
+        $configurationService = new WorkingDayConfigurationService($this->workingDays(), new DoctrineUnitOfWork($this->entityManager()));
         $getConfiguration = new AdminGetConfigurationController($configurationService);
         self::assertSame(200, $getConfiguration()->getStatusCode());
 
@@ -71,7 +70,7 @@ final class AdminAppointmentControllersIntegrationTest extends AppointmentIntegr
             ['dayOfWeek' => 6, 'isWorkingDay' => false],
         ]], 'PUT'))->getStatusCode());
 
-        $delete = new AdminDeletePrestationController($this->prestations(), new PrestationService($this->prestations(), new PrestationPersistence($this->entityManager())));
+        $delete = new AdminDeletePrestationController($this->prestations(), new PrestationService($this->prestations(), new DoctrineUnitOfWork($this->entityManager())));
         self::assertSame(404, $delete(999)->getStatusCode());
         $createdId = (int) $this->payload($create($this->jsonRequest(['name' => 'Temporary', 'durationMinutes' => 15, 'price' => 5])))['data']['id'];
         self::assertSame(200, $delete($createdId)->getStatusCode());

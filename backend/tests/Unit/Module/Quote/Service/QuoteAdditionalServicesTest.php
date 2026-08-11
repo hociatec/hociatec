@@ -21,10 +21,10 @@ use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -66,7 +66,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $entityManager->expects(self::exactly(2))->method('flush');
 
-        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager));
         $workflow->save($quote);
         $workflow->delete($quote);
     }
@@ -103,7 +103,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
 
         $service = new QuoteEmailService(
-            new QuotePersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             new Outbox(new DoctrineUnitOfWork($entityManager)),
             $this->repository(UserRepository::class),
             $this->notifier(),
@@ -123,7 +123,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $this->entityManager()->flush();
 
         $service = new QuoteEmailService(
-            new QuotePersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             new Outbox(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
             $this->repository(UserRepository::class),
             $this->notifier(),
@@ -156,7 +156,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $this->setEntityId($quote, 700);
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $quotes->expects(self::exactly(2))->method('find')->with(700)->willReturn($quote);
-        $persistence = $this->createMock(\App\Module\Quote\Application\Port\QuotePersistencePort::class);
+        $persistence = $this->createMock(UnitOfWork::class);
         $persistence->expects(self::once())->method('flush');
 
         $mailer = $this->createMock(EmailSender::class);
@@ -186,7 +186,7 @@ final class QuoteAdditionalServicesTest extends TestCase
         $this->setEntityId($quote, 701);
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
         $quotes->expects(self::once())->method('find')->with(701)->willReturn($quote);
-        $persistence = $this->createMock(\App\Module\Quote\Application\Port\QuotePersistencePort::class);
+        $persistence = $this->createMock(UnitOfWork::class);
         $persistence->expects(self::never())->method('flush');
 
         $mailer = $this->createMock(EmailSender::class);

@@ -20,7 +20,7 @@ use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,12 +60,12 @@ final class AdminQuoteControllersTest extends AdminQuoteIntegrationTestCase
         $product = $this->product();
         $productRepository = $this->getMockBuilder(ProductRepository::class)->disableOriginalConstructor()->getMock();
         $productRepository->method('find')->willReturnMap([[1, null], [2, $product]]);
-        $addProduct = new AddProductItemController(new QuoteWorkflowService(new QuotePersistence($em)), $quoteRepository, $productRepository, $quoteFormatter, $validator);
+        $addProduct = new AddProductItemController(new QuoteWorkflowService(new DoctrineUnitOfWork($em)), $quoteRepository, $productRepository, $quoteFormatter, $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $addProduct($this->jsonRequest(['productId' => 2]), 999)->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, $addProduct($this->jsonRequest(['productId' => 1]), $quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $addProduct($this->jsonRequest(['productId' => 2, 'quantity' => 2, 'vatRate' => 20]), $quoteId)->getStatusCode());
 
-        $status = new UpdateQuoteStatusController($quoteRepository, $quoteFormatter, new QuoteWorkflowService(new QuotePersistence($em)), $validator);
+        $status = new UpdateQuoteStatusController($quoteRepository, $quoteFormatter, new QuoteWorkflowService(new DoctrineUnitOfWork($em)), $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $status($this->jsonRequest(['status' => Quote::STATUS_SENT], 'PATCH'), 999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $status($this->jsonRequest(['status' => Quote::STATUS_SENT], 'PATCH'), $quoteId)->getStatusCode());
         $quote = $quoteRepository->find($quoteId);
@@ -74,12 +74,12 @@ final class AdminQuoteControllersTest extends AdminQuoteIntegrationTestCase
         self::assertSame(Response::HTTP_BAD_REQUEST, $status($this->jsonRequest(['status' => Quote::STATUS_REFUSED], 'PATCH'), $quoteId)->getStatusCode());
         $quote->setConvertedOrderId(null)->setConvertedOrderNumber(null);
 
-        $send = new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new QuotePersistence($em)), $this->createMock(LoggerInterface::class), $validator);
+        $send = new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new DoctrineUnitOfWork($em)), $this->createMock(LoggerInterface::class), $validator);
         self::assertSame(Response::HTTP_NOT_FOUND, $send($this->jsonRequest(['to' => 'client@example.test']), '0')->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, $send($this->jsonRequest(['to' => 'client@example.test']), '999')->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $send(Request::create('/', 'POST', server: [], content: '{bad'), (string) $quoteId)->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $send($this->jsonRequest(['to' => 'bad']), (string) $quoteId)->getStatusCode());
-        self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, (new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new QuotePersistence($em)), $this->createMock(LoggerInterface::class), $this->throwingValidator()))($this->jsonRequest(['to' => 'unexpected@example.test']), (string) $quoteId)->getStatusCode());
+        self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, (new SendQuoteEmailController($quoteRepository, $emailService, new QuoteWorkflowService(new DoctrineUnitOfWork($em)), $this->createMock(LoggerInterface::class), $this->throwingValidator()))($this->jsonRequest(['to' => 'unexpected@example.test']), (string) $quoteId)->getStatusCode());
         $client = new \App\Module\User\Domain\Entity\User('client@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $client->setPassword('hashed')->setCommunicationPreferences([]);
         $em->persist($client);

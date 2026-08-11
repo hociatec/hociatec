@@ -21,7 +21,6 @@ use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingEnrollmentRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingRepository;
-use App\Module\Training\Infrastructure\Repository\TrainingRoadmapItemRepository;
 use App\Module\Training\Infrastructure\Repository\TrainingSessionRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
@@ -204,10 +203,5 @@ abstract class TrainingIntegrationTestCase extends TestCase
     protected function categoryFormatter(): TrainingCategoryFormatter
     {
         return new TrainingCategoryFormatter();
-    }
-
-    protected function roadmapRepository(EntityManager $em): TrainingRoadmapItemRepository
-    {
-        return new TrainingRoadmapItemRepository($this->registry($em));
     }
 }

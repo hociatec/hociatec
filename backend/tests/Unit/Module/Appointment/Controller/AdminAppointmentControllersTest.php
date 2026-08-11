@@ -13,12 +13,11 @@ use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -243,7 +242,7 @@ final class AdminAppointmentControllersTest extends TestCase
 
         return new PrestationService(
             $repository,
-            new PrestationPersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
             Validation::createValidator(),
         );
     }
@@ -256,7 +255,7 @@ final class AdminAppointmentControllersTest extends TestCase
 
         return new WorkingDayConfigurationService(
             $repository,
-            new WorkingDayConfigurationPersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
         );
     }
 

@@ -14,10 +14,10 @@ use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Module\Catalog\UI\Controller\PublicApi\ListCategoriesController;
 use App\Module\Catalog\UI\Controller\PublicApi\ShowCategoryController;
 use Doctrine\ORM\EntityManagerInterface;
@@ -64,7 +64,7 @@ final class CatalogControllerBatchTest extends TestCase
 
         $categoryService = new CategoryCatalogWorkflow(
             $categories,
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 
@@ -95,7 +95,7 @@ final class CatalogControllerBatchTest extends TestCase
         $service = new BrandService(
             $brandRepository,
             $products,
-            new CatalogPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             Validation::createValidator(),
         );
 

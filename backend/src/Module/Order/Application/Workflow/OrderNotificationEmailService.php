@@ -6,10 +6,10 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\TemplatedEmailFactory;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Application\Mail\EmailSender;
+use App\Shared\Application\UnitOfWork;
 
 final class OrderNotificationEmailService
 {
@@ -18,7 +18,7 @@ final class OrderNotificationEmailService
     use OrderStatusEmailNotifierTrait;
 
     public function __construct(
-        private readonly OrderPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly OrderNotificationContentProvider $contentProvider,
         private readonly EmailSender $mailer,
         private readonly OrderEventLogger $events,

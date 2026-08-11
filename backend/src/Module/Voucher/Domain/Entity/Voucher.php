@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Module\Voucher\Domain\Entity;
 
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Domain\Policy\VoucherEligibilityPolicy;
 use App\Module\Voucher\Domain\ValueObject\VoucherDiscount;
 use App\Module\Voucher\Domain\ValueObject\VoucherRecipientConstraint;
 use App\Module\Voucher\Domain\ValueObject\VoucherValidityPeriod;
@@ -211,7 +210,10 @@ class Voucher
 
     public function canBeUsedBy(?User $user, \DateTimeImmutable $now): bool
     {
-        return (new VoucherEligibilityPolicy())->canBeUsedBy($this, $user, $now);
+        return $this->isActive()
+            && $this->validityPeriod()->hasStartedAt($now)
+            && !$this->validityPeriod()->isExpiredAt($now)
+            && $this->recipientConstraint()->matches($user);
     }
 
     public function canBeNotifiedTo(User $user, \DateTimeImmutable $now): bool

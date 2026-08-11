@@ -1,5 +1,1 @@
-1. **Réduire les abstractions inutiles** : revoir les chaînes du type `Controller → Workflow → Port → Writer → Persistence → Repository` et supprimer les interfaces/couches qui n’apportent ni découplage réel, ni seconde implémentation, ni avantage de test.
-
-16. **Vérifier les niveaux d’isolation transactionnelle** : particulièrement pour stock, commandes, vouchers, rendez-vous, refresh tokens et opérations concurrentes.
-
 24. **Analyser les classes et interfaces inutilisées** : avec plus de 1 100 fichiers PHP, supprimer régulièrement le code mort.

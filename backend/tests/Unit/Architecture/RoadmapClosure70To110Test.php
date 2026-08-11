@@ -165,6 +165,19 @@ final class RoadmapClosure70To110Test extends TestCase
         ] as $needle) {
             self::assertStringContainsString($needle, $doc);
         }
+
+        foreach ([
+            __DIR__.'/../../../src/Module/Order/Application/Port/OrderPersistencePort.php',
+            __DIR__.'/../../../src/Module/Order/Infrastructure/Persistence/OrderPersistence.php',
+            __DIR__.'/../../../src/Module/TradeIn/Application/Port/TradeInPersistencePort.php',
+            __DIR__.'/../../../src/Module/TradeIn/Infrastructure/Persistence/TradeInPersistence.php',
+            __DIR__.'/../../../src/Module/Quote/Application/Port/QuotePersistencePort.php',
+            __DIR__.'/../../../src/Module/Quote/Infrastructure/Persistence/QuotePersistence.php',
+            __DIR__.'/../../../src/Module/Catalog/Application/Port/CatalogPersistencePort.php',
+            __DIR__.'/../../../src/Module/Catalog/Infrastructure/Persistence/CatalogPersistence.php',
+        ] as $removedThinPersistenceLayer) {
+            self::assertFileDoesNotExist($removedThinPersistenceLayer);
+        }
     }
 
     public function testTransactionalBoundariesAvoidDirectExternalCallsAndLongRunningEffects(): void
@@ -316,6 +329,21 @@ final class RoadmapClosure70To110Test extends TestCase
     {
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Voucher/Infrastructure/Repository/VoucherLookupInterface.php');
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Voucher/Application/Port/VoucherLookupPort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Quote/Infrastructure/Repository/QuoteItemRepository.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Cart/Infrastructure/Repository/CartItemRepository.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Comment/Infrastructure/Repository/ProductCommentRepository.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Training/Infrastructure/Repository/TrainingRoadmapItemRepository.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Catalog/Application/Provider/ProductCatalogVariantSummaryBuilder.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Catalog/Application/Provider/ProductCatalogModelResolver.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Catalog/Application/Provider/ProductCatalogFacetCollector.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Audit/Application/Provider/AuditTemplateDefinitions.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/User/Application/Provider/PersonalDataExportProvider.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Voucher/Domain/Policy/VoucherEligibilityPolicy.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Marketing/Application/Provider/CampaignEmailScenarioProvider.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Marketing/Application/Provider/TransactionalEmailScenarioProvider.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Application/Provider/OrderNotificationFallbackTemplates.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/System/Application/Alert/OperationalAlert.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/System/Application/Alert/OperationalAlertPolicy.php');
 
         foreach ([
             __DIR__.'/../../../src/Module/Catalog/Application/Workflow/CategoryReaderTrait.php',
@@ -332,6 +360,8 @@ final class RoadmapClosure70To110Test extends TestCase
         $favoriteService = file_get_contents(__DIR__.'/../../../src/Module/Favorite/Application/Workflow/FavoriteService.php');
         $auditCreateService = file_get_contents(__DIR__.'/../../../src/Module/Audit/Application/Workflow/CreateAuditRequestService.php');
         $productRatingService = file_get_contents(__DIR__.'/../../../src/Module/Rating/Application/Workflow/ProductRatingService.php');
+        $prestationService = file_get_contents(__DIR__.'/../../../src/Module/Appointment/Application/Workflow/PrestationService.php');
+        $workingDayService = file_get_contents(__DIR__.'/../../../src/Module/Appointment/Application/Workflow/WorkingDayConfigurationService.php');
         self::assertIsString($voucherRepository);
         self::assertIsString($categoryWorkflow);
         self::assertIsString($orderEventLogger);
@@ -339,6 +369,8 @@ final class RoadmapClosure70To110Test extends TestCase
         self::assertIsString($favoriteService);
         self::assertIsString($auditCreateService);
         self::assertIsString($productRatingService);
+        self::assertIsString($prestationService);
+        self::assertIsString($workingDayService);
         self::assertStringNotContainsString('implements VoucherLookupInterface', $voucherRepository);
         self::assertStringNotContainsString('implements VoucherLookupPort', $voucherRepository);
         self::assertStringNotContainsString('use CategoryReaderTrait;', $categoryWorkflow);
@@ -349,6 +381,8 @@ final class RoadmapClosure70To110Test extends TestCase
         self::assertStringNotContainsString('FavoritePersistencePort', $favoriteService);
         self::assertStringNotContainsString('AuditPersistencePort', $auditCreateService);
         self::assertStringNotContainsString('RatingPersistencePort', $productRatingService);
+        self::assertStringNotContainsString('PrestationPersistencePort', $prestationService);
+        self::assertStringNotContainsString('WorkingDayConfigurationPersistencePort', $workingDayService);
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Application/Port/OrderEventPersistencePort.php');
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Application/Port/StripeWebhookEventPersistencePort.php');
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Infrastructure/Persistence/OrderEventPersistence.php');
@@ -359,6 +393,10 @@ final class RoadmapClosure70To110Test extends TestCase
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Audit/Infrastructure/Persistence/AuditPersistence.php');
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Rating/Application/Port/RatingPersistencePort.php');
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Rating/Infrastructure/Persistence/RatingPersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Appointment/Application/Port/PrestationPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Appointment/Application/Port/WorkingDayConfigurationPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Appointment/Infrastructure/Persistence/PrestationPersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Appointment/Infrastructure/Persistence/WorkingDayConfigurationPersistence.php');
     }
 
     public function testSensitiveCommandsUseLocksAndIdempotencyGuards(): void

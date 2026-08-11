@@ -166,17 +166,11 @@ services:
     App\Module\Order\Application\Port\StripeWebhookEventRepositoryPort:
         alias: App\Module\Order\Infrastructure\Repository\StripeWebhookEventRepository
 
-    App\Module\Order\Application\Port\OrderPersistencePort:
-        alias: App\Module\Order\Infrastructure\Persistence\OrderPersistence
-
     App\Module\Quote\Application\Port\QuoteRepositoryPort:
         alias: App\Module\Quote\Infrastructure\Repository\QuoteRepository
 
     App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort:
         alias: App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository
-
-    App\Module\Quote\Application\Port\QuotePersistencePort:
-        alias: App\Module\Quote\Infrastructure\Persistence\QuotePersistence
 
     App\Module\Voucher\Application\Port\VoucherRepositoryPort:
         alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository
@@ -186,9 +180,6 @@ services:
 
     App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort:
         alias: App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository
-
-    App\Module\TradeIn\Application\Port\TradeInPersistencePort:
-        alias: App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence
 
     App\Module\Support\Application\Port\SupportRequestRepositoryPort:
         alias: App\Module\Support\Infrastructure\Repository\SupportRequestRepository
@@ -201,12 +192,6 @@ services:
 
     App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort:
         alias: App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository
-
-    App\Module\Appointment\Application\Port\PrestationPersistencePort:
-        alias: App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence
-
-    App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort:
-        alias: App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence
 
     App\Module\Audit\Application\Port\AuditChecklistItemRepositoryPort:
         alias: App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository
@@ -252,9 +237,6 @@ services:
 
     App\Module\Notification\Application\Port\AccountNotificationEventRepositoryPort:
         alias: App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository
-
-    App\Module\Catalog\Application\Port\CatalogPersistencePort:
-        alias: App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence
 
     App\Module\Promotion\Application\Port\PromotionRepositoryPort:
         alias: App\Module\Promotion\Infrastructure\Repository\PromotionRepository

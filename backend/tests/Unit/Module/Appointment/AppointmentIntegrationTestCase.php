@@ -15,12 +15,11 @@ use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
 use App\Module\Appointment\Infrastructure\Repository\AppointmentRepository;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
@@ -100,7 +99,7 @@ abstract class AppointmentIntegrationTestCase extends TestCase
     {
         return new PrestationService(
             $this->prestations(),
-            new PrestationPersistence($this->entityManager()),
+            new DoctrineUnitOfWork($this->entityManager()),
         );
     }
 
@@ -108,12 +107,12 @@ abstract class AppointmentIntegrationTestCase extends TestCase
     {
         return new PrestationService(
             $this->prestations(),
-            new class implements \App\Module\Appointment\Application\Port\PrestationPersistencePort {
-                public function save(object $entity): void
+            new class implements UnitOfWork {
+                public function persist(object $entity): void
                 {
                 }
 
-                public function delete(object $entity): void
+                public function remove(object $entity): void
                 {
                 }
 

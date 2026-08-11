@@ -12,13 +12,12 @@ use App\Module\Appointment\Application\Workflow\PrestationService;
 use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
-use App\Module\Appointment\Infrastructure\Persistence\PrestationPersistence;
-use App\Module\Appointment\Infrastructure\Persistence\WorkingDayConfigurationPersistence;
 use App\Module\Appointment\Infrastructure\Repository\PrestationRepository;
 use App\Module\Appointment\Infrastructure\Repository\WorkingDayConfigurationRepository;
 use App\Module\Appointment\UI\Controller\PublicApi\PublicPrestationController;
 use App\Module\Appointment\UI\Controller\PublicApi\PublicWorkingDayController;
 use App\Module\Appointment\UI\Response\PublicAppointmentResponseMapper;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +46,7 @@ final class AppointmentControllerBatchTest extends TestCase
         $showPayload = json_decode((string) $show(4)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Diagnostic', $showPayload['data']['name']);
 
-        $delete = new DeletePrestationController($showDeleteRepository, new PrestationService($showDeleteRepository, new PrestationPersistence($deleteEntityManager), Validation::createValidator()));
+        $delete = new DeletePrestationController($showDeleteRepository, new PrestationService($showDeleteRepository, new DoctrineUnitOfWork($deleteEntityManager), Validation::createValidator()));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete(4)->getStatusCode());
 
@@ -57,7 +56,7 @@ final class AppointmentControllerBatchTest extends TestCase
             ->getMock();
         $listRepository->expects(self::exactly(2))->method('findAllOrderedByName')->willReturn([$prestation]);
         $listRepository->expects(self::once())->method('countAll')->willReturn(1);
-        $persistence = new PrestationPersistence($this->createMock(EntityManagerInterface::class));
+        $persistence = new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class));
         $service = new PrestationService($listRepository, $persistence, Validation::createValidator());
 
         $listPayload = json_decode((string) (new ListPrestationController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -85,7 +84,7 @@ final class AppointmentControllerBatchTest extends TestCase
 
         $service = new WorkingDayConfigurationService(
             $listRepository,
-            new WorkingDayConfigurationPersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
         );
 
         $adminPayload = json_decode((string) (new GetConfigurationController($service))()->getContent(), true, 512, JSON_THROW_ON_ERROR);

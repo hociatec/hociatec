@@ -266,11 +266,6 @@ final class ModuleBoundaryTest extends TestCase
     {
         foreach ([
             'src/Shared/Application/Exception/AbstractPublicApiException.php',
-            'src/Shared/Application/Exception/BadRequestApiException.php',
-            'src/Shared/Application/Exception/ConflictApiException.php',
-            'src/Shared/Application/Exception/ForbiddenApiException.php',
-            'src/Shared/Application/Exception/NotFoundApiException.php',
-            'src/Shared/Application/Exception/UnprocessableApiException.php',
             'src/Shared/Infrastructure/Http/ApiProblemResponse.php',
         ] as $relativePath) {
             self::assertFileExists(__DIR__.'/../../../'.$relativePath);

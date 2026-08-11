@@ -8,17 +8,17 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\TradeIn\Application\Calculator\TradeInEstimator;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Factory\TradeInNumberGenerator;
-use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 readonly class TradeInRequestWorkflow
 {
     public function __construct(
-        private TradeInPersistencePort $persistence,
+        private UnitOfWork $persistence,
         private TradeInEstimator $estimator,
         private TradeInNumberGenerator $numbers,
         private TradeInNotificationEmailService $notifications,
@@ -42,7 +42,7 @@ readonly class TradeInRequestWorkflow
             $stored = $this->files->storeRib($rib);
             $request->setRib($stored['path'], $stored['originalName'], $stored['size'], $stored['sha256']);
         }
-        $this->persistence->save($request);
+        $this->persistence->persist($request);
         $this->persistence->flush();
         $this->notifications->sendCreated($request);
 
@@ -56,7 +56,7 @@ readonly class TradeInRequestWorkflow
             throw new \InvalidArgumentException(sprintf('Cette transition est impossible : « %s » vers « %s ».', $this->statusLabel($request->getStatus()), $this->statusLabel($status)));
         }
         $request->setStatus($status);
-        $this->persistence->save($request);
+        $this->persistence->persist($request);
         $this->persistence->flush();
         if ($previous !== $status) {
             $this->notifications->sendStatusChanged($request);
@@ -69,7 +69,7 @@ readonly class TradeInRequestWorkflow
             throw new \InvalidArgumentException(sprintf('Cette transition est impossible : « %s » vers « %s ».', $this->statusLabel($request->getStatus()), $this->statusLabel(TradeInStatus::OFFER_SENT)));
         }
         $request->setOffer($offerCents, $expiresAt)->setAdminNote($note)->setStatus(TradeInStatus::OFFER_SENT);
-        $this->persistence->save($request);
+        $this->persistence->persist($request);
         $this->persistence->flush();
         $this->notifications->sendStatusChanged($request);
     }

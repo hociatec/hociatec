@@ -15,7 +15,6 @@ use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -50,7 +49,7 @@ final class PaymentMetadataAndWorkflowServicesTest extends MiscSupportTestCase
         $logger->save(new \stdClass());
 
         $order = new Order('ORD-1', $user);
-        $workflow = new OrderWorkflowService(new OrderPersistence($entityManager));
+        $workflow = new OrderWorkflowService(new DoctrineUnitOfWork($entityManager));
         $workflow->cancel($order);
         self::assertSame(Order::STATUS_CANCELLED, $order->getStatus());
         self::assertSame(Order::INVOICE_STATUS_CANCELLED, $order->getInvoiceStatus());

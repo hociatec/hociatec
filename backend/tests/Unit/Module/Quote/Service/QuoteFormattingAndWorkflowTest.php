@@ -15,8 +15,8 @@ use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -130,7 +130,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
 
         $this->entityManager->expects(self::exactly(2))->method('flush');
 
-        $workflow = new QuoteWorkflowService(new QuotePersistence($this->entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($this->entityManager));
         $workflow->setStatus($quote, Quote::STATUS_SENT);
         $workflow->setStatus($quote, Quote::STATUS_ACCEPTED);
 
@@ -160,7 +160,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
             }));
         $this->entityManager->expects(self::once())->method('flush');
 
-        $workflow = new QuoteWorkflowService(new QuotePersistence($this->entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($this->entityManager));
         $workflow->addProductItem($quote, $product, QuoteItemAddition::fromArray([
             'name' => '  Audit mensuel  ',
             'unitPriceCents' => 12000,
@@ -187,7 +187,7 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         $this->entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(QuoteItem::class));
         $this->entityManager->expects(self::once())->method('flush');
 
-        $workflow = new QuoteWorkflowService(new QuotePersistence($this->entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($this->entityManager));
         $workflow->addProductItem($quote, $product, new QuoteItemAddition([
             'name' => null,
             'unitPriceCents' => null,

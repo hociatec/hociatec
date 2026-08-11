@@ -7,8 +7,8 @@ namespace App\Module\Order\Application\Workflow;
 use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
 use App\Module\Order\Application\DTO\InvoiceDocument;
 use App\Module\Order\Application\Port\OrderInvoicePdfRenderer;
-use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Domain\Entity\Order;
+use App\Shared\Application\UnitOfWork;
 
 final class OrderInvoiceDocumentService
 {
@@ -16,7 +16,7 @@ final class OrderInvoiceDocumentService
         private readonly OrderInvoiceCalculator $calculator,
         private readonly OrderInvoicePdfRenderer $pdfService,
         private readonly OrderInvoiceXmlService $xmlService,
-        private readonly OrderPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly OrderInvoicePrivateDocumentStorage $storage,
     ) {
     }
@@ -40,7 +40,7 @@ final class OrderInvoiceDocumentService
             ->setInvoicePdfPath($paths['pdf'])
             ->setInvoiceXmlPath($paths['xml']);
 
-        $this->persistence->save($order);
+        $this->persistence->persist($order);
         $this->persistence->flush();
     }
 

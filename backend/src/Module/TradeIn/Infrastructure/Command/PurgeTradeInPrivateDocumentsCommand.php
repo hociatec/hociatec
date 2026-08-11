@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\Infrastructure\Command;
 
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
+use App\Shared\Application\UnitOfWork;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +20,7 @@ final class PurgeTradeInPrivateDocumentsCommand extends Command
     public function __construct(
         private readonly TradeInRequestRepository $requests,
         private readonly TradeInPrivateFileStorage $files,
-        private readonly TradeInPersistence $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
         parent::__construct();
     }
@@ -53,7 +53,7 @@ final class PurgeTradeInPrivateDocumentsCommand extends Command
             }
 
             $request->clearPrivateDocuments();
-            $this->persistence->save($request);
+            $this->persistence->persist($request);
             ++$purged;
         }
 

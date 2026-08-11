@@ -6,7 +6,6 @@ namespace App\Tests\Unit\Module\Training\Repository;
 
 use App\Module\Training\Domain\Entity\Training;
 use App\Module\Training\Domain\Entity\TrainingEnrollment;
-use App\Module\Training\Infrastructure\Repository\TrainingRoadmapItemRepository;
 use App\Tests\Unit\Module\Training\TrainingIntegrationTestCase;
 
 final class TrainingCompletionRepositoryTest extends TrainingIntegrationTestCase
@@ -49,6 +48,5 @@ final class TrainingCompletionRepositoryTest extends TrainingIntegrationTestCase
         self::assertSame($enrollment, $enrollments->findOneForUserAndSession($user, $session));
         self::assertSame($enrollment, $enrollments->findOneByStripeSessionId('cs_test'));
         self::assertSame([$enrollment], $enrollments->findForUser($user));
-        self::assertInstanceOf(TrainingRoadmapItemRepository::class, $this->roadmapRepository($em));
     }
 }

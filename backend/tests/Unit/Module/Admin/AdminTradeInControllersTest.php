@@ -11,9 +11,9 @@ use App\Module\Admin\UI\TradeIn\Controller\ListTradeInsController;
 use App\Module\Admin\UI\TradeIn\Controller\SetTradeInOfferController;
 use App\Module\Admin\UI\TradeIn\Controller\ShowTradeInController;
 use App\Module\Admin\UI\TradeIn\Controller\UpdateTradeInStatusController;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
 use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
@@ -97,7 +97,7 @@ final class AdminTradeInControllersTest extends AdminModuleIntegrationTestCase
 
         $delete = new DeleteTradeInController($repository, new \App\Module\Admin\Application\TradeIn\Handler\DeleteTradeInRequestHandler(
             $repository,
-            new TradeInPersistence($em),
+            new DoctrineUnitOfWork($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $delete(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $delete((int) $submitted->getId())->getStatusCode());

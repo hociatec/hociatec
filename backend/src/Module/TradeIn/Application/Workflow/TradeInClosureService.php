@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace App\Module\TradeIn\Application\Workflow;
 
 use App\Module\TradeIn\Application\DTO\TradeInClosureInput;
-use App\Module\TradeIn\Application\Port\TradeInPersistencePort;
 use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Application\TransactionManager;
 
 final readonly class TradeInClosureService
 {
     public function __construct(
-        private TradeInPersistencePort $persistence,
+        private UnitOfWork $persistence,
         private TradeInRequestWorkflow $tradeIns,
         private TransactionManager $transactions,
         private TradeInPrivateFileStoragePort $files,
@@ -49,7 +49,7 @@ final readonly class TradeInClosureService
             $request->setAdminNote($input->note);
             $receipt = $this->receiptRenderer->render($this->receiptHtml($request, $input));
             $request->setReceiptPath($this->files->storeReceipt($receipt));
-            $this->persistence->save($request);
+            $this->persistence->persist($request);
             $this->persistence->flush();
         });
 

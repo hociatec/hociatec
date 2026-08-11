@@ -7,8 +7,8 @@ namespace App\Tests\Unit\Module\Misc;
 use App\Module\Admin\UI\Quote\Controller\UpdateQuoteStatusController;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,7 +31,7 @@ final class AdminQuoteStatusControllerTest extends MiscSupportTestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
-        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager));
         $validator = new DtoValidator(
             Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
             new ConstraintViolationFormatter(),
@@ -56,7 +56,7 @@ final class AdminQuoteStatusControllerTest extends MiscSupportTestCase
         $controller2 = new UpdateQuoteStatusController(
             $quotes2,
             $this->quoteFormatter(),
-            new QuoteWorkflowService(new QuotePersistence($entityManager2)),
+            new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager2)),
             $validator,
         );
         self::assertSame(Response::HTTP_BAD_REQUEST, $controller2(new Request(content: '{"status":"refused"}'), 10)->getStatusCode());

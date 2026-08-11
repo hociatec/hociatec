@@ -9,7 +9,6 @@ use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Order\Application\Port\OrderPersistencePort;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
@@ -37,10 +36,12 @@ use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Tests\Support\OrderFormatterFactory;
+use App\Shared\Application\UnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
@@ -65,8 +66,12 @@ final class QueryBudgetRegressionTest extends TestCase
             new ProductRatingRepository($this->registry($entityManager)),
             new OrderAccessPolicy(),
             OrderFormatterFactory::create(),
-            new OrderWorkflowService(new class implements OrderPersistencePort {
-                public function save(Order $order): void
+            new OrderWorkflowService(new class implements UnitOfWork {
+                public function persist(object $entity): void
+                {
+                }
+
+                public function remove(object $entity): void
                 {
                 }
 
@@ -165,6 +170,7 @@ final class QueryBudgetRegressionTest extends TestCase
     private function entityManagerWithLogger(array $metadataClasses): array
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $logger = new DebugStack();
         $config->setSQLLogger($logger);
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);

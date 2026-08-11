@@ -13,7 +13,6 @@ use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Mail\EmailSender;
@@ -120,7 +119,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
         $quotes->method('findOneBy')->willReturn(null);
 
         return new OrderNotificationEmailService(
-            new OrderPersistence($orderEntityManager),
+            new DoctrineUnitOfWork($orderEntityManager),
             new OrderNotificationContentProvider(
                 $templates,
                 new \App\Module\Order\Application\Provider\OrderNotificationContextBuilder($quotes, 'https://front.example.test'),

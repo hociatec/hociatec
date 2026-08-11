@@ -85,7 +85,7 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
 
         $controller = new DeleteServiceController($services, new \App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler(
             $services,
-            new \App\Module\Quote\Infrastructure\Persistence\QuotePersistence($this->createMock(EntityManagerInterface::class)),
+            new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $controller(7)->getStatusCode());

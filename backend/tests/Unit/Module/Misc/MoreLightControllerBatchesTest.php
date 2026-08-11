@@ -10,7 +10,6 @@ use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
 use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
@@ -65,7 +64,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $quotes = $this->createMock(QuoteRepository::class);
         $quotes->expects(self::exactly(3))->method('find')->willReturnOnConsecutiveCalls(null, $quote, $quote);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
+        $workflow = new QuoteWorkflowService(new DoctrineUnitOfWork($entityManager));
         $portal = new CustomerQuotePortalService(
             $quotes,
             new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator()),

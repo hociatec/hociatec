@@ -13,7 +13,7 @@ use App\Module\Admin\UI\Quote\Controller\GetServiceController;
 use App\Module\Admin\UI\Quote\Controller\ListServicesController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -51,7 +51,7 @@ final class AdminQuoteServiceOfferingControllersTest extends AdminQuoteIntegrati
 
         $deleteService = new DeleteServiceController($serviceRepository, new \App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler(
             $serviceRepository,
-            new QuotePersistence($em),
+            new DoctrineUnitOfWork($em),
         ));
         self::assertSame(Response::HTTP_NOT_FOUND, $deleteService(999)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $deleteService($serviceId)->getStatusCode());

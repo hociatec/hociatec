@@ -19,7 +19,6 @@ use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
 use App\Module\TradeIn\Application\Workflow\TradeInStoreCreditVoucherIssuer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Infrastructure\Pdf\TradeInReceiptPdfRenderer;
-use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
@@ -39,6 +38,7 @@ use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
@@ -89,7 +89,7 @@ abstract class AdminModuleIntegrationTestCase extends TestCase
     protected function tradeInService(EntityManager $em): TradeInRequestWorkflow
     {
         return new TradeInRequestWorkflow(
-            new TradeInPersistence($em),
+            new DoctrineUnitOfWork($em),
             new TradeInEstimator(),
             new TradeInNumberGenerator(),
             $this->tradeInNotification(),
@@ -101,7 +101,7 @@ abstract class AdminModuleIntegrationTestCase extends TestCase
     protected function closureService(EntityManager $em): TradeInClosureService
     {
         return new TradeInClosureService(
-            new TradeInPersistence($em),
+            new DoctrineUnitOfWork($em),
             $this->tradeInService($em),
             new DoctrineTransactionManager($em),
             new TradeInPrivateFileStorage($this->projectDir()),
@@ -198,6 +198,7 @@ abstract class AdminModuleIntegrationTestCase extends TestCase
     protected function entityManager(): EntityManager
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $em = new EntityManager($connection, $config);
         (new SchemaTool($em))->createSchema([
