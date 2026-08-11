@@ -56,7 +56,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $quotes = $this->createMock(QuoteRepository::class);
         $quotes->expects(self::exactly(3))->method('find')->willReturnOnConsecutiveCalls(null, $quote, $quote);
 
-        $controller = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())), $user) extends GetMyQuoteController {
+        $controller = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()), $user) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
             {
                 parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
@@ -71,7 +71,7 @@ final class MoreLightControllerBatchesTest extends TestCase
         $payload = json_decode((string) $controller(7)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Q-1', $payload['data']['number']);
 
-        $otherUserController = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())), $this->user('grace@example.com')) extends GetMyQuoteController {
+        $otherUserController = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()), $this->user('grace@example.com')) extends GetMyQuoteController {
             public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
             {
                 parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
@@ -104,7 +104,7 @@ final class MoreLightControllerBatchesTest extends TestCase
                 return $created;
             });
 
-        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create());
         $create = new CreateQuoteController($quoteService, $quoteFormatter);
         try {
             $create(new Request(content: '{"name":'));

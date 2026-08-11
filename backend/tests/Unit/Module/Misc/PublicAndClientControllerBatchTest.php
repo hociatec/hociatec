@@ -37,7 +37,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $services->expects(self::once())->method('findPaginated')->with(20, 20)->willReturn([$service]);
         $services->expects(self::once())->method('countAll')->willReturn(21);
 
-        $publicServices = new ListServicesController($services, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())));
+        $publicServices = new ListServicesController($services, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()));
         $servicesPayload = json_decode((string) $publicServices(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $servicesPayload['data']['meta']['page']);
         self::assertSame('2 jours', $servicesPayload['data']['items'][0]['durationLabel']);
@@ -111,7 +111,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $controller = new class($orders, $workflow, $owner) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+                parent::__construct($orders, $workflow, new OrderAccessPolicy(), \App\Tests\Support\OrderFormatterFactory::create());
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -125,7 +125,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $otherUserController = new class($orders, $workflow, $actor) extends CancelMyOrderController {
             public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+                parent::__construct($orders, $workflow, new OrderAccessPolicy(), \App\Tests\Support\OrderFormatterFactory::create());
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

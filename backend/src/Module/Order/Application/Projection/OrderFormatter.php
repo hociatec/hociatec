@@ -7,22 +7,15 @@ namespace App\Module\Order\Application\Projection;
 use App\Module\Order\Application\DTO\OrderCustomerSnapshot;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
-use App\Module\Rating\Application\Projection\ProductReviewFormatter;
 use App\Module\Rating\Domain\Entity\ProductRating;
 
 final class OrderFormatter
 {
-    private readonly OrderStatusLabelFormatter $labels;
-    private readonly OrderItemFormatter $items;
-
     public function __construct(
-        ProductReviewFormatter $productReviewFormatter,
+        private readonly OrderStatusLabelFormatter $labels,
+        private readonly OrderItemFormatter $items,
         private readonly OrderStatusWorkflow $statusWorkflow,
-        ?OrderStatusLabelFormatter $labels = null,
-        ?OrderItemFormatter $items = null,
     ) {
-        $this->labels = $labels ?? new OrderStatusLabelFormatter();
-        $this->items = $items ?? new OrderItemFormatter($productReviewFormatter);
     }
 
     public function formatStatusLabel(string $status): string

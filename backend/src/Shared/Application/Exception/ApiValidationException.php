@@ -6,6 +6,9 @@ namespace App\Shared\Application\Exception;
 
 final class ApiValidationException extends \RuntimeException implements ApiProblemException, PublicApiException
 {
+    /**
+     * @param list<string> $details
+     */
     public function __construct(
         string $message,
         public readonly array $details,

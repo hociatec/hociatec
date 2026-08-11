@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Infrastructure\Http;
 
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Http\ApiExceptionSubscriber;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Application\Exception\ApiValidationException;
 use App\Shared\Application\Exception\ExternalServiceException;
+use App\Shared\Application\Security\AuthenticatedUserProvider;
+use App\Shared\Infrastructure\Http\ApiExceptionSubscriber;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\CsrfProtectionSubscriber;
 use App\Shared\Infrastructure\Http\CsrfTokenService;
@@ -28,16 +29,14 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 final class HttpInfrastructureTest extends TestCase
 {
@@ -52,13 +51,18 @@ final class HttpInfrastructureTest extends TestCase
 
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $this->setId($user, 77);
-        $token = $this->createMock(TokenInterface::class);
-        $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
+        $provider = new class($user) implements AuthenticatedUserProvider {
+            public function __construct(private readonly ?User $user)
+            {
+            }
 
-        $storage = $this->createMock(TokenStorageInterface::class);
-        $storage->method('getToken')->willReturn($token);
+            public function currentUser(): ?User
+            {
+                return $this->user;
+            }
+        };
 
-        $processor = new RequestIdProcessor($stack, $storage);
+        $processor = new RequestIdProcessor($stack, $provider);
         $record = new LogRecord(new \DateTimeImmutable(), 'app', Level::Info, 'message');
         $processed = $processor($record);
 
@@ -72,7 +76,12 @@ final class HttpInfrastructureTest extends TestCase
 
     public function testRequestIdProcessorReturnsOriginalRecordWhenNoRequestExists(): void
     {
-        $processor = new RequestIdProcessor(new RequestStack());
+        $processor = new RequestIdProcessor(new RequestStack(), new class implements AuthenticatedUserProvider {
+            public function currentUser(): ?User
+            {
+                return null;
+            }
+        });
         $record = new LogRecord(new \DateTimeImmutable(), 'app', Level::Info, 'message');
 
         self::assertSame($record, $processor($record));
@@ -265,8 +274,8 @@ final class HttpInfrastructureTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::atLeast(1))->method('error')->with(
             'Unhandled API exception.',
-            self::callback(static fn (array $context): bool => $context['method'] === 'POST'
-                && $context['path'] === '/api/orders'
+            self::callback(static fn (array $context): bool => 'POST' === $context['method']
+                && '/api/orders' === $context['path']
                 && ($context['exception'] instanceof \RuntimeException || $context['exception'] instanceof HttpException)
                 && (null === $context['request_id'] || 'req-500' === $context['request_id'])),
         );

@@ -11,6 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class EmailCampaign
 {
+    /** @var list<string> */
+    private const STATUS_FIELDS = [
+        EmailCampaignRecipient::STATUS_PENDING,
+        EmailCampaignRecipient::STATUS_SENT,
+        EmailCampaignRecipient::STATUS_FAILED,
+        EmailCampaignRecipient::STATUS_SKIPPED,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -68,35 +76,17 @@ class EmailCampaign
 
     public function __construct(mixed ...$values)
     {
-        $keys = ['name', 'segmentKey', 'criteria', 'subjectSnapshot', 'htmlSnapshot', 'textSnapshot', 'recipientsCount', 'createdByEmail', 'template'];
-        $data = array_fill_keys($keys, null);
-        $data['criteria'] = [];
-        $data['recipientsCount'] = 0;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $data[$keys[$index]] = $value;
-            }
-        }
-        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $data = $this->normalizeConstructorData($values);
         $this->name = (string) $data['name'];
         $this->segmentKey = (string) $data['segmentKey'];
-        $this->criteria = is_array($data['criteria']) ? $data['criteria'] : [];
+        $this->criteria = $data['criteria'];
         $this->subjectSnapshot = (string) $data['subjectSnapshot'];
         $this->htmlSnapshot = (string) $data['htmlSnapshot'];
         $this->textSnapshot = $data['textSnapshot'];
-        $this->recipientsCount = (int) $data['recipientsCount'];
-        if ($this->recipientsCount < 0) {
-            throw new \InvalidArgumentException('Le nombre de destinataires ne peut pas être négatif.');
-        }
+        $this->recipientsCount = $this->guardNonNegativeCount((int) $data['recipientsCount'], 'Le nombre de destinataires ne peut pas être négatif.');
         $this->createdByEmail = $data['createdByEmail'];
-        $this->template = $data['template'] instanceof EmailTemplate ? $data['template'] : null;
-        $now = new \DateTimeImmutable();
-        $this->sentAt = $now;
-        $this->createdAt = $now;
-        $this->updatedAt = $now;
+        $this->template = $data['template'];
+        $this->initializeTimestamps();
     }
 
     public function getId(): ?int
@@ -149,12 +139,8 @@ class EmailCampaign
 
     public function updateRecipientsCount(int $recipientsCount): void
     {
-        if ($recipientsCount < 0) {
-            throw new \InvalidArgumentException('Le nombre de destinataires ne peut pas être négatif.');
-        }
-
-        $this->recipientsCount = $recipientsCount;
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->recipientsCount = $this->guardNonNegativeCount($recipientsCount, 'Le nombre de destinataires ne peut pas être négatif.');
+        $this->touch();
     }
 
     public function getPendingCount(): int
@@ -183,7 +169,7 @@ class EmailCampaign
         if (EmailCampaignRecipient::STATUS_SKIPPED !== $status) {
             ++$this->recipientsCount;
         }
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->touch();
     }
 
     public function transitionRecipientStatus(string $from, string $to): void
@@ -206,7 +192,7 @@ class EmailCampaign
             --$this->recipientsCount;
         }
 
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->touch();
     }
 
     public function getCreatedByEmail(): ?string
@@ -235,8 +221,58 @@ class EmailCampaign
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    /**
+     * @param array<int|string, mixed> $values
+     *
+     * @return array{
+     *   name:mixed,
+     *   segmentKey:mixed,
+     *   criteria:array<string, mixed>,
+     *   subjectSnapshot:mixed,
+     *   htmlSnapshot:mixed,
+     *   textSnapshot:?string,
+     *   recipientsCount:int,
+     *   createdByEmail:?string,
+     *   template:?EmailTemplate
+     * }
+     */
+    private function normalizeConstructorData(array $values): array
+    {
+        $keys = ['name', 'segmentKey', 'criteria', 'subjectSnapshot', 'htmlSnapshot', 'textSnapshot', 'recipientsCount', 'createdByEmail', 'template'];
+        $data = array_fill_keys($keys, null);
+        $data['criteria'] = [];
+        $data['recipientsCount'] = 0;
+
+        foreach ($values as $index => $value) {
+            if (!is_int($index) || !isset($keys[$index])) {
+                continue;
+            }
+
+            $data[$keys[$index]] = $value;
+        }
+
+        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $data['criteria'] = is_array($data['criteria']) ? $data['criteria'] : [];
+        $data['textSnapshot'] = is_string($data['textSnapshot']) ? $data['textSnapshot'] : null;
+        $data['recipientsCount'] = (int) $data['recipientsCount'];
+        $data['createdByEmail'] = is_string($data['createdByEmail']) ? $data['createdByEmail'] : null;
+        $data['template'] = $data['template'] instanceof EmailTemplate ? $data['template'] : null;
+
+        return $data;
+    }
+
+    private function initializeTimestamps(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->sentAt = $now;
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
     private function incrementStatus(string $status): void
     {
+        $this->assertKnownStatus($status);
+
         match ($status) {
             EmailCampaignRecipient::STATUS_PENDING => ++$this->pendingCount,
             EmailCampaignRecipient::STATUS_SENT => ++$this->sentCount,
@@ -248,6 +284,8 @@ class EmailCampaign
 
     private function decrementStatus(string $status): void
     {
+        $this->assertKnownStatus($status);
+
         match ($status) {
             EmailCampaignRecipient::STATUS_PENDING => $this->decrementCount($this->pendingCount),
             EmailCampaignRecipient::STATUS_SENT => $this->decrementCount($this->sentCount),
@@ -264,5 +302,21 @@ class EmailCampaign
         }
 
         --$count;
+    }
+
+    private function assertKnownStatus(string $status): void
+    {
+        if (!in_array($status, self::STATUS_FIELDS, true)) {
+            throw new \InvalidArgumentException('Statut de destinataire marketing inconnu.');
+        }
+    }
+
+    private function guardNonNegativeCount(int $count, string $message): int
+    {
+        if ($count < 0) {
+            throw new \InvalidArgumentException($message);
+        }
+
+        return $count;
     }
 }

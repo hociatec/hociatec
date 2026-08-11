@@ -30,7 +30,7 @@ final readonly class ProductVariantCopyData
         $this->color = $data['color'];
         $this->storageCapacity = $data['storageCapacity'];
         $this->stock = (int) $data['stock'];
-        $this->priceCents = (int) $data['priceCents'];
+        $this->priceCents = null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getPriceCents();
         $this->position = (int) $data['position'];
     }
 
@@ -44,8 +44,8 @@ final readonly class ProductVariantCopyData
         $keys = ['template', 'baseName', 'baseSku', 'baseSlug', 'variantGroup', 'color', 'storageCapacity', 'stock', 'priceCents', 'position'];
         $defaults = array_fill_keys($keys, null);
         $defaults['stock'] = 0;
-        $defaults['priceCents'] = 0;
-        $defaults['position'] = 0;
+        $defaults['priceCents'] = null;
+        $defaults['position'] = 1;
         foreach ($values as $index => $value) {
             if (!is_int($index)) {
                 continue;
@@ -53,6 +53,16 @@ final readonly class ProductVariantCopyData
             if (isset($keys[$index])) {
                 $defaults[$keys[$index]] = $value;
             }
+        }
+
+        if (
+            array_key_exists(8, $values)
+            && !array_key_exists(9, $values)
+            && !array_key_exists('priceCents', $values)
+            && !array_key_exists('position', $values)
+        ) {
+            $defaults['position'] = (int) $values[8];
+            $defaults['priceCents'] = null;
         }
 
         return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));

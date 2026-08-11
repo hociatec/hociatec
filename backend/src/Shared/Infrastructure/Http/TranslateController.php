@@ -26,7 +26,7 @@ final class TranslateController extends AbstractController
         $source = isset($payload['source']) ? strtolower(trim((string) $payload['source'])) : '';
         $target = isset($payload['target']) ? strtolower(trim((string) $payload['target'])) : '';
 
-        if ($text === '' || $source === '' || $target === '') {
+        if ('' === $text || '' === $source || '' === $target) {
             return ApiResponse::error('Paramètres de traduction manquants.', Response::HTTP_BAD_REQUEST);
         }
 

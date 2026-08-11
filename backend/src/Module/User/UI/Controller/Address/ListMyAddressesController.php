@@ -6,8 +6,8 @@ namespace App\Module\User\UI\Controller\Address;
 
 use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,6 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAddressesController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly ShippingAddressRepositoryPort $addresses,
         private readonly ShippingAddressFormatter $formatter,
@@ -29,8 +31,7 @@ class ListMyAddressesController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
+        $user = $this->currentUser();
         $items = array_map(
             fn ($a) => $this->formatter->toArray($a),
             $this->addresses->findAllForUser($user, $pagination->perPage, $pagination->offset())

@@ -80,7 +80,7 @@ final class AdminOperationsControllersTest extends TestCase
             $this->supportRequests(),
             $this->quotes(),
             $formatter,
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
         ));
         self::assertSame(404, $timeline(999, new Request())->getStatusCode());
         $timelinePayload = $this->payload($timeline((int) $customer->getId(), new Request()));
@@ -182,7 +182,7 @@ final class AdminOperationsControllersTest extends TestCase
     {
         return new AdminOperationsFormatter(
             new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->orders(), $this->orderEvents()),
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
         );
     }
 

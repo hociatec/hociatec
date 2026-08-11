@@ -1,0 +1,20 @@
+Il reste encore de la dette, mais beaucoup moins qu'au début.
+
+Etat actuel :
+- la dette visible la plus grosse a été fortement réduite
+- plusieurs gros tests monolithiques ont été éclatés en tests ciblés
+- plusieurs classes source backend ont été refactorées pour enlever de la duplication et clarifier les responsabilités
+- les tests d'architecture sont au vert
+
+Il reste surtout :
+- quelques gros fichiers de tests encore agrégés, par exemple `backend/tests/Unit/Module/Misc/EntityCoverageBatchTest.php`
+- quelques blocs moyens encore denses comme `LoyaltyModuleCompletionTest.php`, `UserControllerAndSecurityBatchTest.php`, `TrainingControllerBatchTest.php`
+- probablement encore un peu de dette diffuse dans certaines grosses entités ou services, mais on a déjà enlevé une grosse partie de la dette la plus visible
+
+Conclusion :
+Non, il ne reste plus "beaucoup" de dette par rapport au point de départ.
+Oui, il reste encore une dette résiduelle, surtout dans quelques tests batch/completion restants.
+
+En clair :
+on n'est plus dans un backend fortement endetté visible,
+on est plutôt dans une phase de finition et de nettoyage des derniers gros paquets.

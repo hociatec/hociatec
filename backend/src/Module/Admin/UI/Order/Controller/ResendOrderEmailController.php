@@ -7,9 +7,8 @@ namespace App\Module\Admin\UI\Order\Controller;
 use App\Module\Admin\Application\Order\DTO\OrderEmailScenarioInput;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
+use App\Module\Order\Application\Workflow\OrderEmailScenarioResender;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
-use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
-use App\Module\Order\Domain\Entity\Order;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,7 +24,7 @@ final class ResendOrderEmailController extends AbstractController
 {
     public function __construct(
         private readonly OrderRepositoryPort $orders,
-        private readonly OrderNotificationEmailService $notifications,
+        private readonly OrderEmailScenarioResender $resender,
         private readonly OrderEventLogger $events,
         private readonly DtoValidator $validator,
         private readonly OrderFormatter $orderFormatter,
@@ -45,12 +44,7 @@ final class ResendOrderEmailController extends AbstractController
         $scenario = $input->scenario;
 
         try {
-            $sent = match ($scenario) {
-                'order_created' => $this->notifications->resendOrderCreated($order),
-                'invoice_issued' => $this->notifications->resendInvoiceIssued($order),
-                'current_status' => $this->resendCurrentStatusEmail($order),
-                default => throw new \InvalidArgumentException('Scénario email invalide.'),
-            };
+            $sent = $this->resender->resend($order, $scenario);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\RuntimeException) {
@@ -70,13 +64,5 @@ final class ResendOrderEmailController extends AbstractController
         );
 
         return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
-    }
-
-    private function resendCurrentStatusEmail(Order $order): bool
-    {
-        return match ($order->getStatus()) {
-            Order::STATUS_DELIVERED, Order::STATUS_CANCELLED => $this->notifications->resendStatusChanged($order, $order->getStatus(), $order->getStatus()),
-            default => false,
-        };
     }
 }

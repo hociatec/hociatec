@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Misc;
 
+use App\Module\Training\Application\Calculator\TrainingAvailabilityCalculator;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
@@ -135,7 +136,7 @@ final class TrainingControllerBatchTest extends TestCase
         $categories = $this->createMock(TrainingCategoryRepository::class);
         $categories->method('findOrdered')->willReturn([]);
 
-        return new TrainingFormatter($enrollments, new TrainingMetadataFormatter($categories));
+        return new TrainingFormatter($enrollments, new TrainingMetadataFormatter($categories), new TrainingAvailabilityCalculator());
     }
 
     private function training(): Training

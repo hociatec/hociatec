@@ -16,7 +16,7 @@ final class TrainingFormatter
     public function __construct(
         private readonly TrainingEnrollmentRepositoryPort $enrollments,
         private readonly TrainingMetadataFormatter $metadata,
-        private readonly ?TrainingAvailabilityCalculator $availabilityCalculator = null,
+        private readonly TrainingAvailabilityCalculator $availabilityCalculator,
     ) {
     }
 
@@ -72,7 +72,7 @@ final class TrainingFormatter
             'meetingUrl' => $session->getMeetingUrl(),
             'capacity' => $session->getCapacity(),
             'enrolledCount' => $enrolledCount,
-            'remainingSeats' => ($this->availabilityCalculator ?? new TrainingAvailabilityCalculator())->remainingSeats($session, $enrolledCount),
+            'remainingSeats' => $this->availabilityCalculator->remainingSeats($session, $enrolledCount),
             'status' => $session->getStatus(),
             'statusLabel' => match ($session->getStatus()) {
                 'scheduled' => 'Planifiée',

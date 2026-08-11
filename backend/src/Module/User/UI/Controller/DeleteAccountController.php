@@ -6,8 +6,8 @@ namespace App\Module\User\UI\Controller;
 
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Application\Workflow\DeleteAccountService;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +18,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class DeleteAccountController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly DeleteAccountService $deleter,
         private readonly LoggerInterface $logger,
@@ -26,8 +28,7 @@ class DeleteAccountController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
+        $user = $this->currentUser();
 
         try {
             $this->deleter->delete($user);

@@ -70,10 +70,7 @@ class ServiceOffering
         $this->setTitle($title);
         $this->setPriceCents($priceCents);
         $this->setVatRateBps($vatRateBps);
-
-        $now = new \DateTimeImmutable();
-        $this->createdAt = $now;
-        $this->updatedAt = $now;
+        $this->initializeTimestamps();
     }
 
     public function getId(): ?int
@@ -100,7 +97,7 @@ class ServiceOffering
 
     public function setDescription(?string $description): self
     {
-        $this->description = $description;
+        $this->description = $this->normalizeOptionalText($description);
 
         return $this;
     }
@@ -112,7 +109,7 @@ class ServiceOffering
 
     public function setUnit(?string $unit): self
     {
-        $this->unit = $unit;
+        $this->unit = $this->normalizeOptionalText($unit);
 
         return $this;
     }
@@ -134,7 +131,7 @@ class ServiceOffering
         $this->imageFile = $imageFile;
 
         if (null !== $imageFile) {
-            $this->updatedAt = new \DateTimeImmutable();
+            $this->touch();
         }
 
         return $this;
@@ -152,7 +149,7 @@ class ServiceOffering
 
     public function setImageName(?string $imageName): self
     {
-        $this->imageName = $imageName;
+        $this->imageName = $this->normalizeOptionalText($imageName);
 
         return $this;
     }
@@ -176,7 +173,7 @@ class ServiceOffering
 
     public function setImageAlt(?string $imageAlt): self
     {
-        $this->imageAlt = $imageAlt;
+        $this->imageAlt = $this->normalizeOptionalText($imageAlt);
 
         return $this;
     }
@@ -188,7 +185,7 @@ class ServiceOffering
 
     public function setImageExternalUrl(?string $imageExternalUrl): self
     {
-        $this->imageExternalUrl = $imageExternalUrl;
+        $this->imageExternalUrl = $this->normalizeOptionalText($imageExternalUrl);
 
         return $this;
     }
@@ -212,7 +209,7 @@ class ServiceOffering
 
     public function setDurationUnit(?string $durationUnit): self
     {
-        $this->durationUnit = $durationUnit;
+        $this->durationUnit = $this->normalizeOptionalText($durationUnit);
 
         return $this;
     }
@@ -259,5 +256,19 @@ class ServiceOffering
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function initializeTimestamps(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    private function normalizeOptionalText(?string $value): ?string
+    {
+        $value = null !== $value ? trim($value) : null;
+
+        return '' === $value ? null : $value;
     }
 }

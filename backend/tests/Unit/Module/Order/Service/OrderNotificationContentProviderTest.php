@@ -7,6 +7,8 @@ namespace App\Tests\Unit\Module\Order\Service;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
+use App\Module\Order\Application\Provider\OrderNotificationContextBuilder;
+use App\Module\Order\Application\Provider\OrderNotificationTemplateRenderer;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
@@ -19,7 +21,11 @@ final class OrderNotificationContentProviderTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $quotes = $this->createMock(QuoteRepositoryPort::class);
-        $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test/');
+        $provider = new OrderNotificationContentProvider(
+            $templates,
+            new OrderNotificationContextBuilder($quotes, 'https://front.example.test/'),
+            new OrderNotificationTemplateRenderer(),
+        );
         $order = $this->order(Order::STATUS_PENDING);
         $quote = new Quote('DEV-2026-0042');
 
@@ -40,7 +46,11 @@ final class OrderNotificationContentProviderTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $quotes = $this->createMock(QuoteRepositoryPort::class);
-        $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
+        $provider = new OrderNotificationContentProvider(
+            $templates,
+            new OrderNotificationContextBuilder($quotes, 'https://front.example.test'),
+            new OrderNotificationTemplateRenderer(),
+        );
         $order = $this->order(Order::STATUS_DELIVERED, '<Ada>');
 
         $template = new EmailTemplate(
@@ -66,7 +76,11 @@ final class OrderNotificationContentProviderTest extends TestCase
     {
         $templates = $this->createMock(EmailTemplateRepository::class);
         $quotes = $this->createMock(QuoteRepositoryPort::class);
-        $provider = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
+        $provider = new OrderNotificationContentProvider(
+            $templates,
+            new OrderNotificationContextBuilder($quotes, 'https://front.example.test'),
+            new OrderNotificationTemplateRenderer(),
+        );
         $order = $this->order(Order::STATUS_CANCELLED);
         $order->setInvoiceNumber('FAC-2026-0001')
             ->setInvoicedAt(new \DateTimeImmutable('2026-07-20'))

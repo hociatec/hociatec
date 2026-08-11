@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Infrastructure\Http;
 
-use App\Module\Auth\UI\Http\AuthCookieResponseWriter;
+use App\Shared\Infrastructure\Http\AuthCookieResponseWriter;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

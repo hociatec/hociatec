@@ -88,7 +88,7 @@ final class TrivialClassesCoverageTest extends TestCase
 
     public function testSmallControllersReturnSuccessPayloads(): void
     {
-        $orderResponse = (new ListOrderMetadataController(new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())))();
+        $orderResponse = (new ListOrderMetadataController(\App\Tests\Support\OrderFormatterFactory::create()))();
         self::assertSame(Response::HTTP_OK, $orderResponse->getStatusCode());
         self::assertStringContainsString('"statuses"', (string) $orderResponse->getContent());
 

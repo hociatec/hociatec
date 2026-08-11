@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Domain\Entity\RefreshToken;
+use App\Module\Auth\Infrastructure\Command\SeedE2eDataCommand;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Module\Auth\Infrastructure\Seed\E2eDataSeeder;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -90,5 +94,16 @@ final class AuthSupportTest extends TestCase
         foreach ($response->headers->getCookies() as $cookie) {
             self::assertTrue($cookie->isSecure());
         }
+    }
+
+    public function testSeedE2eDataCommandDelegatesToSeeder(): void
+    {
+        $seeder = $this->createMock(E2eDataSeeder::class);
+        $seeder->expects(self::once())->method('seed');
+
+        $tester = new CommandTester(new SeedE2eDataCommand($seeder));
+
+        self::assertSame(Command::SUCCESS, $tester->execute([]));
+        self::assertStringContainsString('E2E users and orders seeded.', $tester->getDisplay());
     }
 }

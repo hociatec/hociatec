@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -159,7 +163,7 @@ final class LibreTranslateClient
             }
 
             return null === $translatedText ? null : trim($translatedText);
-        } catch (\Throwable) {
+        } catch (TransportExceptionInterface|DecodingExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface) {
             return null;
         }
     }

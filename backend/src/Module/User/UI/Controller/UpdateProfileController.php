@@ -11,8 +11,8 @@ use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\UpdateProfileService;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +24,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class UpdateProfileController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly UpdateProfileService $updateProfile,
         private readonly DtoValidator $dtoValidator,
@@ -35,16 +37,11 @@ class UpdateProfileController extends AbstractController
     {
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
 
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
-        }
-
         $input = UpdateProfileInput::fromArray($payload);
         $this->dtoValidator->validate($input, ['newPassword' => 'password']);
 
         try {
-            $updatedUser = $this->updateProfile->update($user, $input);
+            $updatedUser = $this->updateProfile->update($this->currentUser(), $input);
         } catch (UserAlreadyExistsException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
         } catch (InvalidBirthDateException $exception) {

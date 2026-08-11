@@ -9,6 +9,7 @@ use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,12 +22,13 @@ class GetCartController extends AbstractController
     public function __construct(
         private readonly CartSessionWorkflow $cartService,
         private readonly CartFormatter $cartFormatter,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $token = $this->extractToken($request);
+        $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
         $cart = $this->cartService->viewCart($token);
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
@@ -37,16 +39,5 @@ class GetCartController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractToken(Request $request): ?string
-    {
-        $headerToken = $request->headers->get('X-Cart-Token');
-
-        if (is_string($headerToken) && '' !== $headerToken) {
-            return $headerToken;
-        }
-
-        return null;
     }
 }

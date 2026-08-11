@@ -11,6 +11,7 @@ use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +27,7 @@ final class UpdateCartItemController extends AbstractController
         private readonly ProductRepositoryPort $productRepository,
         private readonly CartFormatter $cartFormatter,
         private readonly DtoValidator $validator,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
@@ -37,7 +39,7 @@ final class UpdateCartItemController extends AbstractController
         $this->validator->validate($input);
         $quantity = $input->quantity;
 
-        $token = $this->extractToken($request);
+        $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
 
         $product = $this->productRepository->find($productId);
         if (null === $product) {
@@ -68,16 +70,5 @@ final class UpdateCartItemController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractToken(Request $request): ?string
-    {
-        $headerToken = $request->headers->get('X-Cart-Token');
-
-        if (is_string($headerToken) && '' !== $headerToken) {
-            return $headerToken;
-        }
-
-        return null;
     }
 }

@@ -7,8 +7,8 @@ namespace App\Module\Notification\UI\Controller;
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Notification\Application\Workflow\AccountNotificationReadStateService;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class AccountNotificationsReadStateController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(private readonly AccountNotificationReadStateService $readState)
     {
     }
@@ -48,15 +50,5 @@ final class AccountNotificationsReadStateController extends AbstractController
         }
 
         return ApiResponse::successItem('readState', $state);
-    }
-
-    private function currentUser(): User
-    {
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $user;
     }
 }

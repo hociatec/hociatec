@@ -174,7 +174,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
 
@@ -240,7 +240,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
 
@@ -337,7 +337,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
 
@@ -478,7 +478,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
         try {
@@ -534,7 +534,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
 
@@ -602,7 +602,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
 
@@ -674,7 +674,7 @@ final class RefundOperationsServiceTest extends TestCase
             },
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+                \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );
     }

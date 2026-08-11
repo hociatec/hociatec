@@ -15,6 +15,7 @@ final class StripeCheckoutSessionSyncService
         private readonly OrderCheckoutSessionRepositoryPort $checkoutSessions,
         private readonly StripeApiClient $stripe,
         private readonly UnitOfWork $persistence,
+        private readonly StripeCheckoutSessionStateResolver $resolver = new StripeCheckoutSessionStateResolver(),
     ) {
     }
 
@@ -30,7 +31,7 @@ final class StripeCheckoutSessionSyncService
             return;
         }
 
-        $sessionStatus = is_string($session['status'] ?? null) ? $session['status'] : null;
+        $sessionStatus = $this->resolver->sessionStatus($session);
         if (OrderCheckoutSession::STATUS_FAILED === $checkout->getStatus()) {
             $this->expireCheckoutSession($checkout, $sessionStatus);
 
@@ -49,11 +50,8 @@ final class StripeCheckoutSessionSyncService
             return;
         }
 
-        $paymentIntentId = is_string($session['payment_intent'] ?? null)
-            ? $session['payment_intent']
-            : $checkout->getStripePaymentIntentId();
-
-        if (null === $paymentIntentId || '' === $paymentIntentId) {
+        $paymentIntentId = $this->resolver->paymentIntentId($session, $checkout->getStripePaymentIntentId());
+        if (null === $paymentIntentId) {
             return;
         }
 
@@ -67,21 +65,16 @@ final class StripeCheckoutSessionSyncService
             return;
         }
 
-        $paymentStatus = is_string($paymentIntent['status'] ?? null)
-            ? $paymentIntent['status']
-            : (is_string($session['payment_status'] ?? null) ? $session['payment_status'] : null);
-        $failureCode = $this->extractFailureCode($paymentIntent);
-        $failureMessage = is_string($paymentIntent['last_payment_error']['message'] ?? null)
-            ? $paymentIntent['last_payment_error']['message']
-            : null;
+        $paymentStatus = $this->resolver->paymentStatus($session, $paymentIntent);
+        $failure = $this->resolver->failureDetails($paymentIntent);
 
-        if (null !== $failureCode || null !== $failureMessage) {
+        if (null !== $failure['code'] || null !== $failure['message']) {
             $checkout->markFailed(
                 $paymentIntentId,
                 $paymentStatus,
                 'payment_intent.payment_failed',
-                $failureCode,
-                $failureMessage,
+                $failure['code'],
+                $failure['message'],
             );
             $this->expireCheckoutSession($checkout, $sessionStatus);
         } else {
@@ -101,25 +94,9 @@ final class StripeCheckoutSessionSyncService
         }
     }
 
-    /**
-     * @param array<string, mixed> $paymentIntent
-     */
-    private function extractFailureCode(array $paymentIntent): ?string
-    {
-        if (is_string($paymentIntent['last_payment_error']['decline_code'] ?? null)) {
-            return $paymentIntent['last_payment_error']['decline_code'];
-        }
-
-        if (is_string($paymentIntent['last_payment_error']['code'] ?? null)) {
-            return $paymentIntent['last_payment_error']['code'];
-        }
-
-        return null;
-    }
-
     private function expireCheckoutSession(OrderCheckoutSession $checkout, ?string $sessionStatus): void
     {
-        if ('open' !== $sessionStatus) {
+        if (!$this->resolver->shouldExpireRemoteSession($sessionStatus)) {
             return;
         }
 

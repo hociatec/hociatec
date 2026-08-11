@@ -17,6 +17,7 @@ use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Mail\EmailSender;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -26,7 +27,6 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -122,7 +122,11 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
 
         return new OrderNotificationEmailService(
             new OrderPersistence($orderEntityManager),
-            new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test'),
+            new OrderNotificationContentProvider(
+                $templates,
+                new \App\Module\Order\Application\Provider\OrderNotificationContextBuilder($quotes, 'https://front.example.test'),
+                new \App\Module\Order\Application\Provider\OrderNotificationTemplateRenderer(),
+            ),
             $mailer,
             new OrderEventLogger(new OrderEventPersistence($eventEntityManager)),
             $this->notifier(),
@@ -148,7 +152,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this,
             $this->notificationRepository(),
             new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(EmailSender::class),

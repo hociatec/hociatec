@@ -14,6 +14,8 @@ use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;
 use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
+use App\Module\Order\Application\Provider\OrderNotificationContextBuilder;
+use App\Module\Order\Application\Provider\OrderNotificationTemplateRenderer;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
@@ -21,8 +23,10 @@ use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
+use App\Module\TradeIn\Application\Workflow\TradeInNotificationMessageBuilder;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Exception\MailDeliveryException;
+use App\Shared\Application\Mail\EmailSender;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Tests\Support\TradeInRequestFactory;
 use Doctrine\DBAL\DriverManager;
@@ -33,7 +37,6 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Mime\Email;
 
@@ -84,7 +87,11 @@ final class AlignedEmailServicesTest extends TestCase
 
         $templates = $this->createMock(EmailTemplateRepository::class);
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->getMock();
-        $content = new OrderNotificationContentProvider($templates, $quotes, 'https://front.example.test');
+        $content = new OrderNotificationContentProvider(
+            $templates,
+            new OrderNotificationContextBuilder($quotes, 'https://front.example.test'),
+            new OrderNotificationTemplateRenderer(),
+        );
 
         $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
@@ -160,7 +167,7 @@ final class AlignedEmailServicesTest extends TestCase
             $this->createMock(LoggerInterface::class),
             $this->notifier(),
             'noreply@example.com',
-            'https://front.example.test',
+            new TradeInNotificationMessageBuilder('https://front.example.test'),
         );
         $service->sendCreated($request);
 
@@ -174,7 +181,7 @@ final class AlignedEmailServicesTest extends TestCase
             $logger,
             $this->notifier(),
             'noreply@example.com',
-            'https://front.example.test',
+            new TradeInNotificationMessageBuilder('https://front.example.test'),
         );
         $service2->sendCreated($request);
     }
@@ -205,7 +212,7 @@ final class AlignedEmailServicesTest extends TestCase
 
     private function notifier(): UserCommunicationNotifier
     {
-        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this, 
+        return \App\Tests\Support\UserCommunicationNotifierFactory::create($this,
             $this->notificationRepository($this->entityManager()),
             new DoctrineUnitOfWork($this->entityManager()),
             $this->createMock(EmailSender::class),

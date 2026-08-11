@@ -161,7 +161,7 @@ final class AdminOperationsFormatterTest extends TestCase
                 $this->repository(OrderRepository::class, $entityManager),
                 $this->repository(OrderEventRepository::class, $entityManager),
             ),
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
         );
 
         return [$formatter, $user, $product, $order, $support, $refund, $movement, $event];

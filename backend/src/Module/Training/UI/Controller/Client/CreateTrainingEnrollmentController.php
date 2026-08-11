@@ -7,8 +7,8 @@ namespace App\Module\Training\UI\Controller\Client;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Workflow\TrainingEnrollmentCheckoutService;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CreateTrainingEnrollmentController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly TrainingEnrollmentCheckoutService $checkout,
         private readonly TrainingFormatter $formatter,
@@ -53,15 +55,5 @@ final class CreateTrainingEnrollmentController extends AbstractController
             $result->created ? Response::HTTP_CREATED : Response::HTTP_OK,
             $result->created ? 'Votre inscription à la formation a bien été enregistrée.' : 'Votre inscription à la formation existe déjà.',
         );
-    }
-
-    private function currentUser(): User
-    {
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $user;
     }
 }

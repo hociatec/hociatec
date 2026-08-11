@@ -9,10 +9,11 @@ use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\CartCheckoutService;
-use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,16 +27,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[RateLimited('checkout')]
 final class CheckoutController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly CartCheckoutService $checkout,
         private readonly DtoValidator $dtoValidator,
         private readonly OrderFormatter $orderFormatter,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $token = $this->cartToken($request);
+        $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
         if (null === $token) {
             return ApiResponse::error('Token de panier manquant.', Response::HTTP_BAD_REQUEST);
         }
@@ -68,22 +72,5 @@ final class CheckoutController extends AbstractController
             'checkoutUrl' => $result->checkout?->getCheckoutUrl(),
             'checkoutSessionId' => $result->checkout?->getStripeSessionId(),
         ]);
-    }
-
-    private function cartToken(Request $request): ?string
-    {
-        $token = $request->headers->get('X-Cart-Token');
-
-        return is_string($token) && '' !== $token ? $token : null;
-    }
-
-    private function currentUser(): User
-    {
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $user;
     }
 }

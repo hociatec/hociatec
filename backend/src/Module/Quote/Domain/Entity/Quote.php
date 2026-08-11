@@ -83,10 +83,8 @@ class Quote
     public function __construct(string $number)
     {
         $this->number = $number;
-        $now = new \DateTimeImmutable();
-        $this->createdAt = $now;
-        $this->updatedAt = $now;
         $this->items = new ArrayCollection();
+        $this->initializeTimestamps();
     }
 
     public function getId(): ?int
@@ -198,20 +196,24 @@ class Quote
 
     public function addItem(QuoteItem $item): self
     {
-        if (!$this->items->contains($item)) {
-            $this->items->add($item);
-            $item->setQuote($this);
+        if ($this->items->contains($item)) {
+            return $this;
         }
+
+        $this->items->add($item);
+        $item->setQuote($this);
 
         return $this;
     }
 
     public function removeItem(QuoteItem $item): self
     {
-        if ($this->items->removeElement($item)) {
-            if ($item->getQuote() === $this) {
-                $item->setQuote(null);
-            }
+        if (!$this->items->removeElement($item)) {
+            return $this;
+        }
+
+        if ($item->getQuote() === $this) {
+            $item->setQuote(null);
         }
 
         return $this;
@@ -243,5 +245,12 @@ class Quote
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function initializeTimestamps(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
     }
 }

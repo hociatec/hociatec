@@ -53,7 +53,7 @@ final class TradeInVoucherAndPdfCoverageTest extends TestCase
         self::assertSame(2000, $voucher->getDiscountValue());
         self::assertTrue($voucher->isActive());
         self::assertStringStartsWith('Avoir de reprise TR-ISSUE-1', $voucher->getName());
-        self::assertStringStartsWith('RPR-20260809-', $voucher->getCode());
+        self::assertStringStartsWith('RPR-'.(new \DateTimeImmutable())->format('Ymd').'-', $voucher->getCode());
 
         $anonymousRequest = TradeInRequestFactory::submitted('TR-ISSUE-2', null, 'Ada', 'Lovelace', 'anonymous@example.test', '0102030405', 'smartphone', 'iPhone', 100000, 2025, 'Apple', '15', 'SN', 'bon', true, true, true, 'Bon etat', null, null, 10000, 12000, new \DateTimeImmutable('2026-07-01T10:00:00+00:00'));
         $this->expectException(\InvalidArgumentException::class);
@@ -69,7 +69,7 @@ final class TradeInVoucherAndPdfCoverageTest extends TestCase
         $voucher = new Voucher('Avoir', 'RPR-TEST', Voucher::TYPE_FIXED_CENTS, 1500);
         $this->setId($voucher, 123);
 
-        $mailer = new class() implements EmailSender {
+        $mailer = new class implements EmailSender {
             public ?Email $sent = null;
 
             public function send(Email $email): void
@@ -108,7 +108,7 @@ final class TradeInVoucherAndPdfCoverageTest extends TestCase
             'Impossible d’envoyer l’avoir de reprise.',
             self::callback(static fn (array $context): bool => 'TR-NOTIFY-1' === $context['reference'] && $context['exception'] instanceof \RuntimeException),
         );
-        $failingMailer = new class() implements EmailSender {
+        $failingMailer = new class implements EmailSender {
             public function send(Email $email): void
             {
                 throw new \RuntimeException('smtp down');
@@ -162,7 +162,7 @@ SH);
 
     private function voucherRepository(): VoucherRepositoryPort
     {
-        return new readonly class() implements VoucherRepositoryPort {
+        return new readonly class implements VoucherRepositoryPort {
             public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
             {
                 return null;
@@ -206,7 +206,7 @@ SH);
 
     private function voucherNotificationService(?EmailSender $mailer = null): VoucherNotificationEmailService
     {
-        $templates = new readonly class() implements EmailTemplateRepositoryPort {
+        $templates = new readonly class implements EmailTemplateRepositoryPort {
             public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?EmailTemplate
             {
                 return null;
@@ -232,7 +232,7 @@ SH);
                 return null;
             }
         };
-        $notifications = new readonly class() implements AccountNotificationEventRepositoryPort {
+        $notifications = new readonly class implements AccountNotificationEventRepositoryPort {
             public function findRecentForUser(User $user, int $limit = 30, int $offset = 0): array
             {
                 return [];
@@ -248,7 +248,7 @@ SH);
                 return false;
             }
         };
-        $emailSender = $mailer ?? new class() implements EmailSender {
+        $emailSender = $mailer ?? new class implements EmailSender {
             public function send(Email $email): void
             {
             }
@@ -262,7 +262,7 @@ SH);
                 $notifications,
                 $this->createMock(UnitOfWork::class),
                 $emailSender,
-                new class() {
+                new class {
                     public function dispatch(object $message): void
                     {
                     }

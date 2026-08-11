@@ -9,6 +9,7 @@ use App\Module\User\Domain\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 
 final class E2eOrderFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
@@ -19,6 +20,10 @@ final class E2eOrderFixtures extends Fixture implements DependentFixtureInterfac
 
     public function load(ObjectManager $manager): void
     {
+        if (!$manager instanceof EntityManagerInterface) {
+            throw new \LogicException('Les fixtures E2E nécessitent un entity manager Doctrine ORM.');
+        }
+
         $user = $manager->createQueryBuilder()
             ->select('u')
             ->from(User::class, 'u')
@@ -91,6 +96,10 @@ final class E2eOrderFixtures extends Fixture implements DependentFixtureInterfac
         string $shippingPostalCode,
         string $shippingCity,
     ): void {
+        if (!$manager instanceof EntityManagerInterface) {
+            throw new \LogicException('Les fixtures E2E nécessitent un entity manager Doctrine ORM.');
+        }
+
         $order = $manager->getRepository(Order::class)->findOneBy(['number' => $number]);
         if (!$order instanceof Order) {
             $order = new Order($number, $user);

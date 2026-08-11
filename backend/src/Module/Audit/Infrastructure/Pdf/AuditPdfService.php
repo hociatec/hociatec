@@ -18,6 +18,7 @@ class AuditPdfService implements AuditPdfRenderer
         if (!class_exists(\Dompdf\Dompdf::class)) {
             throw new \RuntimeException('Dompdf non installe');
         }
+
         return $this->renderHtml($this->html->detailed($audit));
     }
 
@@ -26,6 +27,7 @@ class AuditPdfService implements AuditPdfRenderer
         if (!class_exists(\Dompdf\Dompdf::class)) {
             throw new \RuntimeException('Dompdf non installe');
         }
+
         return $this->renderHtml($this->html->summary($audit));
     }
 

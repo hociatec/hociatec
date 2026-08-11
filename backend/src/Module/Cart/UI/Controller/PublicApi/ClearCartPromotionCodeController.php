@@ -9,6 +9,7 @@ use App\Module\Cart\Application\Workflow\CartVoucherService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +22,7 @@ final class ClearCartPromotionCodeController extends AbstractController
     public function __construct(
         private readonly CartVoucherService $cartVouchers,
         private readonly CartFormatter $cartFormatter,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
@@ -28,7 +30,7 @@ final class ClearCartPromotionCodeController extends AbstractController
     {
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         $cart = $this->cartVouchers->clear(
-            $this->extractToken($request),
+            $this->headers->nonEmptyString($request, 'X-Cart-Token'),
             $user instanceof User ? $user : null,
         );
 
@@ -38,15 +40,5 @@ final class ClearCartPromotionCodeController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractToken(Request $request): ?string
-    {
-        $headerToken = $request->headers->get('X-Cart-Token');
-        if (is_string($headerToken) && '' !== $headerToken) {
-            return $headerToken;
-        }
-
-        return null;
     }
 }

@@ -8,9 +8,9 @@ use App\Module\Order\Application\DTO\CheckoutInput;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\ExistingOrderCheckoutService;
-use App\Module\User\Domain\Entity\User;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\JsonRequestInput;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -27,6 +27,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[RateLimited('checkout')]
 final class CheckoutExistingOrderController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly ExistingOrderCheckoutService $checkout,
         private readonly DtoValidator $dtoValidator,
@@ -59,15 +61,5 @@ final class CheckoutExistingOrderController extends AbstractController
             'checkoutUrl' => $result->checkout?->getCheckoutUrl(),
             'checkoutSessionId' => $result->checkout?->getStripeSessionId(),
         ]);
-    }
-
-    private function currentUser(): User
-    {
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $user;
     }
 }

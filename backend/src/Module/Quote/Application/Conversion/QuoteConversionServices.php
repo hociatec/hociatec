@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\Application\Conversion;
 
-use App\Module\Quote\Application\Conversion\DTO\QuoteConversionResult;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Quote\Application\Conversion\DTO\QuoteConversionResult;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\User\Domain\Entity\User;
 

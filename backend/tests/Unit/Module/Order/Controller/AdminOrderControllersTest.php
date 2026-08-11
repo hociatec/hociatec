@@ -44,7 +44,7 @@ final class AdminOrderControllersTest extends TestCase
         $controller = new ListOrdersController(
             $this->orderRepository($entityManager),
             $this->eventRepository($entityManager),
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
         );
         $response = $controller(Request::create('/api/admin/orders?status=confirmed&health=issues&page=1&perPage=1', 'GET'));
         $payload = $this->payload($response);
@@ -83,7 +83,7 @@ final class AdminOrderControllersTest extends TestCase
             $this->orderRepository($entityManager),
             $this->eventRepository($entityManager),
             $this->checkoutRepository($entityManager),
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
         );
 
         $notFound = $controller->__invoke(999999);

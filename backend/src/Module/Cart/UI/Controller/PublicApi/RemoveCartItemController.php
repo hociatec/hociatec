@@ -10,6 +10,7 @@ use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,12 +25,13 @@ class RemoveCartItemController extends AbstractController
         private readonly CartSessionWorkflow $cartService,
         private readonly ProductRepositoryPort $productRepository,
         private readonly CartFormatter $cartFormatter,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
     public function __invoke(int $productId, Request $request): JsonResponse
     {
-        $token = $this->extractToken($request);
+        $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
 
         if (null === $token) {
             return ApiResponse::error('Token du panier manquant.', JsonResponse::HTTP_BAD_REQUEST);
@@ -64,16 +66,5 @@ class RemoveCartItemController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractToken(Request $request): ?string
-    {
-        $headerToken = $request->headers->get('X-Cart-Token');
-
-        if (is_string($headerToken) && '' !== $headerToken) {
-            return $headerToken;
-        }
-
-        return null;
     }
 }

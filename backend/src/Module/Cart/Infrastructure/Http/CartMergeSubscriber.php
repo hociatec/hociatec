@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Infrastructure\Http;
 
-use App\Module\Cart\Application\Workflow\CartMergeService;
 use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
+use App\Module\Cart\Application\Workflow\CartMergeService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -17,6 +18,7 @@ final class CartMergeSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
         private readonly CartMergeService $mergeService,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
@@ -41,8 +43,8 @@ final class CartMergeSubscriber implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-        $cartToken = $request->headers->get('X-Cart-Token');
-        if (!is_string($cartToken) || '' === $cartToken) {
+        $cartToken = $this->headers->nonEmptyString($request, 'X-Cart-Token');
+        if (null === $cartToken) {
             return;
         }
 

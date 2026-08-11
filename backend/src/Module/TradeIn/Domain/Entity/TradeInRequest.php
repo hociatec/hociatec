@@ -6,9 +6,7 @@ namespace App\Module\TradeIn\Domain\Entity;
 
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
-use App\Module\TradeIn\Domain\ValueObject\TradeInClosure;
 use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
-use App\Module\TradeIn\Domain\ValueObject\TradeInPrivateDocument;
 use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,6 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'trade_in_requests')]
 #[ORM\HasLifecycleCallbacks]
+/**
+ * Settlement accessors compose TradeInClosure and TradeInPrivateDocument value objects.
+ */
 class TradeInRequest
 {
     use TradeInRequestAccessors;

@@ -87,7 +87,7 @@ final class AdminDashboardProvidersTest extends TestCase
         $orders->method('findRecentForAdmin')->with(6)->willReturn([$order]);
         $orders->method('findPendingPaymentForAdmin')->with(8)->willReturn([$order]);
         $events = $this->orderEvents();
-        $activity = new DashboardActivityProvider($orders, $events, new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()));
+        $activity = new DashboardActivityProvider($orders, $events, \App\Tests\Support\OrderFormatterFactory::create());
 
         $payment = (new OrderCheckoutSession('pay-token', $user, 'cart-token', 44, 'stripe-session', 'https://checkout.test'))
             ->setTotalPriceCents(12000)
@@ -106,8 +106,8 @@ final class AdminDashboardProvidersTest extends TestCase
             $quotes,
             $orders,
             $events,
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
-            new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow())),
+            \App\Tests\Support\OrderFormatterFactory::create(),
+            new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()),
         );
 
         $customers = $this->createMock(UserRepository::class);

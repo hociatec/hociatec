@@ -70,9 +70,7 @@ class Voucher
         $this->setName($name);
         $this->setCode($code);
         $this->changeDiscount($discountType, $discountValue);
-        $now = new \DateTimeImmutable();
-        $this->createdAt = $now;
-        $this->updatedAt = $now;
+        $this->initializeTimestamps();
     }
 
     public function getId(): ?int
@@ -121,8 +119,7 @@ class Voucher
 
     public function setDescription(?string $description): self
     {
-        $description = null !== $description ? trim($description) : null;
-        $this->description = '' === $description ? null : $description;
+        $this->description = $this->normalizeOptionalText($description);
 
         return $this;
     }
@@ -147,19 +144,14 @@ class Voucher
 
     public function setDiscountValue(int $discountValue): self
     {
-        new VoucherDiscount($this->discountType, $discountValue);
-        $this->discountValue = $discountValue;
+        $this->discountValue = (new VoucherDiscount($this->discountType, $discountValue))->value;
 
         return $this;
     }
 
     public function changeDiscount(string $discountType, int $discountValue): self
     {
-        $discount = new VoucherDiscount($discountType, $discountValue);
-        $discountType = $discount->type;
-        $discountValue = $discount->value;
-        $this->discountType = $discountType;
-        $this->discountValue = $discountValue;
+        $this->applyDiscount(new VoucherDiscount($discountType, $discountValue));
 
         return $this;
     }
@@ -187,8 +179,7 @@ class Voucher
 
     public function setRecipientEmail(?string $recipientEmail): self
     {
-        $recipientEmail = null !== $recipientEmail ? trim($recipientEmail) : null;
-        $this->recipientEmail = '' === $recipientEmail ? null : $recipientEmail;
+        $this->recipientEmail = $this->normalizeOptionalText($recipientEmail);
 
         return $this;
     }
@@ -257,5 +248,25 @@ class Voucher
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function initializeTimestamps(): void
+    {
+        $now = new \DateTimeImmutable();
+        $this->createdAt = $now;
+        $this->updatedAt = $now;
+    }
+
+    private function applyDiscount(VoucherDiscount $discount): void
+    {
+        $this->discountType = $discount->type;
+        $this->discountValue = $discount->value;
+    }
+
+    private function normalizeOptionalText(?string $value): ?string
+    {
+        $value = null !== $value ? trim($value) : null;
+
+        return '' === $value ? null : $value;
     }
 }

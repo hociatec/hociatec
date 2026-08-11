@@ -10,6 +10,7 @@ use App\Module\Cart\Application\Workflow\CartVoucherService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +25,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
         private readonly CartVoucherService $cartVouchers,
         private readonly CartFormatter $cartFormatter,
         private readonly DtoValidator $validator,
+        private readonly RequestHeaderValueResolver $headers,
     ) {
     }
 
@@ -37,7 +39,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
 
         try {
             $cart = $this->cartVouchers->apply(
-                $this->extractToken($request),
+                $this->headers->nonEmptyString($request, 'X-Cart-Token'),
                 $input->voucherCode,
                 $user instanceof User ? $user : null,
             );
@@ -51,15 +53,5 @@ final class ApplyCartPromotionCodeController extends AbstractController
         $response->headers->set('X-Cart-Token', $cart->getToken());
 
         return $response;
-    }
-
-    private function extractToken(Request $request): ?string
-    {
-        $headerToken = $request->headers->get('X-Cart-Token');
-        if (is_string($headerToken) && '' !== $headerToken) {
-            return $headerToken;
-        }
-
-        return null;
     }
 }

@@ -8,8 +8,8 @@ use App\Module\User\Application\DTO\ShippingAddressInput;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Module\User\Domain\Entity\ShippingAddress;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class CreateAddressController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
@@ -35,8 +37,7 @@ class CreateAddressController extends AbstractController
         $input = ShippingAddressInput::fromArray($payload);
         $this->dtoValidator->validate($input);
 
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
+        $user = $this->currentUser();
         $address = new ShippingAddress($user, $input->name, $input->address, $input->postalCode, $input->city);
         $address
             ->setCompany($input->company)

@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
-use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
+use App\Shared\Application\Security\AuthenticatedUserProvider;
 use Monolog\LogRecord;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 final class RequestIdProcessor
 {
     public function __construct(
         private readonly RequestStack $requestStack,
-        private readonly ?TokenStorageInterface $tokenStorage = null,
+        private readonly AuthenticatedUserProvider $authenticatedUserProvider,
     ) {
     }
 
@@ -34,11 +33,9 @@ final class RequestIdProcessor
         $ctx['ip'] = $request->getClientIp();
         $ctx['route'] = (string) ($request->attributes->get('_route') ?? '');
 
-        if (null !== $this->tokenStorage && ($token = $this->tokenStorage->getToken())) {
-            $user = SymfonySecurityUser::domainUser($token->getUser());
-            if (null !== $user) {
-                $ctx['user_id'] = $user->getId();
-            }
+        $user = $this->authenticatedUserProvider->currentUser();
+        if (null !== $user) {
+            $ctx['user_id'] = $user->getId();
         }
 
         return $record->with(context: $ctx);

@@ -18,7 +18,7 @@ use App\Shared\Application\UnitOfWork;
 /**
  * @var CartSessionRepositoryPort $cartSessionRepository
  */
-$cartSessionRepository = new class () implements CartSessionRepositoryPort {
+$cartSessionRepository = new class implements CartSessionRepositoryPort {
     /**
      * @var array<string, CartSession>
      */
@@ -72,7 +72,7 @@ $cartSessionRepository = new class () implements CartSessionRepositoryPort {
     }
 };
 
-$unitOfWork = new class () implements UnitOfWork {
+$unitOfWork = new class implements UnitOfWork {
     public bool $committed = false;
 
     public function persist(object $entity): void
@@ -90,7 +90,7 @@ $unitOfWork = new class () implements UnitOfWork {
 };
 
 $voucherEngine = new VoucherEngine(
-    new class () implements VoucherLookupPort {
+    new class implements VoucherLookupPort {
         public function findOneByCode(?string $code): ?Voucher
         {
             return null;

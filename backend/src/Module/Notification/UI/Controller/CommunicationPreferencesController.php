@@ -9,6 +9,7 @@ use App\Module\Notification\Application\Writer\CommunicationPreferenceUpdater;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CommunicationPreferencesController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(private readonly CommunicationPreferenceUpdater $updater)
     {
     }
@@ -53,15 +56,5 @@ final class CommunicationPreferencesController extends AbstractController
             'preferences' => $user->getCommunicationPreferences(),
             'choices' => CommunicationPreferences::choices(),
         ];
-    }
-
-    private function currentUser(): User
-    {
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-
-        return $user;
     }
 }

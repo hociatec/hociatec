@@ -7,9 +7,9 @@ namespace App\Module\Quote\Application\Conversion;
 use App\Module\Order\Application\Calculator\OrderInvoiceCalculator;
 use App\Module\Order\Application\Factory\InvoiceNumberGenerator;
 use App\Module\Order\Application\Factory\OrderNumberGenerator;
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
+use App\Module\Order\Domain\Entity\Order;
 
 final readonly class QuoteToOrderServices
 {

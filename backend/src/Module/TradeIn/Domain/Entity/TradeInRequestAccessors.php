@@ -8,6 +8,8 @@ trait TradeInRequestAccessors
 {
     use TradeInRequestLifecycleAccessorsTrait;
     use TradeInRequestProductAccessorsTrait;
+    use TradeInRequestSettlementMutationTrait;
+    use TradeInRequestSettlementProjectionTrait;
     use TradeInRequestSettlementAccessorsTrait;
     use TradeInRequestSubmissionTrait;
 }

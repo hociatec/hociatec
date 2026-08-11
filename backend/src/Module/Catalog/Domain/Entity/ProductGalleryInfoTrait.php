@@ -24,8 +24,6 @@ trait ProductGalleryInfoTrait
     #[ORM\Column(length: 2048, nullable: true)]
     private ?string $imageExternalUrl = null;
 
-    private ?ProductGallery $gallery = null;
-
     public function getImageFile(): ?object
     {
         return $this->imageFile;

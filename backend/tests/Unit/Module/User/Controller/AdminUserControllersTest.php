@@ -92,7 +92,7 @@ final class AdminUserControllersTest extends TestCase
             $addresses,
             $orders,
             $vouchers,
-            new \App\Module\Order\Application\Projection\OrderFormatter(new \App\Module\Rating\Application\Projection\ProductReviewFormatter(), new \App\Module\Order\Domain\Workflow\OrderStatusWorkflow()),
+            \App\Tests\Support\OrderFormatterFactory::create(),
             new \App\Module\User\Application\Projection\ShippingAddressFormatter(),
             new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
         ));

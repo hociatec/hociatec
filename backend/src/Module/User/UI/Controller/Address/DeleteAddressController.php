@@ -6,8 +6,8 @@ namespace App\Module\User\UI\Controller\Address;
 
 use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
-use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,6 +17,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class DeleteAddressController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly ShippingAddressRepositoryPort $addresses,
         private readonly ShippingAddressWriter $writer,
@@ -25,8 +27,7 @@ class DeleteAddressController extends AbstractController
 
     public function __invoke(int $id): JsonResponse
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
+        $user = $this->currentUser();
         $address = $this->addresses->findOneForUser($id, $user);
         if (null === $address) {
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);

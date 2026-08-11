@@ -75,7 +75,7 @@ final class WorkingDayConfigurationService
                     ? DateTimeParser::fromFormat('H:i', $item->endTime)
                     : null;
 
-                if (false === $startTime || false === $endTime || null === $startTime || null === $endTime) {
+                if (null === $startTime || null === $endTime) {
                     throw new \InvalidArgumentException('Les heures de debut et fin doivent etre renseignees au format HH:MM.');
                 }
 

@@ -35,13 +35,18 @@ services:
         resource: '../src/DataFixtures/'
 
     App\Shared\Infrastructure\Http\RequestIdProcessor:
+        arguments:
+            $authenticatedUserProvider: '@App\Shared\Application\Security\AuthenticatedUserProvider'
         tags: ['monolog.processor']
+
+    App\Shared\Application\Security\AuthenticatedUserProvider:
+        alias: App\Module\Auth\Infrastructure\Security\TokenStorageAuthenticatedUserProvider
 
     App\Module\Auth\Infrastructure\Http\AuthCookieService:
         arguments:
             $environment: '%kernel.environment%'
 
-    App\Module\Auth\UI\Http\AuthCookieResponseWriter:
+    App\Shared\Infrastructure\Http\AuthCookieResponseWriter:
         alias: App\Module\Auth\Infrastructure\Http\AuthCookieService
 
     App\Module\Auth\UI\Controller\ActivationRedirectController:
@@ -376,7 +381,6 @@ services:
     App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
-            $frontendUrl: '%env(APP_FRONTEND_URL)%'
 
     App\Module\Catalog\Application\Workflow\ProductShareEmailService:
         arguments:
@@ -442,8 +446,7 @@ services:
             $mailerFrom: '%env(MAILER_FROM)%'
 
     App\Module\Order\Application\Provider\OrderNotificationContentProvider:
-        arguments:
-            $frontendUrl: '%env(APP_FRONTEND_URL)%'
+        ~
 
     App\Module\Order\Application\Provider\OrderNotificationContextBuilder:
         arguments:

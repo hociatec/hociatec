@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Handler\CreateBetaCampaignHandler;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

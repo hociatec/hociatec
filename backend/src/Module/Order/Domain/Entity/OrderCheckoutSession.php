@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Domain\Entity;
 
-use App\Module\Order\Domain\ValueObject\CheckoutShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -18,6 +17,7 @@ class OrderCheckoutSession
     use OrderCheckoutLifecycleTrait;
     use OrderCheckoutPaymentStateTrait;
     use OrderCheckoutPricingStateTrait;
+    use OrderCheckoutSnapshotStateTrait;
     use OrderCheckoutShippingSnapshotTrait;
 
     public const STATUS_OPEN = 'open';
@@ -162,37 +162,8 @@ class OrderCheckoutSession
         return $this->shippingAddressId;
     }
 
-    private function customerSnapshot(): CheckoutCustomerSnapshot
-    {
-        return new CheckoutCustomerSnapshot($this->customerFullName, $this->customerEmail);
-    }
-
-    private function shippingSnapshot(): CheckoutShippingSnapshot
-    {
-        return new CheckoutShippingSnapshot(
-            new CheckoutShippingAddress(
-                $this->shippingName,
-                $this->shippingAddress,
-                $this->shippingPostalCode,
-                $this->shippingCity,
-            ),
-        );
-    }
-
-    private function billingSnapshot(): CheckoutBillingSnapshot
-    {
-        return CheckoutBillingSnapshot::fromScalars(
-            $this->billingName,
-            $this->billingCompany,
-            $this->billingCompanySiren,
-            $this->billingCompanyVatNumber,
-            $this->purchaseOrderNumber,
-            $this->billingEmail,
-            $this->billingAddress,
-            $this->billingPostalCode,
-            $this->billingCity,
-        );
-    }
+    // CheckoutCustomerSnapshot, CheckoutShippingSnapshot and CheckoutBillingSnapshot
+    // remain the composed read model for checkout identity and addresses.
 
     /** @return array<int, array<string, mixed>> */
     public function getItemsPayload(): array

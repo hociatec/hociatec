@@ -123,7 +123,7 @@ final class UserRemainingControllersTest extends TestCase
         $addressRepository->expects(self::once())->method('findFirstForUser')->willReturn(null);
         $profiles = new UserProfileFormatter($addressRepository);
         $symfonyValidator = $this->createMock(ValidatorInterface::class);
-        $symfonyValidator->expects(self::exactly(5))->method('validate')->willReturn(new ConstraintViolationList());
+        $symfonyValidator->expects(self::exactly(6))->method('validate')->willReturn(new ConstraintViolationList());
         $validator = new DtoValidator($symfonyValidator, new ConstraintViolationFormatter());
 
         $service = $this->getMockBuilder(UpdateProfileService::class)
@@ -151,7 +151,11 @@ final class UserRemainingControllersTest extends TestCase
                 return null;
             }
         };
-        self::assertSame(401, $controllerUnauth(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
+        try {
+            $controllerUnauth(Request::create('/', 'PUT', [], [], [], [], json_encode($this->profilePayload(), JSON_THROW_ON_ERROR)));
+            self::fail('Expected access denied exception for unauthenticated profile update.');
+        } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException) {
+        }
 
         $controller = new class($service, $validator, $profiles, $user) extends UpdateProfileController {
             public function __construct(UpdateProfileService $u, DtoValidator $v, UserProfileFormatter $p, private User $user)

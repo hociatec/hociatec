@@ -6,13 +6,12 @@ namespace App\Module\User\Domain\Entity;
 
 use App\Module\User\Domain\Security\SecurityUserIdentity;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'UNIQ_USERS_EMAIL', columns: ['email'])]
 #[ORM\HasLifecycleCallbacks]
-class User implements SecurityUserIdentity, PasswordAuthenticatedUserInterface
+class User implements SecurityUserIdentity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,9 +48,7 @@ class User implements SecurityUserIdentity, PasswordAuthenticatedUserInterface
         $this->security = new AccountSecurity();
         $this->administration = new UserAdministrationState();
         $this->communication = new UserCommunicationState();
-        $now = new \DateTimeImmutable();
-        $this->createdAt = $now;
-        $this->updatedAt = $now;
+        $this->initializeTimestamps();
     }
 
     public function getId(): ?int
@@ -66,11 +63,7 @@ class User implements SecurityUserIdentity, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        if ('' === $this->identity->email()) {
-            throw new \LogicException('A persisted user must have an email address.');
-        }
-
-        return $this->identity->email();
+        return $this->requireEmailIdentifier();
     }
 
     public function getRoles(): array
@@ -338,13 +331,33 @@ class User implements SecurityUserIdentity, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->initializeTimestamps();
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->touch();
+    }
+
+    private function requireEmailIdentifier(): string
+    {
+        $email = $this->identity->email();
+        if ('' === $email) {
+            throw new \LogicException('A persisted user must have an email address.');
+        }
+
+        return $email;
+    }
+
+    private function initializeTimestamps(): void
+    {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }
 
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
+    private function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
     }

@@ -15,6 +15,7 @@ class Product
 {
     use ProductDiscountTrait;
     use ProductCharacteristicsStateTrait;
+    use ProductGalleryStateTrait;
     use ProductGalleryInfoTrait;
     use ProductGalleryExtendedTrait;
     use ProductGalleryMutationsTrait;
@@ -58,8 +59,7 @@ class Product
     #[ORM\JoinColumn(name: 'brand_id', nullable: true, onDelete: 'SET NULL')]
     private ?Brand $brandReference = null;
 
-    private ?ProductGallery $gallery = null;
-
+    // ?ProductGallery $gallery remains the composed gallery state owned by the entity.
     #[ORM\Embedded(class: ProductCharacteristics::class, columnPrefix: false)]
     private ProductCharacteristics $characteristics;
 

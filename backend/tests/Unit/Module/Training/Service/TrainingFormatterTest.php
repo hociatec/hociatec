@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Training\Service;
 
+use App\Module\Training\Application\Calculator\TrainingAvailabilityCalculator;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Domain\Entity\Training;
@@ -44,6 +45,7 @@ final class TrainingFormatterTest extends TestCase
         $formatter = new TrainingFormatter(
             $this->createMock(TrainingEnrollmentRepository::class),
             new TrainingMetadataFormatter($categoryRepository),
+            new TrainingAvailabilityCalculator(),
         );
 
         $payload = $formatter->formatTraining($training);
@@ -94,7 +96,7 @@ final class TrainingFormatterTest extends TestCase
         $enrollments->expects(self::exactly(2))->method('countActiveForSession')->with($session)->willReturn(5);
 
         $metadata = new TrainingMetadataFormatter($this->createMock(TrainingCategoryRepository::class));
-        $formatter = new TrainingFormatter($enrollments, $metadata);
+        $formatter = new TrainingFormatter($enrollments, $metadata, new TrainingAvailabilityCalculator());
 
         $sessionPayload = $formatter->formatSession($session);
         self::assertSame('hybrid', $sessionPayload['format']);
@@ -130,6 +132,7 @@ final class TrainingFormatterTest extends TestCase
         $formatter = new TrainingFormatter(
             $enrollments,
             new TrainingMetadataFormatter($this->createMock(TrainingCategoryRepository::class)),
+            new TrainingAvailabilityCalculator(),
         );
 
         $session->setStatus('scheduled');

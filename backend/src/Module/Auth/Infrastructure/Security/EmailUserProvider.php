@@ -46,6 +46,7 @@ final readonly class EmailUserProvider implements UserProviderInterface
 
     public function supportsClass(string $class): bool
     {
-        return is_a($class, \App\Module\User\Domain\Entity\User::class, true);
+        return is_a($class, SymfonySecurityUser::class, true)
+            || is_a($class, \App\Module\User\Domain\Entity\User::class, true);
     }
 }

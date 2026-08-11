@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Application\Provider;
 
-
 /**
  * Provides default checklist templates per audit type.
  */
@@ -13,7 +12,7 @@ final class AuditTemplateDefinitions
     /**
      * @return array<string, list<array{key: string, label: string, level?: string}>> category => items
      */
-        /** @return array<string, list<array{key: string, label: string, level?: string}>> */
+    /** @return array<string, list<array{key: string, label: string, level?: string}>> */
     public static function accessibilityTemplate(): array
     {
         // Expanded with WCAG levels (A/AA/AAA) commonly aligned to RGAA topics
