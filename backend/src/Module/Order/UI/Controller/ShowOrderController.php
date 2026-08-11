@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
-use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,35 +17,20 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ShowOrderController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly OrderRepositoryPort $orders,
-        private readonly ProductRatingRepositoryPort $ratings,
-        private readonly OrderAccessPolicy $accessPolicy,
-        private readonly OrderFormatter $orderFormatter,
+        private readonly CustomerOrderPortalService $portal,
     ) {
     }
 
     public function __invoke(int $orderId): JsonResponse
     {
-        $order = $this->orders->find($orderId);
+        $order = $this->portal->showForUser($this->currentUser(), $orderId);
         if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$this->accessPolicy->canView($user, $order)) {
-            return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        $orderItemIds = [];
-        foreach ($order->getItems() as $item) {
-            if (null !== $item->getId()) {
-                $orderItemIds[] = $item->getId();
-            }
-        }
-        $ratings = $this->ratings->findByOrderItemIds($orderItemIds);
-
-        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order, $ratings));
+        return ApiResponse::successItem('order', $order);
     }
 }

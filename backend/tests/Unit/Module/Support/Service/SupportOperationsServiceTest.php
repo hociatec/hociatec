@@ -167,8 +167,7 @@ final class SupportOperationsServiceTest extends TestCase
             $this->repository(SupportRequestRepository::class),
             $this->repository(UserRepository::class),
             $this->repository(OrderRepository::class),
-            $this->customerEmailService(),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
+            new \App\Module\Support\Application\Workflow\SupportRequestService(new DoctrineUnitOfWork($entityManager), $this->customerEmailService()),
             new AdminOperationsFormatter(
                 new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter($this->repository(OrderRepository::class), $this->repository(OrderEventRepository::class)),
                 \App\Tests\Support\OrderFormatterFactory::create(),

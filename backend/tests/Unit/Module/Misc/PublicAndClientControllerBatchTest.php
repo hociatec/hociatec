@@ -10,6 +10,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\UI\Controller\ListFavoritesController;
+use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
 use App\Module\Order\Application\Workflow\OrderWorkflowService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
@@ -108,10 +109,19 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $workflow = new OrderWorkflowService(new OrderPersistence($entityManager));
 
-        $controller = new class($orders, $workflow, $owner) extends CancelMyOrderController {
-            public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
+        $ratings = $this->createMock(\App\Module\Rating\Application\Port\ProductRatingRepositoryPort::class);
+        $portal = new CustomerOrderPortalService(
+            $orders,
+            $ratings,
+            new OrderAccessPolicy(),
+            \App\Tests\Support\OrderFormatterFactory::create(),
+            $workflow,
+        );
+
+        $controller = new class($portal, $owner) extends CancelMyOrderController {
+            public function __construct(CustomerOrderPortalService $portal, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy(), \App\Tests\Support\OrderFormatterFactory::create());
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -122,10 +132,10 @@ final class PublicAndClientControllerBatchTest extends TestCase
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller(404)->getStatusCode());
 
-        $otherUserController = new class($orders, $workflow, $actor) extends CancelMyOrderController {
-            public function __construct(OrderRepository $orders, OrderWorkflowService $workflow, private readonly User $user)
+        $otherUserController = new class($portal, $actor) extends CancelMyOrderController {
+            public function __construct(CustomerOrderPortalService $portal, private readonly User $user)
             {
-                parent::__construct($orders, $workflow, new OrderAccessPolicy(), \App\Tests\Support\OrderFormatterFactory::create());
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

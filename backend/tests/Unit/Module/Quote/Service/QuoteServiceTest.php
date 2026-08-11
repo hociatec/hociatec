@@ -177,7 +177,7 @@ final class QuoteServiceTest extends TestCase
         $source->addItem($sourceItem);
 
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(Quote::class));
-        $entityManager->expects(self::once())->method('flush');
+        $entityManager->expects(self::exactly(2))->method('flush');
         $entityManager->expects(self::once())->method('remove')->with(self::isInstanceOf(Quote::class));
 
         $copy = $service->duplicate($source);

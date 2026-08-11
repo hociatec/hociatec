@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Order\UI\Controller;
 
-use App\Module\Order\Application\Port\OrderRepositoryPort;
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Workflow\OrderWorkflowService;
-use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Domain\Security\OrderAccessPolicy;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,33 +17,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class CancelMyOrderController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly OrderRepositoryPort $orders,
-        private readonly OrderWorkflowService $workflow,
-        private readonly OrderAccessPolicy $accessPolicy,
-        private readonly OrderFormatter $orderFormatter,
+        private readonly CustomerOrderPortalService $portal,
     ) {
     }
 
     public function __invoke(int $orderId): JsonResponse
     {
-        $order = $this->orders->find($orderId);
+        try {
+            $order = $this->portal->cancelForUser($this->currentUser(), $orderId);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
         if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        if (!$this->accessPolicy->canCancel($user, $order)) {
-            return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        if (Order::STATUS_PENDING !== $order->getStatus()) {
-            return ApiResponse::error('Seules les commandes en attente peuvent etre annulees.', Response::HTTP_BAD_REQUEST);
-        }
-
-        $this->workflow->cancel($order);
-
-        return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));
+        return ApiResponse::successItem('order', $order);
     }
 }

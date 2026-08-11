@@ -11,7 +11,9 @@ use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Favorite\UI\Controller\RemoveFavoriteController;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
+use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
 use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
@@ -156,10 +158,16 @@ final class UserControllerAndSecurityBatchTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $entityManager->expects(self::once())->method('flush');
         $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
-        $quoteController = new class($quotes, $workflow, $user) extends DeleteMyQuoteController {
-            public function __construct(QuoteRepository $quotes, QuoteWorkflowService $workflow, private User $user)
+        $portal = new CustomerQuotePortalService(
+            $quotes,
+            new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator()),
+            new QuoteAccessPolicy(),
+            $workflow,
+        );
+        $quoteController = new class($portal, $user) extends DeleteMyQuoteController {
+            public function __construct(CustomerQuotePortalService $portal, private User $user)
             {
-                parent::__construct($quotes, $workflow, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

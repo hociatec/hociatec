@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
-use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
-use App\Module\User\Domain\Entity\User;
+use App\Module\TradeIn\Application\Workflow\CustomerTradeInPortalService;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,28 +16,21 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class DownloadMyTradeInReceiptController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly TradeInRequestRepositoryPort $requests,
-        private readonly TradeInPrivateFileStoragePort $files,
-        private readonly TradeInAccessPolicy $accessPolicy,
+        private readonly CustomerTradeInPortalService $portal,
         private readonly AttachmentResponseFactory $attachments,
     ) {
     }
 
     public function __invoke(int $id): Response
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $request = $this->requests->find($id);
-        if (null === $request || !$this->accessPolicy->canDownloadReceipt($user, $request)) {
+        $receipt = $this->portal->downloadReceiptForUser($this->currentUser(), $id);
+        if (null === $receipt) {
             throw $this->createNotFoundException('Justificatif indisponible.');
         }
 
-        $receiptPath = $request->getReceiptPath();
-        if (null === $receiptPath) {
-            throw $this->createNotFoundException('Justificatif indisponible.');
-        }
-
-        return $this->attachments->create($this->files->read($receiptPath), 'justificatif-reprise-'.$request->getReference().'.pdf', 'application/pdf');
+        return $this->attachments->create($receipt['content'], $receipt['filename'], 'application/pdf');
     }
 }

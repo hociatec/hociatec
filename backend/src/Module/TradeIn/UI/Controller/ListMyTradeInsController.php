@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\TradeIn\UI\Controller;
 
-use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use App\Module\TradeIn\Application\Projection\TradeInFormatter;
-use App\Module\User\Domain\Entity\User;
+use App\Module\TradeIn\Application\Workflow\CustomerTradeInPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,9 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class ListMyTradeInsController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly TradeInRequestRepositoryPort $requests,
-        private readonly TradeInFormatter $formatter,
+        private readonly CustomerTradeInPortalService $portal,
     ) {
     }
 
@@ -29,10 +29,8 @@ final class ListMyTradeInsController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $items = $this->requests->findByUser($user, $pagination->perPage, $pagination->offset());
+        $result = $this->portal->listForUser($this->currentUser(), $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::paginated(array_map(fn ($item) => $this->formatter->format($item), $items), $pagination->metadata($this->requests->countByUser($user)));
+        return ApiResponse::paginated($result['items'], $pagination->metadata($result['total']));
     }
 }

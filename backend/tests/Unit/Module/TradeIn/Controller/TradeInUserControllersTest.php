@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\TradeIn\Controller;
 
+use App\Module\TradeIn\Application\Projection\TradeInFormatter;
+use App\Module\TradeIn\Application\Workflow\CustomerTradeInPortalService;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Domain\Security\TradeInAccessPolicy;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
@@ -33,15 +35,22 @@ final class TradeInUserControllersTest extends TradeInIntegrationTestCase
         file_put_contents($this->projectDir().'/var/private/trade-ins/receipt.pdf', '%PDF-receipt');
 
         $repository = $this->tradeInRepository($em);
-        $list = new ListMyTradeInsController($repository, new \App\Module\TradeIn\Application\Projection\TradeInFormatter());
+        $portal = new CustomerTradeInPortalService(
+            $repository,
+            new TradeInFormatter(),
+            new TradeInAccessPolicy(),
+            $this->tradeInService($this->mockEntityManager(self::any())),
+            new TradeInPrivateFileStorage($this->projectDir()),
+        );
+        $list = new ListMyTradeInsController($portal);
         $list->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $list()->getStatusCode());
 
-        $download = new DownloadMyTradeInReceiptController($repository, new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
+        $download = new DownloadMyTradeInReceiptController($portal, new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $download->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_OK, $download((int) $request->getId())->getStatusCode());
 
-        $respond = new RespondToTradeInOfferController($repository, $this->tradeInService($this->mockEntityManager(self::any())), new TradeInAccessPolicy());
+        $respond = new RespondToTradeInOfferController($portal);
         $respond->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_NOT_FOUND, $respond((int) $foreign->getId(), 'accept')->getStatusCode());
         self::assertSame(Response::HTTP_CONFLICT, $respond((int) $submitted->getId(), 'accept')->getStatusCode());
@@ -62,7 +71,16 @@ final class TradeInUserControllersTest extends TradeInIntegrationTestCase
         $em->persist($ownedWithoutReceipt);
         $em->flush();
 
-        $download = new DownloadMyTradeInReceiptController($this->tradeInRepository($em), new TradeInPrivateFileStorage($this->projectDir()), new TradeInAccessPolicy(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
+        $download = new DownloadMyTradeInReceiptController(
+            new CustomerTradeInPortalService(
+                $this->tradeInRepository($em),
+                new TradeInFormatter(),
+                new TradeInAccessPolicy(),
+                $this->tradeInService($this->mockEntityManager(self::any())),
+                new TradeInPrivateFileStorage($this->projectDir()),
+            ),
+            new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(),
+        );
         $download->setContainer($this->controllerContainer($user));
 
         try {

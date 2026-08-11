@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Training\Application\Calculator\TrainingAvailabilityCalculator;
 use App\Module\Training\Application\Projection\TrainingFormatter;
+use App\Module\Training\Application\Workflow\CustomerTrainingPortalService;
 use App\Module\Training\Application\Projection\TrainingMetadataFormatter;
 use App\Module\Training\Application\Writer\TrainingWriter;
 use App\Module\Training\Domain\Entity\Training;
@@ -109,10 +110,11 @@ final class TrainingControllerBatchTest extends TestCase
         $enrollmentsPayload = json_decode((string) $enrollmentsList(new Request())->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Payée', $enrollmentsPayload['data']['items'][0]['statusLabel']);
 
-        $client = new class($enrollmentRepo, $formatter, $enrollment->getUser()) extends ListMyTrainingEnrollmentsController {
-            public function __construct(TrainingEnrollmentRepository $enrollments, TrainingFormatter $formatter, private readonly User $user)
+        $clientPortal = new CustomerTrainingPortalService($enrollmentRepo, $formatter);
+        $client = new class($clientPortal, $enrollment->getUser()) extends ListMyTrainingEnrollmentsController {
+            public function __construct(CustomerTrainingPortalService $portal, private readonly User $user)
             {
-                parent::__construct($enrollments, $formatter);
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

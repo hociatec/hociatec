@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
-use App\Module\BetaTest\Application\Writer\BugReportCommentWriter;
+use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
-use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -24,37 +22,39 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class CreateBugReportCommentController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepositoryPort $reports,
-        private readonly BugReportAccessPolicy $accessPolicy,
-        private readonly BugReportCommentWriter $writer,
+        private readonly CustomerBugReportPortalService $portal,
         private readonly BugReportCommentFormatter $formatter,
-    ) {
+    )
+    {
     }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
-        $report = $this->reports->find($id);
-        if (null === $report) {
-            return ApiResponse::error('Rapport introuvable.', 404);
-        }
-
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        if (!$user->isAdmin() && !$this->accessPolicy->canComment($user, $report)) {
-            return ApiResponse::error('Accès refusé.', 403);
-        }
-
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
 
         try {
-            $comment = $this->writer->create($report, $user, (string) ($payload['content'] ?? ''));
+            $comment = $this->portal->createCommentForUser($user, $id, (string) ($payload['content'] ?? ''));
+        } catch (\DomainException $exception) {
+            return ApiResponse::error('Accès refusé.', 403);
+        } catch (\InvalidArgumentException $exception) {
+            if ('' === trim((string) ($payload['content'] ?? ''))) {
+                return ApiResponse::error('Le contenu du message ne peut pas être vide.', 422);
+            }
+
+            return ApiResponse::error('Rapport introuvable.', 404);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Le contenu du message ne peut pas être vide.', 422);
         } catch (BetaTestOperationException $exception) {
             return ApiResponse::internalError($exception->getMessage());
+        }
+
+        if (null === $comment) {
+            return ApiResponse::error('Rapport introuvable.', 404);
         }
 
         return ApiResponse::created($this->formatter->format($comment), 'Message envoyé.');

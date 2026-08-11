@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\BetaTest;
 
+use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
 use App\Module\BetaTest\Application\Workflow\BugReportActivityLogger;
 use App\Module\BetaTest\Application\Writer\BugReportCommentWriter;
 use App\Module\BetaTest\Application\Writer\BugReportWriter;
@@ -41,6 +42,13 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         $persistence = new DoctrineUnitOfWork($em);
         $notifier = $this->notifier($em);
         $activity = new BugReportActivityLogger($persistence);
+        $portal = new CustomerBugReportPortalService(
+            $reports,
+            $accessPolicy,
+            $comments,
+            new BugReportCommentWriter($persistence, $activity, $notifier, $this->users($em)),
+            $storage,
+        );
 
         self::assertCount(1, $reports->findForUser($user));
         self::assertCount(1, $reports->findForUserPaginated($user, 10, 0));
@@ -51,13 +59,13 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         self::assertSame(1, $reports->countForAdmin(['severity' => 'high']));
         self::assertCount(1, $reports->findExportRows(['campaignId' => $campaign->getId()]));
 
-        $list = new ListMyBugReportsController($reports, $formatter);
+        $list = new ListMyBugReportsController($portal, $formatter);
         $list->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $list(Request::create('/'))->getStatusCode());
         $list->setContainer($this->container($user));
         self::assertSame(Response::HTTP_OK, $list(Request::create('/?page=1&perPage=5'))->getStatusCode());
 
-        $show = new ShowBugReportController($reports, $formatter, $accessPolicy);
+        $show = new ShowBugReportController($portal, $formatter);
         $show->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $show((int) $report->getId())->getStatusCode());
         $show->setContainer($this->container($user));
@@ -66,7 +74,7 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         $show->setContainer($this->container($this->user('other@example.com')));
         self::assertSame(Response::HTTP_FORBIDDEN, $show((int) $report->getId())->getStatusCode());
 
-        $commentList = new ListBugReportCommentsController($reports, $comments, $accessPolicy, $commentFormatter);
+        $commentList = new ListBugReportCommentsController($portal, $commentFormatter);
         $commentList->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $commentList((int) $report->getId(), Request::create('/'))->getStatusCode());
         $commentList->setContainer($this->container($user));
@@ -75,8 +83,7 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         $commentList->setContainer($this->container($this->user('comment-other@example.com')));
         self::assertSame(Response::HTTP_FORBIDDEN, $commentList((int) $report->getId(), Request::create('/'))->getStatusCode());
 
-        $commentWriter = new BugReportCommentWriter($persistence, $activity, $notifier, $this->users($em));
-        $createComment = new CreateBugReportCommentController($reports, $accessPolicy, $commentWriter, $commentFormatter);
+        $createComment = new CreateBugReportCommentController($portal, $commentFormatter);
         $createComment->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"No auth"}'))->getStatusCode());
         $createComment->setContainer($this->container($user));
@@ -88,7 +95,7 @@ final class BugReportControllersCompletionTest extends BetaTestIntegrationTestCa
         $createComment->setContainer($this->container($admin));
         self::assertSame(Response::HTTP_CREATED, $createComment((int) $report->getId(), Request::create('/', 'POST', [], [], [], [], '{"content":"Admin"}'))->getStatusCode());
 
-        $download = new DownloadBugReportAttachmentController($reports, $storage, $accessPolicy);
+        $download = new DownloadBugReportAttachmentController($portal);
         $download->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $download((int) $report->getId(), 'screen.png')->getStatusCode());
         $download->setContainer($this->container($user));

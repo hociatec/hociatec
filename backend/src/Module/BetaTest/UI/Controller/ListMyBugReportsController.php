@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
 use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -18,7 +19,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/beta/reports', methods: ['GET'])] #[IsGranted('ROLE_USER')]
 final class ListMyBugReportsController extends AbstractController
 {
-    public function __construct(private readonly BugReportRepositoryPort $reports, private readonly BugReportResponseFormatter $formatter)
+    public function __construct(
+        private readonly CustomerBugReportPortalService $portal,
+        private readonly BugReportResponseFormatter $formatter,
+    )
     {
     }
 
@@ -30,10 +34,11 @@ final class ListMyBugReportsController extends AbstractController
         }
 
         $pagination = RequestQueryMapper::pagination($request, 12, 100);
+        $result = $this->portal->listForUser($user, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(fn ($report) => $this->formatter->format($report), $this->reports->findForUserPaginated($user, $pagination->perPage, $pagination->offset())),
-            $pagination->metadata($this->reports->countForUser($user)),
+            array_map(fn (BugReport $report): array => $this->formatter->format($report), $result['items']),
+            $pagination->metadata($result['total']),
         );
     }
 }

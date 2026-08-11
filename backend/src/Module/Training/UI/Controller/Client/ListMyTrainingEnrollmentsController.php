@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Training\UI\Controller\Client;
 
-use App\Module\Training\Application\Port\TrainingEnrollmentRepositoryPort;
-use App\Module\Training\Application\Projection\TrainingFormatter;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Training\Application\Workflow\CustomerTrainingPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,9 +18,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyTrainingEnrollmentsController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly TrainingEnrollmentRepositoryPort $enrollments,
-        private readonly TrainingFormatter $formatter,
+        private readonly CustomerTrainingPortalService $portal,
     ) {
     }
 
@@ -29,12 +29,11 @@ class ListMyTrainingEnrollmentsController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
+        $result = $this->portal->listEnrollmentsForUser($this->currentUser(), $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(fn ($enrollment) => $this->formatter->formatEnrollment($enrollment), $this->enrollments->findForUser($user, $pagination->perPage, $pagination->offset())),
-            $pagination->metadata($this->enrollments->countForUser($user)),
+            $result['items'],
+            $pagination->metadata($result['total']),
         );
     }
 }

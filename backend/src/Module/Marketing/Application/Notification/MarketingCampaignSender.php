@@ -6,6 +6,7 @@ namespace App\Module\Marketing\Application\Notification;
 
 use App\Module\Marketing\Application\Outbox\PrepareMarketingCampaignHandler;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignContentSnapshot;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Outbox\Application\Outbox;
 use App\Shared\Application\TransactionManager;
@@ -35,9 +36,7 @@ final readonly class MarketingCampaignSender
             $name,
             $segmentKey,
             $criteria,
-            $subject,
-            $htmlBody,
-            $textBody,
+            new EmailCampaignContentSnapshot($subject, $htmlBody, $textBody),
             0,
             $createdByEmail,
             $template,

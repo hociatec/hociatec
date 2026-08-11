@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Port\QuoteRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,22 +17,20 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class GetMyQuoteController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteFormatter $formatter,
-        private readonly QuoteAccessPolicy $accessPolicy,
+        private readonly CustomerQuotePortalService $portal,
     ) {
     }
 
     public function __invoke(int $id): JsonResponse
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $quote = $this->quotes->find($id);
-        if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
+        $quote = $this->portal->showForUser($this->currentUser(), $id);
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success($this->formatter->formatQuote($quote));
+        return ApiResponse::success($quote);
     }
 }

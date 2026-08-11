@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Port\QuoteRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,23 +18,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyQuotesController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteFormatter $formatter,
+        private readonly CustomerQuotePortalService $portal,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $quotes = $this->quotes->findByCustomerEmail($user->getEmail(), $pagination->perPage, $pagination->offset());
-        $items = array_map(
-            fn ($q) => $this->formatter->formatQuote($q),
-            $quotes,
-        );
+        $result = $this->portal->listForUser($this->currentUser(), $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::paginated($items, $pagination->metadata($this->quotes->countByCustomerEmail($user->getEmail())));
+        return ApiResponse::paginated($result['items'], $pagination->metadata($result['total']));
     }
 }

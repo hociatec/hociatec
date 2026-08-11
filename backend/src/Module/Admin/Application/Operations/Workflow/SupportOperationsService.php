@@ -6,18 +6,16 @@ namespace App\Module\Admin\Application\Operations\Workflow;
 
 use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
+use App\Module\Support\Application\Workflow\SupportRequestService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
 use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
-use App\Module\Support\Domain\Enum\SupportStatus;
 use App\Module\User\Application\Port\UserRepositoryPort;
-use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class SupportOperationsService
@@ -26,8 +24,7 @@ final readonly class SupportOperationsService
         private SupportRequestRepositoryPort $supportRequests,
         private UserRepositoryPort $users,
         private OrderRepositoryPort $orders,
-        private AdminCustomerEmailService $customerEmails,
-        private OperationsPersistence $persistence,
+        private SupportRequestService $supportService,
         private AdminOperationsFormatter $formatter,
     ) {
     }
@@ -50,21 +47,8 @@ final readonly class SupportOperationsService
             throw new OperationsResourceNotFoundException('Client introuvable.');
         }
 
-        $support = new SupportRequest($customer, $data->subject);
-        $support
-            ->setReason($data->reason)
-            ->setMessage($data->message)
-            ->setInternalNotes($data->internalNotes);
-
         $order = null !== $data->orderId ? $this->orders->find($data->orderId) : null;
-        if ($order instanceof Order) {
-            $support->setOrderId($order->getId(), $order->getNumber());
-        } else {
-            $support->setOrderId(null);
-        }
-
-        $this->persistence->persist($support);
-        $this->persistence->commit();
+        $support = $this->supportService->create($customer, $data, $order instanceof Order ? $order : null);
 
         return $this->formatter->supportRequest($support);
     }
@@ -72,19 +56,7 @@ final readonly class SupportOperationsService
     public function update(int $supportId, SupportUpdateData $data): SupportRequestOutput
     {
         $support = $this->findSupport($supportId);
-        if (null !== $data->status && null === SupportStatus::tryFrom($data->status)) {
-            throw new \InvalidArgumentException('Statut de support invalide.');
-        }
-        if (null !== $data->status) {
-            $support->setStatus($data->status);
-        }
-        if (null !== $data->internalNotes) {
-            $support->setInternalNotes($data->internalNotes);
-        }
-        if (null !== $data->subject) {
-            $support->setSubject($data->subject);
-        }
-        $this->persistence->commit();
+        $support = $this->supportService->update($support, $data);
 
         return $this->formatter->supportRequest($support);
     }
@@ -92,23 +64,7 @@ final readonly class SupportOperationsService
     public function reply(int $supportId, SupportReplyData $data): SupportRequestOutput
     {
         $support = $this->findSupport($supportId);
-        $subject = trim($data->subject ?? ('Réponse à votre demande SAV #'.$support->getId()));
-        $message = trim($data->message);
-        if ('' === $message) {
-            throw new \InvalidArgumentException('Le message de réponse est obligatoire.');
-        }
-
-        $this->customerEmails->send($support->getCustomer(), $subject, $message);
-        $note = trim(sprintf(
-            "%s\n[%s] Réponse envoyée au client : %s",
-            (string) $support->getInternalNotes(),
-            (new \DateTimeImmutable())->format('d/m/Y H:i'),
-            $subject,
-        ));
-        $support
-            ->setInternalNotes($note)
-            ->setStatus($data->status ?? SupportRequest::STATUS_WAITING_CUSTOMER);
-        $this->persistence->commit();
+        $support = $this->supportService->reply($support, $data);
 
         return $this->formatter->supportRequest($support);
     }

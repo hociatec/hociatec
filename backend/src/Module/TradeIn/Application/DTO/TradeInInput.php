@@ -48,32 +48,28 @@ final readonly class TradeInInput
     #[Assert\IsTrue]
     public bool $consent;
 
-    /**
-     * @param array{firstName:string,lastName:string,email:string,phone:string}                                                                                                                                                                                             $contact
-     * @param array{category:string,productName:string,purchasePriceCents:int,purchaseYear:int,brand:?string,model:?string,serialNumber:?string,conditionGrade:string,functional:bool,hasAccessories:bool,hasProofOfPurchase:bool,description:string,catalogProductId:?int} $product
-     */
     public function __construct(
-        private array $contact,
-        private array $product,
+        private TradeInContactInput $contact,
+        private TradeInProductInput $product,
         bool $consent,
     ) {
-        $this->firstName = $contact['firstName'];
-        $this->lastName = $contact['lastName'];
-        $this->email = $contact['email'];
-        $this->phone = $contact['phone'];
-        $this->category = $product['category'];
-        $this->productName = $product['productName'];
-        $this->purchasePriceCents = $product['purchasePriceCents'];
-        $this->purchaseYear = $product['purchaseYear'];
-        $this->brand = $product['brand'];
-        $this->model = $product['model'];
-        $this->serialNumber = $product['serialNumber'];
-        $this->conditionGrade = $product['conditionGrade'];
-        $this->functional = $product['functional'];
-        $this->hasAccessories = $product['hasAccessories'];
-        $this->hasProofOfPurchase = $product['hasProofOfPurchase'];
-        $this->description = $product['description'];
-        $this->catalogProductId = $product['catalogProductId'];
+        $this->firstName = $contact->firstName;
+        $this->lastName = $contact->lastName;
+        $this->email = $contact->email;
+        $this->phone = $contact->phone;
+        $this->category = $product->category;
+        $this->productName = $product->productName;
+        $this->purchasePriceCents = $product->purchasePriceCents;
+        $this->purchaseYear = $product->purchaseYear;
+        $this->brand = $product->technicalIdentity->brand;
+        $this->model = $product->technicalIdentity->model;
+        $this->serialNumber = $product->technicalIdentity->serialNumber;
+        $this->conditionGrade = $product->condition->conditionGrade;
+        $this->functional = $product->condition->functional;
+        $this->hasAccessories = $product->condition->hasAccessories;
+        $this->hasProofOfPurchase = $product->condition->hasProofOfPurchase;
+        $this->description = $product->condition->description;
+        $this->catalogProductId = $product->catalogProductId;
         $this->consent = $consent;
     }
 
@@ -85,29 +81,42 @@ final readonly class TradeInInput
         $bool = static fn (string $key): bool => in_array($payload[$key] ?? false, [true, '1', 'true', 'on'], true);
 
         return new self(
-            ['firstName' => $string('firstName'), 'lastName' => $string('lastName'), 'email' => $string('email'), 'phone' => $string('phone')],
-            [
-                'category' => $string('category'),
-                'productName' => $string('productName'),
-                'purchasePriceCents' => is_numeric($payload['purchasePriceCents'] ?? null) ? (int) $payload['purchasePriceCents'] : 0,
-                'purchaseYear' => is_numeric($payload['purchaseYear'] ?? null) ? (int) $payload['purchaseYear'] : 0,
-                'brand' => $nullable('brand'),
-                'model' => $nullable('model'),
-                'serialNumber' => $nullable('serialNumber'),
-                'conditionGrade' => $string('conditionGrade'),
-                'functional' => $bool('functional'),
-                'hasAccessories' => $bool('hasAccessories'),
-                'hasProofOfPurchase' => $bool('hasProofOfPurchase'),
-                'description' => $string('description'),
-                'catalogProductId' => is_numeric($payload['catalogProductId'] ?? null) ? (int) $payload['catalogProductId'] : null,
-            ],
+            new TradeInContactInput(
+                $string('firstName'),
+                $string('lastName'),
+                $string('email'),
+                $string('phone'),
+            ),
+            new TradeInProductInput(
+                $string('category'),
+                $string('productName'),
+                is_numeric($payload['purchasePriceCents'] ?? null) ? (int) $payload['purchasePriceCents'] : 0,
+                is_numeric($payload['purchaseYear'] ?? null) ? (int) $payload['purchaseYear'] : 0,
+                new TradeInTechnicalIdentityInput(
+                    $nullable('brand'),
+                    $nullable('model'),
+                    $nullable('serialNumber'),
+                ),
+                new TradeInConditionInput(
+                    $string('conditionGrade'),
+                    $bool('functional'),
+                    $bool('hasAccessories'),
+                    $bool('hasProofOfPurchase'),
+                    $string('description'),
+                ),
+                is_numeric($payload['catalogProductId'] ?? null) ? (int) $payload['catalogProductId'] : null,
+            ),
             $bool('consent'),
         );
     }
 
     public function withContact(string $firstName, string $lastName, string $email, string $phone): self
     {
-        return new self(['firstName' => $firstName, 'lastName' => $lastName, 'email' => $email, 'phone' => $phone], $this->product, $this->consent);
+        return new self(
+            new TradeInContactInput($firstName, $lastName, $email, $phone),
+            $this->product,
+            $this->consent,
+        );
     }
 
     public function applicant(): TradeInApplicant

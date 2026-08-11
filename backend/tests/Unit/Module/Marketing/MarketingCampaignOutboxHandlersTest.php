@@ -10,6 +10,7 @@ use App\Module\Marketing\Application\Outbox\PrepareMarketingCampaignHandler;
 use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Provider\MarketingAudienceProvider;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignContentSnapshot;
 use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
 use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingAudienceQuery;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository;
@@ -27,7 +28,7 @@ final class MarketingCampaignOutboxHandlersTest extends MarketingIntegrationTest
         $em = $this->entityManager();
         $optIn = $this->user('prep-news@example.com', [CommunicationPreferences::NEWS_EMAIL]);
         $silent = $this->user('prep-silent@example.com', []);
-        $campaign = new EmailCampaign('Prepared campaign', 'all_verified_users', [], 'Bonjour', '<p>Body</p>', null, 0, 'admin@example.com');
+        $campaign = new EmailCampaign('Prepared campaign', 'all_verified_users', [], new EmailCampaignContentSnapshot('Bonjour', '<p>Body</p>'), 0, 'admin@example.com');
         $em->persist($optIn);
         $em->persist($silent);
         $em->persist($campaign);

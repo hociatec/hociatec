@@ -5,30 +5,26 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Operations\Workflow;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
+use App\Module\Order\Application\Exception\RefundRequestNotFoundException;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Module\Order\Application\Workflow\RefundRequestService;
+use App\Module\Order\Application\Workflow\RefundStripeProcessor;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Domain\Enum\RefundStatus;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Application\TransactionManager;
 
 final class RefundOperationsService
 {
-    private readonly RefundStripeProcessor $stripeProcessor;
-
     public function __construct(
         private RefundOperationPorts $ports,
+        private RefundRequestService $refundService,
+        private RefundStripeProcessor $stripeProcessor,
         private OrderEventLogger $events,
-        private OperationsPersistence $persistence,
-        TransactionManager $transactions,
         private AdminOperationsFormatter $formatter,
-        ?RefundStripeProcessor $stripeProcessor = null,
     ) {
-        $this->stripeProcessor = $stripeProcessor ?? new RefundStripeProcessor($ports, $persistence, $transactions);
     }
 
     /** @return list<array<string, mixed>> */
@@ -50,15 +46,7 @@ final class RefundOperationsService
             throw new OperationsResourceNotFoundException('Commande introuvable.');
         }
 
-        $refund = new RefundRequest($order, $data->amountCents ?? $order->getTotalPriceCents(), $actor);
-        $refund
-            ->setReason($data->reason)
-            ->setInternalNotes($data->internalNotes)
-            ->setPaymentId($data->paymentId)
-            ->setCurrencyCode($data->currencyCode);
-
-        $this->persistence->persist($refund);
-        $this->persistence->commit();
+        $refund = $this->refundService->create($order, $data, $actor);
 
         return $this->formatter->refund($refund);
     }
@@ -67,19 +55,7 @@ final class RefundOperationsService
     public function update(int $refundId, RefundUpdateData $data): array
     {
         $refund = $this->findRefund($refundId);
-        if (null !== $data->status && null === RefundStatus::tryFrom($data->status)) {
-            throw new \InvalidArgumentException('Statut de remboursement invalide.');
-        }
-        if (null !== $data->status) {
-            $refund->setStatus($data->status);
-        }
-        if (null !== $data->stripeRefundId) {
-            $refund->setStripeRefundId($data->stripeRefundId);
-        }
-        if (null !== $data->internalNotes) {
-            $refund->setInternalNotes($data->internalNotes);
-        }
-        $this->persistence->commit();
+        $refund = $this->refundService->update($refund, $data);
 
         return $this->formatter->refund($refund);
     }
@@ -88,7 +64,11 @@ final class RefundOperationsService
     public function processStripe(int $refundId, RefundProcessData $data, ?User $actor): array
     {
         $refund = $this->findRefund($refundId);
-        $processed = $this->stripeProcessor->process($refund, $data);
+        try {
+            $processed = $this->stripeProcessor->process($refund, $data);
+        } catch (RefundRequestNotFoundException $exception) {
+            throw new OperationsResourceNotFoundException($exception->getMessage(), previous: $exception);
+        }
         $refund = $processed['refund'];
         $stripeRefund = $processed['stripeRefund'];
         $this->events->log(

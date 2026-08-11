@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Quote\UI\Controller\Client;
 
-use App\Module\Quote\Application\Port\QuoteRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
-use App\Module\Quote\Domain\Entity\Quote;
-use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,35 +17,26 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class AcceptMyQuoteController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly QuoteRepositoryPort $quotes,
-        private readonly QuoteFormatter $formatter,
-        private readonly QuoteWorkflowService $workflow,
-        private readonly QuoteAccessPolicy $accessPolicy,
+        private readonly CustomerQuotePortalService $portal,
     ) {
     }
 
     public function __invoke(int $id): JsonResponse
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $quote = $this->quotes->find($id);
-
-        if (null === $quote || !$this->accessPolicy->canView($user, $quote)) {
+        try {
+            $quote = $this->portal->acceptForUser($this->currentUser(), $id);
+        } catch (\DomainException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+        if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        if (null !== $quote->getConvertedOrderId()) {
-            return ApiResponse::error('Ce devis est déjà converti en commande.', Response::HTTP_CONFLICT);
-        }
-
-        if (!in_array($quote->getStatus(), [Quote::STATUS_SENT, Quote::STATUS_ACCEPTED], true)) {
-            return ApiResponse::error('Ce devis ne peut pas être accepté.', Response::HTTP_BAD_REQUEST);
-        }
-
-        $quote->accept();
-        $this->workflow->setStatus($quote, Quote::STATUS_ACCEPTED);
-
-        return ApiResponse::success($this->formatter->formatQuote($quote), JsonResponse::HTTP_OK, 'Le devis a bien été accepté.');
+        return ApiResponse::success($quote, JsonResponse::HTTP_OK, 'Le devis a bien été accepté.');
     }
 }

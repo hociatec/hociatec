@@ -27,6 +27,7 @@ use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Security\EmailTemplatePreviewSanitizer;
 use App\Module\Marketing\Application\Workflow\MarketingCampaignService;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignContentSnapshot;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRepository;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
@@ -188,7 +189,7 @@ final class AdminMarketingControllersTest extends TestCase
 
         $template = new EmailTemplate('Digest', 'digest', 'newsletter', 'Subject', '<p>Hello</p>', null);
         $this->setId($template, 7);
-        $campaign = new EmailCampaign('Campaign', 'all_customers', ['vip' => true], 'Subject', '<p>Hello</p>', null, 3, 'admin@example.test', $template);
+        $campaign = new EmailCampaign('Campaign', 'all_customers', ['vip' => true], new EmailCampaignContentSnapshot('Subject', '<p>Hello</p>'), 3, 'admin@example.test', $template);
         $this->setId($campaign, 8);
 
         $campaigns = $this->createMock(EmailCampaignRepository::class);

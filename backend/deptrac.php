@@ -28,7 +28,7 @@ return static function (DeptracConfig $config): void {
         )
         ->rulesets(
             Ruleset::forLayer($ui)->accesses($application, $domain, $infrastructure),
-            Ruleset::forLayer($application)->accesses($domain, $infrastructure),
+            Ruleset::forLayer($application)->accesses($domain),
             Ruleset::forLayer($domain)->accesses(),
             Ruleset::forLayer($infrastructure)->accesses($application, $domain),
         )

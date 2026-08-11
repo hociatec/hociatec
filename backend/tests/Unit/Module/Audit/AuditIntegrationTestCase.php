@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Audit;
 
 use App\Module\Audit\Application\Workflow\AuditEventLogger;
+use App\Module\Audit\Application\Workflow\CustomerAuditPortalService;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditEvent;
 use App\Module\Audit\Domain\Entity\AuditRequest;
+use App\Module\Audit\Domain\Security\AuditAccessPolicy;
 use App\Module\Audit\Infrastructure\Repository\AuditChecklistItemRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditEventRepository;
 use App\Module\Audit\Infrastructure\Repository\AuditRequestRepository;
@@ -93,6 +95,18 @@ abstract class AuditIntegrationTestCase extends TestCase
     protected function eventLogger(): AuditEventLogger
     {
         return new AuditEventLogger(new DoctrineUnitOfWork($this->entityManager()));
+    }
+
+    protected function customerPortal(?\App\Module\Audit\Application\Port\AuditPdfRenderer $pdf = null): CustomerAuditPortalService
+    {
+        return new CustomerAuditPortalService(
+            $this->auditRequests(),
+            $this->auditEvents(),
+            new \App\Module\Audit\Application\Projection\AuditMetadataFormatter(),
+            new AuditAccessPolicy(),
+            $this->eventLogger(),
+            $pdf,
+        );
     }
 
     protected function validator(): DtoValidator

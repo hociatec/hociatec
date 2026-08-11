@@ -30,13 +30,12 @@ final class ClientAuditControllersTest extends AuditIntegrationTestCase
         $this->entityManager()->persist(new AuditEvent($audit, 'created', 'Created', $user->getId(), 'Ada Lovelace'));
         $this->entityManager()->flush();
 
-        $metadata = new AuditMetadataFormatter();
-        $list = new ListMyAuditsController($this->auditRequests(), $metadata);
+        $list = new ListMyAuditsController($this->customerPortal());
         $list->setContainer($this->container($user));
         $listPayload = $this->payload($list());
         self::assertSame('AUD-CLIENT-1', $listPayload['data']['items'][0]['number']);
 
-        $show = new ShowMyAuditController($this->auditRequests(), $this->auditEvents(), $metadata, new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
+        $show = new ShowMyAuditController($this->customerPortal());
         $show->setContainer($this->container($user));
         $showPayload = $this->payload($show((int) $audit->getId()));
         self::assertSame('title', $showPayload['data']['items'][0]['key']);
@@ -56,7 +55,7 @@ final class ClientAuditControllersTest extends AuditIntegrationTestCase
             'objectives' => 'Audit UX',
         ]))->getStatusCode());
 
-        $pdf = new GeneratePdfController($this->auditRequests(), new AuditPdfService(), $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
+        $pdf = new GeneratePdfController($this->customerPortal(new AuditPdfService()), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $pdf->setContainer($this->container($user));
         $detailedPdf = $pdf->detailed((int) $audit->getId());
         self::assertSame(200, $detailedPdf->getStatusCode());
@@ -67,7 +66,7 @@ final class ClientAuditControllersTest extends AuditIntegrationTestCase
         self::assertSame('application/pdf', $summaryPdf->headers->get('Content-Type'));
         self::assertSame(404, $pdf->summary(999)->getStatusCode());
 
-        $unavailablePdf = new GeneratePdfController($this->auditRequests(), new class extends AuditPdfService {
+        $unavailablePdf = new GeneratePdfController($this->customerPortal(new class extends AuditPdfService {
             public function renderDetailed(AuditRequest $audit): string
             {
                 throw new \RuntimeException('pdf unavailable');
@@ -77,7 +76,7 @@ final class ClientAuditControllersTest extends AuditIntegrationTestCase
             {
                 throw new \RuntimeException('pdf unavailable');
             }
-        }, $this->eventLogger(), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), new \App\Module\Audit\Domain\Security\AuditAccessPolicy());
+        }), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
         $unavailablePdf->setContainer($this->container($user));
         self::assertSame(501, $unavailablePdf->detailed((int) $audit->getId())->getStatusCode());
         self::assertSame(501, $unavailablePdf->summary((int) $audit->getId())->getStatusCode());

@@ -2,21 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Admin\Application\Operations\Workflow;
+namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
-use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Order\Application\DTO\RefundProcessData;
+use App\Module\Order\Application\Exception\RefundRequestNotFoundException;
+use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
+use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
+use App\Module\Order\Application\Port\StripeRefundClient;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Shared\Application\Exception\ExternalServiceException;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class RefundStripeProcessor
 {
     public function __construct(
-        private RefundOperationPorts $ports,
-        private OperationsPersistence $persistence,
+        private RefundRequestRepositoryPort $refunds,
+        private OrderCheckoutSessionRepositoryPort $payments,
+        private StripeRefundClient $stripe,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
     ) {
     }
@@ -44,9 +49,9 @@ final readonly class RefundStripeProcessor
         $previousStatus = $refund->getStatus();
         $refundId = (int) $refund->getId();
         $refund = $this->transactions->transactional(function () use ($refundId): RefundRequest {
-            $locked = $this->ports->refunds->findForUpdate($refundId);
+            $locked = $this->refunds->findForUpdate($refundId);
             if (!$locked instanceof RefundRequest) {
-                throw new OperationsResourceNotFoundException('Remboursement introuvable.');
+                throw new RefundRequestNotFoundException('Remboursement introuvable.');
             }
             if (null !== $locked->getStripeRefundId() || in_array($locked->getStatus(), [RefundRequest::STATUS_PROCESSING, RefundRequest::STATUS_PROCESSED], true)) {
                 throw new \InvalidArgumentException('Ce remboursement est déjà en cours ou a déjà été traité.');
@@ -58,7 +63,7 @@ final readonly class RefundStripeProcessor
         });
 
         try {
-            $stripeRefund = $this->ports->stripe->createRefund(
+            $stripeRefund = $this->stripe->createRefund(
                 [
                     'payment_intent' => $paymentIntentId,
                     'amount' => $refund->getAmountCents(),
@@ -83,7 +88,7 @@ final readonly class RefundStripeProcessor
 
     private function findPaymentIntent(Order $order): ?string
     {
-        foreach ($this->ports->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
+        foreach ($this->payments->findRecentByOrderId((int) $order->getId(), 5) as $payment) {
             $paymentIntentId = $payment->getStripePaymentIntentId();
             if (null !== $paymentIntentId && '' !== $paymentIntentId) {
                 return $paymentIntentId;

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort;
-use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
-use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
+use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
+use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -22,35 +21,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ListBugReportCommentsController extends AbstractController
 {
     public function __construct(
-        private readonly BugReportRepositoryPort $reports,
-        private readonly BugReportCommentRepositoryPort $comments,
-        private readonly BugReportAccessPolicy $accessPolicy,
+        private readonly CustomerBugReportPortalService $portal,
         private readonly BugReportCommentFormatter $formatter,
-    ) {
+    )
+    {
     }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
-        $report = $this->reports->find($id);
-        if (null === $report) {
-            return ApiResponse::error('Rapport introuvable.', 404);
-        }
-
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
         if (!$user instanceof User) {
             return ApiResponse::error('Authentification requise.', 401);
         }
 
-        if (!$user->isAdmin() && !$this->accessPolicy->canView($user, $report)) {
+        $pagination = RequestQueryMapper::pagination($request, 6, 50);
+        try {
+            $result = $this->portal->listCommentsForUser($user, $id, $pagination->perPage, $pagination->offset());
+        } catch (\DomainException $exception) {
             return ApiResponse::error('Accès refusé.', 403);
         }
-
-        $pagination = RequestQueryMapper::pagination($request, 6, 50);
-        $commentsList = $this->comments->findForReportPaginated($report, $pagination->perPage, $pagination->offset());
+        if (null === $result) {
+            return ApiResponse::error('Rapport introuvable.', 404);
+        }
 
         return ApiResponse::paginated(
-            array_map(fn ($comment): array => $this->formatter->format($comment), $commentsList),
-            $pagination->metadata($this->comments->countForReport($report)),
+            array_map(fn (BugReportComment $comment): array => $this->formatter->format($comment), $result['items']),
+            $pagination->metadata($result['total']),
         );
     }
 }

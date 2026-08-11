@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
+use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
+use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\Quote\Domain\Security\QuoteAccessPolicy;
+use App\Module\Quote\Infrastructure\Persistence\QuotePersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\Quote\UI\Controller\Client\GetMyQuoteController;
 use App\Module\Quote\UI\Controller\PublicApi\CreateQuoteController;
@@ -55,11 +59,19 @@ final class MoreLightControllerBatchesTest extends TestCase
         $quote->setCustomerEmail('ada@example.com');
         $quotes = $this->createMock(QuoteRepository::class);
         $quotes->expects(self::exactly(3))->method('find')->willReturnOnConsecutiveCalls(null, $quote, $quote);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $workflow = new QuoteWorkflowService(new QuotePersistence($entityManager));
+        $portal = new CustomerQuotePortalService(
+            $quotes,
+            new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator()),
+            new QuoteAccessPolicy(),
+            $workflow,
+        );
 
-        $controller = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()), $user) extends GetMyQuoteController {
-            public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
+        $controller = new class($portal, $user) extends GetMyQuoteController {
+            public function __construct(CustomerQuotePortalService $portal, private readonly User $user)
             {
-                parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -71,10 +83,10 @@ final class MoreLightControllerBatchesTest extends TestCase
         $payload = json_decode((string) $controller(7)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Q-1', $payload['data']['number']);
 
-        $otherUserController = new class($quotes, new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()), $this->user('grace@example.com')) extends GetMyQuoteController {
-            public function __construct(QuoteRepository $quotes, \App\Module\Quote\Application\Projection\QuoteFormatter $formatter, private readonly User $user)
+        $otherUserController = new class($portal, $this->user('grace@example.com')) extends GetMyQuoteController {
+            public function __construct(CustomerQuotePortalService $portal, private readonly User $user)
             {
-                parent::__construct($quotes, $formatter, new \App\Module\Quote\Domain\Security\QuoteAccessPolicy());
+                parent::__construct($portal);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

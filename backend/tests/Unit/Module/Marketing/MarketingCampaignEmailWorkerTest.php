@@ -8,6 +8,7 @@ use App\Module\Marketing\Application\Message\MarketingCampaignRecipientEmailMess
 use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
 use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignContentSnapshot;
 use App\Module\Marketing\Domain\Entity\EmailCampaignRecipient;
 use App\Module\Marketing\Infrastructure\MessageHandler\MarketingCampaignEmailSender;
 use App\Module\Marketing\Infrastructure\MessageHandler\SendMarketingCampaignRecipientEmailHandler;
@@ -26,7 +27,7 @@ final class MarketingCampaignEmailWorkerTest extends MarketingIntegrationTestCas
     {
         $em = $this->entityManager();
         $user = $this->user('news-worker@example.com', [CommunicationPreferences::NEWS_EMAIL]);
-        $campaign = new EmailCampaign('Worker campaign', 'all_verified_users', [], 'Bonjour {{first_name}}', '<p>{{email}}</p>', null, 0, 'admin@example.com');
+        $campaign = new EmailCampaign('Worker campaign', 'all_verified_users', [], new EmailCampaignContentSnapshot('Bonjour {{first_name}}', '<p>{{email}}</p>'), 0, 'admin@example.com');
         $recipient = EmailCampaignRecipient::pending($campaign, $user);
         $em->persist($user);
         $em->persist($campaign);

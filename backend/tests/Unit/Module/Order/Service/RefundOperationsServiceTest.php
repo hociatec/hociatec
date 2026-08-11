@@ -17,6 +17,8 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Port\RefundRequestRepositoryPort;
 use App\Module\Order\Application\Port\StripeRefundClient;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Module\Order\Application\Workflow\RefundRequestService;
+use App\Module\Order\Application\Workflow\RefundStripeProcessor;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\RefundRequest;
@@ -24,6 +26,7 @@ use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -152,30 +155,17 @@ final class RefundOperationsServiceTest extends TestCase
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(RefundRequest::class));
         $entityManager->expects(self::exactly(2))->method('flush');
 
-        $service = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                $refunds,
-                $orders,
-                $this->unusedPayments(),
-                new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array
-                    {
-                        return [];
-                    }
-                },
-            ),
-            new OrderEventLogger(new OrderEventPersistence($entityManager)),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed
+        $service = $this->buildService(
+            refunds: $refunds,
+            orders: $orders,
+            payments: $this->unusedPayments(),
+            stripe: new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array
                 {
-                    return $operation();
+                    return [];
                 }
             },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+            entityManager: $entityManager,
         );
 
         self::assertCount(1, $service->list());
@@ -218,30 +208,17 @@ final class RefundOperationsServiceTest extends TestCase
             }
         };
         $orders = $this->unusedOrders();
-        $service = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                $refunds,
-                $orders,
-                $this->unusedPayments(),
-                new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array
-                    {
-                        return [];
-                    }
-                },
-            ),
-            new OrderEventLogger(new OrderEventPersistence($this->createMock(EntityManagerInterface::class))),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($this->createMock(EntityManagerInterface::class)),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed
+        $service = $this->buildService(
+            refunds: $refunds,
+            orders: $orders,
+            payments: $this->unusedPayments(),
+            stripe: new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array
                 {
-                    return $operation();
+                    return [];
                 }
             },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+            entityManager: $this->createMock(EntityManagerInterface::class),
         );
 
         try {
@@ -320,25 +297,12 @@ final class RefundOperationsServiceTest extends TestCase
         $entityManager->expects(self::once())->method('persist');
         $entityManager->expects(self::exactly(3))->method('flush');
 
-        $service = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                $refunds,
-                $this->unusedOrders(),
-                $this->unusedPayments(),
-                $stripe,
-            ),
-            new OrderEventLogger(new OrderEventPersistence($entityManager)),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed
-                {
-                    return $operation();
-                }
-            },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+        $service = $this->buildService(
+            refunds: $refunds,
+            orders: $this->unusedOrders(),
+            payments: $this->unusedPayments(),
+            stripe: $stripe,
+            entityManager: $entityManager,
         );
 
         $result = $service->processStripe(42, new RefundProcessData('REMBOURSER', 'pi_42'), $user);
@@ -456,30 +420,20 @@ final class RefundOperationsServiceTest extends TestCase
 
         $missingLockedRefund = new RefundRequest($order, 2500, $user);
         $this->assignId($missingLockedRefund, 15);
-        $missingLockedRefundService = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                new class($missingLockedRefund) implements RefundRequestRepositoryPort {
-                    public function __construct(private readonly RefundRequest $refund) {}
-                    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object { return 15 === $id ? $this->refund : null; }
-                    public function findForUpdate(int $id): ?RefundRequest { return null; }
-                    public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array { return []; }
-                    public function count(array $criteria): int { return 1; }
-                },
-                $this->unusedOrders(),
-                $this->unusedPayments(),
-                new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array { return []; }
-                },
-            ),
-            new OrderEventLogger(new OrderEventPersistence($this->createMock(EntityManagerInterface::class))),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($this->createMock(EntityManagerInterface::class)),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed { return $operation(); }
+        $missingLockedRefundService = $this->buildService(
+            refunds: new class($missingLockedRefund) implements RefundRequestRepositoryPort {
+                public function __construct(private readonly RefundRequest $refund) {}
+                public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object { return 15 === $id ? $this->refund : null; }
+                public function findForUpdate(int $id): ?RefundRequest { return null; }
+                public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array { return []; }
+                public function count(array $criteria): int { return 1; }
             },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+            orders: $this->unusedOrders(),
+            payments: $this->unusedPayments(),
+            stripe: new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array { return []; }
+            },
+            entityManager: $this->createMock(EntityManagerInterface::class),
         );
         try {
             $missingLockedRefundService->processStripe(15, new RefundProcessData('REMBOURSER', 'pi_15'), $user);
@@ -509,33 +463,23 @@ final class RefundOperationsServiceTest extends TestCase
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(2))->method('flush');
-        $service = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                new class($refund) implements RefundRequestRepositoryPort {
-                    public function __construct(private readonly RefundRequest $refund) {}
-                    public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object { return 17 === $id ? $this->refund : null; }
-                    public function findForUpdate(int $id): ?RefundRequest { return 17 === $id ? $this->refund : null; }
-                    public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array { return []; }
-                    public function count(array $criteria): int { return 1; }
-                },
-                $this->unusedOrders(),
-                $this->unusedPayments(),
-                new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array
-                    {
-                        throw new \App\Shared\Application\Exception\ExternalServiceException('stripe down');
-                    }
-                },
-            ),
-            new OrderEventLogger(new OrderEventPersistence($entityManager)),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed { return $operation(); }
+        $service = $this->buildService(
+            refunds: new class($refund) implements RefundRequestRepositoryPort {
+                public function __construct(private readonly RefundRequest $refund) {}
+                public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object { return 17 === $id ? $this->refund : null; }
+                public function findForUpdate(int $id): ?RefundRequest { return 17 === $id ? $this->refund : null; }
+                public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array { return []; }
+                public function count(array $criteria): int { return 1; }
             },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+            orders: $this->unusedOrders(),
+            payments: $this->unusedPayments(),
+            stripe: new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array
+                {
+                    throw new \App\Shared\Application\Exception\ExternalServiceException('stripe down');
+                }
+            },
+            entityManager: $entityManager,
         );
 
         try {
@@ -580,30 +524,17 @@ final class RefundOperationsServiceTest extends TestCase
             }
         };
 
-        $service = new RefundOperationsService(
-            new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
-                $refunds,
-                $this->unusedOrders(),
-                $this->unusedPayments(),
-                new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array
-                    {
-                        return [];
-                    }
-                },
-            ),
-            new OrderEventLogger(new OrderEventPersistence($this->createMock(EntityManagerInterface::class))),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($this->createMock(EntityManagerInterface::class)),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed
+        $service = $this->buildService(
+            refunds: $refunds,
+            orders: $this->unusedOrders(),
+            payments: $this->unusedPayments(),
+            stripe: new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array
                 {
-                    return $operation();
+                    return [];
                 }
             },
-            new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
-                \App\Tests\Support\OrderFormatterFactory::create(),
-            ),
+            entityManager: $this->createMock(EntityManagerInterface::class),
         );
 
         $this->expectException(\InvalidArgumentException::class);
@@ -652,28 +583,47 @@ final class RefundOperationsServiceTest extends TestCase
             }
         };
 
+        return $this->buildService(
+            refunds: $refunds,
+            orders: $this->unusedOrders(),
+            payments: $payments ?? $this->unusedPayments(),
+            stripe: $stripe ?? new class implements StripeRefundClient {
+                public function createRefund(array $payload, ?string $idempotencyKey = null): array
+                {
+                    return ['id' => 're_default'];
+                }
+            },
+            entityManager: $entityManager,
+        );
+    }
+
+    private function buildService(
+        RefundRequestRepositoryPort $refunds,
+        OrderRepositoryPort $orders,
+        OrderCheckoutSessionRepositoryPort $payments,
+        StripeRefundClient $stripe,
+        EntityManagerInterface $entityManager,
+    ): RefundOperationsService {
+        $transactions = new class implements TransactionManager {
+            public function transactional(\Closure $operation): mixed
+            {
+                return $operation();
+            }
+        };
+        $unitOfWork = new DoctrineUnitOfWork($entityManager);
+
         return new RefundOperationsService(
             new \App\Module\Admin\Application\Operations\Workflow\RefundOperationPorts(
                 $refunds,
-                $this->unusedOrders(),
-                $payments ?? $this->unusedPayments(),
-                $stripe ?? new class implements StripeRefundClient {
-                    public function createRefund(array $payload, ?string $idempotencyKey = null): array
-                    {
-                        return ['id' => 're_default'];
-                    }
-                },
+                $orders,
+                $payments,
+                $stripe,
             ),
+            new RefundRequestService($unitOfWork),
+            new RefundStripeProcessor($refunds, $payments, $stripe, $unitOfWork, $transactions),
             new OrderEventLogger(new OrderEventPersistence($entityManager)),
-            new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager),
-            new class implements TransactionManager {
-                public function transactional(\Closure $operation): mixed
-                {
-                    return $operation();
-                }
-            },
             new AdminOperationsFormatter(
-                new AdminOperationsEmailLogFormatter($this->unusedOrders(), $this->unusedOrderEvents()),
+                new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
                 \App\Tests\Support\OrderFormatterFactory::create(),
             ),
         );

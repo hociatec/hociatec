@@ -74,18 +74,27 @@ class EmailCampaign
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(mixed ...$values)
-    {
-        $data = $this->normalizeConstructorData($values);
-        $this->name = (string) $data['name'];
-        $this->segmentKey = (string) $data['segmentKey'];
-        $this->criteria = $data['criteria'];
-        $this->subjectSnapshot = (string) $data['subjectSnapshot'];
-        $this->htmlSnapshot = (string) $data['htmlSnapshot'];
-        $this->textSnapshot = $data['textSnapshot'];
-        $this->recipientsCount = $this->guardNonNegativeCount((int) $data['recipientsCount'], 'Le nombre de destinataires ne peut pas être négatif.');
-        $this->createdByEmail = $data['createdByEmail'];
-        $this->template = $data['template'];
+    /**
+     * @param array<string, mixed> $criteria
+     */
+    public function __construct(
+        string $name,
+        string $segmentKey,
+        array $criteria,
+        EmailCampaignContentSnapshot $content,
+        int $recipientsCount = 0,
+        ?string $createdByEmail = null,
+        ?EmailTemplate $template = null,
+    ) {
+        $this->name = trim($name);
+        $this->segmentKey = trim($segmentKey);
+        $this->criteria = $criteria;
+        $this->subjectSnapshot = trim($content->subject);
+        $this->htmlSnapshot = $content->html;
+        $this->textSnapshot = null !== $content->text ? trim($content->text) : null;
+        $this->recipientsCount = $this->guardNonNegativeCount($recipientsCount, 'Le nombre de destinataires ne peut pas être négatif.');
+        $this->createdByEmail = null !== $createdByEmail ? trim($createdByEmail) : null;
+        $this->template = $template;
         $this->initializeTimestamps();
     }
 
@@ -219,46 +228,6 @@ class EmailCampaign
     public function touch(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array{
-     *   name:mixed,
-     *   segmentKey:mixed,
-     *   criteria:array<string, mixed>,
-     *   subjectSnapshot:mixed,
-     *   htmlSnapshot:mixed,
-     *   textSnapshot:?string,
-     *   recipientsCount:int,
-     *   createdByEmail:?string,
-     *   template:?EmailTemplate
-     * }
-     */
-    private function normalizeConstructorData(array $values): array
-    {
-        $keys = ['name', 'segmentKey', 'criteria', 'subjectSnapshot', 'htmlSnapshot', 'textSnapshot', 'recipientsCount', 'createdByEmail', 'template'];
-        $data = array_fill_keys($keys, null);
-        $data['criteria'] = [];
-        $data['recipientsCount'] = 0;
-
-        foreach ($values as $index => $value) {
-            if (!is_int($index) || !isset($keys[$index])) {
-                continue;
-            }
-
-            $data[$keys[$index]] = $value;
-        }
-
-        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-        $data['criteria'] = is_array($data['criteria']) ? $data['criteria'] : [];
-        $data['textSnapshot'] = is_string($data['textSnapshot']) ? $data['textSnapshot'] : null;
-        $data['recipientsCount'] = (int) $data['recipientsCount'];
-        $data['createdByEmail'] = is_string($data['createdByEmail']) ? $data['createdByEmail'] : null;
-        $data['template'] = $data['template'] instanceof EmailTemplate ? $data['template'] : null;
-
-        return $data;
     }
 
     private function initializeTimestamps(): void

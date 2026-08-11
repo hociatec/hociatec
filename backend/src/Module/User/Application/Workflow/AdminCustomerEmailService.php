@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Module\User\Application\Workflow;
 
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
+use App\Module\Support\Application\Port\SupportCustomerMessengerPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\Mail\EmailSender;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
-final class AdminCustomerEmailService
+final class AdminCustomerEmailService implements SupportCustomerMessengerPort
 {
     public function __construct(
         private readonly EmailSender $mailer,

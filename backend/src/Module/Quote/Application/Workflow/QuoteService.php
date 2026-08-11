@@ -99,6 +99,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
         try {
             $this->persistence->save($copy);
+            $this->persistence->commit();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de dupliquer le devis.', $exception);
         }

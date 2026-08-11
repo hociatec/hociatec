@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Provider;
 
+use App\Module\Catalog\Application\DTO\ProductCatalogDiscountView;
+use App\Module\Catalog\Application\DTO\ProductCatalogFacetItem;
+use App\Module\Catalog\Application\DTO\ProductCatalogPriceRange;
+
 final class ProductCatalogFacetCollector
 {
     /**
@@ -14,12 +18,12 @@ final class ProductCatalogFacetCollector
     public function collectFacets(array $products): array
     {
         return [
-            'brands' => $this->countScalarFacet($products, 'brand'),
-            'categories' => $this->countCategoryFacet($products),
-            'storageCapacities' => $this->countArrayFacet($products, 'variantStorages', 'storageCapacity'),
-            'memoryRams' => $this->countArrayFacet($products, 'variantMemoryRams', 'memoryRam'),
-            'colors' => $this->countArrayFacet($products, 'variantColors', 'color'),
-            'price' => $this->collectPriceBounds($products),
+            'brands' => $this->facetItemsToArrays($this->countScalarFacet($products, 'brand')),
+            'categories' => $this->facetItemsToArrays($this->countCategoryFacet($products)),
+            'storageCapacities' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantStorages', 'storageCapacity')),
+            'memoryRams' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantMemoryRams', 'memoryRam')),
+            'colors' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantColors', 'color')),
+            'price' => $this->collectPriceBounds($products)->toArray(),
         ];
     }
 
@@ -31,16 +35,16 @@ final class ProductCatalogFacetCollector
         $priceCents = (int) ($product['priceCents'] ?? 0);
         $discount = $this->extractDiscount($product);
 
-        if (null === $discount || !$this->isDiscountActive($discount['startsAt'], $discount['endsAt'])) {
+        if (null === $discount || !$this->isDiscountActive($discount->startsAt, $discount->endsAt)) {
             return $priceCents;
         }
 
-        if ('fixed_cents' === $discount['type']) {
-            return max(0, $priceCents - $discount['value']);
+        if ('fixed_cents' === $discount->type) {
+            return max(0, $priceCents - $discount->value);
         }
 
-        if ('percent' === $discount['type']) {
-            return max(0, (int) round($priceCents * (100 - $discount['value']) / 100));
+        if ('percent' === $discount->type) {
+            return max(0, (int) round($priceCents * (100 - $discount->value) / 100));
         }
 
         return $priceCents;
@@ -48,10 +52,8 @@ final class ProductCatalogFacetCollector
 
     /**
      * @param array<string, mixed> $product
-     *
-     * @return array{type:string,value:int,startsAt:mixed,endsAt:mixed}|null
      */
-    private function extractDiscount(array $product): ?array
+    private function extractDiscount(array $product): ?ProductCatalogDiscountView
     {
         $enabled = (bool) ($product['discountEnabled'] ?? false);
         $type = $product['discountType'] ?? null;
@@ -61,12 +63,12 @@ final class ProductCatalogFacetCollector
             return null;
         }
 
-        return [
-            'type' => $type,
-            'value' => $value,
-            'startsAt' => $product['discountStartsAt'] ?? null,
-            'endsAt' => $product['discountEndsAt'] ?? null,
-        ];
+        return new ProductCatalogDiscountView(
+            $type,
+            $value,
+            $product['discountStartsAt'] ?? null,
+            $product['discountEndsAt'] ?? null,
+        );
     }
 
     private function isDiscountActive(mixed $startsAt, mixed $endsAt): bool
@@ -83,7 +85,7 @@ final class ProductCatalogFacetCollector
     /**
      * @param list<array<string, mixed>> $products
      *
-     * @return list<array{value:string,count:int,extra:null}>
+     * @return list<ProductCatalogFacetItem>
      */
     private function countScalarFacet(array $products, string $key): array
     {
@@ -99,20 +101,13 @@ final class ProductCatalogFacetCollector
             $this->incrementFacetCount($counts, $value);
         }
 
-        return array_map(
-            static fn (array $item): array => [
-                'value' => $item['value'],
-                'count' => $item['count'],
-                'extra' => null,
-            ],
-            $this->sortFacetItems($counts),
-        );
+        return $this->sortFacetItems($counts);
     }
 
     /**
      * @param list<array<string, mixed>> $products
      *
-     * @return list<array{value:string,count:int,extra:?string}>
+     * @return list<ProductCatalogFacetItem>
      */
     private function countCategoryFacet(array $products): array
     {
@@ -140,7 +135,7 @@ final class ProductCatalogFacetCollector
     /**
      * @param list<array<string, mixed>> $products
      *
-     * @return list<array{value:string,count:int,extra:null}>
+     * @return list<ProductCatalogFacetItem>
      */
     private function countArrayFacet(array $products, string $arrayKey, string $fallbackKey): array
     {
@@ -171,25 +166,16 @@ final class ProductCatalogFacetCollector
             }
         }
 
-        return array_map(
-            static fn (array $item): array => [
-                'value' => $item['value'],
-                'count' => $item['count'],
-                'extra' => null,
-            ],
-            $this->sortFacetItems($counts),
-        );
+        return $this->sortFacetItems($counts);
     }
 
     /**
      * @param list<array<string, mixed>> $products
-     *
-     * @return array{min:int|null,max:int|null}
      */
-    private function collectPriceBounds(array $products): array
+    private function collectPriceBounds(array $products): ProductCatalogPriceRange
     {
         if ([] === $products) {
-            return ['min' => null, 'max' => null];
+            return new ProductCatalogPriceRange(null, null);
         }
 
         $prices = array_map(
@@ -199,37 +185,43 @@ final class ProductCatalogFacetCollector
             $products,
         );
 
-        return [
-            'min' => min($prices),
-            'max' => max($prices),
-        ];
+        return new ProductCatalogPriceRange(min($prices), max($prices));
     }
 
     /**
-     * @param array<string, array{value:string,count:int,extra:?string}> $counts
+     * @param array<string, ProductCatalogFacetItem> $counts
      */
     private function incrementFacetCount(array &$counts, string $value, ?string $extra = null): void
     {
         $normalized = mb_strtolower($value);
-        $counts[$normalized] = [
-            'value' => $value,
-            'count' => ($counts[$normalized]['count'] ?? 0) + 1,
-            'extra' => $extra,
-        ];
+        $current = $counts[$normalized] ?? null;
+        $counts[$normalized] = new ProductCatalogFacetItem(
+            $value,
+            ($current?->count ?? 0) + 1,
+            $extra,
+        );
     }
 
     /**
-     * @template TExtra of string|null
+     * @param array<string, ProductCatalogFacetItem> $counts
      *
-     * @param array<string, array{value:string,count:int,extra:TExtra}> $counts
-     *
-     * @return list<array{value:string,count:int,extra:TExtra}>
+     * @return list<ProductCatalogFacetItem>
      */
     private function sortFacetItems(array $counts): array
     {
         $items = array_values($counts);
-        usort($items, static fn (array $left, array $right): int => strcasecmp($left['value'], $right['value']));
+        usort($items, static fn (ProductCatalogFacetItem $left, ProductCatalogFacetItem $right): int => strcasecmp($left->value, $right->value));
 
         return $items;
+    }
+
+    /**
+     * @param list<ProductCatalogFacetItem> $items
+     *
+     * @return list<array{value:string,count:int,extra:?string}>
+     */
+    private function facetItemsToArrays(array $items): array
+    {
+        return array_map(static fn (ProductCatalogFacetItem $item): array => $item->toArray(), $items);
     }
 }

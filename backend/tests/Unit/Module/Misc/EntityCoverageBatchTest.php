@@ -13,6 +13,7 @@ use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
+use App\Module\Marketing\Domain\Entity\EmailCampaignContentSnapshot;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsArticleView;
@@ -108,9 +109,7 @@ final class EntityCoverageBatchTest extends TestCase
             'Campagne',
             'all_users',
             ['country' => 'FR'],
-            'Sujet snapshot',
-            '<p>Snapshot</p>',
-            'Text snapshot',
+            new EmailCampaignContentSnapshot('Sujet snapshot', '<p>Snapshot</p>', 'Text snapshot'),
             0,
             'admin@example.com',
             $template,
